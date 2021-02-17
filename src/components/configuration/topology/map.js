@@ -794,7 +794,7 @@ class NetworkMap extends Component {
     })
   }
   /**
-   * Get and set device data based on seat selection, or add new seat
+   * Get and set device data based on seat selection or add new seat
    * @method
    * @param {string} seatUUID - selected seat UUID
    * @param {object} info - MouseClick events

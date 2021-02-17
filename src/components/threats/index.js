@@ -592,7 +592,7 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
+   * @param {string} [options] - option for 'search', 'statistics' or 'alertDetails'
    * @param {string} [fromPage] - option for 'currentPage'
    * @param {string} type - button action type ('previous' or 'next')
    */
@@ -631,13 +631,14 @@ class ThreatsController extends Component {
           let tempThreatsData = {...threatsData};
 
           if (threatsData.currentPage > 1 && data.data.rows.length === 0) {
-            tempThreatsData.currentPage = threatsData.oldPage;
-
             helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
+
+            tempThreatsData.currentPage = threatsData.oldPage;
 
             this.setState({
               threatsData: tempThreatsData
             });
+            return;
           } else {
             let alertHistogram = {
               Emergency: {},
@@ -692,7 +693,7 @@ class ThreatsController extends Component {
                 alertDetails: tempAlertDetails
               }, () => {
                 if (options === 'alertDetails') {
-                  this.openDetailInfo('', '', type); //Pass index of 0
+                  this.openDetailInfo('', '', type);
                 }
               });
 
@@ -745,7 +746,7 @@ class ThreatsController extends Component {
                             allValue={allValue}
                             alertLevelColors={ALERT_LEVEL_COLORS}
                             handleOpenQueryMenu={this.handleOpenQueryMenu}
-                            hanldeDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
+                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
                         )
                       }
                     }
@@ -1308,8 +1309,8 @@ class ThreatsController extends Component {
    */
   handleSearchSubmit = () => {
     const {threatsData, alertChartsList} = this.state;
-    let tempThreatsData = {...threatsData};
     let tempAlertChartsList = alertChartsList;
+    let tempThreatsData = {...threatsData};
     tempThreatsData.dataFields = [];
     tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
@@ -1472,7 +1473,7 @@ class ThreatsController extends Component {
     this.handleCloseQueryMenu();
   }
   /**
-   * Add tree node to search filter
+   * Open details dialog when double click the table row
    * @method
    * @param {string} index - index of the alert data
    * @param {object} allValue - alert data
@@ -1480,7 +1481,6 @@ class ThreatsController extends Component {
    */
   handleRowDoubleClick = (index, allValue, event) => {
     this.openDetailInfo(index, allValue);
-
     event.stopPropagation();
     return null;
   }
@@ -1701,7 +1701,7 @@ class ThreatsController extends Component {
       setRowProps: (row, dataIndex, rowIndex) => {
         if (!row[0]) {
           return;
-        }      
+        }
 
         const allValue = row[0](rowIndex, 'getAllValue');
         const tableUniqueID = allValue.id;
