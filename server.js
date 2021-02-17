@@ -25,7 +25,7 @@ const cfg = _.assign({
   //apiPrefix: 'http:\//172.18.0.136/SCP', //Rays's machine
   //apiPrefix: 'http:\//172.18.0.87/SCP', //Rex's machine
   //apiPrefix: 'http:\//172.18.0.52/SCP', //Allen's machine
-  //apiPrefix: 'http:\//localhost:8080/SCP', //local machine
+  // apiPrefix: 'http:\//localhost:8080/SCP', //local machine
   port: process.env.PORT || 3000,
   version: '1.2.2437.491',
   lng: 'zh',

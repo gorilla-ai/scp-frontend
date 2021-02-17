@@ -72,7 +72,7 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'build/css/app-plain.css': 'less/app-plain.less',
-                    'build/css/app-dark.css': 'less/app-dark.less'
+                    // 'build/css/app-dark.css': 'less/app-dark.less'
                     // expand: true,
                     // //cwd: "../",
                     // src: ["less/*.less"],
