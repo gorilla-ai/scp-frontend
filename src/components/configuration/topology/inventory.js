@@ -368,7 +368,7 @@ class NetworkInventory extends Component {
    * @param {string} [seatUUID] - seat UUID
    */
   getDeviceData = (fromPage, options, seatUUID) => {
-    const {baseUrl} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {deviceSearch, hmdCheckbox, hmdSearchOptions, deviceData, currentDeviceData} = this.state;
     const page = fromPage === 'currentPage' ? deviceData.currentPage : 0;
     let dataParams = '';
@@ -526,7 +526,20 @@ class NetworkInventory extends Component {
                   return allValue;
                 }
 
-                if (val === 'owner') {
+                if (val === 'ip') {
+                  let iconType = '';
+                  let title = '';
+
+                  if (allValue.isConnected === true) {
+                    iconType = 'icon_connected_on';
+                    title = t('txt-online');
+                  } else if (allValue.isConnected === false) {
+                    iconType = 'icon_connected_off';
+                    title = t('txt-offline');
+                  }
+
+                  return <span><img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />{value}</span>
+                } else if (val === 'owner') {
                   if (allValue.ownerObj) {
                     return <span>{allValue.ownerObj.ownerName}</span>
                   } else {

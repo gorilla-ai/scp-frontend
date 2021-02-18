@@ -359,7 +359,7 @@ class Edge extends Component {
                     title: t('txt-' + allValue.agentApiStatus.toLowerCase())
                   };
 
-                  return <span><img src={icon.src} className='ip-edge' title={icon.title} />{value}</span>
+                  return <span><img src={icon.src} className='connections-status' title={icon.title} />{value}</span>
                 } else if (val === 'groupList') {
                   if (allValue.groupList.length > 0) {
                     return <div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}</div>
