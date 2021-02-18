@@ -2,6 +2,8 @@
 	"txt-createIncidents-selected": "將選取的告警建立資安監控事件單",
 	"txt-createIncident-tracked": "將全部已追蹤告警建立資安監控事件單",
 	"txt-trackedIncidents": "加入追蹤告警清單",
+	"txt-openTrackedIncidents": "開啟追蹤選單",
+	"txt-closeTrackedIncidents": "關閉追蹤選單",
 	"txt-remove-trackedIncidents": "從追蹤告警清單中移除",
 	"txt-createIncidentTools": "建立事件選單",
 	"txt-soc": "SOC",

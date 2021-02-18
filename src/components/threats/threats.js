@@ -131,7 +131,7 @@ class Threats extends Component {
    */
   renderTableContent = () => {
     const {mainContentData} = this.props;
-
+    console.log("threatsData == " , mainContentData.threatsData)
     if (!mainContentData.threatsData.dataContent) {
       return (
         <div className='table-content'>
@@ -145,7 +145,7 @@ class Threats extends Component {
     if (mainContentData.threatsData.dataContent.length > 0) {
       return (
         <MuiTableContent
-          data={mainContentData.threatsData}
+          data={mainContentData.trackData}
           tableOptions={mainContentData.tableOptions} />
       )
     }
@@ -153,31 +153,30 @@ class Threats extends Component {
 
   renderTrackTableContent = () => {
     const {mainContentData} = this.props;
-
-    if (!mainContentData.threatsData.dataContent) {
-      return (
-          <div className='table-content'>
-            <div className='table' style={{height: '78vh'}}>
-              <span className='loading'><i className='fg fg-loading-2'></i></span>
-            </div>
-          </div>
-      )
-    }
-
-    if (mainContentData.threatsData.dataContent.length > 0) {
-      return (
-          <MuiTableContent
-              data={mainContentData.threatsData}
-              tableOptions={mainContentData.tableOptions} />
-      )
-    }
+    console.log("trackData == " , mainContentData.trackData)
+    // if (!mainContentData.trackData.dataContent) {
+    //   return (
+    //       <div className='table-content'>
+    //         <div className='table' style={{height: '78vh'}}>
+    //           <span className='loading'><i className='fg fg-loading-2'></i></span>
+    //         </div>
+    //       </div>
+    //   )
+    // }
+    //
+    // if (mainContentData.trackData.dataContent.length > 0) {
+    //   return (
+    //       <MuiTableContent
+    //           data={mainContentData.trackData}
+    //           tableOptions={mainContentData.tableOptions} />
+    //   )
+    // }
   }
   render() {
     const {mainContentData, tabChartData} = this.props;
     const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
       return <Tab label={val} value={key} />
     });
-
     return (
       <div className='data-content'>
         <Tree
@@ -204,7 +203,7 @@ class Threats extends Component {
               this.renderTableContent()
             }
 
-            {mainContentData.activeSubTab === 'trackAlertList' &&
+            {mainContentData.activeSubTab === 'trackTreats' &&
               this.renderTrackTableContent()
             }
 

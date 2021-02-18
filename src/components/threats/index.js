@@ -26,6 +26,9 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined';
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
+
 const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -230,6 +233,7 @@ class ThreatsController extends Component {
         openFlag: false
       },
       tableType:'list',
+      threatsList:[],
       incidentAnchor:null,
       contextAnchor: null,
       currentQueryValue: '',
@@ -670,6 +674,14 @@ class ThreatsController extends Component {
               tempArray = _.map(tableData, val => { //Re-construct the Alert data
                 val._source.id = val._id;
                 val._source.index = val._index;
+
+                let selectCheck = false;
+                _.forEach(this.state.threatsList, data => {
+                  if (val.id === data.id) {
+                    selectCheck = true;
+                  }
+                })
+                val._source.select = selectCheck;
                 return val._source;
               });
 
@@ -677,7 +689,6 @@ class ThreatsController extends Component {
               tempAlertDetails.currentIndex = 0;
               tempAlertDetails.currentLength = tableData.length < threatsData.pageSize ? tableData.length : threatsData.pageSize;
               tempAlertDetails.all = tempArray;
-
               _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
                 if (data.event_histogram[val]) {
                   _.forEach(data.event_histogram[val].buckets, val2 => {
@@ -709,9 +720,9 @@ class ThreatsController extends Component {
               tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
                 return {
                   name: val,
-                  label: f(`alertFields.${val}`),
+                  label: val === 'select' ? '' : f(`alertFields.${val}`),
                   options: {
-                    sort: val === '_eventDttm_' ? true : false,
+                    sort: val === '_eventDttm_',
                     customBodyRenderLite: (dataIndex, options) => {
                       const allValue = tempThreatsData.dataContent[dataIndex];
                       let value = tempThreatsData.dataContent[dataIndex][val];
@@ -723,10 +734,10 @@ class ThreatsController extends Component {
                       if (val === 'select'){
                         return (
                             <Checkbox
-                                id={allValue.deviceId}
+                                id={allValue.id}
                                 className='checkbox-ui'
                                 name='select'
-                                checked={value}
+                                checked={allValue.select}
                                 onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
                                 color='primary' />
                         )
@@ -1711,8 +1722,16 @@ class ThreatsController extends Component {
             className: 'grey'
           };
         }
-      }
+      },
+      pagination:true
     };
+
+    if (this.state.tableType === 'select'){
+      tableOptions.pagination = false;
+    }else{
+      tableOptions.pagination = true;
+    }
+
     const mainContentData = {
       activeTab,
       tableOptions,
@@ -1950,7 +1969,31 @@ class ThreatsController extends Component {
   }
 
   handleSelectDataChangeMui = (allValue, event) => {
-    let edgeItemList = {...this.state.edgeList};
+    const {
+      threatsData,
+      threatsList,
+    } = this.state;
+    _.forEach(threatsData.dataContent, data => {
+
+      if (allValue.id === data.id) {
+        if (event.target.checked){
+          threatsList.push(allValue)
+        }else{
+          const index = threatsList.indexOf(allValue);
+          if (index > -1) {
+            threatsList.splice(index, 1);
+          }
+        }
+        data.select = event.target.checked
+      }
+    })
+    this.setState({
+      threatsList:threatsList,
+      threatsData: threatsData
+    },()=>{
+      // console.log("threatsData == " , this.state.threatsData)
+      // console.log("threatsList == " , this.state.threatsList)
+    })
 
   };
 
@@ -2027,7 +2070,16 @@ class ThreatsController extends Component {
             <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
             <Button variant='outlined' color='primary' className=' ' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
 
+
+            {this.state.tableType === 'list' &&
+            <Button variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.openSelectMenu.bind(this)}><ShoppingCartIcon/></Button>
+            }
+            {this.state.tableType === 'select' &&
+            <Button variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.closeSelectMenu.bind(this)}><RemoveShoppingCartIcon/></Button>
+            }
+            {this.state.tableType === 'select' &&
             <Button variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}><AddCircleOutlineIcon/></Button>
+            }
             <Button variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={this.state.activeSubTab !== 'trackTreats'}><RemoveCircleOutlineIcon/></Button>
             <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}  ><AllInboxOutlinedIcon/></Button>
 
