@@ -1405,7 +1405,7 @@ class AlertDetails extends Component {
           </ul>
         </div>
 
-        <div className='section'>
+        <div className='section' style={{marginTop: '-10px'}}>
           <header>{t('alert.txt-networkBehavior')}</header>
           <div className='title'>{t('alert.txt-activeThreatsCount')}</div>
           {!threatsCountData10 &&
