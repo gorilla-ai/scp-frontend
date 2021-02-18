@@ -30,7 +30,7 @@ class Syslog extends Component {
     const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
-      return <Tab label={val} value={key} />
+      return <Tab id={'syslog' + helper.capitalizeFirstLetter(key) + 'Tab'} label={val} value={key} />
     });
 
     return (
