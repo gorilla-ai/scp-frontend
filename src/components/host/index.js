@@ -1537,13 +1537,13 @@ class HostController extends Component {
                 textColor='primary'
                 value={activeTab}
                 onChange={this.handleSubTabChange}>
-                <Tab label={t('host.txt-hostList')} value='hostList' />
-                <Tab label={t('host.txt-deviceMap')} value='deviceMap' />
+                <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
+                <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
               </Tabs>
 
               {activeTab === 'hostList' &&
                 <div className='table-content'>
-                  <div className='table' style={{height: '65vh'}}>
+                  <div className='table' style={{height: '64vh'}}>
                     <ul className='host-list'>
                       {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
                         hostInfo.dataContent.map(this.getHostList)

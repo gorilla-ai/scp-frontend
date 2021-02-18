@@ -67,6 +67,6 @@
   "pwd": "密碼",
   "reenterPwd": "再次輸入密碼",
   "pwd-inconsistent":"兩次輸入的內容不相同",
-  "pwd-samePass":"請輸入新的密碼",
+  "pwd-samePass":"新密碼不可與舊密碼相同",
   "pwd-empty": "密碼不得為空白"
 }

@@ -153,7 +153,7 @@ class Threats extends Component {
   render() {
     const {mainContentData, tabChartData} = this.props;
     const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
-      return <Tab label={val} value={key} />
+      return <Tab id={'threats' + helper.capitalizeFirstLetter(key) + 'Tab'} label={val} value={key} />
     });
 
     return (
