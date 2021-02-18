@@ -690,7 +690,6 @@ html[data-theme='dark'] {
                 text-align: left;
                 margin-top: 1px;
                 span {
-                  display: inline-block;
                   width: 90%;
                 }
                 .main {
@@ -1115,6 +1114,10 @@ html[data-theme='dark'] {
             border: 1px solid var(--primaryBorder);
             thead {
               border-top: none;
+            }
+            &.table {
+              height: 215px;
+              overflow-y: auto;
             }
           }
           .chart-content {

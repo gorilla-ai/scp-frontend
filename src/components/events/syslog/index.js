@@ -349,7 +349,9 @@ class SyslogController extends Component {
       if (data.length > 0) {
         let fieldsArr = [];
 
-        data.unshift('_tableMenu_');
+        if (!_.includes(data, '_tableMenu_')) {
+          fieldsArr.push('_tableMenu_');
+        }
 
         _.forEach(data, val => {
           fieldsArr.push(val);

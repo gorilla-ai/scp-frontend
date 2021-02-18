@@ -28,7 +28,7 @@
   "12103":"User name cannot be empty",
   "12105":"User expire time has exceeded",
   "12106":"User is suspended",
-  "12107":"Username/Password is incorrect",
+  "12107":"Current username is incorrect",
   "12108":"User already has this right",
   "12109":"User already has this role",
   "12110":"Old password does not match",

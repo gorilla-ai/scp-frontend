@@ -27,7 +27,7 @@
   "12103":"User name cannot be empty",
   "12105":"User expire time has exceeded",
   "12106":"User is suspended",
-  "12107":"帳號/密碼有錯誤",
+  "12107":"舊密碼輸入錯誤",
   "12108":"User already has this right",
   "12109":"User already has this role",
   "12110":"Old password does not match",
