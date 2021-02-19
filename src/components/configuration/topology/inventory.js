@@ -113,8 +113,8 @@ class NetworkInventory extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'deviceList', //deviceList, deviceMap, deviceLA
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
+      activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
+      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps', 'hmdSettings' or 'autoSettings'
       showFilter: false,
       showScanInfo: false,
       yaraRuleOpen: false,
@@ -202,7 +202,7 @@ class NetworkInventory extends Component {
         scrollCount: 1,
         hasMore: false
       },
-      ownerType: 'existing', //existing, new
+      ownerType: 'existing', //'existing' or 'new'
       ownerIDduplicated: false,
       previewOwnerPic: '',
       changeAreaMap: false,
@@ -215,6 +215,7 @@ class NetworkInventory extends Component {
         hostName: ''
       },
       selectedTreeID: '',
+      floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
       yaraTriggerAll: false,
@@ -2087,7 +2088,7 @@ class NetworkInventory extends Component {
    * Close HMD scan info dialog
    * @method
    * @param {string} options - option for 'reload'
-   * @param {string} page - page type
+   * @param {string} page - page type for 'fromFloorMap'
    */
   closeDialog = (options, page) => {
     const {currentDeviceData, floorPlan} = this.state;
@@ -2097,7 +2098,8 @@ class NetworkInventory extends Component {
       tempCurrentDeviceData.areaUUID = floorPlan.treeData[0].areaUUID; //Reset selected tree to parent areaUUID
       
       this.setState({
-        currentDeviceData: tempCurrentDeviceData
+        currentDeviceData: tempCurrentDeviceData,
+        floorMapType: page
       });
     }
 
@@ -2990,7 +2992,12 @@ class NetworkInventory extends Component {
         }
 
         if (activeSteps === 4) {
-          this.handleAddIpConfirm();
+          this.setState({
+            floorMapType: ''
+          }, () => {
+            this.handleAddIpConfirm();
+          });
+          
           return;
         }
 
@@ -3825,7 +3832,8 @@ class NetworkInventory extends Component {
     this.setState({
       floorPlan: tempFloorPlan,
       changeAreaMap: true,
-      selectedTreeID: areaUUID
+      selectedTreeID: areaUUID,
+      floorMapType: 'selected'
     }, () => {
       this.getAreaData(areaUUID);
 
@@ -3866,12 +3874,11 @@ class NetworkInventory extends Component {
    * @returns TreeView component
    */
   displayTreeView = (type, tree, i) => {
-    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
-    let defaultSelectedID  = '';
+    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID, floorMapType} = this.state;
+    let defaultSelectedID = tree.areaUUID;
     let defaultExpanded = [];
 
     if (type === 'deviceMap') {
-      defaultSelectedID = tree.areaUUID;
       defaultExpanded = [tree.areaUUID];
     } else if (type === 'stepsFloor') {
       let currentAreaUUID = floorPlan.currentAreaUUID;
@@ -3880,7 +3887,11 @@ class NetworkInventory extends Component {
         currentAreaUUID = currentDeviceData.areaUUID;
       }
 
-      defaultSelectedID = selectedTreeID || tree.areaUUID;
+      if (floorMapType === 'fromFloorMap') {
+        defaultSelectedID = currentDeviceData.areaUUID;
+      } else if (floorMapType === 'selected') {
+        defaultSelectedID = selectedTreeID;
+      }
 
       if (changeAreaMap) {
         if (currentAreaUUID) {
@@ -3901,7 +3912,8 @@ class NetworkInventory extends Component {
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={defaultSelectedID}
-        defaultExpanded={defaultExpanded}>
+        defaultExpanded={defaultExpanded}
+        selected={defaultSelectedID}>
         {tree.areaUUID &&
           <TreeItem
             nodeId={tree.areaUUID}

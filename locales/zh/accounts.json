@@ -50,7 +50,7 @@
   "txt-ssl-connect": "SSL連線",
   "txt-test-connect": "連線測試",
   "txt-only-num-eng":"由至少 4 位數字與英文字母組成",
-  "txt-email-invalid":"正確的email",
+  "txt-email-invalid":"請輸入正確的email",
   "accountFields": {
     "account": "$t(l-account)",
     "name": "$t(l-name)",

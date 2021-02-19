@@ -80,6 +80,7 @@ class NetworkMap extends Component {
         name: '',
         map: ''
       },
+      floorMapType: '', //'fromFloorMap' or 'selected'
       seatData: {},
       selectedSeat: [],
       addSeat: {
@@ -448,7 +449,8 @@ class NetworkMap extends Component {
 
     this.setState({
       modalFloorOpen: false,
-      floorPlan: tempFloorPlan
+      floorPlan: tempFloorPlan,
+      floorMapType: 'selected'
     }, () => {
       this.getAreaData(areaUUID);
       this.getSeatData(areaUUID);
@@ -483,13 +485,23 @@ class NetworkMap extends Component {
    * @returns TreeView component
    */
   displayTreeView = (tree, i) => {
+    const {floorPlan, floorMapType} = this.state;
+    let defaultSelectedID = tree.areaUUID;
+
+    if (floorMapType === 'fromFloorMap') {
+      defaultSelectedID = tree.areaUUID;
+    } else if (floorMapType === 'selected') {
+      defaultSelectedID = floorPlan.currentAreaUUID;
+    }
+
     return (
       <TreeView
         key={i}
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={tree.areaUUID}
-        defaultExpanded={[tree.areaUUID]}>
+        defaultExpanded={[tree.areaUUID]}
+        selected={defaultSelectedID}>
         {tree.areaUUID &&
           <TreeItem
             nodeId={tree.areaUUID}
@@ -905,17 +917,18 @@ class NetworkMap extends Component {
     tempFloorPlan.map = '';
 
     this.setState({
-      floorPlan: tempFloorPlan,
       modalFloorOpen: false,
       showSeatData: false,
       addSeatOpen: false,
+      currentDeviceData: {},
+      floorPlan: tempFloorPlan,
+      floorMapType: 'fromFloorMap',
       addSeat: {
         selectedSeatUUID: '',
         name: '',
         coordX: '',
         coordY: ''
       },
-      currentDeviceData: {},
       formValidation: {
         name: {
           valid: true
