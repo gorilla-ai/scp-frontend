@@ -625,12 +625,9 @@ class Severity extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
-
-                {severity.dataContent.length > 0 &&
-                  <MuiTableContent
-                    data={severity}
-                    tableOptions={tableOptions} />
-                }
+                <MuiTableContent
+                  data={severity}
+                  tableOptions={tableOptions} />
               </div>
             }
 

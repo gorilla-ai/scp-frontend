@@ -1702,7 +1702,7 @@ class Edge extends Component {
                   <Tab label={t('edge-management.txt-geography')} value='geography' />
                 </Tabs>
 
-                <div className='content-header-btns'>
+                <div className='content-header-btns with-menu'>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</Button>
                   <Link to='/SCP/configuration/notifications'><Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}</Button></Link>
                 </div>

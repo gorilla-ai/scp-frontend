@@ -577,6 +577,11 @@ button.standard:hover:not([disabled]) {
         color: #fff;
       }
     }
+    & > .MuiToolbar-root {
+      position: absolute;
+      top: -5px;
+      right: 0;
+    }
   }
   .react-grid-layout {
     background-color: var(--primaryBackground);
@@ -1822,6 +1827,9 @@ button.standard:hover:not([disabled]) {
         border-radius: 5px;
         background-color: var(--primarySubBackground);
         overflow: hidden;
+        & > .MuiTabs-root {
+          padding-top: 4px;
+        }
         &.host {
           ul.host-list {
             & > li {
@@ -2873,8 +2881,11 @@ button.standard:hover:not([disabled]) {
         .content-header-btns {
           position: absolute;
           top: 5px;
-          right: -5px;
+          right: 0;
           padding: .3em 1em;
+          &.with-menu {
+            right: 70px;
+          }
           .btn { //For Buttons in content header
             margin: 0 3px;
             padding: .3em 1em;

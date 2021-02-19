@@ -25,7 +25,7 @@ class MuiTableContent extends Component {
   render() {
     const {data, tableOptions} = this.props;
     const options = {
-			tableBodyHeight: tableOptions.tableBodyHeight || '66vh',
+			tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
       selectableRows: 'none',
       serverSide: true,
       search: false,
