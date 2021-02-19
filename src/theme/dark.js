@@ -61,7 +61,6 @@ export default function createDarkTheme() {
       },
       MuiFormControlLabel: {
         label: {
-          color: 'rgba(6, 155, 218, 1) !important',
           '&.Mui-disabled': {
             color: 'rgba(217, 217, 217, 0.4)'
           }
@@ -158,11 +157,6 @@ export default function createDarkTheme() {
       MuiFormControl: {
         root: {
           backgroundColor: '#1f1e1e'
-        }
-      },
-      MuiTypography: {
-        root: {
-          color: '#fff !important'
         }
       }
     }

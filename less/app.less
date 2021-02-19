@@ -202,6 +202,9 @@ button.standard:hover:not([disabled]) {
   background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
 }
+.MuiPopover-paper .MuiFormControl-root .MuiTypography-root {
+  color: var(--primaryTextColor);
+}
 .c-popover {
   color: var(--primaryTextColor) !important;
   background-color: var(--primaryContentBackground) !important;
@@ -567,16 +570,16 @@ button.standard:hover:not([disabled]) {
   .mui-data-table {
     background-color: var(--primaryContentBackground);
     color: #fff;
+    & > .MuiToolbar-root {
+      position: absolute;
+      top: -5px;
+      right: 0;
+    }    
   }
   .MuiToolbar-root,
   .MuiTablePagination-actions {
     button:hover {
       color: #fff;
-    }
-    & > .MuiToolbar-root {
-      position: absolute;
-      top: -5px;
-      right: 0;
     }
   }
   .react-grid-layout {
