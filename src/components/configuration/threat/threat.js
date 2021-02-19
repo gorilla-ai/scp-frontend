@@ -835,11 +835,9 @@ class ThreatIntelligence extends Component {
           </div>
         </div>
 
-        {threats.dataContent.length > 0 &&
-          <MuiTableContent
-            data={threats}
-            tableOptions={tableOptions} />
-        }
+        <MuiTableContent
+          data={threats}
+          tableOptions={tableOptions} />
       </div>
     )
   }

@@ -4249,7 +4249,7 @@ class NetworkInventory extends Component {
                   <Tab label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
                 </Tabs>
 
-                <div className='content-header-btns'>
+                <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, '')}>{t('network-inventory.txt-triggerAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
@@ -4284,7 +4284,7 @@ class NetworkInventory extends Component {
                   }
                 </Menu>
 
-                {activeTab === 'deviceList' && !showCsvData && deviceData.dataContent.length > 0 &&
+                {activeTab === 'deviceList' && !showCsvData &&
                   <MuiTableContent
                     data={deviceData}
                     tableOptions={tableOptions} />
