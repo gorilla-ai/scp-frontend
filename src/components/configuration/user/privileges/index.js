@@ -216,7 +216,7 @@ class Roles extends Component {
    */
   displayPermit = (value) => {
     const permitList = _.map(value, (val, i) => {
-      return <span key={i} className='permit'>{this.getLocaleName(val.dispname)}</span>
+      return <span key={i} className='item'>{this.getLocaleName(val.dispname)}</span>
     });
 
     return permitList;
@@ -278,7 +278,7 @@ class Roles extends Component {
                     rowIdField='privilegeid'
                     onRowMouseOver={this.handleRowMouseOver}
                     info={info}
-                    infoClassName={cx({'c-error':error})} />
+                    infoClassName={cx({'c-error': error})} />
                 </div>
               </div>
             </div>

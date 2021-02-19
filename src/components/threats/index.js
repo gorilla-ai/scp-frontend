@@ -1447,7 +1447,7 @@ class ThreatsController extends Component {
     return null;
   }
   /**
-   * Display alert details modal dialog 
+   * Display alert details modal dialog
    * @method
    * @returns AlertDetails component
    */

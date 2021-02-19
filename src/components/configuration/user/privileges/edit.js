@@ -358,7 +358,7 @@ class PrivilegeEdit extends Component {
         draggable={true}
         global={true}
         info={info}
-        infoClassName={cx({'c-error':error})}
+        infoClassName={cx({'c-error': error})}
         closeAction='cancel'
         actions={actions}>
         {this.displayEditPrivilege()}

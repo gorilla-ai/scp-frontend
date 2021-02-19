@@ -288,6 +288,8 @@ class AlertDetails extends Component {
         _.forEach(PUBLIC_KEY, val => {
           if (alertData[srcDestType + val]) {
             tempAlertInfo[ipType].location[val] = alertData[srcDestType + val];
+          } else {
+            tempAlertInfo[ipType].location[val] = '';
           }
         })
 
@@ -1822,8 +1824,18 @@ class AlertDetails extends Component {
    */
   displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
+    let locationEmpty = true;
 
-    if (_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) {
+    _.forEach(alertInfo[ipType].location, val => {
+      if (val) {
+        locationEmpty = false;
+        return false;
+      }
+    })
+
+    if (_.isEmpty(alertInfo[ipType].topology) && locationEmpty) {
+      return <span>{NOT_AVAILABLE}</span>;
+    } else if (alertInfo[ipType].topology && alertInfo[ipType].topology.ownerUUID === '' && locationEmpty) {
       return <span>{NOT_AVAILABLE}</span>;
     } else {
       return (
