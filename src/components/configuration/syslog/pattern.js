@@ -763,15 +763,13 @@ class Pattern extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
-                <div className='content-header-btns'>
+                <div className='content-header-btns with-menu'>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('system-defined-pattern.txt-addPatternScript')}</Button>
                 </div>
 
-                {pattern.dataContent.length > 0 &&
-                  <MuiTableContent
-                    data={pattern}
-                    tableOptions={tableOptions} />
-                }
+                <MuiTableContent
+                  data={pattern}
+                  tableOptions={tableOptions} />
               </div>
             }
 
