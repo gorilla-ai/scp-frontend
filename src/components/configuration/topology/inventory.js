@@ -1904,9 +1904,9 @@ class NetworkInventory extends Component {
             this.toggleYaraRule();
           }
 
-          if (type[0] === 'ir') {
-            this.toggleSelectionIR();
-          }
+          this.setState({
+            modalIRopen: false
+          });
         }
 
         if (data[1]) {
