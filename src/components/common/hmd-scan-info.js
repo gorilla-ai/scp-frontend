@@ -227,7 +227,7 @@ class HMDscanInfo extends Component {
     });
 
     if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
-      buttonGroupList.push(<ToggleButton value='settings'>{t('txt-setting-eng')}</ToggleButton>);
+      buttonGroupList.push(<ToggleButton value='settings'>{t('txt-settings')}</ToggleButton>);
     }
 
     this.setState({
@@ -488,6 +488,10 @@ class HMDscanInfo extends Component {
   toggleScanType = (event, activeTab) => {
     if (!activeTab) {
       return;
+    }
+
+    if (activeTab === 'settings') {
+      this.toggleSettingsContent('cancel');
     }
 
     scrollCount = 1;
@@ -2077,7 +2081,7 @@ class HMDscanInfo extends Component {
     })
   }
   /**
-   * Restore to default path
+   * Restore to default settings
    * @method
    */
   restoreDefaultSettings = () => {
@@ -2193,7 +2197,7 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</Button>
+              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('network-inventory.txt-refresh')}</Button>
               {settingsActiveContent === 'viewMode' &&
                 <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
               }

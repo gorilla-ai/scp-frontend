@@ -189,36 +189,6 @@ class FloorMap extends Component {
     });
   }
   /**
-   * Set floor plan based on user's actions
-   * @method
-   * @param {string} type - action type ('add', 'edit' or 'clear')
-   */
-  handleMapActions = (type) => {
-    if (type === 'clear') {
-      this.setState({
-        floorPlan: this.clearFloorPlanData('clear'),
-        currentMap: ''
-      });
-    } else {
-      const {floorPlan} = this.state;
-      let tempFloorPlan = {...floorPlan};
-      tempFloorPlan.type = type;
-
-      if (type === 'add') {
-        tempFloorPlan.name = '';
-      } else if (type === 'edit') {
-        if (_.isEmpty(floorPlan.treeData)) {
-          tempFloorPlan.type = 'add';
-          tempFloorPlan.name = '';
-        }
-      }
-
-      this.setState({
-        floorPlan: tempFloorPlan
-      });
-    }
-  }
-  /**
    * Handle tree selection
    * @param {object} val - tree data
    * @method
@@ -275,7 +245,8 @@ class FloorMap extends Component {
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={tree.areaUUID}
-        defaultExpanded={[tree.areaUUID]}>
+        defaultExpanded={[tree.areaUUID]}
+        selected={this.state.floorPlan.currentAreaUUID}>
         {tree.areaUUID &&
           <TreeItem
             nodeId={tree.areaUUID}
@@ -295,11 +266,9 @@ class FloorMap extends Component {
    * @returns HTML DOM
    */
   getDeleteAreaContent = () => {
-    const {floorPlan} = this.state;
-
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {floorPlan.currentAreaName}?</span>
+        <span>{t('network-topology.txt-deleteFloorMsg')}: {this.state.floorPlan.currentAreaName}?</span>
       </div>
     )
   }
@@ -358,11 +327,9 @@ class FloorMap extends Component {
    * @returns HTML DOM
    */
   getDeleteFloorContent = () => {
-    const {floorPlan} = this.state;
-
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}?</span>
+        <span>{t('network-topology.txt-deleteFloorMapMsg')} ({this.state.floorPlan.currentAreaName})?</span>
       </div>
     )
   }
@@ -429,6 +396,27 @@ class FloorMap extends Component {
     })
   }
   /**
+   * Set floor plan based on user's actions
+   * @method
+   * @param {string} type - action type ('add' or 'clear')
+   */
+  handleMapActions = (type) => {
+    if (type === 'add') {
+      let tempFloorPlan = {...this.state.floorPlan};
+      tempFloorPlan.type = type;
+      tempFloorPlan.name = '';
+
+      this.setState({
+        floorPlan: tempFloorPlan
+      });
+    } else if (type === 'clear') {
+      this.setState({
+        floorPlan: this.clearFloorPlanData('clear'),
+        currentMap: ''
+      });
+    }
+  }
+  /**
    * Display Add Floor content
    * @method
    */
@@ -444,18 +432,13 @@ class FloorMap extends Component {
         </div>
         <div className='left'>
           <header>
-            {floorPlan.treeData.length > 0 &&
-              <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}></i>
-            }
-            {floorPlan.type === 'add' &&
-             <i className='c-link fg fg-add active' title={t('network-topology.txt-addTree')}></i>
-            }
-            {floorPlan.type === 'edit' &&
-             <i className={cx('c-link', 'fg', 'fg-add', {'active': !floorPlan.currentAreaUUID})} onClick={this.handleMapActions.bind(this, 'add')} title={t('network-topology.txt-addTree')}></i>
+            {(!floorPlan.currentAreaUUID || floorPlan.type === 'add') &&
+              <i className='fg fg-add active' title={t('network-topology.txt-addTree')}></i>
             }
             {floorPlan.currentAreaUUID && floorPlan.type === 'edit' &&
               <span>
-                <i className='c-link fg-ft-edit' onClick={this.handleMapActions.bind(this, 'edit')} title={t('network-topology.txt-editTree')}></i>
+                <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}></i>
+                <i className='c-link fg fg-add' onClick={this.handleMapActions.bind(this, 'add')} title={t('network-topology.txt-addTree')}></i>
                 <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={t('network-topology.txt-removeTree')}></i>
               </span>
             }

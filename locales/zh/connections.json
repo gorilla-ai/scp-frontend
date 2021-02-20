@@ -505,8 +505,8 @@
     "txt-urlErrorMsg": "請移除URL通訊協定的部分(如: http://)",
     "statistics": {
       "txt-sourceIndicators": "情資類型統計圓餅圖",
-      "txt-indicatorsTrend": "每日情資更新數量長條圖",
-      "txt-acuIndicatorsTrend": "每日情資數量曲線圖"
+      "txt-indicatorsTrend": "情資更新數量長條圖",
+      "txt-acuIndicatorsTrend": "情資數量曲線圖"
     }
   },
 
