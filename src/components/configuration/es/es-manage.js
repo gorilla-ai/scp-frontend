@@ -110,6 +110,8 @@ class EsManage extends Component {
       return;
     }
 
+    helper.showPopupMsg(t('txt-requestSent'));
+
     this.ah.one({
       url: `${baseUrl}/api/elasticsearch/export?date=${allValue.date}`,
       type: 'GET'
@@ -121,7 +123,6 @@ class EsManage extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    helper.showPopupMsg(t('txt-requestSent'));
     this.getEsData();
   }
   /**
@@ -237,7 +238,7 @@ class EsManage extends Component {
                         }
                         label={t('txt-switch')}
                         disabled={!allValue.actionEnable} />
-                      <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
+                      <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.openExportConfirmModal.bind(this, allValue)}></i>
                     </div>
                   )
                 } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {

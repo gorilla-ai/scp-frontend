@@ -2206,6 +2206,9 @@ class NetworkInventory extends Component {
           csvColumnsIp: {
             valid: true
           },
+          seatName: {
+            valid: true
+          },
           hostName: {
             valid: true
           },
@@ -2834,6 +2837,18 @@ class NetworkInventory extends Component {
             msg: ''
           },
           csvColumnsIp: {
+            valid: true
+          },
+          seatName: {
+            valid: true
+          },
+          hostName: {
+            valid: true
+          },
+          system: {
+            valid: true
+          },
+          deviceType: {
             valid: true
           }
         }

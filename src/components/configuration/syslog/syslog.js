@@ -384,7 +384,8 @@ class Syslog extends Component {
             valid: true
           },
           port: {
-            valid: true
+            valid: true,
+            msg: ''
           },
           editHostsHost: {
             valid: true
@@ -1443,7 +1444,8 @@ class Syslog extends Component {
           valid: true
         },
         port: {
-          valid: true
+          valid: true,
+          msg: ''
         },
         editHostsHost: {
           valid: true
