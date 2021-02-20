@@ -514,7 +514,7 @@ class HostController extends Component {
 
         hmdStatusList.push({
           value: 'isConnected',
-          text: t('txt-alreadyOnline')
+          text: t('txt-connected')
         });
 
         _.forEach(HMD_LIST, val => {

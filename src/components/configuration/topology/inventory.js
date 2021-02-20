@@ -1249,7 +1249,7 @@ class NetworkInventory extends Component {
     const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch, formValidation} = this.state;
     const connectionsStatus = [
       {
-        name: t('txt-alreadyOnline'),
+        name: t('txt-connected'),
         checkBox: 'isConnected'
       }
     ];
