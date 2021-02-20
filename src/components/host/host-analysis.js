@@ -348,9 +348,9 @@ class HostAnalysis extends Component {
           this.toggleYaraRule();
         }
 
-        if (type[0] === 'ir') {
-          this.toggleSelectionIR();
-        }
+        this.setState({
+          modalIRopen: false
+        });
 
         this.props.getIPdeviceInfo(hostData);
       }
