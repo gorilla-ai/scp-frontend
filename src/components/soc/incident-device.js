@@ -46,7 +46,7 @@ class IncidentDevice extends Component {
         it = global.chewbaccaI18n.getFixedT(null, "incident");
 
         this.state = {
-            activeContent: 'tableList', //tableList, viewDevice, editDevice
+            activeContent: 'tableList', //'tableList', 'viewDevice' or 'editDevice'
             showFilter: false,
             dataFromEdgeDevice: false,
             currentIncidentDeviceData: {},

@@ -49,7 +49,7 @@ class Pattern extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeContent: 'tableList', //tableList, viewPattern, addPattern, editPattern
+      activeContent: 'tableList', //'tableList', 'viewPattern', 'addPattern' or 'editPattern'
       showFilter: false,
       patternSearch: {
         name: '',

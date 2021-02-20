@@ -34,7 +34,7 @@ class Notifications extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'viewMode', //viewMode, editMode
+      activeContent: 'viewMode', //'viewMode' or 'editMode'
       openEmailDialog: false,
       testEmails: [],
       info: '',

@@ -165,7 +165,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList', 'deviceMap'
+      activeTab: 'hostList', //'hostList' or 'deviceMap'
       showFilter: false,
       showLeftNav: true,
       datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
@@ -511,6 +511,11 @@ class HostController extends Component {
             text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')'
           });
         })
+
+        hmdStatusList.push({
+          value: 'isConnected',
+          text: t('txt-alreadyOnline')
+        });
 
         _.forEach(HMD_LIST, val => {
           scanStatusList.push({

@@ -47,7 +47,7 @@ class Severity extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeContent: 'tableList', //tableList, viewSeverity, addSeverity, editSeverity
+      activeContent: 'tableList', //'tableList', 'viewSeverity', 'addSeverity' or 'editSeverity'
       showFilter: false,
       severitySearchType: '',
       severitySelected: [],

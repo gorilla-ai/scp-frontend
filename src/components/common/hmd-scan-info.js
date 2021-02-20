@@ -97,7 +97,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, procMonitor, and settings
+      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'gcb', 'ir', 'fileIntegrity', 'procMonitor' or 'settings'
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,

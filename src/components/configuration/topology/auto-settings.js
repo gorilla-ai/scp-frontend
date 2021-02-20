@@ -41,7 +41,7 @@ class AutoSettings extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'viewMode', //viewMode, editMode
+      activeContent: 'viewMode', //'viewMode' or 'editMode'
       originalStatusEnable: {},
       statusEnable: {
         ipRange: true,

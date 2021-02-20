@@ -65,8 +65,8 @@ class Edge extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeTab: 'edge', //edge, geography
-      activeContent: 'tableList', //tableList, viewEdge, editEdge
+      activeTab: 'edge', //'edge' or 'geography'
+      activeContent: 'tableList', //'tableList', 'viewEdge' or 'editEdge'
       showFilter: false,
       openManageGroupDialog: false,
       allGroupList: [],

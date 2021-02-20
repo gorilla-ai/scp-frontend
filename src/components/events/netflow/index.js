@@ -167,7 +167,7 @@ class Netflow extends Component {
       LAconfig: {},
       mainEventsData: {},
       showImgCheckbox: false,
-      displayType: 'list', //list, grid
+      displayType: 'list', //'list' or 'grid'
       account: {
         id: '',
         login: false,

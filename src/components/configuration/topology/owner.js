@@ -35,7 +35,7 @@ class NetworkOwner extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'tableList', //tableList, addOwner
+      activeContent: 'tableList', //'tableList' or 'addOwner'
       list: {
         department: [],
         title: []

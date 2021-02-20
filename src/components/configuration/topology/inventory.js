@@ -389,7 +389,7 @@ class NetworkInventory extends Component {
 
         _.forEach(hmdSearchOptions, (val, key) => {
           if (val === true) {
-            dataParams += `&${key}=true`
+            dataParams += `&${key}=true`;
           }
         });
       }
@@ -1247,6 +1247,13 @@ class NetworkInventory extends Component {
    */
   renderFilter = () => {
     const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch, formValidation} = this.state;
+    const connectionsStatus = [
+      {
+        name: t('txt-alreadyOnline'),
+        checkBox: 'isConnected'
+      }
+    ];
+    const hmeList = _.concat(HMD_LIST, connectionsStatus);
 
     return (
       <div className={cx('main-filter', {'active': showFilter})} style={{minHeight : '220px'}}>
@@ -1360,7 +1367,7 @@ class NetworkInventory extends Component {
                   }
                   disabled={!hmdCheckbox} />
               </div>
-              {HMD_LIST.map(this.getHMDcheckbox)}
+              {hmeList.map(this.getHMDcheckbox)}
             </div>
           </div>
         </div>
