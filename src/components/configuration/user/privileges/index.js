@@ -252,13 +252,13 @@ class Roles extends Component {
           keepMounted
           open={Boolean(contextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.showEditDialog.bind(this, currentRolesData)}>{c('txt-edit')}</MenuItem>
-          <MenuItem onClick={this.showDeleteDialog.bind(this, currentRolesData, currentRolesData.privilegeid)}>{c('txt-delete')}</MenuItem>
+          <MenuItem id='privilegesEditBtn' onClick={this.showEditDialog.bind(this, currentRolesData)}>{c('txt-edit')}</MenuItem>
+          <MenuItem id='privilegesDeleteBtn' onClick={this.showDeleteDialog.bind(this, currentRolesData, currentRolesData.privilegeid)}>{c('txt-delete')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
+            <Button id='privilegesAddBtn' variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
           </div>
         </div>
         <div className='data-content'>

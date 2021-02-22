@@ -152,6 +152,7 @@ class PrivilegeAdd extends Component {
     return (
       <div className='group'>
         <TextField
+          id='privilegesAddRole'
           name='name'
           label={c('txt-plsEnterName')}
           variant='outlined'
