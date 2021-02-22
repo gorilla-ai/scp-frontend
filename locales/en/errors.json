@@ -67,6 +67,8 @@
   "-5008": "Default port for system service is not allowed to use",
   "-5009": "Log Host IP does not exist",
 
+  "-6801": "PDF service connect fail",
+
   "-7000": "Get ES index list fail",
   "-7001": "Open ES index fail",
   "-7002": "Close ES index fail",
