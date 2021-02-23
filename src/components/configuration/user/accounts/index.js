@@ -525,7 +525,7 @@ class AccountList extends Component {
           <MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
           <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
           {currentAccountData.isLock &&
-            <MenuItem onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
+            <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
           }
         </Menu>
 
