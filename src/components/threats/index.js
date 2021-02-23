@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { withRouter } from 'react-router'
+import {withRouter} from 'react-router'
 import moment from 'moment'
 import momentTimezone from 'moment-timezone'
 import _ from 'lodash'
@@ -22,7 +22,7 @@ import SearchOptions from '../common/search-options'
 import TableCell from '../common/table-cell'
 import Threats from './threats'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined';
@@ -218,6 +218,19 @@ class ThreatsController extends Component {
         oldPage: 1,
         pageSize: 20
       },
+      trackData: {
+        dataFieldsArr: ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: '_eventDttm_',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 0,
+        oldPage: 1,
+        pageSize: 10000
+      },
       //..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
@@ -234,6 +247,7 @@ class ThreatsController extends Component {
       },
       tableType:'list',
       threatsList:[],
+      trackedList:[],
       incidentAnchor:null,
       contextAnchor: null,
       currentQueryValue: '',
@@ -458,10 +472,85 @@ class ThreatsController extends Component {
       chartIntervalValue: chartData.chartIntervalValue
     });
   }
+  showAddTrackDialog = () => {
+    PopupDialog.prompt({
+      title: t('txt-help'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+          <div className='content'>
+            <span>{it('txt-trackedIncidents-msg')}?</span>
+          </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          const {
+            trackData,
+            threatsList,
+          } = this.state;
+         this.state.trackedList = threatsList;
+
+          _.forEach(this.state.trackedList, data => {
+            data.select = false;
+          })
+
+          trackData.dataContent = _.uniqBy(this.state.trackedList, function(o){
+            return o.id;
+          });
+          this.setState({
+            trackData: trackData
+          }, () => {
+            console.log("showAddTrackDialog trackData == ", this.state.trackData)
+          })
+
+        }
+      }
+    });
+  }
+
+  showDeleteTrackDialog = () => {
+    PopupDialog.prompt({
+      title: t('txt-help'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+          <div className='content'>
+            <span>{it('txt-trackedDeleteIncidents-msg')}?</span>
+          </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          const {
+            trackData,
+            threatsList,
+          } = this.state;
+          this.state.trackedList = threatsList;
+
+          _.forEach(this.state.trackedList, data => {
+            data.select = false;
+          })
+
+          trackData.dataContent = _.uniqBy(this.state.trackedList, function(o){
+            return o.id;
+          });
+          this.setState({
+            trackData: trackData
+          }, () => {
+            console.log("showDeleteTrackDialog trackData == ", this.state.trackData)
+          })
+
+        }
+      }
+    });
+  }
+
+
   openSelectMenu = () => {
     this.setState({
       tableType: 'select',
-    },()=>{
+    }, () => {
       this.loadThreatsData();
     })
   };
@@ -751,13 +840,62 @@ class ThreatsController extends Component {
                         }
                         return (
                           <TableCell
-                            activeTab={activeTab}
-                            fieldValue={value}
-                            fieldName={val}
-                            allValue={allValue}
-                            alertLevelColors={ALERT_LEVEL_COLORS}
-                            handleOpenQueryMenu={this.handleOpenQueryMenu}
-                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
+                              activeTab={activeTab}
+                              fieldValue={value}
+                              fieldName={val}
+                              allValue={allValue}
+                              alertLevelColors={ALERT_LEVEL_COLORS}
+                              handleOpenQueryMenu={this.handleOpenQueryMenu}
+                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                        )
+                      }
+                    }
+                  }
+                };
+              });
+              let tmpTrackData = this.state.trackData;
+              tmpTrackData.dataFields = _.map(tmpTrackData.dataFieldsArr, val => {
+                return {
+                  name: val,
+                  label: val === 'select' ? '' : f(`alertFields.${val}`),
+                  options: {
+                    sort: val === '_eventDttm_',
+                    customBodyRenderLite: (dataIndex, options) => {
+                      const allValue = this.state.trackedList[dataIndex];
+                      let value = this.state.trackedList[dataIndex][val];
+
+                      if (options === 'getAllValue') {
+                        return allValue;
+                      }
+
+                      if (val === 'select') {
+                        return (
+                            <Checkbox
+                                id={allValue.id}
+                                className='checkbox-ui'
+                                name='select'
+                                checked={allValue.select}
+                                onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
+                                color='primary'/>
+                        )
+                      }
+
+                      if (val === 'Info' || val === 'Source') {
+                        return <span
+                            onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
+                      } else {
+                        if (val === '_eventDttm_') {
+                          value = helper.getFormattedDate(value, 'local');
+                        }
+                        return (
+                            <TableCell
+                                activeTab={activeTab}
+                                fieldValue={value}
+                                fieldName={val}
+                                allValue={allValue}
+                                alertLevelColors={ALERT_LEVEL_COLORS}
+                                handleOpenQueryMenu={this.handleOpenQueryMenu}
+                                handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
                         )
                       }
                     }
@@ -766,7 +904,8 @@ class ThreatsController extends Component {
               });
 
               this.setState({
-                threatsData: tempThreatsData
+                threatsData: tempThreatsData,
+                trackData: tmpTrackData
               });
             }
           }
@@ -1726,9 +1865,12 @@ class ThreatsController extends Component {
       pagination:true
     };
 
-    if (this.state.tableType === 'select'){
+
+    if (this.state.tableType === 'select') {
       tableOptions.pagination = false;
-    }else{
+    } else if (activeTab === 'select') {
+      tableOptions.pagination = false;
+    } else {
       tableOptions.pagination = true;
     }
 
@@ -1757,6 +1899,7 @@ class ThreatsController extends Component {
       openQuery: this.openQuery,
       setFilterData: this.setFilterData,
       threatsData: this.state.threatsData,
+      trackData: this.state.trackData,
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
@@ -1971,6 +2114,7 @@ class ThreatsController extends Component {
   handleSelectDataChangeMui = (allValue, event) => {
     const {
       threatsData,
+      trackData,
       threatsList,
     } = this.state;
     _.forEach(threatsData.dataContent, data => {
@@ -1978,7 +2122,7 @@ class ThreatsController extends Component {
       if (allValue.id === data.id) {
         if (event.target.checked){
           threatsList.push(allValue)
-        }else{
+        } else {
           const index = threatsList.indexOf(allValue);
           if (index > -1) {
             threatsList.splice(index, 1);
@@ -1987,12 +2131,16 @@ class ThreatsController extends Component {
         data.select = event.target.checked
       }
     })
+
+    // trackData.dataContent = threatsList;
     this.setState({
-      threatsList:threatsList,
-      threatsData: threatsData
-    },()=>{
-      // console.log("threatsData == " , this.state.threatsData)
-      // console.log("threatsList == " , this.state.threatsList)
+      threatsList: threatsList,
+      threatsData: threatsData,
+      trackData: trackData
+    }, () => {
+      console.log("threatsData == ", this.state.threatsData)
+      console.log("threatsList == ", this.state.threatsList)
+      console.log("trackData == ", this.state.trackData)
     })
 
   };
@@ -2066,33 +2214,55 @@ class ThreatsController extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'/><span>({filterDataCount})</span></Button>
-            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
-            <Button variant='outlined' color='primary' className=' ' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
+
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button variant='outlined' color='primary' className={cx({'active': showFilter})}
+                    onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i
+                className='fg fg-filter'/><span>({filterDataCount})</span></Button>
+            }
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart}
+                    title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
+            }
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button variant='outlined' color='primary' className=' ' onClick={this.getCSVfile}
+                    title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
+            }
 
 
             {this.state.tableType === 'list' &&
-            <Button variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.openSelectMenu.bind(this)}><ShoppingCartIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-openTrackedIncidents')}
+                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
+                    onClick={this.openSelectMenu.bind(this)}><ShoppingCartIcon/></Button>
             }
             {this.state.tableType === 'select' &&
-            <Button variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.closeSelectMenu.bind(this)}><RemoveShoppingCartIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')}
+                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
+                    onClick={this.closeSelectMenu.bind(this)}><RemoveShoppingCartIcon/></Button>
             }
             {this.state.tableType === 'select' &&
-            <Button variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}><AddCircleOutlineIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-trackedIncidents')}
+                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0}
+                    onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
             }
-            <Button variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={this.state.activeSubTab !== 'trackTreats'}><RemoveCircleOutlineIcon/></Button>
-            <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}  ><AllInboxOutlinedIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')}
+                    disabled={this.state.activeSubTab !== 'trackTreats'}><RemoveCircleOutlineIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
+                    disabled={this.state.activeSubTab === 'statistics'}
+                    onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
 
           </div>
-
+          {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
           <SearchOptions
-            datetime={datetime}
-            searchInput={searchInput}
-            showFilter={showFilter}
-            showInterval={true}
-            setSearchData={this.setSearchData}
-            handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.handleSearchSubmit} />
+              datetime={datetime}
+              searchInput={searchInput}
+              showFilter={showFilter}
+              showInterval={true}
+              setSearchData={this.setSearchData}
+              handleDateChange={this.handleDateChange}
+              handleSearchSubmit={this.handleSearchSubmit}/>
+          }
+
         </div>
 
         {this.renderTabContent()}

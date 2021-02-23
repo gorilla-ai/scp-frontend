@@ -2,6 +2,8 @@
 	"txt-createIncidents-selected": "Create an Incident for selected threats",
 	"txt-createIncident-tracked": "Create an Incident for all tracked threats",
 	"txt-trackedIncidents": "Add to tracking list",
+	"txt-trackedIncidents-msg": "Whether to rejoin the tracking",
+	"txt-trackedDeleteIncidents-msg": "Whether to remove the tracking",
 	"txt-openTrackedIncidents": "Open Track Menu",
 	"txt-closeTrackedIncidents": "Close Track Menu",
 	"txt-remove-trackedIncidents": "Remove from tracking list",
