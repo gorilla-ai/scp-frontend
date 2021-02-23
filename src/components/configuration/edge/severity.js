@@ -47,7 +47,7 @@ class Severity extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeContent: 'tableList', //tableList, viewSeverity, addSeverity, editSeverity
+      activeContent: 'tableList', //'tableList', 'viewSeverity', 'addSeverity' or 'editSeverity'
       showFilter: false,
       severitySearchType: '',
       severitySelected: [],
@@ -625,12 +625,9 @@ class Severity extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
-
-                {severity.dataContent.length > 0 &&
-                  <MuiTableContent
-                    data={severity}
-                    tableOptions={tableOptions} />
-                }
+                <MuiTableContent
+                  data={severity}
+                  tableOptions={tableOptions} />
               </div>
             }
 

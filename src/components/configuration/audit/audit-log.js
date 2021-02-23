@@ -307,12 +307,9 @@ class AuditLog extends Component {
 
             <div className='main-content'>
               <header className='main-header'>{t('txt-auditLog')}</header>
-
-              {audit.dataContent.length > 0 &&
-                <MuiTableContent
-                  data={audit}
-                  tableOptions={tableOptions} />
-              }
+              <MuiTableContent
+                data={audit}
+                tableOptions={tableOptions} />
             </div>
           </div>
         </div>

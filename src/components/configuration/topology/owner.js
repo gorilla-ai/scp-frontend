@@ -35,7 +35,7 @@ class NetworkOwner extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'tableList', //tableList, addOwner
+      activeContent: 'tableList', //'tableList' or 'addOwner'
       list: {
         department: [],
         title: []
@@ -753,16 +753,14 @@ class NetworkOwner extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('txt-ownerList')}</header>
 
-                <div className='content-header-btns'>
+                <div className='content-header-btns with-menu'>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
-                {owner.dataContent.length > 0 &&
-                  <MuiTableContent
-                    data={owner}
-                    tableOptions={tableOptions} />
-                }
+                <MuiTableContent
+                  data={owner}
+                  tableOptions={tableOptions} />
               </div>
             }
 

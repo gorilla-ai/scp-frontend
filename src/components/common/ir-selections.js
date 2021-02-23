@@ -26,7 +26,7 @@ class IrSelections extends Component {
     super(props);
 
     this.state = {
-      irComboSelected: 'quick', //'quick', 'standard', 'full'
+      irComboSelected: 'quick', //'quick', 'standard' or 'full'
       irItemList: [],
       irSelectedList: []
     };

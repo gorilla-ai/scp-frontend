@@ -138,6 +138,8 @@
   "txt-indicator": "Indicator",
   "txt-online": "Online",
   "txt-offline": "Offline",
+  "txt-connected": "Connected",
+  "txt-disconnected": "Disconnected",
   "txt-unstable": "Unstable",
   "txt-unknown": "Unknown",
   "txt-severity": "Severity",

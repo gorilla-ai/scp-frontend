@@ -353,7 +353,7 @@ class StatisticsUIF extends Component {
           formData.append('config_string', JSON.stringify(cfg))
           formData.append('size', _.size(cfg.data))
 
-          ah.one({
+          this.ah.one({
             url: `${baseUrl}/api/pdf/_relay2`,
             data: formData,
             type: 'POST',

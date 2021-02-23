@@ -87,52 +87,24 @@ class Login extends Component {
    * @method
    */
   checkLicense = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const apiLocal = {
-      url: `${baseUrl}/api/lms/verifyLocal`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    }
+    const {baseUrl} = this.props;
+    let licenseCheck = false;
 
-    const apiOnline = {
-      url: `${baseUrl}/api/lms/verifyOnline`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    }
-
-    let licenseCheck = false
-
-    this.ah.one(apiLocal)
+    this.ah.one({
+      url: `${baseUrl}/api/lms/verify`,
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
         if (data.rt.returnCode === '0') {
-          licenseCheck = data.rt.isValid === '1'
+          licenseCheck = data.rt.isValid === '1';
         }
-      }
 
-      if (licenseCheck) {
         this.setState({
           license: licenseCheck
         });
-      } else {
-        this.ah.one(apiOnline)
-        .then(data => {
-          if (data) {
-            if (data.rt.returnCode === '0') {
-              licenseCheck = data.rt.isValid === '1'
-            }
-          }
-
-          this.setState({
-            license: licenseCheck
-          });
-        })
-        .catch(err => {
-          helper.showPopupMsg('', t('txt-error'), err.message);
-        })
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -355,11 +327,11 @@ class Login extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {license} = this.state;
 
-    if (license === null) {
+    if (license === null) { //Show loading icon
       return <div id='g-login' className='c-center'></div>
-    } else if (license) {
+    } else if (license) { //Show login page
       return this.renderLogin();
-    } else {
+    } else { //Show license info
       return (
         <License
           baseUrl={baseUrl}

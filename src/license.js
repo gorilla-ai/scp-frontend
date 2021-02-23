@@ -59,10 +59,8 @@ class License extends Component {
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/lms/verifyOnline`,
-        data: JSON.stringify({}),
-        type: 'POST',
-        contentType: 'text/plain'
+        url: `${baseUrl}/api/lms/verify`,
+        type: 'GET'
       }
     ];
 
@@ -74,6 +72,7 @@ class License extends Component {
           lms: data[1]
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

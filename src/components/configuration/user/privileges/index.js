@@ -216,7 +216,7 @@ class Roles extends Component {
    */
   displayPermit = (value) => {
     const permitList = _.map(value, (val, i) => {
-      return <span key={i} className='permit'>{this.getLocaleName(val.dispname)}</span>
+      return <span key={i} className='item'>{this.getLocaleName(val.dispname)}</span>
     });
 
     return permitList;
@@ -252,13 +252,13 @@ class Roles extends Component {
           keepMounted
           open={Boolean(contextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.showEditDialog.bind(this, currentRolesData)}>{c('txt-edit')}</MenuItem>
-          <MenuItem onClick={this.showDeleteDialog.bind(this, currentRolesData, currentRolesData.privilegeid)}>{c('txt-delete')}</MenuItem>
+          <MenuItem id='privilegesEditBtn' onClick={this.showEditDialog.bind(this, currentRolesData)}>{c('txt-edit')}</MenuItem>
+          <MenuItem id='privilegesDeleteBtn' onClick={this.showDeleteDialog.bind(this, currentRolesData, currentRolesData.privilegeid)}>{c('txt-delete')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
+            <Button id='privilegesAddBtn' variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
           </div>
         </div>
         <div className='data-content'>
@@ -278,7 +278,7 @@ class Roles extends Component {
                     rowIdField='privilegeid'
                     onRowMouseOver={this.handleRowMouseOver}
                     info={info}
-                    infoClassName={cx({'c-error':error})} />
+                    infoClassName={cx({'c-error': error})} />
                 </div>
               </div>
             </div>

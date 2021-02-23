@@ -263,44 +263,44 @@ class PrivilegeEdit extends Component {
    */
   getRoleList = (val, i) => {
     const {name} = this.state;
-    let showCheckbox = false
-    if (name === 'SOC Analyzer'|| name === 'SOC Executor'|| name === 'SOC Supervior'|| name === 'SOC Supervisor'){
-      showCheckbox =true
+    let showCheckbox = false;
+
+    if (name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor') {
+      showCheckbox = true;
     }
 
-    if (val.text.includes('SOC')){
+    if (val.text.includes('SOC')) {
       return (
-          <FormControlLabel
-              key={i}
-              label={val.text}
-              control={
-                <Checkbox
-                    className='checkbox-ui'
-                    name={val.value}
-                    checked={this.checkSelectedItem(val.value)}
-                    disabled={!showCheckbox}
-                    onChange={this.toggleCheckbox}
-                    color='primary' />
-              } />
+        <FormControlLabel
+          key={i}
+          label={val.text}
+          control={
+            <Checkbox
+              id={val.value}
+              className='checkbox-ui'
+              name={val.value}
+              checked={this.checkSelectedItem(val.value)}
+              disabled={!showCheckbox}
+              onChange={this.toggleCheckbox}
+              color='primary' />
+          } />
       )
-    }else{
+    } else {
       return (
-          <FormControlLabel
-              key={i}
-              label={val.text}
-              control={
-                <Checkbox
-                    className='checkbox-ui'
-                    name={val.value}
-                    checked={this.checkSelectedItem(val.value)}
-                    onChange={this.toggleCheckbox}
-                    color='primary' />
-              } />
+        <FormControlLabel
+          key={i}
+          label={val.text}
+          control={
+            <Checkbox
+              id={val.value}
+              className='checkbox-ui'
+              name={val.value}
+              checked={this.checkSelectedItem(val.value)}
+              onChange={this.toggleCheckbox}
+              color='primary' />
+          } />
       )
     }
-
-
-
   }
   /**
    * Display edit privilege content
@@ -313,6 +313,7 @@ class PrivilegeEdit extends Component {
     return (
       <div className='c-form'>
         <TextField
+          id='privilegesEditRole'
           className='role-name'
           name='name'
           label={t('l-name')}
@@ -323,7 +324,7 @@ class PrivilegeEdit extends Component {
           error={!formValidation.name.valid}
           helperText={formValidation.name.valid ? '' : c('txt-required')}
           value={name}
-          disabled={name==='SOC Analyzer'||name==='SOC Executor'||name==='SOC Supervior'||name==='SOC Supervisor'}
+          disabled={name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor'}
           onChange={this.handleDataChange} />
         <div className='group'>
           <FormControl
@@ -358,7 +359,7 @@ class PrivilegeEdit extends Component {
         draggable={true}
         global={true}
         info={info}
-        infoClassName={cx({'c-error':error})}
+        infoClassName={cx({'c-error': error})}
         closeAction='cancel'
         actions={actions}>
         {this.displayEditPrivilege()}

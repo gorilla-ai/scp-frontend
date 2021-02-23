@@ -165,7 +165,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList', 'deviceMap'
+      activeTab: 'hostList', //'hostList' or 'deviceMap'
       showFilter: false,
       showLeftNav: true,
       datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
@@ -511,6 +511,11 @@ class HostController extends Component {
             text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')'
           });
         })
+
+        hmdStatusList.push({
+          value: 'isConnected',
+          text: t('txt-connected')
+        });
 
         _.forEach(HMD_LIST, val => {
           scanStatusList.push({
@@ -1272,6 +1277,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getHostList = (val, i) => {
+    const {contextRoot} = this.context;
     const infoList = [
       {
         name: 'hostName',
@@ -1337,6 +1343,17 @@ class HostController extends Component {
       })
     }
 
+    let iconType = '';
+    let title = '';
+
+    if (val.isConnected === true) {
+      iconType = 'icon_connected_on';
+      title = t('txt-online');
+    } else if (val.isConnected === false) {
+      iconType = 'icon_connected_off';
+      title = t('txt-offline');
+    }
+
     return (
       <li key={i}>
         <div className='device-alert' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severityLevel] || '#999'}}>
@@ -1344,7 +1361,14 @@ class HostController extends Component {
         </div>
         <div className='info'>
           <ul className='c-link' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
-            <li className='first' title={t('ipFields.ip')}><div className='fg-bg ip'></div><span>{val.ip}</span></li>
+            <li className='first' title={t('ipFields.ip')}>
+              {iconType === '' &&
+                <div className='fg-bg ip'></div>
+              }
+              {iconType !== '' &&
+                <img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />
+              }
+              <span>{val.ip}</span></li>
             {infoList.map(this.getInfoList.bind(this, val))}
           </ul>
 

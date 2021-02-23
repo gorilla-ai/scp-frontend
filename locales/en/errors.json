@@ -28,7 +28,7 @@
   "12103":"User name cannot be empty",
   "12105":"User expire time has exceeded",
   "12106":"User is suspended",
-  "12107":"Current username is incorrect",
+  "12107":"Username/Password is incorrect",
   "12108":"User already has this right",
   "12109":"User already has this role",
   "12110":"Old password does not match",
@@ -43,6 +43,7 @@
   "13007":"Group does not have this right",
   "13008":"Group does not have this role",
   "13009":"Owner does not exist",
+  "22101":"Current username is incorrect",
 
   "1001":"Access not allowed",
   "1101":"請輸入欄位: {{field}}",
@@ -65,6 +66,8 @@
   "-5007": "Name already exist",
   "-5008": "Default port for system service is not allowed to use",
   "-5009": "Log Host IP does not exist",
+
+  "-6801": "PDF service connect fail",
 
   "-7000": "Get ES index list fail",
   "-7001": "Open ES index fail",

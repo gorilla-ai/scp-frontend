@@ -68,7 +68,7 @@ class Syslog extends Component {
 
     this.state = {
       openFilter: false,
-      activeContent: 'syslogData', //syslogData, hostInfo, editSyslog
+      activeContent: 'syslogData', //'syslogData', 'hostInfo' or 'editSyslog'
       dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'patternName', '_menu'],
       dataFields: {},
       syslog: {
@@ -384,7 +384,8 @@ class Syslog extends Component {
             valid: true
           },
           port: {
-            valid: true
+            valid: true,
+            msg: ''
           },
           editHostsHost: {
             valid: true
@@ -1443,7 +1444,8 @@ class Syslog extends Component {
           valid: true
         },
         port: {
-          valid: true
+          valid: true,
+          msg: ''
         },
         editHostsHost: {
           valid: true

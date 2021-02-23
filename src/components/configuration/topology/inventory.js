@@ -113,8 +113,8 @@ class NetworkInventory extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'deviceList', //deviceList, deviceMap, deviceLA
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
+      activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
+      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps', 'hmdSettings' or 'autoSettings'
       showFilter: false,
       showScanInfo: false,
       yaraRuleOpen: false,
@@ -202,7 +202,7 @@ class NetworkInventory extends Component {
         scrollCount: 1,
         hasMore: false
       },
-      ownerType: 'existing', //existing, new
+      ownerType: 'existing', //'existing' or 'new'
       ownerIDduplicated: false,
       previewOwnerPic: '',
       changeAreaMap: false,
@@ -215,6 +215,7 @@ class NetworkInventory extends Component {
         hostName: ''
       },
       selectedTreeID: '',
+      floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
       yaraTriggerAll: false,
@@ -368,7 +369,7 @@ class NetworkInventory extends Component {
    * @param {string} [seatUUID] - seat UUID
    */
   getDeviceData = (fromPage, options, seatUUID) => {
-    const {baseUrl} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {deviceSearch, hmdCheckbox, hmdSearchOptions, deviceData, currentDeviceData} = this.state;
     const page = fromPage === 'currentPage' ? deviceData.currentPage : 0;
     let dataParams = '';
@@ -388,7 +389,7 @@ class NetworkInventory extends Component {
 
         _.forEach(hmdSearchOptions, (val, key) => {
           if (val === true) {
-            dataParams += `&${key}=true`
+            dataParams += `&${key}=true`;
           }
         });
       }
@@ -526,7 +527,20 @@ class NetworkInventory extends Component {
                   return allValue;
                 }
 
-                if (val === 'owner') {
+                if (val === 'ip') {
+                  let iconType = '';
+                  let title = '';
+
+                  if (allValue.isConnected === true) {
+                    iconType = 'icon_connected_on';
+                    title = t('txt-online');
+                  } else if (allValue.isConnected === false) {
+                    iconType = 'icon_connected_off';
+                    title = t('txt-offline');
+                  }
+
+                  return <span><img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />{value}</span>
+                } else if (val === 'owner') {
                   if (allValue.ownerObj) {
                     return <span>{allValue.ownerObj.ownerName}</span>
                   } else {
@@ -1233,6 +1247,13 @@ class NetworkInventory extends Component {
    */
   renderFilter = () => {
     const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch, formValidation} = this.state;
+    const connectionsStatus = [
+      {
+        name: t('txt-connected'),
+        checkBox: 'isConnected'
+      }
+    ];
+    const hmeList = _.concat(HMD_LIST, connectionsStatus);
 
     return (
       <div className={cx('main-filter', {'active': showFilter})} style={{minHeight : '220px'}}>
@@ -1346,7 +1367,7 @@ class NetworkInventory extends Component {
                   }
                   disabled={!hmdCheckbox} />
               </div>
-              {HMD_LIST.map(this.getHMDcheckbox)}
+              {hmeList.map(this.getHMDcheckbox)}
             </div>
           </div>
         </div>
@@ -1883,9 +1904,9 @@ class NetworkInventory extends Component {
             this.toggleYaraRule();
           }
 
-          if (type[0] === 'ir') {
-            this.toggleSelectionIR();
-          }
+          this.setState({
+            modalIRopen: false
+          });
         }
 
         if (data[1]) {
@@ -2087,7 +2108,7 @@ class NetworkInventory extends Component {
    * Close HMD scan info dialog
    * @method
    * @param {string} options - option for 'reload'
-   * @param {string} page - page type
+   * @param {string} page - page type for 'fromFloorMap'
    */
   closeDialog = (options, page) => {
     const {currentDeviceData, floorPlan} = this.state;
@@ -2097,7 +2118,8 @@ class NetworkInventory extends Component {
       tempCurrentDeviceData.areaUUID = floorPlan.treeData[0].areaUUID; //Reset selected tree to parent areaUUID
       
       this.setState({
-        currentDeviceData: tempCurrentDeviceData
+        currentDeviceData: tempCurrentDeviceData,
+        floorMapType: page
       });
     }
 
@@ -2182,6 +2204,9 @@ class NetworkInventory extends Component {
             msg: ''
           },
           csvColumnsIp: {
+            valid: true
+          },
+          seatName: {
             valid: true
           },
           hostName: {
@@ -2813,6 +2838,18 @@ class NetworkInventory extends Component {
           },
           csvColumnsIp: {
             valid: true
+          },
+          seatName: {
+            valid: true
+          },
+          hostName: {
+            valid: true
+          },
+          system: {
+            valid: true
+          },
+          deviceType: {
+            valid: true
           }
         }
       }, () => {
@@ -2990,7 +3027,12 @@ class NetworkInventory extends Component {
         }
 
         if (activeSteps === 4) {
-          this.handleAddIpConfirm();
+          this.setState({
+            floorMapType: ''
+          }, () => {
+            this.handleAddIpConfirm();
+          });
+          
           return;
         }
 
@@ -3825,7 +3867,8 @@ class NetworkInventory extends Component {
     this.setState({
       floorPlan: tempFloorPlan,
       changeAreaMap: true,
-      selectedTreeID: areaUUID
+      selectedTreeID: areaUUID,
+      floorMapType: 'selected'
     }, () => {
       this.getAreaData(areaUUID);
 
@@ -3866,12 +3909,11 @@ class NetworkInventory extends Component {
    * @returns TreeView component
    */
   displayTreeView = (type, tree, i) => {
-    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
-    let defaultSelectedID  = '';
+    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID, floorMapType} = this.state;
+    let defaultSelectedID = tree.areaUUID;
     let defaultExpanded = [];
 
     if (type === 'deviceMap') {
-      defaultSelectedID = tree.areaUUID;
       defaultExpanded = [tree.areaUUID];
     } else if (type === 'stepsFloor') {
       let currentAreaUUID = floorPlan.currentAreaUUID;
@@ -3880,7 +3922,11 @@ class NetworkInventory extends Component {
         currentAreaUUID = currentDeviceData.areaUUID;
       }
 
-      defaultSelectedID = selectedTreeID || tree.areaUUID;
+      if (floorMapType === 'fromFloorMap') {
+        defaultSelectedID = currentDeviceData.areaUUID;
+      } else if (floorMapType === 'selected') {
+        defaultSelectedID = selectedTreeID;
+      }
 
       if (changeAreaMap) {
         if (currentAreaUUID) {
@@ -3901,7 +3947,8 @@ class NetworkInventory extends Component {
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={defaultSelectedID}
-        defaultExpanded={defaultExpanded}>
+        defaultExpanded={defaultExpanded}
+        selected={defaultSelectedID}>
         {tree.areaUUID &&
           <TreeItem
             nodeId={tree.areaUUID}
@@ -4236,7 +4283,7 @@ class NetworkInventory extends Component {
                   <Tab label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
                 </Tabs>
 
-                <div className='content-header-btns'>
+                <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, '')}>{t('network-inventory.txt-triggerAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
@@ -4271,7 +4318,7 @@ class NetworkInventory extends Component {
                   }
                 </Menu>
 
-                {activeTab === 'deviceList' && !showCsvData && deviceData.dataContent.length > 0 &&
+                {activeTab === 'deviceList' && !showCsvData &&
                   <MuiTableContent
                     data={deviceData}
                     tableOptions={tableOptions} />

@@ -170,6 +170,10 @@ button.standard:hover:not([disabled]) {
     border: none !important;
   }
 }
+.MuiSwitch-track,
+.MuiSwitch-colorPrimary.Mui-disabled + .MuiSwitch-track {
+  background-color: var(--dashboardMapsText) !important;
+}
 .MuiAutocomplete-root {
   .MuiIconButton-root:hover {
     background: none;
@@ -201,6 +205,9 @@ button.standard:hover:not([disabled]) {
   color: var(--primaryTextColor);
   background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
+}
+.MuiPopover-paper .MuiFormControl-root .MuiTypography-root {
+  color: var(--primaryTextColor);
 }
 .c-popover {
   color: var(--primaryTextColor) !important;
@@ -558,7 +565,7 @@ button.standard:hover:not([disabled]) {
       margin: 5px 0;
     }
   }
-  .ip-edge {
+  .connections-status {
     float: left;
     margin-right: 5px;
   }
@@ -567,6 +574,11 @@ button.standard:hover:not([disabled]) {
   .mui-data-table {
     background-color: var(--primaryContentBackground);
     color: #fff;
+    & > .MuiToolbar-root {
+      position: absolute;
+      top: -5px;
+      right: 0;
+    }    
   }
   .MuiToolbar-root,
   .MuiTablePagination-actions {
@@ -1818,6 +1830,9 @@ button.standard:hover:not([disabled]) {
         border-radius: 5px;
         background-color: var(--primarySubBackground);
         overflow: hidden;
+        & > .MuiTabs-root {
+          padding-top: 4px;
+        }
         &.host {
           ul.host-list {
             & > li {
@@ -2795,6 +2810,14 @@ button.standard:hover:not([disabled]) {
               .flex-item {
                 display: flex;
                 flex-wrap: wrap;
+                .item {
+                  font-size: 15px;
+                  color: #fff;
+                  padding: 5px 10px;
+                  margin: 5px 2px;
+                  border-radius: 5px;
+                  background-color: var(--primaryContentHeader);
+                }
               }
               span {
                 a {
@@ -2876,8 +2899,11 @@ button.standard:hover:not([disabled]) {
         .content-header-btns {
           position: absolute;
           top: 5px;
-          right: -5px;
+          right: 0;
           padding: .3em 1em;
+          &.with-menu {
+            right: 70px;
+          }
           .btn { //For Buttons in content header
             margin: 0 3px;
             padding: .3em 1em;

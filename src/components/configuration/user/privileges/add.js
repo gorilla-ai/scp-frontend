@@ -150,17 +150,20 @@ class PrivilegeAdd extends Component {
     const {name, formValidation} = this.state;
 
     return (
-      <TextField
-        name='name'
-        label={c('txt-plsEnterName')}
-        variant='outlined'
-        fullWidth
-        size='small'
-        required
-        error={!formValidation.name.valid}
-        helperText={formValidation.name.valid ? '' : c('txt-required')}
-        value={name}
-        onChange={this.handleDataChange} />
+      <div className='group'>
+        <TextField
+          id='privilegesAddRole'
+          name='name'
+          label={c('txt-plsEnterName')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          required
+          error={!formValidation.name.valid}
+          helperText={formValidation.name.valid ? '' : c('txt-required')}
+          value={name}
+          onChange={this.handleDataChange} />
+      </div>
     )
   }
   render() {
@@ -182,7 +185,7 @@ class PrivilegeAdd extends Component {
         draggable={true}
         global={true}
         info={info}
-        infoClassName={cx({'c-error':error})}
+        infoClassName={cx({'c-error': error})}
         closeAction='cancel'
         actions={actions}>
         {this.displayAddPrivilege()}

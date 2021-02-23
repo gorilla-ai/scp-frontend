@@ -288,6 +288,8 @@ class AlertDetails extends Component {
         _.forEach(PUBLIC_KEY, val => {
           if (alertData[srcDestType + val]) {
             tempAlertInfo[ipType].location[val] = alertData[srcDestType + val];
+          } else {
+            tempAlertInfo[ipType].location[val] = '';
           }
         })
 
@@ -874,31 +876,6 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Handle pcap download button
-   * @method
-   * @param {string} url - pcap download link
-   */
-  pcapDownload = (url) => {
-    window.open(url, '_blank');
-  }
-  /**
-   * Display PCAP download link
-   * @method
-   */
-  getPCAPdownloadContent = () => {
-    // const {baseUrl, contextRoot} = this.context;
-    // const {alertData} = this.props;
-    // const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    // const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    // const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
-
-    // return (
-    //   <div className='multi-items'>
-    //     <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
-    //   </div>
-    // )
-  }
-  /**
    * Display Download File link and encode option
    * @method
    */
@@ -928,9 +905,10 @@ class AlertDetails extends Component {
   /**
    * Display Query More menu
    * @method
+   * @param {string} options - options for 'rule'
    * @returns HTML DOM
    */
-  getQueryMoreContent = () => {
+  getQueryMoreContent = (options) => {
     const {showContent} = this.state;
     let ip = '';
 
@@ -940,7 +918,7 @@ class AlertDetails extends Component {
       ip = this.getIpPortData('destIp');
     }
 
-    if (ip && ip !== NOT_AVAILABLE) {
+    if ((ip && ip !== NOT_AVAILABLE) || options === 'rule') {
       return (
         <div className='multi-items'>
           <span onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</span>
@@ -1107,8 +1085,8 @@ class AlertDetails extends Component {
           <div className='content'>
             <div className='options-buttons'>
               <section>
-                {alertData.pcapFlag &&
-                  this.getPCAPdownloadContent()
+                {showContent.rule &&
+                  this.getQueryMoreContent('rule')
                 }
 
                 {showContent.attack &&
@@ -1128,6 +1106,10 @@ class AlertDetails extends Component {
                 }
               </section>
             </div>
+
+            {showRedirectMenu && showContent.rule &&
+              this.displayRedirectMenu('rule')
+            }
 
             {showRedirectMenu && showContent.srcIp &&
               this.displayRedirectMenu('srcIp')
@@ -1218,17 +1200,45 @@ class AlertDetails extends Component {
     window.open(linkUrl, '_blank');
   }
   /**
+   * Handle pcap download button
+   * @method
+   * @param {string} url - pcap download link
+   */
+  pcapDownload = (url) => {
+    window.open(url, '_blank');
+  }
+  /**
    * Display redirect menu
    * @method
-   * @param {string} ipType - 'srcIp' or 'destIp'
+   * @param {string} options - 'srcIp', 'destIp' or 'rule'
    * @returns HTML DOM
    */
-  displayRedirectMenu = (ipType) => {
-    return (
-      <ul className='redirect-menu' ref={this.setWrapperRef}>
-        <li onClick={this.redirectLink.bind(this, 'virustotal', ipType)}>{t('alert.txt-searthVirustotal')}</li>
-      </ul>
-    )
+  displayRedirectMenu = (options) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {alertData} = this.props;
+
+    if (options === 'srcIp' || options === 'destIp') {
+      return (
+        <ul className='redirect-menu' ref={this.setWrapperRef}>
+          <li onClick={this.redirectLink.bind(this, 'virustotal', options)}>{t('alert.txt-searthVirustotal')}</li>
+        </ul>
+      )
+    } else if (options === 'rule') {
+      const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
+
+      return (
+        <ul className='redirect-menu' ref={this.setWrapperRef}>
+          {alertData.pcapFlag &&
+            <li onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</li>
+          }
+          {alertData.blackIP &&
+            <li onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}</li>
+          }
+        </ul>
+      )
+    }
   }
   /**
    * Show tooltip info when mouseover the chart
@@ -1394,7 +1404,6 @@ class AlertDetails extends Component {
       <div className='alert-rule'>
         <div className='section'>
           <header>{t('alert.txt-threatsContent')}</header>
-          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-searthVirustotal')}</Button>
           <ul>
             <li><span>{t('alert.txt-severityType')}</span>: {alertData.severity_type}</li>
             <li><span>{t('alert.txt-severityDesc')}</span>: {alertData.severity_type_description || NOT_AVAILABLE}</li>
@@ -1822,8 +1831,19 @@ class AlertDetails extends Component {
    */
   displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
+    const srcDestType = ipType.replace('Ip', '');
+    let locationEmpty = true;
 
-    if (_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) {
+    _.forEach(alertInfo[ipType].location, val => {
+      if (val) {
+        locationEmpty = false;
+        return false;
+      }
+    })
+
+    if (_.isEmpty(alertInfo[ipType].topology) && locationEmpty) {
+      return <span>{NOT_AVAILABLE}</span>;
+    } else if (alertInfo[ipType].topology && alertInfo[ipType].topology[srcDestType + 'Mac'] === '' && locationEmpty) {
       return <span>{NOT_AVAILABLE}</span>;
     } else {
       return (

@@ -110,6 +110,8 @@ class EsManage extends Component {
       return;
     }
 
+    helper.showPopupMsg(t('txt-requestSent'));
+
     this.ah.one({
       url: `${baseUrl}/api/elasticsearch/export?date=${allValue.date}`,
       type: 'GET'
@@ -121,7 +123,6 @@ class EsManage extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    helper.showPopupMsg(t('txt-requestSent'));
     this.getEsData();
   }
   /**
@@ -237,7 +238,7 @@ class EsManage extends Component {
                         }
                         label={t('txt-switch')}
                         disabled={!allValue.actionEnable} />
-                      <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
+                      <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.openExportConfirmModal.bind(this, allValue)}></i>
                     </div>
                   )
                 } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
@@ -351,6 +352,21 @@ class EsManage extends Component {
       esSearch: tempEsSearch
     });
   }
+  handleSearchSubmit = () => {
+    let tempEs = {...this.state.es};
+    tempEs.dataFields = [];
+    tempEs.dataContent = [];
+    tempEs.totalCount = 0;
+    tempEs.currentPage = 1;
+    tempEs.oldPage = 1;
+    tempEs.pageSize = 20;    
+    
+    this.setState({
+      es: tempEs
+    }, () => {
+      this.getEsData();
+    });
+  }
   /**
    * Display filter content
    * @method
@@ -382,7 +398,7 @@ class EsManage extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getEsData}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -582,15 +598,13 @@ class EsManage extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('txt-esManage')}</header>
 
-              <div className='content-header-btns'>
+              <div className='content-header-btns with-menu'>
                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</Button>
               </div>
 
-              {es.dataContent.length > 0 &&
-                <MuiTableContent
-                  data={es}
-                  tableOptions={tableOptions} />
-              }
+              <MuiTableContent
+                data={es}
+                tableOptions={tableOptions} />
             </div>
           </div>
         </div>

@@ -65,8 +65,8 @@ class Edge extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeTab: 'edge', //edge, geography
-      activeContent: 'tableList', //tableList, viewEdge, editEdge
+      activeTab: 'edge', //'edge' or 'geography'
+      activeContent: 'tableList', //'tableList', 'viewEdge' or 'editEdge'
       showFilter: false,
       openManageGroupDialog: false,
       allGroupList: [],
@@ -359,7 +359,7 @@ class Edge extends Component {
                     title: t('txt-' + allValue.agentApiStatus.toLowerCase())
                   };
 
-                  return <span><img src={icon.src} className='ip-edge' title={icon.title} />{value}</span>
+                  return <span><img src={icon.src} className='connections-status' title={icon.title} />{value}</span>
                 } else if (val === 'groupList') {
                   if (allValue.groupList.length > 0) {
                     return <div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}</div>
@@ -1702,7 +1702,7 @@ class Edge extends Component {
                   <Tab label={t('edge-management.txt-geography')} value='geography' />
                 </Tabs>
 
-                <div className='content-header-btns'>
+                <div className='content-header-btns with-menu'>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</Button>
                   <Link to='/SCP/configuration/notifications'><Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}</Button></Link>
                 </div>

@@ -40,7 +40,7 @@ class NetworkBehavior extends Component {
     super(props);
 
     this.state = {
-      activeNetworkBehavior: 'threats', //'threats', 'connections', 'dns' and 'syslog'
+      activeNetworkBehavior: 'threats', //'threats', 'connections', 'dns' or 'syslog'
       networkBehavior: {
         threats: {
           fields: ['severity', 'count'],

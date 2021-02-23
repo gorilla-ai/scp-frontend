@@ -27,7 +27,7 @@
   "12103":"User name cannot be empty",
   "12105":"User expire time has exceeded",
   "12106":"User is suspended",
-  "12107":"舊密碼輸入錯誤",
+  "12107":"帳號/密碼有錯誤",
   "12108":"User already has this right",
   "12109":"User already has this role",
   "12110":"Old password does not match",
@@ -42,6 +42,7 @@
   "13007":"Group does not have this right",
   "13008":"Group does not have this role",
   "13009":"Owner does not exist",
+  "22101":"舊密碼輸入錯誤",
 
   "1001":"無權限存取",
   "1101":"請輸入欄位: {{field}}",
@@ -64,6 +65,8 @@
   "-5007": "名稱已重複",
   "-5008": "系統服務預設埠號不允許使用",
   "-5009": "Log主機IP不存在",
+
+  "-6801": "PDF服務連線失敗",
 
   "-7000": "ES索引列表讀取失敗",
   "-7001": "開啟ES索引失敗",
