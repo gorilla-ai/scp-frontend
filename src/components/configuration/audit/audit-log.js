@@ -52,8 +52,7 @@ class AuditLog extends Component {
         },
         totalCount: 0,
         currentPage: 0,
-        pageSize: 20,
-        info: {}
+        pageSize: 20
       }
     };
 
