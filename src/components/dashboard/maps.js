@@ -270,7 +270,7 @@ class DashboardMaps extends Component {
     });
   }
   /**
-   * Handle search submit
+   * Handle filter search submit
    * @method
    */
   handleSearchSubmit = () => {

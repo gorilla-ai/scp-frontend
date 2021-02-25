@@ -1266,7 +1266,7 @@ class ThreatsController extends Component {
     return treeObj;
   }
   /**
-   * Handle alert search submit
+   * Handle filter search submit
    * @method
    */
   handleSearchSubmit = () => {

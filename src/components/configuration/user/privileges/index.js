@@ -8,12 +8,12 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import DataTable from 'react-ui/build/src/components/table'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../../common/context';
 import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
+import MuiTableContent from '../../../common/mui-table-content'
 import PrivilegeAdd from './add'
 import PrivilegeEdit from './edit'
 
@@ -35,68 +35,77 @@ class Roles extends Component {
     super(props);
 
     this.state = {
-      data: [],
-      dataFieldsArr: ['_menu', 'privilegeid', 'name', 'permits'],
-      dataFields: {},
+      userPrivileges: {
+        dataFieldsArr: ['_menu', 'name', 'permits'],
+        dataFields: [],
+        dataContent: []
+      },
       contextAnchor: null,
       currentRolesData: {}
     };
+
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    this.loadList();
+    this.getPrivilegesData();
   }
   /**
    * Get and set privileges list
    * @method
    */
-  loadList = () => {
+  getPrivilegesData = () => {
     const {baseUrl} = this.context;
-    const {dataFieldsArr} = this.state;
+    const {userPrivileges} = this.state;
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/privileges?getPermits=true`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        let tempFields = {};
-        dataFieldsArr.forEach(tempData => {
-          tempFields[tempData] = {
-            hide: tempData === 'privilegeid' ? true : false,
-            label: tempData === '_menu' ? '' : t(`privilegeFields.${tempData}`),
-            sortable: tempData === 'name' ? true : null,
-            formatter: (value, allValue, i) => {
-              if (tempData === '_menu') {
-                return (
-                  <div className={cx('table-menu', {'active': value})}>
-                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
-                  </div>
-                )
-              } else if (tempData === 'permits') {
-                return <div className='flex-item'>{this.displayPermit(value)}</div>
-              } else {
-                return <span>{value}</span>;
+        let tempUserPrivileges = {...userPrivileges};
+        tempUserPrivileges.dataContent = data;
+
+        tempUserPrivileges.dataFields = _.map(userPrivileges.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : t('privilegeFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempUserPrivileges.dataContent[dataIndex];
+                const value = tempUserPrivileges.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    <div className='table-menu active'>
+                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
+                    </div>
+                  )
+                } else if (val === 'permits') {
+                  return <div className='flex-item'>{this.displayPermit(value)}</div>
+                } else {
+                  return <span>{value}</span>;
+                }
               }
             }
-          }
-        })
+          };
+        });
 
         this.setState({
-          data: data.rt,
-          dataFields: tempFields
+          userPrivileges: tempUserPrivileges
         });
       }
       return null;
     })
     .catch(err => {
-      this.setState({
-        error: true,
-        info: err
-      });
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -157,7 +166,7 @@ class Roles extends Component {
               helper.showPopupMsg(c('txt-privilegeError'), c('txt-error'));
             }
 
-            this.loadList();
+            this.getPrivilegesData();
             return null;
           })
           .catch(err => {
@@ -221,29 +230,13 @@ class Roles extends Component {
 
     return permitList;
   }
-  /**
-   * Handle table row mouse over
-   * @method
-   * @param {string} id - selected privilege id
-   * @param {object} allValue - privilege data
-   * @param {object} event - event object
-   */
-  handleRowMouseOver = (id, allValue, event) => {
-    let tempData = {...this.state.data};
-    tempData = _.map(tempData, el => {
-      return {
-        ...el,
-        _menu: el.privilegeid === allValue.privilegeid ? true : false
-      };
-    });
-
-    this.setState({
-      data: tempData
-    });
-  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {data, dataFields, contextAnchor, currentRolesData, info, error} = this.state;
+    const {userPrivileges, contextAnchor, currentRolesData} = this.state;
+    const tableOptions = {
+      pagination: false,
+      tableBodyHeight: '78vh'
+    };
 
     return (
       <div>
@@ -271,14 +264,9 @@ class Roles extends Component {
               <header className='main-header'>{c('txt-privileges')}</header>
               <div className='table-content'>
                 <div className='table no-pagination'>
-                  <DataTable
-                    className='main-table'
-                    data={data}
-                    fields={dataFields}
-                    rowIdField='privilegeid'
-                    onRowMouseOver={this.handleRowMouseOver}
-                    info={info}
-                    infoClassName={cx({'c-error': error})} />
+                  <MuiTableContent
+                    data={userPrivileges}
+                    tableOptions={tableOptions} />
                 </div>
               </div>
             </div>
@@ -287,11 +275,11 @@ class Roles extends Component {
 
         <PrivilegeEdit
           ref={ref => { this.editor = ref }}
-          onDone={() => setTimeout(this.loadList, 1000)} />
+          onDone={() => setTimeout(this.getPrivilegesData, 1000)} />
 
         <PrivilegeAdd
           ref={ref => { this.addor = ref }}
-          onDone={() => setTimeout(this.loadList, 1000)} />
+          onDone={() => setTimeout(this.getPrivilegesData, 1000)} />
       </div>
     )
   }
