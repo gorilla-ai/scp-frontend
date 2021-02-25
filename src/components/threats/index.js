@@ -484,7 +484,6 @@ class ThreatsController extends Component {
                 name: val === 'select' ? '' : val,
                 label: f(`alertFields.${val}`),
                 options: {
-                  sort: val === '_eventDttm_',
                   customBodyRenderLite: (dataIndex, options) => {
                     const allValue = tableData[dataIndex];
                     let value = tableData[dataIndex][val];
@@ -529,8 +528,8 @@ class ThreatsController extends Component {
             });
 
             this.setState({
-              threatsList:tableData,
               originalThreatsList:tableData,
+              // threatsList:tableData,
               trackData: tmpTrackData
             });
           }
@@ -573,9 +572,6 @@ class ThreatsController extends Component {
     this.setState({
       trackData: trackData,
       cancelThreatsList:cancelThreatsList
-    }, () => {
-      console.log("cancelThreatsList == ", this.state.cancelThreatsList)
-      console.log("trackData == ", this.state.trackData)
     })
   };
 
@@ -599,9 +595,6 @@ class ThreatsController extends Component {
     this.setState({
       threatsData: threatsData,
       threatsList:threatsList
-    }, () => {
-      console.log("threatsData == ", this.state.threatsData)
-      console.log("threatsList == ", this.state.threatsList)
     })
 
   };
@@ -609,17 +602,13 @@ class ThreatsController extends Component {
   overrideAlertTrack = (trackList) =>{
     const {
       account,
-      threadData,
       trackData,
-      threatsList,
-      cancelThreatsList,
     } = this.state;
     const {baseUrl} = this.context;
 
     const url = `${baseUrl}/api/track/alert/_override?accountId=${account.id}`;
     const requestData = trackData.trackObj;
     requestData.alertTrackSourceArray = trackList;
-
 
     this.ah.one({
       url,
@@ -629,9 +618,7 @@ class ThreatsController extends Component {
     }, {showProgress: false})
         .then(data => {
           if (data) {
-            helper.showPopupMsg('', t('txt-success'), 'Override Success');
-            // console.log("data === ", data)
-            // this.loadTrackData();
+            helper.showPopupMsg('', t('txt-success'),  t('alert.txt-alertTrackOverrideSuccess'));
           }
         })
         .catch(err => {
@@ -655,6 +642,7 @@ class ThreatsController extends Component {
         if (confirmed) {
           const {
             trackData,
+            originalThreatsList,
             threatsList,
           } = this.state;
 
@@ -666,10 +654,11 @@ class ThreatsController extends Component {
             return o.id;
           });
 
-          this.overrideAlertTrack(tmpTrackList)
+          this.overrideAlertTrack(_.unionWith(tmpTrackList, originalThreatsList, _.isEqual));
 
           this.setState({
-            trackData: trackData
+            trackData: trackData,
+            threatsList:[]
           }, () => {
             console.log("showAddTrackDialog trackData == ", this.state.trackData)
             this.loadTrackData()
@@ -698,8 +687,7 @@ class ThreatsController extends Component {
               cancelThreatsList
           } = this.state;
 
-
-          _.forEach(this.state.cancelThreatsList, data => {
+          _.forEach(cancelThreatsList, data => {
             data.select = false;
           })
 
@@ -707,15 +695,12 @@ class ThreatsController extends Component {
             data.select = false;
           })
 
-
-          let dif = _.xorBy(trackData.dataContent, this.state.cancelThreatsList);
-          console.log("dif ====== " , dif)
-          this.overrideAlertTrack(dif)
+          this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList))
           this.setState({
             trackData: trackData,
-            cancel :[]
+            cancelThreatsList :[]
           }, () => {
-            console.log("showAddTrackDialog trackData == ", this.state.trackData)
+            console.log("showDeleteTrackDialog trackData == ", this.state.trackData)
             this.loadTrackData()
           })
 
@@ -725,17 +710,17 @@ class ThreatsController extends Component {
   }
 
 
-  openSelectMenu = () => {
+  openSelectMenu = (option) => {
     this.setState({
-      tableType: 'select',
+      tableType: option,
     }, () => {
       this.loadThreatsData();
     })
   };
-  closeSelectMenu = () => {
+  closeSelectMenu = (option) => {
     this.setState({
-      tableType:'list',
-    },()=>{
+      tableType:option,
+    },() => {
       this.loadThreatsData();
     })
   };
@@ -875,11 +860,11 @@ class ThreatsController extends Component {
       treeData,
       threatsData,
       account,
-      tableType,
       alertDetails,
       alertPieData,
       alertTableData
     } = this.state;
+
     const page = fromPage === 'currentPage' ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
@@ -978,10 +963,12 @@ class ThreatsController extends Component {
               tempThreatsData.dataContent = tempArray;
               tempThreatsData.totalCount = data.data.counts;
               tempThreatsData.currentPage = page;
+              let dataFieldsArr = [];
 
-              let dataFieldsArr =  ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
-              if (tableType === 'select'){
-                dataFieldsArr =  ['select' ,'_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              if (this.state.tableType === 'select'){
+                dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              }else{
+                dataFieldsArr = tempThreatsData.dataFieldsArr;
               }
 
               tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
@@ -1582,7 +1569,7 @@ class ThreatsController extends Component {
     return treeObj;
   }
   /**
-   * Handle filter search submit
+   * Handle alert search submit
    * @method
    */
   handleSearchSubmit = () => {
@@ -2327,23 +2314,17 @@ class ThreatsController extends Component {
             {this.state.tableType === 'list' &&
             <Button variant='outlined' color='primary' title={it('txt-openTrackedIncidents')}
                     disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
-                    onClick={this.openSelectMenu.bind(this)}><ShoppingCartIcon/></Button>
+                    onClick={this.openSelectMenu.bind(this,'select')}><ShoppingCartIcon/></Button>
             }
             {this.state.tableType === 'select' &&
             <Button variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')}
                     disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
-                    onClick={this.closeSelectMenu.bind(this)}><RemoveShoppingCartIcon/></Button>
+                    onClick={this.closeSelectMenu.bind(this,'list')}><RemoveShoppingCartIcon/></Button>
             }
             {this.state.tableType === 'select' &&
             <Button variant='outlined' color='primary' title={it('txt-trackedIncidents')}
                     disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0}
                     onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
-            }
-
-            {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
-                    disabled={this.state.activeSubTab === 'statistics'}
-                    onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
             }
 
             {this.state.activeSubTab === 'trackTreats' &&
@@ -2352,7 +2333,7 @@ class ThreatsController extends Component {
                     onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
             }
 
-            {this.state.activeSubTab === 'trackTreats' && this.state.tableType !== 'select' &&
+            {this.state.activeSubTab === 'trackTreats' &&
             <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
                     disabled={this.state.activeSubTab === 'statistics'}
                     onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>

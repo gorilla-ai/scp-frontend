@@ -393,7 +393,8 @@
     "txt-alertThreatPrivateDest": "Internal Destination IP",
     "txt-alertThreatCountryDest": "External Destination Country",
     "txt-alertThreatPublicDest": "External Destination IP",
-    "txt-alertNetTrapBlackList": "NetTrap Query Black List"
+    "txt-alertNetTrapBlackList": "NetTrap Query Black List",
+    "txt-alertTrackOverrideSuccess": "Update Alert Track Success"
   },
 
   "events": {

@@ -131,7 +131,6 @@ class Threats extends Component {
    */
   renderTableContent = () => {
     const {mainContentData} = this.props;
-    console.log("threatsData == " , mainContentData.threatsData)
     if (!mainContentData.threatsData.dataContent) {
       return (
         <div className='table-content'>
@@ -153,7 +152,6 @@ class Threats extends Component {
 
   renderTrackTableContent = () => {
     const {mainContentData} = this.props;
-    console.log("trackData == " , mainContentData.trackData)
     if (!mainContentData.trackData.dataContent) {
       return (
           <div className='table-content'>
