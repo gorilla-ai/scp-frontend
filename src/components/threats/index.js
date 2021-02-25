@@ -226,6 +226,7 @@ class ThreatsController extends Component {
           field: '_eventDttm_',
           desc: true
         },
+        trackObj:{},
         totalCount: 0,
         currentPage: 0,
         oldPage: 1,
@@ -247,7 +248,8 @@ class ThreatsController extends Component {
       },
       tableType:'list',
       threatsList:[],
-      trackedList:[],
+      originalThreatsList:[],
+      cancelThreatsList:[],
       incidentAnchor:null,
       contextAnchor: null,
       currentQueryValue: '',
@@ -297,6 +299,7 @@ class ThreatsController extends Component {
         this.loadTreeData();
         this.setChartIntervalBtn();
         this.setStatisticsTab();
+        this.loadTrackData();
       });
     }
 
@@ -460,6 +463,83 @@ class ThreatsController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+
+  loadTrackData = () => {
+    const {baseUrl} = this.context;
+    const {account, trackData,activeTab} = this.state;
+    const url = `${baseUrl}/api/track/alert/_search?accountId=${account.id}`;
+
+    this.ah.one({
+      url,
+      type: 'GET',
+    }, {showProgress: false})
+        .then(data => {
+          if (data) {
+            let tmpTrackData = trackData;
+            tmpTrackData.trackObj = data;
+            let tableData = JSON.parse(data.alertTrackSource);
+            tmpTrackData.dataContent = tableData;
+            tmpTrackData.dataFields = _.map(tmpTrackData.dataFieldsArr, val => {
+              return {
+                name: val === 'select' ? '' : val,
+                label: f(`alertFields.${val}`),
+                options: {
+                  sort: val === '_eventDttm_',
+                  customBodyRenderLite: (dataIndex, options) => {
+                    const allValue = tableData[dataIndex];
+                    let value = tableData[dataIndex][val];
+
+                    if (options === 'getAllValue') {
+                      return allValue;
+                    }
+
+                    if (val === 'select') {
+                      return (
+                          <Checkbox
+                              id={allValue.id}
+                              className='checkbox-ui'
+                              name='select'
+                              checked={allValue.select}
+                              onChange={this.handleCancelSelectDataChangeMui.bind(this, allValue)}
+                              color='primary'/>
+                      )
+                    }
+
+                    if (val === 'Info' || val === 'Source') {
+                      return <span
+                          onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
+                    } else {
+                      if (val === '_eventDttm_') {
+                        value = helper.getFormattedDate(value, 'local');
+                      }
+                      return (
+                          <TableCell
+                              activeTab={activeTab}
+                              fieldValue={value}
+                              fieldName={val}
+                              allValue={allValue}
+                              alertLevelColors={ALERT_LEVEL_COLORS}
+                              handleOpenQueryMenu={this.handleOpenQueryMenu}
+                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                      )
+                    }
+                  }
+                }
+              };
+            });
+
+            this.setState({
+              threatsList:tableData,
+              originalThreatsList:tableData,
+              trackData: tmpTrackData
+            });
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+  }
+
   /**
    * Set interval for chart buttons
    * @method
@@ -472,6 +552,94 @@ class ThreatsController extends Component {
       chartIntervalValue: chartData.chartIntervalValue
     });
   }
+
+
+  handleCancelSelectDataChangeMui = (allValue, event) => {
+    const {trackData, cancelThreatsList,} = this.state;
+    _.forEach(trackData.dataContent, data => {
+      if (allValue.id === data.id) {
+        if (event.target.checked){
+          cancelThreatsList.push(allValue)
+        } else {
+          const index = cancelThreatsList.indexOf(allValue);
+          if (index > -1) {
+            cancelThreatsList.splice(index, 1);
+          }
+        }
+        data.select = event.target.checked
+      }
+    })
+
+    this.setState({
+      trackData: trackData,
+      cancelThreatsList:cancelThreatsList
+    }, () => {
+      console.log("cancelThreatsList == ", this.state.cancelThreatsList)
+      console.log("trackData == ", this.state.trackData)
+    })
+  };
+
+  handleSelectDataChangeMui = (allValue, event) => {
+    const {threatsData, threatsList,} = this.state;
+    _.forEach(threatsData.dataContent, data => {
+
+      if (allValue.id === data.id) {
+        if (event.target.checked){
+          threatsList.push(allValue)
+        } else {
+          const index = threatsList.indexOf(allValue);
+          if (index > -1) {
+            threatsList.splice(index, 1);
+          }
+        }
+        data.select = event.target.checked
+      }
+    })
+
+    this.setState({
+      threatsData: threatsData,
+      threatsList:threatsList
+    }, () => {
+      console.log("threatsData == ", this.state.threatsData)
+      console.log("threatsList == ", this.state.threatsList)
+    })
+
+  };
+
+  overrideAlertTrack = (trackList) =>{
+    const {
+      account,
+      threadData,
+      trackData,
+      threatsList,
+      cancelThreatsList,
+    } = this.state;
+    const {baseUrl} = this.context;
+
+    const url = `${baseUrl}/api/track/alert/_override?accountId=${account.id}`;
+    const requestData = trackData.trackObj;
+    requestData.alertTrackSourceArray = trackList;
+
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+        .then(data => {
+          if (data) {
+            helper.showPopupMsg('', t('txt-success'), 'Override Success');
+            // console.log("data === ", data)
+            // this.loadTrackData();
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+
+  }
+
   showAddTrackDialog = () => {
     PopupDialog.prompt({
       title: t('txt-help'),
@@ -489,19 +657,22 @@ class ThreatsController extends Component {
             trackData,
             threatsList,
           } = this.state;
-         this.state.trackedList = threatsList;
 
-          _.forEach(this.state.trackedList, data => {
+          _.forEach(threatsList, data => {
             data.select = false;
           })
 
-          trackData.dataContent = _.uniqBy(this.state.trackedList, function(o){
+          let tmpTrackList = _.uniqBy(threatsList, function(o){
             return o.id;
           });
+
+          this.overrideAlertTrack(tmpTrackList)
+
           this.setState({
             trackData: trackData
           }, () => {
             console.log("showAddTrackDialog trackData == ", this.state.trackData)
+            this.loadTrackData()
           })
 
         }
@@ -524,21 +695,28 @@ class ThreatsController extends Component {
         if (confirmed) {
           const {
             trackData,
-            threatsList,
+              cancelThreatsList
           } = this.state;
-          this.state.trackedList = threatsList;
 
-          _.forEach(this.state.trackedList, data => {
+
+          _.forEach(this.state.cancelThreatsList, data => {
             data.select = false;
           })
 
-          trackData.dataContent = _.uniqBy(this.state.trackedList, function(o){
-            return o.id;
-          });
+          _.forEach(trackData.dataContent, data => {
+            data.select = false;
+          })
+
+
+          let dif = _.xorBy(trackData.dataContent, this.state.cancelThreatsList);
+          console.log("dif ====== " , dif)
+          this.overrideAlertTrack(dif)
           this.setState({
-            trackData: trackData
+            trackData: trackData,
+            cancel :[]
           }, () => {
-            console.log("showDeleteTrackDialog trackData == ", this.state.trackData)
+            console.log("showAddTrackDialog trackData == ", this.state.trackData)
+            this.loadTrackData()
           })
 
         }
@@ -808,8 +986,8 @@ class ThreatsController extends Component {
 
               tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
                 return {
-                  name: val,
-                  label: val === 'select' ? '' : f(`alertFields.${val}`),
+                  name: val === 'select' ? '' : val,
+                  label: f(`alertFields.${val}`),
                   options: {
                     sort: val === '_eventDttm_',
                     customBodyRenderLite: (dataIndex, options) => {
@@ -853,59 +1031,9 @@ class ThreatsController extends Component {
                   }
                 };
               });
-              let tmpTrackData = this.state.trackData;
-              tmpTrackData.dataFields = _.map(tmpTrackData.dataFieldsArr, val => {
-                return {
-                  name: val,
-                  label: val === 'select' ? '' : f(`alertFields.${val}`),
-                  options: {
-                    sort: val === '_eventDttm_',
-                    customBodyRenderLite: (dataIndex, options) => {
-                      const allValue = this.state.trackedList[dataIndex];
-                      let value = this.state.trackedList[dataIndex][val];
-
-                      if (options === 'getAllValue') {
-                        return allValue;
-                      }
-
-                      if (val === 'select') {
-                        return (
-                            <Checkbox
-                                id={allValue.id}
-                                className='checkbox-ui'
-                                name='select'
-                                checked={allValue.select}
-                                onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
-                                color='primary'/>
-                        )
-                      }
-
-                      if (val === 'Info' || val === 'Source') {
-                        return <span
-                            onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
-                      } else {
-                        if (val === '_eventDttm_') {
-                          value = helper.getFormattedDate(value, 'local');
-                        }
-                        return (
-                            <TableCell
-                                activeTab={activeTab}
-                                fieldValue={value}
-                                fieldName={val}
-                                allValue={allValue}
-                                alertLevelColors={ALERT_LEVEL_COLORS}
-                                handleOpenQueryMenu={this.handleOpenQueryMenu}
-                                handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
-                        )
-                      }
-                    }
-                  }
-                };
-              });
 
               this.setState({
                 threatsData: tempThreatsData,
-                trackData: tmpTrackData
               });
             }
           }
@@ -1868,7 +1996,7 @@ class ThreatsController extends Component {
 
     if (this.state.tableType === 'select') {
       tableOptions.pagination = false;
-    } else if (activeTab === 'select') {
+    } else if (this.state.activeSubTab === 'trackTreats') {
       tableOptions.pagination = false;
     } else {
       tableOptions.pagination = true;
@@ -2111,40 +2239,6 @@ class ThreatsController extends Component {
     });
   }
 
-  handleSelectDataChangeMui = (allValue, event) => {
-    const {
-      threatsData,
-      trackData,
-      threatsList,
-    } = this.state;
-    _.forEach(threatsData.dataContent, data => {
-
-      if (allValue.id === data.id) {
-        if (event.target.checked){
-          threatsList.push(allValue)
-        } else {
-          const index = threatsList.indexOf(allValue);
-          if (index > -1) {
-            threatsList.splice(index, 1);
-          }
-        }
-        data.select = event.target.checked
-      }
-    })
-
-    // trackData.dataContent = threatsList;
-    this.setState({
-      threatsList: threatsList,
-      threatsData: threatsData,
-      trackData: trackData
-    }, () => {
-      console.log("threatsData == ", this.state.threatsData)
-      console.log("threatsList == ", this.state.threatsList)
-      console.log("trackData == ", this.state.trackData)
-    })
-
-  };
-
   handleOpenIncidentMenu = (event) => {
     this.setState({
       incidentAnchor: event.currentTarget,
@@ -2245,11 +2339,25 @@ class ThreatsController extends Component {
                     disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0}
                     onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
             }
-            <Button variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')}
-                    disabled={this.state.activeSubTab !== 'trackTreats'}><RemoveCircleOutlineIcon/></Button>
+
+            {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
             <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
                     disabled={this.state.activeSubTab === 'statistics'}
                     onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+            }
+
+            {this.state.activeSubTab === 'trackTreats' &&
+            <Button variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')}
+                    disabled={this.state.activeSubTab !== 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.cancelThreatsList.length === 0}
+                    onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
+            }
+
+            {this.state.activeSubTab === 'trackTreats' && this.state.tableType !== 'select' &&
+            <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
+                    disabled={this.state.activeSubTab === 'statistics'}
+                    onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+            }
+
 
           </div>
           {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
