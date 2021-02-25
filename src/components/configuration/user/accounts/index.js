@@ -11,15 +11,14 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
 import AdConfig from './ad-config'
-
 import {BaseDataContext} from '../../../common/context';
 import Config from '../../../common/configuration'
+import MuiTableContent from '../../../common/mui-table-content'
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -41,18 +40,26 @@ class AccountList extends Component {
 
     this.state = {
       showFilter: false,
-      originalAccountData: [],
-      accountData: [],
-      dataFieldsArr: ['_menu', 'accountid', 'account', 'name', 'email', 'unit', 'title', 'phone'],
-      param: {
+      accountSearch: {
         name: '',
         account: ''
+      },
+      userAccount: {
+        dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: 'account',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
       },
       accountID: '',
       accountName: '',
       contextAnchor: null,
       currentAccountData: {},
-      dataFields: {},
       showNewPassword: false,
       newPassword: '',
       info: '',
@@ -70,52 +77,72 @@ class AccountList extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    this.loadAccounts();
+    this.getAccountsData();
   }
   /**
    * Get and set account list data
    * @method
+   * @param {string} options - option for 'currentPage'
    */
-  loadAccounts = () => {
+  getAccountsData = (options) => {
     const {baseUrl} = this.context;
-    const {dataFieldsArr} = this.state;
+    const {accountSearch, userAccount} = this.state;
+    const sort = userAccount.sort.desc ? 'desc' : 'asc';
+    const page = options === 'currentPage' ? userAccount.currentPage : 0;
+    const url = `${baseUrl}/api/account/v2/_search?page=${page + 1}&pageSize=${userAccount.pageSize}&orders=${userAccount.sort.field} ${sort}`;
+    let requestData = {};
 
-    ah.one({
-      url: `${baseUrl}/api/account/v1/_search`,
+    if (accountSearch.account) {
+      requestData.account = accountSearch.account;
+    }
+
+    if (accountSearch.name) {
+      requestData.name = accountSearch.name;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
       type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
+      contentType: 'application/json'
     })
     .then(data => {
       if (data) {
-        const accountData = data.rt.rows;
+        let tempUserAccount = {...userAccount};
+        tempUserAccount.dataContent = data.rows;
+        tempUserAccount.totalCount = data.counts;
+        tempUserAccount.currentPage = page;
 
-        let tempFields = {};
-        dataFieldsArr.forEach(tempData => {
-          tempFields[tempData] = {
-            hide: tempData === 'accountid' ? true : false,
-            label: tempData === '_menu' ? '' : t(`accountFields.${tempData}`),
-            sortable: tempData === '_menu' ? null : true,
-            formatter: (value, allValue, i) => {
-              if (tempData === '_menu') {
-                return (
-                  <div className={cx('table-menu', {'active': value})}>
-                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
-                  </div>
-                )
-              } else if (tempData === 'account' && allValue.isLock) {
-                return <span><i className='fg fg-key' title={c('txt-account-unlocked')}></i>{value}</span>;
-              } else {
-                return <span>{value}</span>;
+        tempUserAccount.dataFields = _.map(userAccount.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : t('accountFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempUserAccount.dataContent[dataIndex];
+                const value = tempUserAccount.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    <div className='table-menu active'>
+                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
+                    </div>
+                  )
+                } else if (val === 'account' && allValue.isLock) {
+                  return <span><i className='fg fg-key' title={c('txt-account-unlocked')}></i>{value}</span>;
+                } else {
+                  return <span>{value}</span>;
+                }
               }
             }
-          }
-        })
+          };
+        });
 
         this.setState({
-          originalAccountData: _.cloneDeep(accountData),
-          accountData,
-          dataFields: tempFields
+          userAccount: tempUserAccount
         });
       }
       return null;
@@ -147,46 +174,6 @@ class AccountList extends Component {
     });
   }
   /**
-   * Handle table row mouse over
-   * @method
-   * @param {string} index - index of the account data
-   * @param {object} allValue - account data
-   * @param {object} event - event object
-   */
-  handleRowMouseOver = (value, allValue, event) => {
-    let tempAccountData = {...this.state.accountData};
-    tempAccountData = _.map(tempAccountData, el => {
-      return {
-        ...el,
-        _menu: el.accountid === allValue.accountid ? true : false
-      };
-    });
-
-    this.setState({
-      accountData: tempAccountData
-    });
-  }
-  /**
-   * Handle account filter action
-   * @method
-   */
-  getAccountFilterData = () => {
-    const {originalAccountData, accountData, param} = this.state;
-    let filteredAccountArr = [];
-
-    if (param.name || param.account) { //If filters are been set
-      filteredAccountArr = _.filter(originalAccountData, ({name, account}) => {
-        return (_.includes(name, param.name) && _.includes(account, param.account));
-      });
-    } else  {
-      filteredAccountArr = originalAccountData;
-    }
-
-    this.setState({
-      accountData: filteredAccountArr
-    });
-  }
-  /**
    * Open account edit modal dialog
    * @method
    * @param {string} id - selected account ID
@@ -199,7 +186,6 @@ class AccountList extends Component {
   showAdDialog = () => {
     this.config.open()
   }
-  
   /**
    * Display delete and unlock content
    * @method
@@ -282,7 +268,7 @@ class AccountList extends Component {
     })
     .then(() => {
       helper.showPopupMsg(msg);
-      this.loadAccounts();
+      this.getAccountsData();
       return null;
     })
     .catch(err => {
@@ -435,11 +421,11 @@ class AccountList extends Component {
    * @param {object} event - event object
    */
   handleSearchChange = (event) => {
-    let tempParam = {...this.state.param};
-    tempParam[event.target.name] = event.target.value;
+    let tempAccountSearch = {...this.state.accountSearch};
+    tempAccountSearch[event.target.name] = event.target.value;
 
     this.setState({
-      param: tempParam
+      accountSearch: tempAccountSearch
     });
   }
   /**
@@ -457,10 +443,28 @@ class AccountList extends Component {
    */
   clearFilter = () => {
     this.setState({
-      param: {
+      accountSearch: {
         name: '',
         account: ''
       }
+    });
+  }
+  /**
+   * Handle filter search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    let tempUserAccount = {...this.state.userAccount};
+    tempUserAccount.dataFields = [];
+    tempUserAccount.dataContent = [];
+    tempUserAccount.totalCount = 0;
+    tempUserAccount.currentPage = 1;
+    tempUserAccount.pageSize = 20;
+    
+    this.setState({
+      userAccount: tempUserAccount
+    }, () => {
+      this.getAccountsData();
     });
   }
   /**
@@ -469,7 +473,7 @@ class AccountList extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, param} = this.state;
+    const {showFilter, accountSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -484,7 +488,7 @@ class AccountList extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={param.account}
+              value={accountSearch.account}
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
@@ -495,20 +499,68 @@ class AccountList extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={param.name}
+              value={accountSearch.name}
               onChange={this.handleSearchChange} />
           </div>
         </div>
         <div className='button-group'>
-          <Button id='account-btn-filter' variant='contained' color='primary' className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</Button>
+          <Button id='account-btn-filter' variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{c('txt-filter')}</Button>
           <Button id='account-btn-clear' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{c('txt-clear')}</Button>
         </div>
       </div>
     )
   }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempUserAccount = {...this.state.userAccount};
+    tempUserAccount[type] = Number(value);
+
+    if (type === 'pageSize') {
+      tempUserAccount.currentPage = 0;
+    }
+
+    this.setState({
+      userAccount: tempUserAccount
+    }, () => {
+      this.getAccountsData(type);
+    });
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let tempUserAccount = {...this.state.userAccount};
+    tempUserAccount.sort.field = field;
+    tempUserAccount.sort.desc = sort;
+
+    this.setState({
+      userAccount: tempUserAccount
+    }, () => {
+      this.getAccountsData();
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {accountData, dataFields, showFilter, showNewPassword, contextAnchor, currentAccountData} = this.state;
+    const {showFilter, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
@@ -525,7 +577,7 @@ class AccountList extends Component {
           <MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
           <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
           {currentAccountData.isLock &&
-            <MenuItem onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
+            <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
           }
         </Menu>
 
@@ -547,22 +599,16 @@ class AccountList extends Component {
 
             <div className='main-content'>
               <header className='main-header'>{c('txt-account')}</header>
-              <div className='table-content'>
-                <div className='table no-pagination'>
-                  <DataTable
-                    className='main-table'
-                    fields={dataFields}
-                    onRowMouseOver={this.handleRowMouseOver}
-                    data={accountData} />
-                </div>
-              </div>
+              <MuiTableContent
+                data={userAccount}
+                tableOptions={tableOptions} />
             </div>
           </div>
         </div>
 
         <AccountEdit
           ref={ref => { this.editor = ref }}
-          onDone={this.loadAccounts} />
+          onDone={this.getAccountsData} />
 
         <AdConfig ref={ref => { this.config = ref }} />
       </div>

@@ -362,8 +362,8 @@ class HMDscanInfo extends Component {
                 content = allValue['_PolicyName_en'];
               }
 
-              if (content.length > 70) {
-                const newValue = content.substr(0, 70) + '...';
+              if (content.length > 60) {
+                const newValue = content.substr(0, 60) + '...';
                 return <span title={content}>{newValue}</span>
               } else {
                 return <span>{content}</span>

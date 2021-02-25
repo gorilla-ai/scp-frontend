@@ -20,10 +20,30 @@ class MuiTableContent extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      tableData: {}
+    };
+
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  componentDidMount() {
+    this.loadTableContent();
+  }
+  componentDidUpdate(prevProps) {
+    this.loadTableContent(prevProps);
+  }
+  loadTableContent = (prevProps) => {
+    const {data} = this.props;
+
+    if (!prevProps || (prevProps && !_.isEqual(data.dataContent, prevProps.data.dataContent))) {
+      this.setState({
+        tableData: data
+      });
+    }
+  }
   render() {
-    const {data, tableOptions} = this.props;
+    const {tableOptions} = this.props;
+    const {tableData} = this.state;
     const options = {
 			tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
       selectableRows: 'none',
@@ -34,9 +54,9 @@ class MuiTableContent extends Component {
       download: false,
       rowsPerPageOptions: [10, 20, 50, 100],
       jumpToPage: true,
-      count: data.totalCount,
-      rowsPerPage: data.pageSize,
-      page: data.currentPage,
+      count: tableData.totalCount,
+      rowsPerPage: tableData.pageSize,
+      page: tableData.currentPage,
       textLabels: {
         body: {
           noMatch: t('MuiDataTable.body.noMatch'),
@@ -67,8 +87,8 @@ class MuiTableContent extends Component {
     return (
       <MUIDataTable
         className='mui-data-table'
-        columns={data.dataFields}
-        data={data.dataContent}
+        columns={tableData.dataFields}
+        data={tableData.dataContent}
         options={options} />
     )
   }

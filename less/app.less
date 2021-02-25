@@ -580,6 +580,20 @@ button.standard:hover:not([disabled]) {
       right: 0;
     }    
   }
+  .MuiTableBody-root {
+    .flex-item {
+      display: flex;
+      flex-wrap: wrap;
+      .item {
+        font-size: 15px;
+        color: #fff;
+        padding: 5px 10px;
+        margin: 5px 2px;
+        border-radius: 5px;
+        background-color: var(--primaryContentHeader);
+      }
+    }
+  }
   .MuiToolbar-root,
   .MuiTablePagination-actions {
     button:hover {
@@ -2805,18 +2819,6 @@ button.standard:hover:not([disabled]) {
                 }
                 &.bold {
                   font-weight: bold;
-                }
-              }
-              .flex-item {
-                display: flex;
-                flex-wrap: wrap;
-                .item {
-                  font-size: 15px;
-                  color: #fff;
-                  padding: 5px 10px;
-                  margin: 5px 2px;
-                  border-radius: 5px;
-                  background-color: var(--primaryContentHeader);
                 }
               }
               span {

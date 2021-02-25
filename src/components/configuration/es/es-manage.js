@@ -352,6 +352,10 @@ class EsManage extends Component {
       esSearch: tempEsSearch
     });
   }
+  /**
+   * Handle filter search submit
+   * @method
+   */
   handleSearchSubmit = () => {
     let tempEs = {...this.state.es};
     tempEs.dataFields = [];
@@ -359,7 +363,7 @@ class EsManage extends Component {
     tempEs.totalCount = 0;
     tempEs.currentPage = 1;
     tempEs.oldPage = 1;
-    tempEs.pageSize = 20;    
+    tempEs.pageSize = 20;
     
     this.setState({
       es: tempEs

@@ -216,7 +216,7 @@ class AlertDetails extends Component {
         this.getIPcontent('destIp');
         this.clearChartsData();
       });
-    }   
+    }
   }
   /**
    * Set source or destination topology data to alertInfo
@@ -829,7 +829,7 @@ class AlertDetails extends Component {
         srcSafety: false,
         destSafety: false,
         srcNetwork: false,
-        destNetwork: false, 
+        destNetwork: false,
         json: false
       }
     }, () => {
@@ -1182,7 +1182,7 @@ class AlertDetails extends Component {
       to: helper.getFormattedDate(alertData._eventDttm_, 'local')
     };
     let linkUrl = '';
- 
+
     if (type === 'virustotal') {
       let ip = value;
 
