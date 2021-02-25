@@ -258,7 +258,7 @@ class Syslog extends Component {
                   </div>
                 )
               } else {
-                return <span>{value}</span>;
+                return <span>{value}</span>
               }
             }
           }
@@ -1285,7 +1285,7 @@ class Syslog extends Component {
                   </div>
                 )
               } else {
-                return <span>{value}</span>;
+                return <span>{value}</span>
               }
             }
           }

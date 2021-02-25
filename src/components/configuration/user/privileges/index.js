@@ -91,7 +91,7 @@ class Roles extends Component {
                 } else if (val === 'permits') {
                   return <div className='flex-item'>{this.displayPermit(value)}</div>
                 } else {
-                  return <span>{value}</span>;
+                  return <span>{value}</span>
                 }
               }
             }
