@@ -566,13 +566,14 @@ class NetworkBehavior extends Component {
     return (
       <div className='network-behavior'>
         <ToggleButtonGroup
+          id='networkBehaviorBtn'
           value={activeNetworkBehavior}
           exclusive
           onChange={this.toggleNetworkBtn}>
-          <ToggleButton value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
-          <ToggleButton value='connections'>{t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'}</ToggleButton>
-          <ToggleButton value='dns'>{t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'}</ToggleButton>
-          <ToggleButton value='syslog'>{t('txt-syslog') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton id='networkBehaviorThreats' value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton id='networkBehaviorConnections' value='connections'>{t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton id='networkBehaviorDns' value='dns'>{t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton id='networkBehaviorSyslog' value='syslog'>{t('txt-syslog') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
         </ToggleButtonGroup>
 
         {datetime.from && datetime.to &&

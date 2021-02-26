@@ -860,12 +860,13 @@ class DashboardMaps extends Component {
         <div className='main-dashboard'>
           <div className='maps'>
             <ToggleButtonGroup
+              id='mainDashboardBtn'
               className='button-group'
               value={mapType}
               exclusive
               onChange={this.toggleMaps}>
-              <ToggleButton value={PRIVATE}>{t('dashboard.txt-private')}</ToggleButton>
-              <ToggleButton value={PUBLIC}>{t('dashboard.txt-public')}</ToggleButton>
+              <ToggleButton id='mainDashboardPrivate' value={PRIVATE}>{t('dashboard.txt-private')}</ToggleButton>
+              <ToggleButton id='mainDashboardPublic' value={PUBLIC}>{t('dashboard.txt-public')}</ToggleButton>
             </ToggleButtonGroup>
 
             {floorList.length > 0 && mapType === PRIVATE &&

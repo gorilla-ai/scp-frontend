@@ -921,7 +921,7 @@ class AlertDetails extends Component {
     if ((ip && ip !== NOT_AVAILABLE) || options === 'rule') {
       return (
         <div className='multi-items'>
-          <span onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</span>
+          <span id='queryMoreBtn' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</span>
         </div>
       )
     }
@@ -1049,12 +1049,12 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='datetime'>{eventDatetime}</td>
-              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
-              <td className='src-ip'>{this.getIpPortData('srcIp')}</td>
-              <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
-              <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
-              <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
+              <td id='alertDetailsCellTime' className='datetime'>{eventDatetime}</td>
+              <td id='alertDetailsCellSeverity' className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
+              <td id='alertDetailsCellSrcIp' className='src-ip'>{this.getIpPortData('srcIp')}</td>
+              <td id='alertDetailsCellDestIp' className='dest-ip'>{this.getIpPortData('destIp')}</td>
+              <td id='alertDetailsCellCollector' className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
+              <td id='alertDetailsCellSource' className='source'>{alertData.Source || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>
@@ -1159,8 +1159,8 @@ class AlertDetails extends Component {
         {alertDetails.currentLength > 0 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
+              <Button id='navigationPrevious' variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
+              <Button id='navigationNext' variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}</span>
           </div>
@@ -1220,7 +1220,7 @@ class AlertDetails extends Component {
     if (options === 'srcIp' || options === 'destIp') {
       return (
         <ul className='redirect-menu' ref={this.setWrapperRef}>
-          <li onClick={this.redirectLink.bind(this, 'virustotal', options)}>{t('alert.txt-searthVirustotal')}</li>
+          <li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', options)}>{t('alert.txt-searthVirustotal')}</li>
         </ul>
       )
     } else if (options === 'rule') {
@@ -1231,10 +1231,10 @@ class AlertDetails extends Component {
       return (
         <ul className='redirect-menu' ref={this.setWrapperRef}>
           {alertData.pcapFlag &&
-            <li onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</li>
+            <li id='downloadPcapBtn' onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</li>
           }
           {alertData.blackIP &&
-            <li onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}</li>
+            <li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}</li>
           }
         </ul>
       )
@@ -1405,12 +1405,12 @@ class AlertDetails extends Component {
         <div className='section'>
           <header>{t('alert.txt-threatsContent')}</header>
           <ul>
-            <li><span>{t('alert.txt-severityType')}</span>: {alertData.severity_type}</li>
-            <li><span>{t('alert.txt-severityDesc')}</span>: {alertData.severity_type_description || NOT_AVAILABLE}</li>
-            <li><span>{t('alert.txt-collectorType')}</span>: {alertData.Collector}</li>
-            <li><span>{t('alert.txt-threatsType')}</span>: {alertData.severity_type_name}</li>
-            <li><span>{t('alert.txt-threatsCreateDttm')}</span>: {threatCreateDttm}</li>
-            <li><span>{t('alert.txt-threatsUpdateDttm')}</span>: {threatUpdateDttm}</li>
+            <li><span className='header'>{t('alert.txt-severityType')}</span>: <span id='threatsContentSeverity'>{alertData.severity_type}</span></li>
+            <li><span className='header'>{t('alert.txt-severityDesc')}</span>: <span id='threatsContentDesc'>{alertData.severity_type_description || NOT_AVAILABLE}</span></li>
+            <li><span className='header'>{t('alert.txt-collectorType')}</span>: <span id='threatsContentCollector'>{alertData.Collector}</span></li>
+            <li><span className='header'>{t('alert.txt-threatsType')}</span>: <span id='threatsContentType'>{alertData.severity_type_name}</span></li>
+            <li><span className='header'>{t('alert.txt-threatsCreateDttm')}</span>: <span id='threatsContentCreateDttm'>{threatCreateDttm}</span></li>
+            <li><span className='header'>{t('alert.txt-threatsUpdateDttm')}</span>: <span id='threatsContentUpdateDttm'>{threatUpdateDttm}</span></li>
           </ul>
         </div>
 
@@ -1426,13 +1426,14 @@ class AlertDetails extends Component {
           {threatsCountData10 && threatsCountData10.length > 0 &&
             <div>
               <ToggleButtonGroup
+                id='threatsCountBtn'
                 className='chart-btn'
                 value={threatsCount}
                 exclusive
                 onChange={this.toggleThreatCount}>
-                <ToggleButton value='last10'>{t('alert.txt-last10')}</ToggleButton>
-                <ToggleButton value='last20'>{t('alert.txt-last20')}</ToggleButton>
-                <ToggleButton value='last50'>{t('alert.txt-last50')}</ToggleButton>
+                <ToggleButton id='threatsCountLast10' value='last10'>{t('alert.txt-last10')}</ToggleButton>
+                <ToggleButton id='threatsCountLast20' value='last20'>{t('alert.txt-last20')}</ToggleButton>
+                <ToggleButton id='threatsCountLast50' value='last50'>{t('alert.txt-last50')}</ToggleButton>
               </ToggleButtonGroup>
 
               {this.displayBarChart('threatsCountData')}
@@ -1456,7 +1457,7 @@ class AlertDetails extends Component {
 
         <div className='section'>
           <header>{t('alert.txt-threatStat')}</header>
-          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'threats', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreEvents')}</Button>
+          <Button id='alertQueryMoreAlertBtn' variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'threats', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreEvents')}</Button>
           <div className='title'>{t('alert.txt-lastHourData')}</div>
           <div className='chart-content'>
             {!threatStatAlert &&
@@ -1514,7 +1515,7 @@ class AlertDetails extends Component {
 
         <div className='section'>
           <header>{t('alert.txt-eventStat')}</header>
-          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'syslog', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreLogs')}</Button>
+          <Button id='alertQueryMoreLogsBtn' variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'syslog', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreLogs')}</Button>
           <div className='title'>{t('alert.txt-lastHourData')}</div>
           <div className='chart-content'>
             {!eventStatConfig &&
