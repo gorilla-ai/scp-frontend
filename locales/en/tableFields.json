@@ -259,6 +259,7 @@
     "srcHostname": "Source Hostname"
   },
   "alertFields": {
+    "select": "",
     "_tableMenu_": "",
     "_eventDttm_": "Alert Datetime",
     "lastPacket": "Last Packet",

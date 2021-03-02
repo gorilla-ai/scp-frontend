@@ -2214,6 +2214,12 @@ button.standard:hover:not([disabled]) {
               text-align: left;
               &.full {
                 width: 100%;
+                &.relatedList {
+                  color: var(--primaryTextColor);
+                  border: 1px solid var(--formInputBorderColor);
+                  background-color: var(--formBackground);
+                  width: 100%;
+                }
               }
               &.multi {
                 label {
@@ -2361,6 +2367,7 @@ button.standard:hover:not([disabled]) {
               background-color: var(--formBackground);
               width: 100%;
             }
+
           }
           .steps-indicator { //For Config Topology Inventory page
             display: flex;
@@ -3292,6 +3299,8 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
+
+
 
 .incident-statistics {
   display: flex;

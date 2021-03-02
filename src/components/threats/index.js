@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { withRouter } from 'react-router'
+import {withRouter} from 'react-router'
 import moment from 'moment'
 import momentTimezone from 'moment-timezone'
 import _ from 'lodash'
@@ -23,6 +23,14 @@ import TableCell from '../common/table-cell'
 import Threats from './threats'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
+import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined';
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
+import ModalDialog from "react-ui/build/src/components/modal-dialog";
+import IncidentEventMake from "../soc/common/incident-event-make";
+import Moment from "moment";
 
 const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
@@ -118,6 +126,21 @@ const TABLE_CHARTS_LIST = [
   }
 ];
 
+const INCIDENT_STATUS_ALL = 0
+const INCIDENT_STATUS_UNREVIEWED = 1
+const INCIDENT_STATUS_REVIEWED = 2
+const INCIDENT_STATUS_CLOSED = 3
+const INCIDENT_STATUS_SUBMITTED = 4
+const INCIDENT_STATUS_DELETED = 5
+const INCIDENT_STATUS_ANALYZED = 6
+const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
+const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
+
+const SOC_Analyzer = 1
+const SOC_Executor = 2
+const SOC_Super = 3
+
+
 let t = null;
 let f = null;
 let et = null;
@@ -184,6 +207,7 @@ class ThreatsController extends Component {
       //Tab IncidentDevice
       subTabMenu: {
         table: t('alert.txt-alertList'),
+        trackTreats:t('alert.txt-trackAlertList'),
         statistics: t('alert.txt-statistics')
       },
       activeSubTab: 'table',
@@ -212,6 +236,20 @@ class ThreatsController extends Component {
         oldPage: 1,
         pageSize: 20
       },
+      trackData: {
+        dataFieldsArr: ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: '_eventDttm_',
+          desc: true
+        },
+        trackObj:{},
+        totalCount: 0,
+        currentPage: 0,
+        oldPage: 1,
+        pageSize: 10000
+      },
       //..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
@@ -226,6 +264,11 @@ class ThreatsController extends Component {
         emailList: [],
         openFlag: false
       },
+      tableType:'list',
+      threatsList:[],
+      originalThreatsList:[],
+      cancelThreatsList:[],
+      incidentAnchor:null,
       contextAnchor: null,
       currentQueryValue: '',
       notifyEmailData: [],
@@ -248,6 +291,13 @@ class ThreatsController extends Component {
         currentLength: ''
       },
       alertData: {},
+      incident:{
+        info: {
+          status: 1,
+          socType: 1,
+          attach:null
+        }
+      },
       loadAlertData: true,
       alertPieData: {},
       alertTableData: {},
@@ -274,6 +324,7 @@ class ThreatsController extends Component {
         this.loadTreeData();
         this.setChartIntervalBtn();
         this.setStatisticsTab();
+        this.loadTrackData();
       });
     }
 
@@ -437,6 +488,83 @@ class ThreatsController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+
+  loadTrackData = () => {
+    const {baseUrl} = this.context;
+    const {account, trackData,activeTab} = this.state;
+    const url = `${baseUrl}/api/track/alert/_search?accountId=${account.id}`;
+
+    this.ah.one({
+      url,
+      type: 'GET',
+    }, {showProgress: false})
+        .then(data => {
+          if (data) {
+            let tmpTrackData = trackData;
+            tmpTrackData.trackObj = data;
+            let tableData = JSON.parse(data.alertTrackSource);
+            tmpTrackData.dataContent = tableData;
+            tmpTrackData.dataFields = _.map(tmpTrackData.dataFieldsArr, val => {
+              return {
+                name: val === 'select' ? '' : val,
+                label: f(`alertFields.${val}`),
+                options: {
+                  sort: true,
+                  customBodyRenderLite: (dataIndex, options) => {
+                    const allValue = tableData[dataIndex];
+                    let value = tableData[dataIndex][val];
+
+                    if (options === 'getAllValue') {
+                      return allValue;
+                    }
+
+                    if (val === 'select') {
+                      return (
+                          <Checkbox
+                              id={allValue.id}
+                              className='checkbox-ui'
+                              name='select'
+                              checked={allValue.select}
+                              onChange={this.handleCancelSelectDataChangeMui.bind(this, allValue)}
+                              color='primary'/>
+                      )
+                    }
+
+                    if (val === 'Info' || val === 'Source') {
+                      return <span
+                          onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
+                    } else {
+                      if (val === '_eventDttm_') {
+                        value = helper.getFormattedDate(value, 'local');
+                      }
+                      return (
+                          <TableCell
+                              activeTab={activeTab}
+                              fieldValue={value}
+                              fieldName={val}
+                              allValue={allValue}
+                              alertLevelColors={ALERT_LEVEL_COLORS}
+                              handleOpenQueryMenu={this.handleOpenQueryMenu}
+                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                      )
+                    }
+                  }
+                }
+              };
+            });
+
+            this.setState({
+              originalThreatsList:tableData,
+              // threatsList:tableData,
+              trackData: tmpTrackData
+            });
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+  }
+
   /**
    * Set interval for chart buttons
    * @method
@@ -449,6 +577,578 @@ class ThreatsController extends Component {
       chartIntervalValue: chartData.chartIntervalValue
     });
   }
+
+
+  handleCancelSelectDataChangeMui = (allValue, event) => {
+    const {trackData, cancelThreatsList,} = this.state;
+    _.forEach(trackData.dataContent, data => {
+      if (allValue.id === data.id) {
+        if (event.target.checked){
+          cancelThreatsList.push(allValue)
+        } else {
+          const index = cancelThreatsList.indexOf(allValue);
+          if (index > -1) {
+            cancelThreatsList.splice(index, 1);
+          }
+        }
+        data.select = event.target.checked
+      }
+    })
+
+    this.setState({
+      trackData: trackData,
+      cancelThreatsList:cancelThreatsList
+    })
+  };
+
+  handleSelectDataChangeMui = (allValue, event) => {
+    const {threatsData, threatsList,} = this.state;
+    _.forEach(threatsData.dataContent, data => {
+
+      if (allValue.id === data.id) {
+        if (event.target.checked){
+          threatsList.push(allValue)
+        } else {
+          const index = threatsList.indexOf(allValue);
+          if (index > -1) {
+            threatsList.splice(index, 1);
+          }
+        }
+        data.select = event.target.checked
+      }
+    })
+
+    this.setState({
+      threatsData: threatsData,
+      threatsList:threatsList
+    })
+
+  };
+
+  overrideAlertTrack = (trackList) =>{
+    const {
+      account,
+      trackData,
+    } = this.state;
+    const {baseUrl} = this.context;
+
+    const url = `${baseUrl}/api/track/alert/_override?accountId=${account.id}`;
+    const requestData = trackData.trackObj;
+    requestData.alertTrackSourceArray = trackList;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+        .then(data => {
+          if (data) {
+            helper.showPopupMsg('', t('txt-success'),  t('alert.txt-alertTrackOverrideSuccess'));
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+
+  }
+
+  showAddTrackDialog = () => {
+    PopupDialog.prompt({
+      title: t('txt-help'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+          <div className='content'>
+            <span>{it('txt-trackedIncidents-msg')}?</span>
+          </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          const {
+            trackData,
+            originalThreatsList,
+            threatsList,
+          } = this.state;
+
+          _.forEach(threatsList, data => {
+            data.select = false;
+          })
+
+          let tmpTrackList = _.uniqBy(threatsList, function(o){
+            return o.id;
+          });
+
+          this.overrideAlertTrack(_.unionWith(tmpTrackList, originalThreatsList, _.isEqual));
+
+          this.setState({
+            trackData: trackData,
+            threatsList:[]
+          }, () => {
+            this.loadTrackData()
+          })
+
+        }
+      }
+    });
+  }
+
+  showDeleteTrackDialog = () => {
+    PopupDialog.prompt({
+      title: t('txt-help'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+          <div className='content'>
+            <span>{it('txt-trackedDeleteIncidents-msg')}?</span>
+          </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          const {
+            trackData,
+              cancelThreatsList
+          } = this.state;
+
+          _.forEach(cancelThreatsList, data => {
+            data.select = false;
+          })
+
+          _.forEach(trackData.dataContent, data => {
+            data.select = false;
+          })
+
+          this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList))
+          this.setState({
+            trackData: trackData,
+            cancelThreatsList :[]
+          }, () => {
+            this.loadTrackData()
+          })
+
+        }
+      }
+    });
+  }
+
+  handleSelectMenu = (option) => {
+    this.setState({
+      showFilter: false,
+      tableType: option,
+    }, () => {
+     this.handleSearchSubmit()
+    })
+  };
+
+  setupIncidentDialog = (makeType) =>{
+    const {baseUrl} = this.context;
+    this.handleCloseIncidentMenu();
+
+    const {
+      trackData,
+      originalThreatsList,
+      cancelThreatsList,
+        incident
+    } = this.state;
+    let selectRows = []
+    if (makeType === 'select'){
+      selectRows = cancelThreatsList
+    }else if (makeType === 'all'){
+      selectRows = originalThreatsList
+    }
+
+    let tempIncident ={}
+    tempIncident.info = {
+      title: selectRows[0].Info,
+      reporter: selectRows[0].Collector,
+      rawData:selectRows
+    };
+    if (!tempIncident.info.socType) {
+      tempIncident.info.socType = 1
+    }
+    //
+    // // make incident.info
+
+    let eventList = [];
+    _.forEach(selectRows , eventItem =>{
+      let eventNetworkList = [];
+      let eventNetworkItem = {
+        srcIp: eventItem.ipSrc || eventItem.srcIp,
+        srcPort: parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort),
+        dstIp: eventItem.ipDst || eventItem.dstIp,
+        dstPort: parseInt(eventItem.destPort) || parseInt(eventItem.portDest),
+        srcHostname: '',
+        dstHostname: ''
+      };
+      eventNetworkList.push(eventNetworkItem);
+      //
+
+      let eventListItem = {
+        description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
+        deviceId: '',
+        frequency: 1,
+        time: {
+          from: helper.getFormattedDate(eventItem._eventDttm_, 'local'),
+          to: helper.getFormattedDate(eventItem._eventDttm_, 'local')
+        },
+        eventConnectionList: eventNetworkList
+      };
+      if (eventItem._edgeInfo) {
+        let searchRequestData = {
+          deviceId: eventItem._edgeInfo.agentId
+        };
+
+        ah.one({
+          url: `${baseUrl}/api/soc/device/redirect/_search`,
+          data: JSON.stringify(searchRequestData),
+          type: 'POST',
+          contentType: 'application/json',
+          dataType: 'json'
+        }).then(data => {
+          eventListItem.deviceId = data.rt.device.id;
+        })
+      }
+
+      eventList.push(eventListItem);
+    })
+    tempIncident.info.eventList = eventList;
+
+    this.setState({
+      makeIncidentOpen: true,
+      incident:tempIncident
+    });
+
+  }
+
+
+  closeAddIncidentDialog = () =>{
+    this.setState({
+      makeIncidentOpen: false,
+      incident:{
+        info: {
+          status: 1,
+          socType: 1,
+          attach:null
+        }
+      }
+    });
+  }
+
+  checkRequired(incident) {
+
+    if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validBasic'),
+        confirmText: t('txt-close')
+      });
+
+      return false
+    }
+
+    // always check event list
+    if (!incident.eventList) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validEvents'),
+        confirmText: t('txt-close')
+      });
+
+      return false
+    } else {
+
+      let eventCheck = true;
+      _.forEach(incident.eventList, event => {
+        _.forEach(event.eventConnectionList, eventConnect => {
+
+          if (!helper.ValidateIP_Address(eventConnect.srcIp)) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: t('network-topology.txt-ipValidationFail'),
+              confirmText: t('txt-close')
+            });
+            eventCheck = false
+            return
+          }
+
+          if (!helper.ValidateIP_Address(eventConnect.dstIp)) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: t('network-topology.txt-ipValidationFail'),
+              confirmText: t('txt-close')
+            });
+            eventCheck = false
+            return
+          }
+
+          if (eventConnect.dstPort) {
+            if (!helper.ValidatePort(eventConnect.dstPort)) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: t('network-topology.txt-portValidationFail'),
+                confirmText: t('txt-close')
+              });
+              eventCheck = false
+              return
+            }
+          }
+
+          if (eventConnect.srcPort) {
+            if (!helper.ValidatePort(eventConnect.srcPort)) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: t('network-topology.txt-portValidationFail'),
+                confirmText: t('txt-close')
+              });
+              eventCheck = false
+
+            }
+          }
+        })
+      })
+
+      if (!eventCheck) {
+        return false
+      }
+
+      let empty = _.filter(incident.eventList, function (o) {
+        return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency
+      });
+
+      if (_.size(empty) > 0) {
+        PopupDialog.alert({
+          title: t('txt-tips'),
+          display: it('txt-validEvents'),
+          confirmText: t('txt-close')
+        });
+
+        return false
+      }
+    }
+    return true
+  }
+
+  handleSubmit = () => {
+    const {session, baseUrl} = this.context;
+    let incident = {...this.state.incident};
+
+    if (!this.checkRequired(incident.info)) {
+      return
+    }
+
+    if (incident.info.eventList) {
+      incident.info.eventList = _.map(incident.info.eventList, el => {
+        return {
+          ...el,
+          startDttm: Moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+          endDttm: Moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        }
+      })
+    }
+
+    if (incident.info.accidentCatogory) {
+      if (incident.info.accidentCatogory === 5) {
+        incident.info.accidentAbnormal = null
+      } else {
+        incident.info.accidentAbnormalOther = null
+      }
+    }
+
+    if (incident.info.expireDttm) {
+      incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    }
+
+
+    if (!incident.info.creator) {
+      incident.info.creator = session.accountId;
+    }
+
+    // add for save who edit
+    incident.info.editor = session.accountId;
+
+    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor') || _.includes(session.roles, 'SOC Executor')) {
+      incident.info.status = INCIDENT_STATUS_ANALYZED;
+    } else {
+      incident.info.status = INCIDENT_STATUS_UNREVIEWED;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/soc`,
+      data: JSON.stringify(incident.info),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    }).then(data => {
+
+      if (data.status){
+        helper.showPopupMsg('', t('txt-success'), it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+data.rt.id)
+        if (incident.info.attach) {
+          this.uploadAttachment(data.rt.id);
+        }else{
+          this.setState({
+            cancelThreatsList:[]
+          },()=>{
+            this.closeAddIncidentDialog()
+            this.loadTrackData()
+          })
+        }
+
+      }else{
+        helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:'+data.rt.id)
+      }
+
+      return null;
+    }).catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message)
+    });
+  };
+
+  /**
+   * Display add seat modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  handleMakeIncidentDialog = () => {
+    const {
+      trackData,
+        selectData,
+      originalThreatsList,
+      cancelThreatsList,
+      incident
+    } = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddIncidentDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleSubmit}
+    };
+    const titleText = it('txt-addIncident-events');
+
+    return (
+        <ModalDialog
+            id='addSeatDialog'
+            className='modal-dialog'
+            title={titleText}
+            draggable={true}
+            global={true}
+            actions={actions}
+            closeAction='cancel'>
+          <IncidentEventMake
+              traceAlertData={selectData}
+              remoteIncident={incident}
+              handleDataChange={this.handleDataChange}
+              handleDataChangeMui = {this.handleDataChangeMui}
+              handleEventsChange={this.handleEventsChange}
+              handleConnectContactChange={this.handleConnectContactChange}
+              handleAttachChange={this.handleAttachChange}
+              handleAFChange={this.handleAFChange}
+          />
+
+        </ModalDialog>
+    )
+  }
+
+  uploadAttachment(incidentId) {
+    const {baseUrl} = this.context
+    let {incident} = this.state
+
+    if (incident.info.attach) {
+      let formData = new FormData()
+      formData.append('id', incidentId)
+      formData.append('file', incident.info.attach)
+      formData.append('fileMemo', incident.info.fileMemo)
+
+      ah.one({
+        url: `${baseUrl}/api/soc/attachment/_upload`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      }).then(data => {
+        this.setState({
+          cancelThreatsList:[]
+        },()=>{
+          this.closeAddIncidentDialog()
+          this.loadTrackData()
+        })
+
+      }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+      })
+    }
+  }
+
+  handleDataChange = (type, value) => {
+    let temp = {...this.state.incident};
+    temp.info[type] = value;
+
+    if (type === 'impactAssessment') {
+      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours')
+    }
+    this.setState({
+      incident:temp
+    })
+  };
+
+  handleDataChangeMui = (event) => {
+    let temp = {...this.state.incident};
+    temp.info[event.target.name] = event.target.value;
+    if (event.target.name === 'impactAssessment') {
+      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours')
+    }
+    this.setState({
+      incident:temp
+    })
+  }
+
+  handleEventsChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.eventList = val;
+    this.setState({
+      incident:temp
+    })
+  };
+
+  handleConnectContactChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.notifyList = val;
+    this.setState({
+      incident:temp
+    })
+  };
+
+  handleAttachChange = (val) => {
+
+    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+    let temp = {...this.state.incident};
+    if (flag.test(val.name)) {
+      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'),)
+      temp.info.attach = null;
+    } else {
+      temp.info.attach = val;
+    }
+    this.setState({
+      incident:temp
+    })
+  }
+
+  handleAFChange(file) {
+    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+    let temp = {...this.state.incident};
+    if (flag.test(file.name)) {
+      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'),)
+      temp.info.attach = null;
+      this.setState({
+        incident:temp
+      })
+    }else{
+      temp.info.attach = file;
+      this.setState({
+        incident:temp
+      })
+    }
+  }
+
   /**
    * Set initial data for statistics tab
    * @method
@@ -548,6 +1248,18 @@ class ThreatsController extends Component {
       currentQueryValue: ''
     });
   }
+
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      menuType: ''
+    });
+  }
+
   /**
    * Construct table data for Threats
    * @method
@@ -582,13 +1294,12 @@ class ThreatsController extends Component {
     const {
       activeTab,
       chartIntervalValue,
-      treeData,
       threatsData,
-      account,
       alertDetails,
       alertPieData,
       alertTableData
     } = this.state;
+
     const page = fromPage === 'currentPage' ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
@@ -650,6 +1361,14 @@ class ThreatsController extends Component {
               tempArray = _.map(tableData, val => { //Re-construct the Alert data
                 val._source.id = val._id;
                 val._source.index = val._index;
+
+                let selectCheck = false;
+                _.forEach(this.state.threatsList, data => {
+                  if (val.id === data.id) {
+                    selectCheck = true;
+                  }
+                })
+                val._source.select = selectCheck;
                 return val._source;
               });
 
@@ -657,7 +1376,6 @@ class ThreatsController extends Component {
               tempAlertDetails.currentIndex = 0;
               tempAlertDetails.currentLength = tableData.length < threatsData.pageSize ? tableData.length : threatsData.pageSize;
               tempAlertDetails.all = tempArray;
-
               _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
                 if (data.event_histogram[val]) {
                   _.forEach(data.event_histogram[val].buckets, val2 => {
@@ -680,18 +1398,38 @@ class ThreatsController extends Component {
               tempThreatsData.dataContent = tempArray;
               tempThreatsData.totalCount = data.data.counts;
               tempThreatsData.currentPage = page;
-              tempThreatsData.dataFields = _.map(threatsData.dataFieldsArr, val => {
+              let dataFieldsArr = [];
+
+              if (this.state.tableType === 'select'){
+                dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              }else{
+                dataFieldsArr =  [ '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              }
+
+              tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
                 return {
-                  name: val,
+                  name: val === 'select' ? '' : val,
                   label: f(`alertFields.${val}`),
                   options: {
-                    sort: val === '_eventDttm_' ? true : false,
+                    sort: val === '_eventDttm_',
                     customBodyRenderLite: (dataIndex, options) => {
                       const allValue = tempThreatsData.dataContent[dataIndex];
                       let value = tempThreatsData.dataContent[dataIndex][val];
 
                       if (options === 'getAllValue') {
                         return allValue;
+                      }
+
+                      if (val === 'select'){
+                        return (
+                            <Checkbox
+                                id={allValue.id}
+                                className='checkbox-ui'
+                                name='select'
+                                checked={allValue.select}
+                                onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
+                                color='primary' />
+                        )
                       }
 
                       if (val === 'Info' || val === 'Source') {
@@ -702,13 +1440,13 @@ class ThreatsController extends Component {
                         }
                         return (
                           <TableCell
-                            activeTab={activeTab}
-                            fieldValue={value}
-                            fieldName={val}
-                            allValue={allValue}
-                            alertLevelColors={ALERT_LEVEL_COLORS}
-                            handleOpenQueryMenu={this.handleOpenQueryMenu}
-                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
+                              activeTab={activeTab}
+                              fieldValue={value}
+                              fieldName={val}
+                              allValue={allValue}
+                              alertLevelColors={ALERT_LEVEL_COLORS}
+                              handleOpenQueryMenu={this.handleOpenQueryMenu}
+                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
                         )
                       }
                     }
@@ -1266,7 +2004,7 @@ class ThreatsController extends Component {
     return treeObj;
   }
   /**
-   * Handle filter search submit
+   * Handle alert search submit
    * @method
    */
   handleSearchSubmit = () => {
@@ -1462,7 +2200,7 @@ class ThreatsController extends Component {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
-    if (sessionRights.Module_Soc) {
+    if (sessionRights.Module_Soc && this.state.activeSubTab !== 'trackTreats') {
       actions = {
         makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
         confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -1622,6 +2360,13 @@ class ThreatsController extends Component {
    * @param {string} newTab - content type ('table' or 'statistics')
    */
   handleSubTabChange = (event, newTab) => {
+
+    if (newTab === 'trackTreats'){
+      this.setState({
+        showFilter: false
+      });
+    }
+
     this.setState({
       activeSubTab: newTab
     });
@@ -1673,8 +2418,21 @@ class ThreatsController extends Component {
             className: 'grey'
           };
         }
-      }
+      },
+      pagination:true
     };
+
+
+    if (this.state.tableType === 'select') {
+      tableOptions.pagination = false;
+    } else if (this.state.activeSubTab === 'trackTreats') {
+      tableOptions.pagination = false;
+      tableOptions.serverSide = false;
+      tableOptions.sort= true;
+    } else {
+      tableOptions.pagination = true;
+    }
+
     const mainContentData = {
       activeTab,
       tableOptions,
@@ -1700,6 +2458,7 @@ class ThreatsController extends Component {
       openQuery: this.openQuery,
       setFilterData: this.setFilterData,
       threatsData: this.state.threatsData,
+      trackData: this.state.trackData,
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
@@ -1910,6 +2669,19 @@ class ThreatsController extends Component {
       notifyEmailData: []
     });
   }
+
+  handleOpenIncidentMenu = (event) => {
+    this.setState({
+      incidentAnchor: event.currentTarget,
+    });
+  }
+
+  handleCloseIncidentMenu = () => {
+    this.setState({
+      incidentAnchor: null,
+    });
+  }
+
   render() {
     const {
       datetime,
@@ -1917,10 +2689,12 @@ class ThreatsController extends Component {
       openQueryOpen,
       saveQueryOpen,
       contextAnchor,
+      incidentAnchor,
       currentQueryValue,
       filterData,
       showChart,
       showFilter,
+      makeIncidentOpen,
       alertDetailsOpen
     } = this.state;
     let filterDataCount = 0;
@@ -1945,6 +2719,10 @@ class ThreatsController extends Component {
           this.alertDialog()
         }
 
+        {makeIncidentOpen &&
+        this.handleMakeIncidentDialog()
+        }
+
         <Menu
           anchorEl={contextAnchor}
           keepMounted
@@ -1955,21 +2733,78 @@ class ThreatsController extends Component {
           <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'either')}>Either</MenuItem>
         </Menu>
 
+        <Menu
+            id='threatsCreateIncidentsMenu'
+            anchorEl={incidentAnchor}
+            keepMounted
+            open={Boolean(incidentAnchor)}
+            onClose={this.handleCloseIncidentMenu}>
+          {
+            this.state.cancelThreatsList.length !== 0 &&
+              <MenuItem id='threatsCreateIncidentsMenuItemSelected' onClick={this.setupIncidentDialog.bind(this,'select')}>{it('txt-createIncidents-selected')}</MenuItem>
+          }
+          <MenuItem id='threatsCreateIncidentsMenuItemAll' onClick={this.setupIncidentDialog.bind(this,'all')}>{it('txt-createIncident-tracked')}</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></Button>
-            <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
-            <Button id='threatsDownloadBtn' variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
-          </div>
 
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})}
+                    onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i
+                className='fg fg-filter'/><span>({filterDataCount})</span></Button>
+            }
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart}
+                    title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
+            }
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button id='threatsDownloadBtn' variant='outlined' color='primary' className=' ' onClick={this.getCSVfile}
+                    title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
+            }
+
+
+            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')}
+                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
+                    onClick={this.handleSelectMenu.bind(this,'select')}><ShoppingCartIcon/></Button>
+            }
+            {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')}
+                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
+                    onClick={this.handleSelectMenu.bind(this,'list')}><RemoveShoppingCartIcon/></Button>
+            }
+            {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
+            <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')}
+                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0}
+                    onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
+            }
+
+            {this.state.activeSubTab === 'trackTreats' &&
+            <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')}
+                    disabled={this.state.activeSubTab !== 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.cancelThreatsList.length === 0}
+                    onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
+            }
+
+            {this.state.activeSubTab === 'trackTreats' &&
+            <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
+                    disabled={this.state.activeSubTab === 'statistics'}
+                    onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+            }
+
+
+          </div>
+          {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
           <SearchOptions
-            datetime={datetime}
-            searchInput={searchInput}
-            showFilter={showFilter}
-            showInterval={true}
-            setSearchData={this.setSearchData}
-            handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.handleSearchSubmit} />
+              datetime={datetime}
+              searchInput={searchInput}
+              showFilter={showFilter}
+              showInterval={true}
+              setSearchData={this.setSearchData}
+              handleDateChange={this.handleDateChange}
+              handleSearchSubmit={this.handleSearchSubmit}/>
+          }
+
         </div>
 
         {this.renderTabContent()}

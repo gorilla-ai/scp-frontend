@@ -259,6 +259,7 @@
     "srcHostname": "來源主機"
   },
   "alertFields": {
+    "select": "",
     "_tableMenu_": "",
     "_eventDttm_": "時間",
     "lastPacket": "結束封包",
