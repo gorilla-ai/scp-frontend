@@ -2683,6 +2683,7 @@ class ThreatsController extends Component {
   }
 
   render() {
+    const {sessionRights} = this.context;
     const {
       datetime,
       searchInput,
@@ -2786,7 +2787,7 @@ class ThreatsController extends Component {
                     onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
             }
 
-            {this.state.activeSubTab === 'trackTreats' &&
+            {this.state.activeSubTab === 'trackTreats' && sessionRights.Module_Soc &&
             <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
                     disabled={this.state.activeSubTab === 'statistics'}
                     onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
