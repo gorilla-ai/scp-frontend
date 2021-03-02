@@ -2260,7 +2260,7 @@ class Incident extends Component {
             let eventNetworkList = [];
             let eventNetworkItem = {
                 srcIp: alertData.ipSrc || alertData.srcIp,
-                srcPort: parseInt(alertData.portSrc),
+                srcPort: parseInt(alertData.portSrc) || parseInt(alertData.srcPort),
                 dstIp: alertData.ipDst || alertData.dstIp,
                 dstPort: parseInt(alertData.destPort),
                 srcHostname: '',
