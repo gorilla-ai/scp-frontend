@@ -234,11 +234,12 @@ class Manage extends Component {
     return (
       <div>
         <ToggleButtonGroup
+          id='manageBtn'
           value={tab.department ? 'department' : 'title'}
           exclusive
           onChange={this.handleTabChange}>
-          <ToggleButton value='department'>{t('ownerFields.department')}</ToggleButton>
-          <ToggleButton value='title'>{t('ownerFields.title')}</ToggleButton>
+          <ToggleButton id='manageDepartment' value='department'>{t('ownerFields.department')}</ToggleButton>
+          <ToggleButton id='manageTitle' value='title'>{t('ownerFields.title')}</ToggleButton>
         </ToggleButtonGroup>
 
         <i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>

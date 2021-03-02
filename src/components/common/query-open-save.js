@@ -678,6 +678,7 @@ class QueryOpenSave extends Component {
         <label>{t('notifications.txt-notifyEmail')}</label>
         {(activeTab === 'alert' || (activeTab === 'logs' && patternCheckbox)) &&
           <ReactMultiEmail
+            id='reactMultiEmail'
             emails={notifyEmailData}
             onChange={this.props.setNotifyEmailData}
             getLabel={this.getLabel} />
@@ -839,6 +840,7 @@ class QueryOpenSave extends Component {
       return (
         <div>
           <TextField
+            id='queryNameDropdown'
             className='query-name dropdown'
             select
             label={t('events.connections.txt-queryName')}
@@ -873,7 +875,7 @@ class QueryOpenSave extends Component {
             this.getQueryAlertContent(type)
           }
 
-          <Button variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</Button>
+          <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</Button>
         </div>
       )
     } else if (type === 'save') {
@@ -908,6 +910,7 @@ class QueryOpenSave extends Component {
         <div>
           <div className='query-options'>
             <TextField
+              id='queryOptionsDropdown'
               className='query-name dropdown'
               select
               label={t('events.connections.txt-queryName')}
@@ -917,12 +920,13 @@ class QueryOpenSave extends Component {
               required
               value={dropDownValue}
               onChange={this.handleQueryChange.bind(this, 'id')}>
-              <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
+              <MenuItem value='new'>{t('events.connections.txt-addQuery')}</MenuItem>
               {displayList}
             </TextField>
 
             {dropDownValue === 'new' &&
               <TextField
+                id='queryOptionsInput'
                 className='query-name'
                 label={t('txt-name')}
                 variant='outlined'

@@ -531,6 +531,16 @@ button.standard:hover:not([disabled]) {
     background-color: var(--buttonSelectedHover);
   }
 }
+.MuiTable-root {
+  thead th.MuiTableCell-head {
+    button.MuiButtonBase-root {
+      font-size: 1em;
+      font-weight: bold;
+      line-height: 1.5rem;
+      background: none !important;
+    }
+  }
+}
 .MuiTableBody-root {
   .grey {
     background-color: var(--tableActiveRow) !important;
@@ -1315,8 +1325,8 @@ button.standard:hover:not([disabled]) {
         }
         .csv-btn {
           position: absolute;
-          top: 10px;
-          right: 45px;
+          top: 0;
+          right: 10px;
         }
         span.loading {
           display: block;
@@ -1358,9 +1368,10 @@ button.standard:hover:not([disabled]) {
         }
       }
       .content {
-        overflow-y: auto;
+        position: relative;
         max-height: 84vh;
         padding-right: 10px;
+        overflow-y: auto;
       }
       .expand-collapse {
         position: absolute;

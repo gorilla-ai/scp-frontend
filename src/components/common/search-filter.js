@@ -35,13 +35,14 @@ class SearchFilter extends Component {
     const filterList = _.map(conditionList, (val, i) => {
       let formattedValue = val.toLowerCase();
       formattedValue = formattedValue.replace(' ', '_');
-      return <MenuItem key={i} value={formattedValue}>{val}</MenuItem>
+      return <MenuItem id={'searchFilter' + val.replace(' ', '')} key={i} value={formattedValue}>{val}</MenuItem>
     });
 
     return (
       <div>
         <TextField
           name='condition'
+          id='searchFilterDropdown'
           className='condition-select'
           select
           variant='outlined'
@@ -54,6 +55,7 @@ class SearchFilter extends Component {
         </TextField>
         <TextareaAutosize
           name='query'
+          id='searchFilterInput'
           className='textarea-autosize filter-inputbox'
           value={value.query}
           onChange={this.handleDataChange}

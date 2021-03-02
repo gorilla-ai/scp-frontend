@@ -1222,10 +1222,10 @@ class ThreatIntelligence extends Component {
             value={activeDateType}
             exclusive
             onChange={this.toggleDateRangeButtons}>
-            <ToggleButton value='today'>{t('edge-management.txt-today')}</ToggleButton>
-            <ToggleButton value='past7days'>{t('edge-management.txt-past7days')}</ToggleButton>
-            <ToggleButton value='allDays'>{t('edge-management.txt-allDays')}</ToggleButton>
-            <ToggleButton value='custom'>{t('edge-management.txt-customDate')}</ToggleButton>
+            <ToggleButton id='edgeToday' value='today'>{t('edge-management.txt-today')}</ToggleButton>
+            <ToggleButton id='edgePast7days' value='past7days'>{t('edge-management.txt-past7days')}</ToggleButton>
+            <ToggleButton id='edgeAllDays' value='allDays'>{t('edge-management.txt-allDays')}</ToggleButton>
+            <ToggleButton id='edgeCustom' value='custom'>{t('edge-management.txt-customDate')}</ToggleButton>
           </ToggleButtonGroup>
 
           {activeDateType === 'custom' &&

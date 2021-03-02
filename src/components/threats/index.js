@@ -1726,7 +1726,7 @@ class ThreatsController extends Component {
   getTreeLabel = (name, currentTreeName, count, query) => {
     const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
 
-    return <span>{name}{serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
+    return <span>{name}{serviceCount} <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
   /**
    * Open dialog to show severity info
@@ -1801,7 +1801,7 @@ class ThreatsController extends Component {
                     tempChild2.push({
                       id: key + key2 + key3,
                       key: key3,
-                      label: <span>{key3} {serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key3})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === key3})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
+                      label: <span>{key3} {serviceCount} <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === key3})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === key3})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })
@@ -1824,7 +1824,7 @@ class ThreatsController extends Component {
           let treeProperty = {
             id: key,
             key,
-            label: <span><i className={'fg fg-recode ' + key.toLowerCase()} />{key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>
+            label: <span id={'alert' + helper.capitalizeFirstLetter(key)}><i className={'fg fg-recode ' + key.toLowerCase()} />{key} ({helper.numberWithCommas(totalHostCount)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>
           };
 
           if (tempChild.length > 0) {
@@ -1836,7 +1836,7 @@ class ThreatsController extends Component {
       })
     })
 
-    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.default.doc_count) + ')';
+    treeObj.label = <span id='alertTreeAll'>{t('txt-all') + ' (' + helper.numberWithCommas(treeData.default.doc_count) + ')'}</span>
 
     return treeObj;
   }
@@ -1885,7 +1885,7 @@ class ThreatsController extends Component {
               tempChild.push({
                 id: val.key,
                 key: val.key,
-                label: <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
+                label: <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
               });
             }
           })
@@ -1900,7 +1900,7 @@ class ThreatsController extends Component {
         treeProperty = {
           id: key,
           key,
-          label: <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
+          label: <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
         };
 
         if (tempChild.length > 0) {
@@ -1911,7 +1911,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
+    treeObj.label = <span id='privateTreeAll'>{t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')'}</span>
 
     return treeObj;
   }
@@ -1944,7 +1944,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
+    treeObj.label = <span id='publicTreeAll'>{t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')'}</span>
 
     return treeObj;
   }
@@ -1999,7 +1999,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
+    treeObj.label = <span id='edgesTreeAll'>{t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')'}</span>
 
     return treeObj;
   }
@@ -2750,16 +2750,16 @@ class ThreatsController extends Component {
           <div className='secondary-btn-group right'>
 
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button variant='outlined' color='primary' className={cx({'active': showFilter})}
+            <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})}
                     onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i
                 className='fg fg-filter'/><span>({filterDataCount})</span></Button>
             }
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart}
+            <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart}
                     title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
             }
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button variant='outlined' color='primary' className=' ' onClick={this.getCSVfile}
+            <Button id='threatsDownloadBtn' variant='outlined' color='primary' className=' ' onClick={this.getCSVfile}
                     title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
             }
 

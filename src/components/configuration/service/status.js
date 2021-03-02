@@ -7,11 +7,10 @@ import cx from 'classnames'
 
 import Button from '@material-ui/core/Button';
 
-import DataTable from 'react-ui/build/src/components/table'
-
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -30,10 +29,10 @@ class Status extends Component {
     super(props);
 
     this.state = {
+      lastUpdateTime: '',
       serviceStatus: {
         dataFieldsArr: ['status', 'serviceName'],
-        lastUpdateTime: '',
-        dataFields: {},
+        dataFields: [],
         dataContent: []
       }
     };
@@ -70,60 +69,64 @@ class Status extends Component {
     })
     .then(data => {
       if (data) {
+        const lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
         let tempServiceStatus = {...serviceStatus};
-        tempServiceStatus.lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
         tempServiceStatus.dataContent = data.monitor;
 
-        let dataFields = {};
-        serviceStatus.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: f(`serviceStatusFields.${tempData}`),
-            sortable: true,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'status') {
-                let color = '';
-                let title = '';
+        tempServiceStatus.dataFields = _.map(serviceStatus.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('serviceStatusFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempServiceStatus.dataContent[dataIndex];
+                const value = tempServiceStatus.dataContent[dataIndex][val];
 
-                if (value.toLowerCase() === 'active') {
-                  color = '#22ac38';
-                  title = t('txt-online');
-                } else if (value.toLowerCase() === 'inactive') {
-                  color = '#d10d25';
-                  title = t('txt-offline');
-                } else if (value.toLowerCase() === 'unstable') {
-                  color = '#e6e448';
-                  title = t('txt-unstable');
-                } else if (value.toLowerCase() === 'unknown') {
-                  color = '#999';
-                  title = t('txt-unknown');
+                if (val === 'status') {
+                  let color = '';
+                  let title = '';
+
+                  if (value.toLowerCase() === 'active') {
+                    color = '#22ac38';
+                    title = t('txt-online');
+                  } else if (value.toLowerCase() === 'inactive') {
+                    color = '#d10d25';
+                    title = t('txt-offline');
+                  } else if (value.toLowerCase() === 'unstable') {
+                    color = '#e6e448';
+                    title = t('txt-unstable');
+                  } else if (value.toLowerCase() === 'unknown') {
+                    color = '#999';
+                    title = t('txt-unknown');
+                  }
+
+                  return <div style={{color}}><i className='fg fg-recode' title={title} /></div>
+                } else if (val === 'serviceName') {
+                  let tooltip = '';
+
+                  if (allValue.responseCode) {
+                    tooltip += allValue.responseCode + ': ';
+                  } else {
+                    tooltip += 'N/A: ';
+                  }
+
+                  if (allValue.reponseMsg) {
+                    tooltip += allValue.reponseMsg;
+                  } else {
+                    tooltip += 'N/A';
+                  }
+
+                  return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
                 }
-
-                return <div style={{color}}><i className='fg fg-recode' title={title} /></div>
-              }
-              if (tempData === 'serviceName') {
-                let tooltip = '';
-
-                if (allValue.responseCode) {
-                  tooltip += allValue.responseCode + ': ';
-                } else {
-                  tooltip += 'N/A: ';
-                }
-
-                if (allValue.reponseMsg) {
-                  tooltip += allValue.reponseMsg;
-                } else {
-                  tooltip += 'N/A';
-                }
-
-                return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
               }
             }
           };
-        })
-
-        tempServiceStatus.dataFields = dataFields;
+        });
 
         this.setState({
+          lastUpdateTime,
           serviceStatus: tempServiceStatus
         });
       }
@@ -135,14 +138,18 @@ class Status extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {serviceStatus} = this.state;
+    const {lastUpdateTime, serviceStatus} = this.state;
+    const tableOptions = {
+      pagination: false,
+      tableBodyHeight: '78vh'
+    };
 
     return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='contained' color='primary' onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}><i className='fg fg-update'></i></Button>
-	          <span className='last-update'>{serviceStatus.lastUpdateTime}</span>
+	          <span className='last-update'>{lastUpdateTime}</span>
 	        </div>
         </div>
 
@@ -156,10 +163,9 @@ class Status extends Component {
               <header className='main-header'>{t('txt-serviceStatus')}</header>
               <div className='table-content'>
                 <div className='table no-pagination'>
-                  <DataTable
-                    className='main-table'
-                    fields={serviceStatus.dataFields}
-                    data={serviceStatus.dataContent} />
+                  <MuiTableContent
+                    data={serviceStatus}
+                    tableOptions={tableOptions} />
                 </div>
               </div>
             </div>

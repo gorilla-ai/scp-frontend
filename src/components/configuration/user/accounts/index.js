@@ -134,7 +134,7 @@ class AccountList extends Component {
                 } else if (val === 'account' && allValue.isLock) {
                   return <span><i className='fg fg-key' title={c('txt-account-unlocked')}></i>{value}</span>;
                 } else {
-                  return <span>{value}</span>;
+                  return <span>{value}</span>
                 }
               }
             }

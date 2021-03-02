@@ -115,7 +115,7 @@ class Tree extends Component {
     if (!_.isEmpty(treeData[key].data)) {
       return (
         <div key={key}>
-          <label className={cx('header-text', {'hide': !this.state.showContent})}>{treeData[key].title}</label>
+          <label id={key + 'TreeHeaer'} className={cx('header-text', {'hide': !this.state.showContent})}>{treeData[key].title}</label>
           <TreeView
             className='tree-view'
             defaultCollapseIcon={<ExpandMoreIcon />}
@@ -168,7 +168,7 @@ class Tree extends Component {
 
         <div className='content'>
           {activeTab === 'alert' &&
-            <Button variant='outlined' color='primary' className='standard csv-btn active' onClick={this.props.getLeftNavCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button id='alertDownloadBtn' variant='outlined' color='primary' className='standard csv-btn active' onClick={this.props.getLeftNavCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           }
 
           {activeTab !== 'alert' && !_.isEmpty(treeData) &&

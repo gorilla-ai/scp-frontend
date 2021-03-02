@@ -5,9 +5,6 @@ import _ from 'lodash'
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import DataTable from 'react-ui/build/src/components/table'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-
 let t = null;
 let et = null;
 

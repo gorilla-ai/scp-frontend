@@ -29,7 +29,7 @@ class FilterContent extends Component {
     const {activeTab} = this.props;
 
     if (activeTab !== 'logs') { //Don't show the button for Logs page
-      return <Button variant='contained' color='primary' className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'search')}>{t('txt-filter')}</Button>
+      return <Button id='confirmQueryBtn' variant='contained' color='primary' className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'search')}>{t('txt-filter')}</Button>
     }
   }
   /**
@@ -55,12 +55,12 @@ class FilterContent extends Component {
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
-        <div className='header-text'>{filterTitle}</div>
+        <i id='queryCloseBtn' className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+        <div id='queryHeaderText' className='header-text'>{filterTitle}</div>
         {this.props.openQuery &&
           <div className='button-group open-query'>
-            <Button variant='outlined' color='primary' className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</Button>
-            <Button variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</Button>
+            <Button id='openQueryBtn' variant='outlined' color='primary' className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</Button>
+            <Button id='saveQueryBtn' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</Button>
           </div>
         }
         <FilterInput
@@ -68,7 +68,7 @@ class FilterContent extends Component {
           {...this.props} />
         <div className='button-group'>
           {this.getSubmitButton()}
-          <Button variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'filter')}>{t('txt-clear')}</Button>
+          <Button id='clearQueryBtn' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'filter')}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
