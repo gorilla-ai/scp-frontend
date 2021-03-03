@@ -107,7 +107,7 @@ class Events extends Component {
 			        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
 				        <KeyboardDateTimePicker
 					        id='event-from-date-time-picker'
-					        className=''
+					        className='date-time-picker'
 					        inputVariant='outlined'
 					        variant='inline'
 					        format='YYYY-MM-DD HH:mm'
