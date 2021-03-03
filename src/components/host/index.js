@@ -403,11 +403,11 @@ class HostController extends Component {
   /**
    * Get and set host info data
    * @method
-   * @param {string} options - options for CSV export
+   * @param {string} options - options for CSV and PDF export
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, filterNav, deviceSearch, hostInfo, hostSort, currentFloor} = this.state;
+    const {activeTab, filterNav, deviceSearch, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
     const datetime = this.getHostDateTime();
     let url = `${baseUrl}/api/ipdevice/assessment/_search`;
@@ -460,7 +460,8 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
-    if (options === 'csv' || options === 'pdf') { //For CSV / PDF export
+    if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
+      requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
 
@@ -1418,7 +1419,10 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
-
+  /**
+   * Handle PDF export
+   * @method
+   */
   exportAllPdf = () => {
     const {baseUrl, contextRoot} = this.context
     const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
@@ -1426,7 +1430,6 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)})
   }
-
   /**
    * Display tree item
    * @method
