@@ -237,7 +237,7 @@ class ThreatsController extends Component {
         pageSize: 20
       },
       trackData: {
-        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
+        dataFieldsArr: ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -812,10 +812,8 @@ class ThreatsController extends Component {
     this.handleCloseIncidentMenu();
 
     const {
-      trackData,
       originalThreatsList,
       cancelThreatsList,
-        incident
     } = this.state;
     let selectRows = []
     if (makeType === 'select'){
@@ -828,7 +826,8 @@ class ThreatsController extends Component {
     tempIncident.info = {
       title: selectRows[0].Info,
       reporter: selectRows[0].Collector,
-      rawData:selectRows
+      rawData:selectRows,
+      selectRowsType:makeType === 'select'? 'select': 'all'
     };
     if (!tempIncident.info.socType) {
       tempIncident.info.socType = 1
@@ -842,7 +841,7 @@ class ThreatsController extends Component {
       let eventNetworkItem = {
         srcIp: eventItem.ipSrc || eventItem.srcIp,
         srcPort: parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort),
-        dstIp: eventItem.ipDst || eventItem.dstIp,
+        dstIp: eventItem.ipDst || eventItem.destIp || eventItem.dstIp || eventItem.ipDest,
         dstPort: parseInt(eventItem.destPort) || parseInt(eventItem.portDest),
         srcHostname: '',
         dstHostname: ''
@@ -998,7 +997,7 @@ class ThreatsController extends Component {
   handleSubmit = () => {
     const {session, baseUrl} = this.context;
     let incident = {...this.state.incident};
-
+    let selectType = incident.info.selectRowsType;
     if (!this.checkRequired(incident.info)) {
       return
     }
@@ -1052,12 +1051,38 @@ class ThreatsController extends Component {
         if (incident.info.attach) {
           this.uploadAttachment(data.rt.id);
         }else{
-          this.setState({
-            cancelThreatsList:[]
-          },()=>{
-            this.closeAddIncidentDialog()
-            this.loadTrackData()
-          })
+          this.closeAddIncidentDialog()
+        }
+
+        if(selectType === 'select'){
+          this.showDeleteTrackDialog()
+        }else{
+          PopupDialog.prompt({
+            title: t('alert.txt-deleteSelectTrackList'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+              <span>{t('alert.txt-deleteSelectTrackListMsg')}?</span>
+            </div>,
+            act: (confirmed) => {
+              if (confirmed) {
+                const {
+                  trackData
+                } = this.state;
+                let emptyList = [];
+                this.overrideAlertTrack(emptyList)
+                let tmpTrackData = trackData;
+                tmpTrackData.dataContent = emptyList
+                this.setState({
+                  trackData: tmpTrackData,
+                  cancelThreatsList :[]
+                }, () => {
+                  this.loadTrackData()
+                })
+              }
+            }
+          });
         }
 
       }else{
@@ -1077,10 +1102,7 @@ class ThreatsController extends Component {
    */
   handleMakeIncidentDialog = () => {
     const {
-      trackData,
         selectData,
-      originalThreatsList,
-      cancelThreatsList,
       incident
     } = this.state;
     const actions = {
@@ -2073,9 +2095,15 @@ class ThreatsController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const {threatsData, alertChartsList} = this.state;
+    const {threatsData, alertChartsList, trackData} = this.state;
     let tempAlertChartsList = alertChartsList;
+    let tempTrackData = {...trackData};
     let tempThreatsData = {...threatsData};
+
+    tempTrackData.dataFields = [];
+    tempTrackData.dataContent = null;
+
+
     tempThreatsData.dataFields = [];
     tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
@@ -2113,6 +2141,7 @@ class ThreatsController extends Component {
           data: {}
         }
       },
+      trackData:tempTrackData,
       threatsData: tempThreatsData,
       alertChartsList: tempAlertChartsList,
       alertPieData: {},
@@ -2121,6 +2150,7 @@ class ThreatsController extends Component {
       this.loadTreeData();
       this.setChartIntervalBtn();
       this.setStatisticsTab();
+      this.loadTrackData();
     });
   }
   /**
@@ -2428,7 +2458,10 @@ class ThreatsController extends Component {
 
     if (newTab === 'trackTreats'){
       this.setState({
-        showFilter: false
+        showFilter: false,
+        showChart: false
+      },()=>{
+        // this.handleSearchSubmit()
       });
     }
 
@@ -2488,20 +2521,17 @@ class ThreatsController extends Component {
     };
 
 
-    if (this.state.tableType === 'select') {
+    if (this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats') {
       tableOptions.pagination = false;
     } else if (this.state.activeSubTab === 'trackTreats') {
       tableOptions.pagination = false;
       tableOptions.serverSide = false;
       tableOptions.sort= true;
-      tableOptions.selectableRows = 'multiple'
-      tableOptions.selectToolbarPlacement = 'none'
-      tableOptions.onRowSelectionChange = (currentRowsSelected,allRowsSelected,rowsSelected) =>{
-        // console.log("currentRowsSelected == " , currentRowsSelected)
-        // console.log("allRowsSelected == " , allRowsSelected)
-        // console.log("rowsSelected == " , rowsSelected)
-        this.handleCancelSelectMapping(rowsSelected);
-      }
+      // tableOptions.selectableRows = 'multiple'
+      // tableOptions.selectToolbarPlacement = 'none'
+      // tableOptions.onRowSelectionChange = (currentRowsSelected,allRowsSelected,rowsSelected) =>{
+      //   this.handleCancelSelectMapping(rowsSelected);
+      // }
     } else {
       tableOptions.pagination = true;
     }
