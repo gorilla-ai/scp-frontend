@@ -337,6 +337,7 @@
     "txt-openVideo": "開啟攝影畫面",
     "txt-alertList": "告警清單",
     "txt-trackAlertList": "已追蹤告警",
+    "txt-selectTrackAlertList": "已選擇追蹤告警",
     "txt-statistics": "統計報表",
     "txt-alertInfo": "告警資訊",
     "txt-alertTime": "告警時間",
@@ -394,7 +395,9 @@
     "txt-alertThreatCountryDest": "外部威脅目的國家",
     "txt-alertThreatPublicDest": "外部威脅目的IP",
     "txt-alertNetTrapBlackList": "NetTrap黑名單查詢紀錄",
-    "txt-alertTrackOverrideSuccess": "更新追蹤告警成功"
+    "txt-alertTrackOverrideSuccess": "更新追蹤告警成功",
+    "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
+    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
   },
 
   "events": {

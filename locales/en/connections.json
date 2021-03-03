@@ -337,6 +337,7 @@
     "txt-openVideo": "Open Video",
     "txt-alertList": "Alert List",
     "txt-trackAlertList": "Tracked Alert List",
+    "txt-selectTrackAlertList": "Selected Tracked Alert List",
     "txt-statistics": "Statistics",
     "txt-alertInfo": "Alert Info",
     "txt-alertTime": "Alert Time",
@@ -394,7 +395,9 @@
     "txt-alertThreatCountryDest": "External Destination Country",
     "txt-alertThreatPublicDest": "External Destination IP",
     "txt-alertNetTrapBlackList": "NetTrap Query Black List",
-    "txt-alertTrackOverrideSuccess": "Update Alert Track Success"
+    "txt-alertTrackOverrideSuccess": "Update Alert Track Success",
+    "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
+    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
   },
 
   "events": {
