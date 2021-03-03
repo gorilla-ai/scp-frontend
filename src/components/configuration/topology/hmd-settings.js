@@ -321,7 +321,7 @@ class HMDsettings extends Component {
             <div className='form-group normal long'>
               <header>{t('network-inventory.scan-list.txt-gcb')}</header>
               <div className='group'>
-                <label>{t('network-inventory.txt-learningInterval')}</label>
+                <label>{t('network-inventory.txt-gcbVersion')}</label>
                 <RadioGroup
                   className='radio-group'
                   value={gcbVersion}
