@@ -94,7 +94,7 @@ class Events extends Component {
 	                    disabled={activeContent === 'viewIncident'}>
 		                {
 		                	_.map(deviceListOptions,el=>{
-		                		return <MenuItem value={el.value}>{el.text}</MenuItem>
+		                		return <MenuItem id={`${el.value}`} value={el.value}>{el.text}</MenuItem>
 			                })
 		                }
 	                </TextField>
@@ -106,7 +106,8 @@ class Events extends Component {
 		        	<label htmlFor='datetime'>{f('incidentFields.dateRange')}</label>
 			        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
 				        <KeyboardDateTimePicker
-					        className='date-time-picker'
+					        id='event-from-date-time-picker'
+					        className=''
 					        inputVariant='outlined'
 					        variant='inline'
 					        format='YYYY-MM-DD HH:mm'
@@ -116,6 +117,7 @@ class Events extends Component {
 					        onChange={this.handleDataChange.bind(this, 'from')} />
 				        <div className='between'>~</div>
 				        <KeyboardDateTimePicker
+					        id='event-to-from-date-time-picker'
 					        className='date-time-picker'
 					        inputVariant='outlined'
 					        variant='inline'

@@ -1047,30 +1047,47 @@ class ThreatsController extends Component {
     }).then(data => {
 
       if (data.status){
-        helper.showPopupMsg('', t('txt-success'), it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+data.rt.id)
+        // helper.showPopupMsg('', t('txt-success'), it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+data.rt.id)
         if (incident.info.attach) {
           this.uploadAttachment(data.rt.id);
         }else{
           this.closeAddIncidentDialog()
         }
+        PopupDialog.prompt({
+          title: t('alert.txt-deleteSelectTrackList'),
+          id: 'modalWindowSmall',
+          confirmText: t('txt-delete'),
+          cancelText: t('txt-cancel'),
+          display: <div className='content'>
+            <span>{it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+data.rt.id + ' ' +t('alert.txt-deleteSelectTrackListMsg')}?</span>
+          </div>,
+          act: (confirmed) => {
 
-        if(selectType === 'select'){
-          this.showDeleteTrackDialog()
-        }else{
-          PopupDialog.prompt({
-            title: t('alert.txt-deleteSelectTrackList'),
-            id: 'modalWindowSmall',
-            confirmText: t('txt-delete'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-              <span>{t('alert.txt-deleteSelectTrackListMsg')}?</span>
-            </div>,
-            act: (confirmed) => {
-              if (confirmed) {
-                const {
-                  trackData
-                } = this.state;
-                let emptyList = [];
+            if (confirmed) {
+              console.log("into conformed")
+              const {
+                trackData,
+                cancelThreatsList
+              } = this.state;
+              let emptyList = [];
+              if(selectType === 'select'){
+                _.forEach(cancelThreatsList, data => {
+                  data.select = false;
+                })
+
+                _.forEach(trackData.dataContent, data => {
+                  data.select = false;
+                })
+
+                this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList))
+                this.setState({
+                  trackData: trackData,
+                  cancelThreatsList :[]
+                }, () => {
+                  this.loadTrackData()
+                })
+
+              }else{
                 this.overrideAlertTrack(emptyList)
                 let tmpTrackData = trackData;
                 tmpTrackData.dataContent = emptyList
@@ -1082,8 +1099,10 @@ class ThreatsController extends Component {
                 })
               }
             }
-          });
-        }
+
+
+          }
+        });
 
       }else{
         helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:'+data.rt.id)

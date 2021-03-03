@@ -56,20 +56,20 @@ class IncidentEventMake extends Component {
 
 		this.state = {
 			INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
-				return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+				return <MenuItem id={`accident.${el}`} value={el}>{it(`accident.${el}`)}</MenuItem>
 			}),
 			INCIDENT_ACCIDENT_SUB_LIST: [
 				_.map(_.range(11, 17), el => {
-					return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+					return <MenuItem id={`accident.${el}`} value={el}>{it(`accident.${el}`)}</MenuItem>
 				}),
 				_.map(_.range(21, 26), el => {
-					return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+					return <MenuItem id={`accident.${el}`} value={el}>{it(`accident.${el}`)}</MenuItem>
 				}),
 				_.map(_.range(31, 33), el => {
-					return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+					return <MenuItem id={`accident.${el}`} value={el}>{it(`accident.${el}`)}</MenuItem>
 				}),
 				_.map(_.range(41, 45), el => {
-					return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+					return <MenuItem id={`accident.${el}`} value={el}>{it(`accident.${el}`)}</MenuItem>
 				})
 			],
 			activeContent: 'addIncident', //tableList, viewIncident, editIncident, addIncident
@@ -346,10 +346,10 @@ class IncidentEventMake extends Component {
 				<div className='text'>{t('edge-management.txt-basicInfo')}</div>
 			</header>
 
-			<Button className='last-left' disabled={this.state.activeSteps === 1} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
+			<Button id='previousStep' className='last-left' disabled={this.state.activeSteps === 1} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
 			        onClick={this.toggleSteps.bind(this, 'previous')}>{it('txt-prev-page')}</Button>
 
-			<Button className='last' disabled={this.state.activeSteps === 2} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
+			<Button id='nextStep' className='last' disabled={this.state.activeSteps === 2} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
 			        onClick={this.toggleSteps.bind(this, 'next')}>{it('txt-next-page')}</Button>
 
 			<div className='group'>
@@ -381,7 +381,7 @@ class IncidentEventMake extends Component {
 					value={remoteIncident.info.category}
 					error={!(remoteIncident.info.category || '')}>
 					{_.map(_.range(1, 9), el => {
-						return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+						return <MenuItem id={`category.${el}`} value={el}>{it(`category.${el}`)}</MenuItem>
 					})}
 				</TextField>
 			</div>
@@ -417,7 +417,7 @@ class IncidentEventMake extends Component {
 					>
 					{
 						_.map(_.range(1, 5), el => {
-							return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+							return <MenuItem id={`day.${el}`} value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
 						})
 					}
 				</TextField>
@@ -674,10 +674,10 @@ class IncidentEventMake extends Component {
 				<div className='text'>{it('txt-incident-events')}</div>
 			</header>
 
-			<Button className='last-left' disabled={this.state.activeSteps === 1} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
+			<Button id='previousStep' className='last-left' disabled={this.state.activeSteps === 1} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
 			        onClick={this.toggleSteps.bind(this, 'previous')}>{it('txt-prev-page')}</Button>
 
-			<Button className='last' disabled={this.state.activeSteps === 2} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
+			<Button id='nextStep' className='last' disabled={this.state.activeSteps === 2} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
 			        onClick={this.toggleSteps.bind(this, 'next')}>{it('txt-next-page')}</Button>
 
 
