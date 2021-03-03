@@ -237,7 +237,7 @@ class ThreatsController extends Component {
         pageSize: 20
       },
       trackData: {
-        dataFieldsArr: ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
+        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -250,6 +250,8 @@ class ThreatsController extends Component {
         oldPage: 1,
         pageSize: 10000
       },
+      allSelectTrack:false,
+      allSelectThreat:false,
       //..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
@@ -509,7 +511,7 @@ class ThreatsController extends Component {
                 name: val === 'select' ? '' : val,
                 label: f(`alertFields.${val}`),
                 options: {
-                  sort: true,
+                  sort: val !== 'select',
                   customBodyRenderLite: (dataIndex, options) => {
                     const allValue = tableData[dataIndex];
                     let value = tableData[dataIndex][val];
@@ -578,6 +580,17 @@ class ThreatsController extends Component {
     });
   }
 
+  allSelectedClick = () =>{
+    const {allSelectTrack} = this.state;
+
+    return <Checkbox
+        id='allSelectedClickCheckbox'
+        className='checkbox-ui'
+        name={allSelectTrack}
+        checked={allSelectTrack}
+        onChange={this.handleAllCancelSelectDataChangeMui}
+        color='primary'/>
+  }
 
   handleCancelSelectDataChangeMui = (allValue, event) => {
     const {trackData, cancelThreatsList,} = this.state;
@@ -598,6 +611,58 @@ class ThreatsController extends Component {
     this.setState({
       trackData: trackData,
       cancelThreatsList:cancelThreatsList
+    })
+  };
+
+  handleCancelSelectMapping = (rowSelectIndexList) =>{
+    const {trackData, cancelThreatsList,} = this.state;
+    let tempList  = [];
+    _.forEach(rowSelectIndexList, rowIndex => {
+      tempList.push(trackData.dataContent[rowIndex])
+
+      // if (allValue.id === data.id) {
+        // if (event.target.checked){
+        //   cancelThreatsList.push(allValue)
+        // } else {
+        //   const index = cancelThreatsList.indexOf(allValue);
+        //   if (index > -1) {
+        //     cancelThreatsList.splice(index, 1);
+        //   }
+        // }
+        // data.select = event.target.checked
+      // }
+    })
+    this.setState({
+      // trackData: trackData,
+      cancelThreatsList:tempList
+    })
+
+}
+
+  handleAllCancelSelectDataChangeMui = (event) => {
+    let checked =  event.target.checked
+
+    const {trackData} = this.state;
+    let tmpCancelThreatsList =[];
+    this.setState({
+      allSelectTrack:checked
+    },()=>{
+      _.forEach(trackData.dataContent, data => {
+        if (checked){
+          if (!data.select){
+            tmpCancelThreatsList.push(data)
+          }
+        } else if (!checked) {
+          tmpCancelThreatsList = []
+        }
+        data.select = checked
+      })
+
+      this.setState({
+        trackData: trackData,
+        cancelThreatsList:tmpCancelThreatsList
+      })
+
     })
   };
 
@@ -2429,6 +2494,14 @@ class ThreatsController extends Component {
       tableOptions.pagination = false;
       tableOptions.serverSide = false;
       tableOptions.sort= true;
+      tableOptions.selectableRows = 'multiple'
+      tableOptions.selectToolbarPlacement = 'none'
+      tableOptions.onRowSelectionChange = (currentRowsSelected,allRowsSelected,rowsSelected) =>{
+        // console.log("currentRowsSelected == " , currentRowsSelected)
+        // console.log("allRowsSelected == " , allRowsSelected)
+        // console.log("rowsSelected == " , rowsSelected)
+        this.handleCancelSelectMapping(rowsSelected);
+      }
     } else {
       tableOptions.pagination = true;
     }
