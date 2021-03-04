@@ -1332,15 +1332,10 @@ html[data-theme='dark'] {
     }
   }
 }
-/* configuration/topology/owner-mixname */
-#departmentTitleDialog-content {
+#departmentTitleDialog-content,
+#showSshAccountDialog-content {
   width: 350px;
   height: 400px;
-  .button-group {
-    position: relative;
-    margin: 0;
-    margin-bottom: 20px;
-  }
   .fg-add {
     position: absolute;
     top: 15px;
@@ -1349,7 +1344,7 @@ html[data-theme='dark'] {
   }
   .table-data {
     height: 330px;
-    margin-top: 15px;
+    margin-top: 45px;
     overflow-y: auto;
   }
   table {
@@ -1365,6 +1360,32 @@ html[data-theme='dark'] {
       i {
         font-size: 26px;
         margin: 0 1px;
+      }
+    }
+  }
+}
+/* configuration/topology/owner-mixname */
+#departmentTitleDialog-content {
+  .table-data {
+    height: 330px;
+    margin-top: 15px;
+    overflow-y: auto;
+  }
+  .button-group {
+    position: relative;
+    margin: 0;
+    margin-bottom: 20px;
+  }
+}
+/* configuration/user/account */
+#showSshAccountDialog-content {
+  .table-data {
+    td {
+      &.account {
+        width: 90%;
+      }
+      &.option {
+        width: 10%;
       }
     }
   }
