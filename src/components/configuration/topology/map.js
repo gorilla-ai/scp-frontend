@@ -486,11 +486,13 @@ class NetworkMap extends Component {
    */
   displayTreeView = (tree, i) => {
     const {floorPlan, floorMapType} = this.state;
-    let defaultSelectedID = tree.areaUUID;
+    let defaultSelectedID = '';
 
-    if (floorMapType === 'fromFloorMap') {
+    if (i === 0) {
       defaultSelectedID = tree.areaUUID;
-    } else if (floorMapType === 'selected') {
+    }
+
+    if (floorMapType === 'selected') {
       defaultSelectedID = floorPlan.currentAreaUUID;
     }
 
