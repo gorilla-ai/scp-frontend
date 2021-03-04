@@ -398,7 +398,7 @@ class HostController extends Component {
     return {
       from: moment(this.state.datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(helper.getAdditionDate(1, 'day', this.state.datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    }
+    };
   }
   /**
    * Get and set host info data
