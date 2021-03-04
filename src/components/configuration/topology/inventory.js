@@ -3012,7 +3012,6 @@ class NetworkInventory extends Component {
           }, () => {
             this.handleAddIpConfirm();
           });
-          
           return;
         }
 
@@ -3052,9 +3051,8 @@ class NetworkInventory extends Component {
         contentType: false
       })
       .then(data => {
-        if (data) {
-          const ownerUUID = data;
-          this.handleIPdeviceConfirm(ownerUUID);
+        if (data) { //Return ownerUUID
+          this.handleIPdeviceConfirm(data);
         }
         return null;
       })
@@ -3074,6 +3072,7 @@ class NetworkInventory extends Component {
   /**
    * Handle add/edit form confirm
    * @method
+   * @param {string} [ownerUUID] - owner ID
    */
   handleIPdeviceConfirm = (ownerUUID) => {
     const {baseUrl} = this.context;
@@ -3100,11 +3099,7 @@ class NetworkInventory extends Component {
       requestData.ipDeviceUUID = currentDeviceData.ipDeviceUUID;
     }
 
-    if (ownerUUID) {
-      requestData.ownerUUID = ownerUUID;
-    } else {
-      requestData.ownerUUID = addIP.ownerUUID;
-    }
+    requestData.ownerUUID = ownerUUID || addIP.ownerUUID;
 
     ah.one({
       url,
@@ -4411,7 +4406,6 @@ class NetworkInventory extends Component {
               <div className='main-content'>
                 <div className='privateIp-info'>
                   <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
-
                   <div className='content-header-btns'>
                     <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</Button>
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</Button>

@@ -515,15 +515,6 @@ class FloorMap extends Component {
     let formData = new FormData();
     let requestType = 'POST';
 
-    if (floorPlan.type === '') {
-      return;
-    }
-
-    if (floorPlan.type === 'clear') {
-      helper.showPopupMsg(t('network-topology.txt-selected-node'), t('txt-error'));
-      return;
-    }
-
     if (floorPlan.name) {
       this.setState({
         floorNameError: false
@@ -564,6 +555,11 @@ class FloorMap extends Component {
       } else {
         formData.append('file', '');
         formData.append('updatePic', false);
+      }
+    } else if (floorPlan.type === 'clear') {
+      if (floorPlan.map) {
+        formData.append('file', floorPlan.map);
+        formData.append('updatePic', true);
       }
     }
 
