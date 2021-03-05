@@ -1406,12 +1406,12 @@ class AlertDetails extends Component {
         <div className='section'>
           <header>{t('alert.txt-threatsContent')}</header>
           <ul>
-            <li><span className='header'>{t('alert.txt-severityType')}</span>: <span id='threatsContentSeverity'>{alertData.severity_type}</span></li>
+            <li><span className='header'>{t('alert.txt-severityType')}</span>: <span id='threatsContentSeverity'>{alertData.severity_type || NOT_AVAILABLE}</span></li>
             <li><span className='header'>{t('alert.txt-severityDesc')}</span>: <span id='threatsContentDesc'>{alertData.severity_type_description || NOT_AVAILABLE}</span></li>
-            <li><span className='header'>{t('alert.txt-collectorType')}</span>: <span id='threatsContentCollector'>{alertData.Collector}</span></li>
-            <li><span className='header'>{t('alert.txt-threatsType')}</span>: <span id='threatsContentType'>{alertData.severity_type_name}</span></li>
-            <li><span className='header'>{t('alert.txt-threatsCreateDttm')}</span>: <span id='threatsContentCreateDttm'>{threatCreateDttm}</span></li>
-            <li><span className='header'>{t('alert.txt-threatsUpdateDttm')}</span>: <span id='threatsContentUpdateDttm'>{threatUpdateDttm}</span></li>
+            <li><span className='header'>{t('alert.txt-collectorType')}</span>: <span id='threatsContentCollector'>{alertData.Collector || NOT_AVAILABLE}</span></li>
+            <li><span className='header'>{t('alert.txt-threatsType')}</span>: <span id='threatsContentType'>{alertData.severity_type_name || NOT_AVAILABLE}</span></li>
+            <li><span className='header'>{t('alert.txt-threatsCreateDttm')}</span>: <span id='threatsContentCreateDttm'>{threatCreateDttm || NOT_AVAILABLE}</span></li>
+            <li><span className='header'>{t('alert.txt-threatsUpdateDttm')}</span>: <span id='threatsContentUpdateDttm'>{threatUpdateDttm || NOT_AVAILABLE}</span></li>
           </ul>
         </div>
 
