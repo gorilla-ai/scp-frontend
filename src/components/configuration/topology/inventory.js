@@ -1592,7 +1592,8 @@ class NetworkInventory extends Component {
   handleSubTabChange = (event, newTab) => {
     this.setState({
       activeTab: newTab,
-      showFilter: false
+      showFilter: false,
+      floorMapType: ''
     }, () => {
       if (newTab === 'deviceMap') {
         this.getFloorPlan();
@@ -3905,10 +3906,18 @@ class NetworkInventory extends Component {
    */
   displayTreeView = (type, tree, i) => {
     const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID, floorMapType} = this.state;
-    let defaultSelectedID = tree.areaUUID;
+    let defaultSelectedID = '';
     let defaultExpanded = [];
 
     if (type === 'deviceMap') {
+      if (i === 0) {
+        defaultSelectedID = tree.areaUUID;
+      }
+
+      if (floorMapType === 'selected') {
+        defaultSelectedID = selectedTreeID;
+      }
+
       defaultExpanded = [tree.areaUUID];
     } else if (type === 'stepsFloor') {
       let currentAreaUUID = floorPlan.currentAreaUUID;
