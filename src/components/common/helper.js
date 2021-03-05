@@ -298,7 +298,7 @@ const helper = {
     return (
       <div className='c-button-group left menu'>
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
-          <Link to='/SCP/events/syslog'>{t('txt-syslog')}</Link>
+          <Link to='/SCP/events/syslog'>{t('txt-syslog-en')}</Link>
         </button>
         {/*<button className={cx('thumb', {'selected': page === 'netflow'})}>
           <Link to='/SCP/events/netflow'>{t('txt-netflow')}</Link>

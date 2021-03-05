@@ -11,7 +11,6 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -57,23 +56,14 @@ class AccountList extends Component {
         currentPage: 1,
         pageSize: 20
       },
-      sshDataFieldArr: ['id', 'account', 'option'],
-      sshData: [],
-      sshAccountName: '',
       accountID: '',
       accountName: '',
       contextAnchor: null,
-      menuType: '',
       currentAccountData: {},
-      showSshAccount: false,
-      showAddSshAccount: false,
       showNewPassword: false,
       newPassword: '',
       info: '',
       formValidation: {
-        sshAccountName: {
-          valid: true
-        },
         password: {
           valid: true
         }
@@ -88,7 +78,6 @@ class AccountList extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getAccountsData();
-    this.getSshAccountList();
   }
   /**
    * Get and set account list data
@@ -139,7 +128,7 @@ class AccountList extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, 'accountOptions', allValue)}><i className='fg fg-more'></i></Button>
+                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'account' && allValue.isLock) {
@@ -159,51 +148,19 @@ class AccountList extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', c('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set SSH account list data
-   * @method
-   */
-  getSshAccountList = () => {
-    const {baseUrl} = this.context;
-    const {accountSearch, userAccount} = this.state;
-    let requestData = {};
-
-    this.ah.one({
-      url: `${baseUrl}/api/log/netproxy/sshaccount`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          sshData: data.rows
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', c('txt-error'), err.message);
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
    * Handle open menu
    * @method
-   * @param {string} type - menu type ('accountOptions' or 'accountAdd')
-   * @param {object} [account] - active account data
+   * @param {object} account - active account data
    * @param {object} event - event object
    */
-  handleOpenMenu = (type, account, event) => {
-    if (type === 'accountOptions') {
-      this.setState({
-        currentAccountData: account
-      });
-    }
-
+  handleOpenMenu = (account, event) => {
     this.setState({
       contextAnchor: event.currentTarget,
-      menuType: type
+      currentAccountData: account
     });
   }
   /**
@@ -315,7 +272,7 @@ class AccountList extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', c('txt-error'), err.message);
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -452,9 +409,6 @@ class AccountList extends Component {
       newPassword: '',
       info: '',
       formValidation: {
-        sshAccountName: {
-          valid: true
-        },
         password: {
           valid: true
         }
@@ -593,262 +547,9 @@ class AccountList extends Component {
       this.getAccountsData();
     });
   }
-  /**
-   * Toggle SSH dialog on/off
-   * @method
-   */
-  toggleSshDialog = () => {
-    this.setState({
-      showSshAccount: !this.state.showSshAccount
-    });
-
-    this.handleCloseMenu();
-  }
-  /**
-   * Open delete name modal dialog
-   * @method
-   * @param {string} id - account ID
-   * @param {string} account - selected account name
-   */
-  openDeleteAccount = (id, account) => {
-    PopupDialog.prompt({
-      title: c('txt-deleteAccount'),
-      id: 'modalWindowSmall',
-      confirmText: c('txt-delete'),
-      cancelText: c('txt-cancel'),
-      display: (
-        <div className='content delete'>
-          <span>{c('txt-delete-msg')}: {account}?</span>
-        </div>
-      ),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteSshAccount(id)
-        }
-      }
-    });
-  }
-  /**
-   * Handle delete SSH account confirm
-   * @method
-   * @param {string} id - selected account ID
-   */
-  deleteSshAccount = (id) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/log/netproxy/sshaccount?id=${id}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      this.getSshAccountList();
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', c('txt-error'), err.message);
-    })
-  }
-  /**
-   * Display list of SSH accounts
-   * @method
-   */
-  displaySshAccount = () => {
-    const {sshDataFieldArr, sshData} = this.state;
-
-    let dataFields = {};
-    sshDataFieldArr.forEach(tempData => {
-      dataFields[tempData] = {
-        hide: tempData === 'id' ? true : false,
-        label: tempData === 'account' ? c('txt-account') : '',
-        sortable: false,
-        formatter: (value, allValue) => {
-          if (tempData === 'option') {
-            return (
-              <div>
-                <i className='c-link fg fg-trashcan' onClick={this.openDeleteAccount.bind(this, allValue.id, allValue.account)} title={c('txt-delete')} />
-              </div>
-            )
-          } else {
-            return <span>{value}</span>
-          }
-        }
-      };
-    })
-
-    return (
-      <div>
-        <i className='c-link fg fg-add' onClick={this.openAddSshAccount} title={t('txt-add-account')}></i>
-        <div className='table-data'>
-          <DataTable
-            fields={dataFields}
-            data={sshData} />
-        </div>
-      </div>
-    )
-  }
-  /**
-   * Open Add SSH account
-   * @method
-   */
-  openAddSshAccount = () => {
-    this.setState({
-      showAddSshAccount: true
-    });
-  }
-  /**
-   * Show SSH account dialog
-   * @method
-   */
-  showSshAccountDialog = () => {
-    const actions = {
-      cancel: {text: c('txt-close'), handler: this.toggleSshDialog}
-    };
-
-    return (
-      <ModalDialog
-        id='showSshAccountDialog'
-        className='modal-dialog'
-        title={t('txt-addSshAccount')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displaySshAccount()}
-      </ModalDialog>
-    )
-  }
-  /**
-   * Handle SSH account name input value change
-   * @method
-   * @param {string} event - event object
-   */
-  handleDataChange = (event) => {
-    this.setState({
-      sshAccountName: event.target.value
-    });
-  }
-  /**
-   * Display add SSH account content
-   * @method
-   * @returns HTML DOM
-   */
-  displayAddSshAccount = () => {
-    const {sshAccountName, formValidation} = this.state;
-
-    return (
-      <TextField
-        name='sshAccountName'
-        label={c('txt-plsEnterName')}
-        variant='outlined'
-        fullWidth
-        size='small'
-        required
-        error={!formValidation.sshAccountName.valid}
-        helperText={formValidation.sshAccountName.valid ? '' : c('txt-required')}
-        value={sshAccountName}
-        onChange={this.handleDataChange} />
-    )
-  }
-  /**
-   * Display add SSH acount dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  addSshAccountDialog = () => {
-    const actions = {
-      cancel: {text: c('txt-cancel'), className: 'standard', handler: this.closeAddSshAccount},
-      confirm: {text: c('txt-confirm'), handler: this.confirmAddSshAccount}
-    };
-
-    return (
-      <ModalDialog
-        id='addSshAccountDialog'
-        className='modal-dialog'
-        title={t('txt-add-account')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayAddSshAccount()}
-      </ModalDialog>
-    )
-  }
-  /**
-   * Handle add SSH account modal confirm
-   * @method
-   */
-  confirmAddSshAccount = () => {
-    const {baseUrl} = this.context;
-    const {sshAccountName, formValidation} = this.state;
-    let tempFormValidation = {...formValidation};
-    let validate = true;
-
-    if (sshAccountName) {
-      tempFormValidation.sshAccountName.valid = true;
-    } else {
-      tempFormValidation.sshAccountName.valid = false;
-      validate = false;
-    }
-
-    this.setState({
-      formValidation: tempFormValidation
-    });
-
-    if (!validate) {
-      return;
-    }
-
-    ah.one({
-      url: `${baseUrl}/api/log/netproxy/sshaccount?account=${sshAccountName}`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.setState({
-          sshAccountName: '',
-          showAddSshAccount: false
-        });
-
-        this.getSshAccountList();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Close add SSH account dialog
-   * @method
-   */
-  closeAddSshAccount = () => {
-    this.setState({
-      sshAccountName: '',
-      showAddSshAccount: false,
-      formValidation: {
-        sshAccountName: {
-          valid: true
-        },
-        password: {
-          valid: true
-        }
-      }
-    });
-  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {
-      showFilter,
-      userAccount,
-      contextAnchor,
-      menuType,
-      currentAccountData,
-      showSshAccount,
-      showAddSshAccount,
-      showNewPassword
-    } = this.state;
+    const {showFilter, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -863,48 +564,27 @@ class AccountList extends Component {
 
     return (
       <div>
-        {showSshAccount &&
-          this.showSshAccountDialog()
-        }
-
-        {showAddSshAccount &&
-          this.addSshAccountDialog()
-        }
-
         {showNewPassword &&
           this.showNewPasswordDialog()
         }
 
-        {menuType === 'accountAdd' &&
-          <Menu
-            anchorEl={contextAnchor}
-            keepMounted
-            open={Boolean(contextAnchor)}
-            onClose={this.handleCloseMenu}>
-            <MenuItem id='accountAddLogs' onClick={this.showEditDialog.bind(this, null)}>{t('txt-syslogAccount')}</MenuItem>
-            <MenuItem id='accountAddSsh' onClick={this.toggleSshDialog}>{t('txt-sshAccount')}</MenuItem>
-          </Menu>
-        }
-
-        {menuType === 'accountOptions' &&
-          <Menu
-            anchorEl={contextAnchor}
-            keepMounted
-            open={Boolean(contextAnchor)}
-            onClose={this.handleCloseMenu}>
-            <MenuItem id='account-menu-edit' onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
-            <MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
-            <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
-            {currentAccountData.isLock &&
-              <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
-            }
-          </Menu>
-        }
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem id='account-menu-edit' onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
+          <MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
+          <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
+          {currentAccountData.isLock &&
+            <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
+          }
+        </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button id='accountShowAd' variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')}><i className='fg fg-signage-ad'></i></Button>
-            <Button id='accountShowAdd' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, 'accountAdd', '')} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
+            <Button id='accountShowAdd' variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
             <Button id='accountShowFilter' variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>

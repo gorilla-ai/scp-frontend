@@ -1533,7 +1533,7 @@ class SyslogController extends Component {
    * @method
    */
   tableDialog = () => {
-    const title = t('txt-syslog') + ' ' + t('events.connections.txt-fieldsSettings');
+    const title = t('txt-syslog-en') + ' ' + t('events.connections.txt-fieldsSettings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.resetDataTable.bind(this, 'setFields')}

@@ -28,6 +28,7 @@ import SyslogConfig from './syslog-config'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+let a = null;
 let t = null;
 let f = null;
 let et = null;
@@ -95,6 +96,9 @@ class Syslog extends Component {
         loghostip: '',
         port: ''
       },
+      sshDataFieldArr: ['id', 'account', 'option'],
+      sshData: [],
+      sshAccountName: '',
       activeSyslogData: {},
       editSyslogType: '',
       editHostsType: '',
@@ -107,6 +111,8 @@ class Syslog extends Component {
       openEditHosts: false,
       openEditPatternName: false,
       clickTimeline: false,
+      showSshAccount: false,
+      showAddSshAccount: false,
       activeTimeline: '',
       activeConfigId: '',
       activeConfigName: '',
@@ -127,6 +133,7 @@ class Syslog extends Component {
       info: '',
       editPatternType: 'edit',
       contextAnchor: null,
+      menuType: '',
       currentPattern: {
         index: '',
         data: ''
@@ -145,10 +152,14 @@ class Syslog extends Component {
         },
         editHostsHost: {
           valid: true
+        },
+        sshAccountName: {
+          valid: true
         }
       }
     };
 
+    a = global.chewbaccaI18n.getFixedT(null, 'accounts');
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors')
@@ -161,6 +172,7 @@ class Syslog extends Component {
 
     this.getRelationship();
     this.getSyslogData();
+    this.getSshAccountList();
   }
   /**
    * Get and set the relationships data
@@ -313,6 +325,286 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+ /**
+   * Get and set SSH account list data
+   * @method
+   */
+  getSshAccountList = () => {
+    const {baseUrl} = this.context;
+    const {accountSearch, userAccount} = this.state;
+    let requestData = {};
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/netproxy/sshaccount`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          sshData: data.rows
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle SSH dialog on/off
+   * @method
+   */
+  toggleSshDialog = () => {
+    this.setState({
+      showSshAccount: !this.state.showSshAccount
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Open delete name modal dialog
+   * @method
+   * @param {string} id - account ID
+   * @param {string} account - selected account name
+   */
+  openDeleteSshAccount = (id, account) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteAccount'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}: {account}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteSshAccount(id)
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete SSH account confirm
+   * @method
+   * @param {string} id - selected account ID
+   */
+  deleteSshAccount = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/netproxy/sshaccount?id=${id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      this.getSshAccountList();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display list of SSH accounts
+   * @method
+   */
+  displaySshAccount = () => {
+    const {sshDataFieldArr, sshData} = this.state;
+
+    let dataFields = {};
+    sshDataFieldArr.forEach(tempData => {
+      dataFields[tempData] = {
+        hide: tempData === 'id' ? true : false,
+        label: tempData === 'account' ? t('txt-account') : '',
+        sortable: false,
+        formatter: (value, allValue) => {
+          if (tempData === 'option') {
+            return (
+              <div>
+                <i className='c-link fg fg-trashcan' onClick={this.openDeleteSshAccount.bind(this, allValue.id, allValue.account)} title={t('txt-delete')} />
+              </div>
+            )
+          } else {
+            return <span>{value}</span>
+          }
+        }
+      };
+    })
+
+    return (
+      <div>
+        <i className='c-link fg fg-add' onClick={this.openAddSshAccount} title={a('txt-add-account')}></i>
+        <div className='table-data'>
+          <DataTable
+            fields={dataFields}
+            data={sshData} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Open Add SSH account
+   * @method
+   */
+  openAddSshAccount = () => {
+    this.setState({
+      showAddSshAccount: true
+    });
+  }
+  /**
+   * Show SSH account dialog
+   * @method
+   */
+  showSshAccountDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.toggleSshDialog}
+    };
+
+    return (
+      <ModalDialog
+        id='showSshAccountDialog'
+        className='modal-dialog'
+        title={a('txt-addSshAccount')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displaySshAccount()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle SSH account name input value change
+   * @method
+   * @param {string} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      sshAccountName: event.target.value
+    });
+  }
+  /**
+   * Display add SSH account content
+   * @method
+   * @returns HTML DOM
+   */
+  displayAddSshAccount = () => {
+    const {sshAccountName, formValidation} = this.state;
+
+    return (
+      <TextField
+        name='sshAccountName'
+        label={t('txt-plsEnterName')}
+        variant='outlined'
+        fullWidth
+        size='small'
+        required
+        error={!formValidation.sshAccountName.valid}
+        helperText={formValidation.sshAccountName.valid ? '' : t('txt-required')}
+        value={sshAccountName}
+        onChange={this.handleDataChange} />
+    )
+  }
+  /**
+   * Display add SSH acount dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  addSshAccountDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddSshAccount},
+      confirm: {text: t('txt-confirm'), handler: this.confirmAddSshAccount}
+    };
+
+    return (
+      <ModalDialog
+        id='addSshAccountDialog'
+        className='modal-dialog'
+        title={a('txt-add-account')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayAddSshAccount()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle add SSH account modal confirm
+   * @method
+   */
+  confirmAddSshAccount = () => {
+    const {baseUrl} = this.context;
+    const {sshAccountName, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (sshAccountName) {
+      tempFormValidation.sshAccountName.valid = true;
+    } else {
+      tempFormValidation.sshAccountName.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/log/netproxy/sshaccount?account=${sshAccountName}`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          sshAccountName: '',
+          showAddSshAccount: false
+        });
+
+        this.getSshAccountList();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close add SSH account dialog
+   * @method
+   */
+  closeAddSshAccount = () => {
+    this.setState({
+      sshAccountName: '',
+      showAddSshAccount: false,
+      formValidation: {
+        ip: {
+          valid: true,
+          msg: ''
+        },
+        name: {
+          valid: true
+        },
+        port: {
+          valid: true,
+          msg: ''
+        },
+        editHostsHost: {
+          valid: true
+        },
+        sshAccountName: {
+          valid: true
+        }
+      }
+    });
+  }
   /**
    * Get syslog menu class name
    * @method
@@ -388,6 +680,9 @@ class Syslog extends Component {
             msg: ''
           },
           editHostsHost: {
+            valid: true
+          },
+          sshAccountName: {
             valid: true
           }
         }
@@ -499,6 +794,8 @@ class Syslog extends Component {
     }, () => {
       this.toggleContent('editSyslog', type);
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Open add/edit syslog dialog
@@ -1449,6 +1746,9 @@ class Syslog extends Component {
         },
         editHostsHost: {
           valid: true
+        },
+        sshAccountName: {
+          valid: true
         }
       }
     });
@@ -1677,18 +1977,25 @@ class Syslog extends Component {
   /**
    * Handle open menu
    * @method
+   * @param {string} type - menu type ('addAccount' or 'addSyslog')
    * @param {object} val - active mouse over pattern data
    * @param {number} i - index of the syslogPatternConfig pattern list
    * @param {object} event - event object
    */
-  handleOpenMenu = (val, i, event) => {
-    let tempCurrentPattern = {...this.state.currentPattern};
-    tempCurrentPattern.index = i;
-    tempCurrentPattern.data = val;
+  handleOpenMenu = (type, val, i, event) => {
+    if (type === 'addSyslog') {
+      let tempCurrentPattern = {...this.state.currentPattern};
+      tempCurrentPattern.index = i;
+      tempCurrentPattern.data = val;
+
+      this.setState({
+        currentPattern: tempCurrentPattern
+      });
+    }
 
     this.setState({
       contextAnchor: event.currentTarget,
-      currentPattern: tempCurrentPattern
+      menuType: type
     });
   }
   /**
@@ -1741,7 +2048,7 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getPatternItem = (val, i) => {
-    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor} = this.state;
+    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor, menuType} = this.state;
     const patternName = val.patternName;
     let formattedPatternName = '';
 
@@ -1753,19 +2060,22 @@ class Syslog extends Component {
       <div className='item'>
         <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, patternName)} onMouseOver={this.handlePatternMouseOver.bind(this, patternName)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
           <span title={patternName}>{formattedPatternName || patternName}</span>
-          <i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, val, i)}></i>
+          <i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, 'addSyslog', val, i)}></i>
           <i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}></i>
         </div>
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}</MenuItem>
-          {syslogPatternConfig.patternSetting.length > 1 &&
-            <MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
-          }
-        </Menu>
+
+        {menuType === 'addSyslog' &&
+          <Menu
+            anchorEl={contextAnchor}
+            keepMounted
+            open={Boolean(contextAnchor)}
+            onClose={this.handleCloseMenu}>
+            <MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}</MenuItem>
+            {syslogPatternConfig.patternSetting.length > 1 &&
+              <MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
+            }
+          </Menu>
+        }
 
         {activePatternName === patternName &&
           <div className='item'>
@@ -1793,8 +2103,12 @@ class Syslog extends Component {
       openTimeline,
       openEditHosts,
       openEditPatternName,
+      showSshAccount,
+      showAddSshAccount,
       activeHost,
       syslogPatternConfig,
+      contextAnchor,
+      menuType,
       formValidation
     } = this.state;
 
@@ -1812,12 +2126,31 @@ class Syslog extends Component {
           this.modalEditPatternName()
         }
 
+        {showSshAccount &&
+          this.showSshAccountDialog()
+        }
+
+        {showAddSshAccount &&
+          this.addSshAccountDialog()
+        }
+
+        {menuType === 'addAccount' &&
+          <Menu
+            anchorEl={contextAnchor}
+            keepMounted
+            open={Boolean(contextAnchor)}
+            onClose={this.handleCloseMenu}>
+            <MenuItem id='accountAddLogs' onClick={this.openNewSyslog.bind(this, 'new')}>{t('txt-syslog')}</MenuItem>
+            <MenuItem id='accountAddSsh' onClick={this.toggleSshDialog}>{a('txt-sshAccount')}</MenuItem>
+          </Menu>
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'syslogData' &&
               <div>
                 <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
-                <Button variant='outlined' color='primary' onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></Button>
+                <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, 'addAccount', '', '')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></Button>
                 <Button variant='outlined' color='primary' className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
               </div>
             }

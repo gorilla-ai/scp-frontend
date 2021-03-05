@@ -51,7 +51,6 @@
   "txt-test-connect": "連線測試",
   "txt-only-num-eng":"由至少 4 位數字與英文字母組成",
   "txt-email-invalid":"請輸入正確的email",
-  "txt-syslogAccount": "日誌串流",
   "txt-sshAccount": "SSH帳號",
   "txt-addSshAccount": "新增SSH帳號",
   "accountFields": {
