@@ -920,7 +920,7 @@ class AlertDetails extends Component {
           <div className='content'>
             <div className='options-buttons'>
               <section>
-                {showContent.rule && alertData.pcapFlag &&
+                {showContent.rule && alertData.pcapFlag && alertData._edgeInfo &&
                   this.getPCAPdownloadContent()
                 }
 
