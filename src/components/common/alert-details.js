@@ -1226,11 +1226,12 @@ class AlertDetails extends Component {
     } else if (options === 'rule') {
       const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
+      const agentId = alertData._edgeInfo ? alertData._edgeInfo.agentId : '';
+      const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
       return (
         <ul className='redirect-menu' ref={this.setWrapperRef}>
-          {alertData.pcapFlag &&
+          {alertData.pcapFlag && agentId &&
             <li id='downloadPcapBtn' onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</li>
           }
           {alertData.blackIP &&
