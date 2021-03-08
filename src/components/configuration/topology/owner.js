@@ -141,11 +141,6 @@ class NetworkOwner extends Component {
         tempList.department = _.cloneDeep(departmentList);
         tempList.title = _.cloneDeep(titleList);
 
-        // if (options === 'first' || (options === 'fromManage' && activeContent === 'tableList')) {
-        //   tempList.department.unshift({value: 'all', text: t('txt-all')});
-        //   tempList.title.unshift({value: 'all', text: t('txt-all')});
-        // }
-
         const departmentDropdown = _.map(data[0], (val, i) => {
           return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
         });
@@ -340,20 +335,24 @@ class NetworkOwner extends Component {
    */
   getOwnerInfo = (allValue) => {
     const {baseUrl} = this.context;
-    let tempOwner = {...this.state.owner};
-
-    if (!allValue.ownerID) {
-      return;
-    }
+    const {currentOwnerData, owner} = this.state;
+    const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
+    let tempOwner = {...owner};
 
     ah.one({
-      url: `${baseUrl}/api/u1/owner?uuid=${allValue.ownerUUID}`,
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
       if (data.rt) {
         data = data.rt;
         tempOwner.info = {...data};
+
+        if (allValue) {
+          this.setState({
+            currentOwnerData: allValue
+          });
+        }
 
         this.setState({
           owner: tempOwner
@@ -509,13 +508,24 @@ class NetworkOwner extends Component {
 
     formData.append('ownerID', owner.info.ownerID);
     formData.append('ownerName', owner.info.ownerName);
-    formData.append('department', owner.info.department);
-    formData.append('title', owner.info.title);
+
+    if (owner.info.department) {
+      formData.append('department', owner.info.department);
+    } else {
+      formData.append('department', '');
+    }
+
+    if (owner.info.title) {
+      formData.append('title', owner.info.title);
+    } else {
+      formData.append('title', '');
+    }
 
     if (owner.info.file) {
       updatePic = true;
       formData.append('file', owner.info.file);
     }
+
     formData.append('updatePic', updatePic);
 
     if (addOwnerType === 'edit') {
@@ -531,9 +541,14 @@ class NetworkOwner extends Component {
       contentType: false
     })
     .then(data => {
-      this.getSearchData();
-      this.getOwnerData();
-      this.toggleContent('tableList');
+      this.setState({
+        currentOwnerData: {}
+      }, () => {
+        this.getSearchData();
+        this.getOwnerData();
+        this.toggleContent('tableList');
+      });
+
       return null;
     })
     .catch(err => {
@@ -594,7 +609,11 @@ class NetworkOwner extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getOwnerData();
+        this.setState({
+          currentOwnerData: {}
+        }, () => {
+          this.getOwnerData();
+        });
       }
       return null;
     })
@@ -616,7 +635,7 @@ class NetworkOwner extends Component {
    */
   onDone = (options) => {
     this.getSearchData(options);
-    this.getOwnerData();
+    this.getOwnerInfo();
   }
   /**
    * Toggle filter content on/off
@@ -858,7 +877,8 @@ class NetworkOwner extends Component {
                         fullWidth
                         size='small'
                         value={owner.info.department}
-                        onChange={this.handleDataChange}>
+                        onChange={this.handleDataChange}
+                        disabled={departmentDropdown.length === 0}>
                         {departmentDropdown}
                       </TextField>
                     </div>
@@ -872,7 +892,8 @@ class NetworkOwner extends Component {
                         fullWidth
                         size='small'
                         value={owner.info.title}
-                        onChange={this.handleDataChange}>
+                        onChange={this.handleDataChange}
+                        disabled={titleDropdown.length === 0}>
                         {titleDropdown}
                       </TextField>
                     </div>

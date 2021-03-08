@@ -924,7 +924,7 @@ class QueryOpenSave extends Component {
             {dropDownValue === 'new' &&
               <TextField
                 className='query-name'
-                label={t('txt-name')}
+                label={t('txt-plsEnterName')}
                 variant='outlined'
                 size='small'
                 maxLength={50}

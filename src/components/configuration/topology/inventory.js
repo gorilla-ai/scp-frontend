@@ -689,7 +689,6 @@ class NetworkInventory extends Component {
    */
   getOtherData = (options) => {
     const {baseUrl} = this.context;
-    const {addIP} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
 
@@ -711,37 +710,31 @@ class NetworkInventory extends Component {
       if (data) {
         let departmentList = [];
         let titleList = [];
-        let tempAddIP = {...addIP};
+        let tempAddIP = {...this.state.addIP};
 
-        if (!_.isEmpty(data[0])) {
+        if (data[0].length > 0) {
           departmentList = _.map(data[0], (val, i) => {
             return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
           });
-
-          if (departmentList[0]) {
-            tempAddIP.newDepartment = departmentList[0].value;
-          }
-
-          this.setState({
-            departmentList,
-            addIP: tempAddIP
-          });
+          tempAddIP.newDepartment = departmentList[0].value;
+        } else {
+          tempAddIP.newDepartment = '';
         }
 
-        if (!_.isEmpty(data[1])) {
+        if (data[1].length > 0) {
           titleList = _.map(data[1], (val, i) => {
             return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
           });
-
-          if (titleList[0]) {
-            tempAddIP.newTitle = titleList[0].value;
-          }
-
-          this.setState({
-            titleList,
-            addIP: tempAddIP
-          });
+          tempAddIP.newTitle = titleList[0].value;
+        } else {
+          tempAddIP.newTitle = '';
         }
+
+        this.setState({
+          departmentList,
+          titleList,
+          addIP: tempAddIP
+        });
 
         this.getFloorPlan(options);
       }
@@ -876,7 +869,7 @@ class NetworkInventory extends Component {
           this.getFloorList(options);
         });
       } else {
-        this.getInventoryEdit();
+        this.getInventoryEdit(options);
       }
       return null;
     })
@@ -886,17 +879,23 @@ class NetworkInventory extends Component {
   }
   /**
    * Toggle content to show edit page
+   * @param {string} [options] - option for calling type
    * @method
    */
-  getInventoryEdit = () => {
+  getInventoryEdit = (options) => {
     const inventoryParam = queryString.parse(location.search);
     const type = inventoryParam.type;
+    const ip = inventoryParam.ip;
 
     if (type) {
       if (type === 'add') {
         this.toggleContent('showForm', 'new');
-      } else if (type === 'edit' && inventoryParam.ip) {
-        this.getSingleDeviceData(inventoryParam.ip);
+      } else if (type === 'edit' && ip) {
+        this.getSingleDeviceData(ip);
+      }
+    } else {
+      if (options === 'deviceMap') {
+        helper.showPopupMsg(t('txt-notFound')); //Show not found message
       }
     }
   }
@@ -1576,7 +1575,7 @@ class NetworkInventory extends Component {
       floorMapType: ''
     }, () => {
       if (newTab === 'deviceMap') {
-        this.getFloorPlan();
+        this.getFloorPlan(newTab);
       } else if (newTab === 'deviceLA') {
         this.loadLinkAnalysis();
       }
@@ -2267,7 +2266,7 @@ class NetworkInventory extends Component {
       }
 
       if (!currentDeviceData.ownerUUID && ownerList[0]) {
-        this.handleOwnerChange(ownerList[0].value);
+        this.getOwnerInfo(ownerList[0].value);
       }
 
       if (_.isEmpty(ownerList)) {
@@ -3215,20 +3214,18 @@ class NetworkInventory extends Component {
     this.setState({
       ownerType: event.target.value,
       addIP: tempAddIP
+    }, () => {
+      this.getOwnerInfo(addIP.ownerUUID);
     });
   }
   /**
    * Handle existing owners dropdown change
    * @method
-   * @param {string | object} event - event object
+   * @param {string | object} event - owner ID or event object
    */
-  handleOwnerChange = (event) => {
+  getOwnerInfo = (event) => {
     const {baseUrl} = this.context;
     const value = event.target ? event.target.value : event;
-
-    if (!value) {
-      return;
-    }
 
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${value}`,
@@ -3687,7 +3684,8 @@ class NetworkInventory extends Component {
                         fullWidth
                         size='small'
                         value={addIP.newDepartment}
-                        onChange={this.handleSelectionChange}>
+                        onChange={this.handleSelectionChange}
+                        disabled={departmentList.length === 0}>
                         {departmentList}
                       </TextField>
                     </div>
@@ -3701,7 +3699,8 @@ class NetworkInventory extends Component {
                         fullWidth
                         size='small'
                         value={addIP.newTitle}
-                        onChange={this.handleSelectionChange}>
+                        onChange={this.handleSelectionChange}
+                        disabled={titleList.length === 0}>
                         {titleList}
                       </TextField>
                     </div>
@@ -3718,7 +3717,7 @@ class NetworkInventory extends Component {
                         fullWidth
                         size='small'
                         value={addIP.ownerUUID}
-                        onChange={this.handleOwnerChange}>
+                        onChange={this.getOwnerInfo}>
                         {ownerListDropDown}
                       </TextField>
                     </div>
@@ -3997,7 +3996,7 @@ class NetworkInventory extends Component {
       <TextField
         id='addSeat'
         name='name'
-        label={t('txt-name')}
+        label={t('txt-plsEnterName')}
         variant='outlined'
         fullWidth
         size='small'

@@ -607,7 +607,8 @@ class ThreatIntelligence extends Component {
 
     if (!validation) {
       this.setState({
-        addThreats: tempAddThreats
+        addThreats: tempAddThreats,
+        info: t('edge-management.txt-edgeFormatError')
       });
       return;
     }
