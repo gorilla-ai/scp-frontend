@@ -31,7 +31,12 @@ class ManageGroup extends Component {
       groupTableFields: ['group', 'option'],
       formattedGroupList: [],
       groupName: '',
-      info: ''
+      info: '',
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -137,7 +142,12 @@ class ManageGroup extends Component {
 
     if (!openAddGroup) {
       this.setState({
-        groupName: ''
+        groupName: '',
+        formValidation: {
+          name: {
+            valid: true
+          }
+        }
       });
     }
 
@@ -161,15 +171,19 @@ class ManageGroup extends Component {
    * @returns HTML DOM
    */
   displayAddGroup = () => {
+    const {groupName, formValidation} = this.state;
+
     return (
       <TextField
         name='groupName'
-        label={t('txt-name')}
+        label={t('txt-plsEnterName')}
         variant='outlined'
         fullWidth
         size='small'
-        defaultValue={t('txt-plsEnterName')}
-        value={this.state.groupName}
+        required
+        error={!formValidation.name.valid}
+        helperText={formValidation.name.valid ? '' : t('txt-required')}
+        value={groupName}
         onChange={this.handleDataChange} />
     )
   }
@@ -204,9 +218,28 @@ class ManageGroup extends Component {
    */
   confirmAddGroup = () => {
     const {baseUrl} = this.context;
-    const {groupName} = this.state;
+    const {groupName, formValidation} = this.state;
     const url = `${baseUrl}/api/edge/group`;
-    const requestData = {
+    let tempFormValidation = {...formValidation};
+    let requestData = {};
+    let validate = true;
+
+    if (groupName) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    requestData = {
       groupName
     };
 

@@ -676,7 +676,7 @@ class NetworkMap extends Component {
       <TextField
         id='addSeat'
         name='name'
-        label={t('txt-name')}
+        label={t('txt-plsEnterName')}
         variant='outlined'
         fullWidth
         size='small'

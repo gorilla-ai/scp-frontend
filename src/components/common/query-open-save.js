@@ -928,7 +928,7 @@ class QueryOpenSave extends Component {
               <TextField
                 id='queryOptionsInput'
                 className='query-name'
-                label={t('txt-name')}
+                label={t('txt-plsEnterName')}
                 variant='outlined'
                 size='small'
                 maxLength={50}
