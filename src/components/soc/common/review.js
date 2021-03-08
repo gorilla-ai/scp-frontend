@@ -12,6 +12,7 @@ import {BaseDataContext} from "../../common/context"
 import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
 import TextField from '@material-ui/core/TextField';
+import {TextareaAutosize} from "@material-ui/core";
 
 let t = null
 let et = null
@@ -164,7 +165,8 @@ class IncidentReview extends Component {
     			</div>
     			<div>
     				<label>{it('txt-comment')}</label>
-    				<Textarea rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />
+    				{/*<Textarea rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />*/}
+				    <TextareaAutosize  id='reviewCommentInput'  className='textarea-autosize' name='comment' value={comment} rows={6} required onChange={this.handleChangeMui} />
     			</div>
     		</div>
     	</ModalDialog>
