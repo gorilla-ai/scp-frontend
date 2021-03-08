@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 
-import {getInstance} from "react-ui/build/src/utils/ajax-helper";
+import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper";
 import {BaseDataContext} from "../common/context";
 import SocConfig from "../common/soc-configuration";
 import helper from "../common/helper";
@@ -16,6 +16,7 @@ import Button from "@material-ui/core/Button";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
+import constants from "../constant/constant-incidnet";
 
 let t = null;
 let f = null;
@@ -50,6 +51,7 @@ class IncidentLog extends Component {
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
             },
+            accountType:constants.soc.LIMIT_ACCOUNT,
             incidentLog: {
                 dataFieldsArr: ['id', 'type', 'status', 'createDttm', 'updateDttm', 'sendTime'],
                 dataFields: {},
@@ -76,7 +78,42 @@ class IncidentLog extends Component {
         const {locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        this.checkAccountType();
         this.getData();
+    }
+
+    checkAccountType = () =>{
+        const {baseUrl, session} = this.context;
+        let requestData={
+            account:session.accountId
+        }
+        ah.one({
+            url: `${baseUrl}/api/soc/unit/limit/_check`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+            .then(data => {
+                if (data) {
+
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.LIMIT_ACCOUNT
+                        })
+                    }else  if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                        })
+                    }else {
+                        this.setState({
+                            accountType: constants.soc.CHECK_ERROR
+                        })
+                    }
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
     }
 
     /**
@@ -85,7 +122,7 @@ class IncidentLog extends Component {
      * @param {string} fromSearch - option for the 'search'
      */
     getData = (fromSearch) => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, contextRoot, session} = this.context;
         const {logSearch, incidentLog} = this.state;
         const url = `${baseUrl}/api/soc/log/_searchV2?page=${incidentLog.currentPage}&pageSize=${incidentLog.pageSize}`;
         let requestData = {};
@@ -105,6 +142,8 @@ class IncidentLog extends Component {
         if (logSearch.dttmType) {
             requestData.dttmType = logSearch.dttmType;
         }
+
+        requestData.session = session.accountId;
 
         if (logSearch.datetime) {
             requestData.startDttm =   Moment(logSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
@@ -174,8 +213,8 @@ class IncidentLog extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, incidentLog} = this.state;
-
+        const {activeContent, baseUrl, contextRoot, showFilter, incidentLog, accountType} = this.state;
+        const {session} = this.context;
         return (
             <div>
 
@@ -188,11 +227,7 @@ class IncidentLog extends Component {
                 </div>
 
                 <div className='data-content'>
-                    <SocConfig
-                        baseUrl={baseUrl}
-                        contextRoot={contextRoot}
-                    />
-
+                    <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
                     <div className='parent-content'>
                         {this.renderFilter()}
 

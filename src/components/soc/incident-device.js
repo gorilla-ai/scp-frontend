@@ -20,15 +20,11 @@ import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
 import Button from "@material-ui/core/Button";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import constants from "../constant/constant-incidnet";
 let t = null;
 let f = null;
 let et = null;
 let it = null;
-
-const SEND_STATUS_SUCCESS = 1;
-const SEND_STATUS_ERROR_NOT_CONNECT_NCCST = 2;
-const SEND_STATUS_ERROR_NOT_READY_INCIDENT = 3;
-const SEND_STATUS_ERROR_OTHER = 4;
 
 /**
  * Settings - IncidentDevice
@@ -55,6 +51,7 @@ class IncidentDevice extends Component {
                 keyword: ''
             },
             setType:null,
+            accountType:constants.soc.LIMIT_ACCOUNT,
             unitList: [{
                 value: '',
                 text: ''
@@ -142,9 +139,44 @@ class IncidentDevice extends Component {
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
+        this.checkAccountType();
         this.getDeviceData();
         this.getUnitList();
         this.getSendCheck();
+    }
+
+    checkAccountType = () =>{
+        const {baseUrl, session} = this.context;
+        let requestData={
+            account:session.accountId
+        }
+        ah.one({
+            url: `${baseUrl}/api/soc/unit/limit/_check`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+            .then(data => {
+                if (data) {
+
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.LIMIT_ACCOUNT
+                        })
+                    }else  if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                        })
+                    }else {
+                        this.setState({
+                            accountType: constants.soc.CHECK_ERROR
+                        })
+                    }
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
     }
 
     getSendCheck() {
@@ -165,7 +197,6 @@ class IncidentDevice extends Component {
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             });
-
     }
 
     /**
@@ -174,14 +205,17 @@ class IncidentDevice extends Component {
      * @param {string} fromSearch - option for the 'search'
      */
     getDeviceData = (fromSearch) => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, session, contextRoot} = this.context;
         const {deviceSearch, incidentDevice, edgeList} = this.state;
         const url = `${baseUrl}/api/soc/device/_search?page=${incidentDevice.currentPage}&pageSize=${incidentDevice.pageSize}`;
         let requestData = {};
 
         if (deviceSearch.keyword) {
             requestData.keyword = deviceSearch.keyword;
+
         }
+
+        requestData.account = session.accountId;
 
         this.ah.one({
             url,
@@ -253,7 +287,7 @@ class IncidentDevice extends Component {
      * @param {string} fromSearch - option for the 'search'
      */
     setupHealthStatisticData = (fromSearch) => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, contextRoot, session} = this.context;
         const {deviceSearch, healthStatistic} = this.state;
         const url = `${baseUrl}/api/soc/device/_search?page=${healthStatistic.currentPage}&pageSize=${healthStatistic.pageSize}`;
         let requestData = {};
@@ -261,6 +295,7 @@ class IncidentDevice extends Component {
         if (deviceSearch.keyword) {
             requestData.keyword = deviceSearch.keyword;
         }
+        requestData.account = session.accountId;
 
         this.ah.one({
             url,
@@ -381,9 +416,11 @@ class IncidentDevice extends Component {
     };
 
     getUnitList = () => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, contextRoot, session} = this.context;
         const url = `${baseUrl}/api/soc/unit/_search`;
-        let requestData = {};
+        let requestData = {
+            account:session.accountId
+        };
 
         this.ah.one({
             url,
@@ -413,8 +450,8 @@ class IncidentDevice extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic} = this.state;
-
+        const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic, accountType} = this.state;
+        const {session} = this.context;
         return (
             <div>
 
@@ -426,10 +463,7 @@ class IncidentDevice extends Component {
                 </div>
 
                 <div className='data-content'>
-                    <SocConfig
-                        baseUrl={baseUrl}
-                        contextRoot={contextRoot}
-                    />
+                    <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
 
                     <div className='parent-content'>
                         {this.renderFilter()}
@@ -438,13 +472,13 @@ class IncidentDevice extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
-                                {activeContent === 'tableList' && <span>{it('txt-autoSendState')}</span>
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && <span>{it('txt-autoSendState')}</span>
                                 }
 
-                                {activeContent === 'tableList' && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
-                                {activeContent === 'tableList' && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
-                                {activeContent === 'tableList' &&
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</Button>
                                 }
 
@@ -455,12 +489,17 @@ class IncidentDevice extends Component {
                                 {activeContent === 'viewDevice' &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                                 }
-                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
-                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
 
-                                <Link to='/SCP/configuration/notifications'>
-                                    <Button variant='outlined' color='primary' className='standard btn edit' >{t('notifications.txt-settings')}</Button>
-                                </Link>
+                                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
+                                }
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
+
+                                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                                    <Link to='/SCP/configuration/notifications'>
+                                        <Button variant='outlined' color='primary' className='standard btn edit' >{t('notifications.txt-settings')}</Button>
+                                    </Link>
+                                }
 
                             </div>
                             <TableContent
@@ -521,7 +560,7 @@ class IncidentDevice extends Component {
      * @returns HTML DOM
      */
     displayEditDeviceContent = () => {
-        const {activeContent, dataFromEdgeDevice, incidentDevice, unitList, edgeList} = this.state;
+        const {activeContent, dataFromEdgeDevice, incidentDevice, unitList, edgeList, accountType} = this.state;
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-device')}</header>
@@ -545,26 +584,27 @@ class IncidentDevice extends Component {
                         }
                     </header>
 
+                    {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                        <div className='group'>
+                            <label htmlFor='edgeDevice'>{it('device.txt-edgeDevice')}</label>
+                            <TextField
+                                id='edgeDevice'
+                                name='edgeDevice'
+                                variant='outlined'
+                                fullWidth={true}
+                                size='small'
+                                select
+                                onChange={this.handleDataChangeMui}
+                                value={incidentDevice.edgeItem}
+                                disabled={activeContent === 'viewDevice'}>
+                                {_.map(edgeList, el => {
+                                    return <MenuItem value={el}>{el.agentName}</MenuItem>
+                                })}
+                            </TextField>
+                        </div>
+                    }
                     <div className='group'>
-                        <label htmlFor='edgeDevice'>{it('device.txt-edgeDevice')}</label>
-                        <TextField
-                            id='edgeDevice'
-                            name='edgeDevice'
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            onChange={this.handleDataChangeMui}
-                            value={incidentDevice.edgeItem}
-                            disabled={activeContent === 'viewDevice'}>
-                            {_.map(edgeList,el=>{
-                                return <MenuItem value={el}>{el.agentName}</MenuItem>
-                            })}
-                        </TextField>
-                    </div>
-
-                    <div className='group'>
-                        <label htmlFor='deviceId'>{it('device.txt-id')}</label>
+                        <label htmlFor='deviceId'>{accountType !== constants.soc.LIMIT_ACCOUNT ? it('device.txt-id'):it('device.txt-id-limit')}</label>
                         <TextField
                             id='deviceId'
                             name='deviceId'
@@ -648,30 +688,28 @@ class IncidentDevice extends Component {
                             disabled={activeContent === 'viewDevice'}/>
                     </div>
                     }
-
-                    <div className='group'>
-                        <label htmlFor='unitId'>{it('unit.txt-name')}</label>
-                        <TextField
-                            id='unitId'
-                            name='unitId'
-                            required
-                            error={!(incidentDevice.info.unitId || '')}
-                            helperText={it('txt-required')}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            onChange={this.handleDataChangeMui}
-                            value={incidentDevice.info.unitId}
-                            disabled={activeContent === 'viewDevice'}>
-                            {
-                                _.map(unitList, el => {
-                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                })
-                            }
-                        </TextField>
-                    </div>
-
+                        <div className='group'>
+                            <label htmlFor='unitId'>{it('unit.txt-name')}</label>
+                            <TextField
+                                id='unitId'
+                                name='unitId'
+                                required
+                                error={!(incidentDevice.info.unitId || '')}
+                                helperText={it('txt-required')}
+                                variant='outlined'
+                                fullWidth={true}
+                                size='small'
+                                select
+                                onChange={this.handleDataChangeMui}
+                                value={incidentDevice.info.unitId}
+                                disabled={activeContent === 'viewDevice'}>
+                                {
+                                    _.map(unitList, el => {
+                                        return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                    })
+                                }
+                            </TextField>
+                        </div>
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
                         <TextareaAutosize
@@ -708,7 +746,7 @@ class IncidentDevice extends Component {
      * @method
      */
     handleDeviceSubmit = () => {
-        const {baseUrl} = this.context;
+        const {baseUrl, session} = this.context;
         const {incidentDevice} = this.state;
         let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         if (!this.checkAddData(incidentDevice)) {
@@ -1083,9 +1121,9 @@ class IncidentDevice extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (data && data.ret === SEND_STATUS_SUCCESS){
+                if (data && data.ret === constants.soc.SEND_STATUS_SUCCESS){
                     helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-                }else if (data && data.ret === SEND_STATUS_ERROR_NOT_CONNECT_NCCST){
+                }else if (data && data.ret === constants.soc.SEND_STATUS_ERROR_NOT_CONNECT_NCCST){
                     helper.showPopupMsg(it('txt-send-connect-fail'), it('txt-send'));
                 }else {
                     helper.showPopupMsg(it('txt-send-other-fail'), it('txt-send'));

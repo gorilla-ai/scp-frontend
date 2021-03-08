@@ -5,18 +5,15 @@ import {BaseDataContext} from "../common/context";
 import SocConfig from "../common/soc-configuration";
 import helper from "../common/helper";
 import cx from "classnames";
-import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
-import DropDownList from "react-ui/build/src/components/dropdown";
-// import Checkbox from "react-ui/build/src/components/checkbox";
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import _ from "lodash";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import constants from "../constant/constant-incidnet";
+
 let t = null;
 let f = null;
 let et = null;
@@ -46,8 +43,10 @@ class IncidentUnit extends Component {
                 keyword: '',
                 industryType: ''
             },
+            accountListOptions: [],
+            accountType:constants.soc.LIMIT_ACCOUNT,
             incidentUnit: {
-                dataFieldsArr: ['isDefault', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
+                dataFieldsArr: ['oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -64,8 +63,8 @@ class IncidentUnit extends Component {
                     level: 'A',
                     industryType: '0',
                     isUse: false,
-                    isDefault: false,
-                    abbreviation: ''
+                    abbreviation: '',
+                    relatedAccountList: []
                 }
             }
         };
@@ -77,15 +76,14 @@ class IncidentUnit extends Component {
         const {locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+
+        this.checkAccountType();
+        this.getOptions();
         this.getData();
     }
 
-    /**
-     * Get and set Incident Unit table data
-     * @method
-     * @param {string} fromSearch - option for the 'search'
-     */
-    getData = (fromSearch) => {
+
+    getData = () => {
         const {baseUrl, contextRoot} = this.context;
         const {unitSearch, incidentUnit: incidentUnit} = this.state;
         const url = `${baseUrl}/api/soc/unit/_search`;
@@ -120,14 +118,6 @@ class IncidentUnit extends Component {
                                 return <span>{this.mappingType(value)}</span>
                             } else if (tempData === 'updateDttm') {
                                 return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === 'isDefault') {
-
-                                if (value){
-                                    return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
-                                }else {
-                                    return <span>{this.checkDefault(value)}</span>
-                                }
-
                             } else if (tempData === '_menu') {
                                 return (
                                     <div className='table-menu menu active'>
@@ -154,18 +144,79 @@ class IncidentUnit extends Component {
             }
             return null;
         })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message);
-        })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
     };
 
-    checkDefault = (value) => {
-        let info = it('unit.txt-isNotDefault');
-        if (value) {
-            info = it('unit.txt-isDefault')
+    checkAccountType = () => {
+        const {baseUrl, session} = this.context;
+        let requestData = {
+            account: session.accountId
         }
-        return info;
+        ah.one({
+            url: `${baseUrl}/api/soc/unit/limit/_check`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+            .then(data => {
+                if (data) {
+
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+                        this.setState({
+                            accountType: constants.soc.LIMIT_ACCOUNT
+                        })
+                    } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
+                        this.setState({
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                        })
+                    } else {
+                        this.setState({
+                            accountType: constants.soc.CHECK_ERROR
+                        })
+                    }
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
+    }
+
+    getOptions = () => {
+        const {baseUrl} = this.context;
+        const {userAccount} = this.state;
+        const sort = 'desc';
+        const url = `${baseUrl}/api/account/v2/_search?page=1&pageSize=100000&orders=account ${sort}`;
+        let requestData = {};
+
+
+        this.ah.one({
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'application/json'
+        })
+            .then(data => {
+                if (data) {
+                    let list = _.map(data.rows, val => {
+                        return {
+                            value: val.accountid,
+                            text: val.account + ' (' + val.name + ')'
+                        }
+                    });
+
+                    this.setState({
+                        accountListOptions: list
+                    });
+                }
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
     };
+
 
     mappingType = (value) => {
         let info = '';
@@ -218,8 +269,8 @@ class IncidentUnit extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, incidentUnit: incidentUnit} = this.state;
-
+        const {activeContent, baseUrl, contextRoot, showFilter, incidentUnit: incidentUnit, accountType} = this.state;
+        const {session} = this.context;
         return (
             <div>
 
@@ -231,10 +282,7 @@ class IncidentUnit extends Component {
                 </div>
 
                 <div className='data-content'>
-                    <SocConfig
-                        baseUrl={baseUrl}
-                        contextRoot={contextRoot}
-                    />
+                    <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
 
                     <div className='parent-content'>
                         {this.renderFilter()}
@@ -427,16 +475,26 @@ class IncidentUnit extends Component {
                         </TextField>
                     </div>
 
-                    <div className='group'>
-                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
-                        <Checkbox
-                            id='isDefault'
-                            name='isDefault'
-                            color='primary'
-                            className='checkbox-ui'
-                            onChange={this.handleDataChangeMuiCheck}
-                            checked={incidentUnit.info.isDefault}
-                            disabled={activeContent === 'viewDevice'}/>
+                    <div className='group full'>
+                        <label htmlFor='accountListOptions'>{f('incidentFields.relatedAccountList')}</label>
+                        <Autocomplete
+                            multiple
+                            id="tags-standard"
+                            size='small'
+                            options={incidentUnit.info.differenceWithOptions}
+                            getOptionLabel={(option) => option.text}
+                            value={incidentUnit.info.showFontendRelatedList}
+                            onChange={this.onTagsChange}
+                            disabled={activeContent === 'viewDevice'}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    variant='outlined'
+                                    size='small'
+                                    fullWidth={true}
+                                />
+                            )}
+                        />
                     </div>
                 </div>
 
@@ -448,13 +506,22 @@ class IncidentUnit extends Component {
                 }
                 {activeContent === 'addDevice' &&
                 <footer>
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                    <Button variant='outlined' color='primary' className='standard'
+                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
                     <Button variant='contained' color='primary' onClick={this.handleUnitSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
             </div>
         )
     };
+
+    onTagsChange = (event, values) => {
+        let temp = {...this.state.incidentUnit};
+        temp.info['showFontendRelatedList'] = values;
+        this.setState({
+            incidentUnit: temp
+        })
+    }
 
     /**
      * Handle IncidentUnit Edit confirm
@@ -468,6 +535,13 @@ class IncidentUnit extends Component {
         }
 
         tmpIncidentUnit.info.industryType = tmpIncidentUnit.info.industryType.toString()
+
+        if (tmpIncidentUnit.info.showFontendRelatedList) {
+            tmpIncidentUnit.info.relatedAccountList = _.map(tmpIncidentUnit.info.showFontendRelatedList, el => {
+                return {relatedAccountId: el.value}
+            })
+        }
+
 
         let apiType = 'POST';
         if (tmpIncidentUnit.info.id) {
@@ -483,7 +557,6 @@ class IncidentUnit extends Component {
             .then(data => {
                 tmpIncidentUnit.info.id = data.rt.id;
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
-                tmpIncidentUnit.info.isDefault = data.rt.isDefault;
 
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(tmpIncidentUnit)
@@ -517,14 +590,6 @@ class IncidentUnit extends Component {
         if (incidentUnit.info.industryType.toString() === ''){
             // helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
             helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
-        }
-
-
-        if (!incidentUnit.info.isDefault) {
-            incidentUnit.info.isDefault = false;
-            this.setState({
-                incidentUnit: incidentUnit
-            });
         }
 
         return true;
@@ -588,12 +653,6 @@ class IncidentUnit extends Component {
      * @param {object} allValue - IncidentDevice data
      */
     openDeleteMenu = (allValue) => {
-
-        if (allValue.isDefault){
-            helper.showPopupMsg('', t('txt-fail'), it('unit.txt-defaultDelete'));
-            return;
-        }
-
         PopupDialog.prompt({
             title: t('txt-delete'),
             id: 'modalWindowSmall',
@@ -696,7 +755,7 @@ class IncidentUnit extends Component {
      * @param {object} allValue - Edge data
      */
     toggleContent = (type, allValue) => {
-        const {originalIncidentDeviceData, incidentUnit} = this.state;
+        const {originalIncidentDeviceData, incidentUnit, accountListOptions} = this.state;
         let tempIncidentDevice = {...incidentUnit};
         let showPage = type;
 
@@ -708,9 +767,31 @@ class IncidentUnit extends Component {
                 level: allValue.level,
                 isUse: allValue.isUse,
                 industryType: allValue.industryType,
-                isDefault: allValue.isDefault,
-                abbreviation: allValue.abbreviation
+                abbreviation: allValue.abbreviation,
+                relatedAccountList: allValue.relatedAccountList
             };
+
+            if (tempIncidentDevice.info.relatedAccountList) {
+                tempIncidentDevice.info.accountList = _.map(tempIncidentDevice.info.relatedAccountList, el => {
+                    let obj = {
+                        value: el.relatedAccountId,
+                        text: el.relatedAccountId
+                    }
+                    return obj
+                })
+            }
+
+
+            let result = _.map(tempIncidentDevice.info.accountList, function (obj) {
+                return _.assign(obj, _.find(accountListOptions, {value: obj.value}));
+            });
+
+            tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function (p, o) {
+                return p.value === o.value
+            })
+            tempIncidentDevice.info.showFontendRelatedList = result
+
+
             this.setState({
                 showFilter: false,
                 // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
@@ -724,9 +805,30 @@ class IncidentUnit extends Component {
                 level: allValue.level,
                 isUse: allValue.isUse,
                 industryType: allValue.industryType,
-                isDefault: allValue.isDefault,
-                abbreviation: allValue.abbreviation
+                abbreviation: allValue.abbreviation,
+                relatedAccountList: allValue.relatedAccountList
             };
+
+            if (tempIncidentDevice.info.relatedAccountList) {
+                tempIncidentDevice.info.accountList = _.map(tempIncidentDevice.info.relatedAccountList, el => {
+                    let obj = {
+                        value: el.relatedAccountId,
+                        text: el.relatedAccountId
+                    }
+                    return obj
+                })
+            }
+
+            let result = _.map(tempIncidentDevice.info.accountList, function (obj) {
+                return _.assign(obj, _.find(accountListOptions, {value: obj.value}));
+            });
+
+            tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function (p, o) {
+                return p.value === o.value
+            })
+            tempIncidentDevice.info.showFontendRelatedList = result
+
+
             this.setState({
                 showFilter: false,
                 // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
@@ -776,21 +878,6 @@ class IncidentUnit extends Component {
     handleUnitInputSearchMui = (event) => {
         let tempUnitSearch = {...this.state.unitSearch};
         tempUnitSearch[event.target.name] = event.target.value.trim();
-
-        this.setState({
-            unitSearch: tempUnitSearch
-        });
-    };
-
-    /**
-     * Handle filter DropDown data change
-     * @method
-     * @param {string} type - input type
-     * @param {string} value - input value
-     */
-    handleUnitSearch = (type, value) => {
-        let tempUnitSearch = {...this.state.unitSearch};
-        tempUnitSearch[type] = value;
 
         this.setState({
             unitSearch: tempUnitSearch

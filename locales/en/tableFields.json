@@ -565,6 +565,7 @@
     "socType": "SOC Type",
     "status": "Status",
     "relatedList": "Related List",
+    "relatedAccountList": "Unit Related Account List",
     "rule": "Rule",
     "dateRange": "Time Range",
     "srcIp": "Source IP",

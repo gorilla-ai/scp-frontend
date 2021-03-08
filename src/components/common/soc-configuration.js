@@ -4,15 +4,14 @@ import cx from 'classnames'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
-import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import _ from "lodash";
+import constants from "../constant/constant-incidnet";
+import helper from "./helper";
+
 
 let t = null;
 let it = null;
-// const INIT = {
-//   openEdgeManagement: false,
-//   openTopology: false,
-//   openAccount: false
-// };
 
 /**
  * SOC-Configuration
@@ -26,13 +25,33 @@ class SocConfig extends Component {
 
         this.state = {
             showContent: true,
-            // ..._.cloneDeep(INIT)
+            accountRoleType:constants.soc.SOC_Analyzer,
         };
 
         t = global.chewbaccaI18n.getFixedT(null, 'connections');
         it = global.chewbaccaI18n.getFixedT(null, 'incident');
         this.ah = getInstance('chewbacca');
     }
+
+    componentDidMount() {
+        const {session} =  this.props;
+        let accountRoleType = constants.soc.SOC_Analyzer
+        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
+            if (_.includes(session.roles, 'SOC Executor')){
+                accountRoleType = constants.soc.SOC_Executor
+            }else{
+
+                accountRoleType = constants.soc.SOC_Super
+            }
+        } else  if (_.includes(session.roles, 'SOC Executor')){
+            accountRoleType = constants.soc.SOC_Executor
+        } else  if (_.includes(session.roles, 'SOC Analyzer')){
+            accountRoleType = constants.soc.SOC_Analyzer
+        }
+
+
+    }
+
 
     /**
      * Toggle the submenu on/off
@@ -73,14 +92,6 @@ class SocConfig extends Component {
         });
     };
 
-    downloadLogs = () => {
-        const {baseUrl, contextRoot} = this.props;
-        const url = `${baseUrl}${contextRoot}/api/common/logs/_export`;
-        const requestData = {};
-
-        downloadWithForm(url, {payload: JSON.stringify(requestData)});
-    };
-
     /**
      * Set the menu class name
      * @method
@@ -92,7 +103,7 @@ class SocConfig extends Component {
 
     render() {
         const {showContent} = this.state;
-
+        const {accountType} = this.props;
         return (
             <div className={cx('left-nav', {'collapse': !showContent})}>
 
@@ -108,11 +119,13 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
-                <div className='item frame incident-unit'>
-                    <Link to='/SCP/soc/incident-unit'>
-                        <span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit-management')}</span>
-                    </Link>
-                </div>
+                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                    <div className='item frame incident-unit'>
+                        <Link to='/SCP/soc/incident-unit'>
+                            <span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit-management')}</span>
+                        </Link>
+                    </div>
+                }
 
                 <div className='item frame incident-log'>
                     <Link to='/SCP/soc/incident-log'>
@@ -120,12 +133,14 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
-                <div className='item frame incident-ISAC'>
-                    <Link to='/SCP/soc/incident-ISAC'>
-                        <span className={`${this.getActiveFrame('incidentSettingISAC')}`}>{it('txt-incident-isac-management')}</span>
-                    </Link>
-                </div>
-
+                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                    <div className='item frame incident-ISAC'>
+                        <Link to='/SCP/soc/incident-ISAC'>
+                            <span
+                                className={`${this.getActiveFrame('incidentSettingISAC')}`}>{it('txt-incident-isac-management')}</span>
+                        </Link>
+                    </div>
+                }
                 <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})}
                      onClick={this.toggleLeftNav}>
                     <i className={this.getClassName()}/>
