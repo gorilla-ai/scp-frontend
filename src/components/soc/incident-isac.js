@@ -19,6 +19,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
 import SocConfig from "../common/soc-configuration";
 import Switch from "@material-ui/core/Switch";
+import constants from "../constant/constant-incidnet";
 
 let t = null;
 let it = null;
@@ -37,6 +38,7 @@ class IncidentIsac extends Component {
 		this.state = {
 			activeContent: 'viewMode', //viewMode, editMode
 			originalSetting: {},
+			accountType:constants.soc.LIMIT_ACCOUNT,
 			isacSettings: {
 				url: '',
 				account: '',
@@ -55,6 +57,7 @@ class IncidentIsac extends Component {
 		const {locale, sessionRights} = this.context;
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
+        this.checkAccountType();
 		this.getSettingInfo();
 	}
 
@@ -62,6 +65,40 @@ class IncidentIsac extends Component {
 		if (nextProps.location.state === 'viewMode') {
 			this.toggleContent('viewMode');
 		}
+	}
+
+	checkAccountType = () =>{
+		const {baseUrl, session} = this.context;
+		let requestData={
+			account:session.accountId
+		}
+		ah.one({
+			url: `${baseUrl}/api/soc/unit/limit/_check`,
+			data: JSON.stringify(requestData),
+			type: 'POST',
+			contentType: 'text/plain'
+		})
+			.then(data => {
+				if (data) {
+
+					if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+						this.setState({
+							accountType: constants.soc.LIMIT_ACCOUNT
+						})
+					}else  if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+						this.setState({
+							accountType: constants.soc.NONE_LIMIT_ACCOUNT
+						})
+					}else {
+						this.setState({
+							accountType: constants.soc.CHECK_ERROR
+						})
+					}
+				}
+			})
+			.catch(err => {
+				helper.showPopupMsg('', t('txt-error'), err.message)
+			});
 	}
 
 	/**
@@ -173,16 +210,14 @@ class IncidentIsac extends Component {
 	}
 
 	render() {
-		const {baseUrl, contextRoot} = this.context;
+		const {baseUrl, contextRoot, session} = this.context;
 		const {activeContent, isacSettings} = this.state;
-
-
 		return (
 			<div>
 				<div className='sub-header'/>
 
 				<div className='data-content'>
-					<SocConfig baseUrl={baseUrl} contextRoot={contextRoot} />
+					<SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
 
 					<div className='parent-content'>
 						<div className='main-content basic-form'>

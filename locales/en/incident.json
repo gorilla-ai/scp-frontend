@@ -172,7 +172,8 @@
 	"device": {
 		"txt-edgeDevice": "Available Edge Device",
 		"txt-name": "Device Name",
-		"txt-id": "Device ID",
+		"txt-id": "Device ID (Edge Device do not modify)",
+		"txt-id-limit": "Device ID",
 		"txt-company": "Device Company",
 		"txt-exists": "Device ID already exists"
 	},
