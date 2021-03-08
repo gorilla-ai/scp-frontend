@@ -1028,7 +1028,7 @@ class HMDscanInfo extends Component {
                     <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
                   }
                   {val._FileInfo._Filesize &&
-                    <li>{f('malwareFields._FileInfo._Filesize')}: {helper.numberWithCommas(val._FileInfo._Filesize) + 'KB'}</li>
+                    <li>{f('malwareFields._FileInfo._Filesize')}: {helper.numberWithCommas(val._FileInfo._Filesize) + 'Byte'}</li>
                   }
                   {val._FileInfo._HashValues._MD5 &&
                     <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
