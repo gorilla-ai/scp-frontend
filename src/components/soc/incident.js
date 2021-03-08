@@ -4,7 +4,6 @@ import cx from "classnames"
 import Moment from 'moment'
 import moment from 'moment'
 
-import ComboBox from 'react-ui/build/src/components/combobox'
 import FileInput from 'react-ui/build/src/components/file-input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -30,27 +29,13 @@ import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pick
 import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
 import Menu from "@material-ui/core/Menu";
-import Typography from "@material-ui/core/Typography";
+import constants from "../constant/constant-incidnet";
 
 let t = null;
 let f = null;
 let et = null;
 let it = null;
 let at = null;
-
-const INCIDENT_STATUS_ALL = 0
-const INCIDENT_STATUS_UNREVIEWED = 1
-const INCIDENT_STATUS_REVIEWED = 2
-const INCIDENT_STATUS_CLOSED = 3
-const INCIDENT_STATUS_SUBMITTED = 4
-const INCIDENT_STATUS_DELETED = 5
-const INCIDENT_STATUS_ANALYZED = 6
-const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
-const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
-
-const SOC_Analyzer = 1
-const SOC_Executor = 2
-const SOC_Super = 3
 
 class Incident extends Component {
     constructor(props) {
@@ -88,6 +73,7 @@ class Incident extends Component {
             showChart: true,
             currentIncident: {},
             originalIncident: {},
+            accountType:constants.soc.LIMIT_ACCOUNT,
             search: {
                 keyword: '',
                 category: 0,
@@ -124,8 +110,8 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-            accountRoleType:SOC_Analyzer,
-            loadListType:SOC_Analyzer,
+            accountRoleType:constants.soc.SOC_Analyzer,
+            loadListType:constants.soc.SOC_Analyzer,
             attach: null,
             contextAnchor: null,
             currentData: {},
@@ -149,20 +135,20 @@ class Incident extends Component {
             if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
                 if (_.includes(session.roles, 'SOC Executor')){
                     this.setState({
-                        accountRoleType:SOC_Executor
+                        accountRoleType:constants.soc.SOC_Executor
                     })
                 }else{
                     this.setState({
-                        accountRoleType:SOC_Super
+                        accountRoleType:constants.soc.SOC_Super
                     })
                 }
             } else  if (_.includes(session.roles, 'SOC Executor')){
                 this.setState({
-                    accountRoleType:SOC_Executor
+                    accountRoleType:constants.soc.SOC_Executor
                 })
             } else  if (_.includes(session.roles, 'SOC Analyzer')){
                 this.setState({
-                    accountRoleType:SOC_Analyzer
+                    accountRoleType:constants.soc.SOC_Analyzer
                 })
             }
         } else {
@@ -171,26 +157,26 @@ class Incident extends Component {
             if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
                 if (_.includes(session.roles, 'SOC Executor')){
                     this.setState({
-                        accountRoleType:SOC_Executor
+                        accountRoleType:constants.soc.SOC_Executor
                     },() => {
                         this.loadCondition('button','unhandled')
                     })
                 }else{
                     this.setState({
-                        accountRoleType:SOC_Super
+                        accountRoleType:constants.soc.SOC_Super
                     },() => {
                         this.loadCondition('button','unhandled')
                     })
                 }
             } else  if (_.includes(session.roles, 'SOC Executor')){
                 this.setState({
-                    accountRoleType:SOC_Executor
+                    accountRoleType:constants.soc.SOC_Executor
                 },() => {
                     this.loadCondition('button','unhandled')
                 })
             } else  if (_.includes(session.roles, 'SOC Analyzer')){
                 this.setState({
-                    accountRoleType:SOC_Analyzer
+                    accountRoleType:constants.soc.SOC_Analyzer
                 },() => {
                     this.loadCondition('button','unhandled')
                 })
@@ -202,9 +188,9 @@ class Incident extends Component {
                 // })
             }
         }
-
-        this.getOptions()
-        this.loadDashboard()
+        this.checkAccountType();
+        this.getOptions();
+        this.loadDashboard();
     }
 
     getQueryString(name) {
@@ -212,6 +198,40 @@ class Incident extends Component {
         let r = window.location.search.substr(1).match(reg);
         if (r != null) return unescape(r[2]);
         return null;
+    }
+
+    checkAccountType = () =>{
+        const {baseUrl, session} = this.context;
+        let requestData={
+            account:session.accountId
+        }
+        ah.one({
+            url: `${baseUrl}/api/soc/unit/limit/_check`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+            .then(data => {
+                if (data) {
+
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.LIMIT_ACCOUNT
+                        })
+                    }else  if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                        })
+                    }else {
+                        this.setState({
+                            accountType: constants.soc.CHECK_ERROR
+                        })
+                    }
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
     }
 
 
@@ -480,10 +500,10 @@ class Incident extends Component {
             this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
-            if (search.accountRoleType === SOC_Executor){
+            if (search.accountRoleType === constants.soc.SOC_Executor){
                 search.status = 2
                 search.subStatus = 6
-            }else if(search.accountRoleType === SOC_Super){
+            }else if(search.accountRoleType === constants.soc.SOC_Super){
                 search.status = 7
             }else{
                 search.status = 1
@@ -535,8 +555,8 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData} = this.state
-
+        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType} = this.state
+        const {session} = this.context
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
             {this.state.loadListType === 0 && (
@@ -561,10 +581,10 @@ class Incident extends Component {
                 onClose={this.handleCloseMenu}>
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
                 <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
-                {currentData.status === INCIDENT_STATUS_CLOSED &&
+                {currentData.status === constants.soc.INCIDENT_STATUS_CLOSED &&
                     <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
-                {currentData.status === INCIDENT_STATUS_SUBMITTED &&
+                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED &&
                 <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
             </Menu>
@@ -575,15 +595,17 @@ class Incident extends Component {
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     <button className={cx('', {'active': showChart})} onClick={this.toggleChart}
                             title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
-                    <button className='' onClick={this.openIncidentTag.bind(this, null)}
-                            title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+                        <button className='' onClick={this.openIncidentTag.bind(this, null)}
+                                title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
+                    }
                     <button className='' onClick={this.openIncidentComment.bind(this)}
                             title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
                 </div>
             </div>
 
             <div className='data-content'>
-                <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} />
+                <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
 
                 <div className='parent-content'>
                     {this.renderStatistics()}
@@ -646,64 +668,64 @@ class Incident extends Component {
         let closeCheck = false
 
 
-        if (incident.info.status === INCIDENT_STATUS_UNREVIEWED) {
+        if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
             // 待送審
-            if (this.state.accountRoleType === SOC_Executor) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
 
-            }else if (this.state.accountRoleType === SOC_Super){
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
 
             }else {
                 editCheck = true
                 submitCheck = true
             }
-        } else if (incident.info.status === INCIDENT_STATUS_REVIEWED) {
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
             // 待審核
             if (session.accountId === incident.info.creator) {
                 drawCheck = true
             }
 
-            if (this.state.accountRoleType === SOC_Executor) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
                 editCheck = true
                 returnCheck = true
                 auditCheck = true
                 closeCheck = true
-            }else if (this.state.accountRoleType === SOC_Super){
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
 
             }else {
                 // editCheck = true
             }
-        } else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
             // 結案(未發布)
             if (session.accountId === incident.info.creator) {
             }
 
-            if (this.state.accountRoleType === SOC_Super) {
+            if (this.state.accountRoleType === constants.soc.SOC_Super) {
                 publishCheck = true
             }
-        } else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
-            if (this.state.accountRoleType === SOC_Executor) {
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
                 editCheck = true
-            }else if (this.state.accountRoleType === SOC_Super){
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
                 returnCheck = true
                 editCheck = true
                 auditCheck = true
             }else {
                 // editCheck = true
             }
-        } else if (incident.info.status === INCIDENT_STATUS_DELETED) {
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
 
-        } else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
-            if (this.state.accountRoleType === SOC_Executor) {
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_ANALYZED) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
                 editCheck = true
                 transferCheck = true
-            }else if (this.state.accountRoleType === SOC_Super){
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
                 editCheck = true
                 transferCheck = true
             }
-        } else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
-            if (this.state.accountRoleType === SOC_Executor) {
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
                 editCheck = true
-            }else if (this.state.accountRoleType === SOC_Super){
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
                 editCheck = true
                 returnCheck = true
                 signCheck = true
@@ -713,10 +735,10 @@ class Incident extends Component {
                 }
                 // editCheck = true
             }
-        }else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_CLOSE) {
-            if (this.state.accountRoleType === SOC_Executor) {
+        }else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
                 transferCheck = true
-            }else if (this.state.accountRoleType === SOC_Super){
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
 
             }else {
 
@@ -1486,9 +1508,9 @@ class Incident extends Component {
         if (activeContent === 'addIncident') {
 
             if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                incident.info.status =  INCIDENT_STATUS_ANALYZED ;
+                incident.info.status =  constants.soc.INCIDENT_STATUS_ANALYZED ;
             }else{
-                incident.info.status =  INCIDENT_STATUS_UNREVIEWED ;
+                incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED ;
             }
         }
 
@@ -3069,11 +3091,11 @@ class Incident extends Component {
             payload.isExpired = 1
         }
         else if (loadListType === 1) {
-            if (payload.accountRoleType === SOC_Executor) {
+            if (payload.accountRoleType === constants.soc.SOC_Executor) {
                 payload.status = 2
                 payload.subStatus = 6
             }
-            else if (payload.accountRoleType === SOC_Super) {
+            else if (payload.accountRoleType === constants.soc.SOC_Super) {
                 payload.status = 7
             }
             else {

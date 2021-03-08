@@ -564,6 +564,7 @@
     "socType": "回報類型",
     "status": "狀態",
     "relatedList": "關聯事件單",
+    "relatedAccountList": "關聯機關帳號",
     "rule": "觸發規則",
     "dateRange": "起訖時間",
     "srcIp": "來源IP",

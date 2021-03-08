@@ -26,8 +26,10 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined';
-import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
-import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
+
+import WorkIcon from '@material-ui/icons/Work';
+import WorkOffIcon from '@material-ui/icons/WorkOff';
+
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import IncidentEventMake from "../soc/common/incident-event-make";
 import Moment from "moment";
@@ -2890,12 +2892,12 @@ class ThreatsController extends Component {
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
             <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')}
                     disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
-                    onClick={this.handleSelectMenu.bind(this,'select')}><ShoppingCartIcon/></Button>
+                    onClick={this.handleSelectMenu.bind(this,'select')}><WorkIcon/></Button>
             }
             {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
             <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')}
                     disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
-                    onClick={this.handleSelectMenu.bind(this,'list')}><RemoveShoppingCartIcon/></Button>
+                    onClick={this.handleSelectMenu.bind(this,'list')}><WorkOffIcon/></Button>
             }
             {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
             <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')}
