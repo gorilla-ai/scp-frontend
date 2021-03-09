@@ -2589,7 +2589,7 @@ class Incident extends Component {
     }
 
     getOptions = () => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, contextRoot, session} = this.context;
 
         ah.one({
             url: `${baseUrl}/api/soc/_search`,
@@ -2628,7 +2628,7 @@ class Incident extends Component {
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
-            data: JSON.stringify({}),
+            data: JSON.stringify({account:session.accountId}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
