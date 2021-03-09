@@ -725,7 +725,7 @@ class HMDscanInfo extends Component {
       value = info._ProcessInfo._ExecutableInfo._FileInfo[val];
 
       if (val === '_Filesize') {
-        value = value.toString();
+        value = helper.numberWithCommas(helper.formatBytes(value));
       }
     }
 
@@ -738,10 +738,21 @@ class HMDscanInfo extends Component {
     }
 
     if (val === '_Signatures') { //Signature is an array type
-      value = info._ProcessInfo._ExecutableInfo[val].toString();
+      let signatureList = '';
+      value = '';
+
+      if (info._ProcessInfo && info._ProcessInfo._ExecutableInfo[val].length > 0) {
+        _.forEach(info._ProcessInfo._ExecutableInfo[val], val => {
+          signatureList = <ul className='signature-list padding'><li><span className='blue-color'>{t('network-inventory.signature._CertificateType')}</span>: {val._CertificateType}</li><li><span className='blue-color'>{t('network-inventory.signature._IssuerName')}</span>: {val._IssuerName}</li><li><span className='blue-color'>{t('network-inventory.signature._SerialNumber')}</span>: {val._SerialNumber}</li><li><span className='blue-color'>{t('network-inventory.signature._SubjectName')}</span>: {val._SubjectName}</li></ul>;
+        })
+      }
+
+      if (signatureList) {
+        value = <ul className='signature-list'>{signatureList}</ul>;
+      }
     }
 
-    return <li key={val + i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
+    return <li key={val + i}><span className='blue-color'>{t('network-inventory.executable-list.txt-' + val)}</span>: {value || NOT_AVAILABLE}</li>
   }
   /**
    * Display Executable Info for Process Monitor
@@ -1025,26 +1036,26 @@ class HMDscanInfo extends Component {
               <div className='header'>
                 <ul>
                   {val._FileInfo._Filepath &&
-                    <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
+                    <li><span className='blue-color'>{f('malwareFields._FileInfo._Filepath')}</span>: {val._FileInfo._Filepath}</li>
                   }
                   {val._FileInfo._Filesize &&
-                    <li>{f('malwareFields._FileInfo._Filesize')}: {helper.numberWithCommas(val._FileInfo._Filesize) + 'KB'}</li>
+                    <li><span className='blue-color'>{f('malwareFields._FileInfo._Filesize')}</span>: {helper.numberWithCommas(helper.formatBytes(val._FileInfo._Filesize))}</li>
                   }
                   {val._FileInfo._HashValues._MD5 &&
-                    <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
+                    <li><span className='blue-color'>{f('malwareFields._FileInfo._HashValues._MD5')}</span>: {val._FileInfo._HashValues._MD5}</li>
                   }
-                  <li>{f('malwareFields.detectedCount')}: {helper.numberWithCommas(detectedCount)} (<a href={virusTotalLink} target='_blank'>VirusTotal</a>)</li>
+                  <li><span className='blue-color'>{f('malwareFields.detectedCount')}</span>: {helper.numberWithCommas(detectedCount)} (<a href={virusTotalLink} target='_blank'>VirusTotal</a>)</li>
                   {val._IsPE &&
-                    <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
+                    <li><span className='blue-color'>{f('malwareFields._IsPE')}</span>: {this.getBoolValue(val._IsPE)}</li>
                   }
                   {val._IsPEextension &&
-                    <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
+                    <li><span className='blue-color'>{f('malwareFields._IsPEextension')}</span>: {this.getBoolValue(val._IsPEextension)}</li>
                   }
                   {val._IsVerifyTrust &&
-                    <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
+                    <li><span className='blue-color'>{f('malwareFields._IsVerifyTrust')}</span>: {this.getBoolValue(val._IsVerifyTrust)}</li>
                   }
                   {val.hostIdArrCnt &&
-                    <li>{f('malwareFields.hostIdArrCnt')}: {helper.numberWithCommas(val.hostIdArrCnt)}</li>
+                    <li><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: {helper.numberWithCommas(val.hostIdArrCnt)}</li>
                   }
                 </ul>
               </div>

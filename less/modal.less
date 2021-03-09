@@ -740,9 +740,15 @@ html[data-theme='dark'] {
                     display: inline-block;
                     cursor: pointer;
                   }
+                  ul {
+                    color: var(--primaryTextColor);
+                  }
                   li span {
                     padding-left: 0;
                     cursor: default;
+                    &.blue-color {
+                      color: var(--primaryContentHeader);
+                    }
                   }
                   li a {
                     font-weight: bold;
@@ -770,13 +776,20 @@ html[data-theme='dark'] {
                   ul {
                     width: 20%;
                     padding: 10px;
-                    li span {
+                    li span.blue-color {
                       color: var(--primaryContentHeader);
                     }
                     &.no-padding {
                       width: 100%;
                       padding: 0;
-                    } 
+                    }
+                    &.signature-list {
+                      width: 100%;
+                      padding: 0 10px;
+                      &.padding {
+                        margin-bottom: 5px;
+                      }
+                    }
                   }
                 }
                 i.fg {
