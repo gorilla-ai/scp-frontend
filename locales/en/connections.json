@@ -658,6 +658,12 @@
       "txt-_IsPE": "PE File",
       "txt-_OwnerSID": "User SID",
       "txt-_Signatures": "Signature"
+    },
+    "signature": {
+      "certificateType:": "Certificate Type",
+      "issuerName": "Issuer Name",
+      "serialNumber": "Serial Number",
+      "subjectName": "Subject Name"
     }
   },
 

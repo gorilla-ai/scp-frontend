@@ -738,7 +738,15 @@ class HMDscanInfo extends Component {
     }
 
     if (val === '_Signatures') { //Signature is an array type
-      value = info._ProcessInfo._ExecutableInfo[val].toString();
+      let signatureList = NOT_AVAILABLE;
+
+      if (info._ProcessInfo && info._ProcessInfo._ExecutableInfo[val].length > 0) {
+        _.forEach(info._ProcessInfo._ExecutableInfo[val], (val, i) => {
+          signatureList = <ul className='signature-list padding'><li><span className='blue-color'>{t('network-inventory.signature.certificateType')}</span>: {val._CertificateType}</li><li><span className='blue-color'>{t('network-inventory.signature.issuerName')}</span>: {val._IssuerName}</li><li><span className='blue-color'>{t('network-inventory.signature.serialNumber')}</span>: {val._SerialNumber}</li><li><span className='blue-color'>{t('network-inventory.signature.subjectName')}</span>: {val._SubjectName}</li></ul>;
+        })
+      }
+
+      value = <ul className='signature-list'>{signatureList}</ul>;
     }
 
     return <li key={val + i}><span className='blue-color'>{t('network-inventory.executable-list.txt-' + val)}</span>: {value || NOT_AVAILABLE}</li>
