@@ -3422,7 +3422,7 @@ class NetworkInventory extends Component {
                   required
                   error={!formValidation.ip.valid}
                   helperText={formValidation.ip.msg}
-                  value={addIP.ip}
+                  value={addIP.ip || ''}
                   onChange={this.handleAddIpChange}
                   disabled={formTypeEdit} />
               </div>
@@ -3437,7 +3437,7 @@ class NetworkInventory extends Component {
                   required={this.checkMacRequired()}
                   error={!formValidation.mac.valid}
                   helperText={formValidation.mac.msg}
-                  value={addIP.mac}
+                  value={addIP.mac || ''}
                   onChange={this.handleAddIpChange} />
               </div>
             </div>

@@ -660,10 +660,10 @@
       "txt-_Signatures": "Signature"
     },
     "signature": {
-      "certificateType:": "Certificate Type",
-      "issuerName": "Issuer Name",
-      "serialNumber": "Serial Number",
-      "subjectName": "Subject Name"
+      "_CertificateType": "Certificate Type",
+      "_IssuerName": "Issuer Name",
+      "_SerialNumber": "Serial Number",
+      "_SubjectName": "Subject Name"
     }
   },
 

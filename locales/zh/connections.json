@@ -660,10 +660,10 @@
       "txt-_Signatures": "簽章"      
     },
     "signature": {
-      "certificateType:": "憑證類型",
-      "issuerName": "簽發者",
-      "serialNumber": "序列號",
-      "subjectName": "簽署人"
+      "_CertificateType": "憑證類型",
+      "_IssuerName": "簽發者",
+      "_SerialNumber": "序列號",
+      "_SubjectName": "簽署人"
     }
   },
 
