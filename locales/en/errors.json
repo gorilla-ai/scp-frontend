@@ -44,6 +44,7 @@
   "13008":"Group does not have this role",
   "13009":"Owner does not exist",
   "22101":"Current username is incorrect",
+  "22102":"Account ID is duplicated",
 
   "1001":"Access not allowed",
   "1101":"請輸入欄位: {{field}}",

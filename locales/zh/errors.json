@@ -43,6 +43,7 @@
   "13008":"Group does not have this role",
   "13009":"Owner does not exist",
   "22101":"舊密碼輸入錯誤",
+  "22102":"帳號已重複",
 
   "1001":"無權限存取",
   "1101":"請輸入欄位: {{field}}",

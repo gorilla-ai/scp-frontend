@@ -1388,41 +1388,50 @@ class AlertDetails extends Component {
    */
   displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
-    let locationEmpty = true;
 
-    _.forEach(alertInfo[ipType].location, val => {
-      if (val) {
-        locationEmpty = false;
-        return false;
+    if (alertInfo[ipType].locationType === 1) { //Public
+      let locationEmpty = true;
+
+      _.forEach(alertInfo[ipType].location, val => { //Check if location data is available
+        if (val) {
+          locationEmpty = false;
+          return false;
+        }
+      })
+
+      if (locationEmpty) {
+        return <span>{NOT_AVAILABLE}</span>;
       }
-    })
 
-    if (_.isEmpty(alertInfo[ipType].topology) && locationEmpty) {
-      return <span>{NOT_AVAILABLE}</span>;
-    } else if (alertInfo[ipType].topology && alertInfo[ipType].topology.ownerUUID === '' && locationEmpty) {
-      return <span>{NOT_AVAILABLE}</span>;
-    } else {
       return (
         <div>
-          {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
+          {ipType === 'srcIp' &&
             <div className='privateIp-info srcIp-content'>
               {this.getPublicIPcontent(ipType)}
             </div>
           }
 
-          {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
+          {ipType === 'destIp' &&
+            <div className='privateIp-info destIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            </div>
+          }
+        </div>
+      )
+    } else if (alertInfo[ipType].locationType === 2) { //Private
+      if (_.isEmpty(alertInfo[ipType].topology)) {
+        return <span>{NOT_AVAILABLE}</span>;
+      }
+
+      return (
+        <div>
+          {ipType === 'srcIp' &&
             <div className='privateIp-info srcIp-content'>
               {this.getPrivateInfo(ipType)}
             </div>
           }
 
-          {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
-            <div className='privateIp-info destIp-content'>
-              {this.getPublicIPcontent(ipType)}
-            </div>
-          }
-
-          {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
+          {ipType === 'destIp' &&
             <div className='privateIp-info destIp-content'>
               {this.getPrivateInfo(ipType)}
             </div>
