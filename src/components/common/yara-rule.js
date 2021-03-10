@@ -1,9 +1,8 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
+import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -33,7 +32,7 @@ class YaraRule extends Component {
           path: ''
         }]
       },
-      scanType: 'process', //'process' or 'filePath'
+      filePathChecked: false,
       info: ''
     };
 
@@ -54,26 +53,19 @@ class YaraRule extends Component {
     });
   }
   /**
-   * Handle scan type data change
+   * Handle checkbox check/uncheck
    * @method
    * @param {object} event - event object
    */
-  handleScanTypeChange = (event) => {
-    const value = event.target.value;
+  toggleCheckbox = (event) => {
     let tempYaraRule = {...this.state.yaraRule};
-
-    if (value === 'process') {
-      tempYaraRule.pathData = [{
-        path: ''
-      }];
-
-      this.setState({
-        yaraRule: tempYaraRule
-      });
-    }
+    tempYaraRule.pathData = [{
+      path: ''
+    }];
 
     this.setState({
-      scanType: value,
+      yaraRule: tempYaraRule,
+      filePathChecked: event.target.checked,
       info: ''
     });
   }
@@ -82,11 +74,18 @@ class YaraRule extends Component {
    * @method
    */
   validateInputData = () => {
-    const {yaraRule, scanType} = this.state;
+    const {yaraRule, filePathChecked} = this.state;
+    let errorMsg = '';
 
-    if (!yaraRule.rule || (scanType === 'filePath' && yaraRule.pathData.length === 0)) {
+    if (!yaraRule.rule) {
+      errorMsg = t('txt-checkRequiredFieldType');
+    } else if (filePathChecked && yaraRule.pathData[0].path === '') {
+      errorMsg = t('network-inventory.txt-includePathEmpty');
+    }
+
+    if (errorMsg) {
       this.setState({
-        info: t('network-inventory.txt-includePathEmpty')
+        info: errorMsg
       });
       return;
     }
@@ -112,7 +111,7 @@ class YaraRule extends Component {
    * @returns HTML DOM
    */
   displayYaraRule = () => {
-    const {yaraRule, scanType} = this.state;
+    const {yaraRule, filePathChecked} = this.state;
 
     return (
       <div className='form-group normal'>
@@ -129,31 +128,30 @@ class YaraRule extends Component {
             value={yaraRule.rule}
             onChange={this.handleDataChange} />
         </div>
-        <div className='group'>
-          <RadioGroup
-            id='yaraScanType'
-            className='radio-group'
-            value={scanType}
-            onChange={this.handleScanTypeChange}>
-            <FormControlLabel
-              value='process'
-              control={
-                <Radio
-                  className='radio-ui'
-                  color='primary' />
-              }
-              label={t('network-inventory.txt-scanProcess')} />
-            <FormControlLabel
-              value='filePath'
-              control={
-                <Radio
-                  className='radio-ui'
-                  color='primary' />
-              }
-              label={t('network-inventory.txt-scanFilePath')} />
-          </RadioGroup>
+        <div className='group checkbox'>
+          <FormControlLabel
+            label={t('network-inventory.txt-scanProcess')}
+            control={
+              <Checkbox
+                id='yaraScanType'
+                className='checkbox-ui'
+                checked={true}
+                color='primary'
+                disabled  />
+            } />
+          <FormControlLabel
+            label={t('network-inventory.txt-scanFilePath')}
+            control={
+              <Checkbox
+                id='filePath'
+                className='checkbox-ui'
+                name='filePath'
+                checked={filePathChecked}
+                onChange={this.toggleCheckbox}
+                color='primary' />
+            } />
         </div>
-        {scanType === 'filePath' &&
+        {filePathChecked &&
           <div className='group'>
             <label>{t('network-inventory.txt-includePath')}</label>
             <MultiInput
