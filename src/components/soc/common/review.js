@@ -88,6 +88,25 @@ class IncidentReview extends Component {
 			}
 		})
 	}
+	handleChangeMuiComment(event){
+		console.log("event.target.name == " , event.target.name)
+		console.log("event.target.value == " , event.target.value)
+
+		// this.setState({[event.target.name]: event.target.value}, () => {
+		// 	if (event.target.name === 'selected') {
+		// 		if (event.target.value === 'none') {
+		// 			this.setState({comment: ''})
+		// 		}
+		// 		else {
+		// 			const {comments} = this.state
+		// 			const target = _.find(comments, {id: event.target.value})
+		//
+		// 			this.setState({comment: target.command})
+		// 		}
+		// 	}
+		// })
+	}
+
     confirm() {
     	const {baseUrl, session} = this.context
     	const {incidentId, comment, reviewType} = this.state
@@ -165,8 +184,8 @@ class IncidentReview extends Component {
     			</div>
     			<div>
     				<label>{it('txt-comment')}</label>
-						{/*<Textarea rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />*/}
-				    <TextareaAutosize  id='reviewCommentInput'  className='textarea-autosize' name='comment' value={comment} rows={6} required onChange={this.handleChangeMui.bind(this)} />
+						<Textarea className='textarea-autosize' rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />
+				    {/*<TextareaAutosize  id='reviewCommentInput'  className='textarea-autosize' name='comment' value={comment} rows={6} required onChange={this.handleChangeMuiComment} />*/}
     			</div>
     		</div>
     	</ModalDialog>
