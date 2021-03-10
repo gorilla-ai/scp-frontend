@@ -263,12 +263,17 @@ class SyslogController extends Component {
   initialLoad = () => {
     const syslogParams = queryString.parse(location.search);
 
-    if (syslogParams.configId) {
+    if (syslogParams.configSource && syslogParams.loghostIp) {
       this.setState({
-        filterData: [{
-          condition: 'must',
-          query: syslogParams.configId
-        }],
+        filterData: [
+          {
+            condition: 'must',
+            query: 'configSource: ' + syslogParams.configSource
+          }, {
+            condition: 'must',
+            query: 'LoghostIp: ' + syslogParams.loghostIp
+          }
+        ],
         showFilter: true,
         showMark: true
       });

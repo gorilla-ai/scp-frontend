@@ -658,6 +658,12 @@
       "txt-_IsPE": "PE檔",
       "txt-_OwnerSID": "使用者SID",
       "txt-_Signatures": "簽章"      
+    },
+    "signature": {
+      "_CertificateType": "憑證類型",
+      "_IssuerName": "簽發者",
+      "_SerialNumber": "序列號",
+      "_SubjectName": "簽署人"
     }
   },
 

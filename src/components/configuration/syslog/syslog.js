@@ -629,7 +629,7 @@ class Syslog extends Component {
    */
   forwardSyslog = (allValue) => {
     const {baseUrl, contextRoot, language} = this.context;
-    const url = `${baseUrl}${contextRoot}/events/syslog?configId=${allValue.id}&lng=${language}`;
+    const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${allValue.name}&loghostIp=${allValue.loghostIp}&lng=${language}`;
     window.open(url, '_blank');
   }
   /**
