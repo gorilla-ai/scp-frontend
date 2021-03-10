@@ -165,8 +165,8 @@ class IncidentReview extends Component {
     			</div>
     			<div>
     				<label>{it('txt-comment')}</label>
-    				{/*<Textarea rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />*/}
-				    <TextareaAutosize  id='reviewCommentInput'  className='textarea-autosize' name='comment' value={comment} rows={6} required onChange={this.handleChangeMui} />
+				    <Textarea className='textarea-autosize' rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />
+				    {/*<TextareaAutosize  id='reviewCommentInput'  className='textarea-autosize' name='comment' value={comment} rows={6} required onChange={this.handleChangeMui} />*/}
     			</div>
     		</div>
     	</ModalDialog>
