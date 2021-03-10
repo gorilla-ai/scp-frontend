@@ -30,8 +30,8 @@ class MarkContent extends Component {
           inline={true}
           {...this.props} />
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'mark')}>{t('events.connections.txt-mark')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'mark')}>{t('events.connections.txt-clear')}</Button>
+          <Button id='confirmQueryBtn' variant='contained' color='primary' className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'mark')}>{t('events.connections.txt-mark')}</Button>
+          <Button id='clearQueryBtn' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'mark')}>{t('events.connections.txt-clear')}</Button>
         </div>
       </div>
     )

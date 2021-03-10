@@ -492,7 +492,6 @@ class ThreatsController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-
   loadTrackData = () => {
     const {baseUrl} = this.context;
     const {account, trackData,activeTab} = this.state;
@@ -524,13 +523,13 @@ class ThreatsController extends Component {
 
                     if (val === 'select') {
                       return (
-                          <Checkbox
-                              id={allValue.id}
-                              className='checkbox-ui'
-                              name='select'
-                              checked={allValue.select}
-                              onChange={this.handleCancelSelectDataChangeMui.bind(this, allValue)}
-                              color='primary'/>
+                        <Checkbox
+                          id={allValue.id}
+                          className='checkbox-ui'
+                          name='select'
+                          checked={allValue.select}
+                          onChange={this.handleCancelSelectDataChangeMui.bind(this, allValue)}
+                          color='primary'/>
                       )
                     }
 
@@ -543,13 +542,13 @@ class ThreatsController extends Component {
                       }
                       return (
                           <TableCell
-                              activeTab={activeTab}
-                              fieldValue={value}
-                              fieldName={val}
-                              allValue={allValue}
-                              alertLevelColors={ALERT_LEVEL_COLORS}
-                              handleOpenQueryMenu={this.handleOpenQueryMenu}
-                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                            activeTab={activeTab}
+                            fieldValue={value}
+                            fieldName={val}
+                            allValue={allValue}
+                            alertLevelColors={ALERT_LEVEL_COLORS}
+                            handleOpenQueryMenu={this.handleOpenQueryMenu}
+                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
                       )
                     }
                   }
@@ -568,7 +567,6 @@ class ThreatsController extends Component {
           helper.showPopupMsg('', t('txt-error'), err.message);
         })
   }
-
   /**
    * Set interval for chart buttons
    * @method
@@ -581,19 +579,17 @@ class ThreatsController extends Component {
       chartIntervalValue: chartData.chartIntervalValue
     });
   }
-
-  allSelectedClick = () =>{
+  allSelectedClick = () => {
     const {allSelectTrack} = this.state;
 
     return <Checkbox
-        id='allSelectedClickCheckbox'
-        className='checkbox-ui'
-        name={allSelectTrack}
-        checked={allSelectTrack}
-        onChange={this.handleAllCancelSelectDataChangeMui}
-        color='primary'/>
+      id='allSelectedClickCheckbox'
+      className='checkbox-ui'
+      name={allSelectTrack}
+      checked={allSelectTrack}
+      onChange={this.handleAllCancelSelectDataChangeMui}
+      color='primary'/>
   }
-
   handleCancelSelectDataChangeMui = (allValue, event) => {
     const {trackData, cancelThreatsList,} = this.state;
     _.forEach(trackData.dataContent, data => {
@@ -614,9 +610,8 @@ class ThreatsController extends Component {
       trackData: trackData,
       cancelThreatsList:cancelThreatsList
     })
-  };
-
-  handleCancelSelectMapping = (rowSelectIndexList) =>{
+  }
+  handleCancelSelectMapping = (rowSelectIndexList) => {
     const {trackData, cancelThreatsList,} = this.state;
     let tempList  = [];
     _.forEach(rowSelectIndexList, rowIndex => {
@@ -638,9 +633,7 @@ class ThreatsController extends Component {
       // trackData: trackData,
       cancelThreatsList:tempList
     })
-
-}
-
+  }
   handleAllCancelSelectDataChangeMui = (event) => {
     let checked =  event.target.checked
 
@@ -648,7 +641,7 @@ class ThreatsController extends Component {
     let tmpCancelThreatsList =[];
     this.setState({
       allSelectTrack:checked
-    },()=>{
+    },() => {
       _.forEach(trackData.dataContent, data => {
         if (checked){
           if (!data.select){
@@ -667,7 +660,6 @@ class ThreatsController extends Component {
 
     })
   };
-
   handleSelectDataChangeMui = (allValue, event) => {
     const {threatsData, threatsList,} = this.state;
     _.forEach(threatsData.dataContent, data => {
@@ -691,8 +683,7 @@ class ThreatsController extends Component {
     })
 
   };
-
-  overrideAlertTrack = (trackList) =>{
+  overrideAlertTrack = (trackList) => {
     const {
       account,
       trackData,
@@ -709,17 +700,16 @@ class ThreatsController extends Component {
       type: 'POST',
       contentType: 'text/plain'
     }, {showProgress: false})
-        .then(data => {
-          if (data) {
-            helper.showPopupMsg('', t('txt-success'),  t('alert.txt-alertTrackOverrideSuccess'));
-          }
-        })
-        .catch(err => {
-          helper.showPopupMsg('', t('txt-error'), err.message);
-        })
+      .then(data => {
+        if (data) {
+          helper.showPopupMsg('', t('txt-success'),  t('alert.txt-alertTrackOverrideSuccess'));
+        }
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
 
   }
-
   showAddTrackDialog = () => {
     PopupDialog.prompt({
       title: t('txt-help'),
@@ -727,9 +717,9 @@ class ThreatsController extends Component {
       confirmText: t('txt-ok'),
       cancelText: t('txt-cancel'),
       display: (
-          <div className='content'>
-            <span>{it('txt-trackedIncidents-msg')}?</span>
-          </div>
+        <div className='content'>
+          <span>{it('txt-trackedIncidents-msg')}?</span>
+        </div>
       ),
       act: (confirmed) => {
         if (confirmed) {
@@ -760,7 +750,6 @@ class ThreatsController extends Component {
       }
     });
   }
-
   showDeleteTrackDialog = () => {
     PopupDialog.prompt({
       title: t('txt-help'),
@@ -799,7 +788,6 @@ class ThreatsController extends Component {
       }
     });
   }
-
   handleSelectMenu = (option) => {
     this.setState({
       showFilter: false,
@@ -808,8 +796,7 @@ class ThreatsController extends Component {
      this.handleSearchSubmit()
     })
   };
-
-  setupIncidentDialog = (makeType) =>{
+  setupIncidentDialog = (makeType) => {
     const {baseUrl} = this.context;
     this.handleCloseIncidentMenu();
 
@@ -818,9 +805,10 @@ class ThreatsController extends Component {
       cancelThreatsList,
     } = this.state;
     let selectRows = []
-    if (makeType === 'select'){
+
+    if (makeType === 'select') {
       selectRows = cancelThreatsList
-    }else if (makeType === 'all'){
+    } else if (makeType === 'all') {
       selectRows = originalThreatsList
     }
 
@@ -834,11 +822,10 @@ class ThreatsController extends Component {
     if (!tempIncident.info.socType) {
       tempIncident.info.socType = 1
     }
-    //
-    // // make incident.info
 
+    //make incident.info
     let eventList = [];
-    _.forEach(selectRows , eventItem =>{
+    _.forEach(selectRows , eventItem => {
       let eventNetworkList = [];
       let eventNetworkItem = {
         srcIp: eventItem.ipSrc || eventItem.srcIp,
@@ -885,11 +872,8 @@ class ThreatsController extends Component {
       makeIncidentOpen: true,
       incident:tempIncident
     });
-
   }
-
-
-  closeAddIncidentDialog = () =>{
+  closeAddIncidentDialog = () => {
     this.setState({
       makeIncidentOpen: false,
       incident:{
@@ -901,9 +885,7 @@ class ThreatsController extends Component {
       }
     });
   }
-
   checkRequired(incident) {
-
     if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
       PopupDialog.alert({
         title: t('txt-tips'),
@@ -924,7 +906,6 @@ class ThreatsController extends Component {
 
       return false
     } else {
-
       let eventCheck = true;
       _.forEach(incident.eventList, event => {
         _.forEach(event.eventConnectionList, eventConnect => {
@@ -995,7 +976,6 @@ class ThreatsController extends Component {
     }
     return true
   }
-
   handleSubmit = () => {
     const {session, baseUrl} = this.context;
     let incident = {...this.state.incident};
@@ -1026,7 +1006,6 @@ class ThreatsController extends Component {
       incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     }
 
-
     if (!incident.info.creator) {
       incident.info.creator = session.accountId;
     }
@@ -1047,32 +1026,32 @@ class ThreatsController extends Component {
       contentType: 'application/json',
       dataType: 'json'
     }).then(data => {
-
-      if (data.status){
-        // helper.showPopupMsg('', t('txt-success'), it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+data.rt.id)
+      if (data.status) {
         if (incident.info.attach) {
           this.uploadAttachment(data.rt.id);
-        }else{
+        } else {
           this.closeAddIncidentDialog()
         }
+
         PopupDialog.prompt({
           title: t('alert.txt-deleteSelectTrackList'),
           id: 'modalWindowSmall',
           confirmText: t('txt-delete'),
           cancelText: t('txt-cancel'),
-          display: <div className='content'>
-            <span>{it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+data.rt.id + ' ' +t('alert.txt-deleteSelectTrackListMsg')}?</span>
-          </div>,
+          display: (
+            <div className='content'>
+              <span>{it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+ data.rt.id + ' ' + t('alert.txt-deleteSelectTrackListMsg')}?</span>
+            </div>
+          ),
           act: (confirmed) => {
-
             if (confirmed) {
-              console.log("into conformed")
               const {
                 trackData,
                 cancelThreatsList
               } = this.state;
               let emptyList = [];
-              if(selectType === 'select'){
+
+              if (selectType === 'select') {
                 _.forEach(cancelThreatsList, data => {
                   data.select = false;
                 })
@@ -1088,8 +1067,7 @@ class ThreatsController extends Component {
                 }, () => {
                   this.loadTrackData()
                 })
-
-              }else{
+              } else {
                 this.overrideAlertTrack(emptyList)
                 let tmpTrackData = trackData;
                 tmpTrackData.dataContent = emptyList
@@ -1101,21 +1079,16 @@ class ThreatsController extends Component {
                 })
               }
             }
-
-
           }
         });
-
-      }else{
+      } else {
         helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:'+data.rt.id)
       }
-
       return null;
     }).catch(err => {
-          helper.showPopupMsg('', t('txt-error'), err.message)
+        helper.showPopupMsg('', t('txt-error'), err.message)
     });
-  };
-
+  }
   /**
    * Display add seat modal dialog
    * @method
@@ -1123,7 +1096,7 @@ class ThreatsController extends Component {
    */
   handleMakeIncidentDialog = () => {
     const {
-        selectData,
+      selectData,
       incident
     } = this.state;
     const actions = {
@@ -1133,29 +1106,27 @@ class ThreatsController extends Component {
     const titleText = it('txt-addIncident-events');
 
     return (
-        <ModalDialog
-            id='addSeatDialog'
-            className='modal-dialog'
-            title={titleText}
-            draggable={true}
-            global={true}
-            actions={actions}
-            closeAction='cancel'>
-          <IncidentEventMake
-              traceAlertData={selectData}
-              remoteIncident={incident}
-              handleDataChange={this.handleDataChange}
-              handleDataChangeMui = {this.handleDataChangeMui}
-              handleEventsChange={this.handleEventsChange}
-              handleConnectContactChange={this.handleConnectContactChange}
-              handleAttachChange={this.handleAttachChange}
-              handleAFChange={this.handleAFChange}
-          />
-
-        </ModalDialog>
+      <ModalDialog
+        id='addSeatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <IncidentEventMake
+          traceAlertData={selectData}
+          remoteIncident={incident}
+          handleDataChange={this.handleDataChange}
+          handleDataChangeMui = {this.handleDataChangeMui}
+          handleEventsChange={this.handleEventsChange}
+          handleConnectContactChange={this.handleConnectContactChange}
+          handleAttachChange={this.handleAttachChange}
+          handleAFChange={this.handleAFChange}
+        />
+      </ModalDialog>
     )
   }
-
   uploadAttachment(incidentId) {
     const {baseUrl} = this.context
     let {incident} = this.state
@@ -1175,17 +1146,16 @@ class ThreatsController extends Component {
       }).then(data => {
         this.setState({
           cancelThreatsList:[]
-        },()=>{
+        },() => {
           this.closeAddIncidentDialog()
           this.loadTrackData()
         })
 
       }).catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
+          helper.showPopupMsg('', t('txt-error'), err.message)
       })
     }
   }
-
   handleDataChange = (type, value) => {
     let temp = {...this.state.incident};
     temp.info[type] = value;
@@ -1196,8 +1166,7 @@ class ThreatsController extends Component {
     this.setState({
       incident:temp
     })
-  };
-
+  }
   handleDataChangeMui = (event) => {
     let temp = {...this.state.incident};
     temp.info[event.target.name] = event.target.value;
@@ -1208,25 +1177,21 @@ class ThreatsController extends Component {
       incident:temp
     })
   }
-
   handleEventsChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.eventList = val;
     this.setState({
       incident:temp
     })
-  };
-
+  }
   handleConnectContactChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.notifyList = val;
     this.setState({
       incident:temp
     })
-  };
-
+  }
   handleAttachChange = (val) => {
-
     let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
     let temp = {...this.state.incident};
     if (flag.test(val.name)) {
@@ -1239,7 +1204,6 @@ class ThreatsController extends Component {
       incident:temp
     })
   }
-
   handleAFChange(file) {
     let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
     let temp = {...this.state.incident};
@@ -1256,7 +1220,6 @@ class ThreatsController extends Component {
       })
     }
   }
-
   /**
    * Set initial data for statistics tab
    * @method
@@ -2481,7 +2444,7 @@ class ThreatsController extends Component {
       this.setState({
         showFilter: false,
         showChart: false
-      },()=>{
+      },() => {
         // this.handleSearchSubmit()
       });
     }
@@ -2550,7 +2513,7 @@ class ThreatsController extends Component {
       tableOptions.sort= true;
       // tableOptions.selectableRows = 'multiple'
       // tableOptions.selectToolbarPlacement = 'none'
-      // tableOptions.onRowSelectionChange = (currentRowsSelected,allRowsSelected,rowsSelected) =>{
+      // tableOptions.onRowSelectionChange = (currentRowsSelected,allRowsSelected,rowsSelected) => {
       //   this.handleCancelSelectMapping(rowsSelected);
       // }
     } else {
