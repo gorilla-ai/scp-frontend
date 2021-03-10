@@ -25,7 +25,7 @@ const cfg = _.assign({
   //apiPrefix: 'http:\//172.18.0.136:8080/SCP', //Rays's machine
   //apiPrefix: 'http:\//172.18.0.87/SCP', //Rex's machine
   //apiPrefix: 'http:\//172.18.0.52/SCP', //Allen's machine
-  // apiPrefix: 'http:\//localhost:8080/SCP', //local machine
+  // apiPrefix: 'http:\//localhost/SCP', //local machine
   port: process.env.PORT || 3000,
   version: '1.2.2437.491',
   lng: 'zh',
@@ -48,12 +48,20 @@ const cfg = _.assign({
   companyName: 'NSGUARD',
   session: {
     rights: ["Module_Common", "Module_Config","Module_Soc"],
-    name: "kennethSOC",
-    account:"kenneth.soc1",
-    // accountId: "DPIR-3094b2fc-96a9-41fc-80b4-bbfbb83e95fb",
-    accountId: "DPIR-0b06ab24-9bee-4929-9eb4-c6627b278f31",
-    roles:["SOC Analyzer"],
+    name: "KennethChiao",
+    account:"KennethChiao",
+    accountId: "DPIR-3094b2fc-96a9-41fc-80b4-bbfbb83e95fb",
+    roles:["SOC Executor"],
   },
+
+  // session: {
+  //   // rights: ["Module_Soc"],
+  //   rights: ["Module_Common","Module_Soc"],
+  //   name: "kennethSOC",
+  //   account:"kenneth.soc1",
+  //   accountId: "DPIR-0b06ab24-9bee-4929-9eb4-c6627b278f31",
+  //   roles:["SOC Supervisor"],
+  // },
 
   mapUrl: 'https://mt0.google.com/vt/lyrs=m&hl=en-US&x={x}&y={y}&z={z}',
   // session: {
