@@ -38,7 +38,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
+const PUBLIC_KEY = ['City', 'Country', 'CountryCode', 'Latitude', 'Longitude'];
 const NOT_AVAILABLE = 'N/A';
 
 let t = null;
@@ -1738,12 +1738,10 @@ class AlertDetails extends Component {
   showPublicInfo = (ipType, item, i) => {
     const {contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const countryCodeType = 'CountryCode';
-    const countryType = 'CountryName';
     let validDataCount = 0;
 
     if (alertInfo[ipType]['location'][item]) {
-      if (item === countryCodeType) { //Display country flag
+      if (item === 'CountryCode') { //Display country flag
         const countryCode = alertInfo[ipType]['location'][item].toLowerCase();
         const picPath = `${contextRoot}/images/flag/${countryCode}.png`;
 
@@ -1753,7 +1751,7 @@ class AlertDetails extends Component {
           return (
             <li key={item + i}>
               <span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}</span>
-              <span className='value'><img src={picPath} title={alertInfo[ipType]['location'][countryType]} /></span>
+              <span className='value'><img src={picPath} title={alertInfo[ipType]['location']['Country']} /></span>
             </li>
           )
         }
