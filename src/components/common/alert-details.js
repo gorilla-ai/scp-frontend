@@ -1834,6 +1834,10 @@ class AlertDetails extends Component {
   displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
+    if (!alertInfo[ipType].locationType) {
+      return <span>{NOT_AVAILABLE}</span>;
+    }
+
     if (alertInfo[ipType].locationType === 1) { //Public
       let locationEmpty = true;
 
