@@ -225,6 +225,7 @@ class ThreatsController extends Component {
         query: ''
       }],
       edgeFilterData:[],
+      edgeCheckedList: [],
       threatsData: {
         dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
@@ -2027,19 +2028,23 @@ class ThreatsController extends Component {
    */
   toggleCheckbox = (agentId, event) => {
     let edgeFilterData = _.cloneDeep(this.state.edgeFilterData);
+    let edgeCheckedList = _.cloneDeep(this.state.edgeCheckedList);
 
     if (event.target.checked) {
       edgeFilterData.push({
         condition: 'either',
         query: '_edgeId: "' + agentId + '"'
       });
+      edgeCheckedList.push(agentId);
     } else {
-      const index = edgeFilterData.indexOf(agentId);
+      const index = edgeCheckedList.indexOf(agentId);
       edgeFilterData.splice(index, 1);
+      edgeCheckedList.splice(index, 1);
     }
 
     this.setState({
-      edgeFilterData
+      edgeFilterData,
+      edgeCheckedList
     });
   }
   /**
@@ -2063,7 +2068,7 @@ class ThreatsController extends Component {
             treeObj.children.push({
               id: val.agentId,
               key,
-              label: <div><Checkbox onChange={this.toggleCheckbox.bind(this, val.agentId)} color='primary' /><span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span></div>
+              label: <div><Checkbox defaultChecked={_.includes(this.state.edgeCheckedList, val.agentId)} onChange={this.toggleCheckbox.bind(this, val.agentId)} color='primary' /><span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span></div>
             });
           }
         })

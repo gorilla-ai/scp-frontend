@@ -1263,8 +1263,12 @@ class ThreatIntelligence extends Component {
               <div className='main-statistics'>
                 <div className='statistics-content'>
                   {this.showPieChart(indicatorsData)}
+
                   {this.showBarChart(indicatorsTrendData)}
-                  {this.showLineChart(acuIndicatorsTrendData)}
+
+                  {activeDateType !== 'today' &&
+                    this.showLineChart(acuIndicatorsTrendData)
+                  }
                 </div>
               </div>
             </div>
