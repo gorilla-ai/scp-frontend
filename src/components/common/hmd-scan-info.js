@@ -401,25 +401,27 @@ class HMDscanInfo extends Component {
   /**
    * Get parsed path list data
    * @method
-   * @param {object} type - value type
-   * @param {object} listData - list data
+   * @param {string} type - value type ('path' or 'keyword')
+   * @param {array.<string>} listData - list data
    * @returns parsed path list
    */
   getParsedPathData = (type, listData) => {
     let pathList = [];
 
-    if (listData.length > 0) {
-      _.forEach(listData, val => {
-        if (val) {
-          pathList.push({
-            [type]: val
-          });
-        }
-      })
-    } else {
-      pathList.push({
-        [type]: ''
-      });
+    if (listData) {
+      if (listData.length > 0) {
+        _.forEach(listData, val => {
+          if (val) {
+            pathList.push({
+              [type]: val
+            });
+          }
+        })
+      } else {
+        pathList.push({
+          [type]: ''
+        });
+      }
     }
 
     return pathList;
@@ -439,16 +441,27 @@ class HMDscanInfo extends Component {
       const fileIntegrityData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.snapshot});
       const processMonitorData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.procWhiteList});
 
-      if (!_.isEmpty(fileIntegrityData)) {
+      if (!_.isEmpty(fileIntegrityData) && fileIntegrityData._Parameters) {
         pathData = fileIntegrityData._Parameters;
-        tempSettingsPath.fileIntegrity.includePath = this.getParsedPathData('path', pathData._IncludePathList);
-        tempSettingsPath.fileIntegrity.excludePath = this.getParsedPathData('path', pathData._ExcludePathList);
-        tempSettingsPath.fileIntegrity.processKeyword = this.getParsedPathData('keyword', pathData._ProcessKeyword);
+
+        if (pathData._IncludePathList) {
+          tempSettingsPath.fileIntegrity.includePath = this.getParsedPathData('path', pathData._IncludePathList);
+        }
+
+        if (pathData._ExcludePathList) {
+          tempSettingsPath.fileIntegrity.excludePath = this.getParsedPathData('path', pathData._ExcludePathList);
+        }
+
+        if (pathData._ProcessKeyword) {
+          tempSettingsPath.fileIntegrity.processKeyword = this.getParsedPathData('keyword', pathData._ProcessKeyword);
+        }
       }
 
-      if (!_.isEmpty(processMonitorData)) {
-        pathData = processMonitorData._Parameters._WhiteList;
-        tempSettingsPath.procMonitor.includePath = this.getParsedPathData('path', pathData);
+      if (!_.isEmpty(processMonitorData) && processMonitorData._Parameters) {
+        if (processMonitorData._Parameters._WhiteList) {
+          pathData = processMonitorData._Parameters._WhiteList;
+          tempSettingsPath.procMonitor.includePath = this.getParsedPathData('path', pathData);
+        }
       }
 
       this.setState({
@@ -558,7 +571,7 @@ class HMDscanInfo extends Component {
   /**
    * Toggle scan path/rule on/off and set the rule
    * @method
-   * @param {string} type - scan type
+   * @param {string} type - scan type ('path' or 'rule')
    * @param {number} i - index of the rule array
    * @param {string} id - unique ID of the rule array
    */
@@ -934,7 +947,6 @@ class HMDscanInfo extends Component {
    * @method
    * @param {string} fileMD5 - File MD5
    * @param {string} [ipType] - 'srcIp' or 'destIp'
-   * 
    */
   confirmAddWhitelist = (fileMD5, ipType) => {
     PopupDialog.prompt({
@@ -2104,27 +2116,45 @@ class HMDscanInfo extends Component {
     })
     .then(data => {
       if (data) {
-        this.setState({
-          settingsPath: {
-            fileIntegrity: {
-              includePath: this.getParsedPathData('path', data._IncludePathList.split(',')),
-              excludePath: this.getParsedPathData('path', data._ExcludePathList.split(',')),
-              processKeyword: this.getParsedPathData('keyword', data._ProcessKeyword.split(','))
+        let includePath = '';
+        let excludePath = '';
+        let processKeyword = '';
+
+        if (data._IncludePathList) {
+          includePath = data._IncludePathList.split(',');
+        }
+
+        if (data._ExcludePathList) {
+          excludePath = data._ExcludePathList.split(',');
+        }
+
+        if (data._ProcessKeyword) {
+          processKeyword = data._ProcessKeyword.split(',');
+        }
+
+        if (includePath && excludePath && processKeyword) {
+          this.setState({
+            settingsPath: {
+              fileIntegrity: {
+                includePath: this.getParsedPathData('path', includePath),
+                excludePath: this.getParsedPathData('path', excludePath),
+                processKeyword: this.getParsedPathData('keyword', processKeyword)
+              },
+              procMonitor: {
+                includePath: [{
+                  path: ''
+                }]
+              }
             },
-            procMonitor: {
-              includePath: [{
-                path: ''
-              }]
-            }
-          },
-          formValidation: {
-            fileIntegrity: {
-              includePath: {
-                valid: true
+            formValidation: {
+              fileIntegrity: {
+                includePath: {
+                  valid: true
+                }
               }
             }
-          }
-        });
+          });
+        }
       }
       return null;
     })
