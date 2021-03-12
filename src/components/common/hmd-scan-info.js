@@ -947,7 +947,6 @@ class HMDscanInfo extends Component {
    * @method
    * @param {string} fileMD5 - File MD5
    * @param {string} [ipType] - 'srcIp' or 'destIp'
-   * 
    */
   confirmAddWhitelist = (fileMD5, ipType) => {
     PopupDialog.prompt({
