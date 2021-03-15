@@ -849,16 +849,16 @@ class SyslogController extends Component {
           let tempChild2 = [];
           i++;
 
-          _.forEach(val2, val3 => {
+          _.forEach(val2, (val3, i) => {
             tempChild2.push({
-              id: val3,
+              id: val3 + i + '_lvl3',
               key: val3,
               label: this.getTreeLabel(val3, currentTreeName, '', '_host')
             });
           })
 
           tempChild.push({
-            id: key2,
+            id: key2 + '_lvl2',
             key: key2,
             label: this.getTreeLabel(key2, currentTreeName, val2.length, 'configSource')
           });
@@ -869,7 +869,7 @@ class SyslogController extends Component {
         })
 
         let treeProperty = {
-          id: key,
+          id: key + '_lvl1',
           key: key,
           label: this.getTreeLabel(key, currentTreeName, i, 'LoghostIp')
         };
