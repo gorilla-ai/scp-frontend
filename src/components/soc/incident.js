@@ -2727,8 +2727,9 @@ class Incident extends Component {
             contentType: false
         })
             .then(data => {
-                this.setState({attach: null})
-                this.getIncident(incident.info.id, 'view')
+                this.setState({attach: null},()=>{
+                    this.getIncident(incident.info.id, 'view')
+                })
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
