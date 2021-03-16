@@ -41,6 +41,7 @@
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
     "classnames": "^2.2.5",
+    "core-js": "^3.9.1",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.10.0",
     "errorhandler": "^1.5.0",
@@ -92,8 +93,7 @@
     "underscore.string": "^3.2.1",
     "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
     "widget-builder": "git+ssh://git@git.gorilla-technology.com:scrd01/widget-builder.git#react-v16-merge",
-    "xlsx": "^0.15.4",
-    "core-js": "^3.8.2"
+    "xlsx": "^0.15.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
