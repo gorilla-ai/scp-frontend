@@ -57,6 +57,7 @@ class QueryOpenSave extends Component {
       activePatternId: '',
       patternCheckbox: false,
       publicCheckbox: false,
+      dialogOpenType: '',
       info: '',
       formValidation: {
         queryName: {
@@ -497,6 +498,7 @@ class QueryOpenSave extends Component {
     let patternCheckbox = false;
     let publicCheckbox = false;
     let queryName = '';
+    let dialogOpenType = '';
 
     if (type === 'id') {
       tempQueryData.id = value;
@@ -516,6 +518,7 @@ class QueryOpenSave extends Component {
         severity: 'Emergency'
       };
       tempQueryData.emailList = [];
+      dialogOpenType = 'change';
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
@@ -595,7 +598,8 @@ class QueryOpenSave extends Component {
       newQueryName: queryName,
       pattern: tempPattern,
       patternCheckbox,
-      publicCheckbox
+      publicCheckbox,
+      dialogOpenType
     });
   }
   /**
@@ -703,7 +707,7 @@ class QueryOpenSave extends Component {
    */
   getQueryAlertContent = (type) => {
     const {queryData} = this.props;
-    const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox} = this.state;
+    const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType} = this.state;
     let severityType = '';
     let patternCheckboxChecked = '';
     let patternCheckboxDisabled = '';
@@ -714,7 +718,7 @@ class QueryOpenSave extends Component {
       severityType = queryData.pattern.severity;
       patternCheckboxChecked = true;
       patternCheckboxDisabled = true;
-      publicCheckboxChecked = queryData.isPublic;
+      publicCheckboxChecked = dialogOpenType === 'change' ? publicCheckbox : queryData.isPublic;
       disabledValue = true;
     } else if (type === 'save') {
       severityType = pattern.severity;
