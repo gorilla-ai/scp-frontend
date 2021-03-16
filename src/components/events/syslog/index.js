@@ -1820,16 +1820,19 @@ class SyslogController extends Component {
     if (type === 'open') {
       const {queryData} = this.state;
       let tempQueryData = {...queryData};
-      tempQueryData.id = queryData.list[0].id;
-      tempQueryData.name = queryData.list[0].name;
-      tempQueryData.query = queryData.list[0].queryText;
-      tempQueryData.emailList = queryData.list[0].emailList;
-      tempQueryData.patternId = queryData.list[0].patternId;
-      tempQueryData.pattern.name = queryData.list[0].patternName;
-      tempQueryData.pattern.periodMin = queryData.list[0].periodMin;
-      tempQueryData.pattern.severity = queryData.list[0].severity;
-      tempQueryData.pattern.threshold = queryData.list[0].threshold;
-      tempQueryData.isPublic = queryData.list[0].isPublic;
+
+      if (queryData.list.length > 0) {
+        tempQueryData.id = queryData.list[0].id;
+        tempQueryData.name = queryData.list[0].name;
+        tempQueryData.query = queryData.list[0].queryText;
+        tempQueryData.emailList = queryData.list[0].emailList;
+        tempQueryData.patternId = queryData.list[0].patternId;
+        tempQueryData.pattern.name = queryData.list[0].patternName;
+        tempQueryData.pattern.periodMin = queryData.list[0].periodMin;
+        tempQueryData.pattern.severity = queryData.list[0].severity;
+        tempQueryData.pattern.threshold = queryData.list[0].threshold;
+        tempQueryData.isPublic = queryData.list[0].isPublic;
+      }
 
       this.setState({
         queryData: tempQueryData,

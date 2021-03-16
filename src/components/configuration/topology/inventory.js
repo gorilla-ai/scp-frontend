@@ -3671,7 +3671,7 @@ class NetworkInventory extends Component {
                         required
                         error={!formValidation.newOwnerID.valid}
                         helperText={formValidation.newOwnerID.msg}
-                        value={addIP.newOwnerID}
+                        value={addIP.newOwnerID || ''}
                         onChange={this.handleAddIpChange} />
                     </div>
                     <div className='group'>
@@ -4187,9 +4187,11 @@ class NetworkInventory extends Component {
 
     if (!_.isEmpty(csvData)) {
       _.forEach(csvData[0], (val, i) => {
-        csvHeaderList.push(
-          <MenuItem key={i} value={i}>{val}</MenuItem>
-        );
+        if (val) {
+          csvHeaderList.push(
+            <MenuItem key={i} value={i}>{val}</MenuItem>
+          );
+        }
       })
     }
 

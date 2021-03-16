@@ -247,10 +247,14 @@ class QueryOpenSave extends Component {
         requestData = {
           id: queryData.id,
           accountId: account.id,
-          patternId: queryData.patternId,
           name: this.getQueryName(),
           queryText
         };
+
+        if (patternCheckbox) {
+          requestData.patternId = queryData.patternId;
+        }
+
         requestType = 'PATCH';
       }
 
@@ -495,12 +499,11 @@ class QueryOpenSave extends Component {
     const value = event.target.value;
     let tempQueryData = {...queryData};
     let tempPattern = {...pattern};
-    let patternCheckbox = false;
-    let publicCheckbox = false;
     let queryName = '';
-    let dialogOpenType = '';
 
     if (type === 'id') {
+      let patternCheckbox = false;
+      let publicCheckbox = false;
       tempQueryData.id = value;
       tempQueryData.openFlag = true;
       tempQueryData.query = {}; //Reset data to empty
@@ -518,7 +521,6 @@ class QueryOpenSave extends Component {
         severity: 'Emergency'
       };
       tempQueryData.emailList = [];
-      dialogOpenType = 'change';
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
@@ -586,6 +588,12 @@ class QueryOpenSave extends Component {
       } else {
         queryName = false;
       }
+
+      this.setState({
+        patternCheckbox,
+        publicCheckbox,
+        dialogOpenType: 'change'
+      });
     } else if (type === 'name') {
       queryName = newQueryName;
       tempQueryData.inputName = value;
@@ -596,10 +604,7 @@ class QueryOpenSave extends Component {
 
     this.setState({
       newQueryName: queryName,
-      pattern: tempPattern,
-      patternCheckbox,
-      publicCheckbox,
-      dialogOpenType
+      pattern: tempPattern
     });
   }
   /**
@@ -829,11 +834,7 @@ class QueryOpenSave extends Component {
       let queryDataList = [];
       let queryDataMark = [];
 
-      if (queryData.list.length === 0) {
-        return <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>
-      }
-
-      if (activeTab === 'logs') {
+      if (activeTab === 'logs' && !_.isEmpty(queryData.query)) {
         queryDataList = queryData.query.filter;
         queryDataMark = queryData.query.search;
       } else {
@@ -900,10 +901,6 @@ class QueryOpenSave extends Component {
         }
       })
 
-      if (tempFilterData.length === 0) {
-        return <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
-      }
-
       if (queryData.openFlag) {
         dropDownValue = queryData.id;
       }
@@ -964,12 +961,29 @@ class QueryOpenSave extends Component {
     }
   }
   render() {
-    const {type} = this.props;
+    const {type, queryData, filterData} = this.props;
     const titleText = t(`events.connections.txt-${type}Query`);
-    const actions = {
+    let actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleQueryAction.bind(this, type)}
     };
+    let displayContent = this.displayQueryContent(type);
+
+    if (type === 'open' && queryData.list.length === 0) {
+      actions = {
+        cancel: {text: t('txt-close'), handler: this.props.closeDialog}
+      };
+      displayContent = <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>;
+    }
+
+    if (type === 'save') {
+      if (filterData.length === 0 || filterData[0].query === '') {
+        actions = {
+          cancel: {text: t('txt-close'), handler: this.props.closeDialog}
+        };
+        displayContent = <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>;
+      }
+    }
 
     return (
       <ModalDialog
@@ -981,7 +995,7 @@ class QueryOpenSave extends Component {
         actions={actions}
         info={this.state.info}
         closeAction='cancel'>
-        {this.displayQueryContent(type)}
+        {displayContent}
       </ModalDialog>
     )
   }
