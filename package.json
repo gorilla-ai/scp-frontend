@@ -92,7 +92,8 @@
     "underscore.string": "^3.2.1",
     "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
     "widget-builder": "git+ssh://git@git.gorilla-technology.com:scrd01/widget-builder.git#react-v16-merge",
-    "xlsx": "^0.15.4"
+    "xlsx": "^0.15.4",
+    "core-js": "^3.8.2"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
