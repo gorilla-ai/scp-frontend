@@ -1438,7 +1438,7 @@ class Incident extends Component {
 
     handleSubmit = () => {
         const {baseUrl, contextRoot, session} = this.context;
-        const {activeContent, incidentType} = this.state;
+        const {activeContent, incidentType, attach} = this.state;
         let incident = {...this.state.incident};
 
         if (!this.checkRequired(incident.info)) {
@@ -1506,8 +1506,9 @@ class Incident extends Component {
             this.setState({
                 originalIncident: _.cloneDeep(incident)
             }, () => {
-                this.uploadAttachment()
-
+                if (attach) {
+                    this.uploadAttachment()
+                }
                 this.getIncident(incident.info.id);
                 this.toggleContent('cancel');
             });
@@ -2713,26 +2714,26 @@ class Incident extends Component {
         const {baseUrl} = this.context
         let {incident, attach} = this.state
 
-        if (attach) {
-            let formData = new FormData()
-            formData.append('id', incident.info.id)
-            formData.append('file', attach)
-            formData.append('fileMemo', incident.info.fileMemo)
+        let formData = new FormData()
+        formData.append('id', incident.info.id)
+        formData.append('file', attach)
+        formData.append('fileMemo', incident.info.fileMemo)
 
-            ah.one({
-                url: `${baseUrl}/api/soc/attachment/_upload`,
-                data: formData,
-                type: 'POST',
-                processData: false,
-                contentType: false
-            })
+        ah.one({
+            url: `${baseUrl}/api/soc/attachment/_upload`,
+            data: formData,
+            type: 'POST',
+            processData: false,
+            contentType: false
+        })
             .then(data => {
-                this.getIncident(incident.info.id, 'view')
+                this.setState({attach: null},()=>{
+                    this.getIncident(incident.info.id, 'view')
+                })
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
-        }
     }
 
     uploadAttachmentByModal(file, fileMemo) {
