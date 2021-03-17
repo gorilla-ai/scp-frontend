@@ -92,6 +92,7 @@ class Incident extends Component {
             },
             relatedListOptions: [],
             deviceListOptions: [],
+            showDeviceListOptions: [],
             incident: {
                 dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
@@ -1390,7 +1391,7 @@ class Incident extends Component {
     };
 
     displayEventsPage = () => {
-        const {incidentType, activeContent, incident, deviceListOptions} = this.state;
+        const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
         const {locale} = this.context;
 
         const now = new Date();
@@ -1415,7 +1416,7 @@ class Incident extends Component {
                     base={Events}
                     defaultItemValue={{description: '', deviceId: '', time: {from: nowTime, to: nowTime}, frequency: 1}}
                     value={incident.info.eventList}
-                    props={{activeContent: activeContent, locale: locale, deviceListOptions: deviceListOptions}}
+                    props={{activeContent: activeContent, locale: locale, deviceListOptions: deviceListOptions , showDeviceListOptions:showDeviceListOptions}}
                     onChange={this.handleEventsChange}
                     readOnly={activeContent === 'viewIncident'}/>
 
@@ -2650,7 +2651,7 @@ class Incident extends Component {
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
-            data: JSON.stringify({account:session.accountId}),
+            data: JSON.stringify({use:'1',account:session.accountId}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -2668,6 +2669,25 @@ class Incident extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
 
+        ah.one({
+            url: `${baseUrl}/api/soc/device/_search`,
+            data: JSON.stringify({use:'2',account:session.accountId}),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data) {
+                    let list = _.map(data.rt.rows, val => {
+                        return {value: val.id, text: val.deviceName}
+                    });
+
+                    this.setState({showDeviceListOptions: list})
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
 
     };
 
@@ -2846,7 +2866,7 @@ class Incident extends Component {
 
 
     toPdfPayload(incident) {
-        const {incidentType, relatedListOptions, deviceListOptions} = this.state
+        const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state
         let payload = {}
 
         payload.id = incident.id
@@ -2982,7 +3002,7 @@ class Incident extends Component {
             payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3})
             payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
             payload.eventList.table.push({text: event.description, colSpan: 3})
-            const target = _.find(deviceListOptions, {value: event.deviceId})
+            const target = _.find(showDeviceListOptions, {value: event.deviceId})
             
             if (target) {
                 payload.eventList.table.push({text: target.text, colSpan: 3})
