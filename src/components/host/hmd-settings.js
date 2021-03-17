@@ -11,9 +11,9 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
-import {BaseDataContext} from '../../common/context';
-import helper from '../../common/helper'
-import InputPath from '../../common/input-path'
+import {BaseDataContext} from '../common/context';
+import helper from '../common/helper'
+import InputPath from '../common/input-path'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -307,7 +307,7 @@ class HMDsettings extends Component {
           {activeContent === 'viewMode' &&
             <div className='content-header-btns'>
               <Button variant='outlined' color='primary' className='standard btn no-padding'>
-                <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
+                <Link to={{pathname: '/SCP/host', state: 'hostContent'}}>{t('txt-back')}</Link>
               </Button>
               <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
             </div>

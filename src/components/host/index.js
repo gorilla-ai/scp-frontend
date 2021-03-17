@@ -9,6 +9,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import TreeItem from '@material-ui/lab/TreeItem';
@@ -21,9 +22,11 @@ import Gis from 'react-gis/build/src/components'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
+import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
 import Pagination from '../common/pagination'
 import SearchOptions from '../common/search-options'
+import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -67,6 +70,32 @@ const SCAN_RESULT = [
   },
 ];
 const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull'];
+const HMD_TRIGGER = [
+  {
+    name: 'Yara Scan',
+    cmds: 'compareIOC'
+  },
+  {
+    name: 'Malware',
+    cmds: 'scanFile'
+  },
+  {
+    name: 'GCB',
+    cmds: 'gcbDetection'
+  },
+  {
+    name: 'File Integrity',
+    cmds: 'getFileIntegrity'
+  },
+  {
+    name: 'Process Monitor',
+    cmds: 'setProcessWhiteList'
+  },
+  {
+    name: 'VANS',
+    cmds: 'getVans'
+  }
+];
 const HMD_LIST = [
   {
     value: 'isScanProc',
@@ -166,6 +195,7 @@ class HostController extends Component {
 
     this.state = {
       activeTab: 'hostList', //'hostList' or 'deviceMap'
+      activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
       datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
@@ -173,7 +203,10 @@ class HostController extends Component {
         from: '',
         to: ''
       },
+      yaraRuleOpen: false,
       hostAnalysisOpen: false,
+      contextAnchor: null,
+      menuType: '', //hmdTriggerAll' or 'hmdDownload
       severityList: [],
       hmdStatusList: [],
       scanStatusList: [],
@@ -229,6 +262,11 @@ class HostController extends Component {
     this.getHostSortList();
     this.getFloorPlan();
     this.getHostData();
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.state === 'hostContent') {
+      this.toggleContent('hostContent');
+    }
   }
   /**
    * Set Left nav data
@@ -1449,14 +1487,161 @@ class HostController extends Component {
       </TreeItem>
     )
   }
+  /**
+   * Handle open menu
+   * @method
+   * @param {string} type - menu type ('hmdTriggerAll' or 'hmdDownload')
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (type, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      menuType: type
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      menuType: ''
+    });
+  }
+  /**
+   * Toggle yara rule modal dialog on/off
+   * @method
+   */
+  toggleYaraRule = () => {
+    this.setState({
+      yaraRuleOpen: !this.state.yaraRuleOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Get HMD test menu
+   * @method
+   * @param {string} val - individual HMD data
+   * @param {number} i - index of the HMD data
+   */
+  getHMDmenu = (val, i) => {
+    if (val.cmds === 'compareIOC') {
+      return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
+    } else {
+      return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, val)}>{val.name}</MenuItem>
+    }
+  }
+  /**
+   * Handle HMD download button
+   * @method
+   * @param {string} type - download type ('windows' or 'linux')
+   */
+  hmdDownload = (type) => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
+    window.open(url, '_blank');
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle trigger button for HMD trigger all
+   * @method
+   * @param {object} hmdObj - HMD object
+   * @param {object} [yaraRule] - yara rule data
+   */
+  triggerHmdAll = (hmdObj, yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/retriggerAll`;
+    let requestData = {
+      cmds: [hmdObj.cmds]
+    };
+
+    if (hmdObj.cmds === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
+      requestData.paras = {
+        _FilepathList: pathData,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+    this.handleCloseMenu();
+
+    if (hmdObj.cmds === 'compareIOC') {
+      this.toggleYaraRule();
+    }
+  }
+  /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerHmdAll(HMD_TRIGGER[0], yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle page content
+   * @method
+   * @param {string} type - content type ('hostContent' or 'hmdSettings')
+   */
+  toggleContent = (type) => {
+    this.setState({
+      activeContent: type
+    });
+  }
   render() {
     const {
       activeTab,
+      activeContent,
       showLeftNav,
       showFilter,
       datetime,
       assessmentDatetime,
       hostAnalysisOpen,
+      contextAnchor,
+      menuType,
+      yaraRuleOpen,
       hostCreateTime,
       privateMaskedIPtree,
       leftNavData,
@@ -1476,6 +1661,12 @@ class HostController extends Component {
 
     return (
       <div>
+        {yaraRuleOpen &&
+          <YaraRule
+            toggleYaraRule={this.toggleYaraRule}
+            checkYaraRule={this.checkYaraRule} />
+        }
+
         {hostAnalysisOpen &&
           <HostAnalysis
             datetime={datetime}
@@ -1530,104 +1721,133 @@ class HostController extends Component {
             </div>
           </div>
 
-          <div className='parent-content'>
-            {this.renderFilter()}
+          {activeContent === 'hostContent' &&
+            <div className='parent-content'>
+              {this.renderFilter()}
 
-            <div className='host-list'>
-              <header>{t('host.txt-hostList2')}</header>
-              {hostInfo.totalCount > 0 &&
-                <div>
-                  <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
-                  <span>{t('host.txt-hostCreateTime')}: {hostCreateTime}</span>
-                </div>
-              }
-              {activeTab === 'hostList' &&
-                <div className='sort-section'>
-                  <TextField
-                    id='hostSortList'
-                    name='hostSort'
-                    label={t('txt-sort')}
-                    select
-                    variant='outlined'
-                    fullWidth
-                    size='small'
-                    value={hostSort}
-                    onChange={this.handleHostSortChange}>
-                    {hostSortList}
-                  </TextField>
-                </div>
-              }
-            </div>
-            <div className='main-content host'>
-              <Tabs
-                indicatorColor='primary'
-                textColor='primary'
-                value={activeTab}
-                onChange={this.handleSubTabChange}>
-                <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
-                <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
-              </Tabs>
-
-              {activeTab === 'hostList' &&
-                <div className='table-content'>
-                  <div className='table' style={{height: '64vh'}}>
-                    <ul className='host-list'>
-                      {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
-                        hostInfo.dataContent.map(this.getHostList)
-                      }
-                    </ul>
+              <div className='host-list'>
+                <header>{t('host.txt-hostList2')}</header>
+                {hostInfo.totalCount > 0 &&
+                  <div>
+                    <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
+                    <span>{t('host.txt-hostCreateTime')}: {hostCreateTime}</span>
                   </div>
-                  <footer>
-                    <Pagination
-                      totalCount={hostInfo.totalCount}
-                      pageSize={hostInfo.pageSize}
-                      currentPage={hostInfo.currentPage}
-                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                  </footer>
-                </div>
-              }
-
-              {activeTab === 'deviceMap' &&
-                <div className='map'>
-                  {floorList.length > 0 &&
+                }
+                {activeTab === 'hostList' &&
+                  <div className='sort-section'>
                     <TextField
-                      className='drop-down'
+                      id='hostSortList'
+                      name='hostSort'
+                      label={t('txt-sort')}
                       select
                       variant='outlined'
+                      fullWidth
                       size='small'
-                      value={currentFloor}
-                      onChange={this.getAreaData}>
-                      {floorList}
+                      value={hostSort}
+                      onChange={this.handleHostSortChange}>
+                      {hostSortList}
                     </TextField>
-                  }
-                  {currentMap &&
-                    <Gis
-                      className='floor-map-area'
-                      _ref={(ref) => {this.gisNode = ref}}
-                      data={_.get(seatData, [currentFloor, 'data'])}
-                      baseLayers={currentBaseLayers}
-                      baseLayer={currentFloor}
-                      layouts={['standard']}
-                      dragModes={['pan']}
-                      scale={{enabled: false}}
-                      mapOptions={{
-                        maxZoom: 2
-                      }}
-                      onClick={this.handleFloorMapClick}
-                      symbolOptions={[{
-                        match: {
-                          data: {tag: 'red'}
-                        },
-                        props: {
-                          backgroundColor: 'red'
-                        }
-                      }]} />
-                  }
+                  </div>
+                }
+              </div>
+              <div className='main-content host'>
+                <Tabs
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
+                  onChange={this.handleSubTabChange}>
+                  <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
+                  <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
+                </Tabs>
+
+                <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('network-inventory.txt-triggerAll')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('network-inventory.txt-hmdDownload')}</Button>
                 </div>
-              }
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={menuType === 'hmdTriggerAll' && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  {HMD_TRIGGER.map(this.getHMDmenu)}
+                </Menu>
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={menuType === 'hmdDownload' && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  <MenuItem onClick={this.hmdDownload.bind(this, 'windows')}>Windows</MenuItem>
+                  <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
+                </Menu>
+
+                {activeTab === 'hostList' &&
+                  <div className='table-content'>
+                    <div className='table' style={{height: '64vh'}}>
+                      <ul className='host-list'>
+                        {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
+                          hostInfo.dataContent.map(this.getHostList)
+                        }
+                      </ul>
+                    </div>
+                    <footer>
+                      <Pagination
+                        totalCount={hostInfo.totalCount}
+                        pageSize={hostInfo.pageSize}
+                        currentPage={hostInfo.currentPage}
+                        onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                        onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                    </footer>
+                  </div>
+                }
+
+                {activeTab === 'deviceMap' &&
+                  <div className='map'>
+                    {floorList.length > 0 &&
+                      <TextField
+                        className='drop-down'
+                        select
+                        variant='outlined'
+                        size='small'
+                        value={currentFloor}
+                        onChange={this.getAreaData}>
+                        {floorList}
+                      </TextField>
+                    }
+                    {currentMap &&
+                      <Gis
+                        className='floor-map-area'
+                        _ref={(ref) => {this.gisNode = ref}}
+                        data={_.get(seatData, [currentFloor, 'data'])}
+                        baseLayers={currentBaseLayers}
+                        baseLayer={currentFloor}
+                        layouts={['standard']}
+                        dragModes={['pan']}
+                        scale={{enabled: false}}
+                        mapOptions={{
+                          maxZoom: 2
+                        }}
+                        onClick={this.handleFloorMapClick}
+                        symbolOptions={[{
+                          match: {
+                            data: {tag: 'red'}
+                          },
+                          props: {
+                            backgroundColor: 'red'
+                          }
+                        }]} />
+                    }
+                  </div>
+                }
+              </div>
             </div>
-          </div>
+          }
+
+          {activeContent === 'hmdSettings' &&
+            <HMDsettings />
+          }
         </div>
       </div>
     )
@@ -1639,4 +1859,4 @@ HostController.contextType = BaseDataContext;
 HostController.propTypes = {
 };
 
-export default HostController;
+export default withRouter(HostController);
