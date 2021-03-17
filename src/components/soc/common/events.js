@@ -47,10 +47,16 @@ class Events extends Component {
 		}
     }
 
+	handleEventsChange = (val) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, ['eventConnectionList']: val})
+	};
+
 	handleDataChangeMui = (event) => {
 		let {onChange, value: curValue} = this.props
 		onChange({...curValue, [event.target.name]: event.target.value})
 	}
+
 	render() {
 		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
 		let dateLocale = locale;
@@ -150,9 +156,10 @@ class Events extends Component {
                     id='eventConnections'
                     className='event-connection-group'
                     base={EventConnections}
+                    defaultItemValue={{srcIp:'', srcPort:'', srcHostname:'', dstIp:'', dstPort:'', dstHostname:''}}
                     value={eventConnectionList}
                     props={{activeContent: activeContent}}
-                    onChange={this.handleDataChange.bind(this, 'eventConnectionList')} 
+                    onChange={this.handleEventsChange}
                     readOnly={activeContent === 'viewIncident'} />
 	        </div>
 		</div>

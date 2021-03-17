@@ -1568,54 +1568,75 @@ class Incident extends Component {
         else {
 
             let eventCheck = true;
-            _.forEach(incident.eventList, event => {
-                _.forEach(event.eventConnectionList, eventConnect => {
 
-                    if (!helper.ValidateIP_Address(eventConnect.srcIp) ){
+            if (incident.eventList.length <= 0){
+                PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validEvents'),
+                    confirmText: t('txt-close')
+                });
+                eventCheck = false;
+            }else{
+                _.forEach(incident.eventList, event => {
+                    if(_.size(event.eventConnectionList)<= 0){
                         PopupDialog.alert({
                             title: t('txt-tips'),
-                            display: t('network-topology.txt-ipValidationFail'),
+                            display: it('txt-validEvents'),
                             confirmText: t('txt-close')
                         });
                         eventCheck = false
-                        return
-                    }
+                    }else{
+                        _.forEach(event.eventConnectionList, eventConnect => {
 
-                    if (!helper.ValidateIP_Address(eventConnect.dstIp)){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: t('network-topology.txt-ipValidationFail'),
-                            confirmText: t('txt-close')
-                        });
-                        eventCheck = false
-                        return
-                    }
-
-                    if (eventConnect.dstPort){
-                         if (!helper.ValidatePort(eventConnect.dstPort)){
+                            if (!helper.ValidateIP_Address(eventConnect.srcIp) ){
                                 PopupDialog.alert({
                                     title: t('txt-tips'),
-                                    display: t('network-topology.txt-portValidationFail'),
+                                    display: t('network-topology.txt-ipValidationFail'),
                                     confirmText: t('txt-close')
                                 });
                                 eventCheck = false
                                 return
-                         }
-                    }
+                            }
 
-                    if (eventConnect.srcPort){
-                        if (!helper.ValidatePort(eventConnect.srcPort)){
+                            if (!helper.ValidateIP_Address(eventConnect.dstIp)){
                                 PopupDialog.alert({
                                     title: t('txt-tips'),
-                                    display: t('network-topology.txt-portValidationFail'),
+                                    display: t('network-topology.txt-ipValidationFail'),
                                     confirmText: t('txt-close')
                                 });
                                 eventCheck = false
+                                return
+                            }
 
-                        }
+                            if (eventConnect.dstPort){
+                                if (!helper.ValidatePort(eventConnect.dstPort)){
+                                    PopupDialog.alert({
+                                        title: t('txt-tips'),
+                                        display: t('network-topology.txt-portValidationFail'),
+                                        confirmText: t('txt-close')
+                                    });
+                                    eventCheck = false
+                                    return
+                                }
+                            }
+
+                            if (eventConnect.srcPort){
+                                if (!helper.ValidatePort(eventConnect.srcPort)){
+                                    PopupDialog.alert({
+                                        title: t('txt-tips'),
+                                        display: t('network-topology.txt-portValidationFail'),
+                                        confirmText: t('txt-close')
+                                    });
+                                    eventCheck = false
+
+                                }
+                            }
+                        })
                     }
                 })
-            })
+            }
+
+
 
             if (!eventCheck){
                 return false
