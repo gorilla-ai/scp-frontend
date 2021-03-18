@@ -292,7 +292,7 @@ class IncidentUnit extends Component {
                             <header className='main-header'>{it('txt-incident-unit')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'viewDevice' &&
-                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                                 }
                                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
@@ -352,7 +352,7 @@ class IncidentUnit extends Component {
 
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                     }
                     {activeContent !== 'addDevice' && activeContent !== 'editDevice' &&
                     <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>

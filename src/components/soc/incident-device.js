@@ -487,7 +487,7 @@ class IncidentDevice extends Component {
                                 }
 
                                 {activeContent === 'viewDevice' &&
-                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                                 }
 
                                 {accountType !== constants.soc.LIMIT_ACCOUNT &&
@@ -520,7 +520,7 @@ class IncidentDevice extends Component {
 
                                 <header className='main-header'>{it('txt-incident-device')}</header>
                                 <div className='content-header-btns'>
-                                        <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                                        <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                                     {this.state.setType === 'send' &&
                                         <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</Button>
                                     }
@@ -567,7 +567,7 @@ class IncidentDevice extends Component {
 
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
-                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                     }
                     {activeContent !== 'addDevice' &&
                         <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>

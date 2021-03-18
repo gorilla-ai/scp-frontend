@@ -80,7 +80,7 @@ class YaraRule extends Component {
     if (!yaraRule.rule) {
       errorMsg = t('txt-checkRequiredFieldType');
     } else if (filePathChecked && yaraRule.pathData[0].path === '') {
-      errorMsg = t('network-inventory.txt-includePathEmpty');
+      errorMsg = t('hmd-scan.txt-includePathEmpty');
     }
 
     if (errorMsg) {
@@ -119,7 +119,7 @@ class YaraRule extends Component {
           <TextField
             id='yaraRuleContent'
             name='rule'
-            label={t('network-inventory.txt-yaraRules')}
+            label={t('hmd-scan.txt-yaraRules')}
             multiline
             rows={10}
             variant='outlined'
@@ -130,7 +130,7 @@ class YaraRule extends Component {
         </div>
         <div className='group checkbox'>
           <FormControlLabel
-            label={t('network-inventory.txt-scanProcess')}
+            label={t('hmd-scan.txt-scanProcess')}
             control={
               <Checkbox
                 id='yaraScanType'
@@ -140,7 +140,7 @@ class YaraRule extends Component {
                 disabled  />
             } />
           <FormControlLabel
-            label={t('network-inventory.txt-scanFilePath')}
+            label={t('hmd-scan.txt-scanFilePath')}
             control={
               <Checkbox
                 id='filePath'
@@ -153,7 +153,7 @@ class YaraRule extends Component {
         </div>
         {filePathChecked &&
           <div className='group'>
-            <label>{t('network-inventory.txt-includePath')}</label>
+            <label>{t('hmd-scan.txt-includePath')}</label>
             <MultiInput
               base={InputPath}
               inline={false}
