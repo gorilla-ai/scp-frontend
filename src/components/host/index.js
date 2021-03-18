@@ -616,6 +616,7 @@ class HostController extends Component {
     }
 
     this.setState({
+      activeContent: 'hostContent',
       filterNav: tempFilterNav
     }, () => {
       this.handleSearchSubmit();
@@ -743,6 +744,7 @@ class HostController extends Component {
     tempFilterNav.maskedIPSelected = selectedPrivateIP;
 
     this.setState({
+      activeContent: 'hostContent',
       filterNav: tempFilterNav
     }, () => {
       this.handleSearchSubmit();
@@ -1007,30 +1009,30 @@ class HostController extends Component {
 
       if (safetyData[0].taskStatus === 'Failure') {
         color = '#e15b6b';
-        title = displayTooltip += t('network-inventory.txt-taskFailure');
-        displayContent = t('network-inventory.txt-taskFailure');
+        title = displayTooltip += t('hmd-scan.txt-taskFailure');
+        displayContent = t('hmd-scan.txt-taskFailure');
       } else if (safetyData[0].taskStatus === 'NotSupport') {
         color = '#e15b6b';
-        title = displayTooltip += t('network-inventory.txt-notSupport');
-        displayContent = t('network-inventory.txt-notSupport');
+        title = displayTooltip += t('hmd-scan.txt-notSupport');
+        displayContent = t('hmd-scan.txt-notSupport');
       } else {
         if (val.result === 'eventTracingResult' && safetyData[0].TotalCnt >= 0) {
           displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
-          displayTooltip += t('network-inventory.txt-eventsLogCount');
+          displayTooltip += t('hmd-scan.txt-eventsLogCount');
           color = '#e15b6b';
         }
         if (safetyData[0].taskStatus === 'Complete') {
           if (val.name === 'GCB') {
             displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
-            displayTooltip += t('network-inventory.txt-passCount') + '/' + t('network-inventory.txt-totalItem');
+            displayTooltip += t('hmd-scan.txt-passCount') + '/' + t('hmd-scan.txt-totalItem');
             color = safetyData[0][val.pass] === safetyData[0].TotalCnt ? '#70c97e' : '#e15b6b';
           } else {
-            let text = t('network-inventory.txt-suspiciousFileCount');
+            let text = t('hmd-scan.txt-suspiciousFileCount');
 
             if (val.name === 'File Integrity') {
-              text = t('network-inventory.txt-modifiedFileCount');
+              text = t('hmd-scan.txt-modifiedFileCount');
             } else if (val.name === 'VANS') {
-              text = t('network-inventory.txt-VulnerabilityCount');
+              text = t('hmd-scan.txt-VulnerabilityCount');
             }
 
             displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
@@ -1761,9 +1763,9 @@ class HostController extends Component {
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('network-inventory.txt-triggerAll')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('network-inventory.txt-hmdDownload')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
                 </div>
 
                 <Menu

@@ -193,7 +193,7 @@ class HMDsettings extends Component {
 
     return (
       <div key={i} className='group'>
-        <label>{t('network-inventory.txt-' + val)}</label>
+        <label>{t('hmd-scan.txt-' + val)}</label>
         {activeContent === 'viewMode' && scanFiles[val].length > 0 &&
           <div className='flex-item'>{scanFiles[val].map(this.displayScanFile)}</div>
         }
@@ -302,7 +302,7 @@ class HMDsettings extends Component {
     return (
       <div className='parent-content'>
         <div className='main-content basic-form'>
-          <header className='main-header'>{t('network-inventory.txt-hmdSettings')}</header>
+          <header className='main-header'>{t('hmd-scan.txt-hmdSettings')}</header>
 
           {activeContent === 'viewMode' &&
             <div className='content-header-btns'>
@@ -315,13 +315,13 @@ class HMDsettings extends Component {
 
           <div className='hmd-settings'>
             <div className='form-group normal long'>
-              <header>{t('network-inventory.scan-list.txt-scanFile')}</header>
+              <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
               {MALWARE_DETECTION.map(this.showMalwarePath)}
             </div>
             <div className='form-group normal long'>
-              <header>{t('network-inventory.scan-list.txt-gcb')}</header>
+              <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
               <div className='group'>
-                <label>{t('network-inventory.txt-gcbVersion')}</label>
+                <label>{t('hmd-scan.txt-gcbVersion')}</label>
                 <RadioGroup
                   className='radio-group'
                   value={gcbVersion}
@@ -350,9 +350,9 @@ class HMDsettings extends Component {
             </div>
 
             <div className='form-group normal long'>
-              <header>{t('network-inventory.scan-list.txt-procMonitor')}</header>
+              <header>{t('hmd-scan.scan-list.txt-procMonitor')}</header>
               <div className='group'>
-                <label>{t('network-inventory.txt-learningInterval')}</label>
+                <label>{t('hmd-scan.txt-learningInterval')}</label>
                 <TextField
                   type='number'
                   variant='outlined'

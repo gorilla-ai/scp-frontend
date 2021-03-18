@@ -91,10 +91,10 @@ class AdConfig extends Component {
       		dataType: 'json'
 		})
 		.then(data => {
-			helper.showPopupMsg(c('network-inventory.auto-settings.txt-connectionsSuccess'));
+			helper.showPopupMsg(c('auto-settings.txt-connectionsSuccess'));
 		})
     	.catch(err => {
-    		helper.showPopupMsg(c('network-inventory.auto-settings.txt-connectionsFail'), c('txt-error'));
+    		helper.showPopupMsg(c('auto-settings.txt-connectionsFail'), c('txt-error'));
     	})
 	}
 
@@ -160,11 +160,11 @@ class AdConfig extends Component {
 						value={adConfig.domain} onChange={this.handleAdChange} />
 				</Grid>
 				<Grid item xs={4}>
-					<TextField name='adminAccount' label={c('network-inventory.auto-settings.txt-username')} variant='outlined' fullWidth size='small' 
+					<TextField name='adminAccount' label={c('auto-settings.txt-username')} variant='outlined' fullWidth size='small' 
 						value={adConfig.adminAccount} onChange={this.handleAdChange} />
 				</Grid>
 				<Grid item xs={4}>
-					<TextField name='adminPassword' label={c('network-inventory.auto-settings.txt-password')} variant='outlined' fullWidth size='small' type='password'
+					<TextField name='adminPassword' label={c('auto-settings.txt-password')} variant='outlined' fullWidth size='small' type='password'
 						value={adConfig.adminPassword} onChange={this.handleAdChange} />
 				</Grid>
 				<Grid item xs={2}>

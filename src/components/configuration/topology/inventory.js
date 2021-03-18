@@ -319,7 +319,7 @@ class NetworkInventory extends Component {
     }
 
     let apiArr = [{
-      url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?${dataParams}`,
       type: 'GET'
     }];
 
@@ -412,20 +412,7 @@ class NetworkInventory extends Component {
                   return allValue;
                 }
 
-                if (val === 'ip') {
-                  let iconType = '';
-                  let title = '';
-
-                  if (allValue.isConnected === true) {
-                    iconType = 'icon_connected_on';
-                    title = t('txt-online');
-                  } else if (allValue.isConnected === false) {
-                    iconType = 'icon_connected_off';
-                    title = t('txt-offline');
-                  }
-
-                  return <span><img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />{value}</span>
-                } else if (val === 'owner') {
+                if (val === 'owner') {
                   if (allValue.ownerObj) {
                     return <span>{allValue.ownerObj.ownerName}</span>
                   } else {
@@ -775,7 +762,7 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?ip=${ip}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?ip=${ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -900,7 +887,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?areaUUID=${areaUUID}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?areaUUID=${areaUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -1015,13 +1002,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, deviceSearch, formValidation} = this.state;
-    const connectionsStatus = [
-      {
-        name: t('txt-connected'),
-        checkBox: 'isConnected'
-      }
-    ];
+    const {showFilter, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1397,7 +1378,7 @@ class NetworkInventory extends Component {
 
     this.ah.all([
       {
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
         type: 'GET'
       },
       {
@@ -1489,7 +1470,7 @@ class NetworkInventory extends Component {
 
     if (type.length > 0 && options !== 'fromInventory') { //Get updated HMD data for scan info type
       apiArr.push({
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
         type: 'GET'
       });
     }
@@ -2204,7 +2185,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${addIP.ip}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?exactIp=${addIP.ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -3502,7 +3483,7 @@ class NetworkInventory extends Component {
       csvColumns,
       formValidation
     } = this.state;
-    const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    const backText = activeTab === 'deviceList' ? t('txt-backToList') : t('txt-backToMap')
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     const tableOptions = {
       onChangePage: (currentPage) => {

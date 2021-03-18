@@ -48,7 +48,7 @@ class IrSelections extends Component {
 
       return {
         value: val,
-        text: item + ' - ' + t('network-inventory.ir-list.txt-list' + item)
+        text: item + ' - ' + t('hmd-scan.ir-list.txt-list' + item)
       };
     });
 
@@ -166,7 +166,7 @@ class IrSelections extends Component {
     }
 
     const dropDownList = _.map(list, (val, i) => {
-      return <MenuItem key={i} value={val}>{t('network-inventory.ir-type.txt-' + val)}</MenuItem>
+      return <MenuItem key={i} value={val}>{t('hmd-scan.ir-type.txt-' + val)}</MenuItem>
     });
 
     return (
@@ -195,7 +195,7 @@ class IrSelections extends Component {
     this.props.triggerTask(this.state.irSelectedList);
   }
   render() {
-    const titleText = t('network-inventory.txt-itemSelection');
+    const titleText = t('hmd-scan.txt-itemSelection');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleSelectionIR},
       confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}

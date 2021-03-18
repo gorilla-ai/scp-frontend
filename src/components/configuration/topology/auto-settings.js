@@ -325,12 +325,12 @@ class AutoSettings extends Component {
           });
         });
       } else {
-        helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
+        helper.showPopupMsg(t('auto-settings.txt-connectionsFail'), t('txt-error'));
       }
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
+      helper.showPopupMsg(t('auto-settings.txt-connectionsFail'), t('txt-error'));
     })
   }
   /**
@@ -450,7 +450,7 @@ class AutoSettings extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
+      helper.showPopupMsg(t('auto-settings.txt-connectionsFail'), t('txt-error'));
     })
   }
   /**
@@ -620,7 +620,7 @@ class AutoSettings extends Component {
       deviceList,
       handleScannerTest: this.handleScannerTest
     };
-    const adFormTitle = adData.type === 'AD' ? t('network-inventory.auto-settings.txt-AD') : t('network-inventory.auto-settings.txt-LDAP');
+    const adFormTitle = adData.type === 'AD' ? t('auto-settings.txt-AD') : t('auto-settings.txt-LDAP');
 
     return (
       <div className='parent-content'>
@@ -638,7 +638,7 @@ class AutoSettings extends Component {
 
           <div className='auto-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
             <div className='form-group normal'>
-              <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
+              <header>{t('auto-settings.txt-ipRange')}</header>
               <div className='form-options'>
                 <FormControlLabel
                   className='toggle-btn'
@@ -689,7 +689,7 @@ class AutoSettings extends Component {
                       className='radio-ui'
                       color='primary' />
                   }
-                  label={t('network-inventory.auto-settings.txt-AD')}
+                  label={t('auto-settings.txt-AD')}
                   disabled={activeContent === 'viewMode'} />
                 <FormControlLabel
                   value='LDAP'
@@ -698,7 +698,7 @@ class AutoSettings extends Component {
                       className='radio-ui'
                       color='primary' />
                   }
-                  label={t('network-inventory.auto-settings.txt-LDAP')}
+                  label={t('auto-settings.txt-LDAP')}
                   disabled={activeContent === 'viewMode'} />
               </RadioGroup>
               <div className='form-options'>
@@ -761,7 +761,7 @@ class AutoSettings extends Component {
                 <TextField
                   id='autoSettingsUsername'
                   name='username'
-                  label={t('network-inventory.auto-settings.txt-username')}
+                  label={t('auto-settings.txt-username')}
                   variant='outlined'
                   fullWidth
                   size='small'
@@ -774,7 +774,7 @@ class AutoSettings extends Component {
                   id='autoSettingsPassword'
                   name='password'
                   type='password'
-                  label={t('network-inventory.auto-settings.txt-password')}
+                  label={t('auto-settings.txt-password')}
                   variant='outlined'
                   fullWidth
                   size='small'
@@ -785,7 +785,7 @@ class AutoSettings extends Component {
             </div>
 
             <div className='form-group normal' style={{display: 'none'}}>
-              <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
+              <header>{t('auto-settings.txt-netflow')}</header>
               <div className='form-options'>
                 <Button variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
@@ -818,7 +818,7 @@ class AutoSettings extends Component {
 
             {deviceList.length > 0 &&
               <div className='form-group normal'>
-                <header>{t('network-inventory.auto-settings.txt-scanner')}</header>
+                <header>{t('auto-settings.txt-scanner')}</header>
                 <div className='form-options'>
                   <FormControlLabel
                     className='toggle-btn'

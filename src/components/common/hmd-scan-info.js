@@ -222,7 +222,7 @@ class HMDscanInfo extends Component {
 
     _.forEach(SAFETY_SCAN_LIST, val => { //Create list for Button group
       if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
-        buttonGroupList.push(<ToggleButton value={val.type}>{t('network-inventory.scan-list.txt-' + val.type)}</ToggleButton>);
+        buttonGroupList.push(<ToggleButton value={val.type}>{t('hmd-scan.scan-list.txt-' + val.type)}</ToggleButton>);
       }
     });
 
@@ -756,7 +756,7 @@ class HMDscanInfo extends Component {
 
       if (info._ProcessInfo && info._ProcessInfo._ExecutableInfo[val].length > 0) {
         _.forEach(info._ProcessInfo._ExecutableInfo[val], val => {
-          signatureList = <ul className='signature-list padding'><li><span className='blue-color'>{t('network-inventory.signature._CertificateType')}</span>: {val._CertificateType}</li><li><span className='blue-color'>{t('network-inventory.signature._IssuerName')}</span>: {val._IssuerName}</li><li><span className='blue-color'>{t('network-inventory.signature._SerialNumber')}</span>: {val._SerialNumber}</li><li><span className='blue-color'>{t('network-inventory.signature._SubjectName')}</span>: {val._SubjectName}</li></ul>;
+          signatureList = <ul className='signature-list padding'><li><span className='blue-color'>{t('hmd-scan.signature._CertificateType')}</span>: {val._CertificateType}</li><li><span className='blue-color'>{t('hmd-scan.signature._IssuerName')}</span>: {val._IssuerName}</li><li><span className='blue-color'>{t('hmd-scan.signature._SerialNumber')}</span>: {val._SerialNumber}</li><li><span className='blue-color'>{t('hmd-scan.signature._SubjectName')}</span>: {val._SubjectName}</li></ul>;
         })
       }
 
@@ -765,7 +765,7 @@ class HMDscanInfo extends Component {
       }
     }
 
-    return <li key={val + i}><span className='blue-color'>{t('network-inventory.executable-list.txt-' + val)}</span>: {value || NOT_AVAILABLE}</li>
+    return <li key={val + i}><span className='blue-color'>{t('hmd-scan.executable-list.txt-' + val)}</span>: {value || NOT_AVAILABLE}</li>
   }
   /**
    * Display Executable Info for Process Monitor
@@ -887,7 +887,7 @@ class HMDscanInfo extends Component {
               <span>PID: {val._MatchedPid}</span>
             }
             {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
-              <i className='c-link fg fg-add' title={t('network-inventory.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
+              <i className='c-link fg fg-add' title={t('hmd-scan.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
             }
           </div>
         </div>
@@ -950,13 +950,13 @@ class HMDscanInfo extends Component {
    */
   confirmAddWhitelist = (fileMD5, ipType) => {
     PopupDialog.prompt({
-      title: t('network-inventory.txt-addWhiteList'),
+      title: t('hmd-scan.txt-addWhiteList'),
       id: 'modalWindowSmall',
       confirmText: t('txt-ok'),
       cancelText: t('txt-cancel'),
       display: (
         <div className='content'>
-          <span>{t('network-inventory.txt-confirmWhiteList')}?</span>
+          <span>{t('hmd-scan.txt-confirmWhiteList')}?</span>
         </div>
       ),
       act: (confirmed) => {
@@ -1036,10 +1036,10 @@ class HMDscanInfo extends Component {
             }
           </div>
           {val.hasHandled === false &&
-            <Button variant='outlined' color='primary' className='path-btn' onClick={this.confirmAddWhitelist.bind(this, val._FileInfo._HashValues._MD5, ipType)}>{t('network-inventory.txt-addWhiteList')}</Button>
+            <Button variant='outlined' color='primary' className='path-btn' onClick={this.confirmAddWhitelist.bind(this, val._FileInfo._HashValues._MD5, ipType)}>{t('hmd-scan.txt-addWhiteList')}</Button>
           }
           {val.hasHandled === true &&
-            <span className='normal-cursor'>{t('network-inventory.txt-addedWhiteList')}</span>
+            <span className='normal-cursor'>{t('hmd-scan.txt-addedWhiteList')}</span>
           }
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
@@ -1224,11 +1224,11 @@ class HMDscanInfo extends Component {
                 </tr>
               }
               <tr>
-                <td>{t('network-inventory.txt-publishedDate')}</td>
+                <td>{t('hmd-scan.txt-publishedDate')}</td>
                 <td>{helper.getFormattedDate(val.publishedDate, 'local')}</td>
               </tr>
               <tr>
-                <td>{t('network-inventory.txt-lastModifiedDate')}</td>
+                <td>{t('hmd-scan.txt-lastModifiedDate')}</td>
                 <td>{helper.getFormattedDate(val.lastModifiedDate, 'local')}</td>
               </tr>
             </tbody>
@@ -1298,7 +1298,7 @@ class HMDscanInfo extends Component {
     const count = this.state.activeTab === 'scanFile' ? totalCount : dataResult.length;
     const color = count === 0 ? '#22ac38' : '#d10d25'; //green : red
 
-    return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {helper.numberWithCommas(count)}</span>
+    return <span style={{color}}>{t('hmd-scan.txt-suspiciousFileCount')}: {helper.numberWithCommas(count)}</span>
   }
   /**
    * Display pass / total count info for GCB
@@ -1315,7 +1315,7 @@ class HMDscanInfo extends Component {
       if (gcbFilteredResult) {
         const color = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
 
-        return <span style={{color}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {helper.numberWithCommas(gcbFilteredResult.length)}/{helper.numberWithCommas(gcbDataResult.length)}</span>
+        return <span style={{color}}>{t('hmd-scan.txt-passCount')}/{t('hmd-scan.txt-totalItem')}: {helper.numberWithCommas(gcbFilteredResult.length)}/{helper.numberWithCommas(gcbDataResult.length)}</span>
       }
     }
   }
@@ -1364,7 +1364,7 @@ class HMDscanInfo extends Component {
   getTriggerBtnInfo = (type) => {
     const {ipType} = this.props;
     const {activeTab, hmdInfo} = this.state;
-    const btnText = activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
+    const btnText = activeTab === 'ir' ? t('hmd-scan.txt-reCompress') : t('hmd-scan.txt-reCheck');
     let currentTab = activeTab;
 
     if (type) { //Exceptions for Settings tab
@@ -1378,11 +1378,11 @@ class HMDscanInfo extends Component {
     return (
       <div className='info'>
         {activeTab !== 'settings' &&
-          <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</Button>
+          <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('hmd-scan.txt-refresh')}</Button>
         }
         <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
         <div className='last-update'>
-          <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
+          <span>{t('hmd-scan.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
         </div>
       </div>
     )
@@ -1490,7 +1490,7 @@ class HMDscanInfo extends Component {
     if (dataResult) {
       return (
         <div className='scan-content'>
-          <div className='header'>{t(`network-inventory.txt-${val}`)}</div>
+          <div className='header'>{t(`hmd-scan.txt-${val}`)}</div>
             {dataResult.length > 0 &&
               <div className='list'>
                 {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
@@ -1549,7 +1549,7 @@ class HMDscanInfo extends Component {
     let scanPath = '';
     let filePathList = [];
     let yaraRuleList = [];
-    let header = t('network-inventory.txt-suspiciousFilePath');    
+    let header = t('hmd-scan.txt-suspiciousFilePath');    
 
     if (!val.taskResponseDttm) {
       return;
@@ -1572,28 +1572,28 @@ class HMDscanInfo extends Component {
     } else if (activeTab === '_Vans') {
       dataResult = val.cpeInfoArray;
       scanPath = this.displayVansPath.bind(this, i);
-      header = t('network-inventory.txt-vulnerabilityInfo');
+      header = t('hmd-scan.txt-vulnerabilityInfo');
     }
 
     return (
       <div key={i} className='scan-section'>
         <div className='scan-header'>
-          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
-          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
+          <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
+          <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
-            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+            <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-taskFailure')}</span>
           }
           {val.taskStatus && val.taskStatus === 'NotSupport' &&
-            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+            <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}</span>
           }
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult, val.TotalCnt)
           }
           {activeTab === 'scanFile' && dataResult &&
-            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`network-inventory.txt-${malwareBtnType}File`)}</Button>
+            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}</Button>
           }
           {activeTab === '_Vans' && dataResult && dataResult.length > 0 &&
-            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>
+            <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-VulnerabilityCount')}: {dataResult.length}</span>
           }
         </div>
         {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor' || activeTab === '_Vans') &&
@@ -1611,7 +1611,7 @@ class HMDscanInfo extends Component {
         }
         {activeTab === 'yara' &&
           <div className='scan-content'>
-            <div className='header'>{t('network-inventory.txt-filePathList')}</div>
+            <div className='header'>{t('hmd-scan.txt-filePathList')}</div>
             {filePathList && filePathList.length > 0 &&
               <div className='list'>
                 {filePathList.map(this.displayFilePathList)}
@@ -1624,7 +1624,7 @@ class HMDscanInfo extends Component {
         }
         {activeTab === 'yara' &&
           <div className='scan-content'>
-            <div className='header'>{t('network-inventory.txt-yaraRules')}</div>
+            <div className='header'>{t('hmd-scan.txt-yaraRules')}</div>
             {yaraRuleList && yaraRuleList.length > 0 &&
               <div className='list'>
                 {yaraRuleList.map(this.displayYaraRuleList.bind(this, i))}
@@ -1710,13 +1710,13 @@ class HMDscanInfo extends Component {
       <div key={i} className='scan-section'>
         <div className='table'>
           <div className='scan-header'>
-            <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
-            <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
+            <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
+            <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
             {val.taskStatus && val.taskStatus === 'Failure' &&
-              <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+              <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-taskFailure')}</span>
             }
             {val.taskStatus && val.taskStatus === 'NotSupport' &&
-              <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+              <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}</span>
             }
             {activeTab === 'gcb' && (!val.taskStatus || val.taskStatus && val.taskStatus === 'Complete') &&
               this.getPassTotalCount()
@@ -1742,17 +1742,17 @@ class HMDscanInfo extends Component {
     return (
       <div key={i} className='scan-section'>
         <div className='scan-header'>
-          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
-          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
+          <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
+          <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
-            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+            <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-taskFailure')}</span>
           }
           {val.taskStatus && val.taskStatus === 'NotSupport' &&
-            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+            <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}</span>
           }
         </div>
         <div className='scan-content'>
-          <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          <div className='header'>{t('hmd-scan.txt-irMsg')}:</div>
           <div className='empty-msg'>{val._ZipPath || NOT_AVAILABLE}</div>
         </div>
       </div>
@@ -2002,7 +2002,7 @@ class HMDscanInfo extends Component {
         {settingsActiveContent === 'viewMode' &&
           this.getTriggerBtnInfo(val.type)
         }
-        <header>{t('network-inventory.scan-list.txt-' + val.type)} {t('txt-settings')}</header>
+        <header>{t('hmd-scan.scan-list.txt-' + val.type)} {t('txt-settings')}</header>
         <div className='settings-form'>
           {settingsActiveContent === 'viewMode' &&
             val.settings.map(this.viewSettingsPathContent.bind(this, val.type))
@@ -2176,15 +2176,15 @@ class HMDscanInfo extends Component {
         settings: [
           {
             type: 'includePath',
-            headerText: t('network-inventory.txt-includePath')
+            headerText: t('hmd-scan.txt-includePath')
           },
           {
             type: 'excludePath',
-            headerText: t('network-inventory.txt-excludePath')
+            headerText: t('hmd-scan.txt-excludePath')
           },
           {
             type: 'processKeyword',
-            headerText: t('network-inventory.txt-processKeyword')
+            headerText: t('hmd-scan.txt-processKeyword')
           }
         ]
       },
@@ -2193,7 +2193,7 @@ class HMDscanInfo extends Component {
         settings: [
           {
             type: 'includePath',
-            headerText: t('network-inventory.txt-includePath')
+            headerText: t('hmd-scan.txt-includePath')
           }
         ]
       }
@@ -2238,15 +2238,15 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('network-inventory.txt-refresh')}</Button>
+              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('hmd-scan.txt-refresh')}</Button>
               {settingsActiveContent === 'viewMode' &&
                 <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
               }
               {settingsActiveContent === 'editMode' &&
                 <div className='edit-btns'>
                   <Button variant='outlined' color='primary' className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-                  <Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</Button>
+                  <Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('hmd-scan.txt-saveSettings')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('hmd-scan.txt-restoreDefault')}</Button>
                 </div>
               }
               <div id='settingsWrapper' className='settings-wrapper'>
