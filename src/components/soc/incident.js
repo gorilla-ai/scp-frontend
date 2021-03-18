@@ -616,7 +616,7 @@ class Incident extends Component {
                         <header className='main-header'>{it('txt-incident')}</header>
                         <div className='content-header-btns'>
                             {activeContent === 'viewIncident' &&
-                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                             }
                             {_.size(incident.dataContent) > 0 &&
                             <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
@@ -783,7 +783,7 @@ class Incident extends Component {
             </header>
             {activeContent === 'viewIncident' &&
             <div className='content-header-btns'>
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
 
                 {editCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>

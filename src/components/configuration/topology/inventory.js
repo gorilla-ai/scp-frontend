@@ -41,8 +41,6 @@ import FileUpload from '../../common/file-upload'
 import FilterContent from '../../common/filter-content'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
-import HMDsettings from './hmd-settings'
-import HMDscanInfo from '../../common/hmd-scan-info'
 import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
 import MuiTableContent from '../../common/mui-table-content'
@@ -55,39 +53,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity', 'procMonitor', '_Vans'];
-const HMD_LIST = [
-  {
-    name: 'Yara Scan',
-    cmds: 'compareIOC',
-    checkBox: 'isScanProc'
-  },
-  {
-    name: 'Malware',
-    cmds: 'scanFile',
-    checkBox: 'isScanFile'
-  },
-  {
-    name: 'GCB',
-    cmds: 'gcbDetection',
-    checkBox: 'isGCB'
-  },
-  {
-    name: 'File Integrity',
-    cmds: 'getFileIntegrity',
-    checkBox: 'isFileIntegrity'
-  },
-  {
-    name: 'Process Monitor',
-    cmds: 'setProcessWhiteList',
-    checkBox: 'isProcessMonitor'
-  },
-  {
-    name: 'VANS',
-    cmds: 'getVans',
-    checkBox: 'isVans'
-  }
-];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -114,10 +79,8 @@ class NetworkInventory extends Component {
 
     this.state = {
       activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
-      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps', 'hmdSettings' or 'autoSettings'
+      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
       showFilter: false,
-      showScanInfo: false,
-      yaraRuleOpen: false,
       showSeatData: false,
       modalFloorOpen: false,
       modalIRopen: false,
@@ -138,18 +101,8 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
-      hmdCheckbox: false,
-      hmdSelectAll: false,
-      hmdSearchOptions: {
-        isScanProc: false,
-        isScanFile: false,
-        isGCB: false,
-        isFileIntegrity: false,
-        isProcessMonitor: false,
-        isVans: false
-      },
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
         dataFields: [],
         dataContent: [],
         ipListArr: [],
@@ -195,13 +148,6 @@ class NetworkInventory extends Component {
         coordX: '',
         coordY: ''
       },
-      eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
-        dataFields: {},
-        dataContent: [],
-        scrollCount: 1,
-        hasMore: false
-      },
       ownerType: 'existing', //'existing' or 'new'
       ownerIDduplicated: false,
       previewOwnerPic: '',
@@ -218,7 +164,6 @@ class NetworkInventory extends Component {
       floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
-      yaraTriggerAll: false,
       formValidation: {
         ip: {
           valid: true,
@@ -297,63 +242,13 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display individual scan info
-   * @method
-   * @param {object} val - scan info data
-   * @param {number} i - index of the hmdInfo array
-   * @returns HTML DOM
-   */
-  getHMDinfo = (val, i) => {
-    let color = '#d10d25'; //Default red color
-
-    if (!val.result) {
-      return;
-    }
-
-    if (val.result.taskStatus && val.result.taskStatus === 'Failure') {
-      return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-taskFailure')}</li>
-    }
-
-    if (val.result.taskStatus && val.result.taskStatus === 'NotSupport') {
-      return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-notSupport')}</li>
-    }
-
-    if (val.type === 'gcb' && val.result.TotalCnt >= 0 && val.result.PassCnt >= 0) {
-      if (val.result.TotalCnt === val.result.PassCnt) { //Show green color for all pass
-        color = '#22ac38';
-      }
-
-      return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.PassCnt}/{val.result.TotalCnt}</li>
-    } else {
-      if (val.result.TotalCnt >= 0) {
-        const totalCount = val.result.TotalCnt;
-        let color = '#22ac38'; //Default green color
-        let text = t('network-inventory.txt-suspiciousFileCount');
-
-        if (totalCount > 0) { //Show red color
-          color = '#d10d25';
-        }
-
-        if (val.type === 'fileIntegrity') {
-          text = t('network-inventory.txt-modifiedFileCount');
-        }
-
-        if (val.type === '_Vans') {
-          text = t('network-inventory.txt-vulnerabilityInfo');
-        }
-
-        return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
-      }
-    }
-  }
-  /**
    * Check table sort
    * @method
    * @param {string} field - table field name
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu', 'scanInfo'];
+    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];
 
     if (_.includes(unSortableFields, field)) {
       return false;
@@ -370,7 +265,7 @@ class NetworkInventory extends Component {
    */
   getDeviceData = (fromPage, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.context;
-    const {deviceSearch, hmdCheckbox, hmdSearchOptions, deviceData, currentDeviceData} = this.state;
+    const {deviceSearch, deviceData, currentDeviceData} = this.state;
     const page = fromPage === 'currentPage' ? deviceData.currentPage : 0;
     let dataParams = '';
 
@@ -383,16 +278,6 @@ class NetworkInventory extends Component {
       const pageSize = deviceData.pageSize;
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
-
-      if (hmdCheckbox) {
-        dataParams += 'isHmd=true';
-
-        _.forEach(hmdSearchOptions, (val, key) => {
-          if (val === true) {
-            dataParams += `&${key}=true`;
-          }
-        });
-      }
 
       dataParams += `&page=${page + 1}&pageSize=${pageSize}&orders=${orders}`;
 
@@ -434,7 +319,7 @@ class NetworkInventory extends Component {
     }
 
     let apiArr = [{
-      url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?${dataParams}`,
       type: 'GET'
     }];
 
@@ -456,7 +341,7 @@ class NetworkInventory extends Component {
         ipData = data[1].rt;
 
         if (data[0] && data[0].ret === 0) {
-          this.closeDialog('reload');
+          this.closeFloorDialog('reload');
         }
       } else {
         ipRt = data[0].ret;
@@ -527,20 +412,7 @@ class NetworkInventory extends Component {
                   return allValue;
                 }
 
-                if (val === 'ip') {
-                  let iconType = '';
-                  let title = '';
-
-                  if (allValue.isConnected === true) {
-                    iconType = 'icon_connected_on';
-                    title = t('txt-online');
-                  } else if (allValue.isConnected === false) {
-                    iconType = 'icon_connected_off';
-                    title = t('txt-offline');
-                  }
-
-                  return <span><img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />{value}</span>
-                } else if (val === 'owner') {
+                if (val === 'owner') {
                   if (allValue.ownerObj) {
                     return <span>{allValue.ownerObj.ownerName}</span>
                   } else {
@@ -554,38 +426,10 @@ class NetworkInventory extends Component {
                   if (allValue.seatObj) {
                     return <span>{allValue.seatObj.seatName}</span>
                   }
-                } else if (val === 'scanInfo') {
-                  let hmdInfo = [];
-
-                  _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                    const dataType = val + 'Result';  
-                    let currentDataObj = {};
-
-                    if (allValue.safetyScanInfo) {
-                      currentDataObj = allValue.safetyScanInfo[dataType];
-                    }
-
-                    if (!_.isEmpty(currentDataObj)) {
-                      hmdInfo.push({
-                        type: val,
-                        name: t('network-inventory.scan-list.txt-' + val),
-                        result: allValue.safetyScanInfo[dataType][0]
-                      });
-                    }
-                  })
-
-                  return (
-                    <ul>
-                      {hmdInfo.map(this.getHMDinfo)}
-                    </ul>
-                  )
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, dataIndex)} title={t('network-inventory.txt-viewDevice')}></i>
-                      {allValue.isHmd &&
-                        <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, dataIndex)} title={t('network-inventory.txt-viewHMD')}></i>
-                      }
+                      <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue)} title={t('network-inventory.txt-viewDevice')}></i>
                       <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                     </div>
                   )
@@ -811,9 +655,6 @@ class NetworkInventory extends Component {
           {currentDeviceData.ip &&
             <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
           }
-          {currentDeviceData.isHmd &&
-            <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('network-inventory.txt-viewHMD')}></i>
-          }
           {currentDeviceData.ip &&
             <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
           }
@@ -921,7 +762,7 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?ip=${ip}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?ip=${ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -1046,7 +887,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?areaUUID=${areaUUID}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?areaUUID=${areaUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -1143,15 +984,6 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Toggle HMD select all checkbox
-   * @method
-   */
-  toggleHMDcheckBox = () => {
-    this.setState({
-      hmdCheckbox: !this.state.hmdCheckbox
-    });
-  }  
-  /**
    * Handle filter input value change
    * @method
    * @param {object} event - event object
@@ -1165,97 +997,15 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Toggle HMD options
-   * @method
-   * @param {object} event - event object
-   */
-  toggleHMDoptions = (event) => {
-    const field = event.target.name;
-    const value = event.target.checked;
-    let tempHMDsearchOptions = {...this.state.hmdSearchOptions};
-    tempHMDsearchOptions[field] = value;
-
-    if (!value) {
-      this.setState({
-        hmdSelectAll: false
-      });
-    }
-
-    if (field === 'selectAll') {
-      this.setState({
-        hmdSelectAll: value,
-        hmdSearchOptions: {
-          isScanProc: value,
-          isScanFile: value,
-          isGCB: value,
-          isFileIntegrity: value,
-          isProcessMonitor: value,
-          isVans: value
-        }
-      });
-    } else {
-      this.setState({
-        hmdSearchOptions: tempHMDsearchOptions
-      }, () => {
-        const {hmdSearchOptions} = this.state;
-        let count = 0;
-
-        _.forEach(hmdSearchOptions, (val, key) => {
-          if (hmdSearchOptions[key]) {
-            count++;
-          }
-        })
-
-        if (count === _.size(hmdSearchOptions)) { //Checked for Select All
-          this.setState({
-            hmdSelectAll: true
-          });
-        }
-      });
-    }
-  }
-  /**
-   * Display HMD filter checkbox
-   * @method
-   * @param {string} val - individual HMD data
-   * @param {number} i - index of the HMD data
-   */
-  getHMDcheckbox = (val, i) => {
-    const {hmdCheckbox, hmdSearchOptions} = this.state;
-
-    return (
-      <div className='option'>
-        <FormControlLabel
-          label={val.name}
-          control={
-            <Checkbox
-              className='checkbox-ui'
-              name={val.checkBox}
-              checked={hmdSearchOptions[val.checkBox]}
-              onChange={this.toggleHMDoptions}
-              color='primary' />
-          }
-          disabled={!hmdCheckbox} />
-      </div>
-    )
-  }
-  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch, formValidation} = this.state;
-    const connectionsStatus = [
-      {
-        name: t('txt-connected'),
-        checkBox: 'isConnected'
-      }
-    ];
-    const hmeList = _.concat(HMD_LIST, connectionsStatus);
+    const {showFilter, deviceSearch} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': showFilter})} style={{minHeight : '220px'}}>
+      <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
@@ -1336,41 +1086,8 @@ class NetworkInventory extends Component {
               value={deviceSearch.seatName}
               onChange={this.handleDeviceSearch} />
           </div>
-          <div className='group last'>
-            <FormControlLabel
-              label='HMD'
-              control={
-                <Checkbox
-                  id='hmdCheckbox'
-                  className='checkbox-ui'
-                  name='selectAll'
-                  checked={hmdCheckbox}
-                  onChange={this.toggleHMDcheckBox}
-                  color='primary' />
-              } />
-          </div>
-
-          <div className='group group-checkbox'>
-            <div className='group-options'>
-              <div className='option'>
-                <FormControlLabel
-                  label={t('txt-selectAll')}
-                  control={
-                    <Checkbox
-                      id='hmdSelectAll'
-                      className='checkbox-ui'
-                      name='selectAll'
-                      checked={hmdSelectAll}
-                      onChange={this.toggleHMDoptions}
-                      color='primary' />
-                  }
-                  disabled={!hmdCheckbox} />
-              </div>
-              {hmeList.map(this.getHMDcheckbox)}
-            </div>
-          </div>
         </div>
-        <div className='button-group group-aligned'>
+        <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
@@ -1380,26 +1097,12 @@ class NetworkInventory extends Component {
   /**
    * Open table menu based on conditions
    * @method
-   * @param {string} type - content type ('view', 'hmd' or 'delete')
+   * @param {string} type - content type ('view' or 'delete')
    * @param {object} allValue - IP device data
-   * @param {string} index - index of the IP device data
    */
-  openMenu = (type, allValue, index) => {
+  openMenu = (type, allValue) => {
     if (type === 'view') {
       this.getOwnerSeat(allValue);
-    } else if (type === 'hmd') {
-      const {hmdCheckbox, deviceData} = this.state;
-
-      if (!hmdCheckbox) {
-        _.forEach(deviceData.hmdOnly.dataContent, (val, i) => {
-          if (val.ipDeviceUUID === allValue.ipDeviceUUID) {
-            index = i;
-            return false;
-          }
-        })
-      }
-
-      this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
     } else if (type === 'delete') {
       this.openDeleteDeviceModal(allValue);
     }
@@ -1675,7 +1378,7 @@ class NetworkInventory extends Component {
 
     this.ah.all([
       {
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
         type: 'GET'
       },
       {
@@ -1694,7 +1397,6 @@ class NetworkInventory extends Component {
           }
 
           this.setState({
-            showScanInfo: true,
             modalIRopen: false,
             deviceData: tempDeviceData,
             currentDeviceData: data[0],
@@ -1713,93 +1415,6 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Load Event Tracing data
-   * @method
-   * @param {number} [page] - page number
-   * @param {string} [ipDeviceID] - ipDeviceUUID
-   */
-  loadEventTracing = (page, ipDeviceID) => {
-    const {baseUrl} = this.context;
-    const {currentDeviceData, eventInfo} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/u1/log/event/_search?page=${page || eventInfo.scrollCount}&pageSize=20`,
-      data: JSON.stringify(this.getRequestData(ipDeviceID || currentDeviceData.ipDeviceUUID)),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setEventTracingData(data);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Set Event Tracing data
-   * @method
-   * @param {object} data - data from server response
-   */
-  setEventTracingData = (data) => {
-    const {eventInfo} = this.state;
-    let tempEventInfo = {...eventInfo};
-
-    if (data.data.rows.length > 0) {
-      const dataContent = data.data.rows.map(tempData => {
-        tempData.content.id = tempData.id;
-        return tempData.content;
-      });
-
-      eventInfo.dataFieldsArr.forEach(tempData => {
-        tempEventInfo.dataFields[tempData] = {
-          label: f(`logsFields.${tempData}`),
-          sortable: false,
-          formatter: (value, allValue) => {
-            if (tempData === '@timestamp') {
-              value = helper.getFormattedDate(value, 'local');
-            }
-            return <span>{value}</span>
-          }
-        };
-      })
-
-      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
-      tempEventInfo.scrollCount++;
-      tempEventInfo.hasMore = true;
-
-      this.setState({
-        eventInfo: tempEventInfo
-      });
-    } else {
-      tempEventInfo.hasMore = false;
-
-      this.setState({
-        eventInfo: tempEventInfo
-      });
-    }
-  }
-  /**
-   * Toggle yara rule modal dialog on/off
-   * @method
-   * @param {string} [value] - yara trigger flag ('true' or 'false')
-   */
-  toggleYaraRule = (value) => {
-    if (value) {
-      this.setState({
-        yaraTriggerAll: value === 'true'
-      });
-    }
-
-    this.setState({
-      yaraRuleOpen: !this.state.yaraRuleOpen
-    });
-
-    this.handleCloseMenu();
-  }
-  /**
    * Toggle IR combo selection dialog on/off
    * @method
    */
@@ -1807,34 +1422,6 @@ class NetworkInventory extends Component {
     this.setState({
       modalIRopen: !this.state.modalIRopen
     });
-  }
-  /**
-   * Check yara rule before submit for trigger
-   * @method
-   * @param {object} yaraRule - yara rule data
-   */
-  checkYaraRule = (yaraRule) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/compileYara`;
-    const requestData = {
-      _RuleString: yaraRule.rule
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.triggerTask(['compareIOC'], '', yaraRule);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Handle trigger button for HMD
@@ -1845,13 +1432,7 @@ class NetworkInventory extends Component {
    */
   triggerTask = (type, options, yaraRule) => {
     const {baseUrl} = this.context;
-    const {deviceData, currentDeviceData, yaraTriggerAll} = this.state;
-
-    if (yaraTriggerAll) {
-      this.triggerHmdAll(HMD_LIST[0], yaraRule);
-      return;
-    }
-
+    const {deviceData, currentDeviceData} = this.state;
     let requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       cmds: type
@@ -1889,7 +1470,7 @@ class NetworkInventory extends Component {
 
     if (type.length > 0 && options !== 'fromInventory') { //Get updated HMD data for scan info type
       apiArr.push({
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
         type: 'GET'
       });
     }
@@ -1900,10 +1481,6 @@ class NetworkInventory extends Component {
         if (data[0]) {
           helper.showPopupMsg(t('txt-requestSent'));
 
-          if (type[0] === 'compareIOC') {
-            this.toggleYaraRule();
-          }
-
           this.setState({
             modalIRopen: false
           });
@@ -1911,7 +1488,6 @@ class NetworkInventory extends Component {
 
         if (data[1]) {
           this.setState({
-            showScanInfo: true,
             modalIRopen: false,
             currentDeviceData: data[1],
             activeIPdeviceUUID: currentDeviceData.ipDeviceUUID
@@ -1925,192 +1501,12 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Handle trigger button for HMD Malware
-   * @method
-   * @param {array.<string>} filePath - Malware file path
-   * @param {string} taskId - Task ID
-   */
-  triggerFilesTask = (filePath, taskId) => {
-    const {baseUrl} = this.context;
-    const {currentDeviceData} = this.state;
-    const requestData = {
-      hostId: currentDeviceData.ipDeviceUUID,
-      cmds: ['getHmdFiles'],
-      paras: {
-        _FilepathVec: filePath,
-        _FileName: taskId
-      }
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/retrigger`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Handle malware add to white list
-   * @method
-   * @param {string} fileMD5 - File MD5
-   */
-  addToWhiteList = (fileMD5) => {
-    const {baseUrl} = this.context;
-    const {hostData} = this.props;
-    const requestData = [{
-      fileMD5,
-      hasHandled: true
-    }];
-
-    ah.one({
-      url: `${baseUrl}/api/hmd/malwareList`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        helper.showPopupMsg(t('txt-requestSent'));
-        this.getIPdeviceInfo();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Display device info and HMD scan results
-   * @method
-   * @returns HTML DOM
-   */
-  displayScanInfo = () => {
-    const {hmdCheckbox, deviceData, currentDeviceData, eventInfo} = this.state;
-    const ip = currentDeviceData.ip || NOT_AVAILABLE;
-    const mac = currentDeviceData.mac || NOT_AVAILABLE;
-    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
-    const system = currentDeviceData.system || NOT_AVAILABLE;
-    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
-    const version = currentDeviceData.version || NOT_AVAILABLE;
-    const firstItemCheck = deviceData.hmdOnly.currentIndex === 0;
-    const lastItemCheck = deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength;
-    const firstPageCheck = deviceData.currentPage === 0;
-    const lastPageCheck = deviceData.currentPage === Math.ceil(deviceData.totalCount / deviceData.pageSize);
-    let paginationDisabled = {};
-
-    if (hmdCheckbox) {
-      paginationDisabled.previous = firstItemCheck && firstPageCheck;
-      paginationDisabled.next = lastItemCheck && lastPageCheck;
-    } else {
-      paginationDisabled.previous = firstItemCheck;
-      paginationDisabled.next = lastItemCheck;
-    }
-
-    return (
-      <div>
-        <table className='c-table main-table align-center with-border'>
-          <thead>
-            <tr>
-              <th>{t('ipFields.ip')}</th>
-              <th>{t('ipFields.mac')}</th>
-              <th>{t('ipFields.hostName')}</th>
-              <th>{t('ipFields.system')}</th>
-              <th>{t('ipFields.owner')}</th>
-              <th>{t('ipFields.version')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className='align-center'>
-              <td>{ip}</td>
-              <td>{mac}</td>
-              <td>{hostName}</td>
-              <td>{system}</td>
-              <td>{ownerName}</td>
-              <td>{version}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <HMDscanInfo
-          page='inventory'
-          currentDeviceData={currentDeviceData}
-          eventInfo={eventInfo}
-          showAlertData={this.showAlertData}
-          toggleYaraRule={this.toggleYaraRule}
-          toggleSelectionIR={this.toggleSelectionIR}
-          triggerTask={this.triggerTask}
-          triggerFilesTask={this.triggerFilesTask}
-          addToWhiteList={this.addToWhiteList}
-          getHMDinfo={this.getIPdeviceInfo}
-          loadEventTracing={this.loadEventTracing} />
-
-        {deviceData.hmdOnly.currentLength > 0 &&
-          <div className='pagination'>
-            <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
-            </div>
-            <span className='count'>{deviceData.hmdOnly.currentIndex + 1} / {deviceData.hmdOnly.currentLength}</span>
-          </div>
-        }
-      </div>
-    )
-  }
-  /**
-   * Display HMD scan info content
-   * @method
-   * @returns HMDscanInfo component
-   */
-  showScanInfoDialog = () => {
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeScanInfoDialog}
-    };
-
-    return (
-      <ModalDialog
-        id='configScanModalDialog'
-        className='modal-dialog'
-        title={t('alert.txt-safetyScanInfo')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayScanInfo()}
-      </ModalDialog>
-    )
-  }
-  /**
-   * Close scan info dialog
-   * @method
-   */
-  closeScanInfoDialog = () => {
-    this.setState({
-      showScanInfo: false,
-      eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
-        dataFields: {},
-        dataContent: [],
-        scrollCount: 1,
-        hasMore: false
-      }
-    });
-  }
-  /**
-   * Close HMD scan info dialog
+   * Close floor map dialog
    * @method
    * @param {string} options - option for 'reload'
    * @param {string} page - page type for 'fromFloorMap'
    */
-  closeDialog = (options, page) => {
+  closeFloorDialog = (options, page) => {
     const {currentDeviceData, floorPlan} = this.state;
 
     if (page === 'fromFloorMap' && floorPlan.treeData[0]) {
@@ -2152,23 +1548,13 @@ class NetworkInventory extends Component {
         owner: '',
         areaName: '',
         seatName: ''
-      },
-      hmdCheckbox: false,
-      hmdSelectAll: false,
-      hmdSearchOptions: {
-        isScanProc: false,
-        isScanFile: false,
-        isGCB: false,
-        isFileIntegrity: false,
-        isProcessMonitor: false,
-        isVans: false
       }
     });
   }
   /**
    * Toggle Inventory content
    * @method
-   * @param {string} type - content type
+   * @param {string} type - content type ('showList', 'showData', 'showForm', 'showUpload', 'autoSettings' or 'cancel')
    * @param {string} formType - show form content type ('new' or 'edit')
    */
   toggleContent = (type, formType) => {
@@ -2222,7 +1608,7 @@ class NetworkInventory extends Component {
       });
     } else if (type === 'showList') {
       activeContent = 'tableList';
-    } else if (type === 'hmdSettings' || type === 'autoSettings') {
+    } else if (type === 'autoSettings') {
       activeContent = type;
     } else if (type === 'showData') {
       activeContent = 'dataInfo';
@@ -2326,81 +1712,9 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Handle trigger button for HMD trigger all
-   * @method
-   * @param {object} hmdObj - HMD object
-   * @param {object} [yaraRule] - yara rule data
-   */
-  triggerHmdAll = (hmdObj, yaraRule) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/retriggerAll`;
-    let requestData = {
-      cmds: [hmdObj.cmds]
-    };
-
-    if (hmdObj.cmds === 'compareIOC') {
-      let pathData = [];
-
-      _.forEach(yaraRule.pathData, val => {
-        if (val.path) {
-          pathData.push(val.path);
-        }
-      })
-
-      requestData.paras = {
-        _FilepathList: pathData,
-        _RuleString: yaraRule.rule
-      };
-    }
-
-    ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    }, {showProgress: false})
-    .then(data => {
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-
-    helper.showPopupMsg(t('txt-requestSent'));
-    this.handleCloseMenu();
-
-    if (hmdObj.cmds === 'compareIOC') {
-      this.toggleYaraRule('false');
-    }
-  }
-  /**
-   * Get HMD test menu
-   * @method
-   * @param {string} val - individual HMD data
-   * @param {number} i - index of the HMD data
-   */
-  getHMDmenu = (val, i) => {
-    if (val.cmds === 'compareIOC') {
-      return <MenuItem key={i} onClick={this.toggleYaraRule.bind(this, 'true')}>{val.name}</MenuItem>
-    } else {
-      return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, val)}>{val.name}</MenuItem>
-    }
-  }
-  /**
-   * Handle HMD download button
-   * @method
-   * @param {string} type - download type ('windows' or 'linux')
-   */
-  hmdDownload = (type) => {
-    const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
-    window.open(url, '_blank');
-    this.handleCloseMenu();
-  }
-  /**
    * Handle open menu
    * @method
-   * @param {string} type - menu type ('addIP' or 'download')
+   * @param {string} type - menu type ('addIP')
    * @param {object} event - event object
    */
   handleOpenMenu = (type, event) => {
@@ -2424,7 +1738,7 @@ class NetworkInventory extends Component {
    * @method
    * @param {object} file - file uploaded by the user
    */
-  parseFile = async (file) => {
+  parseCSVfile = async (file) => {
     if (file) {
       this.handleFileChange(file, await this.checkEncode(file));
     }
@@ -2573,7 +1887,7 @@ class NetworkInventory extends Component {
             id='csvFileInput'
             fileType='csv'
             btnText={t('txt-upload')}
-            handleFileChange={this.parseFile} />
+            handleFileChange={this.parseCSVfile} />
           <div className='csv-options'>
             <FormControlLabel
               label={t('network-inventory.txt-withHeader')}
@@ -2871,7 +2185,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${addIP.ip}`,
+      url: `${baseUrl}/api/v3/ipdevice/_search?exactIp=${addIP.ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -4142,8 +3456,6 @@ class NetworkInventory extends Component {
       activeTab,
       activeContent,
       showFilter,
-      showScanInfo,
-      yaraRuleOpen,
       showSeatData,
       modalFloorOpen,
       modalIRopen,
@@ -4171,7 +3483,7 @@ class NetworkInventory extends Component {
       csvColumns,
       formValidation
     } = this.state;
-    const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    const backText = activeTab === 'deviceList' ? t('txt-backToList') : t('txt-backToMap')
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -4221,16 +3533,6 @@ class NetworkInventory extends Component {
           this.showSeatDialog()
         }
 
-        {showScanInfo &&
-          this.showScanInfoDialog()
-        }
-
-        {yaraRuleOpen &&
-          <YaraRule
-            toggleYaraRule={this.toggleYaraRule}
-            checkYaraRule={this.checkYaraRule} />
-        }
-
         {addSeatOpen &&
           this.addSeatDialog()
         }
@@ -4241,7 +3543,7 @@ class NetworkInventory extends Component {
 
         {modalFloorOpen &&
           <FloorMap
-            closeDialog={this.closeDialog} />
+            closeFloorDialog={this.closeFloorDialog} />
         }
 
         {modalIRopen &&
@@ -4289,38 +3591,17 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, '')}>{t('network-inventory.txt-triggerAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
                 </div>
 
                 <Menu
                   anchorEl={contextAnchor}
                   keepMounted
-                  open={!menuType && Boolean(contextAnchor)}
-                  onClose={this.handleCloseMenu}>
-                  {HMD_LIST.map(this.getHMDmenu)}
-                </Menu>
-
-                <Menu
-                  anchorEl={contextAnchor}
-                  keepMounted
                   open={menuType && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>
-                  {menuType === 'addIP' &&
-                    <MenuItem onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
-                  }
-                  {menuType === 'addIP' &&
-                    <MenuItem onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
-                  }
-                  {menuType === 'download' &&
-                    <MenuItem onClick={this.hmdDownload.bind(this, 'windows')}>Windows</MenuItem>
-                  }
-                  {menuType === 'download' &&
-                    <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
-                  }
+                  <MenuItem onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
+                  <MenuItem onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
                 </Menu>
 
                 {activeTab === 'deviceList' && !showCsvData &&
@@ -4453,10 +3734,6 @@ class NetworkInventory extends Component {
 
           {activeContent === 'addIPsteps' &&
             this.displayAddIpSteps()
-          }
-
-          {activeContent === 'hmdSettings' &&
-            <HMDsettings />
           }
 
           {activeContent === 'autoSettings' &&
