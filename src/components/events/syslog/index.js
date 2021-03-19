@@ -1431,7 +1431,7 @@ class SyslogController extends Component {
     const firstItemCheck = currentTableIndex === 0;
     const lastItemCheck = currentTableIndex + 1 == currentLength;
     const firstPageCheck = syslogData.currentPage + 1 === 1;
-    const lastPageCheck = syslogData.currentPage === Math.ceil(syslogData.totalCount / syslogData.pageSize);
+    const lastPageCheck = syslogData.currentPage + 1 === Math.ceil(syslogData.totalCount / syslogData.pageSize);
     const pageText = {
       previous: t('txt-previous'),
       next: t('txt-next')
