@@ -70,6 +70,9 @@ class NetworkMap extends Component {
       modalFloorOpen: false,
       showSeatData: false,
       addSeatOpen: false,
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: '',
       currentDeviceData: {},
       floorPlan: {
         treeData: {},
@@ -193,8 +196,8 @@ class NetworkMap extends Component {
           floorPlan: tempFloorPlan
         }, () => {
           this.getAreaData(areaUUID);
-          this.getSeatData(areaUUID);
-          this.getDeviceData(areaUUID);
+          //this.getSeatData(areaUUID);
+          //this.getDeviceData(areaUUID);
         });
       }
       return null;
@@ -207,7 +210,6 @@ class NetworkMap extends Component {
    * Get and set floor plan area data
    * @method
    * @param {string} areaUUID - area UUID
-   * @param {string} option - option for 'setAreaUUID'
    */
   getAreaData = (areaUUID, option) => {
     const {baseUrl, contextRoot} = this.context;
@@ -248,31 +250,16 @@ class NetworkMap extends Component {
           [floorPlan]: currentMap
         };
 
-        if (option === 'setAreaUUID') {
-          const tempFloorPlan = this.state.floorPlan;
-          tempFloorPlan.currentAreaUUID = areaUUID;
-          tempFloorPlan.currentAreaName = areaName;
-
-          this.setState({
-            floorPlan: tempFloorPlan,
-            mapAreaUUID: floorPlan,
-            currentMap,
-            currentBaseLayers
-          }, () => {
-            this.getDeviceData(areaUUID);
-          });
-        } else {
-          this.setState({
-            mapAreaUUID: floorPlan,
-            currentMap,
-            currentBaseLayers
-          }, () => {
-            if (areaUUID) {
-              this.getSeatData(areaUUID);
-              this.getDeviceData(areaUUID);
-            }
-          });
-        }
+        this.setState({
+          mapAreaUUID: floorPlan,
+          currentMap,
+          currentBaseLayers
+        }, () => {
+          if (areaUUID) {
+            this.getSeatData(areaUUID);
+            //this.getDeviceData(areaUUID);
+          }
+        });
       }
       return null;
     })
@@ -283,7 +270,7 @@ class NetworkMap extends Component {
   /**
    * Get and set floor plan seat data
    * @method
-   * @param {string} areaUUID - area UUID
+   * @param {string} [areaUUID] - area UUID
    */
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
@@ -304,7 +291,7 @@ class NetworkMap extends Component {
     })
     .then(data => {
       if (data) {
-        const seatData = {};
+        let seatData = {};
         let seatListArr = [];
 
         _.forEach(data, val => {
@@ -330,6 +317,8 @@ class NetworkMap extends Component {
 
         this.setState({
           seatData
+        }, () => {
+          this.getDeviceData(area);
         });
       }
       return null;
@@ -357,28 +346,21 @@ class NetworkMap extends Component {
    * @returns device data for the data table
    */
   getDeviceData = (areaUUID) => {
-    const {baseUrl} = this.context;
-    const {device, floorPlan, search} = this.state;
-    let requestData = {};
-    let area = areaUUID || floorPlan.currentAreaUUID;
-
-    if (!area) {
-      return;
-    }
-
-    requestData = {
+    const {baseUrl, contextRoot} = this.context;
+    const {device, floorPlan, seatData, search} = this.state;
+    let requestData = {
+      areaUUID,
       page: device.currentPage,
       pageSize: device.pageSize
     };
 
-    if (area) {
-      requestData = {
-        ...requestData,
-        areaUUID: area
-      }
+    if (!areaUUID) {
+      return;
     }
-    
-    requestData.keyword = search.keyword;
+
+    if (search.keyword) {
+      requestData.keyword = search.keyword;
+    }
 
     if (search.system != 'all') {
       requestData.system = search.system;
@@ -423,8 +405,52 @@ class NetworkMap extends Component {
 
         tempDevice.dataFields = dataFields;
 
+        let deviceSeatData = {};
+        let seatListArr = [];
+        let uniqueSeatListArr = [];
+
+        _.forEach(data.rows, val => {
+          if (val.seatObj) {
+            seatListArr.push({
+              id: val.seatObj.seatUUID,
+              type: 'marker',
+              xy: [val.seatObj.coordX, val.seatObj.coordY],
+              icon: {
+                iconUrl: `${contextRoot}/images/icon_connected_on.png`,
+                iconSize: [25, 25],
+                iconAnchor: [12.5, 12.5]
+              },
+              label: val.seatObj.seatName,
+              data: {
+                name: val.seatObj.seatName
+              }
+            });
+          }
+        })
+
+        _.forEach(seatData[areaUUID].data, val => {
+          let duplicated = false;
+
+          _.forEach(seatListArr, val2 => {
+            if (val.id === val2.id) {
+              uniqueSeatListArr.push(val2);
+              duplicated = true;
+              return false;
+            }
+          })
+
+          if (!duplicated) {
+            uniqueSeatListArr.push(val);
+          }
+        })
+
+        deviceSeatData[areaUUID] = {
+          data: uniqueSeatListArr
+        };
+
         this.setState({
-          device: tempDevice
+          device: tempDevice,
+          seatData: deviceSeatData
         });
       }
       return null;
@@ -450,11 +476,12 @@ class NetworkMap extends Component {
     this.setState({
       modalFloorOpen: false,
       floorPlan: tempFloorPlan,
-      floorMapType: 'selected'
+      floorMapType: 'selected',
+      seatData: {}
     }, () => {
       this.getAreaData(areaUUID);
-      this.getSeatData(areaUUID);
-      this.getDeviceData(areaUUID);
+      //this.getSeatData(areaUUID);
+      //this.getDeviceData(areaUUID);
     });
   }
   /**
@@ -551,19 +578,6 @@ class NetworkMap extends Component {
     });
   }
   /**
-   * Handle add seat value change
-   * @method
-   * @param {string} event - event object
-   */
-  handleDataChange = (event) => {
-    let tempAddSeat = {...this.state.addSeat};
-    tempAddSeat[event.target.name] = event.target.value;
-
-    this.setState({
-      addSeat: tempAddSeat
-    });
-  }
-  /**
    * Display floor map management modal dialog
    * @method
    * @returns FloorMap component
@@ -643,8 +657,8 @@ class NetworkMap extends Component {
         this.setState({
           showSeatData: false
         }, () => {
-          this.getDeviceData();
           this.getSeatData();
+          //this.getDeviceData();
         })
       }
       return null;
@@ -662,6 +676,19 @@ class NetworkMap extends Component {
   handleSelectionChange = (seatUUID, eventInfo) => {
     this.setState({
       selectedSeat: seatUUID ? [seatUUID] : []
+    });
+  }
+  /**
+   * Handle add seat value change
+   * @method
+   * @param {string} event - event object
+   */
+  handleAddSeatChange = (event) => {
+    let tempAddSeat = {...this.state.addSeat};
+    tempAddSeat[event.target.name] = event.target.value;
+
+    this.setState({
+      addSeat: tempAddSeat
     });
   }
   /**
@@ -684,7 +711,7 @@ class NetworkMap extends Component {
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={addSeat.name}
-        onChange={this.handleDataChange} />
+        onChange={this.handleAddSeatChange} />
     )
   }
   /**
@@ -761,8 +788,8 @@ class NetworkMap extends Component {
             coordY: ''
           }
         }, () => {
-          this.getDeviceData();
           this.getSeatData();
+          //this.getDeviceData();
         });
       }
       return null;
@@ -816,7 +843,7 @@ class NetworkMap extends Component {
   handleFloorMapClick = (seatUUID, info) => {
     const {baseUrl} = this.context;
 
-    if (!seatUUID) { //Add new seat
+    if (!seatUUID) { //For adding a new seat
       let tempAddSeat = {...this.state.addSeat};
       tempAddSeat.coordX = Math.round(info.xy.x);
       tempAddSeat.coordY = Math.round(info.xy.y);
@@ -828,14 +855,21 @@ class NetworkMap extends Component {
       return;
     }
 
-    this.ah.one({
+    this.ah.one({ //For displaying seat info
       url: `${baseUrl}/api/v2/ipdevice/_search?seatUUID=${seatUUID}`,
       type: 'GET'
     })
     .then(data => {
       if (data.rows.length > 0) {
+        const allAssignedDeviceList = _.map(data.rows, (val, i) => {
+          return <MenuItem key={i} value={val.ip}>{val.ip}</MenuItem>
+        });
+
         this.setState({
           showSeatData: true,
+          allAssignedDeviceData: data.rows,
+          allAssignedDeviceList,
+          assignedDevice: data.rows[0].ip,
           currentDeviceData: data.rows[0]
         });
       } else {
@@ -848,12 +882,32 @@ class NetworkMap extends Component {
     });
   }
   /**
+   * Handle device dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceChange = (event) => {
+    let currentDeviceData = {};
+
+    _.forEach(this.state.allAssignedDeviceData, val => {
+      if (val.ip === event.target.value) {
+        currentDeviceData = val;
+        return false;
+      }
+    })
+
+    this.setState({
+      assignedDevice: event.target.value,
+      currentDeviceData
+    });
+  }
+  /**
    * Display seat info content
    * @method
    * @returns HTML DOM
    */
   displaySeatInfo = () => {
-    const {currentDeviceData} = this.state;
+    const {allAssignedDeviceList, assignedDevice, currentDeviceData} = this.state;
     const deviceInfo = {
       ip: currentDeviceData.ip || NOT_AVAILABLE,
       mac: currentDeviceData.mac || NOT_AVAILABLE,
@@ -863,6 +917,20 @@ class NetworkMap extends Component {
 
     return (
       <div>
+        {allAssignedDeviceList.length > 0 &&
+          <TextField
+            id='allAssignedDevice'
+            className='assigned-device'
+            name='assignedDevice'
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={assignedDevice}
+            onChange={this.handleDeviceChange}>
+            {allAssignedDeviceList}
+          </TextField>
+        }
         <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
         <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
         <div className='table-menu inventory active'>
@@ -905,6 +973,9 @@ class NetworkMap extends Component {
   closeSeatDialog = () => {
     this.setState({
       showSeatData: false,
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: '',
       currentDeviceData: {}
     });
   }
