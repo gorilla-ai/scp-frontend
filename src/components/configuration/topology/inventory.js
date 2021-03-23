@@ -3395,7 +3395,7 @@ class NetworkInventory extends Component {
     const url = `${baseUrl}/api/seat`;
     let currentAreaUUID = floorPlan.currentAreaUUID;
     let tempFormValidation = {...formValidation};
-    let validate = true;    
+    let validate = true;
 
     if (!changeAreaMap && currentDeviceData.areaUUID) {
       currentAreaUUID = currentDeviceData.areaUUID;

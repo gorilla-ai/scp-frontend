@@ -47,7 +47,26 @@ class HMDsettings extends Component {
       originalGcbVersion: '',
       gcbVersion: '',
       originalPmInterval: '',
-      pmInterval: 1
+      pmInterval: 1,
+      originalFtpIp: '',
+      ftpIp: '',
+      originalFtpUrl: '',
+      ftpUrl: '',
+      originalFtpAccount: '',
+      ftpAccount: '',
+      ftpPassword: '',
+      connectionsStatus: '',
+      formValidation: {
+        ip: {
+          valid: true
+        },
+        url: {
+          valid: true
+        },
+        account: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -67,7 +86,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -124,6 +143,27 @@ class HMDsettings extends Component {
             pmInterval: Number(data[3].value)
           });
         }
+
+        if (data[4] && data[4].value) {
+          this.setState({
+            originalFtpIp: _.cloneDeep(data[4].value),
+            ftpIp: data[4].value
+          });
+        }
+
+        if (data[5] && data[5].value) {
+          this.setState({
+            originalFtpUrl: _.cloneDeep(data[5].value),
+            ftpUrl: data[5].value
+          });
+        }
+
+        if (data[6] && data[6].value) {
+          this.setState({
+            originalFtpAccount: _.cloneDeep(data[6].value),
+            ftpAccount: data[6].value
+          });
+        }
       }
       return null;
     })
@@ -137,7 +177,14 @@ class HMDsettings extends Component {
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalScanFiles, originalGcbVersion, originalPmInterval} = this.state;
+    const {
+      originalScanFiles,
+      originalGcbVersion,
+      originalPmInterval,
+      originalFtpIp,
+      originalFtpUrl,
+      originalFtpAccount
+    } = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -149,8 +196,13 @@ class HMDsettings extends Component {
       this.setState({
         scanFiles: _.cloneDeep(originalScanFiles),
         gcbVersion: _.cloneDeep(originalGcbVersion),
-        pmInterval: _.cloneDeep(originalPmInterval)
+        pmInterval: _.cloneDeep(originalPmInterval),
+        ftpIp: _.cloneDeep(originalFtpIp),
+        ftpUrl: _.cloneDeep(originalFtpUrl),
+        ftpAccount: _.cloneDeep(originalFtpAccount)
       });
+
+      this.clearData();
     }
 
     this.setState({
@@ -214,10 +266,12 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
     _.forEach(scanFiles.includePath, val => {
       if (val.path) {
@@ -230,6 +284,35 @@ class HMDsettings extends Component {
         parsedExcludePath.push(val.path);
       }
     });
+
+    if (ftpIp) {
+      tempFormValidation.ip.valid = true;
+    } else {
+      tempFormValidation.ip.valid = false;
+      validate = false;
+    }
+
+    if (ftpUrl) {
+      tempFormValidation.url.valid = true;
+    } else {
+      tempFormValidation.url.valid = false;
+      validate = false;
+    }
+
+    if (ftpAccount) {
+      tempFormValidation.account.valid = true;
+    } else {
+      tempFormValidation.account.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     const scanType = [
       {
@@ -247,6 +330,18 @@ class HMDsettings extends Component {
       {
         type: 'hmd.setProcessWhiteList._MonitorSec',
         value: pmInterval.toString()
+      },
+      {
+        type: 'hmd.sftp.ip',
+        value: ftpIp
+      },
+      {
+        type: 'hmd.sftp.uploadPath',
+        value: ftpUrl
+      },
+      {
+        type: 'hmd.sftp.account',
+        value: ftpAccount
       }
     ];
     let apiArr = [];
@@ -265,16 +360,52 @@ class HMDsettings extends Component {
       });
     })
 
+    if (ftpPassword) {
+      const requestData = {
+        configId: 'hmd.sftp.passward',
+        value: ftpPassword
+      };
+
+      apiArr.push({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
+    }
+
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
         this.getSettingsInfo();
+        this.clearData();
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Clear validations data
+   * @method
+   */
+  clearData = () => {
+    this.setState({
+      ftpPassword: '',
+      connectionsStatus: '',
+      formValidation: {
+        ip: {
+          valid: true
+        },
+        url: {
+          valid: true
+        },
+        account: {
+          valid: true
+        }
+      }
+    });
   }
   /**
    * Handle GCB version change
@@ -293,11 +424,69 @@ class HMDsettings extends Component {
    */
   handleDataChange = (event) => {
     this.setState({
-      pmInterval: event.target.value
+      [event.target.name]: event.target.value
     });
   }
+  /**
+   * Handle check connections button
+   * @method
+   */
+  checkConnectionsStatus = () => {
+    const {baseUrl} = this.context;
+    const {ftpIp, ftpAccount, ftpPassword} = this.state;
+    const url = `${baseUrl}/api/hmd/isSftpConnected`;
+    const requestData = {
+      ip: ftpIp,
+      account: ftpAccount,
+      passward: ftpPassword
+    };
+
+    if (!ftpAccount || !ftpPassword) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-allRequired'));
+
+      this.setState({
+        connectionsStatus: ''
+      });
+      return;
+    }
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          connectionsStatus: data.rt
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
-    const {activeContent, gcbVersion, pmInterval} = this.state;
+    const {
+      activeContent,
+      gcbVersion,
+      pmInterval,
+      ftpIp,
+      ftpUrl,
+      ftpAccount,
+      ftpPassword,
+      connectionsStatus,
+      formValidation
+    } = this.state;
+    let msg = '';
+    let color = '';
+
+    if (connectionsStatus !== '') {
+      msg = connectionsStatus ? t('txt-success') : t('txt-fail');
+      color = connectionsStatus ? '#22ac38' : '#d10d25'; //green : red
+    }
 
     return (
       <div className='parent-content'>
@@ -313,7 +502,7 @@ class HMDsettings extends Component {
             </div>
           }
 
-          <div className='hmd-settings'>
+          <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>>
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
               {MALWARE_DETECTION.map(this.showMalwarePath)}
@@ -354,6 +543,8 @@ class HMDsettings extends Component {
               <div className='group'>
                 <label>{t('hmd-scan.txt-learningInterval')}</label>
                 <TextField
+                  id='hmdSettingsPmInterval'
+                  name='pmInterval'
                   type='number'
                   variant='outlined'
                   size='small'
@@ -362,6 +553,83 @@ class HMDsettings extends Component {
                   onChange={this.handleDataChange}
                   disabled={activeContent === 'viewMode'} />
               </div>
+            </div>
+
+            <div className='form-group normal long'>
+              <header>{t('hmd-scan.scan-list.txt-ftpUpload')}</header>
+              <div className='group'>
+                <label>IP</label>
+                {activeContent === 'viewMode' &&
+                  <div className='flex-item'><span>{ftpIp}</span></div>
+                }
+                {activeContent === 'editMode' &&
+                  <TextField
+                    id='hmdSettingsFtpIp'
+                    name='ftpIp'
+                    variant='outlined'
+                    size='small'
+                    required
+                    error={!formValidation.ip.valid}
+                    helperText={formValidation.ip.valid ? '' : t('txt-required')}
+                    value={ftpIp}
+                    onChange={this.handleDataChange} />
+                }
+              </div>
+              <div className='group'>
+                <label>URL</label>
+                {activeContent === 'viewMode' &&
+                  <div className='flex-item'><span>{ftpUrl}</span></div>
+                }
+                {activeContent === 'editMode' &&
+                  <TextField
+                    id='hmdSettingsFtpUrl'
+                    name='ftpUrl'
+                    className='full-field'
+                    variant='outlined'
+                    size='small'
+                    required
+                    error={!formValidation.url.valid}
+                    helperText={formValidation.url.valid ? '' : t('txt-required')}
+                    value={ftpUrl}
+                    onChange={this.handleDataChange} />
+                }
+              </div>
+              <div className='group'>
+                <label>{t('txt-account')}</label>
+                {activeContent === 'viewMode' &&
+                  <div className='flex-item'><span>{ftpAccount}</span></div>
+                }
+                {activeContent === 'editMode' &&
+                  <TextField
+                    id='hmdSettingsFtpAccount'
+                    name='ftpAccount'
+                    variant='outlined'
+                    size='small'
+                    required
+                    error={!formValidation.account.valid}
+                    helperText={formValidation.account.valid ? '' : t('txt-required')}
+                    value={ftpAccount}
+                    onChange={this.handleDataChange} />
+                }
+              </div>
+
+              {activeContent === 'editMode' &&
+                <div className='group'>
+                  <label>{t('txt-password')}</label>
+                  <TextField
+                    id='hmdSettingsFtpPassword'
+                    name='ftpPassword'
+                    type='password'
+                    variant='outlined'
+                    size='small'
+                    value={ftpPassword}
+                    onChange={this.handleDataChange} />
+                  <button id='hmdSettingsConnectionsCheck' className='connections-check' onClick={this.checkConnectionsStatus}>{t('hmd-scan.txt-checkConnections')}</button>
+                  {msg &&
+                    <span style={{color}}>{msg}</span>
+                  }
+                </div>
+              }
             </div>
           </div>
 

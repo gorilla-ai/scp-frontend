@@ -604,14 +604,16 @@
     "txt-includePathEmpty": "偵測路徑為必填",
     "txt-irMsg": "IR資料已上傳至",
     "txt-itemSelection": "電腦採證",
+    "txt-checkConnections": "連線驗證",
     "scan-list": {
       "txt-yara": "Yara Scan",
-      "txt-scanFile": "Malware",
+      "txt-scanFile": "惡意程式",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
       "txt-eventTracing": "Event Tracing",
       "txt-fileIntegrity": "File Integrity",
       "txt-procMonitor": "Process Monitor",
+      "txt-ftpUpload": "FTP上傳",
       "txt-_Vans": "VANS"
     },
     "ir-type": {

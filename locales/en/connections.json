@@ -604,6 +604,7 @@
     "txt-includePathEmpty": "Include Path is required",
     "txt-irMsg": "IR data has been uploaded to",
     "txt-itemSelection": "Select IR Set",
+    "txt-checkConnections": "Check connections",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
@@ -612,6 +613,7 @@
       "txt-eventTracing": "Event Tracing",
       "txt-fileIntegrity": "File Integrity",
       "txt-procMonitor": "Process Monitor",
+      "txt-ftpUpload": "FTP Upload",
       "txt-_Vans": "VANS"
     },
     "ir-type": {
