@@ -60,7 +60,10 @@ const MAPS_PRIVATE_DATA = {
   currentMap: '',
   currentBaseLayers: {},
   seatData: {},
-  deviceSeatData: {}
+  deviceSeatData: {},
+  allAssignedDeviceData: [],
+  allAssignedDeviceList: [],
+  assignedDevice: ''
 };
 
 let t = null;
@@ -341,7 +344,7 @@ class NetworkInventory extends Component {
         ipData = data[1].rt;
 
         if (data[0] && data[0].ret === 0) {
-          this.closeFloorDialog('reload');
+          this.closeDialog('reload');
         }
       } else {
         ipRt = data[0].ret;
@@ -355,7 +358,16 @@ class NetworkInventory extends Component {
           let currentDeviceData = {};
 
           if (ipData.counts > 0) {
+            const allAssignedDeviceList = _.map(ipData.rows, (val, i) => {
+              return <MenuItem key={i} value={val.ip}>{val.ip}</MenuItem>
+            });
             currentDeviceData = ipData.rows[0];
+
+            this.setState({
+              allAssignedDeviceData: ipData.rows,
+              allAssignedDeviceList,
+              assignedDevice: ipData.rows[0].ip
+            });
           }
 
           this.setState({
@@ -634,36 +646,73 @@ class NetworkInventory extends Component {
     })
   }
   /**
+   * Handle device dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceChange = (event) => {
+    let currentDeviceData = {};
+
+    _.forEach(this.state.allAssignedDeviceData, val => {
+      if (val.ip === event.target.value) {
+        currentDeviceData = val;
+        return false;
+      }
+    })
+
+    this.setState({
+      currentDeviceData,
+      assignedDevice: event.target.value
+    });
+  }
+  /**
    * Display owner seat content
    * @method
    * @returns HTML DOM
    */
   displaySeatInfo = () => {
-    const {currentDeviceData} = this.state;
-    const deviceInfo = {
-      ip: currentDeviceData.ip || NOT_AVAILABLE,
-      mac: currentDeviceData.mac || NOT_AVAILABLE,
-      hostName: currentDeviceData.hostName || NOT_AVAILABLE,
-      system: currentDeviceData.system || NOT_AVAILABLE
-    };
+    const {currentDeviceData, allAssignedDeviceList, assignedDevice} = this.state;
 
-    return (
-      <div>
-        <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
-        <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
-        <div className='table-menu inventory active'>
-          {currentDeviceData.ip &&
+    if (!_.isEmpty(currentDeviceData)) {
+      const deviceInfo = {
+        ip: currentDeviceData.ip,
+        mac: currentDeviceData.mac,
+        hostName: currentDeviceData.hostName,
+        system: currentDeviceData.system
+      };
+
+      return (
+        <div>
+          <TextField
+            id='allAssignedDevice'
+            className='assigned-device'
+            name='assignedDevice'
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={assignedDevice}
+            onChange={this.handleDeviceChange}>
+            {allAssignedDeviceList}
+          </TextField>
+          <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
+          <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
+          <div className='table-menu inventory active'>
             <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
-          }
-          {currentDeviceData.ip &&
             <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
-          }
+          </div>
+          <div className='main header'>{t('alert.txt-systemInfo')}</div>
+          <div>{t('ipFields.hostName')}: {deviceInfo.hostName}</div>
+          <div>{t('ipFields.system')}: {deviceInfo.system}</div>
         </div>
-        <div className='main header'>{t('alert.txt-systemInfo')}</div>
-        <div>{t('ipFields.hostName')}: {deviceInfo.hostName}</div>
-        <div>{t('ipFields.system')}: {deviceInfo.system}</div>
-      </div>
-    )
+      )
+    } else {
+      return (
+        <div>
+          <span>{t('network-inventory.txt-noDevice')}</span>
+        </div>
+      )
+    }
   }
   /**
    * Display owner seat modal dialog
@@ -671,6 +720,7 @@ class NetworkInventory extends Component {
    * @returns ModalDialog component
    */
   showSeatDialog = () => {
+    const {currentDeviceData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
@@ -679,6 +729,7 @@ class NetworkInventory extends Component {
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
+        title={currentDeviceData.seatObj.seatName}
         draggable={true}
         global={true}
         actions={actions}
@@ -688,12 +739,16 @@ class NetworkInventory extends Component {
     )
   }
   /**
-   * Close seat dialog
+   * Close seat dialog and reset seat data
    * @method
    */
   closeSeatDialog = () => {
     this.setState({
-      showSeatData: false
+      showSeatData: false,
+      currentDeviceData: {},
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: ''
     });
   }
   /**
@@ -813,7 +868,8 @@ class NetworkInventory extends Component {
       currentFloor
     }, () => {
       this.getAreaData(currentFloor);
-      this.getFloorDeviceData(currentFloor);
+      this.getDeviceSeatData(currentFloor);
+      //this.getFloorDeviceData(currentFloor);
       this.getInventoryEdit();
     });
   }
@@ -872,6 +928,63 @@ class NetworkInventory extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set seat data with or without device
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getDeviceSeatData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const area = areaUUID.trim() || this.state.floorPlan.currentAreaUUID;
+    const requestData = {
+      areaUUID: area
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/seat/_search?page=1&pageSize=30`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let deviceSeatData = {};
+        let seatListArr = [];
+
+        _.forEach(data.rows, val => {
+          let icon = 'ic_person';
+
+          if (!_.isEmpty(val.devices)) {
+            icon = 'icon_connected_on';
+          }
+
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/${icon}.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        deviceSeatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          deviceSeatData
+        });
+      }
+      return null;
     })
   }
   /**
@@ -1292,9 +1405,14 @@ class NetworkInventory extends Component {
    * @param {string} newTab - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
   handleSubTabChange = (event, newTab) => {
+    if (newTab === 'deviceLA') {
+      this.setState({
+        showFilter: false
+      });
+    }
+
     this.setState({
       activeTab: newTab,
-      showFilter: false,
       floorMapType: ''
     }, () => {
       if (newTab === 'deviceMap') {
@@ -1506,7 +1624,7 @@ class NetworkInventory extends Component {
    * @param {string} options - option for 'reload'
    * @param {string} page - page type for 'fromFloorMap'
    */
-  closeFloorDialog = (options, page) => {
+  closeDialog = (options, page) => {
     const {currentDeviceData, floorPlan} = this.state;
 
     if (page === 'fromFloorMap' && floorPlan.treeData[0]) {
@@ -1529,7 +1647,7 @@ class NetworkInventory extends Component {
           const {floorPlan} = this.state;
 
           this.getAreaData(floorPlan.currentAreaUUID);
-          this.getFloorDeviceData(floorPlan.currentAreaUUID);
+          this.getDeviceSeatData(floorPlan.currentAreaUUID);
         }
       }
     });
@@ -3182,7 +3300,7 @@ class NetworkInventory extends Component {
       this.getAreaData(areaUUID);
 
       if (type === 'deviceMap') {
-        this.getFloorDeviceData(areaUUID);
+        this.getDeviceSeatData(areaUUID);
       } else if (type === 'stepsFloor') {
         this.getSeatData(areaUUID);
       }
@@ -3543,7 +3661,7 @@ class NetworkInventory extends Component {
 
         {modalFloorOpen &&
           <FloorMap
-            closeFloorDialog={this.closeFloorDialog} />
+            closeDialog={this.closeDialog} />
         }
 
         {modalIRopen &&
@@ -3559,10 +3677,12 @@ class NetworkInventory extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {activeTab === 'deviceList' && activeContent === 'tableList' &&
+            {((activeTab === 'deviceList' && activeContent === 'tableList') || activeTab === 'deviceMap') &&
               <div>
                 <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
-                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+                {activeTab === 'deviceList' &&
+                  <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+                }
               </div>
             }
           </div>
@@ -3575,7 +3695,7 @@ class NetworkInventory extends Component {
 
           {activeContent === 'tableList' &&
             <div className='parent-content'>
-              {activeTab === 'deviceList' &&
+              {(activeTab === 'deviceList' || activeTab === 'deviceMap') &&
                 this.renderFilter()
               }
 
@@ -3593,6 +3713,9 @@ class NetworkInventory extends Component {
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
+                  {activeTab === 'deviceMap' &&
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
+                  }
                 </div>
 
                 <Menu
