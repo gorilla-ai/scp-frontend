@@ -33,7 +33,7 @@ let et = null;
 /**
  * Config Topology Map
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the floor map and table list
  */
 class NetworkMap extends Component {

@@ -32,7 +32,7 @@ let f = null;
 /**
  * Network Behavior Info
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Network Behavior information
  */
 class NetworkBehavior extends Component {

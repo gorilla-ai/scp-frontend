@@ -12,7 +12,7 @@ let t = null;
 /**
  * Table Cell
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to display formatted data in the table
  */
 class TableCell extends Component {

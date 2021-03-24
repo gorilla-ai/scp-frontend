@@ -13,7 +13,7 @@ let t = null;
 /**
  * Chart Content
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the chart
  */
 class ChartContent extends Component {

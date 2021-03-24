@@ -70,7 +70,7 @@ let et = null;
 /**
  * Network Topology Inventory
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Network Topology Inventory page
  */
 class NetworkInventory extends Component {

@@ -67,7 +67,7 @@ const CHARTS_LIST = [
 /**
  * Dashboard Statistics
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Dashboard Statistics
  */
 class DashboardStats extends Component {

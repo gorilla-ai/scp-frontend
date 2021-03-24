@@ -20,7 +20,7 @@ let et = null;
 /**
  * Search Options
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component for the search options in Alert and Events pages
  */
 class SearchOptions extends Component {

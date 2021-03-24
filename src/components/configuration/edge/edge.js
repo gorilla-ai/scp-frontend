@@ -53,7 +53,7 @@ let et = null;
 /**
  * Edge
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Config Edge page
  */
 class Edge extends Component {

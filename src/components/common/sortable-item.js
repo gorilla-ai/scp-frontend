@@ -20,7 +20,7 @@ const DragHandle = SortableHandle(() => <i className='fg fg-menu flow'></i>);
 /**
  * Sortable Item
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the list with sort functionality
  */
 class SortableItem extends Component {

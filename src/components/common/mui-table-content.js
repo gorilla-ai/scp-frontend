@@ -13,7 +13,7 @@ let t = null;
 /**
  * MUI Table Content
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the MUI table content
  */
 class MuiTableContent extends Component {

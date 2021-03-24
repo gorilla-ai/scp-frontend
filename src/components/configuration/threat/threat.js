@@ -38,7 +38,7 @@ const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 /**
  * Threat Intelligence
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Config Edge Threat Intelligence page
  */
 class ThreatIntelligence extends Component {

@@ -33,7 +33,7 @@ let f = null;
 /**
  * Host Analysis
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the host analysis information
  */
 class HostAnalysis extends Component {

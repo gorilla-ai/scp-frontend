@@ -73,7 +73,7 @@ const MAPS_PRIVATE_DATA = {
 /**
  * Dashboard Maps
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Dashboard Maps
  */
 class DashboardMaps extends Component {

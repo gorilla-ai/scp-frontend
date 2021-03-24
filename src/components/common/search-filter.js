@@ -10,7 +10,7 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 /**
  * Search Filter
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component for the search filter multi input (filter-input.js)
  */
 class SearchFilter extends Component {

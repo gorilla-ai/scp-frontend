@@ -11,7 +11,7 @@ import helper from './helper'
 /**
  * Search Filter
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component for the search mark multi input (mark-input.js)
  */
 class SearchMark extends Component {

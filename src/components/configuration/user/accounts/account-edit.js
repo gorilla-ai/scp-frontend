@@ -72,7 +72,7 @@ const INITIAL_STATE = {
 /**
  * AccountEdit
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show account edit form
  */
 class AccountEdit extends Component {

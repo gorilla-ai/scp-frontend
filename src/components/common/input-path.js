@@ -13,7 +13,7 @@ let et = null;
 /**
  * Input Path
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component for the input path
  */
 class InputPath extends Component {

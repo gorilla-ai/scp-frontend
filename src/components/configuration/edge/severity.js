@@ -35,7 +35,7 @@ const ALERT_LEVEL_COLORS = {
 /**
  * Severity
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Config Edge Severity table page
  */
 class Severity extends Component {

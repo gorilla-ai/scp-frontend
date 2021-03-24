@@ -21,7 +21,7 @@ let et = null;
 /**
  * Service Status
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Config service status page
  */
 class Status extends Component {

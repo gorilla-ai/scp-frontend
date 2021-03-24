@@ -34,7 +34,7 @@ const INITIAL_STATE = {
 /**
  * Account Privileges Add
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the account privileges add
  */
 class PrivilegeAdd extends Component {

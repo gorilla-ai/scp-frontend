@@ -26,7 +26,7 @@ let et = null;
 /**
  * Notifications
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Config Notifications page
  */
 class Notifications extends Component {

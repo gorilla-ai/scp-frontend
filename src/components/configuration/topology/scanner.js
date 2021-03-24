@@ -11,7 +11,7 @@ let t = null;
 /**
  * Config Inventory auto settings Scanner
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the scanner form
  */
 class Scanner extends Component {

@@ -23,7 +23,7 @@ let f = null;
 /**
  * Audit Log
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Audit Log page
  */
 class AuditLog extends Component {

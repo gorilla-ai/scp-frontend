@@ -37,7 +37,7 @@ const PERIOD_MIN = [10, 15, 30, 60];
 /**
  * Pattern
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Config Syslog Pattern page
  */
 class Pattern extends Component {

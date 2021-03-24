@@ -9,7 +9,7 @@ import searchMark from './search-mark'
 /**
  * Mark Input
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the individual mark input
  */
 class MarkInput extends Component {

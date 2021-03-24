@@ -8,7 +8,7 @@ import TextField from '@material-ui/core/TextField';
 /**
  * Config Inventory auto settings IP Range
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the IP range form
  */
 class IpRange extends Component {

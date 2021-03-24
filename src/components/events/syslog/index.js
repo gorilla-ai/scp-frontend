@@ -37,7 +37,7 @@ let et = null;
 /**
  * Syslog
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to handle the business logic for the syslog page
  */
 class SyslogController extends Component {

@@ -15,7 +15,7 @@ let t = null;
 /**
  * Data Chart
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to set the chart data and display chart related content
  */
 class DataChart extends Component {

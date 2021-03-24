@@ -19,7 +19,7 @@ import Tree from '../../common/tree'
 /**
  * Events Syslog
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Events Syslog
  */
 class Syslog extends Component {

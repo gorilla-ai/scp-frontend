@@ -15,7 +15,7 @@ let t = null;
 /**
  * Encode Decode service
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to provide service for text encode/decode
  */
 class EncodeDecode extends Component {

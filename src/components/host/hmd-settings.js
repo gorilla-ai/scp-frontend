@@ -26,7 +26,7 @@ let et = null;
 /**
  * Network Topology Inventory HMD Settings
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to manage auto settings
  */
 class HMDsettings extends Component {

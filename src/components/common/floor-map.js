@@ -23,7 +23,7 @@ let et = null;
 /**
  * Floor Map
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the floor map and its settings
  */
 class FloorMap extends Component {

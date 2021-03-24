@@ -43,7 +43,7 @@ let et = null;
 /**
  * Config Topology Department and Title management
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to manage department and title
  */
 class Manage extends Component {

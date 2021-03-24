@@ -12,7 +12,7 @@ import Tree from '../../../common/tree'
 /**
  * Events Netflow FTP
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Netflow FTP
  */
 class Ftp extends Component {

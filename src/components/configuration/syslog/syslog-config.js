@@ -15,7 +15,7 @@ let t = null;
 /**
  * Syslog Config
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Syslog Configuration page
  */
 class syslogConfig extends Component {

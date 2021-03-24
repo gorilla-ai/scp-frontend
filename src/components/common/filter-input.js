@@ -8,7 +8,7 @@ import SearchFilter from './search-filter'
 /**
  * Filter Input
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the individual filter input
  */
 class FilterInput extends Component {

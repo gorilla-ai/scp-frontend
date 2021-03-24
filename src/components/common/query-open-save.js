@@ -37,7 +37,7 @@ const PERIOD_MIN = [10, 15, 30, 60];
 /**
  * Query open/save
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the Query open/save menu
  */
 class QueryOpenSave extends Component {
