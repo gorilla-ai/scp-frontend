@@ -875,7 +875,7 @@
     "txt-hostIP": "主機IP",
     "txt-getLatest": "取得最新串流資料",
     "txt-customFieldName": "自訂欄位名稱",
-    "txt-lastStatusUpdate": "狀態更新時間",
+    "txt-lastUpdate": "狀態更新時間",
     "txt-editSyslog": "編輯系統日誌",
     "txt-eventDist": "日誌串流事件趨勢圖",
     "txt-viewEvents": "日誌串流事件",

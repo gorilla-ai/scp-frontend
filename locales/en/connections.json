@@ -875,7 +875,7 @@
     "txt-hostIP": "Host IP",
     "txt-getLatest": "Get Latest Input Text",
     "txt-customFieldName": "Custom Field Name",
-    "txt-lastStatusUpdate": "Last status update",
+    "txt-lastUpdate": "Last status update",
     "txt-editSyslog": "Edit Syslog",
     "txt-eventDist": " Event Distribution",
     "txt-viewEvents": "View Events",

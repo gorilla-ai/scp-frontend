@@ -34,7 +34,6 @@ let f = null;
 let et = null;
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const DEFAULT_SYSLOG = ['syslog', 'eventlog'];
 const DEFAULT_INPUT = 'streaming log sample';
 const DEFAULT_PATTERN = '%{GREEDYDATA}';
 const INIT_PATTERN_NAME = 'Pattern1';
@@ -250,7 +249,7 @@ class Syslog extends Component {
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className={this.getSyslogMenuClass(allValue)} onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
+                    <i className='fg fg-edit' onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
                     <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}></i>
                     <i className='fg fg-list' onClick={this.forwardSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
                     <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
@@ -589,19 +588,6 @@ class Syslog extends Component {
     });
   }
   /**
-   * Get syslog menu class name
-   * @method
-   * @param {object} allValue - syslog data
-   */
-  getSyslogMenuClass = (allValue) => {
-    let className = 'fg fg-edit';
-
-    if (_.includes(DEFAULT_SYSLOG, allValue.name)) {
-      className += ' not-allowed';
-    }
-    return className;
-  }
-  /**
    * Display list for pattern name
    * @method
    * @param {object} val - pattern data
@@ -700,7 +686,7 @@ class Syslog extends Component {
           <div className='title'>{t('syslogFields.txt-hostIP')}: {val.ip}</div>
           <span className='status'>Server {t('txt-status')}: <i className='fg fg-recode' style={{color: status.server.color}} title={status.server.title} /></span>
           <span className='status'>Netproxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
-          <span className='status'>Netproxy {t('syslogFields.txt-lastStatusUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
+          <span className='status'>Netproxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
         </header>
         <div className='content-header-btns'>
         </div>
@@ -767,15 +753,6 @@ class Syslog extends Component {
    */
   openSyslogV2 = (allValue) => {
     const {baseUrl} = this.context;
-
-    if (_.includes(DEFAULT_SYSLOG, allValue.name)) {
-      return null;
-    }
-
-    if (!allValue.id) { //Add new syslog
-      this.resetConfigValue();
-      return;
-    }
 
     if (allValue.patternSetting.length > 0) {
       this.setState({
