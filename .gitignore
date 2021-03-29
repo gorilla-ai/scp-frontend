@@ -3,3 +3,5 @@ node_modules/
 package-lock.json
 .eslintrc
 *.log
+src/components/dashboard/world-map.js
+src/components/configuration/topology/hmd-settings.js
