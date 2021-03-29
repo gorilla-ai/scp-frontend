@@ -673,6 +673,9 @@
   },
 
   "network-inventory": {
+    "txt-hmdSettings": "HMD Settings",
+    "txt-hmdDownload": "HMD $t(txt-download)",
+    "txt-triggerAll": "Trigger All (HMD)",
     "txt-deviceList": "Device List",
     "txt-deviceMap": "Device Map",
     "txt-deviceLA": "Network Topology",
@@ -691,6 +694,7 @@
     "txt-success": "Total success count",
     "txt-fail": "Total fail count",
     "txt-duplicatedIP": "IP already exists, please enter another IP",
+    "txt-noDevice": "No device is available",    
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view) $t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view) $t(alert.txt-safetyScanInfo)",

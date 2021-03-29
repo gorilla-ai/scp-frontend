@@ -694,6 +694,7 @@
     "txt-success": "上傳成功筆數",
     "txt-fail": "上傳失敗筆數",
     "txt-duplicatedIP": "IP已存在，請重新輸入",
+    "txt-noDevice": "此座位無裝置",
     "txt-editFloorMap": "$t(txt-edit)$t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view)$t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view)$t(alert.txt-safetyScanInfo)",

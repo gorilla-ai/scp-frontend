@@ -53,15 +53,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
-const MAPS_PRIVATE_DATA = {
-  floorList: [],
-  currentFloor: '',
-  mapAreaUUID: '',
-  currentMap: '',
-  currentBaseLayers: {},
-  seatData: {},
-  deviceSeatData: {}
-};
 
 let t = null;
 let f = null;
@@ -85,7 +76,7 @@ class NetworkInventory extends Component {
       modalFloorOpen: false,
       modalIRopen: false,
       addSeatOpen: false,
-      uplaodOpen: false,
+      uploadOpen: false,
       formTypeEdit: true,
       contextAnchor: null,
       menuType: '',
@@ -101,6 +92,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      deviceSearchArea: '',
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
         dataFields: [],
@@ -121,6 +113,16 @@ class NetworkInventory extends Component {
         }
       },
       currentDeviceData: {},
+      floorList: [],
+      mapAreaUUID: '',
+      currentMap: '',
+      currentBaseLayers: {},
+      currentSeatData: {},
+      originalSeatData: [],
+      deviceSeatData: {},
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: '',
       ownerList: [],
       ownerListDropDown: [],
       departmentList: [],
@@ -134,7 +136,7 @@ class NetworkInventory extends Component {
         name: '',
         map: ''
       },
-      alertInfo: {
+      ownerInfo: {
         ownerMap: {},
         ownerBaseLayers: {},
         ownerSeat: {}
@@ -196,8 +198,7 @@ class NetworkInventory extends Component {
         deviceType: {
           valid: true
         }
-      },
-      ..._.cloneDeep(MAPS_PRIVATE_DATA)
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -211,13 +212,13 @@ class NetworkInventory extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
-      this.getDeviceData();
-    }
-
     this.getLAconfig();
     this.getOwnerData();
     this.getOtherData();
+
+    if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
+      this.getDeviceData();
+    }
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
@@ -240,6 +241,419 @@ class NetworkInventory extends Component {
       }
       return null;
     });
+  }
+  /**
+   * Get and set owner data
+   * @method
+   */
+  getOwnerData = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/owner/_search`;
+    const requestData = {
+      sort: 'ownerID',
+      order: 'asc'
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          let ownerList = _.map(data.rows, val => {
+            return {
+              value: val.ownerUUID,
+              text: val.ownerName
+            };
+          });
+          ownerList = _.orderBy(ownerList, ['text'], ['asc']);
+
+          let ownerListDropDown = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          ownerListDropDown = _.map(ownerListDropDown, (val, i) => {
+            return <MenuItem key={i} value={val.ownerUUID}>{val.ownerName}</MenuItem>
+          });
+
+          this.setState({
+            ownerList,
+            ownerListDropDown
+          });
+        } else {
+          this.setState({
+            ownerType: 'new'
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set Department and Title data
+   * @param {string} options - option for calling type
+   * @method
+   */
+  getOtherData = (options) => {
+    const {baseUrl} = this.context;
+    const apiNameType = [1, 2]; //1: Department, 2: Title
+    let apiArr = [];
+
+    _.forEach(apiNameType, val => {
+      const requestData = {
+        nameType: val
+      };
+
+      apiArr.push({
+        url: `${baseUrl}/api/name/_search`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'application/json'
+      });
+    })
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        let departmentList = [];
+        let titleList = [];
+        let tempAddIP = {...this.state.addIP};
+
+        if (data[0].length > 0) {
+          departmentList = _.map(data[0], (val, i) => {
+            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
+          });
+          tempAddIP.newDepartment = departmentList[0].value;
+        } else {
+          tempAddIP.newDepartment = '';
+        }
+
+        if (data[1].length > 0) {
+          titleList = _.map(data[1], (val, i) => {
+            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
+          });
+          tempAddIP.newTitle = titleList[0].value;
+        } else {
+          tempAddIP.newTitle = '';
+        }
+
+        this.setState({
+          departmentList,
+          titleList,
+          addIP: tempAddIP
+        });
+
+        this.getFloorPlan(options);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set floor plan data
+   * @param {string} options - option for calling type
+   * @method
+   */
+  getFloorPlan = (options) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data && data.length > 0) {
+        const floorPlanData = data[0];
+        const floorPlan = {
+          treeData: data,
+          currentAreaUUID: floorPlanData.areaUUID,
+          currentAreaName: floorPlanData.areaName
+        };
+
+        this.setState({
+          floorPlan
+        }, () => {
+          this.getFloorList();
+        });
+      } else {
+        this.getInventoryEdit(options);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set floor list data
+   * @method
+   * @param {string} [options] - option for 'loadDefault'
+   */
+  getFloorList = (options) => {
+    const {deviceSearch, floorPlan} = this.state;
+    let floorList = [];
+
+    _.forEach(floorPlan.treeData, val => {
+      helper.floorPlanRecursive(val, obj => {
+        floorList.push({
+          value: obj.areaUUID,
+          text: obj.areaName
+        });
+      });
+    })
+
+    this.setState({
+      floorList
+    }, () => {
+      if (options === 'loadDefault' || !deviceSearch.areaName) {
+        this.setState({
+          deviceSearchArea: '',
+          floorMapType: ''
+        });
+        this.getAreaData(floorList[0].value);
+        this.getDeviceSeatData(floorList[0].value);
+      } else {
+        this.getDeviceSearchArea(deviceSearch.areaName);
+      }
+
+      this.getInventoryEdit();
+    });
+  }
+  /**
+   * Get and set device search area
+   * @method
+   * @param {string} areaName - area UUID
+   */
+  getDeviceSearchArea = (areaName) => {
+    const {baseUrl, contextRoot} = this.context;
+    const requestData = {
+      areaName
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.length > 0) {
+          this.setState({
+            deviceSearchArea: data[0].areaUUID
+          });
+
+          this.getAreaData(data[0].areaUUID);
+          this.getDeviceSeatData(data[0].areaUUID);
+        } else {
+          this.getFloorList('loadDefault');
+        }
+      }
+      return null;
+    })
+  }
+  /**
+   * Get and set individual floor area data
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getAreaData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch} = this.state;
+    const mapAreaUUID = areaUUID.trim();
+
+    this.ah.one({
+      url: `${baseUrl}/api/area?uuid=${mapAreaUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = {};
+
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
+
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [mapAreaUUID]: currentMap
+        };
+
+        this.setState({
+          mapAreaUUID,
+          currentMap,
+          currentBaseLayers
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set seat data with or without device
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getDeviceSeatData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {activeTab, deviceSearch} = this.state;
+    const area = areaUUID || this.state.floorPlan.currentAreaUUID;
+    let requestData = {
+      areaUUID: area
+    };
+
+    if (!_.isEmpty(deviceSearch)) {
+      if (deviceSearch.ip) {
+        requestData.ip = deviceSearch.ip;
+      }
+
+      if (deviceSearch.mac) {
+        requestData.mac = deviceSearch.mac;
+      }
+
+      if (deviceSearch.hostName) {
+        requestData.hostName = deviceSearch.hostName;
+      }
+
+      if (deviceSearch.system) {
+        requestData.system = deviceSearch.system;
+      }
+
+      if (deviceSearch.owner) {
+        requestData.ownerName = deviceSearch.owner;
+      }
+
+      if (deviceSearch.areaName) {
+        requestData.areaName = deviceSearch.areaName;
+      }
+
+      if (deviceSearch.seatName) {
+        requestData.seatName = deviceSearch.seatName;
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/seat/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let deviceSeatData = {};
+        let seatListArr = [];
+
+        _.forEach(data.rows, val => {
+          let icon = 'ic_person';
+
+          if (activeTab === 'deviceMap' && !_.isEmpty(val.devices)) {
+            icon = 'ic_person_device';
+          }
+
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/${icon}.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        deviceSeatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          originalSeatData: data.rows,
+          deviceSeatData
+        });
+      }
+      return null;
+    })
+  }
+  /**
+   * Toggle content to show edit page
+   * @param {string} [options] - option for calling type
+   * @method
+   */
+  getInventoryEdit = (options) => {
+    const inventoryParam = queryString.parse(location.search);
+    const type = inventoryParam.type;
+    const ip = inventoryParam.ip;
+
+    if (type) {
+      if (type === 'add') {
+        this.toggleContent('showForm', 'new');
+      } else if (type === 'edit' && ip) {
+        this.getSingleDeviceData(ip);
+      }
+    } else {
+      if (options === 'deviceMap') {
+        helper.showPopupMsg(t('txt-notFound')); //Show not found message
+      }
+    }
+  }
+  /**
+   * Get single device data from URL parameter
+   * @param {string} ip - IP from page redirect
+   * @method
+   */
+  getSingleDeviceData = (ip) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/v3/ipdevice/_search?ip=${ip}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let currentDeviceData = {
+          ip
+        };
+
+        if (data.counts > 0) {
+          currentDeviceData = data.rows[0];
+        }
+
+        this.setState({
+          currentDeviceData
+        }, () => {
+          this.toggleContent('showForm', 'edit');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Check table sort
@@ -265,56 +679,49 @@ class NetworkInventory extends Component {
    */
   getDeviceData = (fromPage, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.context;
-    const {deviceSearch, deviceData, currentDeviceData} = this.state;
+    const {deviceSearch, deviceData, currentDeviceData, originalSeatData} = this.state;
     const page = fromPage === 'currentPage' ? deviceData.currentPage : 0;
     let dataParams = '';
 
     if (options === 'oneSeat') {
-      if (!seatUUID) {
-        return;
-      }
       dataParams += `&seatUUID=${seatUUID}`;
+    } else if (options === 'delete' && !currentDeviceData.ipDeviceUUID) {
+      return;
     } else {
       const pageSize = deviceData.pageSize;
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
 
       dataParams += `&page=${page + 1}&pageSize=${pageSize}&orders=${orders}`;
+    }
 
-      if (!_.isEmpty(deviceSearch)) {
-        if (deviceSearch.ip) {
-          dataParams += `&ip=${deviceSearch.ip}`;
-        }
-
-        if (deviceSearch.mac) {
-          dataParams += `&mac=${deviceSearch.mac}`;
-        }
-
-        if (deviceSearch.hostName) {
-          dataParams += `&hostName=${deviceSearch.hostName}`;
-        }
-
-        if (deviceSearch.system) {
-          dataParams += `&system=${deviceSearch.system}`;
-        }
-
-        if (deviceSearch.owner) {
-          dataParams += `&ownerName=${deviceSearch.owner}`;
-        }
-
-        if (deviceSearch.areaName) {
-          dataParams += `&areaName=${deviceSearch.areaName}`;
-        }
-
-        if (deviceSearch.seatName) {
-          dataParams += `&seatName=${deviceSearch.seatName}`;
-        }
+    if (!_.isEmpty(deviceSearch)) {
+      if (deviceSearch.ip) {
+        dataParams += `&ip=${deviceSearch.ip}`;
       }
 
-      if (options === 'delete') {
-        if (!currentDeviceData.ipDeviceUUID) {
-          return;
-        }
+      if (deviceSearch.mac) {
+        dataParams += `&mac=${deviceSearch.mac}`;
+      }
+
+      if (deviceSearch.hostName) {
+        dataParams += `&hostName=${deviceSearch.hostName}`;
+      }
+
+      if (deviceSearch.system) {
+        dataParams += `&system=${deviceSearch.system}`;
+      }
+
+      if (deviceSearch.owner) {
+        dataParams += `&ownerName=${deviceSearch.owner}`;
+      }
+
+      if (deviceSearch.areaName) {
+        dataParams += `&areaName=${deviceSearch.areaName}`;
+      }
+
+      if (deviceSearch.seatName) {
+        dataParams += `&seatName=${deviceSearch.seatName}`;
       }
     }
 
@@ -352,14 +759,31 @@ class NetworkInventory extends Component {
         let tempDeviceData = {...deviceData};
 
         if (options === 'oneSeat') {
+          let currentSeatData = {};
           let currentDeviceData = {};
 
           if (ipData.counts > 0) {
+            const allAssignedDeviceList = _.map(ipData.rows, (val, i) => {
+              return <MenuItem key={i} value={val.ip}>{val.ip}</MenuItem>
+            });
             currentDeviceData = ipData.rows[0];
+
+            this.setState({
+              allAssignedDeviceData: ipData.rows,
+              allAssignedDeviceList,
+              assignedDevice: ipData.rows[0].ip
+            });
+          } else {
+            _.forEach(originalSeatData, val => {
+              if (val.seatUUID === seatUUID) {
+                currentSeatData = val;
+              }
+            })
           }
 
           this.setState({
             showSeatData: true,
+            currentSeatData,
             currentDeviceData
           });
           return null;
@@ -429,8 +853,8 @@ class NetworkInventory extends Component {
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue)} title={t('network-inventory.txt-viewDevice')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                      <i className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                     </div>
                   )
                 } else {
@@ -470,56 +894,6 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Get and set owner data
-   * @method
-   */
-  getOwnerData = () => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/owner/_search`;
-    const requestData = {
-      sort: 'ownerID',
-      order: 'asc'
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        if (data.rows.length > 0) {
-          let ownerList = _.map(data.rows, val => {
-            return {
-              value: val.ownerUUID,
-              text: val.ownerName
-            };
-          });
-          ownerList = _.orderBy(ownerList, ['text'], ['asc']);
-
-          let ownerListDropDown = _.orderBy(data.rows, ['ownerName'], ['asc']);
-          ownerListDropDown = _.map(ownerListDropDown, (val, i) => {
-            return <MenuItem key={i} value={val.ownerUUID}>{val.ownerName}</MenuItem>
-          });
-
-          this.setState({
-            ownerList,
-            ownerListDropDown
-          });
-        } else {
-          this.setState({
-            ownerType: 'new'
-          });
-        }
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Handle CSV download
    * @method
    */
@@ -540,98 +914,24 @@ class NetworkInventory extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
-   * Get and set Department and Title data
-   * @param {string} options - option for calling type
+   * Handle device dropdown change
    * @method
+   * @param {object} event - event object
    */
-  getOtherData = (options) => {
-    const {baseUrl} = this.context;
-    const apiNameType = [1, 2]; //1: Department, 2: Title
-    let apiArr = [];
+  handleDeviceChange = (event) => {
+    let currentDeviceData = {};
 
-    _.forEach(apiNameType, val => {
-      const requestData = {
-        nameType: val
-      };
-
-      apiArr.push({
-        url: `${baseUrl}/api/name/_search`,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'application/json'
-      });
-    })
-
-    this.ah.all(apiArr)
-    .then(data => {
-      if (data) {
-        let departmentList = [];
-        let titleList = [];
-        let tempAddIP = {...this.state.addIP};
-
-        if (data[0].length > 0) {
-          departmentList = _.map(data[0], (val, i) => {
-            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
-          });
-          tempAddIP.newDepartment = departmentList[0].value;
-        } else {
-          tempAddIP.newDepartment = '';
-        }
-
-        if (data[1].length > 0) {
-          titleList = _.map(data[1], (val, i) => {
-            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
-          });
-          tempAddIP.newTitle = titleList[0].value;
-        } else {
-          tempAddIP.newTitle = '';
-        }
-
-        this.setState({
-          departmentList,
-          titleList,
-          addIP: tempAddIP
-        });
-
-        this.getFloorPlan(options);
+    _.forEach(this.state.allAssignedDeviceData, val => {
+      if (val.ip === event.target.value) {
+        currentDeviceData = val;
+        return false;
       }
-      return null;
     })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set link analysis data
-   * @method
-   */
-  loadLinkAnalysis = () => {
-    const {baseUrl} = this.context;
 
-    this.ah.one({
-      url: `${baseUrl}/api/ipdevice/la`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let deviceEventsData = {};
-
-        _.forEach(data, val => {
-          deviceEventsData[val.id] = val.content;
-        })
-
-        this.setState({
-          deviceEventsData,
-          deviceLAdata: analyze(deviceEventsData, this.state.LAconfig, {analyzeGis: false})
-        });
-      } else {
-        helper.showPopupMsg(t('txt-notFound'));
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    this.setState({
+      currentDeviceData,
+      assignedDevice: event.target.value
+    });
   }
   /**
    * Display owner seat content
@@ -639,31 +939,53 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displaySeatInfo = () => {
-    const {currentDeviceData} = this.state;
-    const deviceInfo = {
-      ip: currentDeviceData.ip || NOT_AVAILABLE,
-      mac: currentDeviceData.mac || NOT_AVAILABLE,
-      hostName: currentDeviceData.hostName || NOT_AVAILABLE,
-      system: currentDeviceData.system || NOT_AVAILABLE
-    };
+    const {currentDeviceData, currentSeatData, allAssignedDeviceList, assignedDevice} = this.state;
 
-    return (
-      <div>
-        <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
-        <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
-        <div className='table-menu inventory active'>
-          {currentDeviceData.ip &&
-            <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
-          }
-          {currentDeviceData.ip &&
-            <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
-          }
+    if (!_.isEmpty(currentSeatData)) {
+      return (
+        <div>
+          <div>{t('network-inventory.txt-noDevice')}</div>
+          <div className='table-menu inventory active'>
+            <i className='fg fg-trashcan' onClick={this.openDeleteSeatModal} title={t('network-topology.txt-deleteSeat')}></i>
+          </div>
         </div>
-        <div className='main header'>{t('alert.txt-systemInfo')}</div>
-        <div>{t('ipFields.hostName')}: {deviceInfo.hostName}</div>
-        <div>{t('ipFields.system')}: {deviceInfo.system}</div>
-      </div>
-    )
+      )
+    }
+
+    if (!_.isEmpty(currentDeviceData)) {
+      const deviceInfo = {
+        ip: currentDeviceData.ip,
+        mac: currentDeviceData.mac,
+        hostName: currentDeviceData.hostName,
+        system: currentDeviceData.system
+      };
+
+      return (
+        <div>
+          <TextField
+            id='allAssignedDevice'
+            className='assigned-device'
+            name='assignedDevice'
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={assignedDevice}
+            onChange={this.handleDeviceChange}>
+            {allAssignedDeviceList}
+          </TextField>
+          <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
+          <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
+          <div className='table-menu inventory active'>
+            <i className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
+            <i className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
+          </div>
+          <div className='main header'>{t('alert.txt-systemInfo')}</div>
+          <div className='info'><span>{t('ipFields.hostName')}:</span>{deviceInfo.hostName || NOT_AVAILABLE}</div>
+          <div className='info'><span>{t('ipFields.system')}:</span>{deviceInfo.system || NOT_AVAILABLE}</div>
+        </div>
+      )
+    }
   }
   /**
    * Display owner seat modal dialog
@@ -671,14 +993,17 @@ class NetworkInventory extends Component {
    * @returns ModalDialog component
    */
   showSeatDialog = () => {
+    const {currentDeviceData, currentSeatData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
+    const title = currentSeatData.seatName ? currentSeatData.seatName : currentDeviceData.seatObj.seatName;
 
     return (
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
@@ -688,313 +1013,103 @@ class NetworkInventory extends Component {
     )
   }
   /**
-   * Close seat dialog
+   * Display delete seat content
+   * @method
+   * @returns HTML DOM
+   */
+  displayDeleteSeat = () => {
+    return (
+      <div className='content delete'>
+        <span>{t('network-topology.txt-deleteSeatMsg')}: {this.state.currentSeatData.seatName}?</span>
+      </div>
+    )
+  }
+  /**
+   * Display delete seat modal dialog
+   * @method
+   */
+  openDeleteSeatModal = () => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteSeat'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.displayDeleteSeat(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteSeatConfirm();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete seat confirm
+   * @method
+   */
+  deleteSeatConfirm = () => {
+    const {baseUrl} = this.context;
+    const {currentSeatData, floorPlan} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/seat?uuid=${currentSeatData.seatUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          showSeatData: false
+        }, () => {
+          this.getDeviceSeatData(floorPlan.currentAreaUUID);
+        })
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close seat dialog and reset seat data
    * @method
    */
   closeSeatDialog = () => {
     this.setState({
-      showSeatData: false
+      showSeatData: false,
+      currentDeviceData: {},
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: ''
     });
-  }
-  /**
-   * Get and set floor plan data
-   * @param {string} options - option for calling type
-   * @method
-   */
-  getFloorPlan = (options) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/area/_tree`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data && data.length > 0) {
-        const floorPlanData = data[0];
-        const floorPlan = {
-          treeData: data,
-          currentAreaUUID: floorPlanData.areaUUID,
-          currentAreaName: floorPlanData.areaName
-        };
-
-        this.setState({
-          floorPlan
-        }, () => {
-          this.getFloorList(options);
-        });
-      } else {
-        this.getInventoryEdit(options);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Toggle content to show edit page
-   * @param {string} [options] - option for calling type
-   * @method
-   */
-  getInventoryEdit = (options) => {
-    const inventoryParam = queryString.parse(location.search);
-    const type = inventoryParam.type;
-    const ip = inventoryParam.ip;
-
-    if (type) {
-      if (type === 'add') {
-        this.toggleContent('showForm', 'new');
-      } else if (type === 'edit' && ip) {
-        this.getSingleDeviceData(ip);
-      }
-    } else {
-      if (options === 'deviceMap') {
-        helper.showPopupMsg(t('txt-notFound')); //Show not found message
-      }
-    }
-  }
-  /**
-   * Get single device data from URL parameter
-   * @param {string} ip - IP from page redirect
-   * @method
-   */
-  getSingleDeviceData = (ip) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/v3/ipdevice/_search?ip=${ip}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let currentDeviceData = {
-          ip
-        };
-
-        if (data.counts > 0) {
-          currentDeviceData = data.rows[0];
-        }
-
-        this.setState({
-          currentDeviceData
-        }, () => {
-          this.toggleContent('showForm', 'edit');
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set floor list data
-   * @param {string} options - option for calling type
-   * @method
-   */
-  getFloorList = (options) => {
-    const {floorPlan} = this.state;
-    let floorList = [];
-    let currentFloor = '';
-
-    _.forEach(floorPlan.treeData, val => {
-      helper.floorPlanRecursive(val, obj => {
-        floorList.push({
-          value: obj.areaUUID,
-          text: obj.areaName
-        });
-      });
-    })
-
-    currentFloor = floorList[0].value;
-
-    this.setState({
-      floorList,
-      currentFloor
-    }, () => {
-      this.getAreaData(currentFloor);
-      this.getFloorDeviceData(currentFloor);
-      this.getInventoryEdit();
-    });
-  }
-  /**
-   * Get and set individual floor area data
-   * @method
-   * @param {string} areaUUID - area UUID
-   */
-  getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.context;
-    const mapAreaUUID = areaUUID.trim();
-
-    if (!mapAreaUUID) {
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/area?uuid=${mapAreaUUID}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        const areaName = data.areaName;
-        const areaUUID = data.areaUUID;
-        let currentMap = {};
-
-        if (data.picPath) {
-          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-          const picWidth = data.picWidth;
-          const picHeight = data.picHeight;
-
-          currentMap = {
-            label: areaName,
-            images: [
-              {
-                id: areaUUID,
-                url: picPath,
-                size: {width: picWidth, height: picHeight}
-              }
-            ]
-          };
-        }
-
-        const currentBaseLayers = {
-          [mapAreaUUID]: currentMap
-        };
-
-        this.setState({
-          mapAreaUUID,
-          currentMap,
-          currentBaseLayers,
-          currentFloor: areaUUID
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set floor device data (only show seats with device)
-   * @method
-   * @param {string} areaUUID - area UUID
-   */
-  getFloorDeviceData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.context;
-
-    if (!areaUUID) {
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/v3/ipdevice/_search?areaUUID=${areaUUID}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        const deviceSeatData = {};
-        let seatListArr = [];
-
-        _.forEach(data.rows, val => {
-          if (val.seatObj) {
-            seatListArr.push({
-              id: val.seatObj.seatUUID,
-              type: 'marker',
-              xy: [val.seatObj.coordX, val.seatObj.coordY],
-              icon: {
-                iconUrl: `${contextRoot}/images/ic_person.png`,
-                iconSize: [25, 25],
-                iconAnchor: [12.5, 12.5]
-              },
-              label: val.seatObj.seatName,
-              data: {
-                name: val.seatObj.seatName
-              }
-            });
-          }
-        })
-
-        deviceSeatData[areaUUID] = {
-          data: seatListArr
-        };
-
-        this.setState({
-          deviceSeatData
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })  
-  }
-  /**
-   * Get and set floor seat data
-   * @method
-   * @param {string} areaUUID - area UUID
-   */
-  getSeatData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.context;
-    const area = areaUUID.trim() || this.state.floorPlan.currentAreaUUID;
-    const requestData = {
-      areaUUID: area
-    };
-
-    if (!area) {
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/seat/_search`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        const seatData = {};
-        let seatListArr = [];
-
-        _.forEach(data, val => {
-          seatListArr.push({
-            id: val.seatUUID,
-            type: 'marker',
-            xy: [val.coordX, val.coordY],
-            icon: {
-              iconUrl: `${contextRoot}/images/ic_person.png`,
-              iconSize: [25, 25],
-              iconAnchor: [12.5, 12.5]
-            },
-            label: val.seatName,
-            data: {
-              name: val.seatName
-            }
-          });
-        })
-
-        seatData[area] = {
-          data: seatListArr
-        };
-
-        this.setState({
-          seatData
-        });
-      }
-      return null;
-    })
   }
   /**
    * Handle filter input value change
    * @method
    * @param {object} event - event object
    */
-  handleDeviceSearch = (event) => {
+  handleSearchChange = (event) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
     tempDeviceSearch[event.target.name] = event.target.value;
 
     this.setState({
       deviceSearch: tempDeviceSearch
     });
+  }
+  /**
+   * Handle filter submit
+   * @method
+   */
+  handleFilterSubmit = () => {
+    const {activeTab, deviceSearch} = this.state;
+
+    if (activeTab === 'deviceList') {
+      this.getDeviceData();
+    } else if (activeTab === 'deviceMap') {
+      if (deviceSearch.areaName) {
+        this.getDeviceSearchArea(deviceSearch.areaName);
+      } else {
+        this.getFloorList();
+      }
+    }
   }
   /**
    * Display filter content
@@ -1018,7 +1133,7 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.ip}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
             <TextField
@@ -1029,7 +1144,7 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.mac}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
             <TextField
@@ -1040,7 +1155,7 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.hostName}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
             <TextField
@@ -1051,7 +1166,7 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.system}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
             <TextField
@@ -1062,7 +1177,7 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.owner}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
             <TextField
@@ -1073,7 +1188,7 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.areaName}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
             <TextField
@@ -1084,28 +1199,15 @@ class NetworkInventory extends Component {
               fullWidth
               size='small'
               value={deviceSearch.seatName}
-              onChange={this.handleDeviceSearch} />
+              onChange={this.handleSearchChange} />
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleFilterSubmit}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
-  }
-  /**
-   * Open table menu based on conditions
-   * @method
-   * @param {string} type - content type ('view' or 'delete')
-   * @param {object} allValue - IP device data
-   */
-  openMenu = (type, allValue) => {
-    if (type === 'view') {
-      this.getOwnerSeat(allValue);
-    } else if (type === 'delete') {
-      this.openDeleteDeviceModal(allValue);
-    }
   }
   /**
    * Get and set owner seat data
@@ -1115,7 +1217,11 @@ class NetworkInventory extends Component {
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const topoInfo = allValue;
-    let tempAlertInfo = {...this.state.alertInfo};
+    let ownerInfo = {
+      ownerMap: {},
+      ownerBaseLayers: {},
+      ownerSeat: {}
+    };
 
     if (topoInfo.areaObj && topoInfo.areaObj.picPath) {
       const ownerMap = {
@@ -1129,11 +1235,11 @@ class NetworkInventory extends Component {
         ]
       };
 
-      tempAlertInfo.ownerMap = ownerMap;
-      tempAlertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+      ownerInfo.ownerMap = ownerMap;
+      ownerInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
 
       if (topoInfo.seatUUID && topoInfo.seatObj) {
-        tempAlertInfo.ownerSeat[topoInfo.areaUUID] = {
+        ownerInfo.ownerSeat[topoInfo.areaUUID] = {
           data: [{
             id: topoInfo.seatUUID,
             type: 'spot',
@@ -1146,19 +1252,13 @@ class NetworkInventory extends Component {
           }]
         };
       }
-    } else {
-      tempAlertInfo = {
-        ownerMap: {},
-        ownerBaseLayers: {},
-        ownerSeat: {}
-      };
     }
 
     this.setState({
       activeContent: 'dataInfo',
       showSeatData: false,
       currentDeviceData: topoInfo,
-      alertInfo: tempAlertInfo,
+      ownerInfo,
       activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
@@ -1229,11 +1329,36 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Handle delete device from device map tab
+   * @method
+   */
+  deleteDevice = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData, floorPlan} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getDeviceSeatData(floorPlan.currentAreaUUID);
+        this.getDeviceData('', 'oneSeat', currentDeviceData.seatUUID);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display delete IP device modal dialog
    * @method
    * @param {object} allValue - IP device data
    */
   openDeleteDeviceModal = (allValue) => {
+    const {activeTab} = this.state;
+
     PopupDialog.prompt({
       title: t('network-inventory.txt-deleteDevice'),
       id: 'modalWindowSmall',
@@ -1242,13 +1367,13 @@ class NetworkInventory extends Component {
       display: this.getDeleteDeviceContent(allValue),
       act: (confirmed, data) => {
         if (confirmed) {
-          this.getDeviceData('', 'delete');
+          if (activeTab === 'deviceMap') {
+            this.deleteDevice();
+          } else if (activeTab === 'deviceList') {
+            this.getDeviceData('', 'delete');
+          } 
         }
       }
-    });
-
-    this.setState({
-      showSeatData: false
     });
   }
   /**
@@ -1286,18 +1411,57 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Get and set link analysis data
+   * @method
+   */
+  loadLinkAnalysis = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice/la`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let deviceEventsData = {};
+
+        _.forEach(data, val => {
+          deviceEventsData[val.id] = val.content;
+        })
+
+        this.setState({
+          deviceEventsData,
+          deviceLAdata: analyze(deviceEventsData, this.state.LAconfig, {analyzeGis: false})
+        });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle content tab change
    * @method
    * @param {object} event - event object
    * @param {string} newTab - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
   handleSubTabChange = (event, newTab) => {
+    if (newTab === 'deviceLA') {
+      this.setState({
+        showFilter: false
+      });
+    }
+
     this.setState({
       activeTab: newTab,
-      showFilter: false,
       floorMapType: ''
     }, () => {
-      if (newTab === 'deviceMap') {
+      if (newTab === 'deviceList') {
+        this.getDeviceData();
+      } else if (newTab === 'deviceMap') {
         this.getFloorPlan(newTab);
       } else if (newTab === 'deviceLA') {
         this.loadLinkAnalysis();
@@ -1525,11 +1689,8 @@ class NetworkInventory extends Component {
       if (options === 'reload') {
         if (page === 'fromFloorMap') { //reload everything
           this.getFloorPlan('fromFloorMap');
-        } else { //reload area and seat (no tree)
-          const {floorPlan} = this.state;
-
-          this.getAreaData(floorPlan.currentAreaUUID);
-          this.getFloorDeviceData(floorPlan.currentAreaUUID);
+        } else { //reload seat (no tree)
+          this.getDeviceSeatData(floorPlan.currentAreaUUID);
         }
       }
     });
@@ -1558,7 +1719,7 @@ class NetworkInventory extends Component {
    * @param {string} formType - show form content type ('new' or 'edit')
    */
   toggleContent = (type, formType) => {
-    const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList, addSeat} = this.state;
+    const {formTypeEdit, currentDeviceData, floorList, ownerList, departmentList, titleList, addSeat} = this.state;
     let tempAddSeat = {...addSeat};
     let activeContent = '';
 
@@ -1646,7 +1807,7 @@ class NetworkInventory extends Component {
 
         if (currentDeviceData.areaUUID) {
           this.getAreaData(currentDeviceData.areaUUID);
-          this.getSeatData(currentDeviceData.areaUUID);
+          this.getDeviceSeatData(currentDeviceData.areaUUID);
         }
 
         tempAddSeat.selectedSeatUUID = currentDeviceData.seatUUID;
@@ -1656,7 +1817,7 @@ class NetworkInventory extends Component {
 
         if (!_.isEmpty(floorList)) {
           this.getAreaData(floorList[0].value);
-          this.getSeatData(floorList[0].value);
+          this.getDeviceSeatData(floorList[0].value);
         }
 
         this.setState({
@@ -2410,7 +2571,7 @@ class NetworkInventory extends Component {
    */
   handleIPdeviceConfirm = (ownerUUID) => {
     const {baseUrl} = this.context;
-    const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat, mapAreaUUID} = this.state;
+    const {formTypeEdit, currentDeviceData, mapAreaUUID, floorPlan, addIP, addSeat} = this.state;
     const url = `${baseUrl}/api/ipdevice`;
     const requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {
@@ -2445,8 +2606,8 @@ class NetworkInventory extends Component {
       if (data.ret === 0) {
         this.getDeviceData();
         this.getOwnerData();
-        this.getOtherData('stepComplete');
-        this.getFloorPlan('stepComplete');
+        this.getOtherData();
+        this.getFloorPlan();
 
         if (formTypeEdit) {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
@@ -2718,9 +2879,10 @@ class NetworkInventory extends Component {
       ownerType,
       mapAreaUUID,
       currentMap,
-      seatData,
+      deviceSeatData,
       currentBaseLayers,
       floorPlan,
+      ownerInfo,
       addSeat,
       ownerIDduplicated,
       formValidation
@@ -3109,7 +3271,7 @@ class NetworkInventory extends Component {
                   {currentMap.label &&
                     <Gis
                       _ref={(ref) => {this.gisNode = ref}}
-                      data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                      data={_.get(deviceSeatData, [mapAreaUUID, 'data'], [])}
                       baseLayers={currentBaseLayers}
                       baseLayer={mapAreaUUID}
                       layouts={['standard']}
@@ -3120,7 +3282,7 @@ class NetworkInventory extends Component {
                       }}
                       selected={[addSeat.selectedSeatUUID]}
                       defaultSelected={[currentDeviceData.seatUUID]}
-                      onClick={this.handleFloorMapClick} />
+                      onClick={this.handleFloorMapClick.bind(this, 'addDevice')} />
                   }
                 </div>
               </div>
@@ -3182,9 +3344,9 @@ class NetworkInventory extends Component {
       this.getAreaData(areaUUID);
 
       if (type === 'deviceMap') {
-        this.getFloorDeviceData(areaUUID);
+        this.getDeviceSeatData(areaUUID);
       } else if (type === 'stepsFloor') {
-        this.getSeatData(areaUUID);
+        this.getDeviceSeatData(areaUUID);
       }
     });
   }
@@ -3218,7 +3380,7 @@ class NetworkInventory extends Component {
    * @returns TreeView component
    */
   displayTreeView = (type, tree, i) => {
-    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID, floorMapType} = this.state;
+    const {floorPlan, deviceSearchArea, currentDeviceData, changeAreaMap, selectedTreeID, floorMapType} = this.state;
     let defaultSelectedID = '';
     let defaultExpanded = [];
 
@@ -3229,6 +3391,10 @@ class NetworkInventory extends Component {
 
       if (floorMapType === 'selected') {
         defaultSelectedID = selectedTreeID;
+      }
+
+      if (deviceSearchArea) {
+        defaultSelectedID = deviceSearchArea;
       }
 
       defaultExpanded = [tree.areaUUID];
@@ -3282,27 +3448,32 @@ class NetworkInventory extends Component {
   /**
    * Handle floor map mouse click
    * @method
+   * @param {string} type - trigger type ('addDevice' or 'deviceMap')
    * @param {string} seatUUID - selected seat UUID
-   * @param {object} info - mouseClick events
+   * @param {object} event - mouseClick events
    */
-  handleFloorMapClick = (seatUUID, info) => {
-    const {addSeat} = this.state;
-    let tempAddSeat = {...addSeat};
+  handleFloorMapClick = (type, seatUUID, event) => {
+    let tempAddSeat = {...this.state.addSeat};
 
-    if (seatUUID) {
+    if (!seatUUID) {
+      tempAddSeat.coordX = Math.round(event.xy.x);
+      tempAddSeat.coordY = Math.round(event.xy.y);
+
+      this.setState({ //Add new seat
+        addSeatOpen: true,
+        addSeat: tempAddSeat
+      });
+      return;
+    }
+
+    if (type === 'addDevice') {
       tempAddSeat.selectedSeatUUID = seatUUID;
 
       this.setState({
         addSeat: tempAddSeat
       });
-    } else { //Add new seat
-      tempAddSeat.coordX = Math.round(info.xy.x);
-      tempAddSeat.coordY = Math.round(info.xy.y);
-
-      this.setState({
-        addSeatOpen: true,
-        addSeat: tempAddSeat
-      });
+    } else if (type === 'deviceMap') {
+      this.getDeviceData('', 'oneSeat', seatUUID);
     }
   }
   /**
@@ -3440,8 +3611,7 @@ class NetworkInventory extends Component {
             coordY: ''
           }
         }, () => {
-          this.getAreaData(currentAreaUUID);
-          this.getSeatData(currentAreaUUID);
+          this.getDeviceSeatData(currentAreaUUID);
         });
       }
       return null;
@@ -3468,14 +3638,13 @@ class NetworkInventory extends Component {
       deviceLAdata,
       deviceData,
       currentDeviceData,
-      floorPlan,
-      alertInfo,
-      activeIPdeviceUUID,
       mapAreaUUID,
       currentMap,
-      seatData,
-      deviceSeatData,
       currentBaseLayers,
+      deviceSeatData,
+      floorPlan,
+      ownerInfo,
+      activeIPdeviceUUID,
       activeSteps,
       addIP,
       csvData,
@@ -3543,7 +3712,7 @@ class NetworkInventory extends Component {
 
         {modalFloorOpen &&
           <FloorMap
-            closeFloorDialog={this.closeFloorDialog} />
+            closeDialog={this.closeFloorDialog} />
         }
 
         {modalIRopen &&
@@ -3559,10 +3728,12 @@ class NetworkInventory extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {activeTab === 'deviceList' && activeContent === 'tableList' &&
+            {((activeTab === 'deviceList' && activeContent === 'tableList') || activeTab === 'deviceMap') &&
               <div>
                 <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
-                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+                {activeTab === 'deviceList' &&
+                  <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+                }
               </div>
             }
           </div>
@@ -3575,7 +3746,7 @@ class NetworkInventory extends Component {
 
           {activeContent === 'tableList' &&
             <div className='parent-content'>
-              {activeTab === 'deviceList' &&
+              {(activeTab === 'deviceList' || activeTab === 'deviceMap') &&
                 this.renderFilter()
               }
 
@@ -3593,6 +3764,9 @@ class NetworkInventory extends Component {
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
+                  {activeTab === 'deviceMap' &&
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
+                  }
                 </div>
 
                 <Menu
@@ -3630,7 +3804,7 @@ class NetworkInventory extends Component {
                           mapOptions={{
                             maxZoom: 2
                           }}
-                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
+                          onClick={this.handleFloorMapClick.bind(this, 'deviceMap')} />
                       }
                     </div>
                   </div>
@@ -3723,7 +3897,7 @@ class NetworkInventory extends Component {
                   </div>
 
                   <PrivateDetails
-                    alertInfo={alertInfo}
+                    alertInfo={ownerInfo}
                     topoInfo={currentDeviceData}
                     picPath={picPath}
                     triggerTask={this.triggerTask} />

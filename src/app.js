@@ -31,7 +31,6 @@ import Login from './login'
 import loglevel from 'loglevel'
 import Netflow from './components/events/netflow/index'
 import NetworkInventory from './components/configuration/topology/inventory'
-import NetworkMap from './components/configuration/topology/map'
 import NetworkOwner from './components/configuration/topology/owner'
 import NotificationSettings from './components/configuration/notifications'
 import ProductInfo from './components/configuration/product/product-info'
@@ -173,12 +172,6 @@ const NetworkTopologyOwner = () => (
   </BaseDataContext.Provider>
 )
 
-const NetworkTopologyMap = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <NetworkMap />
-  </BaseDataContext.Provider>
-)
-
 const syslogConfig = () => (
   <BaseDataContext.Provider value={baseData}>
     <SyslogConfig />
@@ -271,7 +264,6 @@ const Main = () => (
       <Route exact path='/SCP/configuration/es' component={Es} />
       <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
       <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
-      <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap} />
       <Route exact path='/SCP/configuration/syslog/config' component={syslogConfig} />
       <Route exact path='/SCP/configuration/syslog/pattern' component={syslogPattern} />
       <Route exact path='/SCP/configuration/user/account' component={userAccounts} />

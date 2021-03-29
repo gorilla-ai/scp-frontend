@@ -40,7 +40,7 @@ class Config extends Component {
   }
   componentDidMount() {
     const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('severity');
-    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
+    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner');
     const openSyslog = this.getActiveFrame('config') || this.getActiveFrame('pattern');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
 
@@ -78,7 +78,6 @@ class Config extends Component {
       es: '/SCP/configuration/es',
       inventory: '/SCP/configuration/topology/inventory',
       owner: '/SCP/configuration/topology/owner',
-      map: '/SCP/configuration/topology/map',
       config: '/SCP/configuration/syslog/config',
       pattern: '/SCP/configuration/syslog/pattern',
       audit: '/SCP/configuration/audit',
@@ -158,7 +157,7 @@ class Config extends Component {
         </div>
 
         <div id='config-link-topology' className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
-          <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
+          <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner')}`}>{t('txt-topology')}</span>
           <i className={`c-link fg fg-arrow-${openTopology ? 'top' : 'bottom'}`}></i>
         </div>
 
@@ -172,11 +171,6 @@ class Config extends Component {
             <div className='subframe'>
               <Link id='config-link-owner' to={{pathname: '/SCP/configuration/topology/owner', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}</span>
-              </Link>
-            </div>
-            <div className='subframe'>
-              <Link id='config-link-map' to='/SCP/configuration/topology/map'>
-                <span className={`${this.getActiveFrame('map')}`}>{t('txt-network-map')}</span>
               </Link>
             </div>
           </div>
