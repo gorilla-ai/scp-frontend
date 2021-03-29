@@ -100,7 +100,7 @@ class Syslog extends Component {
       sshData: [],
       sshAccountName: '',
       activeSyslogData: {},
-      editSyslogType: '',
+      editSyslogType: '', //'edit' or 'save'
       editHostsType: '',
       editHosts: {
         host: '',
@@ -133,23 +133,11 @@ class Syslog extends Component {
       info: '',
       editPatternType: 'edit',
       contextAnchor: null,
-      menuType: '',
       currentPattern: {
         index: '',
         data: ''
       },
       formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        name: {
-          valid: true
-        },
-        port: {
-          valid: true,
-          msg: ''
-        },
         editHostsHost: {
           valid: true
         },
@@ -262,8 +250,7 @@ class Syslog extends Component {
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className={this.getSyslogMenuClass('edit', allValue)} onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
-                    <i className={this.getSyslogMenuClass('delete', allValue)} onClick={this.openDeleteSyslogMenu.bind(this, allValue)} title={t('txt-delete')}></i>
+                    <i className={this.getSyslogMenuClass(allValue)} onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
                     <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}></i>
                     <i className='fg fg-list' onClick={this.forwardSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
                     <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
@@ -298,18 +285,25 @@ class Syslog extends Component {
     const {syslog} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config/status`,
+      url: `${baseUrl}/api/v2/log/config/status`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
         let tempSyslog = {...syslog};
         let formattedSyslogArr = [];
+        let status = {
+          server: [],
+          netproxy: []
+        };
 
         _.forEach(syslog.dataContent, val => {
+          status.server = data.server[val.ip];
+          status.netproxy = data.netproxy[val.ip];
+
           formattedSyslogArr.push({
             ...val,
-            status: data[val.ip]
+            ...status
           });
         })
 
@@ -585,17 +579,6 @@ class Syslog extends Component {
       sshAccountName: '',
       showAddSshAccount: false,
       formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        name: {
-          valid: true
-        },
-        port: {
-          valid: true,
-          msg: ''
-        },
         editHostsHost: {
           valid: true
         },
@@ -608,17 +591,10 @@ class Syslog extends Component {
   /**
    * Get syslog menu class name
    * @method
-   * @param {string} type - menu type ('edit' or 'delete')
    * @param {object} allValue - syslog data
    */
-  getSyslogMenuClass = (type, allValue) => {
-    let className = 'fg ';
-
-    if (type === 'edit') {
-      className += 'fg-edit';
-    } else if (type === 'delete') {
-      className += 'fg-trashcan';
-    }
+  getSyslogMenuClass = (allValue) => {
+    let className = 'fg fg-edit';
 
     if (_.includes(DEFAULT_SYSLOG, allValue.name)) {
       className += ' not-allowed';
@@ -648,7 +624,7 @@ class Syslog extends Component {
    * Toggle different content
    * @method
    * @param {string} activeContent - page type ('syslogData', 'hostInfo' or 'editSyslog')
-   * @param {string} type - edit syslog type ('new', 'edit' or 'save')
+   * @param {string} type - edit syslog type (edit' or 'save')
    */
   toggleContent = (activeContent, type) => {
     const editSyslogType = type === 'save' ? '' : type;
@@ -668,17 +644,6 @@ class Syslog extends Component {
 
       this.setState({
         formValidation: {
-          ip: {
-            valid: true,
-            msg: ''
-          },
-          name: {
-            valid: true
-          },
-          port: {
-            valid: true,
-            msg: ''
-          },
           editHostsHost: {
             valid: true
           },
@@ -702,29 +667,49 @@ class Syslog extends Component {
    */
   displayHostInfo = (val, i) => {
     const {syslog, dataFields} = this.state;
-    let color = '';
-    let title = '';
-    let errorText = '';
+    let status = {
+      server: {},
+      netproxy: {}
+    };
 
-    if (val.status && val.status.logstashStatus.toLowerCase() === 'active') {
-      color = '#22ac38';
-      title = t('txt-online');
-    } else if (val.status && val.status.logstashStatus.toLowerCase() === 'inactive') {
-      color = '#d10d25';
-      title = t('txt-offline');
-      errorText = val.status.inactive.join(', ');
+    if (!val.server && !val.netproxy) {
+      return;
+    }
+
+    if (val.server.logstashStatus.toLowerCase() === 'active') {
+      status.server.color = '#22ac38';
+      status.server.title = t('txt-online');
+    } else if (val.server.logstashStatus.toLowerCase() === 'inactive') {
+      status.server.color = '#d10d25';
+      status.server.title = t('txt-offline');
+      status.server.errorText = val.server.inactive.join(', ');
+    }
+
+    if (val.netproxy.logstashStatus.toLowerCase() === 'active') {
+      status.netproxy.color = '#22ac38';
+      status.netproxy.title = t('txt-online');
+    } else if (val.netproxy.logstashStatus.toLowerCase() === 'inactive') {
+      status.netproxy.color = '#d10d25';
+      status.netproxy.title = t('txt-offline');
+      status.netproxy.errorText = val.netproxy.inactive.join(', ');
     }
 
     return (
       <div className='host-info' key={i}>
-        <header>{t('syslogFields.txt-hostIP')}: {val.ip}</header>
-        <span className='status'>{t('txt-status')}: <i className='fg fg-recode' style={{color}} title={title} /></span>
+        <header>
+          <div className='title'>{t('syslogFields.txt-hostIP')}: {val.ip}</div>
+          <span className='status'>Server {t('txt-status')}: <i className='fg fg-recode' style={{color: status.server.color}} title={status.server.title} /></span>
+          <span className='status'>Netproxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
+          <span className='status'>Netproxy {t('syslogFields.txt-lastStatusUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
+        </header>
         <div className='content-header-btns'>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</Button>
         </div>
         <div className='host-content'>
-          {errorText &&
-            <span className='error-text'><i className='fg fg-alert-1'></i>{errorText}</span>
+          {status.server.errorText &&
+            <span className='error-text'><i className='fg fg-alert-1'></i>Server: {status.server.errorText}</span>
+          }
+          {status.netproxy.errorText &&
+            <span className='error-text'><i className='fg fg-alert-1'></i>Netproxy: {status.netproxy.errorText}</span>
           }
           <DataTable
             className='main-table syslog-config'
@@ -776,28 +761,6 @@ class Syslog extends Component {
     })
   }
   /**
-   * Open edit syslog dialog
-   * @method
-   * @param {string} type - edit type ('new' or 'edit-exist')
-   * @param {object} val - syslog data
-   */
-  openNewSyslog = (type, val) => {
-    let syslogPatternConfig = _.cloneDeep(INIT_CONFIG);
-
-    if (type === 'edit-exist') {
-      syslogPatternConfig.loghostIp = val.ip;
-    }
-
-    this.setState({
-      syslogPatternConfig,
-      activePatternName: INIT_PATTERN_NAME
-    }, () => {
-      this.toggleContent('editSyslog', type);
-    });
-
-    this.handleCloseMenu();
-  }
-  /**
    * Open add/edit syslog dialog
    * @method
    * @param {object} allValue - syslog data
@@ -844,59 +807,6 @@ class Syslog extends Component {
           this.toggleContent('editSyslog', 'edit');
         });
       }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Open delete syslog dialog
-   * @method
-   * @param {object} allValue - syslog data
-   */
-  openDeleteSyslogMenu = (allValue) => {
-    const eventNme = allValue.name;
-
-    if (_.includes(DEFAULT_SYSLOG, allValue.name)) {
-      return null;
-    }
-
-    PopupDialog.prompt({
-      title: t('syslogFields.txt-deleteSyslog'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: (
-        <div className='content delete'>
-          <span>{t('txt-delete-msg')}: {eventNme}?</span>
-        </div>
-      ),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteSyslog(allValue.id);
-        }
-      }
-    });
-  }
-  /**
-   * Handle delete syslog confirm
-   * @method
-   * @param {string} id - syslog id
-   */
-  deleteSyslog = (id) => {
-    const {baseUrl} = this.context;
-
-    if (!id) {
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/v1/log/config?id=${id}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      this.getSyslogData();
       return null;
     })
     .catch(err => {
@@ -1026,62 +936,9 @@ class Syslog extends Component {
    */
   confirmSyslogSave = () => {
     const {baseUrl} = this.context;
-    const {syslogPatternConfig, formValidation} = this.state;
-    const url = `${baseUrl}/api/v2/log/config`;
-    let tempFormValidation = {...formValidation};
+    const {syslogPatternConfig} = this.state;
+    const url = `${baseUrl}/api/v3/log/config`;
     let validate = true;
-
-    if (syslogPatternConfig.loghostIp) {
-      if (IP_PATTERN.test(syslogPatternConfig.loghostIp)) { //Check IP format
-        tempFormValidation.ip.valid = true;
-        tempFormValidation.ip.msg = '';
-      } else {
-        if (syslogPatternConfig.loghostIp === 'localhost') { //Make exceptions for 'localhost'
-          tempFormValidation.ip.valid = true;
-          tempFormValidation.ip.msg = '';
-        } else {
-          tempFormValidation.ip.valid = false;
-          tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
-          validate = false;
-        }
-      }
-    } else {
-      tempFormValidation.ip.valid = false;
-      tempFormValidation.ip.msg = t('txt-required');
-      validate = false;
-    }
-
-    if (syslogPatternConfig.name) {
-      tempFormValidation.name.valid = true;
-    } else {
-      tempFormValidation.name.valid = false;
-      validate = false;
-    }
-
-    if (syslogPatternConfig.port) {
-      const portNumber = Number(syslogPatternConfig.port);
-
-      if (portNumber <= 0 || portNumber > 65535) { //Check port number
-        tempFormValidation.port.valid = false;
-        tempFormValidation.port.msg = t('network-topology.txt-portValidationFail');
-        validate = false;
-      } else {
-        tempFormValidation.port.valid = true;
-        tempFormValidation.port.msg = '';
-      }
-    } else {
-      tempFormValidation.port.valid = false;
-      tempFormValidation.port.msg = t('txt-required');
-      validate = false;
-    }
-
-    this.setState({
-      formValidation: tempFormValidation
-    });
-
-    if (!validate) {
-      return;
-    }
 
     _.forEach(syslogPatternConfig.patternSetting, val => { //Check input and pattern for each pattern
       if (!val.input || !val.pattern) {
@@ -1733,17 +1590,6 @@ class Syslog extends Component {
     this.setState({
       openEditHosts: false,
       formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        name: {
-          valid: true
-        },
-        port: {
-          valid: true,
-          msg: ''
-        },
         editHostsHost: {
           valid: true
         },
@@ -1977,25 +1823,18 @@ class Syslog extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {string} type - menu type ('addAccount' or 'addSyslog')
    * @param {object} val - active mouse over pattern data
    * @param {number} i - index of the syslogPatternConfig pattern list
    * @param {object} event - event object
    */
-  handleOpenMenu = (type, val, i, event) => {
-    if (type === 'addSyslog') {
-      let tempCurrentPattern = {...this.state.currentPattern};
-      tempCurrentPattern.index = i;
-      tempCurrentPattern.data = val;
-
-      this.setState({
-        currentPattern: tempCurrentPattern
-      });
-    }
+  handleOpenMenu = (val, i, event) => {
+    let tempCurrentPattern = {...this.state.currentPattern};
+    tempCurrentPattern.index = i;
+    tempCurrentPattern.data = val;
 
     this.setState({
       contextAnchor: event.currentTarget,
-      menuType: type
+      currentPattern: tempCurrentPattern
     });
   }
   /**
@@ -2048,7 +1887,7 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getPatternItem = (val, i) => {
-    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor, menuType} = this.state;
+    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor} = this.state;
     const patternName = val.patternName;
     let formattedPatternName = '';
 
@@ -2064,18 +1903,16 @@ class Syslog extends Component {
           <i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}></i>
         </div>
 
-        {menuType === 'addSyslog' &&
-          <Menu
-            anchorEl={contextAnchor}
-            keepMounted
-            open={Boolean(contextAnchor)}
-            onClose={this.handleCloseMenu}>
-            <MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}</MenuItem>
-            {syslogPatternConfig.patternSetting.length > 1 &&
-              <MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
-            }
-          </Menu>
-        }
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}</MenuItem>
+          {syslogPatternConfig.patternSetting.length > 1 &&
+            <MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
+          }
+        </Menu>
 
         {activePatternName === patternName &&
           <div className='item'>
@@ -2107,9 +1944,7 @@ class Syslog extends Component {
       showAddSshAccount,
       activeHost,
       syslogPatternConfig,
-      contextAnchor,
-      menuType,
-      formValidation
+      contextAnchor
     } = this.state;
 
     return (
@@ -2134,23 +1969,12 @@ class Syslog extends Component {
           this.addSshAccountDialog()
         }
 
-        {menuType === 'addAccount' &&
-          <Menu
-            anchorEl={contextAnchor}
-            keepMounted
-            open={Boolean(contextAnchor)}
-            onClose={this.handleCloseMenu}>
-            <MenuItem id='accountAddLogs' onClick={this.openNewSyslog.bind(this, 'new')}>{t('txt-syslog')}</MenuItem>
-            <MenuItem id='accountAddSsh' onClick={this.toggleSshDialog}>{a('txt-sshAccount')}</MenuItem>
-          </Menu>
-        }
-
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'syslogData' &&
               <div>
                 <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
-                <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, 'addAccount', '', '')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></Button>
+                <Button variant='outlined' color='primary' onClick={this.toggleSshDialog} title={a('txt-addSshAccount')}><i className='fg fg-add'></i></Button>
                 <Button variant='outlined' color='primary' className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
               </div>
             }
@@ -2190,12 +2014,8 @@ class Syslog extends Component {
                         variant='outlined'
                         fullWidth
                         size='small'
-                        required
-                        error={!formValidation.ip.valid}
-                        helperText={formValidation.ip.msg}
                         value={syslogPatternConfig.loghostIp}
-                        onChange={this.handleConfigChange.bind(this, '', 'form')}
-                        disabled={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
+                        disabled />
                     </div>
                     <div className='group'>
                       <TextField
@@ -2205,11 +2025,8 @@ class Syslog extends Component {
                         variant='outlined'
                         fullWidth
                         size='small'
-                        required
-                        error={!formValidation.name.valid}
-                        helperText={formValidation.name.valid ? '' : t('txt-required')}
                         value={syslogPatternConfig.name}
-                        onChange={this.handleConfigChange.bind(this, '', 'form')} />
+                        disabled />
                     </div>
                     <div className='group'>
                       <TextField
@@ -2220,12 +2037,8 @@ class Syslog extends Component {
                         variant='outlined'
                         fullWidth
                         size='small'
-                        required
-                        error={!formValidation.port.valid}
-                        helperText={formValidation.port.msg}
-                        InputProps={{ inputProps: { min: 1, max: 65535 } }}
                         value={syslogPatternConfig.port}
-                        onChange={this.handleConfigChange.bind(this, '', 'form')} />
+                        disabled />
                     </div>
                     <div className='group'>
                       <TextField
@@ -2236,7 +2049,7 @@ class Syslog extends Component {
                         fullWidth
                         size='small'
                         value={syslogPatternConfig.format}
-                        onChange={this.handleConfigChange.bind(this, '', 'form')} />
+                        disabled />
                     </div>
                   </div>
 

@@ -51,7 +51,6 @@
   "txt-test-connect": "Connection Test",
   "txt-only-num-eng":"Composed by at least 4 digits and Eng alphabet",
   "txt-email-invalid":"Please enter a valid email address",
-  "txt-sshAccount": "SSH Account",
   "txt-addSshAccount": "Add SSH Account",
   "accountFields": {
     "account": "$t(l-account)",

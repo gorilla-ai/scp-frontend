@@ -2619,23 +2619,28 @@ button.standard:hover:not([disabled]) {
             margin: 10px;
             background-color: var(--primaryContentBackground);
             & > header {
+              overflow: hidden;
               padding: 10px 15px;
               border-bottom: 1px solid var(--primaryBorder);
             }
+            .title {
+              float: left;
+              margin-right: 30px;
+            }
             .status {
               display: block;
-              position: absolute;
-              top: 12px;
-              left: 250px;
+              float: left;
+              font-size: 15px;
+              color: var(--primaryTextColor);
+              font-weight: normal;
+              margin-right: 50px;
+              margin-top: 2px;
               .fg-recode {
                 position: absolute;
-                top: 0;
               }
             }
-            .content-header-btns {
-              top: 0;
-            }
             .host-content {
+              clear: both;
               padding: 15px;
               .error-text {
                 display: block;
