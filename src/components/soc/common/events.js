@@ -58,11 +58,33 @@ class Events extends Component {
 	}
 
 	render() {
-		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
+		let {activeContent, locale, deviceListOptions, showDeviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
 		let dateLocale = locale;
 
 		if (locale === 'zh') {
 			dateLocale += '-tw';
+		}
+
+		let deviceNameCheck = false;
+		let furtherDeviceList = deviceListOptions;
+
+		_.forEach(deviceListOptions, deviceItem=>{
+			if(deviceItem.value === deviceId){
+				deviceNameCheck = true
+			}
+		})
+
+		if(!deviceNameCheck){
+			let furtherObj = {}
+			_.forEach(showDeviceListOptions, deviceItem=>{
+				if(deviceItem.value === deviceId){
+					furtherObj = {
+						value:deviceItem.value,
+						text:deviceItem.text
+					}
+					furtherDeviceList.push(furtherObj)
+				}
+			})
 		}
 
 		moment.locale(dateLocale);
@@ -83,28 +105,54 @@ class Events extends Component {
 	                    helperText={it('txt-required')}
 	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
-	            <div className='group'>
-	                <label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
-	                <TextField style={{paddingRight: '2em'}}
-	                    id='deviceId'
-	                    name='deviceId'
-	                    variant='outlined'
-	                    fullWidth={true}
-	                    size='small'
-	                    select
-	                    onChange={this.handleDataChangeMui}
-	                    value={deviceId}
-	                    required
-	                    helperText={it('txt-required')}
-	                    error={!(deviceId || '').trim()}
-	                    disabled={activeContent === 'viewIncident'}>
-		                {
-		                	_.map(deviceListOptions,el=>{
-		                		return <MenuItem id={`${el.value}`} value={el.value}>{el.text}</MenuItem>
-			                })
-		                }
-	                </TextField>
-	            </div>
+				{activeContent === 'viewIncident' &&
+				<div className='group'>
+					<label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
+					<TextField style={{paddingRight: '2em'}}
+					           id='deviceId'
+					           name='deviceId'
+					           variant='outlined'
+					           fullWidth={true}
+					           size='small'
+					           select
+					           onChange={this.handleDataChangeMui}
+					           value={deviceId}
+					           required
+					           helperText={it('txt-required')}
+					           error={!(deviceId || '').trim()}
+					           disabled={activeContent === 'viewIncident'}>
+						{
+							_.map(showDeviceListOptions,el=>{
+								return <MenuItem value={el.value}>{el.text}</MenuItem>
+							})
+						}
+					</TextField>
+				</div>
+				}
+				{activeContent !== 'viewIncident' &&
+				<div className='group'>
+					<label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
+					<TextField style={{paddingRight: '2em'}}
+					           id='deviceId'
+					           name='deviceId'
+					           variant='outlined'
+					           fullWidth={true}
+					           size='small'
+					           select
+					           onChange={this.handleDataChangeMui}
+					           value={deviceId}
+					           required
+					           helperText={it('txt-required')}
+					           error={!(deviceId || '').trim()}
+					           disabled={activeContent === 'viewIncident'}>
+						{
+							_.map(furtherDeviceList,el=>{
+								return <MenuItem value={el.value}>{el.text}</MenuItem>
+							})
+						}
+					</TextField>
+				</div>
+				}
 	        </div>
 	        
 	        <div className='line'>
