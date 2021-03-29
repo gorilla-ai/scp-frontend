@@ -71,7 +71,7 @@ class NetworkInventory extends Component {
     this.state = {
       activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
       activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
-      showFilter: true,
+      showFilter: false,
       showSeatData: false,
       modalFloorOpen: false,
       modalIRopen: false,
@@ -136,7 +136,7 @@ class NetworkInventory extends Component {
         name: '',
         map: ''
       },
-      alertInfo: {
+      ownerInfo: {
         ownerMap: {},
         ownerBaseLayers: {},
         ownerSeat: {}
@@ -981,8 +981,8 @@ class NetworkInventory extends Component {
             <i className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
           </div>
           <div className='main header'>{t('alert.txt-systemInfo')}</div>
-          <div>{t('ipFields.hostName')}: {deviceInfo.hostName}</div>
-          <div>{t('ipFields.system')}: {deviceInfo.system}</div>
+          <div className='info'><span>{t('ipFields.hostName')}:</span>{deviceInfo.hostName || NOT_AVAILABLE}</div>
+          <div className='info'><span>{t('ipFields.system')}:</span>{deviceInfo.system || NOT_AVAILABLE}</div>
         </div>
       )
     }
@@ -1217,7 +1217,11 @@ class NetworkInventory extends Component {
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const topoInfo = allValue;
-    let tempAlertInfo = {...this.state.alertInfo};
+    let ownerInfo = {
+      ownerMap: {},
+      ownerBaseLayers: {},
+      ownerSeat: {}
+    };
 
     if (topoInfo.areaObj && topoInfo.areaObj.picPath) {
       const ownerMap = {
@@ -1231,11 +1235,11 @@ class NetworkInventory extends Component {
         ]
       };
 
-      tempAlertInfo.ownerMap = ownerMap;
-      tempAlertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+      ownerInfo.ownerMap = ownerMap;
+      ownerInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
 
       if (topoInfo.seatUUID && topoInfo.seatObj) {
-        tempAlertInfo.ownerSeat[topoInfo.areaUUID] = {
+        ownerInfo.ownerSeat[topoInfo.areaUUID] = {
           data: [{
             id: topoInfo.seatUUID,
             type: 'spot',
@@ -1248,19 +1252,13 @@ class NetworkInventory extends Component {
           }]
         };
       }
-    } else {
-      tempAlertInfo = {
-        ownerMap: {},
-        ownerBaseLayers: {},
-        ownerSeat: {}
-      };
     }
 
     this.setState({
       activeContent: 'dataInfo',
       showSeatData: false,
       currentDeviceData: topoInfo,
-      alertInfo: tempAlertInfo,
+      ownerInfo,
       activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
@@ -1721,7 +1719,7 @@ class NetworkInventory extends Component {
    * @param {string} formType - show form content type ('new' or 'edit')
    */
   toggleContent = (type, formType) => {
-    const {formTypeEdit, currentDeviceData, floorList, ownerList, departmentList, titleList, alertInfo, addSeat} = this.state;
+    const {formTypeEdit, currentDeviceData, floorList, ownerList, departmentList, titleList, addSeat} = this.state;
     let tempAddSeat = {...addSeat};
     let activeContent = '';
 
@@ -1780,9 +1778,6 @@ class NetworkInventory extends Component {
       let formTypeEdit = '';
       let addIP = {};
       let ownerType = 'existing';
-
-      console.log(alertInfo);
-      console.log(currentDeviceData);
 
       if (formType === 'edit') {
         formTypeEdit = true;
@@ -2887,6 +2882,7 @@ class NetworkInventory extends Component {
       deviceSeatData,
       currentBaseLayers,
       floorPlan,
+      ownerInfo,
       addSeat,
       ownerIDduplicated,
       formValidation
@@ -3647,7 +3643,7 @@ class NetworkInventory extends Component {
       currentBaseLayers,
       deviceSeatData,
       floorPlan,
-      alertInfo,
+      ownerInfo,
       activeIPdeviceUUID,
       activeSteps,
       addIP,
@@ -3901,7 +3897,7 @@ class NetworkInventory extends Component {
                   </div>
 
                   <PrivateDetails
-                    alertInfo={alertInfo}
+                    alertInfo={ownerInfo}
                     topoInfo={currentDeviceData}
                     picPath={picPath}
                     triggerTask={this.triggerTask} />
