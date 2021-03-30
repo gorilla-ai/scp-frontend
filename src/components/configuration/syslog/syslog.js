@@ -685,8 +685,8 @@ class Syslog extends Component {
         <header>
           <div className='title'>{t('syslogFields.txt-hostIP')}: {val.ip}</div>
           <span className='status'>Server {t('txt-status')}: <i className='fg fg-recode' style={{color: status.server.color}} title={status.server.title} /></span>
-          <span className='status'>Netproxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
-          <span className='status'>Netproxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
+          <span className='status'>NetProxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
+          <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
         </header>
         <div className='content-header-btns'>
         </div>
@@ -695,7 +695,7 @@ class Syslog extends Component {
             <span className='error-text'><i className='fg fg-alert-1'></i>Server: {status.server.errorText}</span>
           }
           {status.netproxy.errorText &&
-            <span className='error-text'><i className='fg fg-alert-1'></i>Netproxy: {status.netproxy.errorText}</span>
+            <span className='error-text'><i className='fg fg-alert-1'></i>NetProxy: {status.netproxy.errorText}</span>
           }
           <DataTable
             className='main-table syslog-config'

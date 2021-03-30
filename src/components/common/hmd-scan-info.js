@@ -499,6 +499,9 @@ class HMDscanInfo extends Component {
    * @param {string} activeTab - active scan type
    */
   toggleScanType = (event, activeTab) => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+
     if (!activeTab) {
       return;
     }
@@ -1507,20 +1510,45 @@ class HMDscanInfo extends Component {
    * Handle malware button action
    * @method
    * @param {string} type - button type ('download' or 'compress')
-   * @param {object} dataResult - malware detection result
-   * @param {string} taskId - Task ID
+   * @param {object | string} dataResult - malware detection result or 'getHmdLogs'
+   * @param {string} id - Task ID or Host ID
+   * @param {string} from - 'task' or 'host'
    */
-  handleMalwareBtn = (type, dataResult, taskId) => {
+  handleMalwareBtn = (type, dataResult, id, from) => {
     const {baseUrl, contextRoot} = this.context;
 
     if (type === 'download') {
-      const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?taskId=${taskId}`;
+      const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?${from}Id=${id}`;
       window.open(url, '_blank');
-    } else if (type === 'compress') {
+      return;
+    }
+
+    if (from === 'task') {
       const filePath = _.map(dataResult, val => {
         return val._FileInfo._Filepath;
       });
-      this.props.triggerFilesTask(filePath, taskId);
+      this.props.triggerFilesTask(filePath, id);
+    } else if (from === 'host') {
+      const requestData = {
+        hostId: id,
+        cmds: [dataResult],
+      };
+
+      this.ah.one({
+        url: `${baseUrl}/api/hmd/retrigger`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        if (data) {
+          helper.showPopupMsg(t('txt-requestSent'));
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
   }
   /**
@@ -1590,7 +1618,7 @@ class HMDscanInfo extends Component {
             this.getSuspiciousFileCount(dataResult, val.TotalCnt)
           }
           {activeTab === 'scanFile' && dataResult &&
-            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}</Button>
+            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId, 'task')} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}</Button>
           }
           {activeTab === '_Vans' && dataResult && dataResult.length > 0 &&
             <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-VulnerabilityCount')}: {dataResult.length}</span>
@@ -1880,6 +1908,7 @@ class HMDscanInfo extends Component {
       tempActiveContent = 'viewMode';
     } else if (type === 'cancel') {
       tempActiveContent = 'viewMode';
+
       this.setState({
         settingsPath: _.cloneDeep(originalSettingsPathData),
         formValidation: {
@@ -2163,6 +2192,7 @@ class HMDscanInfo extends Component {
     })
   }
   render() {
+    const {currentDeviceData} = this.props;
     const {
       activeTab,
       buttonGroupList,
@@ -2239,6 +2269,12 @@ class HMDscanInfo extends Component {
           {activeTab === 'settings' &&
             <div className='settings'>
               <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('hmd-scan.txt-refresh')}</Button>
+              {settingsActiveContent === 'viewMode' && currentDeviceData.isUploaded &&
+                <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, 'download', '', currentDeviceData.ipDeviceUUID, 'host')}>{t(`hmd-scan.txt-downloadLogs`)}</Button>
+              }
+              {settingsActiveContent === 'viewMode' &&
+                <Button variant='contained' color='primary' className='btn compress' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
+              }
               {settingsActiveContent === 'viewMode' &&
                 <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
               }

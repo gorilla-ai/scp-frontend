@@ -92,6 +92,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      showAllSeats: false,
       deviceSearchArea: '',
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
@@ -517,13 +518,13 @@ class NetworkInventory extends Component {
    */
   getDeviceSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
-    const {activeTab, deviceSearch} = this.state;
+    const {activeTab, deviceSearch, showAllSeats} = this.state;
     const area = areaUUID || this.state.floorPlan.currentAreaUUID;
     let requestData = {
       areaUUID: area
     };
 
-    if (!_.isEmpty(deviceSearch)) {
+    if (!_.isEmpty(deviceSearch) && !showAllSeats) {
       if (deviceSearch.ip) {
         requestData.ip = deviceSearch.ip;
       }
@@ -1733,6 +1734,7 @@ class NetworkInventory extends Component {
       }
 
       this.setState({
+        showAllSeats: false,
         formValidation: {
           ip: {
             valid: true,
@@ -1806,8 +1808,12 @@ class NetworkInventory extends Component {
         };
 
         if (currentDeviceData.areaUUID) {
-          this.getAreaData(currentDeviceData.areaUUID);
-          this.getDeviceSeatData(currentDeviceData.areaUUID);
+          this.setState({
+            showAllSeats: true //show all seats for floor map
+          }, () => {
+            this.getAreaData(currentDeviceData.areaUUID);
+            this.getDeviceSeatData(currentDeviceData.areaUUID);
+          });
         }
 
         tempAddSeat.selectedSeatUUID = currentDeviceData.seatUUID;
@@ -2503,6 +2509,7 @@ class NetworkInventory extends Component {
 
         if (activeSteps === 4) {
           this.setState({
+            showAllSeats: false,
             floorMapType: ''
           }, () => {
             this.handleAddIpConfirm();
