@@ -400,7 +400,9 @@
     "txt-alertNetTrapBlackList": "NetTrap Query Black List",
     "txt-alertTrackOverrideSuccess": "Update Alert Track Success",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
-    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
+    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)",
+    "txt-exportScheduledList": "Export List",
+    "txt-past7days": "Past 7 Days"
   },
 
   "events": {

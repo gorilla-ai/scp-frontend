@@ -318,7 +318,7 @@ class HostController extends Component {
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
       type: 'GET'
-    }, {showProgress: false})
+    })
     .then(data => {
       if (data && data.length > 0) {
         const floorPlanData = data[0];
@@ -387,7 +387,7 @@ class HostController extends Component {
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
       type: 'GET'
-    }, {showProgress: false})
+    })
     .then(data => {
       if (data) {
         const areaName = data.areaName;

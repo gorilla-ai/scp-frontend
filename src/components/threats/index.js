@@ -8,6 +8,13 @@ import queryString from 'query-string'
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import HourglassEmptyIcon from '@material-ui/icons/HourglassEmpty';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import Popover from '@material-ui/core/Popover';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -142,7 +149,6 @@ const SOC_Analyzer = 1
 const SOC_Executor = 2
 const SOC_Super = 3
 
-
 let t = null;
 let f = null;
 let et = null;
@@ -226,6 +232,9 @@ class ThreatsController extends Component {
       }],
       edgeFilterData:[],
       edgeCheckedList: [],
+      popOverAnchor: null,
+      scheduledDownlaod: false,
+      taskServiceList: [],
       threatsData: {
         dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
@@ -486,6 +495,126 @@ class ThreatsController extends Component {
         this.setState({
           treeData: tempTreeData
         });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle CSV download click
+   * @method
+   * @param {object} event - event object
+   */
+  handleCSVclick = (event) => {
+    this.setState({
+      popOverAnchor: event.currentTarget
+    }, () => {
+      this.getTaskService();
+    });
+  }
+  /**
+   * Get list of task service
+   * @method
+   */
+  getTaskService = () => {
+    const {baseUrl} = this.context;
+    const datetime = {
+      from: moment(helper.getSubstractDate(7, 'day', moment().utc())).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/taskService/list?source=SCP&type=exportThreat&createStartDttm=${datetime.from}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let scheduledDownlaod = false;
+        let taskServiceList = [];
+
+        if (data.list.length > 0) {
+          scheduledDownlaod = true;
+          taskServiceList = data.list;
+        }
+
+        this.setState({
+          scheduledDownlaod,
+          taskServiceList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display service task list
+   * @method
+   * @param {object} val - content of the list
+   * @param {number} i - index of the list
+   * @returns HTML DOM
+   */
+  displayServiceTaskList = (val, i) => {
+    if (val.progress === 100) {
+      return (
+        <ListItem key={i} button onClick={this.getCSVfile.bind(this, val.id)}>
+          <ListItemText primary={val.name} />
+          <ListItemIcon>
+            <GetAppIcon />
+          </ListItemIcon>
+        </ListItem>
+      )
+    } else {
+      return (
+        <ListItem key={i}>
+          <ListItemText primary={val.name} />
+          <ListItemIcon>
+            <HourglassEmptyIcon />
+          </ListItemIcon>
+        </ListItem>
+      )
+    }
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  handlePopoverClose = () => {
+    this.setState({
+      popOverAnchor: null,
+      scheduledDownlaod: false,
+      taskServiceList: []
+    });
+  }
+  /**
+   * Handle scheduled download click
+   * @method
+   */
+  registerDownload = () => {
+    const {baseUrl} = this.context;
+    const {datetime} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/taskService`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      type: ['exportThreat']
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.handlePopoverClose();
       }
       return null;
     })
@@ -2593,12 +2722,13 @@ class ThreatsController extends Component {
   }
   /**
    * Handle CSV download
+   * @param {string} id - service task ID
    * @method
    */
-  getCSVfile = () => {
+  getCSVfile = (id) => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
-    this.getCSVrequestData(url, 'columns');
+    const url = `${baseUrl}${contextRoot}/api/taskService/file/_download?id=${id}`;
+    window.open(url, '_blank');
   }
   /**
    * Handle Charts CSV download
@@ -2761,19 +2891,16 @@ class ThreatsController extends Component {
       notifyEmailData: []
     });
   }
-
   handleOpenIncidentMenu = (event) => {
     this.setState({
       incidentAnchor: event.currentTarget,
     });
   }
-
   handleCloseIncidentMenu = () => {
     this.setState({
       incidentAnchor: null,
     });
   }
-
   render() {
     const {sessionRights} = this.context;
     const {
@@ -2785,6 +2912,9 @@ class ThreatsController extends Component {
       incidentAnchor,
       currentQueryValue,
       filterData,
+      popOverAnchor,
+      scheduledDownlaod,
+      taskServiceList,
       showChart,
       showFilter,
       makeIncidentOpen,
@@ -2813,7 +2943,7 @@ class ThreatsController extends Component {
         }
 
         {makeIncidentOpen &&
-        this.handleMakeIncidentDialog()
+          this.handleMakeIncidentDialog()
         }
 
         <Menu
@@ -2827,68 +2957,79 @@ class ThreatsController extends Component {
         </Menu>
 
         <Menu
-            id='threatsCreateIncidentsMenu'
-            anchorEl={incidentAnchor}
-            keepMounted
-            open={Boolean(incidentAnchor)}
-            onClose={this.handleCloseIncidentMenu}>
-          {
-            this.state.cancelThreatsList.length !== 0 &&
-              <MenuItem id='threatsCreateIncidentsMenuItemSelected' onClick={this.setupIncidentDialog.bind(this,'select')}>{it('txt-createIncidents-selected')}</MenuItem>
+          id='threatsCreateIncidentsMenu'
+          anchorEl={incidentAnchor}
+          keepMounted
+          open={Boolean(incidentAnchor)}
+          onClose={this.handleCloseIncidentMenu}>
+          {this.state.cancelThreatsList.length !== 0 &&
+            <MenuItem id='threatsCreateIncidentsMenuItemSelected' onClick={this.setupIncidentDialog.bind(this,'select')}>{it('txt-createIncidents-selected')}</MenuItem>
           }
           <MenuItem id='threatsCreateIncidentsMenuItemAll' onClick={this.setupIncidentDialog.bind(this,'all')}>{it('txt-createIncident-tracked')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})}
-                    onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i
-                className='fg fg-filter'/><span>({filterDataCount})</span></Button>
+              <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'/><span>({filterDataCount})</span></Button>
             }
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart}
-                    title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
+              <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
             }
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button id='threatsDownloadBtn' variant='outlined' color='primary' className=' ' onClick={this.getCSVfile}
-                    title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
+              <Button id='threatsDownloadBtn' variant='outlined' color='primary' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
             }
-
-
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')}
-                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
-                    onClick={this.handleSelectMenu.bind(this,'select')}><WorkIcon/></Button>
+              <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this,'select')}><WorkIcon/></Button>
             }
             {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')}
-                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}
-                    onClick={this.handleSelectMenu.bind(this,'list')}><WorkOffIcon/></Button>
+              <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this,'list')}><WorkOffIcon/></Button>
             }
             {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
-            <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')}
-                    disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0}
-                    onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
+              <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0} onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
             }
-
             {this.state.activeSubTab === 'trackTreats' &&
-            <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')}
-                    disabled={this.state.activeSubTab !== 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.cancelThreatsList.length === 0}
-                    onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
+              <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={this.state.activeSubTab !== 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.cancelThreatsList.length === 0} onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
             }
 
             {this.state.activeSubTab === 'trackTreats' && sessionRights.Module_Soc &&
-            <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last'
-                    disabled={this.state.activeSubTab === 'statistics'}
-                    onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+            <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
             }
-
-
           </div>
+
+          <Popover
+            id='csvDownloadContent'
+            open={Boolean(popOverAnchor)}
+            anchorEl={popOverAnchor}
+            onClose={this.handlePopoverClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}>
+            <div className='content'>
+              <List>
+                <ListItem button>
+                  <ListItemText primary={t('txt-exportCSV')} onClick={this.registerDownload} />
+                </ListItem>
+              </List>
+
+              {scheduledDownlaod &&
+                <div className='scheduled-list'>
+                  <div className='header'><span>{t('alert.txt-exportScheduledList')}</span> {t('alert.txt-past7days')}</div>
+                  <List className='service-list'>
+                    {taskServiceList.map(this.displayServiceTaskList)}
+                  </List>
+                </div>
+              }
+            </div>
+          </Popover>
+
           {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-          <SearchOptions
+            <SearchOptions
               datetime={datetime}
               searchInput={searchInput}
               showFilter={showFilter}
@@ -2897,7 +3038,6 @@ class ThreatsController extends Component {
               handleDateChange={this.handleDateChange}
               handleSearchSubmit={this.handleSearchSubmit}/>
           }
-
         </div>
 
         {this.renderTabContent()}

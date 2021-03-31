@@ -400,7 +400,9 @@
     "txt-alertNetTrapBlackList": "NetTrap黑名單查詢紀錄",
     "txt-alertTrackOverrideSuccess": "更新追蹤告警成功",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
-    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
+    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)",
+    "txt-exportScheduledList": "匯出排成列表",
+    "txt-past7days": "最近7天"
   },
 
   "events": {

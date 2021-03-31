@@ -108,7 +108,7 @@ class ArrowTree extends Component {
    * @param {object} val - content of the nodes
    * @param {number} i - index of the nodes
    * @returns HTML DOM
-   */    
+   */
   getNodeContent = (val, i) => {
     const {opened} = this.state;
     const title = val.label || val.id;
