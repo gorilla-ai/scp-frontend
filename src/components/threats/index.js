@@ -553,25 +553,23 @@ class ThreatsController extends Component {
    * @returns HTML DOM
    */
   displayServiceTaskList = (val, i) => {
+    let listItemParam = {
+      Key: i
+    };
+
     if (val.progress === 100) {
-      return (
-        <ListItem key={i} button onClick={this.getCSVfile.bind(this, val.id)}>
-          <ListItemText primary={val.name} />
-          <ListItemIcon>
-            <GetAppIcon />
-          </ListItemIcon>
-        </ListItem>
-      )
-    } else {
-      return (
-        <ListItem key={i}>
-          <ListItemText primary={val.name} />
-          <ListItemIcon>
-            <HourglassEmptyIcon />
-          </ListItemIcon>
-        </ListItem>
-      )
+      listItemParam.button = true;
+      listItemParam.onClick = this.getCSVfile.bind(this, val.id);
     }
+
+    return (
+      <ListItem {...listItemParam}>
+        <ListItemText primary={val.name} className='list-text' />
+        <ListItemIcon>
+          {val.progress === 100 ? <GetAppIcon /> : <HourglassEmptyIcon />}
+        </ListItemIcon>
+      </ListItem>
+    )
   }
   /**
    * Handle popover close
