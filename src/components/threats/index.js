@@ -533,7 +533,7 @@ class ThreatsController extends Component {
         let scheduledDownlaod = false;
         let taskServiceList = [];
 
-        if (data.list.length > 0) {
+        if (data.list && data.list.length > 0) {
           scheduledDownlaod = true;
           taskServiceList = data.list;
         }
