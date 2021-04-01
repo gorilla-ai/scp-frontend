@@ -233,7 +233,6 @@ class ThreatsController extends Component {
       edgeFilterData:[],
       edgeCheckedList: [],
       popOverAnchor: null,
-      scheduledDownlaod: false,
       taskServiceList: [],
       threatsData: {
         dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
@@ -530,16 +529,13 @@ class ThreatsController extends Component {
     })
     .then(data => {
       if (data) {
-        let scheduledDownlaod = false;
         let taskServiceList = [];
 
         if (data.list && data.list.length > 0) {
-          scheduledDownlaod = true;
           taskServiceList = data.list;
         }
 
         this.setState({
-          scheduledDownlaod,
           taskServiceList
         });
       }
@@ -584,7 +580,6 @@ class ThreatsController extends Component {
   handlePopoverClose = () => {
     this.setState({
       popOverAnchor: null,
-      scheduledDownlaod: false,
       taskServiceList: []
     });
   }
@@ -2913,7 +2908,6 @@ class ThreatsController extends Component {
       currentQueryValue,
       filterData,
       popOverAnchor,
-      scheduledDownlaod,
       taskServiceList,
       showChart,
       showFilter,
@@ -3017,7 +3011,7 @@ class ThreatsController extends Component {
                 </ListItem>
               </List>
 
-              {scheduledDownlaod &&
+              {taskServiceList.length > 0 &&
                 <div className='scheduled-list'>
                   <div className='header'><span>{t('alert.txt-exportScheduledList')}</span> {t('alert.txt-past7days')}</div>
                   <List className='service-list'>
