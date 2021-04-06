@@ -98,70 +98,100 @@ const HMD_TRIGGER = [
 ];
 const HMD_LIST = [
   {
-    value: 'isScanProc',
-    text: 'Yara Scan'
+    name: 'Yara Scan',
+    value: 'isScanProc'
   },
   {
-    value: 'isScanFile',
-    text: 'Malware'
+    name: 'Malware',
+    value: 'isScanFile'
   },
   {
-    value: 'isGCB',
-    text: 'GCB'
+    name: 'GCB',
+    value: 'isGCB'
   },
   {
-    value: 'isIR',
-    text: 'IR'
+    name: 'IR',
+    value: 'isIR'
   },
   {
-    value: 'isFileIntegrity',
-    text: 'File Integrity'
+    name: 'File Integrity',
+    value: 'isFileIntegrity'
   },
   {
-    value: 'isEventTracing',
-    text: 'Event Tracing'
+    name: 'Event Tracing',
+    value: 'isEventTracing'
   },
   {
-    value: 'isProcessMonitor',
-    text: 'Process Monitor'
+    name: 'Process Monitor',
+    value: 'isProcessMonitor'
   },
   {
-    value: 'isVans',
-    text: 'VANS'
+    name: 'VANS',
+    value: 'isVans'
   }
 ];
 const HOST_SORT_LIST = [
   {
     name: 'ip',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'ip',
-    type: 'desc'
+    sort: 'desc'
   },
   {
     name: 'mac',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'mac',
-    type: 'desc'
+    sort: 'desc'
   },
   {
     name: 'hostName',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'hostName',
-    type: 'desc'
+    sort: 'desc'
   },
   {
     name: 'system',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'system',
-    type: 'desc'
+    sort: 'desc'
+  }
+];
+const SAFETY_SCAN_LIST = [
+  {
+    name: 'Malware',
+    value: 'scanFile'
+  },
+  {
+    name: 'GCB',
+    value: 'gcbDetection'
+  },
+  {
+    name: 'File Integrity',
+    value: 'getFileIntegrity'
+  },
+  {
+    name: 'Event Tracing',
+    value: 'getEventTracing'
+  },
+  {
+    name: 'Process Monitor',
+    value: 'getProcessMonitorResult'
+  },
+  {
+    name: 'VANS - CPE',
+    value: 'getVans'
+  },
+  {
+    name: 'VANS - CVE',
+    value: 'getVans'
   }
 ];
 const MAPS_PRIVATE_DATA = {
@@ -194,7 +224,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList' or 'deviceMap'
+      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
@@ -238,7 +268,6 @@ class HostController extends Component {
         pageSize: 20
       },
       hostData: {},
-      hostSortList: [],
       hostSort: 'ip-asc',
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
@@ -248,6 +277,7 @@ class HostController extends Component {
         hasMore: false
       },
       openHmdType: '',
+      safetyScanType: 'scanFile',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -259,7 +289,6 @@ class HostController extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     this.setLeftNavData();
-    this.getHostSortList();
     this.getFloorPlan();
     this.getHostData();
   }
@@ -301,12 +330,9 @@ class HostController extends Component {
    */
   getHostSortList = () => {
     const hostSortList = _.map(HOST_SORT_LIST, (val, i) => {
-      return <MenuItem key={i} value={val.name + '-' + val.type}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.type)}</MenuItem>
+      return <MenuItem key={i} value={val.name + '-' + val.sort}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.sort)}</MenuItem>
     });
-
-    this.setState({
-      hostSortList
-    });
+    return hostSortList;
   }
   /**
    * Get and set floor plan data
@@ -546,20 +572,20 @@ class HostController extends Component {
 
         _.forEach(HMD_STATUS_LIST, val => {
           hmdStatusList.push({
-            value: val,
-            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')'
+            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')',
+            value: val
           });
         })
 
         hmdStatusList.push({
-          value: 'isConnected',
-          text: t('txt-connected')
+          text: t('txt-connected'),
+          value: 'isConnected'
         });
 
         _.forEach(HMD_LIST, val => {
           scanStatusList.push({
-            value: val.value,
-            text: val.text + ' (' + data.scanInfoAgg[val.value] + ')'
+            text: val.name + ' (' + data.scanInfoAgg[val.value] + ')',
+            value: val.value
           });
         });
 
@@ -871,7 +897,7 @@ class HostController extends Component {
    * Handle content tab change
    * @method
    * @param {object} event - event object
-   * @param {string} newTab - content type ('hostList' or 'deviceMap')
+   * @param {string} newTab - content type ('hostList', 'deviceMap' or 'safetyScan')
    */
   handleSubTabChange = (event, newTab) => {
     this.setState({
@@ -1632,6 +1658,26 @@ class HostController extends Component {
       activeContent: type
     });
   }
+  /**
+   * Get and set safety scan list
+   * @method
+   */
+  getSafetyScanList = () => {
+    const safetyScanList = _.map(SAFETY_SCAN_LIST, (val, i) => {
+      return <MenuItem key={i} value={val.value}>{val.name}</MenuItem>
+    });
+    return safetyScanList;
+  }  
+  /**
+   * Handle Safety Scan list change
+   * @method
+   * @param {object} event - event object
+   */
+  safetyScanChange = (event) => {
+    this.setState({
+      safetyScanType: event.target.value
+    });
+  }
   render() {
     const {
       activeTab,
@@ -1650,7 +1696,6 @@ class HostController extends Component {
       filterNav,
       hostInfo,
       hostData,
-      hostSortList,
       hostSort,
       floorList,
       currentFloor,
@@ -1658,7 +1703,8 @@ class HostController extends Component {
       currentBaseLayers,
       seatData,
       eventInfo,
-      openHmdType
+      openHmdType,
+      safetyScanType
     } = this.state;
 
     return (
@@ -1747,7 +1793,7 @@ class HostController extends Component {
                       size='small'
                       value={hostSort}
                       onChange={this.handleHostSortChange}>
-                      {hostSortList}
+                      {this.getHostSortList()}
                     </TextField>
                   </div>
                 }
@@ -1760,6 +1806,7 @@ class HostController extends Component {
                   onChange={this.handleSubTabChange}>
                   <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
                   <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
+                  <Tab id='hostMapTab' label={t('host.txt-safetyScan')} value='safetyScan' />
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
@@ -1841,6 +1888,41 @@ class HostController extends Component {
                           }
                         }]} />
                     }
+                  </div>
+                }
+
+                {activeTab === 'safetyScan' &&
+                  <div>
+                    <TextField
+                      id='safetyScanType'
+                      className='safety-scan-type'
+                      name='safetyScanType'
+                      label={t('host.txt-safetyScanType')}
+                      select
+                      variant='outlined'
+                      size='small'
+                      value={safetyScanType}
+                      onChange={this.safetyScanChange}>
+                      {this.getSafetyScanList()}
+                    </TextField>
+
+                    <div className='table-content'>
+                      <div className='table' style={{height: '57vh'}}>
+                        <ul className='host-list'>
+                          {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
+                            hostInfo.dataContent.map(this.getHostList)
+                          }
+                        </ul>
+                      </div>
+                      <footer>
+                        <Pagination
+                          totalCount={hostInfo.totalCount}
+                          pageSize={hostInfo.pageSize}
+                          currentPage={hostInfo.currentPage}
+                          onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                          onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                      </footer>
+                    </div>
                   </div>
                 }
               </div>
