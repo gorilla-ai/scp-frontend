@@ -269,6 +269,13 @@ class HostController extends Component {
       },
       hostData: {},
       hostSort: 'ip-asc',
+      safetyScanData: {
+        dataContent: [],
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
+      },
+      safetyScanType: 'scanFile',
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
@@ -277,7 +284,6 @@ class HostController extends Component {
         hasMore: false
       },
       openHmdType: '',
-      safetyScanType: 'scanFile',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -616,6 +622,74 @@ class HostController extends Component {
     })
   }
   /**
+   * Get and set safety scan data
+   * @method
+   */
+  getSafetyScanData = () => {
+    const {baseUrl} = this.context;
+    const {filterNav, deviceSearch, safetyScanData, safetyScanType} = this.state;
+    const datetime = this.getHostDateTime();
+    let url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
+    let requestData = {
+      timestamp: [datetime.from, datetime.to],
+      hmdScanDistribution: {
+        taskName: safetyScanType
+      }
+    };
+
+    if (filterNav.severitySelected.length > 0) {
+      requestData.severityLevel = filterNav.severitySelected;
+    }
+
+    if (filterNav.hmdStatusSelected.length > 0) {
+      requestData.devInfo = filterNav.hmdStatusSelected;
+    }
+
+    if (filterNav.scanStatusSelected.length > 0) {
+      requestData.scanInfo = filterNav.scanStatusSelected;
+    }
+
+    if (filterNav.maskedIPSelected.length > 0) {
+      requestData.exactIps = filterNav.maskedIPSelected;
+    }
+
+    if (deviceSearch.ip) {
+      requestData.ip = deviceSearch.ip;
+    }
+
+    if (deviceSearch.mac) {
+      requestData.mac = deviceSearch.mac;
+    }
+
+    if (deviceSearch.hostName) {
+      requestData.hostName = deviceSearch.hostName;
+    }
+
+    if (deviceSearch.deviceType) {
+      requestData.deviceType = deviceSearch.deviceType;
+    }
+
+    if (deviceSearch.system) {
+      requestData.system = deviceSearch.system;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        console.log(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Check if item is already in the selected list
    * @method
    * @param {string} type - checked item type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
@@ -903,7 +977,11 @@ class HostController extends Component {
     this.setState({
       activeTab: newTab
     }, () => {
-      this.getHostData();
+      if (newTab === 'safetyScan') {
+        this.getSafetyScanData();
+      } else {
+        this.getHostData();
+      }
     });
   }
   /**
@@ -1697,6 +1775,7 @@ class HostController extends Component {
       hostInfo,
       hostData,
       hostSort,
+      safetyScanData,
       floorList,
       currentFloor,
       currentMap,
@@ -1909,16 +1988,14 @@ class HostController extends Component {
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
                         <ul className='host-list'>
-                          {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
-                            hostInfo.dataContent.map(this.getHostList)
-                          }
+
                         </ul>
                       </div>
                       <footer>
                         <Pagination
-                          totalCount={hostInfo.totalCount}
-                          pageSize={hostInfo.pageSize}
-                          currentPage={hostInfo.currentPage}
+                          totalCount={safetyScanData.totalCount}
+                          pageSize={safetyScanData.pageSize}
+                          currentPage={safetyScanData.currentPage}
                           onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
                           onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
                       </footer>
