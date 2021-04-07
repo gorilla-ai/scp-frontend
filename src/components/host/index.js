@@ -261,7 +261,7 @@ class HostController extends Component {
     this.setLeftNavData();
     this.getHostSortList();
     this.getFloorPlan();
-    this.getHostData();
+    //this.getHostData();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
@@ -373,7 +373,7 @@ class HostController extends Component {
   /**
    * Get and set area related data
    * @method
-   * @param {string | object} event - event object
+   * @param {string | object} event - current floor or event object
    */
   getAreaData = (event) => {
     const {baseUrl, contextRoot} = this.context;
@@ -419,6 +419,8 @@ class HostController extends Component {
           currentMap,
           currentBaseLayers,
           currentFloor: areaUUID
+        }, () => {
+          this.getHostData();
         });
       }
       return null;
