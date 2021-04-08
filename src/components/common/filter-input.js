@@ -22,8 +22,8 @@ class FilterInput extends Component {
     if (queryType === 'query') {
       data = {
         activeTab,
-        logFields,
-        queryType
+        logFields,queryType
+        
       };
 
       return (
@@ -56,7 +56,7 @@ class FilterInput extends Component {
         };
 
         defaultFilter = {
-          condition: activeTab === 'host' ? 'ip' : 'must',
+          condition: 'must',
           query: ''
         };
       }

@@ -1888,10 +1888,9 @@ button.standard:hover:not([disabled]) {
           .safety-scan-type {
             margin: 15px 20px 10px 20px;
           }
-          ul.host-list {
+          ul.host-list,
+          ul.safety-list {
             & > li {
-              min-height: 100px;
-              padding: 15px 10px;
               overflow: hidden;
               border: 1px solid var(--primaryBorder);
               background-color: var(--primaryContentBackground);
@@ -1904,9 +1903,6 @@ button.standard:hover:not([disabled]) {
               .device-alert {
                 float: left;
                 padding: 10px;
-                margin-left: 35px;
-                margin-right: 35px;
-                border-radius: 35px;
                 overflow: hidden;
                 .fg-host {
                   float: left;
@@ -1928,6 +1924,44 @@ button.standard:hover:not([disabled]) {
                     span {
                       color: var(--formEmailGroup);
                     }
+                  }
+                }
+                .flex-item {
+                  display: flex;
+                  flex-wrap: wrap;
+                  width: 100%;
+                  margin: 2px 0;
+                }
+              }
+              .view-details {
+                float: right;
+                color: var(--tabMenuText);
+                font-weight: bold;
+                margin-right: 20px;
+                padding: 6px 12px;
+                border: 2px solid #d9d9d9;
+                border-radius: 15px;
+                cursor: pointer;
+              }
+            }
+          }
+          ul.host-list {
+            & > li {
+              min-height: 100px;
+              padding: 15px 10px;
+              .device-alert {
+                margin-left: 35px;
+                margin-right: 35px;
+                border-radius: 35px;
+                .fg-host {
+                  float: left;
+                  color: #fff;
+                  font-size: 35px;
+                }
+              }
+              .info {
+                ul {
+                  li {
                     &.first {
                       padding-left: 0;
                       border: none;
@@ -1970,10 +2004,6 @@ button.standard:hover:not([disabled]) {
                   }
                 }
                 .flex-item {
-                  display: flex;
-                  flex-wrap: wrap;
-                  width: 100%;
-                  margin: 2px 0;
                   span {
                     font-size: .9em;
                     padding: 5px 10px;
@@ -1984,15 +2014,41 @@ button.standard:hover:not([disabled]) {
                 }
               }
               .view-details {
-                float: right;
-                color: var(--tabMenuText);
-                font-weight: bold;
                 margin-top: 15px;
-                margin-right: 20px;
-                padding: 6px 12px;
-                border: 2px solid #d9d9d9;
-                border-radius: 15px;
-                cursor: pointer;
+              }
+            }
+          }
+          ul.safety-list {
+            & > li {
+              padding: 10px;
+              .device-alert {
+                .fg-wifi-beacon-1 {
+                  float: left;
+                  margin-right: 10px;
+                  color: #666;
+                  font-weight: bold;
+                }
+                .primary-content {
+                  font-size: 17px;
+                  color: var(--formEmailGroup);
+                }
+              }
+              .info {
+                .flex-item {
+                  span {
+                    font-size: .1em;
+                    font-weight: bold;
+                    color: #70c97e;
+                    padding: 3px 5px;
+                    margin-top: 7px;
+                    margin-right: 7px;
+                    border: 1px solid #70c97e;
+                    border-radius: 5px;
+                  }
+                }
+              }
+              .view-details {
+                margin-top: 3px;
               }
             }
           }

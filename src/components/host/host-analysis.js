@@ -217,7 +217,7 @@ class HostAnalysis extends Component {
               <th>{t('ipFields.hostName')}</th>
               <th>{t('ipFields.system')}</th>
               <th>{t('ipFields.owner')}</th>
-              <th>{t('ipFields.version')}</th>              
+              <th>{t('ipFields.version')}</th>
             </tr>
           </thead>
           <tbody>

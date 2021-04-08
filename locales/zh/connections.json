@@ -6,6 +6,8 @@
 
   "txt-on": "開",
   "txt-off": "關",
+  "txt-true": "是",
+  "txt-false": "否",
   "txt-switch": "開關",
   "txt-ok": "確認",
   "txt-time": "時間",
@@ -332,7 +334,17 @@
     "txt-isOldVersion": "未升版",
     "txt-isOwnerNull": "未設定使用者",
     "txt-isAreaNull": "未設定樓層",
-    "txt-isSeatNull": "未設定座位"
+    "txt-isSeatNull": "未設定座位",
+    "txt-peFile": "PE檔",
+    "txt-peFileExtension": "PE副檔名",
+    "txt-malwareInfo": "惡意程式資訊",
+    "txt-hashMD5": "Hash Value (MD5)",
+    "txt-fileSize": "檔案大小",
+    "txt-isPEfile": "是否為PE檔",
+    "txt-isPEextension": "是否為PE副檔名",
+    "txt-isSignature": "是否為有效簽章",
+    "txt-basicInfo": "基本資訊",
+    "txt-availableHost": "存在主機"
   },
 
   "alert": {

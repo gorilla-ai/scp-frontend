@@ -20,11 +20,15 @@ import Tabs from '@material-ui/core/Tabs';
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
+import HostFilter from './host-filter'
 import Pagination from '../common/pagination'
+import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
 import YaraRule from '../common/yara-rule'
 
@@ -235,6 +239,7 @@ class HostController extends Component {
       },
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
+      safetyDetailsOpen: false,
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
       severityList: [],
@@ -250,6 +255,10 @@ class HostController extends Component {
         scanStatusSelected: [],
         maskedIPSelected: []
       },
+      filterData: [{
+        name: 'ip',
+        query: ''
+      }],
       deviceSearch: {
         ip: '',
         mac: '',
@@ -275,6 +284,7 @@ class HostController extends Component {
         currentPage: 1,
         pageSize: 20
       },
+      currentSafetyData: {},
       safetyScanType: 'scanFile',
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
@@ -487,48 +497,9 @@ class HostController extends Component {
     }
 
     let requestData = {
-      timestamp: [datetime.from, datetime.to]
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostRequestData()
     };
-
-    if (activeTab === 'deviceMap') {
-      requestData.areaUUID = currentFloor;
-    }
-
-    if (filterNav.severitySelected.length > 0) {
-      requestData.severityLevel = filterNav.severitySelected;
-    }
-
-    if (filterNav.hmdStatusSelected.length > 0) {
-      requestData.devInfo = filterNav.hmdStatusSelected;
-    }
-
-    if (filterNav.scanStatusSelected.length > 0) {
-      requestData.scanInfo = filterNav.scanStatusSelected;
-    }
-
-    if (filterNav.maskedIPSelected.length > 0) {
-      requestData.exactIps = filterNav.maskedIPSelected;
-    }
-
-    if (deviceSearch.ip) {
-      requestData.ip = deviceSearch.ip;
-    }
-
-    if (deviceSearch.mac) {
-      requestData.mac = deviceSearch.mac;
-    }
-
-    if (deviceSearch.hostName) {
-      requestData.hostName = deviceSearch.hostName;
-    }
-
-    if (deviceSearch.deviceType) {
-      requestData.deviceType = deviceSearch.deviceType;
-    }
-
-    if (deviceSearch.system) {
-      requestData.system = deviceSearch.system;
-    }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
@@ -622,20 +593,12 @@ class HostController extends Component {
     })
   }
   /**
-   * Get and set safety scan data
+   * Get Host and Safety Scan request data
    * @method
    */
-  getSafetyScanData = () => {
-    const {baseUrl} = this.context;
-    const {filterNav, deviceSearch, safetyScanData, safetyScanType} = this.state;
-    const datetime = this.getHostDateTime();
-    let url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
-    let requestData = {
-      timestamp: [datetime.from, datetime.to],
-      hmdScanDistribution: {
-        taskName: safetyScanType
-      }
-    };
+  getHostRequestData = () => {
+    const {filterNav, deviceSearch} = this.state;
+    let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
       requestData.severityLevel = filterNav.severitySelected;
@@ -673,6 +636,25 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
+    return requestData;
+  }
+  /**
+   * Get and set safety scan data
+   * @method
+   */
+  getSafetyScanData = () => {
+    const {baseUrl} = this.context;
+    const {safetyScanData, safetyScanType} = this.state;
+    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
+    const requestData = {
+      timestamp: [datetime.from, datetime.to],
+      hmdScanDistribution: {
+        taskName: safetyScanType
+      },
+      ...this.getHostRequestData()
+    };
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -681,7 +663,13 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        console.log(data);
+        let tempSafetyScanData = {...safetyScanData};
+        tempSafetyScanData.dataContent = data.hmdScanDistribution;
+        tempSafetyScanData.totalCount = data.count;
+
+        this.setState({
+          safetyScanData: tempSafetyScanData
+        });
       }
       return null;
     })
@@ -998,73 +986,41 @@ class HostController extends Component {
     });
   }
   /**
+   * Set filter data
+   * @method
+   * @param {array.<object>} filterData - filter data to be set
+   */
+  setFilterData = (filterData) => {
+    this.setState({
+      filterData
+    });
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, deviceSearch} = this.state;
+    const {showFilter, filterData, deviceSearch} = this.state;
+    const defaultValue = {
+      name: 'ip',
+      query: ''
+    };
+    let data = {};
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
-        <div className='filter-section config'>
-          <div className='group'>
-            <TextField
-              id='deviceSearchIP'
-              name='ip'
-              label={t('ipFields.ip')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.ip}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchMac'
-              name='mac'
-              label={t('ipFields.mac')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.mac}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchHostName'
-              name='hostName'
-              label={t('ipFields.hostName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.hostName}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchDeviceType'
-              name='deviceType'
-              label={t('ipFields.deviceType')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.deviceType}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchSystem'
-              name='system'
-              label={t('ipFields.system')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.system}
-              onChange={this.handleDeviceSearch} />
-          </div>
+        <div className='filter-section'>
+          <MultiInput
+            className='filter-warp'
+            base={HostFilter}
+            inline={true}
+            props={data}
+            defaultItemValue={defaultValue}
+            value={filterData}
+            onChange={this.setFilterData} />
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
@@ -1078,7 +1034,13 @@ class HostController extends Component {
    * @method
    */
   clearFilter = () => {
+    const filterData = [{
+      name: 'ip',
+      query: ''
+    }];
+
     this.setState({
+      filterData,
       deviceSearch: {
         ip: '',
         mac: '',
@@ -1513,7 +1475,8 @@ class HostController extends Component {
               {iconType !== '' &&
                 <img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />
               }
-              <span>{val.ip}</span></li>
+              <span>{val.ip}</span>
+            </li>
             {infoList.map(this.getInfoList.bind(this, val))}
           </ul>
 
@@ -1551,6 +1514,52 @@ class HostController extends Component {
     }, () => {
       this.getHostData();
     });
+  }
+  /**
+   * Toggle safety details dialog and set safety data
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  toggleSafetyDetails = (safetyData) => {
+    if (!_.isEmpty(safetyData)) {
+      this.setState({
+        currentSafetyData: safetyData
+      });
+    }
+
+    this.setState({
+      safetyDetailsOpen: !this.state.safetyDetailsOpen
+    });
+  }
+  /**
+   * Display Safety Scan content
+   * @method
+   * @param {object} val - Safety Scan data
+   * @param {number} i - index of the Safety Scan data
+   * @returns HTML DOM
+   */
+  getSafetyList = (val, i) => {
+    return (
+      <li key={i}>
+        <div className='device-alert'>
+          <i className='fg fg-wifi-beacon-1'></i>
+          <span className='primary-content'>{val.primaryKeyValue}</span>
+        </div>
+        <div className='info'>
+          <div className='flex-item'>
+            {val.rawJsonObject && val.rawJsonObject._IsPE &&
+              <span className=''>{t('host.txt-peFile')}</span>
+            }
+            {val.rawJsonObject && val.rawJsonObject._IsPEextension &&
+              <span className=''>{t('host.txt-peFileExtension')}</span>
+            }
+          </div>
+        </div>
+        <div className='view-details' onClick={this.toggleSafetyDetails.bind(this, val)}>
+          {t('host.txt-viewInfo')}
+        </div>
+      </li>
+    )
   }
   /**
    * Handle CSV download
@@ -1754,6 +1763,8 @@ class HostController extends Component {
   safetyScanChange = (event) => {
     this.setState({
       safetyScanType: event.target.value
+    }, () => {
+      this.getSafetyScanData();
     });
   }
   render() {
@@ -1765,6 +1776,7 @@ class HostController extends Component {
       datetime,
       assessmentDatetime,
       hostAnalysisOpen,
+      safetyDetailsOpen,
       contextAnchor,
       menuType,
       yaraRuleOpen,
@@ -1783,6 +1795,7 @@ class HostController extends Component {
       seatData,
       eventInfo,
       openHmdType,
+      currentSafetyData,
       safetyScanType
     } = this.state;
 
@@ -1804,6 +1817,13 @@ class HostController extends Component {
             getIPdeviceInfo={this.getIPdeviceInfo}
             loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis} />
+        }
+
+        {safetyDetailsOpen &&
+          <SafetyDetails
+            currentSafetyData={currentSafetyData}
+            safetyScanType={safetyScanType}
+            toggleSafetyDetails={this.toggleSafetyDetails} />
         }
 
         <div className='sub-header'>
@@ -1987,8 +2007,10 @@ class HostController extends Component {
 
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
-                        <ul className='host-list'>
-
+                        <ul className='safety-list'>
+                          {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
+                            safetyScanData.dataContent.map(this.getSafetyList)
+                          }
                         </ul>
                       </div>
                       <footer>
