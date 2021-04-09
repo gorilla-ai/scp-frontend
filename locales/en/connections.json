@@ -23,6 +23,8 @@
   "txt-close": "Close",
   "txt-show": "Show",
   "txt-tips": "Tips",
+  "txt-modified": "Modified",
+  "txt-notModified": "Not Modified",
   "txt-layout-setting": "Layout Setting",
   "txt-account": "Account",
   "txt-accounts": "Accounts",
@@ -337,14 +339,19 @@
     "txt-isSeatNull": "No Seat",
     "txt-peFile": "PE File",
     "txt-peFileExtension": "PE File Extension",
+    "txt-verifyTrust": "Verified Trust",
     "txt-malwareInfo": "Malware Information",
     "txt-hashMD5": "Hash Value (MD5)",
     "txt-fileSize": "File Size",
     "txt-isPEfile": "Is PE?",
     "txt-isPEextension": "Is PE Extension?",
     "txt-isSignature": "Is valid signature?",
+    "txt-suspiciousFilePath": "Suspicious Filepath",
     "txt-basicInfo": "Basic Info",
-    "txt-availableHost": "Host"
+    "txt-availableHost": "Available Host",
+    "txt-vendor": "Vendor",
+    "txt-product": "Product",
+    "txt-version": "Version"
   },
 
   "alert": {
@@ -601,7 +608,7 @@
     "txt-addToFilterList": "Add to filter list",
     "txt-suspiciousFileCount": "Suspicious File Count",
     "txt-suspiciousFileName": "Suspicious Filename",
-    "txt-suspiciousFilePath": "Suspicious File Path",
+    "txt-suspiciousFilePath": "Suspicious Filepath",
     "txt-vulnerabilityInfo": "Vulnerability Info",
     "txt-VulnerabilityCount": "Vulnerabilities",
     "txt-learningInterval": "Process Monitor Learning Interval (second)",

@@ -191,11 +191,11 @@ const SAFETY_SCAN_LIST = [
   },
   {
     name: 'VANS - CPE',
-    value: 'getVans'
+    value: 'getVansCpe'
   },
   {
     name: 'VANS - CVE',
-    value: 'getVans'
+    value: 'getVansCve'
   }
 ];
 const MAPS_PRIVATE_DATA = {
@@ -230,7 +230,7 @@ class HostController extends Component {
     this.state = {
       activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
-      showFilter: false,
+      showFilter: true,
       showLeftNav: true,
       datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       assessmentDatetime: {
@@ -647,13 +647,26 @@ class HostController extends Component {
     const {safetyScanData, safetyScanType} = this.state;
     const datetime = this.getHostDateTime();
     const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
-    const requestData = {
+    let requestData = {
       timestamp: [datetime.from, datetime.to],
-      hmdScanDistribution: {
-        taskName: safetyScanType
-      },
       ...this.getHostRequestData()
     };
+
+    if (safetyScanType === 'getVansCpe') {
+      requestData.hmdScanDistribution = {
+        taskName: 'getVans',
+        primaryKeyName: 'cpe23Uri'
+      };
+    } else if (safetyScanType === 'getVansCve') {
+      requestData.hmdScanDistribution = {
+        taskName: 'getVans',
+        primaryKeyName: 'cveId'
+      };
+    } else {
+      requestData.hmdScanDistribution = {
+        taskName: safetyScanType
+      };
+    }
 
     this.ah.one({
       url,
@@ -1498,22 +1511,40 @@ class HostController extends Component {
   /**
    * Handle Host data pagination change
    * @method
+   * @param {string} contentType - content type ('hostInfo' or 'safetyScanData')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string | number} value - new page number
    */
-  handlePaginationChange = (type, value) => {
-    let tempHostInfo = {...this.state.hostInfo};
-    tempHostInfo[type] = Number(value);
+  handlePaginationChange = (contentType, type, value) => {
+    const {hostInfo, safetyScanData} = this.state;
 
-    if (type === 'pageSize') {
-      tempHostInfo.currentPage = 1;
+    if (contentType === 'hostInfo') {
+      let tempHostInfo = {...hostInfo};
+      tempHostInfo[type] = Number(value);
+
+      if (type === 'pageSize') {
+        tempHostInfo.currentPage = 1;
+      }
+
+      this.setState({
+        hostInfo: tempHostInfo
+      }, () => {
+        this.getHostData();
+      });
+    } else if (contentType === 'safetyScanData') {
+      let tempSafetyScanData = {...safetyScanData};
+      tempSafetyScanData[type] = Number(value);
+
+      if (type === 'pageSize') {
+        tempSafetyScanData.currentPage = 1;
+      }
+
+      this.setState({
+        safetyScanData: tempSafetyScanData
+      }, () => {
+        this.getSafetyScanData();
+      });
     }
-
-    this.setState({
-      hostInfo: tempHostInfo
-    }, () => {
-      this.getHostData();
-    });
   }
   /**
    * Toggle safety details dialog and set safety data
@@ -1532,6 +1563,138 @@ class HostController extends Component {
     });
   }
   /**
+   * Display secondary info for safety scan table
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  getSecondaryContent = (safetyData) => {
+    const {locale} = this.context;
+    const {safetyScanType} = this.state;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject._FileInfo && safetyData.rawJsonObject._FileInfo._Filesize &&
+            <span className='text'>{helper.numberWithCommas(safetyData.rawJsonObject._FileInfo._Filesize)}KB</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsPE &&
+            <span className='success'>{t('host.txt-peFile')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsPEextension &&
+            <span className='success'>{t('host.txt-peFileExtension')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsVerifyTrust &&
+            <span className='success'>{t('host.txt-verifyTrust')}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+      let content = '';
+
+      if (locale === 'zh' && safetyData.rawJsonObject['_PolicyName_zh-tw']) {
+        content = safetyData.rawJsonObject['_PolicyName_zh-tw'];
+      } else if (locale === 'en' && safetyData.rawJsonObject['_PolicyName_en']) {
+        content = safetyData.rawJsonObject['_PolicyName_en'];
+      }
+
+      return (
+        <div className='flex-item'>
+          {!safetyData.rawJsonObject._CompareResult &&
+            <span className='fail'>Fail</span>
+          }
+          {safetyData.rawJsonObject._CompareResult &&
+            <span className='success'>Pass</span>
+          }
+          {content &&
+            <span className='text'>{content}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getFileIntegrity') {
+      return (
+        <div className='flex-item'>
+          <span className='text'>{safetyData.primaryKeyValue}</span>
+        </div>
+      )
+    } else if (safetyScanType === 'getEventTracing') {
+      console.log(safetyData);
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsMd5Modified &&
+            <span className='fail'>{t('txt-modified')}</span>
+          }
+          {safetyData.rawJsonObject && !safetyData.rawJsonObject._IsMd5Modified &&
+            <span className='success'>{t('txt-notModified')}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getVansCpe') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.vendor &&
+            <span className='text border'>{t('host.txt-vendor')}: {safetyData.rawJsonObject.vendor}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.product &&
+            <span className='text border'>{t('host.txt-product')}: {safetyData.rawJsonObject.product}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.version &&
+            <span className='text'>{t('host.txt-version')}: {safetyData.rawJsonObject.version}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getVansCve') {
+      let severity = '';
+      let className = '';
+      let description = '';
+
+      if (safetyData.rawJsonObject) {
+        if (safetyData.rawJsonObject.severity) {
+          severity = safetyData.rawJsonObject.severity.toLowerCase();
+
+          if (severity === 'low') {
+            className = 'success';
+          } else if (severity === 'medium') {
+            className = 'medium';
+          } else if (severity === 'high') {
+            className = 'fail';
+          }
+        }
+
+        if (safetyData.rawJsonObject.description) {
+          description = this.getFormattedLength(safetyData.rawJsonObject.description.description_data[0].value, 120);
+        }
+      }
+
+      return (
+        <div className='flex-item'>
+          {severity &&
+            <span className={className}>{helper.capitalizeFirstLetter(severity)}</span>
+          }
+          {description &&
+            <span className='text'>{description}</span>
+          }
+        </div>
+      )
+    }
+  }
+  /**
+   * Format primary content length
+   * @method
+   * @param {string} content - Safety Scan content
+   * @param {number} length - length of content
+   * @returns formatted content
+   */
+  getFormattedLength = (content, length) => {
+    if (content.length > length) {
+      const newValue = content.substr(0, length) + '...';
+      content = <span className='primary-content' title={content}>{newValue}</span>;
+    } else {
+      content = <span className='primary-content'>{content}</span>;
+    }
+    return content;
+  }
+  /**
    * Display Safety Scan content
    * @method
    * @param {object} val - Safety Scan data
@@ -1539,21 +1702,16 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getSafetyList = (val, i) => {
+    const {safetyScanType} = this.state;
+
     return (
       <li key={i}>
         <div className='device-alert'>
           <i className='fg fg-wifi-beacon-1'></i>
-          <span className='primary-content'>{val.primaryKeyValue}</span>
+          {this.getFormattedLength(val.primaryKeyValue, 80)}
         </div>
         <div className='info'>
-          <div className='flex-item'>
-            {val.rawJsonObject && val.rawJsonObject._IsPE &&
-              <span className=''>{t('host.txt-peFile')}</span>
-            }
-            {val.rawJsonObject && val.rawJsonObject._IsPEextension &&
-              <span className=''>{t('host.txt-peFileExtension')}</span>
-            }
-          </div>
+          {this.getSecondaryContent(val)}
         </div>
         <div className='view-details' onClick={this.toggleSafetyDetails.bind(this, val)}>
           {t('host.txt-viewInfo')}
@@ -1761,7 +1919,12 @@ class HostController extends Component {
    * @param {object} event - event object
    */
   safetyScanChange = (event) => {
+    let tempSafetyScanData = {...this.state.safetyScanData};
+    tempSafetyScanData.dataContent = [];
+    tempSafetyScanData.currentPage = 1;
+
     this.setState({
+      safetyScanData: tempSafetyScanData,
       safetyScanType: event.target.value
     }, () => {
       this.getSafetyScanData();
@@ -1945,8 +2108,8 @@ class HostController extends Component {
                         totalCount={hostInfo.totalCount}
                         pageSize={hostInfo.pageSize}
                         currentPage={hostInfo.currentPage}
-                        onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                        onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                        onPageChange={this.handlePaginationChange.bind(this, 'hostInfo', 'currentPage')}
+                        onDropDownChange={this.handlePaginationChange.bind(this, 'hostInfo', 'pageSize')} />
                     </footer>
                   </div>
                 }
@@ -2018,8 +2181,8 @@ class HostController extends Component {
                           totalCount={safetyScanData.totalCount}
                           pageSize={safetyScanData.pageSize}
                           currentPage={safetyScanData.currentPage}
-                          onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                          onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                          onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
+                          onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
                       </footer>
                     </div>
                   </div>

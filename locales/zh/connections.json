@@ -23,6 +23,8 @@
   "txt-close": "關閉",
   "txt-show": "顯示",
   "txt-tips": "提示",
+  "txt-modified": "異動",
+  "txt-notModified": "無異動",
   "txt-layout-setting": "版面設定",
   "txt-account": "帳號",
   "txt-accounts": "帳號",
@@ -337,14 +339,19 @@
     "txt-isSeatNull": "未設定座位",
     "txt-peFile": "PE檔",
     "txt-peFileExtension": "PE副檔名",
+    "txt-verifyTrust": "有效簽章",
     "txt-malwareInfo": "惡意程式資訊",
     "txt-hashMD5": "Hash Value (MD5)",
     "txt-fileSize": "檔案大小",
     "txt-isPEfile": "是否為PE檔",
     "txt-isPEextension": "是否為PE副檔名",
     "txt-isSignature": "是否為有效簽章",
+    "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-basicInfo": "基本資訊",
-    "txt-availableHost": "存在主機"
+    "txt-availableHost": "存在主機",
+    "txt-vendor": "廠商",
+    "txt-product": "產品",
+    "txt-version": "版本"
   },
 
   "alert": {

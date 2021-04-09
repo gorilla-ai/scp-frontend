@@ -1886,6 +1886,7 @@ button.standard:hover:not([disabled]) {
         }
         &.host {
           .safety-scan-type {
+            width: 165px;
             margin: 15px 20px 10px 20px;
           }
           ul.host-list,
@@ -2031,19 +2032,42 @@ button.standard:hover:not([disabled]) {
                 .primary-content {
                   font-size: 17px;
                   color: var(--formEmailGroup);
+                  padding-right: 10px;
+                  border-right: 1px solid var(--primaryBorder);
                 }
               }
               .info {
                 .flex-item {
-                  span {
+                  span.text {
+                    font-size: .9em;
+                    margin-top: 8px;
+                    margin-right: 10px;
+                    &.border {
+                      padding-right: 10px;
+                      border-right: 1px solid var(--primaryBorder);
+                    }
+                  }
+                  span.success,
+                  span.fail,
+                  span.medium {
                     font-size: .1em;
                     font-weight: bold;
-                    color: #70c97e;
                     padding: 3px 5px;
                     margin-top: 7px;
                     margin-right: 7px;
-                    border: 1px solid #70c97e;
                     border-radius: 5px;
+                  }
+                  span.success {
+                    color: #70c97e;
+                    border: 1px solid #70c97e;
+                  }
+                  span.fail {
+                    color: #e15b6b;
+                    border: 1px solid #e15b6b;
+                  }
+                  span.medium {
+                    color: #f57c00;
+                    border: 1px solid #f57c00;
                   }
                 }
               }
@@ -3189,7 +3213,7 @@ button.standard:hover:not([disabled]) {
       background-color: var(--primaryContentBackground);
     }
     .private {
-      padding: 20px 0;
+      padding: 10px 0;
       margin: 0 auto;
       section {
         padding-right: 0 !important;

@@ -26,6 +26,7 @@ class SafetyDetails extends Component {
     super(props);
 
     this.state = {
+      contentType: 'basicInfo' //'basicInfo' or 'availableHost'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -35,8 +36,130 @@ class SafetyDetails extends Component {
   componentDidMount() {
 
   }
-  ryan = () => {
+  /**
+   * Toggle content type
+   * @method
+   * @param {string} contentType - content type ('basicInfo' or 'availableHost')
+   */
+  toggleContent = (contentType) => {
+    this.setState({
+      contentType
+    });
+  }
+  /**
+   * Display top table header
+   * @method
+   * @returns HTML DOM
+   */
+  getTopTableHeader = () => {
+    const {safetyScanType} = this.props;
 
+    if (safetyScanType === 'scanFile') {
+      return (
+        <tr>
+          <th>{t('host.txt-hashMD5')}</th>
+          <th>{t('host.txt-fileSize')}</th>
+          <th>{t('host.txt-isPEfile')}</th>
+          <th>{t('host.txt-isPEextension')}</th>
+          <th>{t('host.txt-isSignature')}</th>
+        </tr>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+
+    } else if (safetyScanType === 'getFileIntegrity') {
+
+    } else if (safetyScanType === 'getEventTracing') {
+
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+
+    } else if (safetyScanType === 'getVansCpe') {
+
+    } else if (safetyScanType === 'getVansCve') {
+
+    }
+  }
+  /**
+   * Display top table body
+   * @method
+   * @returns HTML DOM
+   */
+  getTopTableBody = () => {
+    const {currentSafetyData, safetyScanType} = this.props;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        <tr>
+          <td>{currentSafetyData.primaryKeyValue}</td>
+          <td>{helper.numberWithCommas(currentSafetyData.rawJsonObject._FileInfo._Filesize)}KB</td>
+          <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
+          <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
+          <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
+        </tr>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+
+    } else if (safetyScanType === 'getFileIntegrity') {
+
+    } else if (safetyScanType === 'getEventTracing') {
+
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+
+    } else if (safetyScanType === 'getVansCpe') {
+
+    } else if (safetyScanType === 'getVansCve') {
+
+    }
+  }
+  /**
+   * Display basic info content
+   * @method
+   * @returns HTML DOM
+   */
+  getBasicInfoContent = () => {
+    const {currentSafetyData, safetyScanType} = this.props;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        <tbody>
+          <tr>
+            <td>{t('host.txt-hashMD5')}</td>
+            <td>{currentSafetyData.primaryKeyValue}</td>
+          </tr>
+          <tr>
+            <td>{t('host.txt-fileSize')}</td>
+            <td>{helper.numberWithCommas(currentSafetyData.rawJsonObject._FileInfo._Filesize)}KB</td>
+          </tr>
+          <tr>
+            <td>{t('host.txt-isPEfile')}</td>
+            <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
+          </tr>
+          <tr>
+            <td>{t('host.txt-isPEextension')}</td>
+            <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
+          </tr>
+          <tr>
+            <td>{t('host.txt-isSignature')}</td>
+            <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
+          </tr>
+          <tr>
+            <td>{t('host.txt-suspiciousFilePath')}</td>
+            <td>{currentSafetyData.rawJsonObject._FileInfo._Filepath}</td>
+          </tr>
+        </tbody>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+
+    } else if (safetyScanType === 'getFileIntegrity') {
+
+    } else if (safetyScanType === 'getEventTracing') {
+
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+
+    } else if (safetyScanType === 'getVansCpe') {
+
+    } else if (safetyScanType === 'getVansCve') {
+
+    }
   }
   /**
    * Display Safety Scan content
@@ -44,64 +167,45 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
-    const {currentSafetyData, safetyScanType} = this.props;
+    const {currentSafetyData} = this.props;
+    const {contentType} = this.state;
 
-    if (safetyScanType === 'scanFile' && !_.isEmpty(currentSafetyData)) {
+    if (!_.isEmpty(currentSafetyData)) {
       return (
         <div>
           <table className='c-table main-table align-center with-border'>
             <thead>
-              <tr>
-                <th>{t('host.txt-hashMD5')}</th>
-                <th>{t('host.txt-fileSize')}</th>
-                <th>{t('host.txt-isPEfile')}</th>
-                <th>{t('host.txt-isPEextension')}</th>
-                <th>{t('host.txt-isSignature')}</th>
-              </tr>
+              {this.getTopTableHeader()}
             </thead>
             <tbody>
-              <tr>
-                <td>{currentSafetyData.primaryKeyValue}</td>
-                <td>?</td>
-                <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
-                <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
-                <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
-              </tr>
+              {this.getTopTableBody()}
             </tbody>
           </table>
 
           <div className='main-content'>
             <div className='nav'>
               <ul>
-                <li className='header'><span>{t('host.txt-basicInfo')}</span></li>
-                <li className='header'><span>{t('host.txt-availableHost')}</span></li>
+                <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{t('host.txt-basicInfo')}</span></li>
+                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span></li>
               </ul>
             </div>
             <div className='content'>
-              <section>
-                <div class='header trigger'>{t('host.txt-basicInfo')}</div>
-                <div class='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: 2021-04-08 03:04:21</div>
-                <table class='c-table main-table host'>
-                  <tbody>
-                    <tr>
-                      <td>{t('host.txt-hashMD5')}</td>
-                      <td>{currentSafetyData.primaryKeyValue}</td>
-                    </tr>
-                    <tr>
-                      <td>{t('host.txt-isPEfile')}</td>
-                      <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
-                    </tr>
-                    <tr>
-                      <td>{t('host.txt-isPEextension')}</td>
-                      <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
-                    </tr>
-                    <tr>
-                      <td>{t('host.txt-isSignature')}</td>
-                      <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
+              <div className='safety-details'>
+                {contentType === 'basicInfo' &&
+                  <div>
+                    <div className='header trigger'>{t('host.txt-basicInfo')}</div>
+                    <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
+                    <table className='c-table main-table'>
+                      {this.getBasicInfoContent()}
+                    </table>
+                  </div>
+                }
+                {contentType === 'availableHost' &&
+                  <div>
+                    Hello Ryan
+                  </div>
+                }
+              </div>
             </div>
           </div>
         </div>
@@ -133,7 +237,7 @@ class SafetyDetails extends Component {
 SafetyDetails.contextType = BaseDataContext;
 
 SafetyDetails.propTypes = {
-  safetyData:  PropTypes.object.isRequired,
+  currentSafetyData:  PropTypes.object.isRequired,
   safetyScanType: PropTypes.string.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
 };

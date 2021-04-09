@@ -1101,7 +1101,6 @@ html[data-theme='dark'] {
       .destIp-content {
         height: 445px;
         min-height: auto;
-        margin-top: 5px;
         overflow-y: auto;
         background: none;
         .fg-info {
@@ -1258,6 +1257,13 @@ html[data-theme='dark'] {
 
 #hostModalDialog-content {
   .main-content {
+    & > .nav ul li.header {
+      cursor: pointer;
+      &.active {
+        font-weight: bold;
+        color: var(--primaryContentHeader);
+      }
+    }
     & > .content {
       height: 550px;
       .srcIp-content,
@@ -1288,17 +1294,32 @@ html[data-theme='dark'] {
     }
   }
   .content {
-    .header.trigger {
-      float: left;
-      margin-right: 20px;
-      font-size: 20px;
-      color: var(--primaryContentHeader);
-      margin-bottom: 15px;
-    }
-    .trigger-text {
-      float: left;
-      font-size: 14px;
-      margin-top: 5px;
+    .safety-details {
+      width: 90%;
+      padding: 10px 0;
+      margin: 0 auto;
+      .header.trigger {
+        float: left;
+        margin-right: 20px;
+        font-size: 20px;
+        color: var(--primaryContentHeader);
+        margin-bottom: 15px;
+      }
+      .trigger-text {
+        float: left;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+      .main-table {
+        td {
+          padding: 10px !important;
+          border: 1px solid var(--primaryBorder) !important;
+          white-space: pre-wrap;
+          &:nth-child(odd) {
+            width: 200px;
+          }
+        }
+      }
     }
   }
 }
