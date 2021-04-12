@@ -81,7 +81,6 @@ const SETTINGS = {
   snapshot: 'getSnapshot',
   procWhiteList: 'setProcessWhiteList'
 };
-
 let scrollCount = 1;
 let t = null;
 let f = null;
@@ -681,11 +680,11 @@ class HMDscanInfo extends Component {
   displayIndividualConnection = (val, i) => {
     return (
       <ul key={val + i}>
-        <li><span>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
-        <li><span>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
-        <li><span>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
-        <li><span>{t('attacksFields.destIp')}:</span> {val.destIP || NOT_AVAILABLE}</li>
-        <li><span>{t('attacksFields.destPort')}:</span> {val.destPort || NOT_AVAILABLE}</li>
+        <li><span className='blue-color'>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
+        <li><span className='blue-color'>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
+        <li><span className='blue-color'>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
+        <li><span className='blue-color'>{t('attacksFields.destIp')}:</span> {val.destIP || NOT_AVAILABLE}</li>
+        <li><span className='blue-color'>{t('attacksFields.destPort')}:</span> {val.destPort || NOT_AVAILABLE}</li>
       </ul>
     )
   }

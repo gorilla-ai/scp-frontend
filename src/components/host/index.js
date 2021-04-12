@@ -1613,7 +1613,7 @@ class HostController extends Component {
     } else if (safetyScanType === 'getFileIntegrity') {
       return (
         <div className='flex-item'>
-          <span className='text'>{safetyData.primaryKeyValue}</span>
+          <span className='text'></span>
         </div>
       )
     } else if (safetyScanType === 'getEventTracing') {
@@ -1622,10 +1622,13 @@ class HostController extends Component {
       return (
         <div className='flex-item'>
           {safetyData.rawJsonObject && safetyData.rawJsonObject._IsMd5Modified &&
-            <span className='fail'>{t('txt-modified')}</span>
+            <span className='fail'>{t('host.txt-md5Modified')}</span>
           }
-          {safetyData.rawJsonObject && !safetyData.rawJsonObject._IsMd5Modified &&
-            <span className='success'>{t('txt-notModified')}</span>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsNotInWhiteList &&
+            <span className='fail'>{t('host.txt-notWhiteList')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._ProcessInfo &&
+            <span className='text'>{safetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath}</span>
           }
         </div>
       )
@@ -1645,20 +1648,11 @@ class HostController extends Component {
       )
     } else if (safetyScanType === 'getVansCve') {
       let severity = '';
-      let className = '';
       let description = '';
 
       if (safetyData.rawJsonObject) {
         if (safetyData.rawJsonObject.severity) {
           severity = safetyData.rawJsonObject.severity.toLowerCase();
-
-          if (severity === 'low') {
-            className = 'success';
-          } else if (severity === 'medium') {
-            className = 'medium';
-          } else if (severity === 'high') {
-            className = 'fail';
-          }
         }
 
         if (safetyData.rawJsonObject.description) {
@@ -1669,7 +1663,7 @@ class HostController extends Component {
       return (
         <div className='flex-item'>
           {severity &&
-            <span className={className}>{helper.capitalizeFirstLetter(severity)}</span>
+            <span className={severity}>{helper.capitalizeFirstLetter(severity)}</span>
           }
           {description &&
             <span className='text'>{description}</span>

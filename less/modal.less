@@ -1266,12 +1266,23 @@ html[data-theme='dark'] {
     }
     & > .content {
       height: 550px;
+      overflow-y: auto;
       .srcIp-content,
       .scan-info,
       & > .network-behavior {
         height: 525px;
         min-height: auto;
         background: none;
+      }
+      span.blue-color {
+        color: var(--primaryContentHeader);
+      }
+      .flex-item {
+        display: flex;
+        flex-wrap: wrap;
+        ul {
+          margin: 5px 20px 5px 0;
+        }
       }
     }
   }
@@ -1311,7 +1322,11 @@ html[data-theme='dark'] {
         margin-top: 5px;
       }
       .main-table {
+        a {
+          text-decoration: underline;
+        }
         td {
+          vertical-align: top;
           padding: 10px !important;
           border: 1px solid var(--primaryBorder) !important;
           white-space: pre-wrap;
@@ -1319,8 +1334,43 @@ html[data-theme='dark'] {
             width: 200px;
           }
         }
+        ul.signature-list {
+          padding: 0 10px;
+        }
       }
     }
+  }
+  span.success,
+  span.fail,
+  span.high,
+  span.medium,
+  span.low {
+    font-size: .1em;
+    font-weight: bold;
+    padding: 3px 5px;
+    margin-top: 7px;
+    margin-right: 7px;
+    border-radius: 5px;
+  }
+  span.success {
+    color: #70c97e;
+    border: 1px solid #70c97e;
+  }
+  span.fail {
+    color: #e15b6b;
+    border: 1px solid #e15b6b;
+  }
+  span.high {
+    color: #CC2943;
+    border: 1px solid #CC2943;
+  }
+  span.medium {
+    color: #CC7B29;
+    border: 1px solid #CC7B29;
+  }
+  span.low {
+    color: #29CC7A;
+    border: 1px solid #29CC7A;
   }
 }
 /* configuration/topology/inventory */
