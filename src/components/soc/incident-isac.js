@@ -211,7 +211,7 @@ class IncidentIsac extends Component {
 
 	render() {
 		const {baseUrl, contextRoot, session} = this.context;
-		const {activeContent, isacSettings} = this.state;
+		const {activeContent, isacSettings, accountType} = this.state;
 		return (
 			<div>
 				<div className='sub-header'/>
