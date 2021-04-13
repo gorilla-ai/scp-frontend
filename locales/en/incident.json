@@ -132,6 +132,7 @@
 	"txt-validBasic": "Please check the is enter correct Incident Basic Info values or not",
 	"txt-portValidationFail": "Please check the correct port number",
 	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",
+	"txt-superAccount-not-set-unit": "No binding unit has been set for this account, it will jump to the default page.",
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",

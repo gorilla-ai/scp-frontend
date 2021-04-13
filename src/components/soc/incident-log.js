@@ -96,18 +96,25 @@ class IncidentLog extends Component {
             .then(data => {
                 if (data) {
 
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                    if (data.rt.isDefault){
                         this.setState({
                             accountType: constants.soc.LIMIT_ACCOUNT
                         })
-                    }else  if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
-                        this.setState({
-                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
-                        })
-                    }else {
-                        this.setState({
-                            accountType: constants.soc.CHECK_ERROR
-                        })
+                    }else{
+
+                        if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                            this.setState({
+                                accountType: constants.soc.LIMIT_ACCOUNT
+                            })
+                        }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                            this.setState({
+                                accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                            })
+                        }else {
+                            this.setState({
+                                accountType: constants.soc.CHECK_ERROR
+                            })
+                        }
                     }
                 }
             })
@@ -234,11 +241,11 @@ class IncidentLog extends Component {
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-log')}</header>
-                            <div className='content-header-btns'>
-                                <Link to='/SCP/configuration/notifications'>
-                                    <Button variant='outlined' color='primary' className='link'>{t('notifications.txt-settings')}</Button>
-                                </Link>
-                            </div>
+                            {/*<div className='content-header-btns'>*/}
+                            {/*    <Link to='/SCP/configuration/notifications'>*/}
+                            {/*        <Button variant='outlined' color='primary' className='link'>{t('notifications.txt-settings')}</Button>*/}
+                            {/*    </Link>*/}
+                            {/*</div>*/}
                             <TableContent
                                 dataTableData={incidentLog.dataContent}
                                 dataTableFields={incidentLog.dataFields}
