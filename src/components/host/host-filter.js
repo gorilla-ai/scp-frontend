@@ -60,10 +60,6 @@ class HostFilter extends Component {
         value: '_MD5'
       },
       {
-        text: 'CVE-ID',
-        value: 'cveId'
-      },
-      {
         text: 'CCE-ID',
         value: '_CceId'
       },
@@ -74,6 +70,10 @@ class HostFilter extends Component {
       {
         text: 'CPE-ID',
         value: 'cpe23Uri'
+      },
+      {
+        text: 'CVE-ID',
+        value: 'cveId'
       }
     ];
     const filterList = _.map(nameList, (val, i) => {

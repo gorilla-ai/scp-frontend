@@ -75,11 +75,17 @@ class SafetyDetails extends Component {
     } else if (safetyScanType === 'getFileIntegrity') {
       return (
         <tr>
+          <th>MD5</th>
           <th>{t('host.txt-suspiciousFilePath')}</th>
         </tr>
       )
-    } else if (safetyScanType === 'getEventTracing') {
-
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        <tr>
+          <th>{t('host.txt-eventCode')}</th>
+          <th>{t('host.txt-eventDesc')}</th>
+        </tr>
+      )
     } else if (safetyScanType === 'getProcessMonitorResult') {
       return (
         <tr>
@@ -105,6 +111,22 @@ class SafetyDetails extends Component {
         </tr>
       )
     }
+  }
+  /**
+   * Format primary content length
+   * @method
+   * @param {string} content - Safety Scan content
+   * @param {number} length - length of content
+   * @returns formatted content
+   */
+  getFormattedLength = (content, length) => {
+    if (content.length > length) {
+      const newValue = content.substr(0, length) + '...';
+      content = <span title={content}>{newValue}</span>;
+    } else {
+      content = <span>{content}</span>;
+    }
+    return content;
   }
   /**
    * Display top table body
@@ -145,10 +167,16 @@ class SafetyDetails extends Component {
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
+          <td>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</td>
         </tr>
       )
-    } else if (safetyScanType === 'getEventTracing') {
-
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        <tr>
+          <td>{currentSafetyData.primaryKeyValue}</td>
+          <td>{this.getFormattedLength(currentSafetyData.rawJsonObject.message, 80)}</td>
+        </tr>
+      )
     } else if (safetyScanType === 'getProcessMonitorResult') {
       return (
         <tr>
@@ -415,13 +443,28 @@ class SafetyDetails extends Component {
       return (
         <tbody>
           <tr>
-            <td><span className='blue-color'>{t('host.txt-suspiciousFilePath')}</span></td>
+            <td><span className='blue-color'>MD5</span></td>
             <td>{currentSafetyData.primaryKeyValue}</td>
+          </tr>
+          <tr>
+            <td><span className='blue-color'>{t('host.txt-suspiciousFilePath')}</span></td>
+            <td>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</td>
           </tr>
         </tbody>
       )
-    } else if (safetyScanType === 'getEventTracing') {
-
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        <tbody>
+          <tr>
+            <td><span className='blue-color'>{t('host.txt-eventCode')}</span></td>
+            <td>{currentSafetyData.primaryKeyValue}</td>
+          </tr>
+          <tr>
+            <td><span className='blue-color'>{t('host.txt-eventDesc')}</span></td>
+            <td>{currentSafetyData.rawJsonObject.message}</td>
+          </tr>
+        </tbody>
+      )
     } else if (safetyScanType === 'getProcessMonitorResult') {
       return (
         <tbody>
@@ -536,6 +579,24 @@ class SafetyDetails extends Component {
     }
   }
   /**
+   * Display individual table row for Host
+   * @method
+   * @param {string} val - safety scan file data
+   * @param {number} i - index of the file array
+   * @returns HTML DOM
+   */
+  getHostTableBody = (val, i) => {
+    return (
+      <tr key={i}>
+        <td>{val.ip}</td>
+        <td>{val.hostName}</td>
+        <td>{val.system}</td>
+        <td>{val.userName}</td>
+        <td>{val.version}</td>
+      </tr>
+    )
+  }
+  /**
    * Display Safety Scan content
    * @method
    * @returns HTML DOM
@@ -560,7 +621,7 @@ class SafetyDetails extends Component {
             <div className='nav'>
               <ul>
                 <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{t('host.txt-basicInfo')}</span></li>
-                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span></li>
+                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.disDevDtos.length}</span></li>
               </ul>
             </div>
             <div className='content'>
@@ -576,7 +637,24 @@ class SafetyDetails extends Component {
                 }
                 {contentType === 'availableHost' &&
                   <div>
-                    Hello Ryan
+                    <div className='header trigger'>{t('host.txt-availableHost')}</div>
+                    <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
+                    <table className='c-table main-table with-border'>
+                      <thead>
+                        <tr>
+                          <th>{t('ipFields.ip')}</th>
+                          <th>{t('ipFields.hostName')}</th>
+                          <th>{t('ipFields.system')}</th>
+                          <th>{t('ipFields.owner')}</th>
+                          <th>{t('ipFields.version')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentSafetyData.disDevDtos.length > 0 &&
+                          currentSafetyData.disDevDtos.map(this.getHostTableBody)
+                        }
+                      </tbody>
+                    </table>
                   </div>
                 }
               </div>

@@ -26,7 +26,6 @@ import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
-import HostFilter from './host-filter'
 import Pagination from '../common/pagination'
 import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
@@ -183,7 +182,7 @@ const SAFETY_SCAN_LIST = [
   },
   {
     name: 'Event Tracing',
-    value: 'getEventTracing'
+    value: 'getEventTraceResult'
   },
   {
     name: 'Process Monitor',
@@ -255,16 +254,13 @@ class HostController extends Component {
         scanStatusSelected: [],
         maskedIPSelected: []
       },
-      filterData: [{
-        name: 'ip',
-        query: ''
-      }],
       deviceSearch: {
         ip: '',
         mac: '',
         hostName: '',
         deviceType: '',
-        system: ''
+        system: '',
+        scanInfo: ''
       },
       subTabMenu: {
         table: t('host.txt-hostList'),
@@ -498,8 +494,14 @@ class HostController extends Component {
 
     let requestData = {
       timestamp: [datetime.from, datetime.to],
-      ...this.getHostRequestData()
+      ...this.getHostSafetyRequestData()
     };
+
+    if (deviceSearch.scanInfo) {
+      requestData.hmdScanDistribution = {
+        primaryKeyValue: deviceSearch.scanInfo
+      };
+    }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
@@ -596,7 +598,7 @@ class HostController extends Component {
    * Get Host and Safety Scan request data
    * @method
    */
-  getHostRequestData = () => {
+  getHostSafetyRequestData = () => {
     const {filterNav, deviceSearch} = this.state;
     let requestData = {};
 
@@ -644,12 +646,12 @@ class HostController extends Component {
    */
   getSafetyScanData = () => {
     const {baseUrl} = this.context;
-    const {safetyScanData, safetyScanType} = this.state;
+    const {deviceSearch, safetyScanData, safetyScanType} = this.state;
     const datetime = this.getHostDateTime();
     const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
     let requestData = {
       timestamp: [datetime.from, datetime.to],
-      ...this.getHostRequestData()
+      ...this.getHostSafetyRequestData()
     };
 
     if (safetyScanType === 'getVansCpe') {
@@ -668,6 +670,10 @@ class HostController extends Component {
       };
     }
 
+    if (deviceSearch.scanInfo) {
+      requestData.hmdScanDistribution.primaryKeyValue = deviceSearch.scanInfo;
+    }
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -676,6 +682,11 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
+        if (data.hmdScanDistribution.length === 0) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
+
         let tempSafetyScanData = {...safetyScanData};
         tempSafetyScanData.dataContent = data.hmdScanDistribution;
         tempSafetyScanData.totalCount = data.count;
@@ -957,16 +968,31 @@ class HostController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    let tempHostInfo = {...this.state.hostInfo};
-    tempHostInfo.dataContent = [];
-    tempHostInfo.totalCount = 0;
-    tempHostInfo.currentPage = 1;
+    const {activeTab, hostInfo, safetyScanData} = this.state;
 
-    this.setState({
-      hostInfo: tempHostInfo
-    }, () => {
-      this.getHostData();
-    });
+    if (activeTab === 'hostList') {
+      let tempHostInfo = {...hostInfo};
+      tempHostInfo.dataContent = [];
+      tempHostInfo.totalCount = 0;
+      tempHostInfo.currentPage = 1;
+
+      this.setState({
+        hostInfo: tempHostInfo
+      }, () => {
+        this.getHostData();
+      });
+    } else if (activeTab === 'safetyScan') {
+      let tempSafetyScanData = {...safetyScanData};
+      tempSafetyScanData.dataContent = [];
+      tempSafetyScanData.totalCount = 0;
+      tempSafetyScanData.currentPage = 1;
+
+      this.setState({
+        safetyScanData: tempSafetyScanData
+      }, () => {
+        this.getSafetyScanData();
+      });
+    }
   }
   /**
    * Handle content tab change
@@ -999,41 +1025,84 @@ class HostController extends Component {
     });
   }
   /**
-   * Set filter data
-   * @method
-   * @param {array.<object>} filterData - filter data to be set
-   */
-  setFilterData = (filterData) => {
-    this.setState({
-      filterData
-    });
-  }
-  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, filterData, deviceSearch} = this.state;
-    const defaultValue = {
-      name: 'ip',
-      query: ''
-    };
-    let data = {};
+   const {showFilter, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
-        <div className='filter-section'>
-          <MultiInput
-            className='filter-warp'
-            base={HostFilter}
-            inline={true}
-            props={data}
-            defaultItemValue={defaultValue}
-            value={filterData}
-            onChange={this.setFilterData} />
+        <div className='filter-section config'>
+          <div className='group'>
+            <TextField
+              id='deviceSearchIP'
+              name='ip'
+              label={t('ipFields.ip')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.ip}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchMac'
+              name='mac'
+              label={t('ipFields.mac')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.mac}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchHostName'
+              name='hostName'
+              label={t('ipFields.hostName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.hostName}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchDeviceType'
+              name='deviceType'
+              label={t('ipFields.deviceType')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.deviceType}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchSystem'
+              name='system'
+              label={t('ipFields.system')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.system}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchScanInfo'
+              name='scanInfo'
+              label={t('ipFields.scanInfo')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.scanInfo}
+              onChange={this.handleDeviceSearch} />
+          </div>
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
@@ -1047,19 +1116,28 @@ class HostController extends Component {
    * @method
    */
   clearFilter = () => {
-    const filterData = [{
-      name: 'ip',
-      query: ''
-    }];
-
     this.setState({
-      filterData,
       deviceSearch: {
         ip: '',
         mac: '',
         hostName: '',
         deviceType: '',
-        system: ''
+        system: '',
+        scanInfo: ''
+      }
+    });
+  }
+  /**
+   * Clear safety scan data
+   * @method
+   */
+  clearSafetyScanData = () => {
+    this.setState({
+      safetyScanData: {
+        dataContent: [],
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
       }
     });
   }
@@ -1563,6 +1641,44 @@ class HostController extends Component {
     });
   }
   /**
+   * Format primary content length
+   * @method
+   * @param {string} content - Safety Scan content
+   * @param {number} length - length of content
+   * @returns formatted content
+   */
+  getFormattedLength = (content, length) => {
+    if (content.length > length) {
+      const newValue = content.substr(0, length) + '...';
+      content = <span title={content}>{newValue}</span>;
+    } else {
+      content = <span>{content}</span>;
+    }
+    return content;
+  }
+  /**
+   * Display primary info for safety scan table
+   * @method
+   * @param {string} safetyData - active safety scan data
+   * @returns formatted content
+   */
+  getPrimaryContent = (safetyData) => {
+    const {safetyScanType} = this.state;
+    let content = safetyData;
+
+    if (safetyScanType === 'getEventTraceResult') {
+      content = t('host.txt-eventCode') + ': ' + safetyData;
+    }
+
+    if (safetyData.length > 80) {
+      const newValue = safetyData.substr(0, 80) + '...';
+      content = <span className='primary-content' title={safetyData}>{newValue}</span>;
+    } else {
+      content = <span className='primary-content'>{content}</span>;
+    }
+    return content;
+  }
+  /**
    * Display secondary info for safety scan table
    * @method
    * @param {object} safetyData - active safety scan data
@@ -1599,11 +1715,11 @@ class HostController extends Component {
 
       return (
         <div className='flex-item'>
-          {!safetyData.rawJsonObject._CompareResult &&
-            <span className='fail'>Fail</span>
-          }
           {safetyData.rawJsonObject._CompareResult &&
             <span className='success'>Pass</span>
+          }
+          {!safetyData.rawJsonObject._CompareResult &&
+            <span className='fail'>Fail</span>
           }
           {content &&
             <span className='text'>{content}</span>
@@ -1613,11 +1729,22 @@ class HostController extends Component {
     } else if (safetyScanType === 'getFileIntegrity') {
       return (
         <div className='flex-item'>
-          <span className='text'></span>
+          {safetyData.primaryKeyName &&
+            <span className='fail'>{t('host.txt-' + safetyData.primaryKeyName)}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._FileIntegrityResultPath &&
+            <span className='text'>{safetyData.rawJsonObject._FileIntegrityResultPath}</span>
+          }
         </div>
       )
-    } else if (safetyScanType === 'getEventTracing') {
-      console.log(safetyData);
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.message &&
+            <span className='text'>{this.getFormattedLength(safetyData.rawJsonObject.message, 120)}</span>
+          }
+        </div>
+      )
     } else if (safetyScanType === 'getProcessMonitorResult') {
       return (
         <div className='flex-item'>
@@ -1628,7 +1755,7 @@ class HostController extends Component {
             <span className='fail'>{t('host.txt-notWhiteList')}</span>
           }
           {safetyData.rawJsonObject && safetyData.rawJsonObject._ProcessInfo &&
-            <span className='text'>{safetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath}</span>
+            <span className='text'>{this.getFormattedLength(safetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath, 100)}</span>
           }
         </div>
       )
@@ -1673,22 +1800,6 @@ class HostController extends Component {
     }
   }
   /**
-   * Format primary content length
-   * @method
-   * @param {string} content - Safety Scan content
-   * @param {number} length - length of content
-   * @returns formatted content
-   */
-  getFormattedLength = (content, length) => {
-    if (content.length > length) {
-      const newValue = content.substr(0, length) + '...';
-      content = <span className='primary-content' title={content}>{newValue}</span>;
-    } else {
-      content = <span className='primary-content'>{content}</span>;
-    }
-    return content;
-  }
-  /**
    * Display Safety Scan content
    * @method
    * @param {object} val - Safety Scan data
@@ -1702,7 +1813,7 @@ class HostController extends Component {
       <li key={i}>
         <div className='device-alert'>
           <i className='fg fg-wifi-beacon-1'></i>
-          {this.getFormattedLength(val.primaryKeyValue, 80)}
+          {this.getPrimaryContent(val.primaryKeyValue)}
         </div>
         <div className='info'>
           {this.getSecondaryContent(val)}
@@ -1710,6 +1821,7 @@ class HostController extends Component {
         <div className='view-details' onClick={this.toggleSafetyDetails.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
+        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.disDevDtos.length)}</div>
       </li>
     )
   }
@@ -1921,6 +2033,7 @@ class HostController extends Component {
       safetyScanData: tempSafetyScanData,
       safetyScanType: event.target.value
     }, () => {
+      this.clearSafetyScanData();
       this.getSafetyScanData();
     });
   }
