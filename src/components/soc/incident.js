@@ -74,6 +74,7 @@ class Incident extends Component {
             currentIncident: {},
             originalIncident: {},
             accountType:constants.soc.LIMIT_ACCOUNT,
+            accountDefault:false,
             search: {
                 keyword: '',
                 category: 0,
@@ -128,70 +129,131 @@ class Incident extends Component {
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
 
-        if (alertData) {
-            this.toggleContent('redirect', alertData);
-            sessionStorage.removeItem(alertDataId)
-            const {session} = this.context;
-
-            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                if (_.includes(session.roles, 'SOC Executor')){
-                    this.setState({
-                        accountRoleType:constants.soc.SOC_Executor
-                    })
-                }else{
-                    this.setState({
-                        accountRoleType:constants.soc.SOC_Super
-                    })
-                }
-            } else  if (_.includes(session.roles, 'SOC Executor')){
-                this.setState({
-                    accountRoleType:constants.soc.SOC_Executor
-                })
-            } else  if (_.includes(session.roles, 'SOC Analyzer')){
-                this.setState({
-                    accountRoleType:constants.soc.SOC_Analyzer
-                })
-            }
-        } else {
-            const {session} = this.context;
-
-            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                if (_.includes(session.roles, 'SOC Executor')){
-                    this.setState({
-                        accountRoleType:constants.soc.SOC_Executor
-                    },() => {
-                        this.loadCondition('button','unhandled')
-                    })
-                }else{
-                    this.setState({
-                        accountRoleType:constants.soc.SOC_Super
-                    },() => {
-                        this.loadCondition('button','unhandled')
-                    })
-                }
-            } else  if (_.includes(session.roles, 'SOC Executor')){
-                this.setState({
-                    accountRoleType:constants.soc.SOC_Executor
-                },() => {
-                    this.loadCondition('button','unhandled')
-                })
-            } else  if (_.includes(session.roles, 'SOC Analyzer')){
-                this.setState({
-                    accountRoleType:constants.soc.SOC_Analyzer
-                },() => {
-                    this.loadCondition('button','unhandled')
-                })
-            } else{
-                // this.setState({
-                //     accountRoleType:SOC_Analyzer
-                // },() => {
-                //     this.loadCondition('unhandled')
-                // })
-            }
-        }
         this.checkAccountType();
-        this.getOptions();
-        this.loadDashboard();
+        setTimeout(() => {
+            let getData = false;
+            if (alertData) {
+                this.toggleContent('redirect', alertData);
+                sessionStorage.removeItem(alertDataId)
+                const {session} = this.context;
+
+                if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
+                    if (_.includes(session.roles, 'SOC Executor')){
+                        this.setState({
+                            accountRoleType:constants.soc.SOC_Executor
+                        },() => {
+                        })
+                    }else{
+
+                        //TODO check unit is default Unit or not !
+
+                        if (this.state.accountDefault === true){
+                            this.setState({
+                                accountRoleType:constants.soc.SOC_Super
+                            },() => {
+                            })
+                        }else{
+                            console.log("this.state.accountType == " ,this.state.accountType)
+                            if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
+                                console.log("into")
+                                PopupDialog.alert({
+                                    id: 'modalWindowSmall',
+                                    title: t('txt-tips'),
+                                    confirmText: t('txt-close'),
+                                    display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span></div>,
+                                    act:(confirmed) => {
+                                        window.location.href = '/SCP?lng=' + locale;
+                                    }
+                                });
+
+                            }else{
+                                this.setState({
+                                    accountRoleType:constants.soc.SOC_Super
+                                },() => {
+                                })
+                            }
+                        }
+                    }
+                } else  if (_.includes(session.roles, 'SOC Executor')){
+                    this.setState({
+                        accountRoleType:constants.soc.SOC_Executor
+                    })
+                } else  if (_.includes(session.roles, 'SOC Analyzer')){
+                    this.setState({
+                        accountRoleType:constants.soc.SOC_Analyzer
+                    })
+                }
+            } else {
+                const {session} = this.context;
+
+                if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
+                    if (_.includes(session.roles, 'SOC Executor')){
+                        this.setState({
+                            accountRoleType:constants.soc.SOC_Executor
+                        },() => {
+                            this.loadCondition('button','unhandled')
+                        })
+                        getData =true;
+                    }else{
+                        if (this.state.accountDefault === true){
+                            this.setState({
+                                accountRoleType:constants.soc.SOC_Super
+                            },() => {
+                                this.loadCondition('button','unhandled')
+                            })
+                            getData =true;
+                        }else{
+                            if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
+                                PopupDialog.alert({
+                                    id: 'modalWindowSmall',
+                                    title: t('txt-tips'),
+                                    confirmText: t('txt-close'),
+                                    display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span></div>,
+                                    act:(confirmed) => {
+                                        window.location.href = '/SCP?lng=' + locale;
+                                    }
+                                });
+
+                            }else{
+                                this.setState({
+                                    accountRoleType:constants.soc.SOC_Super
+                                },() => {
+                                    this.loadCondition('button','unhandled')
+                                })
+                                getData =true;
+                            }
+                        }
+                    }
+                } else  if (_.includes(session.roles, 'SOC Executor')){
+                    this.setState({
+                        accountRoleType:constants.soc.SOC_Executor
+                    },() => {
+                        this.loadCondition('button','unhandled')
+                    })
+                    getData =true;
+                } else  if (_.includes(session.roles, 'SOC Analyzer')){
+                    this.setState({
+                        accountRoleType:constants.soc.SOC_Analyzer
+                    },() => {
+                        this.loadCondition('button','unhandled')
+                    })
+                    getData =true;
+                } else{
+                    // this.setState({
+                    //     accountRoleType:SOC_Analyzer
+                    // },() => {
+                    //     this.loadCondition('unhandled')
+                    // })
+                }
+            }
+
+            if ( getData){
+                this.getOptions();
+                this.loadDashboard();
+            }
+
+        }, 3000);
+
     }
 
     getQueryString(name) {
@@ -215,18 +277,26 @@ class Incident extends Component {
             .then(data => {
                 if (data) {
 
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                    if (data.rt.isDefault){
                         this.setState({
+                            accountDefault: data.rt.isDefault,
                             accountType: constants.soc.LIMIT_ACCOUNT
                         })
-                    }else  if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
-                        this.setState({
-                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
-                        })
-                    }else {
-                        this.setState({
-                            accountType: constants.soc.CHECK_ERROR
-                        })
+                    }else{
+
+                        if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                            this.setState({
+                                accountType: constants.soc.LIMIT_ACCOUNT
+                            })
+                        }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                            this.setState({
+                                accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                            })
+                        }else {
+                            this.setState({
+                                accountType: constants.soc.CHECK_ERROR
+                            })
+                        }
                     }
                 }
             })

@@ -10,6 +10,7 @@ import TableContent from "../common/table-content";
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import _ from "lodash";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import constants from "../constant/constant-incidnet";
@@ -46,7 +47,7 @@ class IncidentUnit extends Component {
             accountListOptions: [],
             accountType:constants.soc.LIMIT_ACCOUNT,
             incidentUnit: {
-                dataFieldsArr: ['oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
+                dataFieldsArr: ['isDefault', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -63,6 +64,7 @@ class IncidentUnit extends Component {
                     level: 'A',
                     industryType: '0',
                     isUse: false,
+                    isDefault: false,
                     abbreviation: '',
                     relatedAccountList: []
                 }
@@ -118,7 +120,16 @@ class IncidentUnit extends Component {
                                 return <span>{this.mappingType(value)}</span>
                             } else if (tempData === 'updateDttm') {
                                 return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === '_menu') {
+                            } else if (tempData === 'isDefault') {
+
+                                if (value){
+                                    return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
+                                }else {
+                                    return <span>{this.checkDefault(value)}</span>
+                                }
+
+                            }
+                            else if (tempData === '_menu') {
                                 return (
                                     <div className='table-menu menu active'>
                                         <i className='fg fg-edit'
@@ -148,6 +159,16 @@ class IncidentUnit extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message);
             })
     };
+
+
+    checkDefault = (value) => {
+        let info = it('unit.txt-isNotDefault');
+        if (value) {
+            info = it('unit.txt-isDefault')
+        }
+        return info;
+    };
+
 
     checkAccountType = () => {
         const {baseUrl, session} = this.context;
@@ -475,6 +496,18 @@ class IncidentUnit extends Component {
                         </TextField>
                     </div>
 
+                    <div className='group'>
+                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
+                        <Checkbox
+                            id='isDefault'
+                            name='isDefault'
+                            color='primary'
+                            className='checkbox-ui'
+                            onChange={this.handleDataChangeMuiCheck}
+                            checked={incidentUnit.info.isDefault}
+                            disabled={activeContent === 'viewDevice'}/>
+                    </div>
+
                     <div className='group full'>
                         <label htmlFor='accountListOptions'>{f('incidentFields.relatedAccountList')}</label>
                         <Autocomplete
@@ -557,6 +590,7 @@ class IncidentUnit extends Component {
             .then(data => {
                 tmpIncidentUnit.info.id = data.rt.id;
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
+                tmpIncidentUnit.info.isDefault = data.rt.isDefault;
 
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(tmpIncidentUnit)
@@ -591,6 +625,14 @@ class IncidentUnit extends Component {
             // helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
             helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
         }
+
+        if (!incidentUnit.info.isDefault) {
+            incidentUnit.info.isDefault = false;
+            this.setState({
+                incidentUnit: incidentUnit
+            });
+        }
+
 
         return true;
     };
@@ -653,6 +695,13 @@ class IncidentUnit extends Component {
      * @param {object} allValue - IncidentDevice data
      */
     openDeleteMenu = (allValue) => {
+
+        if (allValue.isDefault){
+            helper.showPopupMsg('', t('txt-fail'), it('unit.txt-defaultDelete'));
+            return;
+        }
+
+
         PopupDialog.prompt({
             title: t('txt-delete'),
             id: 'modalWindowSmall',
@@ -766,6 +815,7 @@ class IncidentUnit extends Component {
                 name: allValue.name,
                 level: allValue.level,
                 isUse: allValue.isUse,
+                isDefault: allValue.isDefault,
                 industryType: allValue.industryType,
                 abbreviation: allValue.abbreviation,
                 relatedAccountList: allValue.relatedAccountList
@@ -804,6 +854,7 @@ class IncidentUnit extends Component {
                 name: allValue.name,
                 level: allValue.level,
                 isUse: allValue.isUse,
+                isDefault: allValue.isDefault,
                 industryType: allValue.industryType,
                 abbreviation: allValue.abbreviation,
                 relatedAccountList: allValue.relatedAccountList

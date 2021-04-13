@@ -132,6 +132,7 @@
 	"txt-validBasic": "請檢查是否正確輸入事件單基本資料",
 	"txt-portValidationFail": "請輸入正確Port格式",
 	"txt-validUnit": "請檢查是否正確輸入資安事件申報機關資料",
+	"txt-superAccount-not-set-unit": "此帳號未設定綁定機關，將跳轉至預設畫面",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",
