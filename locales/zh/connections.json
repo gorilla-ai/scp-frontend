@@ -509,7 +509,13 @@
     "txt-recipientEmail": "收件者郵件信箱",
     "txt-notifyEmail": "通知郵件信箱",
     "txt-emailInvalid": "請輸入正確的email",
-    "txt-sendSuccess": "寄送成功"
+    "txt-sendSuccess": "寄送成功",
+    "lineBot": {
+      "txt-lineBotSettings": "Line 通知設定",
+      "txt-channelAccessToken": "Channel Access Token",
+      "txt-channelSecret": "Channel Secret",
+      "txt-qrcode": "QR-Code 圖片連結"
+    }
   },
 
   "edge-management": {
