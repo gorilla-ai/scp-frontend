@@ -35,21 +35,26 @@ class SocConfig extends Component {
 
     componentDidMount() {
         const {session} =  this.props;
-        let accountRoleType = constants.soc.SOC_Analyzer
         if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
             if (_.includes(session.roles, 'SOC Executor')){
-                accountRoleType = constants.soc.SOC_Executor
-            }else{
 
-                accountRoleType = constants.soc.SOC_Super
+                this.setState({
+                    accountRoleType:constants.soc.SOC_Executor
+                });
+            }else{
+                this.setState({
+                    accountRoleType:constants.soc.SOC_Super
+                })
             }
         } else  if (_.includes(session.roles, 'SOC Executor')){
-            accountRoleType = constants.soc.SOC_Executor
+            this.setState({
+                accountRoleType:constants.soc.SOC_Executor
+            });
         } else  if (_.includes(session.roles, 'SOC Analyzer')){
-            accountRoleType = constants.soc.SOC_Analyzer
+            this.setState({
+                accountRoleType:constants.soc.SOC_Analyzer
+            });
         }
-
-
     }
 
 
@@ -119,7 +124,7 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
-                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
                     <div className='item frame incident-unit'>
                         <Link to='/SCP/soc/incident-unit'>
                             <span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit-management')}</span>
@@ -133,7 +138,7 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
-                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
                     <div className='item frame incident-ISAC'>
                         <Link to='/SCP/soc/incident-ISAC'>
                             <span
