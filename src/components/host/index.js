@@ -1790,7 +1790,7 @@ class HostController extends Component {
       return (
         <div className='flex-item'>
           {severity &&
-            <span className={severity}>{helper.capitalizeFirstLetter(severity)}</span>
+            <span className={severity}>{t('txt-' + severity)}</span>
           }
           {description &&
             <span className='text'>{description}</span>
@@ -2106,6 +2106,7 @@ class HostController extends Component {
           <SearchOptions
             dateType='datepicker'
             datetime={datetime}
+            showFilter={showFilter}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
         </div>

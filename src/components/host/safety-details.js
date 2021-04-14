@@ -200,7 +200,7 @@ class SafetyDetails extends Component {
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
-          <td><span className={severity}>{helper.capitalizeFirstLetter(severity)}</span></td>
+          <td><span className={severity}>{t('txt-' + severity)}</span></td>
           <td><span>{cpeData.vendor} | {cpeData.product} | {cpeData.version} | {cpeData.name}</span></td>
         </tr>
       )
@@ -535,7 +535,7 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>{t('txt-severity')}</span></td>
-            <td><span style={{color}}>{helper.capitalizeFirstLetter(severity)}</span></td>
+            <td><span style={{color}}>{t('txt-' + severity)}</span></td>
           </tr>
           {currentSafetyData.rawJsonObject.description.description_data.length > 0 &&
             <tr>
