@@ -1101,7 +1101,6 @@ html[data-theme='dark'] {
       .destIp-content {
         height: 445px;
         min-height: auto;
-        margin-top: 5px;
         overflow-y: auto;
         background: none;
         .fg-info {
@@ -1258,8 +1257,16 @@ html[data-theme='dark'] {
 
 #hostModalDialog-content {
   .main-content {
+    & > .nav ul li.header {
+      cursor: pointer;
+      &.active {
+        font-weight: bold;
+        color: var(--primaryContentHeader);
+      }
+    }
     & > .content {
       height: 550px;
+      overflow-y: auto;
       .srcIp-content,
       .scan-info,
       & > .network-behavior {
@@ -1267,6 +1274,21 @@ html[data-theme='dark'] {
         min-height: auto;
         background: none;
       }
+      span.blue-color {
+        color: var(--primaryContentHeader);
+      }
+      .flex-item {
+        display: flex;
+        flex-wrap: wrap;
+        ul {
+          margin: 5px 20px 5px 0;
+        }
+      }
+    }
+    .host-count {
+      float: right;
+      font-weight: normal;
+      margin-right: 10px;
     }
   }
   .scan-info .info-content {
@@ -1286,6 +1308,74 @@ html[data-theme='dark'] {
         }
       }
     }
+  }
+  .content {
+    .safety-details {
+      width: 90%;
+      padding: 10px 0;
+      margin: 0 auto;
+      .header.trigger {
+        float: left;
+        margin-right: 20px;
+        font-size: 20px;
+        color: var(--primaryContentHeader);
+        margin-bottom: 15px;
+      }
+      .trigger-text {
+        float: left;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+      .main-table {
+        a {
+          text-decoration: underline;
+        }
+        td {
+          vertical-align: top;
+          padding: 10px !important;
+          border: 1px solid var(--primaryBorder) !important;
+          white-space: pre-wrap;
+          &:nth-child(odd) {
+            width: 200px;
+          }
+        }
+        ul.signature-list {
+          padding: 0 10px;
+        }
+      }
+    }
+  }
+  span.success,
+  span.fail,
+  span.high,
+  span.medium,
+  span.low {
+    font-size: .1em;
+    font-weight: bold;
+    padding: 3px 5px;
+    margin-top: 7px;
+    margin-right: 7px;
+    border-radius: 5px;
+  }
+  span.success {
+    color: #70c97e;
+    border: 1px solid #70c97e;
+  }
+  span.fail {
+    color: #e15b6b;
+    border: 1px solid #e15b6b;
+  }
+  span.high {
+    color: #CC2943;
+    border: 1px solid #CC2943;
+  }
+  span.medium {
+    color: #CC7B29;
+    border: 1px solid #CC7B29;
+  }
+  span.low {
+    color: #29CC7A;
+    border: 1px solid #29CC7A;
   }
 }
 /* configuration/topology/inventory */

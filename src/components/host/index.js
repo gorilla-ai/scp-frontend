@@ -20,11 +20,14 @@ import Tabs from '@material-ui/core/Tabs';
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
 import Pagination from '../common/pagination'
+import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
 import YaraRule from '../common/yara-rule'
 
@@ -98,70 +101,100 @@ const HMD_TRIGGER = [
 ];
 const HMD_LIST = [
   {
-    value: 'isScanProc',
-    text: 'Yara Scan'
+    name: 'Yara Scan',
+    value: 'isScanProc'
   },
   {
-    value: 'isScanFile',
-    text: 'Malware'
+    name: 'Malware',
+    value: 'isScanFile'
   },
   {
-    value: 'isGCB',
-    text: 'GCB'
+    name: 'GCB',
+    value: 'isGCB'
   },
   {
-    value: 'isIR',
-    text: 'IR'
+    name: 'IR',
+    value: 'isIR'
   },
   {
-    value: 'isFileIntegrity',
-    text: 'File Integrity'
+    name: 'File Integrity',
+    value: 'isFileIntegrity'
   },
   {
-    value: 'isEventTracing',
-    text: 'Event Tracing'
+    name: 'Event Tracing',
+    value: 'isEventTracing'
   },
   {
-    value: 'isProcessMonitor',
-    text: 'Process Monitor'
+    name: 'Process Monitor',
+    value: 'isProcessMonitor'
   },
   {
-    value: 'isVans',
-    text: 'VANS'
+    name: 'VANS',
+    value: 'isVans'
   }
 ];
 const HOST_SORT_LIST = [
   {
     name: 'ip',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'ip',
-    type: 'desc'
+    sort: 'desc'
   },
   {
     name: 'mac',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'mac',
-    type: 'desc'
+    sort: 'desc'
   },
   {
     name: 'hostName',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'hostName',
-    type: 'desc'
+    sort: 'desc'
   },
   {
     name: 'system',
-    type: 'asc'
+    sort: 'asc'
   },
   {
     name: 'system',
-    type: 'desc'
+    sort: 'desc'
+  }
+];
+const SAFETY_SCAN_LIST = [
+  {
+    name: 'Malware',
+    value: 'scanFile'
+  },
+  {
+    name: 'GCB',
+    value: 'gcbDetection'
+  },
+  {
+    name: 'File Integrity',
+    value: 'getFileIntegrity'
+  },
+  {
+    name: 'Event Tracing',
+    value: 'getEventTraceResult'
+  },
+  {
+    name: 'Process Monitor',
+    value: 'getProcessMonitorResult'
+  },
+  {
+    name: 'VANS - CPE',
+    value: 'getVansCpe'
+  },
+  {
+    name: 'VANS - CVE',
+    value: 'getVansCve'
   }
 ];
 const MAPS_PRIVATE_DATA = {
@@ -194,7 +227,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList' or 'deviceMap'
+      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
@@ -205,6 +238,7 @@ class HostController extends Component {
       },
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
+      safetyDetailsOpen: false,
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
       severityList: [],
@@ -225,7 +259,8 @@ class HostController extends Component {
         mac: '',
         hostName: '',
         deviceType: '',
-        system: ''
+        system: '',
+        scanInfo: ''
       },
       subTabMenu: {
         table: t('host.txt-hostList'),
@@ -238,8 +273,15 @@ class HostController extends Component {
         pageSize: 20
       },
       hostData: {},
-      hostSortList: [],
       hostSort: 'ip-asc',
+      safetyScanData: {
+        dataContent: [],
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
+      },
+      currentSafetyData: {},
+      safetyScanType: 'scanFile',
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
@@ -259,7 +301,6 @@ class HostController extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     this.setLeftNavData();
-    this.getHostSortList();
     this.getFloorPlan();
     //this.getHostData();
   }
@@ -301,12 +342,9 @@ class HostController extends Component {
    */
   getHostSortList = () => {
     const hostSortList = _.map(HOST_SORT_LIST, (val, i) => {
-      return <MenuItem key={i} value={val.name + '-' + val.type}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.type)}</MenuItem>
+      return <MenuItem key={i} value={val.name + '-' + val.sort}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.sort)}</MenuItem>
     });
-
-    this.setState({
-      hostSortList
-    });
+    return hostSortList;
   }
   /**
    * Get and set floor plan data
@@ -457,47 +495,14 @@ class HostController extends Component {
     }
 
     let requestData = {
-      timestamp: [datetime.from, datetime.to]
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData()
     };
 
-    if (activeTab === 'deviceMap') {
-      requestData.areaUUID = currentFloor;
-    }
-
-    if (filterNav.severitySelected.length > 0) {
-      requestData.severityLevel = filterNav.severitySelected;
-    }
-
-    if (filterNav.hmdStatusSelected.length > 0) {
-      requestData.devInfo = filterNav.hmdStatusSelected;
-    }
-
-    if (filterNav.scanStatusSelected.length > 0) {
-      requestData.scanInfo = filterNav.scanStatusSelected;
-    }
-
-    if (filterNav.maskedIPSelected.length > 0) {
-      requestData.exactIps = filterNav.maskedIPSelected;
-    }
-
-    if (deviceSearch.ip) {
-      requestData.ip = deviceSearch.ip;
-    }
-
-    if (deviceSearch.mac) {
-      requestData.mac = deviceSearch.mac;
-    }
-
-    if (deviceSearch.hostName) {
-      requestData.hostName = deviceSearch.hostName;
-    }
-
-    if (deviceSearch.deviceType) {
-      requestData.deviceType = deviceSearch.deviceType;
-    }
-
-    if (deviceSearch.system) {
-      requestData.system = deviceSearch.system;
+    if (deviceSearch.scanInfo) {
+      requestData.hmdScanDistribution = {
+        primaryKeyValue: deviceSearch.scanInfo
+      };
     }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
@@ -548,20 +553,20 @@ class HostController extends Component {
 
         _.forEach(HMD_STATUS_LIST, val => {
           hmdStatusList.push({
-            value: val,
-            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')'
+            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')',
+            value: val
           });
         })
 
         hmdStatusList.push({
-          value: 'isConnected',
-          text: t('txt-connected')
+          text: t('txt-connected'),
+          value: 'isConnected'
         });
 
         _.forEach(HMD_LIST, val => {
           scanStatusList.push({
-            value: val.value,
-            text: val.text + ' (' + data.scanInfoAgg[val.value] + ')'
+            text: val.name + ' (' + data.scanInfoAgg[val.value] + ')',
+            value: val.value
           });
         });
 
@@ -584,6 +589,113 @@ class HostController extends Component {
         if (activeTab === 'hostList' && data.count === 0) {
           helper.showPopupMsg(t('txt-notFound'));
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get Host and Safety Scan request data
+   * @method
+   */
+  getHostSafetyRequestData = () => {
+    const {filterNav, deviceSearch} = this.state;
+    let requestData = {};
+
+    if (filterNav.severitySelected.length > 0) {
+      requestData.severityLevel = filterNav.severitySelected;
+    }
+
+    if (filterNav.hmdStatusSelected.length > 0) {
+      requestData.devInfo = filterNav.hmdStatusSelected;
+    }
+
+    if (filterNav.scanStatusSelected.length > 0) {
+      requestData.scanInfo = filterNav.scanStatusSelected;
+    }
+
+    if (filterNav.maskedIPSelected.length > 0) {
+      requestData.exactIps = filterNav.maskedIPSelected;
+    }
+
+    if (deviceSearch.ip) {
+      requestData.ip = deviceSearch.ip;
+    }
+
+    if (deviceSearch.mac) {
+      requestData.mac = deviceSearch.mac;
+    }
+
+    if (deviceSearch.hostName) {
+      requestData.hostName = deviceSearch.hostName;
+    }
+
+    if (deviceSearch.deviceType) {
+      requestData.deviceType = deviceSearch.deviceType;
+    }
+
+    if (deviceSearch.system) {
+      requestData.system = deviceSearch.system;
+    }
+
+    return requestData;
+  }
+  /**
+   * Get and set safety scan data
+   * @method
+   */
+  getSafetyScanData = () => {
+    const {baseUrl} = this.context;
+    const {deviceSearch, safetyScanData, safetyScanType} = this.state;
+    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
+    let requestData = {
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData()
+    };
+
+    if (safetyScanType === 'getVansCpe') {
+      requestData.hmdScanDistribution = {
+        taskName: 'getVans',
+        primaryKeyName: 'cpe23Uri'
+      };
+    } else if (safetyScanType === 'getVansCve') {
+      requestData.hmdScanDistribution = {
+        taskName: 'getVans',
+        primaryKeyName: 'cveId'
+      };
+    } else {
+      requestData.hmdScanDistribution = {
+        taskName: safetyScanType
+      };
+    }
+
+    if (deviceSearch.scanInfo) {
+      requestData.hmdScanDistribution.primaryKeyValue = deviceSearch.scanInfo;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.hmdScanDistribution.length === 0) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
+
+        let tempSafetyScanData = {...safetyScanData};
+        tempSafetyScanData.dataContent = data.hmdScanDistribution;
+        tempSafetyScanData.totalCount = data.count;
+
+        this.setState({
+          safetyScanData: tempSafetyScanData
+        });
       }
       return null;
     })
@@ -858,28 +970,47 @@ class HostController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    let tempHostInfo = {...this.state.hostInfo};
-    tempHostInfo.dataContent = [];
-    tempHostInfo.totalCount = 0;
-    tempHostInfo.currentPage = 1;
+    const {activeTab, hostInfo, safetyScanData} = this.state;
 
-    this.setState({
-      hostInfo: tempHostInfo
-    }, () => {
-      this.getHostData();
-    });
+    if (activeTab === 'hostList') {
+      let tempHostInfo = {...hostInfo};
+      tempHostInfo.dataContent = [];
+      tempHostInfo.totalCount = 0;
+      tempHostInfo.currentPage = 1;
+
+      this.setState({
+        hostInfo: tempHostInfo
+      }, () => {
+        this.getHostData();
+      });
+    } else if (activeTab === 'safetyScan') {
+      let tempSafetyScanData = {...safetyScanData};
+      tempSafetyScanData.dataContent = [];
+      tempSafetyScanData.totalCount = 0;
+      tempSafetyScanData.currentPage = 1;
+
+      this.setState({
+        safetyScanData: tempSafetyScanData
+      }, () => {
+        this.getSafetyScanData();
+      });
+    }
   }
   /**
    * Handle content tab change
    * @method
    * @param {object} event - event object
-   * @param {string} newTab - content type ('hostList' or 'deviceMap')
+   * @param {string} newTab - content type ('hostList', 'deviceMap' or 'safetyScan')
    */
   handleSubTabChange = (event, newTab) => {
     this.setState({
       activeTab: newTab
     }, () => {
-      this.getHostData();
+      if (newTab === 'safetyScan') {
+        this.getSafetyScanData();
+      } else {
+        this.getHostData();
+      }
     });
   }
   /**
@@ -901,7 +1032,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, deviceSearch} = this.state;
+   const {showFilter, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -963,6 +1094,17 @@ class HostController extends Component {
               value={deviceSearch.system}
               onChange={this.handleDeviceSearch} />
           </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchScanInfo'
+              name='scanInfo'
+              label={t('ipFields.scanInfo')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.scanInfo}
+              onChange={this.handleDeviceSearch} />
+          </div>
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
@@ -982,7 +1124,22 @@ class HostController extends Component {
         mac: '',
         hostName: '',
         deviceType: '',
-        system: ''
+        system: '',
+        scanInfo: ''
+      }
+    });
+  }
+  /**
+   * Clear safety scan data
+   * @method
+   */
+  clearSafetyScanData = () => {
+    this.setState({
+      safetyScanData: {
+        dataContent: [],
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
       }
     });
   }
@@ -1411,7 +1568,8 @@ class HostController extends Component {
               {iconType !== '' &&
                 <img src={contextRoot + `/images/${iconType}.png`} className='connections-status' title={title} />
               }
-              <span>{val.ip}</span></li>
+              <span>{val.ip}</span>
+            </li>
             {infoList.map(this.getInfoList.bind(this, val))}
           </ul>
 
@@ -1433,22 +1591,241 @@ class HostController extends Component {
   /**
    * Handle Host data pagination change
    * @method
+   * @param {string} contentType - content type ('hostInfo' or 'safetyScanData')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string | number} value - new page number
    */
-  handlePaginationChange = (type, value) => {
-    let tempHostInfo = {...this.state.hostInfo};
-    tempHostInfo[type] = Number(value);
+  handlePaginationChange = (contentType, type, value) => {
+    const {hostInfo, safetyScanData} = this.state;
 
-    if (type === 'pageSize') {
-      tempHostInfo.currentPage = 1;
+    if (contentType === 'hostInfo') {
+      let tempHostInfo = {...hostInfo};
+      tempHostInfo[type] = Number(value);
+
+      if (type === 'pageSize') {
+        tempHostInfo.currentPage = 1;
+      }
+
+      this.setState({
+        hostInfo: tempHostInfo
+      }, () => {
+        this.getHostData();
+      });
+    } else if (contentType === 'safetyScanData') {
+      let tempSafetyScanData = {...safetyScanData};
+      tempSafetyScanData[type] = Number(value);
+
+      if (type === 'pageSize') {
+        tempSafetyScanData.currentPage = 1;
+      }
+
+      this.setState({
+        safetyScanData: tempSafetyScanData
+      }, () => {
+        this.getSafetyScanData();
+      });
+    }
+  }
+  /**
+   * Toggle safety details dialog and set safety data
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  toggleSafetyDetails = (safetyData) => {
+    if (!_.isEmpty(safetyData)) {
+      this.setState({
+        currentSafetyData: safetyData
+      });
     }
 
     this.setState({
-      hostInfo: tempHostInfo
-    }, () => {
-      this.getHostData();
+      safetyDetailsOpen: !this.state.safetyDetailsOpen
     });
+  }
+  /**
+   * Format primary content length
+   * @method
+   * @param {string} content - Safety Scan content
+   * @param {number} length - length of content
+   * @returns formatted content
+   */
+  getFormattedLength = (content, length) => {
+    if (content.length > length) {
+      const newValue = content.substr(0, length) + '...';
+      content = <span title={content}>{newValue}</span>;
+    } else {
+      content = <span>{content}</span>;
+    }
+    return content;
+  }
+  /**
+   * Display primary info for safety scan table
+   * @method
+   * @param {string} safetyData - active safety scan data
+   * @returns formatted content
+   */
+  getPrimaryContent = (safetyData) => {
+    const {safetyScanType} = this.state;
+    let content = safetyData;
+
+    if (safetyScanType === 'getEventTraceResult') {
+      content = t('host.txt-eventCode') + ': ' + safetyData;
+    }
+
+    if (safetyData.length > 80) {
+      const newValue = safetyData.substr(0, 80) + '...';
+      content = <span className='primary-content' title={safetyData}>{newValue}</span>;
+    } else {
+      content = <span className='primary-content'>{content}</span>;
+    }
+    return content;
+  }
+  /**
+   * Display secondary info for safety scan table
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  getSecondaryContent = (safetyData) => {
+    const {locale} = this.context;
+    const {safetyScanType} = this.state;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject._FileInfo && safetyData.rawJsonObject._FileInfo._Filesize &&
+            <span className='text'>{helper.numberWithCommas(safetyData.rawJsonObject._FileInfo._Filesize)}KB</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsPE &&
+            <span className='success'>{t('host.txt-peFile')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsPEextension &&
+            <span className='success'>{t('host.txt-peFileExtension')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsVerifyTrust &&
+            <span className='success'>{t('host.txt-verifyTrust')}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+      let content = '';
+
+      if (locale === 'zh' && safetyData.rawJsonObject['_PolicyName_zh-tw']) {
+        content = safetyData.rawJsonObject['_PolicyName_zh-tw'];
+      } else if (locale === 'en' && safetyData.rawJsonObject['_PolicyName_en']) {
+        content = safetyData.rawJsonObject['_PolicyName_en'];
+      }
+
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject._CompareResult &&
+            <span className='success'>{t('txt-pass')}</span>
+          }
+          {!safetyData.rawJsonObject._CompareResult &&
+            <span className='fail'>{t('txt-fail')}</span>
+          }
+          {content &&
+            <span className='text'>{content}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getFileIntegrity') {
+      return (
+        <div className='flex-item'>
+          {safetyData.primaryKeyName &&
+            <span className='fail'>{t('host.txt-' + safetyData.primaryKeyName)}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._FileIntegrityResultPath &&
+            <span className='text'>{safetyData.rawJsonObject._FileIntegrityResultPath}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.message &&
+            <span className='text'>{this.getFormattedLength(safetyData.rawJsonObject.message, 120)}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsMd5Modified &&
+            <span className='fail'>{t('host.txt-md5Modified')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._IsNotInWhiteList &&
+            <span className='fail'>{t('host.txt-notWhiteList')}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject._ProcessInfo &&
+            <span className='text'>{this.getFormattedLength(safetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath, 100)}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getVansCpe') {
+      return (
+        <div className='flex-item'>
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.vendor &&
+            <span className='text border'>{t('host.txt-vendor')}: {safetyData.rawJsonObject.vendor}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.product &&
+            <span className='text border'>{t('host.txt-product')}: {safetyData.rawJsonObject.product}</span>
+          }
+          {safetyData.rawJsonObject && safetyData.rawJsonObject.version &&
+            <span className='text'>{t('host.txt-version')}: {safetyData.rawJsonObject.version}</span>
+          }
+        </div>
+      )
+    } else if (safetyScanType === 'getVansCve') {
+      let severity = '';
+      let description = '';
+
+      if (safetyData.rawJsonObject) {
+        if (safetyData.rawJsonObject.severity) {
+          severity = safetyData.rawJsonObject.severity.toLowerCase();
+        }
+
+        if (safetyData.rawJsonObject.description) {
+          description = this.getFormattedLength(safetyData.rawJsonObject.description.description_data[0].value, 120);
+        }
+      }
+
+      return (
+        <div className='flex-item'>
+          {severity &&
+            <span className={severity}>{t('txt-' + severity)}</span>
+          }
+          {description &&
+            <span className='text'>{description}</span>
+          }
+        </div>
+      )
+    }
+  }
+  /**
+   * Display Safety Scan content
+   * @method
+   * @param {object} val - Safety Scan data
+   * @param {number} i - index of the Safety Scan data
+   * @returns HTML DOM
+   */
+  getSafetyList = (val, i) => {
+    const {safetyScanType} = this.state;
+
+    return (
+      <li key={i}>
+        <div className='device-alert'>
+          <i className='fg fg-wifi-beacon-1'></i>
+          {this.getPrimaryContent(val.primaryKeyValue)}
+        </div>
+        <div className='info'>
+          {this.getSecondaryContent(val)}
+        </div>
+        <div className='view-details' onClick={this.toggleSafetyDetails.bind(this, val)}>
+          {t('host.txt-viewInfo')}
+        </div>
+        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.disDevDtos.length)}</div>
+      </li>
+    )
   }
   /**
    * Handle CSV download
@@ -1634,6 +2011,34 @@ class HostController extends Component {
       activeContent: type
     });
   }
+  /**
+   * Get and set safety scan list
+   * @method
+   */
+  getSafetyScanList = () => {
+    const safetyScanList = _.map(SAFETY_SCAN_LIST, (val, i) => {
+      return <MenuItem key={i} value={val.value}>{val.name}</MenuItem>
+    });
+    return safetyScanList;
+  }  
+  /**
+   * Handle Safety Scan list change
+   * @method
+   * @param {object} event - event object
+   */
+  safetyScanChange = (event) => {
+    let tempSafetyScanData = {...this.state.safetyScanData};
+    tempSafetyScanData.dataContent = [];
+    tempSafetyScanData.currentPage = 1;
+
+    this.setState({
+      safetyScanData: tempSafetyScanData,
+      safetyScanType: event.target.value
+    }, () => {
+      this.clearSafetyScanData();
+      this.getSafetyScanData();
+    });
+  }
   render() {
     const {
       activeTab,
@@ -1643,6 +2048,7 @@ class HostController extends Component {
       datetime,
       assessmentDatetime,
       hostAnalysisOpen,
+      safetyDetailsOpen,
       contextAnchor,
       menuType,
       yaraRuleOpen,
@@ -1652,15 +2058,17 @@ class HostController extends Component {
       filterNav,
       hostInfo,
       hostData,
-      hostSortList,
       hostSort,
+      safetyScanData,
       floorList,
       currentFloor,
       currentMap,
       currentBaseLayers,
       seatData,
       eventInfo,
-      openHmdType
+      openHmdType,
+      currentSafetyData,
+      safetyScanType
     } = this.state;
 
     return (
@@ -1683,6 +2091,13 @@ class HostController extends Component {
             toggleHostAnalysis={this.toggleHostAnalysis} />
         }
 
+        {safetyDetailsOpen &&
+          <SafetyDetails
+            currentSafetyData={currentSafetyData}
+            safetyScanType={safetyScanType}
+            toggleSafetyDetails={this.toggleSafetyDetails} />
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
@@ -1693,6 +2108,7 @@ class HostController extends Component {
           <SearchOptions
             dateType='datepicker'
             datetime={datetime}
+            showFilter={showFilter}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
         </div>
@@ -1749,7 +2165,7 @@ class HostController extends Component {
                       size='small'
                       value={hostSort}
                       onChange={this.handleHostSortChange}>
-                      {hostSortList}
+                      {this.getHostSortList()}
                     </TextField>
                   </div>
                 }
@@ -1762,6 +2178,7 @@ class HostController extends Component {
                   onChange={this.handleSubTabChange}>
                   <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
                   <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
+                  <Tab id='hostMapTab' label={t('host.txt-safetyScan')} value='safetyScan' />
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
@@ -1801,8 +2218,8 @@ class HostController extends Component {
                         totalCount={hostInfo.totalCount}
                         pageSize={hostInfo.pageSize}
                         currentPage={hostInfo.currentPage}
-                        onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                        onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                        onPageChange={this.handlePaginationChange.bind(this, 'hostInfo', 'currentPage')}
+                        onDropDownChange={this.handlePaginationChange.bind(this, 'hostInfo', 'pageSize')} />
                     </footer>
                   </div>
                 }
@@ -1843,6 +2260,41 @@ class HostController extends Component {
                           }
                         }]} />
                     }
+                  </div>
+                }
+
+                {activeTab === 'safetyScan' &&
+                  <div>
+                    <TextField
+                      id='safetyScanType'
+                      className='safety-scan-type'
+                      name='safetyScanType'
+                      label={t('host.txt-safetyScanType')}
+                      select
+                      variant='outlined'
+                      size='small'
+                      value={safetyScanType}
+                      onChange={this.safetyScanChange}>
+                      {this.getSafetyScanList()}
+                    </TextField>
+
+                    <div className='table-content'>
+                      <div className='table' style={{height: '57vh'}}>
+                        <ul className='safety-list'>
+                          {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
+                            safetyScanData.dataContent.map(this.getSafetyList)
+                          }
+                        </ul>
+                      </div>
+                      <footer>
+                        <Pagination
+                          totalCount={safetyScanData.totalCount}
+                          pageSize={safetyScanData.pageSize}
+                          currentPage={safetyScanData.currentPage}
+                          onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
+                          onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
+                      </footer>
+                    </div>
                   </div>
                 }
               </div>
