@@ -72,7 +72,7 @@ const SCAN_RESULT = [
     result: '_VansResult'
   },
 ];
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull'];
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected'];
 const HMD_TRIGGER = [
   {
     name: 'Yara Scan',
@@ -557,11 +557,6 @@ class HostController extends Component {
             value: val
           });
         })
-
-        hmdStatusList.push({
-          text: t('txt-connected'),
-          value: 'isConnected'
-        });
 
         _.forEach(HMD_LIST, val => {
           scanStatusList.push({
@@ -1299,7 +1294,7 @@ class HostController extends Component {
           const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
           let hostData = {...data[0]};
 
-          if (activeHostInfo.networkBehaviorInfo) {
+          if (activeHostInfo && activeHostInfo.networkBehaviorInfo) {
             hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
           }
 
@@ -1418,6 +1413,7 @@ class HostController extends Component {
   toggleHostAnalysis = () => {
     this.setState({
       hostAnalysisOpen: !this.state.hostAnalysisOpen,
+      safetyDetailsOpen: false,
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
@@ -1693,7 +1689,7 @@ class HostController extends Component {
       return (
         <div className='flex-item'>
           {safetyData.rawJsonObject._FileInfo && safetyData.rawJsonObject._FileInfo._Filesize &&
-            <span className='text'>{helper.numberWithCommas(safetyData.rawJsonObject._FileInfo._Filesize)}KB</span>
+            <span className='text'>{helper.numberWithCommas(helper.formatBytes(safetyData.rawJsonObject._FileInfo._Filesize))}</span>
           }
           {safetyData.rawJsonObject && safetyData.rawJsonObject._IsPE &&
             <span className='success'>{t('host.txt-peFile')}</span>
@@ -2095,7 +2091,8 @@ class HostController extends Component {
           <SafetyDetails
             currentSafetyData={currentSafetyData}
             safetyScanType={safetyScanType}
-            toggleSafetyDetails={this.toggleSafetyDetails} />
+            toggleSafetyDetails={this.toggleSafetyDetails}
+            getIPdeviceInfo={this.getIPdeviceInfo} />
         }
 
         <div className='sub-header'>

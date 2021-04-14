@@ -339,6 +339,7 @@
     "txt-isOwnerNull": "未設定使用者",
     "txt-isAreaNull": "未設定樓層",
     "txt-isSeatNull": "未設定座位",
+    "txt-isConnected": "已連線",
     "txt-title-scanFile": "惡意程式資訊",
     "txt-title-gcbDetection": "GCB漏洞掃描資訊",
     "txt-title-getFileIntegrity": "檔案完整性掃描資訊",
@@ -654,7 +655,7 @@
     "txt-checkConnections": "連線驗證",
     "scan-list": {
       "txt-yara": "Yara Scan",
-      "txt-scanFile": "惡意程式",
+      "txt-scanFile": "Malware",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
       "txt-eventTracing": "Event Tracing",

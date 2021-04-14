@@ -1382,10 +1382,14 @@ class HMDscanInfo extends Component {
         {activeTab !== 'settings' &&
           <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('hmd-scan.txt-refresh')}</Button>
         }
-        <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
-        <div className='last-update'>
-          <span>{t('hmd-scan.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
-        </div>
+        {activeTab !== 'eventTracing' &&
+          <div>
+            <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
+            <div className='last-update'>
+              <span>{t('hmd-scan.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
+            </div>
+          </div>
+        }
       </div>
     )
   }
@@ -2262,7 +2266,10 @@ class HMDscanInfo extends Component {
           }
 
           {activeTab === 'eventTracing' &&
-            this.getEventTracingContent()
+            <div>
+              {this.getTriggerBtnInfo()}
+              {this.getEventTracingContent()}
+            </div>
           }
 
           {activeTab === 'settings' &&

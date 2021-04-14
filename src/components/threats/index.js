@@ -635,16 +635,22 @@ class ThreatsController extends Component {
    */
   registerDownload = () => {
     const {baseUrl} = this.context;
-    const {datetime} = this.state;
+    const {datetime, filterData, edgeFilterData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/taskService`;
-    const requestData = {
+    const filterDataArr = helper.buildFilterDataArray(filterData); //Remove empty filter array
+    const combinedFilterDataArr = _.concat(filterDataArr, edgeFilterData);
+    let requestData = {
       timestamp: [dateTime.from, dateTime.to],
       type: ['exportThreat']
     };
+
+    if (combinedFilterDataArr.length > 0) {
+      requestData.filters = combinedFilterDataArr;
+    }
 
     this.ah.one({
       url,

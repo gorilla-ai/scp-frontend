@@ -33,9 +33,6 @@ class SafetyDetails extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount() {
-
-  }
   /**
    * Toggle content type
    * @method
@@ -141,7 +138,7 @@ class SafetyDetails extends Component {
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{helper.numberWithCommas(currentSafetyData.rawJsonObject._FileInfo._Filesize)}KB</td>
+          <td>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</td>
           <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
           <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
           <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
@@ -383,7 +380,7 @@ class SafetyDetails extends Component {
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-fileSize')}</span></td>
-            <td>{helper.numberWithCommas(currentSafetyData.rawJsonObject._FileInfo._Filesize)}KB</td>
+            <td>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-isPEfile')}</span></td>
@@ -588,6 +585,7 @@ class SafetyDetails extends Component {
         <td>{val.system}</td>
         <td>{val.userName}</td>
         <td>{val.version}</td>
+        <td><i className='fg fg-eye' onClick={this.props.getIPdeviceInfo.bind(this, val, 'toggle')} title={t('txt-view')}></i></td>
       </tr>
     )
   }
@@ -642,6 +640,7 @@ class SafetyDetails extends Component {
                           <th>{t('ipFields.system')}</th>
                           <th>{t('ipFields.owner')}</th>
                           <th>{t('ipFields.version')}</th>
+                          <th></th>
                         </tr>
                       </thead>
                       <tbody>
