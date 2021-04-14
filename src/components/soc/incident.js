@@ -153,9 +153,7 @@ class Incident extends Component {
                             },() => {
                             })
                         }else{
-                            console.log("this.state.accountType == " ,this.state.accountType)
                             if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
-                                console.log("into")
                                 PopupDialog.alert({
                                     id: 'modalWindowSmall',
                                     title: t('txt-tips'),
@@ -628,6 +626,11 @@ class Incident extends Component {
     render() {
         const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType} = this.state
         const {session} = this.context
+        let superUserCheck = false;
+        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
+            superUserCheck = true
+        }
+
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
             {this.state.loadListType === 0 && (
@@ -692,9 +695,15 @@ class Incident extends Component {
                             {_.size(incident.dataContent) > 0 &&
                             <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
                             }
-                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>
-                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
-                        </div>
+                            {accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&
+                            <Button variant='outlined' color='primary' className='standard btn edit'
+                                    onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>
+                            }
+                            {accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&
+                            <Button variant='outlined' color='primary' className='standard btn edit'
+                                    onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
+                            }
+                            </div>
                         <TableContent
                             dataTableData={incident.dataContent}
                             dataTableFields={incident.dataFields}

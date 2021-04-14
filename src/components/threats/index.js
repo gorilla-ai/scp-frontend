@@ -40,6 +40,7 @@ import WorkOffIcon from '@material-ui/icons/WorkOff';
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import IncidentEventMake from "../soc/common/incident-event-make";
 import Moment from "moment";
+import constants from "../constant/constant-incidnet";
 
 const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
@@ -314,7 +315,8 @@ class ThreatsController extends Component {
       loadAlertData: true,
       alertPieData: {},
       alertTableData: {},
-      alertChartsList: []
+      alertChartsList: [],
+      accountType:constants.soc.LIMIT_ACCOUNT,
     };
 
     this.ah = getInstance('chewbacca');
@@ -431,7 +433,53 @@ class ThreatsController extends Component {
         showFilter: true
       });
     }
+
+   if(_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
+     this.checkAccountSocPrivType()
+   }
+
   }
+
+  checkAccountSocPrivType = () =>{
+    const {baseUrl, session} = this.context;
+    let requestData={
+      account:session.accountId
+    }
+    ah.one({
+      url: `${baseUrl}/api/soc/unit/limit/_check`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+        .then(data => {
+          if (data) {
+
+            if (data.rt.isDefault){
+              this.setState({
+                accountType: constants.soc.NONE_LIMIT_ACCOUNT
+              })
+            }else{
+              if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                this.setState({
+                  accountType: constants.soc.LIMIT_ACCOUNT
+                })
+              }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                this.setState({
+                  accountType: constants.soc.LIMIT_ACCOUNT
+                })
+              }else {
+                this.setState({
+                  accountType: constants.soc.LIMIT_ACCOUNT
+                })
+              }
+            }
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+  }
+
   /**
    * Get and set the account saved query
    * @method
@@ -2984,8 +3032,8 @@ class ThreatsController extends Component {
               <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={this.state.activeSubTab !== 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.cancelThreatsList.length === 0} onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
             }
 
-            {this.state.activeSubTab === 'trackTreats' && sessionRights.Module_Soc &&
-            <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+            {this.state.activeSubTab === 'trackTreats' && sessionRights.Module_Soc &&  this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+              <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
             }
           </div>
 
