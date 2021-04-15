@@ -26,12 +26,17 @@ class SafetyDetails extends Component {
     super(props);
 
     this.state = {
-      contentType: 'basicInfo' //'basicInfo' or 'availableHost'
+      contentType: '' //'basicInfo' or 'availableHost'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setState({
+      contentType: this.props.showSafetyTab
+    });
   }
   /**
    * Toggle content type
@@ -578,6 +583,33 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   getHostTableBody = (val, i) => {
+    const {safetyScanType} = this.props;
+    let type = '';    
+
+    switch (safetyScanType) {
+      case 'scanFile':
+        type = 'scanFileResult';
+        break;
+      case 'gcbDetection':
+        type = 'gcbResult';
+        break;
+      case 'getFileIntegrity':
+        type = 'fileIntegrityResult';
+        break;
+      case 'getEventTraceResult':
+        type = 'eventTracingResult';
+        break;
+      case 'getProcessMonitorResult':
+        type = 'procMonitorResult';
+        break;
+      case 'getVansCpe':
+        type = '_VansResult';
+        break;
+      case 'getVansCve':
+        type = '_VansResult';
+        break;
+    }
+
     return (
       <tr key={i}>
         <td>{val.ip}</td>
@@ -585,7 +617,7 @@ class SafetyDetails extends Component {
         <td>{val.system}</td>
         <td>{val.userName}</td>
         <td>{val.version}</td>
-        <td><i className='fg fg-eye' onClick={this.props.getIPdeviceInfo.bind(this, val, 'toggle')} title={t('txt-view')}></i></td>
+        <td><i className='fg fg-eye' onClick={this.props.getIPdeviceInfo.bind(this, val, 'toggle', type)} title={t('txt-view')}></i></td>
       </tr>
     )
   }
@@ -685,7 +717,9 @@ SafetyDetails.contextType = BaseDataContext;
 SafetyDetails.propTypes = {
   currentSafetyData:  PropTypes.object.isRequired,
   safetyScanType: PropTypes.string.isRequired,
+  showSafetyTab: PropTypes.string.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired
 };
 
 export default SafetyDetails;

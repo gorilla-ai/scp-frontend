@@ -57,6 +57,11 @@ class HostAnalysis extends Component {
   componentDidMount() {
     this.hmdTypeChecking();
   }
+  componentWillUnmount() {
+    if (this.props.activeTab === 'safetyScan') {
+      this.props.toggleSafetyDetails('', 'availableHost');
+    }
+  }
   /**
    * Set active left navigation
    * @method

@@ -281,7 +281,7 @@ class HostController extends Component {
         pageSize: 20
       },
       currentSafetyData: {},
-      safetyScanType: 'scanFile',
+      safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
@@ -290,6 +290,7 @@ class HostController extends Component {
         hasMore: false
       },
       openHmdType: '',
+      showSafetyTab: '', //'basicInfo' or 'availableHost'
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1175,6 +1176,7 @@ class HostController extends Component {
           displayTooltip += t('hmd-scan.txt-eventsLogCount');
           color = '#e15b6b';
         }
+
         if (safetyData[0].taskStatus === 'Complete') {
           if (val.name === 'GCB') {
             displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
@@ -1296,6 +1298,8 @@ class HostController extends Component {
 
           if (activeHostInfo && activeHostInfo.networkBehaviorInfo) {
             hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
+          } else if (host) {
+            hostData.severityLevel = host.severityLevel;
           }
 
           if (!hostData.safetyScanInfo) {
@@ -1626,11 +1630,19 @@ class HostController extends Component {
    * Toggle safety details dialog and set safety data
    * @method
    * @param {object} safetyData - active safety scan data
+   * @param {string} tab - tab to show for Safety Scan dialog ('basicInfo' or 'availableHost')
    */
-  toggleSafetyDetails = (safetyData) => {
+  toggleSafetyDetails = (safetyData, options) => {
     if (!_.isEmpty(safetyData)) {
       this.setState({
-        currentSafetyData: safetyData
+        currentSafetyData: safetyData,
+        showSafetyTab: 'basicInfo'
+      });
+    }
+
+    if (options === 'availableHost') {
+      this.setState({
+        showSafetyTab: 'availableHost'
       });
     }
 
@@ -2064,7 +2076,8 @@ class HostController extends Component {
       eventInfo,
       openHmdType,
       currentSafetyData,
-      safetyScanType
+      safetyScanType,
+      showSafetyTab
     } = this.state;
 
     return (
@@ -2077,6 +2090,7 @@ class HostController extends Component {
 
         {hostAnalysisOpen &&
           <HostAnalysis
+            activeTab={activeTab}
             datetime={datetime}
             assessmentDatetime={assessmentDatetime}
             hostData={hostData}
@@ -2084,13 +2098,15 @@ class HostController extends Component {
             openHmdType={openHmdType}
             getIPdeviceInfo={this.getIPdeviceInfo}
             loadEventTracing={this.loadEventTracing}
-            toggleHostAnalysis={this.toggleHostAnalysis} />
+            toggleHostAnalysis={this.toggleHostAnalysis}
+            toggleSafetyDetails={this.toggleSafetyDetails} />
         }
 
         {safetyDetailsOpen &&
           <SafetyDetails
             currentSafetyData={currentSafetyData}
             safetyScanType={safetyScanType}
+            showSafetyTab={showSafetyTab}
             toggleSafetyDetails={this.toggleSafetyDetails}
             getIPdeviceInfo={this.getIPdeviceInfo} />
         }
