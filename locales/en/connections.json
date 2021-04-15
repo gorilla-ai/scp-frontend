@@ -514,7 +514,8 @@
       "txt-lineBotSettings": "Line Notification Settings",
       "txt-channelAccessToken": "Channel Access Token",
       "txt-channelSecret": "Channel Secret",
-      "txt-qrcode": "QR Code Image Link"
+      "txt-qrcode": "Invite QR Code Image Link",
+      "txt-href-description": "Click QR-Code connect to Line-Developer Office"
     }
   },
 

@@ -1069,8 +1069,8 @@ class Incident extends Component {
                     fullWidth={true}
                     size='small'
                     multiline
-                    rows={4}
-                    rowsMax={5}
+                    rows={3}
+                    rowsMax={3}
                     helperText={it('txt-required')}
                     name='description'
                     error={!(incident.info.description || '')}

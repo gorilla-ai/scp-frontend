@@ -671,7 +671,7 @@ class Notifications extends Component {
                   {activeContent === 'viewMode' && lineBotSetting.qrcodeLink &&
                   <div className='group' >
                     <label>{t('notifications.lineBot.txt-qrcode')}</label>
-                      <a style={{width: '150px', height: '150px'}} href={lineBotSetting.qrcodeLink} title="QRCode-Link">
+                      <a style={{width: '150px', height: '150px'}} href='https://developers.line.biz/en/' target="_blank" title={t('notifications.lineBot.txt-href-description')}>
                         <img width='100%' height='100%' src={lineBotSetting.qrcodeLink} border="0"/>
                       </a>
                   </div>
@@ -699,6 +699,9 @@ class Notifications extends Component {
                         label={t('notifications.lineBot.txt-channelAccessToken')}
                         variant='outlined'
                         fullWidth
+                        rows={4}
+                        rowsMax={5}
+                        multiline
                         size='small'
                         value={lineBotSetting.channelAccessToken}
                         onChange={this.handleLineBotChange}

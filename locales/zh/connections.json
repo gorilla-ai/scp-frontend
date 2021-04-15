@@ -514,7 +514,8 @@
       "txt-lineBotSettings": "Line 通知設定",
       "txt-channelAccessToken": "Channel Access Token",
       "txt-channelSecret": "Channel Secret",
-      "txt-qrcode": "QR-Code 圖片連結"
+      "txt-qrcode": "加入會員 QR-Code 圖片連結",
+      "txt-href-description": "點擊QR-Code連到Line-Developer官網"
     }
   },
 
