@@ -82,6 +82,7 @@ const SETTINGS = {
   procWhiteList: 'setProcessWhiteList'
 };
 let scrollCount = 1;
+
 let t = null;
 let f = null;
 
@@ -1394,36 +1395,13 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Set HMD info data
-   * @method
-   * @param {object} data - data object from server response
-   */
-  setHmdInfo = (data) => {
-    const {activeTab, hmdInfo} = this.state;
-    let tempHmdInfo = {...hmdInfo};
-    
-    const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
-
-    if (hmdResult.length > 0) {
-      tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
-
-      this.setState({
-        hmdInfo: tempHmdInfo,
-        hasMore: true
-      });
-    } else {
-      this.setState({
-        hasMore: false
-      });
-    }
-  }
-  /**
    * Load more items when scrolling to the bottom of the dialog
    * @method
    */
   loadMoreContent = () => {
     const {baseUrl} = this.context;
     const {page, assessmentDatetime, currentDeviceData} = this.props;
+    const {activeTab, hmdInfo} = this.state;
 
     scrollCount++;
     let url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
@@ -1437,8 +1415,22 @@ class HMDscanInfo extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
-        this.setHmdInfo(data);
+      if (data && data.safetyScanInfo) {
+        const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
+        let tempHmdInfo = {...hmdInfo};
+
+        if (hmdResult.length > 0) {
+          tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+
+          this.setState({
+            hmdInfo: tempHmdInfo,
+            hasMore: true
+          });
+        } else {
+          this.setState({
+            hasMore: false
+          });
+        }
       }
       return null;
     })

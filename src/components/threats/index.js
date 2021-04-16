@@ -6,15 +6,19 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import InfiniteScroll from 'react-infinite-scroll-component'
+
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import GetAppIcon from '@material-ui/icons/GetApp';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import HourglassEmptyIcon from '@material-ui/icons/HourglassEmpty';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Popover from '@material-ui/core/Popover';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -234,7 +238,12 @@ class ThreatsController extends Component {
       edgeFilterData:[],
       edgeCheckedList: [],
       popOverAnchor: null,
-      taskServiceList: [],
+      taskServiceList: {
+        data: [],
+        scrollCount: 0,
+        pageSize: 10,
+        hasMore: true
+      },
       threatsData: {
         dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
@@ -316,7 +325,7 @@ class ThreatsController extends Component {
       alertPieData: {},
       alertTableData: {},
       alertChartsList: [],
-      accountType:constants.soc.LIMIT_ACCOUNT,
+      accountType:constants.soc.LIMIT_ACCOUNT
     };
 
     this.ah = getInstance('chewbacca');
@@ -439,47 +448,45 @@ class ThreatsController extends Component {
    }
 
   }
-
-  checkAccountSocPrivType = () =>{
+  checkAccountSocPrivType = () => {
     const {baseUrl, session} = this.context;
-    let requestData={
+    const requestData = {
       account:session.accountId
-    }
+    };
+
     ah.one({
       url: `${baseUrl}/api/soc/unit/limit/_check`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
-        .then(data => {
-          if (data) {
-
-            if (data.rt.isDefault){
-              this.setState({
-                accountType: constants.soc.NONE_LIMIT_ACCOUNT
-              })
-            }else{
-              if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
-                this.setState({
-                  accountType: constants.soc.LIMIT_ACCOUNT
-                })
-              }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
-                this.setState({
-                  accountType: constants.soc.LIMIT_ACCOUNT
-                })
-              }else {
-                this.setState({
-                  accountType: constants.soc.LIMIT_ACCOUNT
-                })
-              }
-            }
+    .then(data => {
+      if (data) {
+        if (data.rt.isDefault) {
+          this.setState({
+            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+          });
+        } else {
+          if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+            this.setState({
+              accountType: constants.soc.LIMIT_ACCOUNT
+            });
+          } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
+            this.setState({
+              accountType: constants.soc.LIMIT_ACCOUNT
+            });
+          } else {
+            this.setState({
+              accountType: constants.soc.LIMIT_ACCOUNT
+            })
           }
-        })
-        .catch(err => {
-          helper.showPopupMsg('', t('txt-error'), err.message)
-        });
+        }
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
+    });
   }
-
   /**
    * Get and set the account saved query
    * @method
@@ -558,34 +565,106 @@ class ThreatsController extends Component {
     this.setState({
       popOverAnchor: event.currentTarget
     }, () => {
-      this.getTaskService();
+      this.getTaskService('firstLoad');
     });
   }
   /**
    * Get list of task service
    * @method
+   * @param {string} options - option for 'firstLoad'
    */
-  getTaskService = () => {
+  getTaskService = (options) => {
+    const {taskServiceList} = this.state;
     const {baseUrl} = this.context;
     const datetime = {
       from: moment(helper.getSubstractDate(7, 'day', moment().utc())).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
+    let fromItem = 0;
+
+    if (options !== 'firstLoad') {
+      fromItem = taskServiceList.pageSize - 1; //index starts from zero
+
+      if (taskServiceList.scrollCount > 0) {
+        fromItem = taskServiceList.scrollCount + taskServiceList.pageSize;
+      }
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/taskService/list?source=SCP&type=exportThreat&createStartDttm=${datetime.from}`,
+      url: `${baseUrl}/api/taskService/list?source=SCP&type=exportThreat&createStartDttm=${datetime.from}&from=${fromItem}&size=${taskServiceList.pageSize}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        let taskServiceList = [];
+        let tempTaskServiceList = {...taskServiceList};
 
-        if (data.list && data.list.length > 0) {
-          taskServiceList = data.list;
+        if (options === 'firstLoad') {
+          if (data.list && data.list.length > 0) {
+            tempTaskServiceList.data = data.list;
+          }
+        } else {
+          tempTaskServiceList.scrollCount = fromItem;
+
+          if (data.list && data.list.length > 0) {
+            tempTaskServiceList.data = _.concat(taskServiceList.data, data.list);
+            tempTaskServiceList.hasMore = true;
+          } else {
+            tempTaskServiceList.hasMore = false;
+          }
         }
 
         this.setState({
-          taskServiceList
+          taskServiceList: tempTaskServiceList
         });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Delete service task
+   * @method
+   * @param {string} id - service data ID
+   */
+  deleteServiceTask = (id) => {
+    const {baseUrl} = this.context;
+
+    ah.one({
+      url: `${baseUrl}/api/taskService/${id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getTaskService('firstLoad');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
+    })
+  }
+  /**
+   * Delete service task
+   * @method
+   * @param {string} id - service data ID
+   */
+  retriggerServiceTask = (id) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/taskService/async/_reimport`;
+    const requestData = {
+      id: [id]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getTaskService('firstLoad');
       }
       return null;
     })
@@ -602,7 +681,7 @@ class ThreatsController extends Component {
    */
   displayServiceTaskList = (val, i) => {
     let listItemParam = {
-      Key: i
+      Key: val.id
     };
 
     if (val.progress === 100) {
@@ -614,7 +693,18 @@ class ThreatsController extends Component {
       <ListItem {...listItemParam}>
         <ListItemText primary={val.name} className='list-text' />
         <ListItemIcon>
-          {val.progress === 100 ? <GetAppIcon /> : <HourglassEmptyIcon />}
+          {val.progress === 100 &&
+            <span title={t('alert.txt-downloadTask')}><GetAppIcon /></span>
+          }
+          {val.progress !== 100 &&
+            <span title={t('alert.txt-scheduledTask')}><HourglassEmptyIcon /></span>
+          }
+          {val.progress !== 100 &&
+            <span title={t('alert.txt-deleteTask')}><HighlightOffIcon className='delete-icon' onClick={this.deleteServiceTask.bind(this, val.id)} /></span>
+          }
+          {val.progress !== 100 &&
+            <span title={t('alert.txt-retriggerTask')}><RefreshIcon className='refresh-icon' onClick={this.retriggerServiceTask.bind(this, val.id)} /></span>
+          }
         </ListItemIcon>
       </ListItem>
     )
@@ -624,9 +714,13 @@ class ThreatsController extends Component {
    * @method
    */
   handlePopoverClose = () => {
+    let tempTaskServiceList = {...this.state.taskServiceList};
+    tempTaskServiceList.data = [];
+    tempTaskServiceList.scrollCount = 0;
+
     this.setState({
       popOverAnchor: null,
-      taskServiceList: []
+      taskServiceList: tempTaskServiceList
     });
   }
   /**
@@ -2961,6 +3055,7 @@ class ThreatsController extends Component {
       filterData,
       popOverAnchor,
       taskServiceList,
+      hasMore,
       showChart,
       showFilter,
       makeIncidentOpen,
@@ -3063,14 +3158,22 @@ class ThreatsController extends Component {
                 </ListItem>
               </List>
 
-              {taskServiceList.length > 0 &&
-                <div className='scheduled-list'>
-                  <div className='header'><span>{t('alert.txt-exportScheduledList')}</span> {t('alert.txt-past7days')}</div>
-                  <List className='service-list'>
-                    {taskServiceList.map(this.displayServiceTaskList)}
-                  </List>
-                </div>
-              }
+              <div>
+                {taskServiceList.data.length > 0 &&
+                  <div className='scheduled-list'>
+                    <div className='header'><span>{t('alert.txt-exportScheduledList')}</span> {t('alert.txt-past7days')}</div>
+                    <List className='service-list'>
+                      <InfiniteScroll
+                        dataLength={taskServiceList.data.length}
+                        next={this.getTaskService}
+                        hasMore={taskServiceList.hasMore}
+                        height={370}>
+                        {taskServiceList.data.map(this.displayServiceTaskList)}
+                      </InfiniteScroll>
+                    </List>
+                  </div>
+                }
+              </div>
             </div>
           </Popover>
 

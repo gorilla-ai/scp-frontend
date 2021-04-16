@@ -448,7 +448,11 @@
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
     "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)",
     "txt-exportScheduledList": "Export List",
-    "txt-past7days": "Past 7 Days"
+    "txt-past7days": "Past 7 Days",
+    "txt-scheduledTask": "Scheduled Task",
+    "txt-downloadTask": "Downlaod",
+    "txt-deleteTask": "Delete Task",
+    "txt-retriggerTask": "Retrigger Task"
   },
 
   "events": {

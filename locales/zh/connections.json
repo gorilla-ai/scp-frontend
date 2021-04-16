@@ -448,7 +448,11 @@
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
     "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)",
     "txt-exportScheduledList": "匯出排成列表",
-    "txt-past7days": "最近7天"
+    "txt-past7days": "最近7天",
+    "txt-scheduledTask": "任務已排入",
+    "txt-downloadTask": "下載",
+    "txt-deleteTask": "刪除任務",
+    "txt-retriggerTask": "重新發送任務"
   },
 
   "events": {
