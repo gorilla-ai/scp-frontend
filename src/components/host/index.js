@@ -1750,8 +1750,8 @@ class HostController extends Component {
     } else if (safetyScanType === 'getEventTraceResult') {
       return (
         <div className='flex-item'>
-          {safetyData.rawJsonObject && safetyData.rawJsonObject.message &&
-            <span className='text'>{this.getFormattedLength(safetyData.rawJsonObject.message, 120)}</span>
+          {safetyData.rawJsonObject &&
+            <span className='text'>{safetyData.rawJsonObject.message ? this.getFormattedLength(safetyData.rawJsonObject.message, 120) : 'N/A'}</span>
           }
         </div>
       )

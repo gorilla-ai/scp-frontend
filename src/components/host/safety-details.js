@@ -78,21 +78,21 @@ class SafetyDetails extends Component {
       return (
         <tr>
           <th>MD5</th>
-          <th>{t('host.txt-suspiciousFilePath')}</th>
+          <th>{t('host.txt-suspiciousFilePathExample')}</th>
         </tr>
       )
     } else if (safetyScanType === 'getEventTraceResult') {
       return (
         <tr>
           <th>{t('host.txt-eventCode')}</th>
-          <th>{t('host.txt-eventDesc')}</th>
+          <th>{t('host.txt-eventDescExample')}</th>
         </tr>
       )
     } else if (safetyScanType === 'getProcessMonitorResult') {
       return (
         <tr>
           <th>MD5</th>
-          <th>{t('host.txt-suspiciousFilePath')}</th>
+          <th>{t('host.txt-suspiciousFilePathExample')}</th>
         </tr>
       )
     } else if (safetyScanType === 'getVansCpe') {
@@ -176,7 +176,7 @@ class SafetyDetails extends Component {
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{this.getFormattedLength(currentSafetyData.rawJsonObject.message, 80)}</td>
+          <td>{currentSafetyData.rawJsonObject.message ? this.getFormattedLength(currentSafetyData.rawJsonObject.message, 80) : NOT_AVAILABLE}</td>
         </tr>
       )
     } else if (safetyScanType === 'getProcessMonitorResult') {
@@ -399,15 +399,9 @@ class SafetyDetails extends Component {
             <td><span className='blue-color'>{t('host.txt-isSignature')}</span></td>
             <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
           </tr>
-          <tr>
-            <td><span className='blue-color'>{t('host.txt-suspiciousFilePath')}</span></td>
-            <td>{currentSafetyData.rawJsonObject._FileInfo._Filepath}</td>
-          </tr>
         </tbody>
       )
     } else if (safetyScanType === 'gcbDetection') {
-      const result = currentSafetyData.rawJsonObject._CompareResult ? t('txt-pass') : t('txt-fail');
-      const color = currentSafetyData.rawJsonObject._CompareResult ? '#70c97e' : '#e15b6b';
       let policyContent = '';
 
       if (locale === 'zh' && currentSafetyData.rawJsonObject['_PolicyName_zh-tw']) {
@@ -430,10 +424,6 @@ class SafetyDetails extends Component {
             <td><span className='blue-color'>{t('host.txt-systemType')}</span></td>
             <td>{currentSafetyData.rawJsonObject._Type}</td>
           </tr>
-          <tr>
-            <td><span className='blue-color'>{t('host.txt-checkResult')}</span></td>
-            <td><span style={{color}}>{result}</span></td>
-          </tr>
         </tbody>
       )
     } else if (safetyScanType === 'getFileIntegrity') {
@@ -444,7 +434,7 @@ class SafetyDetails extends Component {
             <td>{currentSafetyData.primaryKeyValue}</td>
           </tr>
           <tr>
-            <td><span className='blue-color'>{t('host.txt-suspiciousFilePath')}</span></td>
+            <td><span className='blue-color'>{t('host.txt-suspiciousFilePathExample')}</span></td>
             <td>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</td>
           </tr>
         </tbody>
@@ -457,8 +447,8 @@ class SafetyDetails extends Component {
             <td>{currentSafetyData.primaryKeyValue}</td>
           </tr>
           <tr>
-            <td><span className='blue-color'>{t('host.txt-eventDesc')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.message}</td>
+            <td><span className='blue-color'>{t('host.txt-eventDescExample')}</span></td>
+            <td>{currentSafetyData.rawJsonObject.message || NOT_AVAILABLE}</td>
           </tr>
         </tbody>
       )
@@ -466,7 +456,7 @@ class SafetyDetails extends Component {
       return (
         <tbody>
           <tr>
-            <td><span className='blue-color'>DLLs</span></td>
+            <td style={{minWidth: '80px'}}><span className='blue-color'>DLLs</span></td>
             <td>{this.displayFilePath(currentSafetyData)}</td>
           </tr>
           <tr>
@@ -617,6 +607,30 @@ class SafetyDetails extends Component {
         <td>{val.system}</td>
         <td>{val.userName}</td>
         <td>{val.version}</td>
+        {safetyScanType === 'scanFile' &&
+          <td>{val.hostIdObj._Filepath}</td>
+        }
+        {safetyScanType === 'gcbDetection' &&
+          <td>{val.hostIdObj._GcbValue || NOT_AVAILABLE}</td> 
+        }
+        {safetyScanType === 'gcbDetection' &&
+          <td>{val.hostIdObj._GpoValue || NOT_AVAILABLE}</td>
+        }
+        {safetyScanType === 'getFileIntegrity' &&
+          <td>{val.hostIdObj.Md5HashInfo._BaselineMd5Hash || NOT_AVAILABLE}</td>
+        }
+        {safetyScanType === 'getFileIntegrity' &&
+          <td>{val.hostIdObj.Md5HashInfo._RealMd5Hash || NOT_AVAILABLE}</td>
+        }
+        {safetyScanType === 'getFileIntegrity' &&
+          <td>{val.hostIdObj._FileIntegrityResultPath || NOT_AVAILABLE}</td>
+        }
+        {safetyScanType === 'getEventTraceResult' &&
+          <td>{val.hostIdObj.doc_count}</td>
+        }
+        {safetyScanType === 'getProcessMonitorResult' &&
+          <td>{val.hostIdObj._Filepath}</td>
+        }
         <td><i className='fg fg-eye' onClick={this.props.getIPdeviceInfo.bind(this, val, 'toggle', type)} title={t('txt-view')}></i></td>
       </tr>
     )
@@ -627,8 +641,14 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
-    const {currentSafetyData} = this.props;
+    const {currentSafetyData, safetyScanType} = this.props;
     const {contentType} = this.state;
+
+    let basicInfoText = t('host.txt-basicInfo');
+
+    if (safetyScanType === 'getFileIntegrity' || safetyScanType === 'getProcessMonitorResult') {
+      basicInfoText = t('host.txt-basicInfoExample');
+    }
 
     if (!_.isEmpty(currentSafetyData)) {
       return (
@@ -645,7 +665,7 @@ class SafetyDetails extends Component {
           <div className='main-content'>
             <div className='nav'>
               <ul>
-                <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{t('host.txt-basicInfo')}</span></li>
+                <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{basicInfoText}</span></li>
                 <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.disDevDtos.length}</span></li>
               </ul>
             </div>
@@ -653,7 +673,7 @@ class SafetyDetails extends Component {
               <div className='safety-details'>
                 {contentType === 'basicInfo' &&
                   <div>
-                    <div className='header trigger'>{t('host.txt-basicInfo')}</div>
+                    <div className='header trigger'>{basicInfoText}</div>
                     <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
                     <table className='c-table main-table'>
                       {this.getBasicInfoContent()}
@@ -672,6 +692,30 @@ class SafetyDetails extends Component {
                           <th>{t('ipFields.system')}</th>
                           <th>{t('ipFields.owner')}</th>
                           <th>{t('ipFields.version')}</th>
+                          {safetyScanType === 'scanFile' &&
+                            <th>{t('host.txt-suspiciousFilePath')}</th>
+                          }
+                          {safetyScanType === 'gcbDetection' &&
+                            <th>GCB Value</th>
+                          }
+                          {safetyScanType === 'gcbDetection' &&
+                            <th>GPO Value</th>
+                          }
+                          {safetyScanType === 'getFileIntegrity' &&
+                            <th>Baseline MD5</th>
+                          }
+                          {safetyScanType === 'getFileIntegrity' &&
+                            <th>Real MD5</th>
+                          }
+                          {safetyScanType === 'getFileIntegrity' &&
+                            <th>{t('txt-path')}</th>
+                          }
+                          {safetyScanType === 'getEventTraceResult' &&
+                            <th>{t('host.txt-eventCount')}</th>
+                          }
+                          {safetyScanType === 'getProcessMonitorResult' &&
+                            <th>{t('host.txt-suspiciousFilePath')}</th>
+                          }
                           <th></th>
                         </tr>
                       </thead>
