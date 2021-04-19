@@ -106,7 +106,7 @@ class Netflow extends Component {
       activeSubTab: 'table',
       //Search bar
       searchInput: {
-        searchType: 'manual',
+        searchType: 'manual', //'manual' or 'auto'
         searchInterval: '1h',
         refreshTime: '60000' //1 min.
       },

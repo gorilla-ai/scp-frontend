@@ -58,9 +58,9 @@ class SearchOptions extends Component {
       this.props.handleSearchSubmit('search');
     }
 
-    if (prevProps && prevProps.searchInput) {
+    if (prevProps && prevProps.searchInput && searchInput) {
       if (prevProps.searchInput.searchInterval !== searchInput.searchInterval) {
-        this.handleIntervalConfirm();
+        this.setNewDatetime(searchInput.searchType);
       }
     }
 
@@ -69,7 +69,7 @@ class SearchOptions extends Component {
         clearInterval(this.intervalId);
         this.intervalId = null;
       }
-      this.intervalId = setInterval(this.setNewDatetime, Number(searchInput.refreshTime));
+      this.intervalId = setInterval(this.setNewDatetime.bind(this, searchInput.searchType), Number(searchInput.refreshTime));
     }
   }
   /**
@@ -90,40 +90,54 @@ class SearchOptions extends Component {
   /**
    * Set new datetime based on time interval
    * @method
+   * @param {string} searchType - search type ('manual' or 'auto')
    */
-  setNewDatetime = () => {
-    this.props.handleDateChange('refresh', {
-      from: this.props.datetime.from,
-      to: moment().local().format('YYYY-MM-DDTHH:mm:ss') //set to current time
+  setNewDatetime = (searchType) => {
+    const {searchInput} = this.props;
+    const currentTime = moment().local().format('YYYY-MM-DDTHH:mm:ss');
+    let dateType = '';
+    let datetime = '';
+
+    if (searchType === 'manual') {
+      dateType = 'customTime';
+    } else if (searchType === 'auto') {
+      dateType = 'refresh';
+      datetime = currentTime;
+    }
+
+    this.props.handleDateChange(dateType, {
+      from: this.getCalculatedTime(searchInput.searchInterval, datetime),
+      to: currentTime //set to current time
     });
   }
   /**
    * Get calculated time based on user's time selection
    * @method
    * @param {string} type - time options
+   * @param {string} [datetime] - datetime
    * @returns calculated time
    */
-  getCalculatedTime = (type) => {
+  getCalculatedTime = (type, datetime) => {
     let time = '';
 
     switch (type) {
       case '15m':
-        time = helper.getSubstractDate(15, 'minutes');
+        time = helper.getSubstractDate(15, 'minutes', datetime);
         break;
       case '30m':
-        time = helper.getSubstractDate(30, 'minutes');
+        time = helper.getSubstractDate(30, 'minutes', datetime);
         break;
       case '1h':
-        time = helper.getSubstractDate(1, 'hours');
+        time = helper.getSubstractDate(1, 'hours', datetime);
         break;
       case '2h':
-        time = helper.getSubstractDate(2, 'hours');
+        time = helper.getSubstractDate(2, 'hours', datetime);
         break;
       case '12h':
-        time = helper.getSubstractDate(12, 'hours');
+        time = helper.getSubstractDate(12, 'hours', datetime);
         break;
       case '24h':
-        time = helper.getSubstractDate(24, 'hours');
+        time = helper.getSubstractDate(24, 'hours', datetime);
         break;
       case 'today':
         time = helper.getStartDate('day');
@@ -134,16 +148,6 @@ class SearchOptions extends Component {
     }
 
     return time;
-  }
-  /**
-   * Set search data based on user's selection
-   * @method
-   */
-  handleIntervalConfirm = () => {
-    this.props.handleDateChange('customTime', {
-      from: this.getCalculatedTime(this.props.searchInput.searchInterval), //set time based on time interval selection
-      to: moment().local().format('YYYY-MM-DDTHH:mm:ss') //set to current time
-    });
   }
   /**
    * Display date range
