@@ -1963,8 +1963,8 @@ class Incident extends Component {
                 })
             }
 
-            if (incident.info.ttpList) {
-                incident.info.ttpList = _.map(incident.info.ttpList, el => {
+            if (temp.ttpList) {
+                temp.ttpList = _.map(temp.ttpList, el => {
 
                     let tempTtp = el
                     if (tempTtp.infrastructureType === 0) {
@@ -1992,6 +1992,81 @@ class Incident extends Component {
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
+    };
+
+    refreshIncidentAttach = (id) => {
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        this.handleCloseMenu()
+        const {baseUrl} = this.context;
+
+        ah.one({
+            url: `${baseUrl}/api/soc?id=${id}`,
+            type: 'GET'
+        })
+            .then(data => {
+                let {incident} = this.state;
+                let tempIncident = {...incident};
+                let temp = data.rt;
+                if (temp.relatedList) {
+                    temp.relatedList = _.map(temp.relatedList, el => {
+                        let obj = {
+                            value :el.incidentRelatedId,
+                            text:el.incidentRelatedId
+                        }
+                        return obj
+                    })
+                }
+
+
+                let result = _.map(temp.relatedList, function(obj) {
+                    return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+                });
+
+                temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
+                temp.showFontendRelatedList = result
+
+                if (temp.eventList) {
+                    temp.eventList = _.map(temp.eventList, el => {
+                        return {
+                            ...el,
+                            time: {
+                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                            }
+                        }
+                    })
+                }
+
+                if (temp.ttpList) {
+                    temp.ttpList = _.map(temp.ttpList, el => {
+
+                        let tempTtp = el
+                        if (tempTtp.infrastructureType === 0) {
+                            tempTtp.infrastructureType = '0'
+
+                        }else if (tempTtp.infrastructureType === 1) {
+                            tempTtp.infrastructureType = '1'
+
+                        }
+
+                        return {
+                            ...tempTtp
+                        }
+                    })
+                }
+
+                let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
+                incident.info.attachmentDescription = temp.attachmentDescription;
+                incident.info.fileList = temp.fileList;
+                incident.info.fileMemo =  temp.fileMemo;
+                this.setState({incident,incidentType}, () => {
+                    this.toggleContent('refreshAttach', temp)
+                })
+
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
     };
 
     /**
@@ -2431,6 +2506,16 @@ class Incident extends Component {
         } else if (type === 'audit') {
         } else if (type === 'download') {
             this.getIncidentSTIXFile(allValue.id);
+        } else if(type === 'refreshAttach'){
+            tempIncident.info.attachmentDescription = allValue.attachmentDescription;
+            tempIncident.info.fileList = allValue.fileList;
+            tempIncident.info.fileMemo =  allValue.fileMemo;
+            this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
+            if (this.state.activeContent === 'editIncident'){
+                showPage = 'editIncident'
+            }else{
+                showPage = 'viewIncident'
+            }
         }
 
         this.setState({
@@ -2896,7 +2981,7 @@ class Incident extends Component {
                 contentType: false
             })
             .then(data => {
-                this.getIncident(incident.info.id, 'view')
+                this.refreshIncidentAttach(incident.info.id)
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
@@ -2931,7 +3016,8 @@ class Incident extends Component {
                     })
                     .then(data => {
                         if (data.ret === 0) {
-                            this.getIncident(incident.info.id, 'view')
+                            // this.getIncident(incident.info.id, 'view')
+                            this.refreshIncidentAttach(incident.info.id)
                         }
                     })
                     .catch(err => {
