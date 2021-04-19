@@ -31,8 +31,8 @@
 
   "-1000": "Function unexpected exception",
   "-1001": "Please fill out all the required fields",
-  "-1002": "Function object not found",
-  "-1003": "Function syntax error",
+  "-1002": "Object not found",
+  "-1003": "Syntax error",
   "-1004": "Function not allowed",
   "-1005": "Password is expired",
   "-1006": "Login fails exceed 5 times. The account has been locked, please contact administrator",
@@ -81,6 +81,7 @@
   "-9012": "Remote Connect Fail",
   "-9013": "Param is NULL",
   "-9014": "String is too long",
+  "-9015": "Inventory not exist",
 
   "-9100": "Parse Json Fail",
   "-9101": "Parse File Fail",
