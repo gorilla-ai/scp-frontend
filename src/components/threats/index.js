@@ -729,7 +729,7 @@ class ThreatsController extends Component {
    */
   registerDownload = () => {
     const {baseUrl} = this.context;
-    const {datetime, filterData, edgeFilterData} = this.state;
+    const {datetime, filterData, edgeFilterData, threatsData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -745,6 +745,20 @@ class ThreatsController extends Component {
     if (combinedFilterDataArr.length > 0) {
       requestData.filters = combinedFilterDataArr;
     }
+
+    let tempColumns = [];
+
+    _.forEach(threatsData.dataFieldsArr, val => {
+      tempColumns.push({
+        [val]: f(`alertFields.${val}`)
+      });
+    })
+
+    requestData.columns = tempColumns;
+
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
+    requestData.timeZone = utc_offset;
 
     this.ah.one({
       url,
@@ -2840,25 +2854,11 @@ class ThreatsController extends Component {
    * Get request data for CSV file
    * @method
    * @param {string} url - request URL
-   * @param {string} [columns] - columns for CSV file
    */
-  getCSVrequestData = (url, columns) => {
-    let dataOptions = {
+  getCSVrequestData = (url) => {
+    const dataOptions = {
       ...this.toQueryLanguage('csv')
     };
-
-    if (columns === 'columns') {
-      let tempColumns = [];
-
-      _.forEach(this.state.threatsData.dataFieldsArr, val => {
-        tempColumns.push({
-          [val]: f(`alertFields.${val}`)
-        });
-      })
-
-      dataOptions.columns = tempColumns;
-    }
-
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   /**
