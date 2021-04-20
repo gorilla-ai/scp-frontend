@@ -70,7 +70,7 @@ const SCAN_RESULT = [
   {
     name: 'VANS',
     result: '_VansResult'
-  },
+  }
 ];
 const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected'];
 const HMD_TRIGGER = [
@@ -1140,68 +1140,77 @@ class HostController extends Component {
     });
   }
   /**
+   * Handle Severity block click
+   * @method
+   * @param {boolean} hmd - HMD or not (true or false)
+   * @param {object} val - individual Safety Scan data
+   * @param {object} safetyScanInfo - Safety Scan data
+   * @returns HTML DOM
+   */
+  handleSeverityClick = (hmd, val, safetyScanInfo) => {
+    if (hmd) {
+      this.getIPdeviceInfo(safetyScanInfo, 'toggle', val.severity_type_name);
+    } else {
+      this.redirectNewPage(safetyScanInfo.ip);
+    }
+  }
+  /**
    * Display Safety Scan list
    * @method
    * @param {object} safetyScanInfo - Safety Scan data
-   * @param {object} host - all Safety Scan data
    * @param {object} val - individual Safety Scan data
    * @param {number} i - index of the Safety Scan data
    * @returns HTML DOM
    */
-  getSafetyScanInfo = (safetyScanInfo, host, val, i) => {
-    const safetyData = safetyScanInfo[val.result];
-    let displayCount = '';
-    let displayTooltip = val.name + ' ';
-    let color = '';
-    let border = '';
+  getSafetyScanInfo = (safetyScanInfo, val, i) => {
+    const scanResult = _.map(SCAN_RESULT, val => {
+      return val.result;
+    });
+    let severityTypeName = val.severity_type_name;
+    let hmd = false;
+    let spanStyle = '';
+    let displayTooltip = '';
+    let displayCount = val.doc_count;
+    let text = t('hmd-scan.txt-suspiciousFileCount');
     let title = '';
-    let displayContent = '';
 
-    if (safetyData && safetyData.length > 0) {
-      if (val.result !== 'eventTracingResult' && !safetyData[0].taskStatus) {
-        return;
-      }
-
-      if (safetyData[0].taskStatus === 'Failure') {
-        color = '#e15b6b';
-        title = displayTooltip += t('hmd-scan.txt-taskFailure');
-        displayContent = t('hmd-scan.txt-taskFailure');
-      } else if (safetyData[0].taskStatus === 'NotSupport') {
-        color = '#e15b6b';
-        title = displayTooltip += t('hmd-scan.txt-notSupport');
-        displayContent = t('hmd-scan.txt-notSupport');
-      } else {
-        if (val.result === 'eventTracingResult' && safetyData[0].TotalCnt >= 0) {
-          displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
-          displayTooltip += t('hmd-scan.txt-eventsLogCount');
-          color = '#e15b6b';
+    if (_.includes(scanResult, val.severity_type_name)) {
+      _.forEach(SCAN_RESULT, val2 => {
+        if (val2.result === val.severity_type_name) {
+          severityTypeName = val2.name;
+          hmd = true;
+          return false;
         }
+      })
+    }
 
-        if (safetyData[0].taskStatus === 'Complete') {
-          if (val.name === 'GCB') {
-            displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
-            displayTooltip += t('hmd-scan.txt-passCount') + '/' + t('hmd-scan.txt-totalItem');
-            color = safetyData[0][val.pass] === safetyData[0].TotalCnt ? '#70c97e' : '#e15b6b';
-          } else {
-            let text = t('hmd-scan.txt-suspiciousFileCount');
+    displayTooltip = severityTypeName + ' ';
 
-            if (val.name === 'File Integrity') {
-              text = t('hmd-scan.txt-modifiedFileCount');
-            } else if (val.name === 'VANS') {
-              text = t('hmd-scan.txt-VulnerabilityCount');
-            }
+    if (val.severity) {
+      const color = val.doc_count === 0 ? '#333' : '#fff';
+      const backgroundColor = val.doc_count === 0 ? '#d9d9d9' : ALERT_LEVEL_COLORS[val.severity];
+      spanStyle = {color, backgroundColor, fontWeight: 'bold'};
+    } else {
+      const color = val.doc_count === 0 ? '#70c97e' : '#e15b6b';
+      spanStyle = {color, border: '1px solid ' + color, fontWeight: 'bold'};
+    } 
 
-            displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
-            displayTooltip += text;
-            color = safetyData[0].TotalCnt === 0 ? '#70c97e' : '#e15b6b';
-          }
-        }
+    if (val.severity_type_name === 'gcbResult') {
+      displayCount = helper.numberWithCommas(val.PassCnt) + '/' + helper.numberWithCommas(val.TotalCnt);
+      text = t('hmd-scan.txt-passCount') + '/' + t('hmd-scan.txt-totalItem');
+    } else if (val.severity_type_name === 'fileIntegrityResult') {
+      text = t('hmd-scan.txt-modifiedFileCount');
+    } else if (val.severity_type_name === 'eventTracingResult') {
+      text = t('hmd-scan.txt-eventsLogCount');
+    } else if (val.severity_type_name === '_VansResult') {
+      text = t('hmd-scan.txt-VulnerabilityCount');
+    }
 
-        title = displayTooltip + ': ' + displayCount;
-        displayContent = displayCount;
-      }
+    displayTooltip += text;
+    title = displayTooltip + ': ' + displayCount;
 
-      return <span key={i} className='c-link' style={{color, border: '1px solid ' + color, fontWeight: 'bold'}} title={title} onClick={this.getIPdeviceInfo.bind(this, host, 'toggle', val.result)}>{val.name} {displayContent}</span>
+    if (val.doc_count === 0 || val.doc_count > 0) {
+      return <span key={i} className='c-link' style={spanStyle} title={title} onClick={this.handleSeverityClick.bind(this, hmd, val, safetyScanInfo)}>{severityTypeName}: {val.doc_count}</span>
     }
   }
   /**
@@ -1513,36 +1522,6 @@ class HostController extends Component {
         icon: 'edit'
       }
     ];
-    let safetyScanInfo = '';
-    let safetyData = false;
-    let severityList = [];
-
-    if (val.safetyScanInfo) {
-      safetyScanInfo = val.safetyScanInfo;
-
-      _.forEach(SCAN_RESULT, val => { //Check if safety scan data is available
-        if (safetyScanInfo[val.result] && safetyScanInfo[val.result].length > 0) {
-          if (safetyScanInfo[val.result][0].TotalCnt > 0) {
-            safetyData = true;
-            return false;
-          }
-        }
-      })
-    }
-
-    if (val.networkBehaviorInfo) {
-      _.forEach(SEVERITY_TYPE, val2 => { //Create formatted severity array based on severity
-        _.forEach(val.networkBehaviorInfo.severityAgg.buckets, (val3, key) => {
-          if (val3.key === val2) {
-            severityList.push({
-              doc_count: helper.numberWithCommas(val3.doc_count),
-              key: val3.key
-            });
-          }
-        })
-      })
-    }
-
     let iconType = '';
     let title = '';
 
@@ -1574,11 +1553,8 @@ class HostController extends Component {
           </ul>
 
           <div className='flex-item'>
-            {severityList.length > 0 &&
-              severityList.map(this.displaySeverityItem.bind(this, val))
-            }
-            {safetyData &&
-              SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo, val))
+            {val.severityAssessmentArray && val.severityAssessmentArray.length > 0 &&
+              val.severityAssessmentArray.map(this.getSafetyScanInfo.bind(this, val))
             }
           </div>
         </div>
