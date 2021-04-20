@@ -26,7 +26,8 @@ class SafetyDetails extends Component {
     super(props);
 
     this.state = {
-      contentType: '' //'basicInfo' or 'availableHost'
+      contentType: '', //'basicInfo' or 'availableHost'
+      availableHostData: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -44,9 +45,37 @@ class SafetyDetails extends Component {
    * @param {string} contentType - content type ('basicInfo' or 'availableHost')
    */
   toggleContent = (contentType) => {
+    if (contentType === 'availableHost') {
+      this.getHostInfo();
+    }
+
     this.setState({
       contentType
     });
+  }
+  /**
+   * Get Available Host data
+   * @method
+   */
+  getHostInfo = () => {
+    const {baseUrl} = this.context;
+    const {currentSafetyData} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/hmdScanDistribution/disDevDtos?id=${currentSafetyData.id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          availableHostData: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display top table header
@@ -642,7 +671,7 @@ class SafetyDetails extends Component {
    */
   displaySafetyDetails = () => {
     const {currentSafetyData, safetyScanType} = this.props;
-    const {contentType} = this.state;
+    const {contentType, availableHostData} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
 
@@ -666,7 +695,7 @@ class SafetyDetails extends Component {
             <div className='nav'>
               <ul>
                 <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{basicInfoText}</span></li>
-                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.disDevDtos.length}</span></li>
+                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.hostIdArraySize}</span></li>
               </ul>
             </div>
             <div className='content'>
@@ -720,8 +749,8 @@ class SafetyDetails extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                        {currentSafetyData.disDevDtos.length > 0 &&
-                          currentSafetyData.disDevDtos.map(this.getHostTableBody)
+                        {availableHostData.length > 0 &&
+                          availableHostData.map(this.getHostTableBody)
                         }
                       </tbody>
                     </table>

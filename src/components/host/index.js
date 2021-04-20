@@ -1831,7 +1831,7 @@ class HostController extends Component {
         <div className='view-details' onClick={this.toggleSafetyDetails.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
-        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.disDevDtos.length)}</div>
+        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.hostIdArraySize)}</div>
       </li>
     )
   }
