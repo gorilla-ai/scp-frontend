@@ -445,6 +445,10 @@ class ThreatsController extends Component {
 
    if(_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
      this.checkAccountSocPrivType()
+   }else{
+     this.setState({
+       accountType: constants.soc.NONE_LIMIT_ACCOUNT
+     })
    }
 
   }
