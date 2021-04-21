@@ -517,7 +517,14 @@
     "txt-recipientEmail": "Recipient Email",
     "txt-notifyEmail": "Notify Email Address",
     "txt-emailInvalid": "Please enter the correct email address",
-    "txt-sendSuccess": "Email has been sent successfully"
+    "txt-sendSuccess": "Email has been sent successfully",
+    "lineBot": {
+      "txt-lineBotSettings": "Line Notification Settings",
+      "txt-channelAccessToken": "Channel Access Token",
+      "txt-channelSecret": "Channel Secret",
+      "txt-qrcode": "Invite QR Code Image Link",
+      "txt-href-description": "Click QR-Code connect to Line-Developer Office"
+    }
   },
 
   "edge-management": {

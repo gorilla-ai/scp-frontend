@@ -1069,8 +1069,8 @@ class Incident extends Component {
                     fullWidth={true}
                     size='small'
                     multiline
-                    rows={4}
-                    rowsMax={5}
+                    rows={3}
+                    rowsMax={3}
                     helperText={it('txt-required')}
                     name='description'
                     error={!(incident.info.description || '')}
@@ -1555,6 +1555,16 @@ class Incident extends Component {
 
         if (incident.info.eventList) {
             incident.info.eventList = _.map(incident.info.eventList, el => {
+
+                _.forEach(el.eventConnectionList, eventConnectItem=>{
+                   if( eventConnectItem.srcPort === ''){
+                       eventConnectItem.srcPort = 0
+                   }
+
+                   if(  eventConnectItem.dstPort === ''){
+                       eventConnectItem.dstPort = 0
+                   }
+                })
                 return {
                     ...el,
                     startDttm: Moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
