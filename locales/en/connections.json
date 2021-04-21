@@ -523,7 +523,8 @@
       "txt-channelAccessToken": "Channel Access Token",
       "txt-channelSecret": "Channel Secret",
       "txt-qrcode": "Invite QR Code Image Link",
-      "txt-href-description": "Click QR-Code connect to Line-Developer Office"
+      "txt-href-description": "Click QR-Code connect to Line-Developer Office",
+      "txt-accountId": "Invite Notification Line-ID: "
     }
   },
 

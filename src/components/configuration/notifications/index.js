@@ -533,6 +533,14 @@ class Notifications extends Component {
         handler: this.handleTestEmailConfirm
       }
     };
+    let accountName = '';
+    if(lineBotSetting.qrcodeLink.includes('sid/L/')){
+      let tempSpiltAccountNameArray =  lineBotSetting.qrcodeLink.split("sid/L/");
+      let tmpNameArray = tempSpiltAccountNameArray[1].split(".");
+      accountName = '@'+ tmpNameArray[0];
+    }else{
+      accountName = 'N/A'
+    }
 
     return (
       <div>
@@ -671,9 +679,7 @@ class Notifications extends Component {
                   {activeContent === 'viewMode' && lineBotSetting.qrcodeLink &&
                   <div className='group' >
                     <label>{t('notifications.lineBot.txt-qrcode')}</label>
-                      <a style={{width: '150px', height: '150px'}} href='https://developers.line.biz/en/' target="_blank" title={t('notifications.lineBot.txt-href-description')}>
-                        <img width='100%' height='100%' src={lineBotSetting.qrcodeLink} border="0"/>
-                      </a>
+                    <img style={{width: '150px', height: '150px'}} width='100%' height='100%' src={lineBotSetting.qrcodeLink} border="0"  title={t('notifications.lineBot.txt-accountId')+accountName}/>
                   </div>
                   }
 
