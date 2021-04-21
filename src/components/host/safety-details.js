@@ -26,8 +26,7 @@ class SafetyDetails extends Component {
     super(props);
 
     this.state = {
-      contentType: '', //'basicInfo' or 'availableHost'
-      availableHostData: []
+      contentType: '' //'basicInfo' or 'availableHost'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -35,9 +34,7 @@ class SafetyDetails extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setState({
-      contentType: this.props.showSafetyTab
-    });
+    this.toggleContent(this.props.showSafetyTab);
   }
   /**
    * Toggle content type
@@ -45,37 +42,9 @@ class SafetyDetails extends Component {
    * @param {string} contentType - content type ('basicInfo' or 'availableHost')
    */
   toggleContent = (contentType) => {
-    if (contentType === 'availableHost') {
-      this.getHostInfo();
-    }
-
     this.setState({
       contentType
     });
-  }
-  /**
-   * Get Available Host data
-   * @method
-   */
-  getHostInfo = () => {
-    const {baseUrl} = this.context;
-    const {currentSafetyData} = this.props;
-
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/hmdScanDistribution/disDevDtos?id=${currentSafetyData.id}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          availableHostData: data
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Display top table header
@@ -670,8 +639,8 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
-    const {currentSafetyData, safetyScanType} = this.props;
-    const {contentType, availableHostData} = this.state;
+    const {currentSafetyData, availableHostData, safetyScanType} = this.props;
+    const {contentType} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
 
@@ -788,7 +757,8 @@ class SafetyDetails extends Component {
 SafetyDetails.contextType = BaseDataContext;
 
 SafetyDetails.propTypes = {
-  currentSafetyData:  PropTypes.object.isRequired,
+  currentSafetyData: PropTypes.object.isRequired,
+  availableHostData: PropTypes.object.isRequired,
   safetyScanType: PropTypes.string.isRequired,
   showSafetyTab: PropTypes.string.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,

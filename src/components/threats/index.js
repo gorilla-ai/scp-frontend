@@ -684,30 +684,28 @@ class ThreatsController extends Component {
    * @returns HTML DOM
    */
   displayServiceTaskList = (val, i) => {
-    let listItemParam = {
-      Key: val.id
-    };
+    const fileName = val.name;
+    let newFileName = fileName;
+    let title = helper.getFormattedDate(val.lastUpdateDttm, 'local');
 
-    if (val.progress === 100) {
-      listItemParam.button = true;
-      listItemParam.onClick = this.getCSVfile.bind(this, val.id);
+    if (fileName.length > 23) {
+      newFileName = fileName.substr(0, 23) + '...';
+      title = title + ' (' + fileName + ')';
     }
 
     return (
-      <ListItem {...listItemParam}>
-        <ListItemText primary={val.name} className='list-text' />
-        <ListItemIcon>
+      <ListItem Key={val.id}>
+        <ListItemText primary={newFileName} className='list-text' title={title} />
+        <ListItemIcon className='list-icon'>
           {val.progress === 100 &&
-            <span title={t('alert.txt-downloadTask')}><GetAppIcon /></span>
+            <span title={t('alert.txt-downloadTask')}><GetAppIcon className='c-link' onClick={this.getCSVfile.bind(this, val.id)} /></span>
           }
           {val.progress !== 100 &&
             <span title={t('alert.txt-scheduledTask')}><HourglassEmptyIcon /></span>
           }
+          <span title={t('alert.txt-deleteTask')}><HighlightOffIcon className='c-link delete-icon' onClick={this.deleteServiceTask.bind(this, val.id)} /></span>
           {val.progress !== 100 &&
-            <span title={t('alert.txt-deleteTask')}><HighlightOffIcon className='delete-icon' onClick={this.deleteServiceTask.bind(this, val.id)} /></span>
-          }
-          {val.progress !== 100 &&
-            <span title={t('alert.txt-retriggerTask')}><RefreshIcon className='refresh-icon' onClick={this.retriggerServiceTask.bind(this, val.id)} /></span>
+            <span title={t('alert.txt-retriggerTask')}><RefreshIcon className='c-link' onClick={this.retriggerServiceTask.bind(this, val.id)} /></span>
           }
         </ListItemIcon>
       </ListItem>
@@ -3171,7 +3169,7 @@ class ThreatsController extends Component {
                         dataLength={taskServiceList.data.length}
                         next={this.getTaskService}
                         hasMore={taskServiceList.hasMore}
-                        height={370}>
+                        height={300}>
                         {taskServiceList.data.map(this.displayServiceTaskList)}
                       </InfiniteScroll>
                     </List>

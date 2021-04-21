@@ -239,6 +239,7 @@ class HostController extends Component {
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
+      showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
       severityList: [],
@@ -281,6 +282,7 @@ class HostController extends Component {
         pageSize: 20
       },
       currentSafetyData: {},
+      availableHostData: [],
       safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
@@ -290,7 +292,6 @@ class HostController extends Component {
         hasMore: false
       },
       openHmdType: '',
-      showSafetyTab: '', //'basicInfo' or 'availableHost'
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1606,24 +1607,20 @@ class HostController extends Component {
    * Toggle safety details dialog and set safety data
    * @method
    * @param {object} safetyData - active safety scan data
-   * @param {string} tab - tab to show for Safety Scan dialog ('basicInfo' or 'availableHost')
+   * @param {string} options - option to show safety scan tab ('basicInfo' or 'availableHost')
    */
   toggleSafetyDetails = (safetyData, options) => {
+    const showSafetyTab = options === 'availableHost' ? 'availableHost' : 'basicInfo';
+
     if (!_.isEmpty(safetyData)) {
       this.setState({
-        currentSafetyData: safetyData,
-        showSafetyTab: 'basicInfo'
-      });
-    }
-
-    if (options === 'availableHost') {
-      this.setState({
-        showSafetyTab: 'availableHost'
+        currentSafetyData: safetyData
       });
     }
 
     this.setState({
-      safetyDetailsOpen: !this.state.safetyDetailsOpen
+      safetyDetailsOpen: !this.state.safetyDetailsOpen,
+      showSafetyTab
     });
   }
   /**
@@ -1786,6 +1783,32 @@ class HostController extends Component {
     }
   }
   /**
+   * Get Available Host data
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  getHostInfo = (safetyData) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/hmdScanDistribution/disDevDtos?id=${safetyData.id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          availableHostData: data
+        }, () => {
+          this.toggleSafetyDetails(safetyData);
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display Safety Scan content
    * @method
    * @param {object} val - Safety Scan data
@@ -1804,7 +1827,7 @@ class HostController extends Component {
         <div className='info'>
           {this.getSecondaryContent(val)}
         </div>
-        <div className='view-details' onClick={this.toggleSafetyDetails.bind(this, val)}>
+        <div className='view-details' onClick={this.getHostInfo.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
         <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.hostIdArraySize)}</div>
@@ -2033,6 +2056,7 @@ class HostController extends Component {
       assessmentDatetime,
       hostAnalysisOpen,
       safetyDetailsOpen,
+      showSafetyTab,
       contextAnchor,
       menuType,
       yaraRuleOpen,
@@ -2052,8 +2076,8 @@ class HostController extends Component {
       eventInfo,
       openHmdType,
       currentSafetyData,
-      safetyScanType,
-      showSafetyTab
+      availableHostData,
+      safetyScanType
     } = this.state;
 
     return (
@@ -2081,6 +2105,7 @@ class HostController extends Component {
         {safetyDetailsOpen &&
           <SafetyDetails
             currentSafetyData={currentSafetyData}
+            availableHostData={availableHostData}
             safetyScanType={safetyScanType}
             showSafetyTab={showSafetyTab}
             toggleSafetyDetails={this.toggleSafetyDetails}
