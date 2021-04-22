@@ -586,7 +586,7 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displayVansContent = (type, val, i) => {
-    if (type === 'cpeID') {
+    if (type === 'cpeID' && val.name) {
       return <li key={i}>{val.name}</li>
     }
 
