@@ -587,7 +587,7 @@ class SafetyDetails extends Component {
    */
   displayVansContent = (type, val, i) => {
     if (type === 'cpeID') {
-      return <li key={i}>{val.vendor} | {val.product} | {val.version} | {val.name}</li>
+      return <li key={i}>{val.name}</li>
     }
 
     if (type === 'desc' && val.value) {
