@@ -304,7 +304,6 @@ class HostController extends Component {
 
     this.setLeftNavData();
     this.getFloorPlan();
-    //this.getHostData();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
@@ -670,7 +669,13 @@ class HostController extends Component {
     }
 
     if (deviceSearch.scanInfo) {
-      requestData.hmdScanDistribution.primaryKeyValue = deviceSearch.scanInfo;
+      let scanInfo = deviceSearch.scanInfo;
+
+      if (safetyScanType === 'getFileIntegrity') {
+        scanInfo = scanInfo.replace(/\\/g, '\\\\');
+      }
+
+      requestData.hmdScanDistribution.primaryKeyValue = scanInfo;
     }
 
     this.ah.one({
@@ -1628,14 +1633,15 @@ class HostController extends Component {
    * @method
    * @param {string} content - Safety Scan content
    * @param {number} length - length of content
+   * @param {string} [className] - class name of the text
    * @returns formatted content
    */
-  getFormattedLength = (content, length) => {
+  getFormattedLength = (content, length, className) => {
     if (content.length > length) {
       const newValue = content.substr(0, length) + '...';
-      content = <span title={content}>{newValue}</span>;
+      content = <span className={className} title={content}>{newValue}</span>;
     } else {
-      content = <span>{content}</span>;
+      content = <span className={className}>{content}</span>;
     }
     return content;
   }
@@ -1710,14 +1716,15 @@ class HostController extends Component {
         </div>
       )
     } else if (safetyScanType === 'getFileIntegrity') {
+      const path = safetyData.rawJsonObject ? safetyData.rawJsonObject._FileIntegrityResultPath : '';
+      const content = path ? this.getFormattedLength(path, 60, 'text') : '';
+
       return (
         <div className='flex-item'>
           {safetyData.primaryKeyName &&
             <span className='fail'>{t('host.txt-' + safetyData.primaryKeyName)}</span>
           }
-          {safetyData.rawJsonObject && safetyData.rawJsonObject._FileIntegrityResultPath &&
-            <span className='text'>{safetyData.rawJsonObject._FileIntegrityResultPath}</span>
-          }
+          {content}
         </div>
       )
     } else if (safetyScanType === 'getEventTraceResult') {
@@ -1743,8 +1750,22 @@ class HostController extends Component {
         </div>
       )
     } else if (safetyScanType === 'getVansCpe') {
+      const type = safetyData.rawJsonObject ? safetyData.rawJsonObject.part : '';
+      let typeText = '';
+
+      if (type === 'a') {
+        typeText = t('host.txt-software');
+      } else if (type === 'h') {
+        typeText = t('host.txt-hardware');
+      } else if (type === 'o') {
+        typeText = t('host.txt-os');
+      }
+
       return (
         <div className='flex-item'>
+          {type &&
+            <span className='text border'>{t('host.txt-type')}: {typeText}</span>
+          }
           {safetyData.rawJsonObject && safetyData.rawJsonObject.vendor &&
             <span className='text border'>{t('host.txt-vendor')}: {safetyData.rawJsonObject.vendor}</span>
           }

@@ -1017,8 +1017,8 @@ class HMDscanInfo extends Component {
     }
 
     if (filePath) {
-      if (filePath.length >= 140) {
-        formattedFilePath = filePath.substr(0, 140) + '...';
+      if (filePath.length >= 100) {
+        formattedFilePath = filePath.substr(0, 100) + '...';
       } else {
         formattedFilePath = filePath;
       }

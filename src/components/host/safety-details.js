@@ -97,6 +97,7 @@ class SafetyDetails extends Component {
       return (
         <tr>
           <th>CPE ID</th>
+          <th>{t('host.txt-type')}</th>
           <th>{t('host.txt-vendor')}</th>
           <th>{t('host.txt-product')}</th>
           <th>{t('host.txt-version')}</th>
@@ -107,7 +108,6 @@ class SafetyDetails extends Component {
         <tr>
           <th>CVE ID</th>
           <th>{t('txt-severity')}</th>
-          <th>CPE ID</th>
         </tr>
       )
     }
@@ -185,23 +185,33 @@ class SafetyDetails extends Component {
         </tr>
       )
     } else if (safetyScanType === 'getVansCpe') {
+      const type = currentSafetyData.rawJsonObject.part;
+      let typeText = '';
+
+      if (type === 'a') {
+        typeText = t('host.txt-software');
+      } else if (type === 'h') {
+        typeText = t('host.txt-hardware');
+      } else if (type === 'o') {
+        typeText = t('host.txt-os');
+      }
+
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
+          <td>{typeText}</td>
           <td>{currentSafetyData.rawJsonObject.vendor}</td>
           <td>{currentSafetyData.rawJsonObject.product}</td>
           <td>{currentSafetyData.rawJsonObject.version}</td>
         </tr>
       )
     } else if (safetyScanType === 'getVansCve') {
-      const cpeData = currentSafetyData.rawJsonObject.cpeRecordDTOs[0];
       const severity = currentSafetyData.rawJsonObject.severity.toLowerCase();
 
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
           <td><span className={severity}>{t('txt-' + severity)}</span></td>
-          <td><span>{cpeData.vendor} | {cpeData.product} | {cpeData.version} | {cpeData.name}</span></td>
         </tr>
       )
     }
@@ -468,11 +478,26 @@ class SafetyDetails extends Component {
         </tbody>
       )
     } else if (safetyScanType === 'getVansCpe') {
+      const type = currentSafetyData.rawJsonObject.part;
+      let typeText = '';
+
+      if (type === 'a') {
+        typeText = t('host.txt-software');
+      } else if (type === 'h') {
+        typeText = t('host.txt-hardware');
+      } else if (type === 'o') {
+        typeText = t('host.txt-os');
+      }
+
       return (
         <tbody>
           <tr>
             <td><span className='blue-color'>CPE ID</span></td>
             <td>{currentSafetyData.primaryKeyValue}</td>
+          </tr>
+          <tr>
+            <td><span className='blue-color'>{t('host.txt-type')}</span></td>
+            <td>{typeText}</td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-vendor')}</span></td>
@@ -528,6 +553,12 @@ class SafetyDetails extends Component {
               <td>{currentSafetyData.rawJsonObject.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</td>
             </tr>
           }
+          {currentSafetyData.rawJsonObject.cpeRecordDTOs.length > 0 &&
+            <tr>
+              <td><span className='blue-color'>CPE ID</span></td>
+              <td><ul>{currentSafetyData.rawJsonObject.cpeRecordDTOs.map(this.displayVansContent.bind(this, 'cpeID'))}</ul></td>
+            </tr>
+          }
           {currentSafetyData.rawJsonObject.referenceData.reference_data.length > 0 &&
             <tr>
               <td><span className='blue-color'>{t('txt-reference')}</span></td>
@@ -549,12 +580,16 @@ class SafetyDetails extends Component {
   /**
    * Display Vans individual data
    * @method
-   * @param {string} type - content type ('desc' or 'ref')
+   * @param {string} type - content type ('cpeID', desc' or 'ref')
    * @param {object} val - individual vans data
    * @param {number} i - index of the vans data
    * @returns HTML DOM
    */
   displayVansContent = (type, val, i) => {
+    if (type === 'cpeID') {
+      return <li key={i}>{val.vendor} | {val.product} | {val.version} | {val.name}</li>
+    }
+
     if (type === 'desc' && val.value) {
       return <div key={i} className='desc'>{val.value}</div>
     }

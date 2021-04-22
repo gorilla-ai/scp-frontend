@@ -374,6 +374,10 @@
     "txt-vendor": "Vendor",
     "txt-product": "Product",
     "txt-version": "Version",
+    "txt-type": "Type",
+    "txt-software": "Software",
+    "txt-hardware": "Hardware",
+    "txt-os": "Operating System",
     "txt-update": "Update",
     "txt-edition": "Edition",
     "txt-language": "Language"

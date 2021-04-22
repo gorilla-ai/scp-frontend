@@ -374,6 +374,10 @@
     "txt-vendor": "廠商",
     "txt-product": "產品",
     "txt-version": "版號",
+    "txt-type": "種類",
+    "txt-software": "軟體",
+    "txt-hardware": "硬體",
+    "txt-os": "作業系統",
     "txt-update": "更新",
     "txt-edition": "版本",
     "txt-language": "語言"
