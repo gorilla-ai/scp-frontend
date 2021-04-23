@@ -1417,7 +1417,8 @@ html[data-theme='dark'] {
   }
 }
 #departmentTitleDialog-content,
-#showSshAccountDialog-content {
+#showSshAccountDialog-content,
+#hostDeviceListDialog-content {
   width: 350px;
   height: 400px;
   .fg-add {
@@ -1427,8 +1428,6 @@ html[data-theme='dark'] {
     font-size: 24px;
   }
   .table-data {
-    height: 330px;
-    margin-top: 45px;
     overflow-y: auto;
   }
   table {
@@ -1438,6 +1437,10 @@ html[data-theme='dark'] {
     }
     tbody td.name {
       width: 77%;
+      font-size: 15px;
+    }
+    tbody td.ip {
+      width: 90%;
       font-size: 15px;
     }
     tbody td.option {
@@ -1453,7 +1456,6 @@ html[data-theme='dark'] {
   .table-data {
     height: 330px;
     margin-top: 15px;
-    overflow-y: auto;
   }
   .button-group {
     position: relative;
@@ -1461,9 +1463,11 @@ html[data-theme='dark'] {
     margin-bottom: 20px;
   }
 }
-/* configuration/user/account */
+/* configuration/syslog/config */
 #showSshAccountDialog-content {
   .table-data {
+    height: 330px;
+    margin-top: 45px;    
     td {
       &.account {
         width: 90%;

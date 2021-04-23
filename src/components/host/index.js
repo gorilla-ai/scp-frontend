@@ -20,6 +20,8 @@ import Tabs from '@material-ui/core/Tabs';
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
+import DataTable from 'react-ui/build/src/components/table'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context';
@@ -207,7 +209,7 @@ const MAPS_PRIVATE_DATA = {
   },
   currentMap: '',
   currentBaseLayers: {},
-  seatData: {}
+  deviceSeatData: {}
 };
 
 let t = null;
@@ -239,6 +241,7 @@ class HostController extends Component {
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
+      hostDeviceOpen: false,
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
@@ -274,7 +277,11 @@ class HostController extends Component {
         pageSize: 20
       },
       hostData: {},
+      hostDeviceList: [],
+      hostDeviceFields: ['ip', 'option'],
       hostSort: 'ip-asc',
+      selectedTreeID: '',
+      floorMapType: '',
       safetyScanData: {
         dataContent: [],
         totalCount: 0,
@@ -418,10 +425,6 @@ class HostController extends Component {
     const {baseUrl, contextRoot} = this.context;
     const {alertDetails} = this.state;
     const floorPlan = event.target ? event.target.value : event;
-
-    if (!floorPlan) {
-      return;
-    }
 
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
@@ -578,7 +581,7 @@ class HostController extends Component {
           hostInfo: tempHostInfo
         }, () => {
           if (activeTab === 'deviceMap' && data.rows.length > 0) {
-            this.getSeatData();
+            this.getDeviceSeatData();
           }
         });
 
@@ -686,7 +689,7 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        if (data.hmdScanDistribution.length === 0) {
+        if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));
           return;
         }
@@ -779,41 +782,56 @@ class HostController extends Component {
     )
   }
   /**
-   * Get and set set data
+   * Get and set seat data with device
    * @method
    */
-  getSeatData = () => {
-    const {contextRoot} = this.context;
-    const {hostInfo, currentFloor} = this.state;
-    const seatData = {};
-    let seatListArr = [];
-
-    _.forEach(hostInfo.dataContent, val => {
-      if (val.seatObj) {
-        seatListArr.push({
-          id: val.seatObj.seatUUID,
-          type: 'marker',
-          xy: [val.seatObj.coordX, val.seatObj.coordY],
-          icon: {
-            iconUrl: `${contextRoot}/images/ic_person.png`,
-            iconSize: [25, 25],
-            iconAnchor: [12.5, 12.5]
-          },
-          label: val.seatObj.seatName,
-          data: {
-            name: val.seatObj.seatName
-          }
-        });
-      }
-    })
-
-    seatData[currentFloor] = {
-      data: seatListArr
+  getDeviceSeatData = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {currentFloor} = this.state;
+    const requestData = {
+      areaUUID: currentFloor
     };
 
-    this.setState({
-      seatData
-    });
+    this.ah.one({
+      url: `${baseUrl}/api/v2/seat/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let deviceSeatData = {};
+        let seatListArr = [];
+
+        _.forEach(data.rows, val => {
+          if (!_.isEmpty(val.devices)) {
+            seatListArr.push({
+              id: val.seatUUID,
+              type: 'marker',
+              xy: [val.coordX, val.coordY],
+              icon: {
+                iconUrl: `${contextRoot}/images/ic_person_device.png`,
+                iconSize: [25, 25],
+                iconAnchor: [12.5, 12.5]
+              },
+              label: val.seatName,
+              data: {
+                name: val.seatName
+              }
+            });
+          }
+        })
+
+        deviceSeatData[currentFloor] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          deviceSeatData
+        });
+      }
+      return null;
+    })
   }
   /**
    * Handle seat selection for floor map
@@ -821,11 +839,93 @@ class HostController extends Component {
    * @param {string} seatUUID - selected seat UUID
    */
   handleFloorMapClick = (seatUUID) => {
-    const activeHostInfo = _.find(this.state.hostInfo.dataContent, {seatUUID});
+    const {baseUrl} = this.context;
 
-    if (!_.isEmpty(activeHostInfo)) {
-      this.getIPdeviceInfo(activeHostInfo, 'toggle');
-    }
+    this.ah.one({
+      url: `${baseUrl}/api/v3/ipdevice/_search?&seatUUID=${seatUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          hostDeviceOpen: true,
+          hostDeviceList: data.rows
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display Host device list content
+   * @method
+   * @returns HTML DOM
+   */
+  displayHostDeviceList = () => {
+    const {hostDeviceList, hostDeviceFields} = this.state;
+
+    let dataFields = {};
+    hostDeviceFields.forEach(tempData => {
+      dataFields[tempData] = {
+        label: tempData === 'ip' ? t('txt-device') : '',
+        sortable: false,
+        formatter: (value, allValue) => {
+          if (tempData === 'option') {
+            return (
+              <div>
+                <i className='c-link fg fg-eye' title={t('txt-view')} onClick={this.getIPdeviceInfo.bind(this, allValue, 'toggle')}></i>
+              </div>
+            )
+          } else {
+            return <span>{value}</span>
+          }
+        }
+      };
+    })
+
+    return (
+      <div className='table-data'>
+        <DataTable
+          fields={dataFields}
+          data={hostDeviceList} />
+      </div>
+    )
+  }
+  /**
+   * Show Host device list modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showHostDeviceList = () => {
+    const {hostDeviceList} = this.state;
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.closeHostDeviceList}
+    };
+    const title = hostDeviceList[0].seatObj.seatName;
+
+    return (
+      <ModalDialog
+        id='hostDeviceListDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayHostDeviceList()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Close Host device list modal dialog
+   * @method
+   */
+  closeHostDeviceList = () => {
+    this.setState({
+      hostDeviceOpen: false
+    });
   }
   /**
    * Handle private IP checkbox check/uncheck
@@ -1333,6 +1433,7 @@ class HostController extends Component {
                 });
               } else {
                 this.setState({
+                  hostDeviceOpen: false,
                   openHmdType: ''
                 }, () => {
                   this.toggleHostAnalysis();
@@ -1880,18 +1981,26 @@ class HostController extends Component {
   /**
    * Display tree item
    * @method
+   * @param {string} [type] - option for onLabelClick
    * @param {object} val - tree data
    * @param {number} i - index of the tree data
    * @returns TreeItem component
    */
-  getTreeItem = (val, i) => {
+  getTreeItem = (type, val, i) => {
+    let treeParam = {
+      key: val.id + i,
+      nodeId: val.id,
+      label: val.label
+    };
+
+    if (type === 'click') {
+      treeParam.onLabelClick = this.handleSelectTree.bind(this, val);
+    }
+
     return (
-      <TreeItem
-        key={val.id + i}
-        nodeId={val.id}
-        label={val.label}>
+      <TreeItem {...treeParam}>
         {val.children && val.children.length > 0 &&
-          val.children.map(this.getTreeItem)
+          val.children.map(this.getTreeItem.bind(this, type))
         }
       </TreeItem>
     )
@@ -2067,6 +2176,66 @@ class HostController extends Component {
       this.getSafetyScanData();
     });
   }
+  /**
+   * Handle tree selection
+   * @param {object} tree - tree data
+   * @method
+   */
+  handleSelectTree = (tree) => {
+    const areaUUID = tree.areaUUID;
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan.currentAreaUUID = areaUUID;
+    tempFloorPlan.currentAreaName = tree.areaName;
+
+    this.setState({
+      floorPlan: tempFloorPlan,
+      selectedTreeID: areaUUID,
+      floorMapType: 'selected'
+    }, () => {
+      this.getAreaData(areaUUID);
+    });
+  }
+  /**
+   * Get tree data
+   * @method
+   * @param {object} tree - tree data
+   * @param {number} i - index of the floorPlan tree data
+   * @returns TreeView component
+   */
+  displayTreeView = (tree, i) => {
+    const {selectedTreeID, floorMapType} = this.state;
+    const defaultExpanded = [tree.areaUUID];
+    let defaultSelectedID = '';
+
+    if (i === 0) {
+      defaultSelectedID = tree.areaUUID;
+    }
+
+    if (floorMapType === 'selected') {
+      defaultSelectedID = selectedTreeID;
+    }
+
+    return (
+      <TreeView
+        key={i}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+        defaultSelected={defaultSelectedID}
+        defaultExpanded={defaultExpanded}
+        selected={defaultSelectedID}>
+        {tree.areaUUID &&
+          <TreeItem
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            {tree.children.length > 0 &&
+              tree.children.map(this.getTreeItem.bind(this, 'click'))
+            }
+          </TreeItem>
+        }
+      </TreeView>
+    )
+  }
   render() {
     const {
       activeTab,
@@ -2075,12 +2244,13 @@ class HostController extends Component {
       showFilter,
       datetime,
       assessmentDatetime,
+      yaraRuleOpen,
       hostAnalysisOpen,
       safetyDetailsOpen,
+      hostDeviceOpen,
       showSafetyTab,
       contextAnchor,
       menuType,
-      yaraRuleOpen,
       hostCreateTime,
       privateMaskedIPtree,
       leftNavData,
@@ -2093,12 +2263,13 @@ class HostController extends Component {
       currentFloor,
       currentMap,
       currentBaseLayers,
-      seatData,
+      deviceSeatData,
       eventInfo,
       openHmdType,
       currentSafetyData,
       availableHostData,
-      safetyScanType
+      safetyScanType,
+      floorPlan
     } = this.state;
 
     return (
@@ -2133,6 +2304,10 @@ class HostController extends Component {
             getIPdeviceInfo={this.getIPdeviceInfo} />
         }
 
+        {hostDeviceOpen &&
+          this.showHostDeviceList()
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
@@ -2164,7 +2339,7 @@ class HostController extends Component {
                       nodeId={privateMaskedIPtree.id}
                       label={privateMaskedIPtree.label}>
                       {privateMaskedIPtree.children.length > 0 &&
-                        privateMaskedIPtree.children.map(this.getTreeItem)
+                        privateMaskedIPtree.children.map(this.getTreeItem.bind(this, ''))
                       }
                     </TreeItem>
                   }
@@ -2260,41 +2435,37 @@ class HostController extends Component {
                 }
 
                 {activeTab === 'deviceMap' &&
-                  <div className='map'>
-                    {floorList.length > 0 &&
-                      <TextField
-                        className='drop-down'
-                        select
-                        variant='outlined'
-                        size='small'
-                        value={currentFloor}
-                        onChange={this.getAreaData}>
-                        {floorList}
-                      </TextField>
-                    }
-                    {currentMap &&
-                      <Gis
-                        className='floor-map-area'
-                        _ref={(ref) => {this.gisNode = ref}}
-                        data={_.get(seatData, [currentFloor, 'data'])}
-                        baseLayers={currentBaseLayers}
-                        baseLayer={currentFloor}
-                        layouts={['standard']}
-                        dragModes={['pan']}
-                        scale={{enabled: false}}
-                        mapOptions={{
-                          maxZoom: 2
-                        }}
-                        onClick={this.handleFloorMapClick}
-                        symbolOptions={[{
-                          match: {
-                            data: {tag: 'red'}
-                          },
-                          props: {
-                            backgroundColor: 'red'
-                          }
-                        }]} />
-                    }
+                  <div className='inventory-map host'>
+                    <div className='tree'>
+                      {floorPlan.treeData && floorPlan.treeData.length > 0 &&
+                        floorPlan.treeData.map(this.displayTreeView)
+                      }
+                    </div>
+                    <div className='map'>
+                      {currentMap &&
+                        <Gis
+                          className='floor-map-area'
+                          _ref={(ref) => {this.gisNode = ref}}
+                          data={_.get(deviceSeatData, [currentFloor, 'data'])}
+                          baseLayers={currentBaseLayers}
+                          baseLayer={currentFloor}
+                          layouts={['standard']}
+                          dragModes={['pan']}
+                          scale={{enabled: false}}
+                          mapOptions={{
+                            maxZoom: 2
+                          }}
+                          onClick={this.handleFloorMapClick}
+                          symbolOptions={[{
+                            match: {
+                              data: {tag: 'red'}
+                            },
+                            props: {
+                              backgroundColor: 'red'
+                            }
+                          }]} />
+                      }
+                    </div>
                   </div>
                 }
 

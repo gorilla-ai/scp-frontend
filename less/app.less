@@ -3091,7 +3091,7 @@ button.standard:hover:not([disabled]) {
           .tree {
             float: left;
             width: 20%;
-            min-height: 80vh;
+            min-height: 78vh;
             padding: 15px;
             background-color: var(--primaryContentBackground);
             border-right: 1px solid var(--primaryBorder);
@@ -3099,10 +3099,19 @@ button.standard:hover:not([disabled]) {
           .map {
             float: left;
             width: 80%;
-            min-height: 80vh;
+            min-height: 78vh;
+            padding-top: 100px;
             text-align: center;
-            padding-top: 80px;
             background-color: var(--formGroupBackground);
+          }
+          &.host {
+            .tree {
+              min-height: 72vh;
+            }
+            .map {
+              min-height: 72vh;
+              padding-top: 30px;
+            }
           }
         }
         .csv-section {
