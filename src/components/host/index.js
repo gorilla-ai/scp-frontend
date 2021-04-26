@@ -20,9 +20,7 @@ import Tabs from '@material-ui/core/Tabs';
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
-import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
@@ -211,6 +209,7 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   deviceSeatData: {}
 };
+const NOT_AVAILABLE = 'N/A';
 
 let t = null;
 let f = null;
@@ -278,7 +277,8 @@ class HostController extends Component {
       },
       hostData: {},
       hostDeviceList: [],
-      hostDeviceFields: ['ip', 'option'],
+      currentDeviceData: {},
+      assignedDevice: '',
       hostSort: 'ip-asc',
       selectedTreeID: '',
       floorMapType: '',
@@ -299,6 +299,7 @@ class HostController extends Component {
         hasMore: false
       },
       openHmdType: '',
+      showLoadingIcon: false,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -503,6 +504,10 @@ class HostController extends Component {
       ...this.getHostSafetyRequestData()
     };
 
+    if (activeTab === 'deviceMap') {
+      requestData.areaUUID = currentFloor;
+    }    
+
     if (deviceSearch.scanInfo) {
       requestData.hmdScanDistribution = {
         primaryKeyValue: deviceSearch.scanInfo
@@ -540,6 +545,10 @@ class HostController extends Component {
         if (!data.rows || data.rows.length === 0) {
           if (activeTab === 'hostList') {
             helper.showPopupMsg(t('txt-notFound'));
+          } else if (activeTab === 'deviceMap') {
+            this.setState({
+              showLoadingIcon: false
+            });
           }
           return;
         }
@@ -578,7 +587,8 @@ class HostController extends Component {
           hmdStatusList,
           scanStatusList,
           hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
-          hostInfo: tempHostInfo
+          hostInfo: tempHostInfo,
+          showLoadingIcon: false
         }, () => {
           if (activeTab === 'deviceMap' && data.rows.length > 0) {
             this.getDeviceSeatData();
@@ -787,51 +797,36 @@ class HostController extends Component {
    */
   getDeviceSeatData = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {currentFloor} = this.state;
-    const requestData = {
-      areaUUID: currentFloor
-    };
+    const {currentFloor, hostInfo} = this.state;
+    let deviceSeatData = {};
+    let seatListArr = [];
 
-    this.ah.one({
-      url: `${baseUrl}/api/v2/seat/_search`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        let deviceSeatData = {};
-        let seatListArr = [];
-
-        _.forEach(data.rows, val => {
-          if (!_.isEmpty(val.devices)) {
-            seatListArr.push({
-              id: val.seatUUID,
-              type: 'marker',
-              xy: [val.coordX, val.coordY],
-              icon: {
-                iconUrl: `${contextRoot}/images/ic_person_device.png`,
-                iconSize: [25, 25],
-                iconAnchor: [12.5, 12.5]
-              },
-              label: val.seatName,
-              data: {
-                name: val.seatName
-              }
-            });
+    _.forEach(hostInfo.dataContent, val => {
+      if (val.seatObj) {
+        seatListArr.push({
+          id: val.seatUUID,
+          type: 'marker',
+          xy: [val.seatObj.coordX, val.seatObj.coordY],
+          icon: {
+            iconUrl: `${contextRoot}/images/ic_person_device.png`,
+            iconSize: [25, 25],
+            iconAnchor: [12.5, 12.5]
+          },
+          label: val.seatObj.seatName,
+          data: {
+            name: val.seatObj.seatName
           }
-        })
-
-        deviceSeatData[currentFloor] = {
-          data: seatListArr
-        };
-
-        this.setState({
-          deviceSeatData
         });
       }
-      return null;
     })
+
+    deviceSeatData[currentFloor] = {
+      data: seatListArr
+    };
+
+    this.setState({
+      deviceSeatData
+    });
   }
   /**
    * Handle seat selection for floor map
@@ -841,6 +836,10 @@ class HostController extends Component {
   handleFloorMapClick = (seatUUID) => {
     const {baseUrl} = this.context;
 
+    if (!seatUUID) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/v3/ipdevice/_search?&seatUUID=${seatUUID}`,
       type: 'GET'
@@ -849,7 +848,9 @@ class HostController extends Component {
       if (data) {
         this.setState({
           hostDeviceOpen: true,
-          hostDeviceList: data.rows
+          hostDeviceList: data.rows,
+          currentDeviceData: data.rows[0],
+          assignedDevice: data.rows[0].ip
         });
       }
       return null;
@@ -859,37 +860,64 @@ class HostController extends Component {
     })
   }
   /**
+   * Handle device dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceChange = (event) => {
+    let currentDeviceData = {};
+
+    _.forEach(this.state.hostDeviceList, val => {
+      if (val.ip === event.target.value) {
+        currentDeviceData = val;
+        return false;
+      }
+    })
+
+    this.setState({
+      currentDeviceData,
+      assignedDevice: event.target.value
+    });
+  }
+  /**
    * Display Host device list content
    * @method
    * @returns HTML DOM
    */
   displayHostDeviceList = () => {
-    const {hostDeviceList, hostDeviceFields} = this.state;
-
-    let dataFields = {};
-    hostDeviceFields.forEach(tempData => {
-      dataFields[tempData] = {
-        label: tempData === 'ip' ? t('txt-device') : '',
-        sortable: false,
-        formatter: (value, allValue) => {
-          if (tempData === 'option') {
-            return (
-              <div>
-                <i className='c-link fg fg-eye' title={t('txt-view')} onClick={this.getIPdeviceInfo.bind(this, allValue, 'toggle')}></i>
-              </div>
-            )
-          } else {
-            return <span>{value}</span>
-          }
-        }
-      };
-    })
+    const {hostDeviceList, currentDeviceData, assignedDevice} = this.state;
+    const allAssignedDeviceList = _.map(hostDeviceList, (val, i) => {
+      return <MenuItem key={i} value={val.ip}>{val.ip}</MenuItem>
+    });
+    const deviceInfo = {
+      ip: currentDeviceData.ip,
+      mac: currentDeviceData.mac,
+      hostName: currentDeviceData.hostName,
+      system: currentDeviceData.system
+    };
 
     return (
-      <div className='table-data'>
-        <DataTable
-          fields={dataFields}
-          data={hostDeviceList} />
+      <div>
+        <TextField
+          id='allAssignedDevice'
+          className='assigned-device'
+          name='assignedDevice'
+          select
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={assignedDevice}
+          onChange={this.handleDeviceChange}>
+          {allAssignedDeviceList}
+        </TextField>
+        <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
+        <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
+        <div className='table-menu inventory active'>
+          <i className='fg fg-eye' onClick={this.getIPdeviceInfo.bind(this, currentDeviceData, 'toggle')} title={t('network-inventory.txt-viewDevice')}></i>
+        </div>
+        <div className='main header'>{t('alert.txt-systemInfo')}</div>
+        <div className='info'><span>{t('ipFields.hostName')}:</span>{deviceInfo.hostName || NOT_AVAILABLE}</div>
+        <div className='info'><span>{t('ipFields.system')}:</span>{deviceInfo.system || NOT_AVAILABLE}</div>
       </div>
     )
   }
@@ -907,16 +935,16 @@ class HostController extends Component {
 
     return (
       <ModalDialog
-        id='hostDeviceListDialog'
+        id='configSeatDialog'
         className='modal-dialog'
         title={title}
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='confirm'>
         {this.displayHostDeviceList()}
       </ModalDialog>
-    )
+    )    
   }
   /**
    * Close Host device list modal dialog
@@ -924,7 +952,9 @@ class HostController extends Component {
    */
   closeHostDeviceList = () => {
     this.setState({
-      hostDeviceOpen: false
+      hostDeviceOpen: false,
+      currentDeviceData: {},
+      assignedDevice: ''
     });
   }
   /**
@@ -1085,6 +1115,11 @@ class HostController extends Component {
       }, () => {
         this.getHostData();
       });
+    } else if (activeTab === 'deviceMap') {
+      this.setState({
+        showLoadingIcon: true,
+      });
+      this.getHostData();
     } else if (activeTab === 'safetyScan') {
       let tempSafetyScanData = {...safetyScanData};
       tempSafetyScanData.dataContent = [];
@@ -1105,6 +1140,13 @@ class HostController extends Component {
    * @param {string} newTab - content type ('hostList', 'deviceMap' or 'safetyScan')
    */
   handleSubTabChange = (event, newTab) => {
+    if (newTab === 'deviceMap') {
+      this.setState({
+        deviceSeatData: {},
+        showLoadingIcon: true
+      });
+    }
+
     this.setState({
       activeTab: newTab
     }, () => {
@@ -2190,7 +2232,8 @@ class HostController extends Component {
     this.setState({
       floorPlan: tempFloorPlan,
       selectedTreeID: areaUUID,
-      floorMapType: 'selected'
+      floorMapType: 'selected',
+      showLoadingIcon: true
     }, () => {
       this.getAreaData(areaUUID);
     });
@@ -2269,7 +2312,8 @@ class HostController extends Component {
       currentSafetyData,
       availableHostData,
       safetyScanType,
-      floorPlan
+      floorPlan,
+      showLoadingIcon
     } = this.state;
 
     return (
@@ -2442,7 +2486,10 @@ class HostController extends Component {
                       }
                     </div>
                     <div className='map'>
-                      {currentMap &&
+                      {showLoadingIcon &&
+                        <span className='loading'><i className='fg fg-loading-2'></i></span>
+                      }
+                      {currentMap && !showLoadingIcon &&
                         <Gis
                           className='floor-map-area'
                           _ref={(ref) => {this.gisNode = ref}}

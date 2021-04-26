@@ -167,6 +167,7 @@ class NetworkInventory extends Component {
       floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
+      showLoadingIcon: false,
       formValidation: {
         ip: {
           valid: true,
@@ -594,7 +595,8 @@ class NetworkInventory extends Component {
 
         this.setState({
           originalSeatData: data.rows,
-          deviceSeatData
+          deviceSeatData,
+          showLoadingIcon: false
         });
       }
       return null;
@@ -2892,6 +2894,7 @@ class NetworkInventory extends Component {
       ownerInfo,
       addSeat,
       ownerIDduplicated,
+      showLoadingIcon,
       formValidation
     } = this.state;
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
@@ -3275,7 +3278,10 @@ class NetworkInventory extends Component {
                   }
                 </div>
                 <div className='map'>
-                  {currentMap.label &&
+                  {showLoadingIcon &&
+                    <span className='loading'><i className='fg fg-loading-2'></i></span>
+                  }
+                  {currentMap.label && !showLoadingIcon &&
                     <Gis
                       _ref={(ref) => {this.gisNode = ref}}
                       data={_.get(deviceSeatData, [mapAreaUUID, 'data'], [])}
@@ -3346,7 +3352,8 @@ class NetworkInventory extends Component {
       floorPlan: tempFloorPlan,
       changeAreaMap: true,
       selectedTreeID: areaUUID,
-      floorMapType: 'selected'
+      floorMapType: 'selected',
+      showLoadingIcon: true
     }, () => {
       this.getAreaData(areaUUID);
 
@@ -3407,6 +3414,7 @@ class NetworkInventory extends Component {
       defaultExpanded = [tree.areaUUID];
     } else if (type === 'stepsFloor') {
       let currentAreaUUID = floorPlan.currentAreaUUID;
+      defaultSelectedID = currentAreaUUID;
 
       if (!changeAreaMap && currentDeviceData.areaUUID) {
         currentAreaUUID = currentDeviceData.areaUUID;
