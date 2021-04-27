@@ -167,6 +167,7 @@ class NetworkInventory extends Component {
       floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
+      showGlobalLoadingIcon: false,
       showLoadingIcon: false,
       formValidation: {
         ip: {
@@ -1560,6 +1561,10 @@ class NetworkInventory extends Component {
         if (data[0]) {
           if (options === 'oneDevice') {
             this.getOwnerSeat(data[0]);
+
+            this.setState({
+              showGlobalLoadingIcon: false
+            });
             return;
           }
 
@@ -1567,7 +1572,8 @@ class NetworkInventory extends Component {
             modalIRopen: false,
             deviceData: tempDeviceData,
             currentDeviceData: data[0],
-            activeIPdeviceUUID: ipDeviceID
+            activeIPdeviceUUID: ipDeviceID,
+            showGlobalLoadingIcon: false
           });
         }
 
@@ -2512,7 +2518,8 @@ class NetworkInventory extends Component {
         if (activeSteps === 4) {
           this.setState({
             showAllSeats: false,
-            floorMapType: ''
+            floorMapType: '',
+            showGlobalLoadingIcon: true
           }, () => {
             this.handleAddIpConfirm();
           });
@@ -2614,9 +2621,6 @@ class NetworkInventory extends Component {
     .then(data => {
       if (data.ret === 0) {
         this.getDeviceData();
-        this.getOwnerData();
-        this.getOtherData();
-        this.getFloorPlan();
 
         if (formTypeEdit) {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
@@ -3665,6 +3669,7 @@ class NetworkInventory extends Component {
       csvData,
       showCsvData,
       csvColumns,
+      showGlobalLoadingIcon,
       formValidation
     } = this.state;
     const backText = activeTab === 'deviceList' ? t('txt-backToList') : t('txt-backToMap')
@@ -3740,6 +3745,21 @@ class NetworkInventory extends Component {
         <Manage
           ref={ref => { this.manage = ref }}
           onDone={this.getOtherData} />
+
+        {showGlobalLoadingIcon &&
+          <div id='g-progress-container'>
+            <span>
+              <section id='g-progress' className='c-modal show c-center global spin'>
+                <div id='overlay'></div>
+                <section id='g-progress-dialog' className='c-box dialog'>
+                  <div id='g-progress-content' className='content'>
+                    <i className='fg fg-loading-2 fg-spin'></i>
+                  </div>
+                </section>
+              </section>
+            </span>
+          </div>
+        }
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
