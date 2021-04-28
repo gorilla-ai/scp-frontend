@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button';
-import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
 let t = null;
@@ -37,17 +36,10 @@ class Scanner extends Component {
 
     return (
       <div className='group-content'>
-        <TextField
-          className='scanner'
-          name='edge'
-          select
-          variant='outlined'
-          size='small'
-          value={value.edge}
-          onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode' || !statusEnable.scanner}>
-          {deviceList}
-        </TextField>
+        <label id='scannerLabel'>
+          <span style={{width: this.props.getInputWidth('scanner')}}>IP</span>
+          <span style={{width: this.props.getInputWidth('scanner')}}>Mask</span>
+        </label>
         <TextField
           className='scanner'
           name='ip'
@@ -64,7 +56,7 @@ class Scanner extends Component {
           value={value.mask}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <Button variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>
+        {/*<Button variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>*/}
       </div>
     )
   }

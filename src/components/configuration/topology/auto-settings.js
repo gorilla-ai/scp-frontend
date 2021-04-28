@@ -20,10 +20,10 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
+import Edge from './edge'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
 import IpRange from './ip-range'
-import Scanner from './scanner'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -73,9 +73,11 @@ class AutoSettings extends Component {
       deviceList: [],
       originalScannerData: [],
       scannerData: [{
-        edge: '',
         ip: '',
         mask: ''
+      }],
+      edgeData: [{
+        edge: ''
       }],
       scannerTableData: [],
       formValidation: {
@@ -122,7 +124,7 @@ class AutoSettings extends Component {
         tempStatusEnable.ipRange = data['ip.enable'];
         tempStatusEnable.ad_ldap = data['ad.enable'];
         tempStatusEnable.netflow = data['netflow.enable'];
-        tempStatusEnable.scanner = data['scanner.enable'];
+        tempStatusEnable.scanner = data['networktopology.enable'];
 
         let privateIParr = [];
         let publicIParr = [];
@@ -236,6 +238,16 @@ class AutoSettings extends Component {
   setScannerData = (scannerData) => {
     this.setState({
       scannerData
+    });
+  }
+  /**
+   * Set IP edge data
+   * @method
+   * @param {array} edgeData - edge data
+   */
+  setEdgeData = (edgeData) => {
+    this.setState({
+      edgeData
     });
   }
   /**
@@ -502,7 +514,7 @@ class AutoSettings extends Component {
       'ip.enable': statusEnable.ipRange,
       'ad.enable': statusEnable.ad_ldap,
       'netflow.enable': statusEnable.netflow,
-      'scanner.enable': statusEnable.scanner,
+      'networktopology.enable': statusEnable.scanner
     };
     let ipRangePrivate = [];
     let ipRangePublic = [];
@@ -599,7 +611,7 @@ class AutoSettings extends Component {
       if (activeContent === 'viewMode') {
         return '28%';
       } else if (activeContent === 'editMode') {
-        return '26%';
+        return '50%';
       }
     }
   }
@@ -611,14 +623,16 @@ class AutoSettings extends Component {
       adData,
       netflowData,
       deviceList,
-      scannerData,
+      edgeData,
       formValidation
     } = this.state;
     const data = {
       activeContent,
       statusEnable,
       deviceList,
-      handleScannerTest: this.handleScannerTest
+      getInputWidth: this.getInputWidth,
+      handleScannerTest: this.handleScannerTest,
+      setScannerData: this.setScannerData
     };
     const adFormTitle = adData.type === 'AD' ? t('auto-settings.txt-AD') : t('auto-settings.txt-LDAP');
 
@@ -833,24 +847,16 @@ class AutoSettings extends Component {
                     disabled={activeContent === 'viewMode'} />
                 </div>
                 <div className='group full multi'>
-                  <label id='scannerLabel' htmlFor='autoSettingsScanner'>
-                    <span style={{width: this.getInputWidth('scanner')}}>Edge</span>
-                    <span style={{width: this.getInputWidth('scanner')}}>IP</span>
-                    <span style={{width: this.getInputWidth('scanner')}}>Mask</span>
-                  </label>
                   <MultiInput
-                    id='autoSettingsScanner'
-                    className='scanner-group'
-                    base={Scanner}
+                    id='autoSettingsEdge'
+                    className='edge-group'
+                    base={Edge}
                     props={data}
                     defaultItemValue={{
-                      edge: '',
-                      ip: '',
-                      mask: ''
+                      edge: ''
                     }}
-                    value={scannerData}
-                    onChange={this.setScannerData}
-                    handleScannertest={this.handleScannerTest}
+                    value={edgeData}
+                    onChange={this.setEdgeData}
                     disabled={activeContent === 'viewMode'} />
                 </div>
               </div>
