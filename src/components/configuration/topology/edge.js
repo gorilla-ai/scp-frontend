@@ -38,11 +38,12 @@ class Edge extends Component {
     });
   }
   render() {
-    const {activeContent, statusEnable, deviceList, value} = this.props;
+    const {activeContent, statusEnable, deviceList, scannerData, value} = this.props;
     const data = {
       activeContent,
       statusEnable,
       deviceList,
+      scannerData,
       getInputWidth: this.props.getInputWidth,
       handleScannerTest: this.props.handleScannerTest,
       setScannerData: this.props.setScannerData
@@ -66,33 +67,41 @@ class Edge extends Component {
         </TextField>
 
         <div className='target'>
-          <span>Target</span>
+          <div className='header'>Target</div>
           <MultiInput
             id='autoSettingsScanner'
             className='scanner-group'
             base={Scanner}
-            props={data}
+            props={{
+              ...data,
+              type: 'target'
+            }}
             defaultItemValue={{
               ip: '',
               mask: ''
             }}
-            onChange={this.props.setScannerData}
+            value={scannerData.target}
+            onChange={this.props.setScannerData.bind(this, 'target')}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>
 
         <div className='switch'>
-          <span>Switch</span>
+          <div className='header'>Switch</div>
           <MultiInput
             id='autoSettingsScanner'
             className='scanner-group'
             base={Scanner}
-            props={data}
+            props={{
+              ...data,
+              type: 'switch'              
+            }}
             defaultItemValue={{
               ip: '',
               mask: ''
             }}
-            onChange={this.props.setScannerData}
+            value={scannerData.switch}
+            onChange={this.props.setScannerData.bind(this, 'switch')}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>

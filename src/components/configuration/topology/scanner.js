@@ -19,6 +19,9 @@ class Scanner extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  ryan = () => {
+
+  }
   /**
    * Set input value change
    * @method
@@ -27,12 +30,11 @@ class Scanner extends Component {
    */
   handleDataChange = (event) => {
     this.props.onChange({
-      ...this.props.value,
       [event.target.name]: event.target.value
     });
   }
   render() {
-    const {activeContent, statusEnable, deviceList, value} = this.props;
+    const {activeContent, statusEnable, value} = this.props;
 
     return (
       <div className='group-content'>

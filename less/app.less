@@ -1518,8 +1518,8 @@ button.standard:hover:not([disabled]) {
     .edge-settings {
       overflow-y: auto;
       #autoSettingsIpRange,
-      #autoSettingsScanner,
-      #autoSettingsEdge {
+      #autoSettingsEdge,
+      #autoSettingsScanner {
         .ip-range,
         .scanner {
           margin-right: 2.2%;
@@ -1542,14 +1542,24 @@ button.standard:hover:not([disabled]) {
         }
         .group-content.edge {
           padding: 5px;
-          margin-right: 10px;
+          margin-right: 5px;
           border: 1px solid var(--primaryBorder);
         }
         .target,
         .switch {
+          .header {
+            margin-bottom: 5px;
+            color: var(--primaryContentHeader);
+          }
           padding: 5px;
           margin-top: 15px;
           border: 1px solid var(--primaryBorder);
+        }
+      }
+      #autoSettingsScanner {
+        .fg-close,
+        .fg-add {
+          margin-top: 22px;
         }
       }
     }

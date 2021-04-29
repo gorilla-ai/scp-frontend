@@ -71,14 +71,21 @@ class AutoSettings extends Component {
       },
       netFlowTableData: [],
       deviceList: [],
-      originalScannerData: [],
-      scannerData: [{
-        ip: '',
-        mask: ''
-      }],
+      originalEdgeData: [],
       edgeData: [{
         edge: ''
       }],
+      originalScannerData: [],
+      scannerData: {
+        target: [{
+          ip: '',
+          mask: ''
+        }],
+        switch: [{
+          ip: '',
+          mask: ''
+        }]
+      },
       scannerTableData: [],
       formValidation: {
         ip: {
@@ -107,7 +114,7 @@ class AutoSettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, deviceList, edgeData, scannerData} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/config`,
@@ -120,7 +127,8 @@ class AutoSettings extends Component {
         let ipRangeData = [];
         let tempADdata = {...adData};
         let tempNetflowData = {...netflowData};
-        let scannerData = [];
+        let edgeData = [];
+        let scannerData = {};
         tempStatusEnable.ipRange = data['ip.enable'];
         tempStatusEnable.ad_ldap = data['ad.enable'];
         tempStatusEnable.netflow = data['netflow.enable'];
@@ -163,11 +171,10 @@ class AutoSettings extends Component {
 
         if (data.scanner && data.scanner.length > 0) {
           _.forEach(data.scanner, val => {
-            scannerData.push({
-              edge: val.edge,
-              ip: val.target,
-              mask: val.mask
-            });
+            // scannerData.push({
+            //   ip: val.target,
+            //   mask: val.mask
+            // });
           })
         }
 
@@ -181,6 +188,8 @@ class AutoSettings extends Component {
           adData: tempADdata,
           originalNetflowData: _.cloneDeep(tempNetflowData),
           netflowData: tempNetflowData,
+          originalEdgeData: _.cloneDeep(edgeData),
+          edgeData,
           originalScannerData: _.cloneDeep(scannerData),
           scannerData
         }, () => {
@@ -231,16 +240,6 @@ class AutoSettings extends Component {
     });
   }
   /**
-   * Set IP range data
-   * @method
-   * @param {array} scannerData - scanner data
-   */
-  setScannerData = (scannerData) => {
-    this.setState({
-      scannerData
-    });
-  }
-  /**
    * Set IP edge data
    * @method
    * @param {array} edgeData - edge data
@@ -248,6 +247,19 @@ class AutoSettings extends Component {
   setEdgeData = (edgeData) => {
     this.setState({
       edgeData
+    });
+  }
+  /**
+   * Set IP range data
+   * @method
+   * @param {array} scannerData - scanner data
+   */
+  setScannerData = (type, scannerData) => {
+    let tempScannerData = {...this.state.scannerData};
+    tempScannerData[type] = scannerData;
+
+    this.setState({
+      scannerData: tempScannerData
     });
   }
   /**
@@ -471,7 +483,14 @@ class AutoSettings extends Component {
    * @param {string} type - content type ('viewMode', 'editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalStatusEnable, originalIPrangeData, originalADdata, originalNetflowData, originalScannerData} = this.state;
+    const {
+      originalStatusEnable,
+      originalIPrangeData,
+      originalADdata,
+      originalNetflowData,
+      originalEdgeData,
+      originalScannerData
+    } = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -485,6 +504,7 @@ class AutoSettings extends Component {
         ipRangeData: _.cloneDeep(originalIPrangeData),
         adData: _.cloneDeep(originalADdata),
         netflowData: _.cloneDeep(originalNetflowData),
+        edgeData: _.cloneDeep(originalEdgeData),
         scannerData: _.cloneDeep(originalScannerData),
         formValidation: {
           ip: {
@@ -507,7 +527,7 @@ class AutoSettings extends Component {
    */
   handleSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, scannerData, formValidation} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, edgeData, scannerData, formValidation} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
     let requestData = {
@@ -572,13 +592,13 @@ class AutoSettings extends Component {
     requestData['ad.domain'] = adData.domain;
     requestData['ad.username'] = adData.username;
     requestData['ad.password'] = adData.password;
-    requestData.scanner = _.map(scannerData, val => {
-      return {
-        edge: val.edge,
-        target: val.ip,
-        mask: val.mask ? Number(val.mask) : ''
-      };
-    });
+    // requestData.scanner = _.map(scannerData, val => {
+    //   return {
+    //     edge: val.edge,
+    //     target: val.ip,
+    //     mask: val.mask ? Number(val.mask) : ''
+    //   };
+    // });
 
     this.ah.one({
       url,
@@ -624,12 +644,14 @@ class AutoSettings extends Component {
       netflowData,
       deviceList,
       edgeData,
+      scannerData,
       formValidation
     } = this.state;
     const data = {
       activeContent,
       statusEnable,
       deviceList,
+      scannerData,
       getInputWidth: this.getInputWidth,
       handleScannerTest: this.handleScannerTest,
       setScannerData: this.setScannerData
