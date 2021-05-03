@@ -34,18 +34,21 @@ class Edge extends Component {
    */
   handleDataChange = (event) => {
     this.props.onChange({
+      ...this.props.value,
       edge: event.target.value
     });
   }
   render() {
-    const {activeContent, statusEnable, deviceList, scannerData, value} = this.props;
+    const {activeContent, statusEnable, deviceList, edgeData, scannerData, value} = this.props;
     const data = {
       activeContent,
       statusEnable,
       deviceList,
       scannerData,
+      edgeDataValue: value,
       getInputWidth: this.props.getInputWidth,
       handleScannerTest: this.props.handleScannerTest,
+      setEdgeData: this.props.setEdgeData,
       setScannerData: this.props.setScannerData
     };
 
@@ -77,11 +80,10 @@ class Edge extends Component {
               type: 'target'
             }}
             defaultItemValue={{
-              ip: '',
+              target: '',
               mask: ''
             }}
-            value={scannerData.target}
-            onChange={this.props.setScannerData.bind(this, 'target')}
+            value={value.scannerData.target}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>
@@ -94,14 +96,13 @@ class Edge extends Component {
             base={Scanner}
             props={{
               ...data,
-              type: 'switch'              
+              type: 'switch'
             }}
             defaultItemValue={{
-              ip: '',
-              mask: ''
+              host: '',
+              community: ''
             }}
-            value={scannerData.switch}
-            onChange={this.props.setScannerData.bind(this, 'switch')}
+            value={value.scannerData.switch}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>

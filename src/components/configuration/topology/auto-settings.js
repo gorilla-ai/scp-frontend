@@ -73,7 +73,18 @@ class AutoSettings extends Component {
       deviceList: [],
       originalEdgeData: [],
       edgeData: [{
-        edge: ''
+        edge: '',
+        scannerData: {
+          target: [{
+            target: '',
+            mask: ''
+          }],
+          switch: [{
+            host: '',
+            community: ''
+          }]
+        },
+        index: 0
       }],
       originalScannerData: [],
       scannerData: {
@@ -83,7 +94,7 @@ class AutoSettings extends Component {
         }],
         switch: [{
           ip: '',
-          mask: ''
+          community: ''
         }]
       },
       scannerTableData: [],
@@ -114,7 +125,7 @@ class AutoSettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, deviceList, edgeData, scannerData} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, deviceList} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/config`,
@@ -167,14 +178,17 @@ class AutoSettings extends Component {
         tempADdata.domain = data['ad.domain'];
         tempADdata.username = data['ad.username'];
         tempADdata.password = data['ad.password'];
-        tempNetflowData.time = data['netflow.period.hr'] || netflowData.time;
+        tempNetflowData.time = data['netflow.period.hr'] || netflowData.time;      
 
-        if (data.scanner && data.scanner.length > 0) {
-          _.forEach(data.scanner, val => {
-            // scannerData.push({
-            //   ip: val.target,
-            //   mask: val.mask
-            // });
+        if (data.networktopology && data.networktopology.length > 0) {
+          _.forEach(data.networktopology, (val, i) => {
+            let networkTopology = {};
+            networkTopology.edge = val.edge;
+            networkTopology.scannerData = {};
+            networkTopology.scannerData.target = val.targetInfo;
+            networkTopology.scannerData.switch = val.switchInfo;
+            networkTopology.index = i;
+            edgeData.push(networkTopology);
           })
         }
 
@@ -244,10 +258,21 @@ class AutoSettings extends Component {
    * @method
    * @param {array} edgeData - edge data
    */
-  setEdgeData = (edgeData) => {
-    this.setState({
-      edgeData
-    });
+  setEdgeData = (type, data, scanner) => {
+    const {edgeData} = this.state;
+    let tempEdgeData = {...edgeData};
+
+    if (type === 'edge') {
+      this.setState({
+        edgeData: data
+      });
+    } else {
+      tempEdgeData[data.index].scannerData[type] = scanner;
+
+      this.setState({
+        edgeData: tempEdgeData
+      });
+    }
   }
   /**
    * Set IP range data
@@ -541,6 +566,9 @@ class AutoSettings extends Component {
     let tempFormValidation = {...formValidation};
     let validate = true;
 
+    console.log(edgeData);
+    return;
+
     if (adData.ip) {
       if (ipPattern.test(adData.ip)) { //Check IP format
         tempFormValidation.ip.valid = true;
@@ -651,9 +679,11 @@ class AutoSettings extends Component {
       activeContent,
       statusEnable,
       deviceList,
+      edgeData,
       scannerData,
       getInputWidth: this.getInputWidth,
       handleScannerTest: this.handleScannerTest,
+      setEdgeData: this.setEdgeData,
       setScannerData: this.setScannerData
     };
     const adFormTitle = adData.type === 'AD' ? t('auto-settings.txt-AD') : t('auto-settings.txt-LDAP');
@@ -875,10 +905,21 @@ class AutoSettings extends Component {
                     base={Edge}
                     props={data}
                     defaultItemValue={{
-                      edge: ''
+                      edge: '',
+                      scannerData: {
+                        target: [{
+                          target: '',
+                          mask: ''
+                        }],
+                        switch: [{
+                          host: '',
+                          community: ''
+                        }]
+                      },
+                      index: edgeData.length
                     }}
                     value={edgeData}
-                    onChange={this.setEdgeData}
+                    onChange={this.setEdgeData.bind(this, 'edge')}
                     disabled={activeContent === 'viewMode'} />
                 </div>
               </div>

@@ -29,35 +29,67 @@ class Scanner extends Component {
    * @param {string} value - input value
    */
   handleDataChange = (event) => {
-    this.props.onChange({
+    const {type, edgeDataValue} = this.props;
+
+    this.props.setEdgeData(type, edgeDataValue, {
+      ...this.props.value,
       [event.target.name]: event.target.value
     });
   }
   render() {
-    const {activeContent, statusEnable, value} = this.props;
+    const {activeContent, statusEnable, type, value} = this.props;
 
     return (
       <div className='group-content'>
         <label id='scannerLabel'>
           <span style={{width: this.props.getInputWidth('scanner')}}>IP</span>
-          <span style={{width: this.props.getInputWidth('scanner')}}>Mask</span>
+          {type === 'target' &&
+            <span style={{width: this.props.getInputWidth('scanner')}}>Mask</span>
+          }
+          {type === 'switch' &&
+            <span style={{width: this.props.getInputWidth('scanner')}}>Community</span>
+          }
         </label>
-        <TextField
-          className='scanner'
-          name='ip'
-          variant='outlined'
-          size='small'
-          value={value.ip}
-          onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <TextField
-          className='scanner'
-          name='mask'
-          variant='outlined'
-          size='small'
-          value={value.mask}
-          onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        {type === 'target' &&
+          <TextField
+            className='scanner'
+            name='target'
+            variant='outlined'
+            size='small'
+            value={value.target}
+            onChange={this.handleDataChange}
+            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        }
+        {type === 'switch' &&
+          <TextField
+            className='scanner'
+            name='host'
+            variant='outlined'
+            size='small'
+            value={value.host}
+            onChange={this.handleDataChange}
+            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        }
+        {type === 'target' &&
+          <TextField
+            className='scanner'
+            name='mask'
+            variant='outlined'
+            size='small'
+            value={value.mask}
+            onChange={this.handleDataChange}
+            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        }
+        {type === 'switch' &&
+          <TextField
+            className='scanner'
+            name='community'
+            variant='outlined'
+            size='small'
+            value={value.community}
+            onChange={this.handleDataChange}
+            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        }
         {/*<Button variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>*/}
       </div>
     )
