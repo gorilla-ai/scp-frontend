@@ -39,21 +39,19 @@ class Edge extends Component {
     });
   }
   render() {
-    const {activeContent, statusEnable, deviceList, edgeData, scannerData, value} = this.props;
+    const {activeContent, statusEnable, deviceList, edgeData, value} = this.props;
     const data = {
       activeContent,
       statusEnable,
       deviceList,
-      scannerData,
-      edgeDataValue: value,
       getInputWidth: this.props.getInputWidth,
       handleScannerTest: this.props.handleScannerTest,
-      setEdgeData: this.props.setEdgeData,
       setScannerData: this.props.setScannerData
     };
 
     return (
       <div className='group-content edge'>
+        <Button variant='contained' color='primary' className='network-test' onClick={this.props.handleNetworkTest.bind(this, value.index)}>{t('network-inventory.txt-testQuery')}</Button>
         <label id='scannerLabel' htmlFor='autoSettingsEdge'>
           <span style={{width: this.props.getInputWidth('scanner')}}>Edge</span>
         </label>
@@ -80,10 +78,11 @@ class Edge extends Component {
               type: 'target'
             }}
             defaultItemValue={{
-              target: '',
+              ip: '',
               mask: ''
             }}
-            value={value.scannerData.target}
+            value={value.target}
+            onChange={this.props.setEdgeData.bind(this, 'target', value)}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>
@@ -99,10 +98,11 @@ class Edge extends Component {
               type: 'switch'
             }}
             defaultItemValue={{
-              host: '',
-              community: ''
+              ip: '',
+              mask: ''
             }}
-            value={value.scannerData.switch}
+            value={value.switch}
+            onChange={this.props.setEdgeData.bind(this, 'switch', value)}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>

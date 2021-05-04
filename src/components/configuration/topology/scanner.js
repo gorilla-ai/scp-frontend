@@ -29,9 +29,7 @@ class Scanner extends Component {
    * @param {string} value - input value
    */
   handleDataChange = (event) => {
-    const {type, edgeDataValue} = this.props;
-
-    this.props.setEdgeData(type, edgeDataValue, {
+    this.props.onChange({
       ...this.props.value,
       [event.target.name]: event.target.value
     });
@@ -50,26 +48,14 @@ class Scanner extends Component {
             <span style={{width: this.props.getInputWidth('scanner')}}>Community</span>
           }
         </label>
-        {type === 'target' &&
-          <TextField
-            className='scanner'
-            name='target'
-            variant='outlined'
-            size='small'
-            value={value.target}
-            onChange={this.handleDataChange}
-            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        }
-        {type === 'switch' &&
-          <TextField
-            className='scanner'
-            name='host'
-            variant='outlined'
-            size='small'
-            value={value.host}
-            onChange={this.handleDataChange}
-            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        }
+        <TextField
+          className='scanner'
+          name='ip'
+          variant='outlined'
+          size='small'
+          value={value.ip}
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
         {type === 'target' &&
           <TextField
             className='scanner'
@@ -83,10 +69,10 @@ class Scanner extends Component {
         {type === 'switch' &&
           <TextField
             className='scanner'
-            name='community'
+            name='mask'
             variant='outlined'
             size='small'
-            value={value.community}
+            value={value.mask}
             onChange={this.handleDataChange}
             disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
         }

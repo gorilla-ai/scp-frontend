@@ -74,29 +74,16 @@ class AutoSettings extends Component {
       originalEdgeData: [],
       edgeData: [{
         edge: '',
-        scannerData: {
-          target: [{
-            target: '',
-            mask: ''
-          }],
-          switch: [{
-            host: '',
-            community: ''
-          }]
-        },
-        index: 0
-      }],
-      originalScannerData: [],
-      scannerData: {
         target: [{
           ip: '',
           mask: ''
         }],
         switch: [{
           ip: '',
-          community: ''
-        }]
-      },
+          mask: ''
+        }],
+        index: 0
+      }],
       scannerTableData: [],
       formValidation: {
         ip: {
@@ -139,7 +126,6 @@ class AutoSettings extends Component {
         let tempADdata = {...adData};
         let tempNetflowData = {...netflowData};
         let edgeData = [];
-        let scannerData = {};
         tempStatusEnable.ipRange = data['ip.enable'];
         tempStatusEnable.ad_ldap = data['ad.enable'];
         tempStatusEnable.netflow = data['netflow.enable'];
@@ -178,15 +164,24 @@ class AutoSettings extends Component {
         tempADdata.domain = data['ad.domain'];
         tempADdata.username = data['ad.username'];
         tempADdata.password = data['ad.password'];
-        tempNetflowData.time = data['netflow.period.hr'] || netflowData.time;      
+        tempNetflowData.time = data['netflow.period.hr'] || netflowData.time;
 
         if (data.networktopology && data.networktopology.length > 0) {
           _.forEach(data.networktopology, (val, i) => {
             let networkTopology = {};
             networkTopology.edge = val.edge;
-            networkTopology.scannerData = {};
-            networkTopology.scannerData.target = val.targetInfo;
-            networkTopology.scannerData.switch = val.switchInfo;
+            networkTopology.target = _.map(val.targetInfo, val2 => {
+              return {
+                ip: val2.target,
+                mask: val2.mask
+              }
+            });
+            networkTopology.switch = _.map(val.switchInfo, val2 => {
+              return {
+                ip: val2.host,
+                mask: val2.community
+              }
+            });
             networkTopology.index = i;
             edgeData.push(networkTopology);
           })
@@ -203,9 +198,7 @@ class AutoSettings extends Component {
           originalNetflowData: _.cloneDeep(tempNetflowData),
           netflowData: tempNetflowData,
           originalEdgeData: _.cloneDeep(edgeData),
-          edgeData,
-          originalScannerData: _.cloneDeep(scannerData),
-          scannerData
+          edgeData
         }, () => {
           this.getDeviceList();
         });
@@ -256,36 +249,26 @@ class AutoSettings extends Component {
   /**
    * Set IP edge data
    * @method
-   * @param {array} edgeData - edge data
+   * @param {string} type - edge type ('edge', 'target' or 'switch')
+   * @param {object} data - edge data
+   * @param {object} [scanner] - scanner data
    */
   setEdgeData = (type, data, scanner) => {
-    const {edgeData} = this.state;
-    let tempEdgeData = {...edgeData};
+    let tempEdgeData = this.state.edgeData;
 
     if (type === 'edge') {
       this.setState({
         edgeData: data
       });
+
+      //tempEdgeData.push(data);
     } else {
-      tempEdgeData[data.index].scannerData[type] = scanner;
+      tempEdgeData[data.index][type] = scanner;
 
       this.setState({
         edgeData: tempEdgeData
       });
     }
-  }
-  /**
-   * Set IP range data
-   * @method
-   * @param {array} scannerData - scanner data
-   */
-  setScannerData = (type, scannerData) => {
-    let tempScannerData = {...this.state.scannerData};
-    tempScannerData[type] = scannerData;
-
-    this.setState({
-      scannerData: tempScannerData
-    });
   }
   /**
    * Set status data
@@ -503,6 +486,65 @@ class AutoSettings extends Component {
     })
   }
   /**
+   * Get formatted edgeData for http request
+   * @method
+   * @returns formatted network topology data
+   */
+  getFormattedEdgeData = () => {
+    let networkTopology = [];
+
+    _.forEach(this.state.edgeData, val => {
+      networkTopology.push({
+        edge: val.edge,
+        targetInfo: _.map(val.target, val2 => {
+          return {
+            target: val2.ip,
+            mask: val2.mask
+          }
+        }),
+        switchInfo: _.map(val.switch, val2 => {
+          return {
+            host: val2.ip,
+            community: val2.mask
+          }
+        })
+      });
+    })
+
+    return networkTopology;
+  }
+  /**
+   * Get and network test result
+   * @param {number} index - index of edgeData
+   * @method
+   */
+  handleNetworkTest = (index) => {
+    const {baseUrl} = this.context;
+    const {edgeData} = this.state;
+    const url = `${baseUrl}/api/ipdevice/topology`;
+    const formattedEdgeData = this.getFormattedEdgeData();
+    const requestData = {
+      isTest: true,
+      networktopology: [formattedEdgeData[index]]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        console.log(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle content type
    * @method
    * @param {string} type - content type ('viewMode', 'editMode', 'save' or 'cancel')
@@ -513,8 +555,7 @@ class AutoSettings extends Component {
       originalIPrangeData,
       originalADdata,
       originalNetflowData,
-      originalEdgeData,
-      originalScannerData
+      originalEdgeData
     } = this.state;
     let showPage = type;
 
@@ -530,7 +571,6 @@ class AutoSettings extends Component {
         adData: _.cloneDeep(originalADdata),
         netflowData: _.cloneDeep(originalNetflowData),
         edgeData: _.cloneDeep(originalEdgeData),
-        scannerData: _.cloneDeep(originalScannerData),
         formValidation: {
           ip: {
             valid: true
@@ -552,7 +592,7 @@ class AutoSettings extends Component {
    */
   handleSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, edgeData, scannerData, formValidation} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, edgeData, formValidation} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
     let requestData = {
@@ -565,9 +605,6 @@ class AutoSettings extends Component {
     let ipRangePublic = [];
     let tempFormValidation = {...formValidation};
     let validate = true;
-
-    console.log(edgeData);
-    return;
 
     if (adData.ip) {
       if (ipPattern.test(adData.ip)) { //Check IP format
@@ -620,13 +657,11 @@ class AutoSettings extends Component {
     requestData['ad.domain'] = adData.domain;
     requestData['ad.username'] = adData.username;
     requestData['ad.password'] = adData.password;
-    // requestData.scanner = _.map(scannerData, val => {
-    //   return {
-    //     edge: val.edge,
-    //     target: val.ip,
-    //     mask: val.mask ? Number(val.mask) : ''
-    //   };
-    // });
+
+    requestData.networktopology = this.getFormattedEdgeData();
+
+    console.log(requestData);
+    return;
 
     this.ah.one({
       url,
@@ -656,11 +691,7 @@ class AutoSettings extends Component {
     }
 
     if (type === 'scanner') {
-      if (activeContent === 'viewMode') {
-        return '28%';
-      } else if (activeContent === 'editMode') {
-        return '50%';
-      }
+      return '50%';
     }
   }
   render() {
@@ -672,7 +703,6 @@ class AutoSettings extends Component {
       netflowData,
       deviceList,
       edgeData,
-      scannerData,
       formValidation
     } = this.state;
     const data = {
@@ -680,11 +710,10 @@ class AutoSettings extends Component {
       statusEnable,
       deviceList,
       edgeData,
-      scannerData,
       getInputWidth: this.getInputWidth,
       handleScannerTest: this.handleScannerTest,
-      setEdgeData: this.setEdgeData,
-      setScannerData: this.setScannerData
+      handleNetworkTest: this.handleNetworkTest,
+      setEdgeData: this.setEdgeData
     };
     const adFormTitle = adData.type === 'AD' ? t('auto-settings.txt-AD') : t('auto-settings.txt-LDAP');
 
@@ -906,16 +935,14 @@ class AutoSettings extends Component {
                     props={data}
                     defaultItemValue={{
                       edge: '',
-                      scannerData: {
-                        target: [{
-                          target: '',
-                          mask: ''
-                        }],
-                        switch: [{
-                          host: '',
-                          community: ''
-                        }]
-                      },
+                      target: [{
+                        ip: '',
+                        mask: ''
+                      }],
+                      switch: [{
+                        ip: '',
+                        mask: ''
+                      }],
                       index: edgeData.length
                     }}
                     value={edgeData}

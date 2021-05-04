@@ -70,7 +70,7 @@ class NetworkInventory extends Component {
 
     this.state = {
       activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
-      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
+      activeContent: 'autoSettings', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
       showFilter: false,
       showSeatData: false,
       modalFloorOpen: false,
