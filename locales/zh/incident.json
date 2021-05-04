@@ -20,7 +20,9 @@
 	"txt-incident-config-management": "事件參數設定",
 	"txt-incident-log-management": "事件發布紀錄",
 	"txt-incident-isac-management": "轉發ISAC設定管理",
+	"txt-incident-soc-management": "轉發政府GSOC設定管理",
 	"txt-incident-isac-config": "ISAC參數設定",
+	"txt-incident-soc-config": "SOC參數設定",
 	"txt-incident-events": "監控觸發紀錄",
 	"txt-incident-ttps": "攻擊手法",
 	"txt-prev-page": "上一頁",
@@ -133,6 +135,7 @@
 	"txt-portValidationFail": "請輸入正確Port格式",
 	"txt-validUnit": "請檢查是否正確輸入資安事件申報機關資料",
 	"txt-superAccount-not-set-unit": "此帳號未設定綁定機關，將跳轉至預設畫面",
+	"txt-isGovernmentNotFound": "沒有轉發給NCCST的機關/單位",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",
@@ -159,6 +162,7 @@
 	},
 
 	"unit": {
+		"txt-government": "是否需要轉發給NCCST",
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",
 		"txt-isNotDefault": "否",
@@ -255,5 +259,16 @@
 		"txt-url": "API網址",
 		"txt-key": "API-KEY",
 		"txt-sendFlag": "啟用狀態"
+	},
+	"soc": {
+		"txt-config-setting": "轉發GSOC設定",
+		"txt-companyName": "公司名稱",
+		"txt-companyName-sample": "Nsguard",
+		"txt-companyAbbreviation": "公司英文縮寫",
+		"txt-companyAbbreviation-sample": "NSGUARD",
+		"txt-ip": "NCCST-IP",
+		"txt-port": "NCCST-Port",
+		"txt-account": "帳號",
+		"txt-password": "密碼"
 	}
 }

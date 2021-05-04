@@ -551,6 +551,7 @@
   },
   "incidentFields": {
     "isDefault": "Default Unit",
+    "isGovernment":"Forward NCCST",
     "id": "ID",
     "title": "Title",
     "category": "Category",
@@ -588,7 +589,8 @@
     "infrastructureType": "Infrastructure Type",
     "incidentUnitDTO": {
       "name": "Unit Name",
-      "level": "Unit Level"
+      "level": "Unit Level",
+      "isGovernment":"Forward NCCST"
     },
     "keywords": "Keywords",
     "deviceId": "Device ID",
@@ -601,7 +603,7 @@
     "frequency": "Last Month Trigger Frequency",
     "note": "Note",
     "reason": "Frequency Empty Reason",
-    "updateDttm": "Last Update Time",
+    "updateDttm": "Last Edit Time",
     "abbreviation": "Unit Abbreviation",
     "type": "Incident Type",
     "select": "Send or Not",
