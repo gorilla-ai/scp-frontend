@@ -20,7 +20,9 @@
 	"txt-incident-config-management": "Incident Config Management",
 	"txt-incident-log-management": "Incident Send Log",
 	"txt-incident-isac-management": "ISAC Config Management",
+	"txt-incident-soc-management": "Government G-SOC Config Management",
 	"txt-incident-isac-config": "ISAC Config Settings",
+	"txt-incident-soc-config": "SOC Config Settings",
 	"txt-incident-events": "Incident Events",
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
@@ -133,6 +135,7 @@
 	"txt-portValidationFail": "Please check the correct port number",
 	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",
 	"txt-superAccount-not-set-unit": "No binding unit has been set for this account, it will jump to the default page.",
+	"txt-isGovernmentNotFound": "Authorities/units not forwarded to NCCST",
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",
@@ -158,6 +161,7 @@
 		"5": "Other"
 	},
 	"unit": {
+		"txt-government": "Need forward NCCST",
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",
 		"txt-isNotDefault": "No",
@@ -251,5 +255,16 @@
 		"txt-url": "API URL",
 		"txt-key": "API-KEY",
 		"txt-sendFlag": "Enable Status"
+	},
+	"soc": {
+		"txt-config-setting": "G-SOC Config Settings",
+		"txt-companyName": "Company Name",
+		"txt-companyName-sample": "Nsguard",
+		"txt-companyAbbreviation": "Company English Abbreviation",
+		"txt-companyAbbreviation-sample": "NSGUARD",
+		"txt-ip": "NCCST-IP",
+		"txt-port": "NCCST-Port",
+		"txt-account": "Account",
+		"txt-password": "Password"
 	}
 }

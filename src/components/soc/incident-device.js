@@ -60,13 +60,14 @@ class IncidentDevice extends Component {
                 sendStatus: false,
             },
             healthStatistic: {
-                dataFieldsArr: ['select', 'deviceId', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
+                dataFieldsArr: ['select', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
+                // dataFieldsArr: ['select', 'deviceId', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
                 dataFields: {},
                 dataContent: [],
                 rowIdField: [],
                 sort: {
-                    field: 'deviceId',
-                    desc: false
+                    field: 'frequency',
+                    desc: true
                 },
                 totalCount: 0,
                 currentPage: 1,
@@ -100,12 +101,13 @@ class IncidentDevice extends Component {
                 }
             },
             incidentDevice: {
-                dataFieldsArr: ['deviceId', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm', '_menu'],
+                dataFieldsArr: ['incidentUnitDTO.isGovernment', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm', '_menu'],
+                // dataFieldsArr: ['deviceId', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
-                    field: 'deviceId',
-                    desc: false
+                    field: 'frequency',
+                    desc: true
                 },
                 totalCount: 0,
                 currentPage: 1,
@@ -140,7 +142,7 @@ class IncidentDevice extends Component {
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
         this.checkAccountType();
-        this.getDeviceData();
+
         this.getUnitList();
         this.getSendCheck();
     }
@@ -158,24 +160,37 @@ class IncidentDevice extends Component {
         })
             .then(data => {
                 if (data) {
+                    const {incidentDevice} = this.state;
+                    let tempDeviceObj = incidentDevice;
 
                     if (data.rt.isDefault){
+                        tempDeviceObj.dataFieldsArr = ['incidentUnitDTO.isGovernment', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm']
                         this.setState({
-                            accountType: constants.soc.LIMIT_ACCOUNT
+                            accountType: constants.soc.LIMIT_ACCOUNT,
+                            incidentDevice:tempDeviceObj
+                        },()=>{
+                            this.getDeviceData();
                         })
                     }else{
-
                         if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                            tempDeviceObj.dataFieldsArr = ['incidentUnitDTO.isGovernment', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm']
                             this.setState({
-                                accountType: constants.soc.LIMIT_ACCOUNT
+                                accountType: constants.soc.LIMIT_ACCOUNT,
+                                incidentDevice:tempDeviceObj
+                            },()=>{
+                                this.getDeviceData();
                             })
                         }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
                             this.setState({
                                 accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                            },()=>{
+                                this.getDeviceData();
                             })
                         }else {
                             this.setState({
                                 accountType: constants.soc.CHECK_ERROR
+                            },()=>{
+                                this.getDeviceData();
                             })
                         }
                     }
@@ -229,8 +244,7 @@ class IncidentDevice extends Component {
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
-        })
-        .then(data => {
+        }).then(data => {
             if (data) {
                 let tempEdge = {...incidentDevice};
                 tempEdge.dataContent = data.rows;
@@ -267,7 +281,15 @@ class IncidentDevice extends Component {
                                             title={t('txt-delete')}/>
                                     </div>
                                 )
-                            } else {
+                            } else if (tempData === 'incidentUnitDTO.isGovernment') {
+
+                                 if (value){
+                                     return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
+                                 }else {
+                                     return <span>{this.checkDefault(value)}</span>
+                                 }
+
+                             }else {
                                 return <span>{value}</span>
                             }
                         }
@@ -302,6 +324,13 @@ class IncidentDevice extends Component {
         if (deviceSearch.keyword) {
             requestData.keyword = deviceSearch.keyword;
         }
+
+        if (this.state.setType === 'send'){
+            requestData.isGovernment = true;
+        }else{
+            // requestData.isGovernment = false;
+        }
+
         requestData.account = session.accountId;
 
         this.ah.one({
@@ -313,6 +342,12 @@ class IncidentDevice extends Component {
         .then(data => {
             if (data) {
                 let tempStatistic = {...healthStatistic};
+
+                if (this.state.setType === 'send' && data.counts === 0){
+                    helper.showPopupMsg(it('txt-isGovernmentNotFound'), t('txt-help'), );
+                    return null;
+                }
+
                 tempStatistic.dataContent = data.rows;
                 tempStatistic.totalCount = data.counts;
                 tempStatistic.currentPage = fromSearch === 'search' ? 1 : healthStatistic.currentPage;
@@ -420,6 +455,14 @@ class IncidentDevice extends Component {
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message);
         })
+    };
+
+    checkDefault = (value) => {
+        let info = it('unit.txt-isNotDefault');
+        if (value) {
+            info = it('unit.txt-isDefault')
+        }
+        return info;
     };
 
     getUnitList = () => {
@@ -1121,7 +1164,7 @@ class IncidentDevice extends Component {
         })
 
         ah.one({
-            url: `${baseUrl}/api/soc/device/_sendV2`,
+            url: `${baseUrl}/api/soc/device/_sendV2?`,
             data: JSON.stringify(sendList),
             type: 'POST',
             contentType: 'application/json',
@@ -1171,15 +1214,19 @@ class IncidentDevice extends Component {
     openSendMenu = () => {
         this.setState({
             setType: 'send',
+        },()=>{
+            this.setupHealthStatisticData();
         })
-        this.setupHealthStatisticData();
+
     };
 
     openDownloadMenu = () => {
         this.setState({
             setType: 'download',
+        },()=>{
+            this.setupHealthStatisticData();
         })
-        this.setupHealthStatisticData();
+
     };
 
     /**

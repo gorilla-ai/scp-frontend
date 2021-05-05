@@ -262,6 +262,9 @@
   "txt-linkAnalysis": "關聯",
   "txt-map": "地圖",
 
+  "txt-setOrganization": "設定組織架構",
+  "txt-defaultUnit": "目前預設機關",
+
   "time-interval": {
     "txt-search-manual": "自訂時間",
     "txt-search-auto": "定期更新",

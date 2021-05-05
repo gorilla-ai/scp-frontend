@@ -146,6 +146,15 @@ class SocConfig extends Component {
                         </Link>
                     </div>
                 }
+
+                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
+                <div className='item frame incident-SOC'>
+                    <Link to='/SCP/soc/incident-SOC'>
+                            <span
+                                className={`${this.getActiveFrame('incidentSettingSOC')}`}>{it('txt-incident-soc-management')}</span>
+                    </Link>
+                </div>
+                }
                 <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})}
                      onClick={this.toggleLeftNav}>
                     <i className={this.getClassName()}/>

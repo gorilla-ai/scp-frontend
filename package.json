@@ -41,7 +41,7 @@
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
     "classnames": "^2.2.5",
-    "core-js": "^3.9.1",
+    "core-js": "^3.8.2",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.10.0",
     "errorhandler": "^1.5.0",
@@ -80,6 +80,9 @@
     "react-router-dom": "^5.1.2",
     "react-select": "^3.1.0",
     "react-sortable-hoc": "^0.8.4",
+    "react-sortable-tree": "^2.8.0",
+    "react-sortable-tree-theme-full-node-drag": "^1.1.0",
+    "react-sortable-tree-theme-minimal": "0.0.14",
     "react-test-renderer": "^16.8.3",
     "react-timebar": "git+ssh://git@git.gorilla-technology.com:scrd01/react-timebar.git#upgrade-react-v16",
     "react-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/react-ui.git#upgrade-react-v16",
@@ -93,8 +96,7 @@
     "underscore.string": "^3.2.1",
     "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
     "widget-builder": "git+ssh://git@git.gorilla-technology.com:scrd01/widget-builder.git#react-v16-merge",
-    "xlsx": "^0.15.4",
-    "core-js": "^3.8.2"
+    "xlsx": "^0.15.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

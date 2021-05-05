@@ -14,6 +14,13 @@ import Checkbox from '@material-ui/core/Checkbox';
 import _ from "lodash";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import constants from "../constant/constant-incidnet";
+import 'react-sortable-tree/style.css';
+import SortableTree from 'react-sortable-tree';
+
+import ModalDialog from "react-ui/build/src/components/modal-dialog";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
+// import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
 
 let t = null;
 let f = null;
@@ -47,12 +54,12 @@ class IncidentUnit extends Component {
             accountListOptions: [],
             accountType:constants.soc.LIMIT_ACCOUNT,
             incidentUnit: {
-                dataFieldsArr: ['isDefault', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
+                dataFieldsArr: ['isDefault','isGovernment', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
-                    field: 'oid',
-                    desc: false
+                    field: 'isDefault',
+                    desc: true
                 },
                 totalCount: 0,
                 currentPage: 1,
@@ -65,10 +72,14 @@ class IncidentUnit extends Component {
                     industryType: '0',
                     isUse: false,
                     isDefault: false,
+                    isGovernment:false,
                     abbreviation: '',
                     relatedAccountList: []
                 }
-            }
+            },
+            isOrganizationDialogOpen: false,
+            treeData: [],
+            treeObj: {}
         };
 
         this.ah = getInstance("chewbacca");
@@ -80,8 +91,11 @@ class IncidentUnit extends Component {
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
         this.checkAccountType();
+
         this.getOptions();
-        this.getData();
+
+        this.checkUnitOrg();
+
     }
 
 
@@ -123,7 +137,16 @@ class IncidentUnit extends Component {
                             } else if (tempData === 'isDefault') {
 
                                 if (value){
-                                    return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
+                                    return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
+                                }else {
+                                    return <span>{this.checkDefault(value)}</span>
+                                }
+
+                            }
+                            else if (tempData === 'isGovernment') {
+
+                                if (value){
+                                    return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
                                 }else {
                                     return <span>{this.checkDefault(value)}</span>
                                 }
@@ -169,9 +192,28 @@ class IncidentUnit extends Component {
         return info;
     };
 
+    checkUnitOrg = () => {
+        const {baseUrl, session} = this.context;
+        this.ah.one({
+            url: `${baseUrl}/api/soc/unit/_getOrganization`,
+            type: 'GET'
+        })
+            .then(data => {
+                let jsonData = JSON.parse(data);
+                this.setState({
+                    treeData: jsonData.children,
+                    treeObj: jsonData
+                })
+
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
+    }
 
     checkAccountType = () => {
         const {baseUrl, session} = this.context;
+
         let requestData = {
             account: session.accountId
         }
@@ -183,18 +225,28 @@ class IncidentUnit extends Component {
         })
             .then(data => {
                 if (data) {
+                    const {incidentUnit} = this.state;
+                    let tempUnitObj = incidentUnit;
 
                     if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+                        tempUnitObj.dataFieldsArr = ['isGovernment','oid', 'name', 'abbreviation', 'level', 'industryType'];
                         this.setState({
-                            accountType: constants.soc.LIMIT_ACCOUNT
+                            accountType: constants.soc.LIMIT_ACCOUNT,
+                            incidentUnit: tempUnitObj
+                        }, () => {
+                            this.getData();
                         })
                     } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
                         this.setState({
-                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT,
+                        }, () => {
+                            this.getData();
                         })
                     } else {
                         this.setState({
                             accountType: constants.soc.CHECK_ERROR
+                        }, () => {
+                            this.getData();
                         })
                     }
                 }
@@ -290,8 +342,24 @@ class IncidentUnit extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, incidentUnit: incidentUnit, accountType} = this.state;
+        const {
+            activeContent,
+            baseUrl,
+            contextRoot,
+            showFilter,
+            incidentUnit: incidentUnit,
+            accountType,
+            isOrganizationDialogOpen,
+            treeData,
+            treeObj
+        } = this.state;
         const {session} = this.context;
+
+        const actions = {
+            cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeODialog},
+            confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
+        };
+
         return (
             <div>
 
@@ -301,6 +369,26 @@ class IncidentUnit extends Component {
                                 title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     </div>
                 </div>
+
+                {isOrganizationDialogOpen &&
+                <ModalDialog
+                    id='addUnitDialog'
+                    className='modal-dialog'
+                    title={t('txt-setOrganization') + '-' + t('txt-defaultUnit') + ' : ' + treeObj.title}
+                    draggable={true}
+                    global={true}
+                    actions={actions}
+                    closeAction='cancel'>
+
+                    <div style={{width: '890px', height: '630px'}}>
+                        <SortableTree
+                            treeData={treeData}
+                            onChange={treeData => this.setState({treeData: treeData})}
+                        />
+                    </div>
+                </ModalDialog>
+                }
+
 
                 <div className='data-content'>
                     <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
@@ -339,6 +427,39 @@ class IncidentUnit extends Component {
         );
     }
 
+    openODialog = () => {
+        this.setState({
+            isOrganizationDialogOpen: true
+        })
+    }
+
+    closeODialog = () => {
+        this.setState({
+            isOrganizationDialogOpen: false
+        })
+    }
+
+    handleUnitTreeConfirm = () =>{
+        const {treeData, treeObj} = this.state;
+        const {baseUrl} = this.context;
+        let tempUnitTree = treeObj
+        tempUnitTree.children = treeData
+
+        this.ah.one({
+            url: `${baseUrl}/api/soc/unit/_overrideOrganization`,
+            data: JSON.stringify(tempUnitTree),
+            type: 'POST',
+            contentType: 'text/plain'
+        }).then(data => {
+            if(data){
+                helper.showPopupMsg('', t('txt-error'),t('txt-update')+t('txt-success'));
+            }
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'),t('txt-update')+t('txt-fail'));
+        })
+
+    }
+
     /**
      * Handle table pagination change
      * @method
@@ -366,17 +487,23 @@ class IncidentUnit extends Component {
      * @returns HTML DOM
      */
     displayEditDeviceContent = () => {
-        const {activeContent, incidentUnit} = this.state;
+        const {activeContent, incidentUnit, accountType} = this.state;
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-unit')}</header>
 
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit'
+                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                     }
                     {activeContent !== 'addDevice' && activeContent !== 'editDevice' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit'
+                            onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
+                    }
+                    {activeContent === 'viewDevice' && incidentUnit.info.isDefault && accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+                    <Button variant='outlined' color='primary' className='standard btn edit'
+                            onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>
                     }
                 </div>
 
@@ -496,18 +623,34 @@ class IncidentUnit extends Component {
                         </TextField>
                     </div>
 
-                    <div className='group'>
+                    <div className='group'  style={{width: '25%'}}>
                         <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
-                        <Checkbox
-                            id='isDefault'
-                            name='isDefault'
-                            color='primary'
-                            className='checkbox-ui'
-                            onChange={this.handleDataChangeMuiCheck}
-                            checked={incidentUnit.info.isDefault}
-                            disabled={activeContent === 'viewDevice'}/>
+                        <FormControlLabel
+                            className='switch-control'
+                            control={
+                                <Switch
+                                    checked={incidentUnit.info.isDefault}
+                                    onChange={(event) => this.handleChange('isDefault', event.target.checked)}
+                                    color='primary' />
+                            }
+                            label={t('txt-switch')}
+                            disabled={activeContent === 'viewDevice'}
+                        />
                     </div>
-
+                    <div className='group' style={{width: '25%'}}>
+                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-government')}</label>
+                        <FormControlLabel
+                            className='switch-control'
+                            control={
+                                <Switch
+                                    checked={incidentUnit.info.isGovernment}
+                                    onChange={(event) => this.handleChange('isGovernment', event.target.checked)}
+                                    color='primary' />
+                            }
+                            label={t('txt-switch')}
+                            disabled={activeContent === 'viewDevice'}
+                        />
+                    </div>
                     <div className='group full'>
                         <label htmlFor='accountListOptions'>{f('incidentFields.relatedAccountList')}</label>
                         <Autocomplete
@@ -816,6 +959,7 @@ class IncidentUnit extends Component {
                 level: allValue.level,
                 isUse: allValue.isUse,
                 isDefault: allValue.isDefault,
+                isGovernment:allValue.isGovernment,
                 industryType: allValue.industryType,
                 abbreviation: allValue.abbreviation,
                 relatedAccountList: allValue.relatedAccountList
@@ -854,6 +998,7 @@ class IncidentUnit extends Component {
                 name: allValue.name,
                 level: allValue.level,
                 isUse: allValue.isUse,
+                isGovernment:allValue.isGovernment,
                 isDefault: allValue.isDefault,
                 industryType: allValue.industryType,
                 abbreviation: allValue.abbreviation,
@@ -981,6 +1126,16 @@ class IncidentUnit extends Component {
             incidentUnit: tempDevice
         });
     };
+
+    handleChange(field, value) {
+        let tempDevice = {...this.state.incidentUnit};
+
+        tempDevice.info[field] = value
+        this.setState({
+            incidentUnit: tempDevice
+        });
+    }
+
     /**
      * Handle Incident Device edit input data change
      * @method

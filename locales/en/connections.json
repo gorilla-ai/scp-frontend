@@ -261,6 +261,8 @@
   "txt-table": "Table",
   "txt-linkAnalysis": "Link Analysis",
   "txt-map": "Map",
+  "txt-setOrganization": "Organization Setting",
+  "txt-defaultUnit": "Default Unit",
 
   "time-interval": {
     "txt-search-manual": "Manual",

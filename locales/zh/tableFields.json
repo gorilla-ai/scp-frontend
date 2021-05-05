@@ -551,6 +551,7 @@
   },
   "incidentFields": {
     "isDefault": "預設機關",
+    "isGovernment":"是否回傳NCCST",
     "id": "事件單編號",
     "title": "事件主旨",
     "category": "事件類別",
@@ -587,7 +588,8 @@
     "infrastructureType": "指標類型",
     "incidentUnitDTO": {
       "name": "機關名稱",
-      "level": "機關等級"
+      "level": "機關等級",
+      "isGovernment":"轉發NCCST"
     },
     "keywords": "關鍵字",
     "deviceId": "設備代號",
@@ -600,7 +602,7 @@
     "note": "備註",
     "reason": "異常原因",
     "frequency": "上月觸發次數",
-    "updateDttm": "最後更新時間",
+    "updateDttm": "最後編輯時間",
     "abbreviation": "機關英文簡稱",
     "type": "事件單類型",
     "select": "是否發布",
