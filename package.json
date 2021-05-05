@@ -41,7 +41,7 @@
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
     "classnames": "^2.2.5",
-    "core-js": "^3.8.2",
+    "core-js": "^3.9.1",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.10.0",
     "errorhandler": "^1.5.0",
