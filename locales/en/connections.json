@@ -757,6 +757,7 @@
     "txt-withHeader": "With Header",
     "txt-selectIP": "Please select IP field",
     "txt-testQuery": "Test Query",
+    "txt-generateTopology": "Generate Topology",
     "txt-total": "Total upload count",
     "txt-success": "Total success count",
     "txt-fail": "Total fail count",

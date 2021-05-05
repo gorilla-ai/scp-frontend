@@ -15,6 +15,7 @@ import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
 import DataTable from 'react-ui/build/src/components/table'
+import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -42,6 +43,7 @@ class AutoSettings extends Component {
 
     this.state = {
       activeContent: 'viewMode', //'viewMode' or 'editMode'
+      networkTestOpen: false,
       originalStatusEnable: {},
       statusEnable: {
         ipRange: true,
@@ -74,16 +76,19 @@ class AutoSettings extends Component {
       originalEdgeData: [],
       edgeData: [{
         edge: '',
-        target: [{
-          ip: '',
-          mask: ''
-        }],
-        switch: [{
-          ip: '',
-          mask: ''
-        }],
+        scannerData: {
+          target: [{
+            ip: '',
+            mask: ''
+          }],
+          switch: [{
+            ip: '',
+            mask: ''
+          }],
+        },
         index: 0
       }],
+      networkTestResult: [],
       scannerTableData: [],
       formValidation: {
         ip: {
@@ -170,13 +175,14 @@ class AutoSettings extends Component {
           _.forEach(data.networktopology, (val, i) => {
             let networkTopology = {};
             networkTopology.edge = val.edge;
-            networkTopology.target = _.map(val.targetInfo, val2 => {
+            networkTopology.scannerData = {};
+            networkTopology.scannerData.target = _.map(val.targetInfo, val2 => {
               return {
                 ip: val2.target,
                 mask: val2.mask
               }
             });
-            networkTopology.switch = _.map(val.switchInfo, val2 => {
+            networkTopology.scannerData.switch = _.map(val.switchInfo, val2 => {
               return {
                 ip: val2.host,
                 mask: val2.community
@@ -260,10 +266,8 @@ class AutoSettings extends Component {
       this.setState({
         edgeData: data
       });
-
-      //tempEdgeData.push(data);
     } else {
-      tempEdgeData[data.index][type] = scanner;
+      tempEdgeData[data.index].scannerData[type] = scanner;
 
       this.setState({
         edgeData: tempEdgeData
@@ -496,13 +500,13 @@ class AutoSettings extends Component {
     _.forEach(this.state.edgeData, val => {
       networkTopology.push({
         edge: val.edge,
-        targetInfo: _.map(val.target, val2 => {
+        targetInfo: _.map(val.scannerData.target, val2 => {
           return {
             target: val2.ip,
             mask: val2.mask
           }
         }),
-        switchInfo: _.map(val.switch, val2 => {
+        switchInfo: _.map(val.scannerData.switch, val2 => {
           return {
             host: val2.ip,
             community: val2.mask
@@ -515,18 +519,28 @@ class AutoSettings extends Component {
   }
   /**
    * Get and network test result
-   * @param {number} index - index of edgeData
+   * @param {string} type - button type ('generate' or 'test')
+   * @param {number} [index] - index of edgeData
    * @method
    */
-  handleNetworkTest = (index) => {
+  handleNetworkTest = (type, index) => {
     const {baseUrl} = this.context;
     const {edgeData} = this.state;
     const url = `${baseUrl}/api/ipdevice/topology`;
     const formattedEdgeData = this.getFormattedEdgeData();
-    const requestData = {
-      isTest: true,
-      networktopology: [formattedEdgeData[index]]
-    };
+    let requestData = {};
+
+    if (type === 'generate') {
+      requestData = {
+        isTest: false,
+        networktopology: formattedEdgeData
+      };
+    } else if (type === 'test') {
+      requestData = {
+        isTest: true,
+        networktopology: [formattedEdgeData[index]]
+      };
+    }
 
     this.ah.one({
       url,
@@ -536,7 +550,15 @@ class AutoSettings extends Component {
     })
     .then(data => {
       if (data) {
-        console.log(data);
+        if (type === 'generate') {
+          helper.showPopupMsg(t('txt-requestSent'));
+        } else if (type === 'test') {
+          this.setState({
+            networkTestResult: data
+          }, () => {
+            this.toggleNetworkTestDialog();
+          });
+        }
       }
       return null;
     })
@@ -679,6 +701,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get input width based on content mode
+   * @method
+   * @param {string} type - input type ('ipRange' or 'scanner')
+   * @returns input width
+   */
   getInputWidth = (type) => {
     const {activeContent} = this.state;
 
@@ -694,9 +722,77 @@ class AutoSettings extends Component {
       return '50%';
     }
   }
+  /**
+   * Toggle test result modal dialog
+   * @method
+   */
+  toggleNetworkTestDialog = () => {
+    this.setState({
+      networkTestOpen: !this.state.networkTestOpen
+    });
+  }
+  /**
+   * Display network data
+   * @method
+   * @param {object} val - content of the data
+   * @param {number} i - index of the data
+   * @returns HTML DOM
+   */
+  showNetworkData = (val, i) => {
+    return (
+      <tr>
+        <td><div>{val.content.dstIP}</div><div>{val.content.srcIP}</div></td>
+        <td>{val.content.message}</td>
+      </tr>
+    )
+  }
+  /**
+   * Display Network data table
+   * @method
+   * @returns HTML DOM
+   */
+  displayNetworkTable = () => {
+    return (
+      <table className='c-table main-table'>
+        <thead>
+          <tr>
+            <th>Host</th>
+            <th>Port</th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.state.networkTestResult.map(this.showNetworkData)}
+        </tbody>
+      </table>
+    )
+  }
+  /**
+   * Display network test result modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showNetworkTestDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.toggleNetworkTestDialog}
+    };
+
+    return (
+      <ModalDialog
+        id='testResultDialog'
+        className='modal-dialog'
+        title={t('network-inventory.txt-testQuery')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayNetworkTable()}
+      </ModalDialog>
+    )
+  }
   render() {
     const {
       activeContent,
+      networkTestOpen,
       statusEnable,
       ipRangeData,
       adData,
@@ -719,6 +815,10 @@ class AutoSettings extends Component {
 
     return (
       <div className='parent-content'>
+        {networkTestOpen &&
+          this.showNetworkTestDialog()
+        }
+
         <div className='main-content basic-form'>
           <header className='main-header'>{t('network-inventory.txt-autoSettings')}</header>
 
@@ -928,6 +1028,9 @@ class AutoSettings extends Component {
                     disabled={activeContent === 'viewMode'} />
                 </div>
                 <div className='group full multi'>
+                  {activeContent === 'viewMode' &&
+                    <Button variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')}>{t('network-inventory.txt-generateTopology')}</Button>
+                  }
                   <MultiInput
                     id='autoSettingsEdge'
                     className='edge-group'
@@ -935,14 +1038,16 @@ class AutoSettings extends Component {
                     props={data}
                     defaultItemValue={{
                       edge: '',
-                      target: [{
-                        ip: '',
-                        mask: ''
-                      }],
-                      switch: [{
-                        ip: '',
-                        mask: ''
-                      }],
+                      scannerData: {
+                        target: [{
+                          ip: '',
+                          mask: ''
+                        }],
+                        switch: [{
+                          ip: '',
+                          mask: ''
+                        }],
+                      },
                       index: edgeData.length
                     }}
                     value={edgeData}

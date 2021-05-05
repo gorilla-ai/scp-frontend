@@ -757,6 +757,7 @@
     "txt-withHeader": "包含表頭",
     "txt-selectIP": "請選擇IP欄位",
     "txt-testQuery": "查詢測試",
+    "txt-generateTopology": "產生拓樸",
     "txt-total": "總上傳筆數",
     "txt-success": "上傳成功筆數",
     "txt-fail": "上傳失敗筆數",

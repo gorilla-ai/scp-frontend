@@ -38,6 +38,35 @@ class Edge extends Component {
       edge: event.target.value
     });
   }
+  /**
+   * Check if all input data is available
+   * @method
+   * @param {object} data - edge data
+   * @returns valid true/false
+   */
+  checkValidData = (data) => {
+    let valid = true;
+
+    if (!data.edge) {
+      valid = false;
+    } else {
+      _.forEach(data.scannerData.target, val => {
+        if (!val.ip || !val.mask) {
+          valid = false;
+          return;
+        }
+      })
+
+      _.forEach(data.scannerData.switch, val => {
+        if (!val.ip || !val.mask) {
+          valid = false;
+          return;
+        }
+      })
+    }
+
+    return !valid;
+  }
   render() {
     const {activeContent, statusEnable, deviceList, edgeData, value} = this.props;
     const data = {
@@ -51,7 +80,9 @@ class Edge extends Component {
 
     return (
       <div className='group-content edge'>
-        <Button variant='contained' color='primary' className='network-test' onClick={this.props.handleNetworkTest.bind(this, value.index)}>{t('network-inventory.txt-testQuery')}</Button>
+        {activeContent === 'editMode' &&
+          <Button variant='contained' color='primary' className='network-test' onClick={this.props.handleNetworkTest.bind(this, 'test', value.index)} disabled={this.checkValidData(value)}>{t('network-inventory.txt-testQuery')}</Button>
+        }
         <label id='scannerLabel' htmlFor='autoSettingsEdge'>
           <span style={{width: this.props.getInputWidth('scanner')}}>Edge</span>
         </label>
@@ -81,7 +112,7 @@ class Edge extends Component {
               ip: '',
               mask: ''
             }}
-            value={value.target}
+            value={value.scannerData.target}
             onChange={this.props.setEdgeData.bind(this, 'target', value)}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
@@ -101,7 +132,7 @@ class Edge extends Component {
               ip: '',
               mask: ''
             }}
-            value={value.switch}
+            value={value.scannerData.switch}
             onChange={this.props.setEdgeData.bind(this, 'switch', value)}
             handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
