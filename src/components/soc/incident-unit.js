@@ -14,13 +14,13 @@ import Checkbox from '@material-ui/core/Checkbox';
 import _ from "lodash";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import constants from "../constant/constant-incidnet";
-import 'react-sortable-tree/style.css';
-import SortableTree from 'react-sortable-tree';
+
+// import 'react-sortable-tree/style.css';
+// import SortableTree from 'react-sortable-tree';
 
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
-// import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
 
 let t = null;
 let f = null;
@@ -370,24 +370,24 @@ class IncidentUnit extends Component {
                     </div>
                 </div>
 
-                {isOrganizationDialogOpen &&
-                <ModalDialog
-                    id='addUnitDialog'
-                    className='modal-dialog'
-                    title={t('txt-setOrganization') + '-' + t('txt-defaultUnit') + ' : ' + treeObj.title}
-                    draggable={true}
-                    global={true}
-                    actions={actions}
-                    closeAction='cancel'>
+                {/*{isOrganizationDialogOpen &&*/}
+                {/*<ModalDialog*/}
+                {/*    id='addUnitDialog'*/}
+                {/*    className='modal-dialog'*/}
+                {/*    title={t('txt-setOrganization') + '-' + t('txt-defaultUnit') + ' : ' + treeObj.title}*/}
+                {/*    draggable={true}*/}
+                {/*    global={true}*/}
+                {/*    actions={actions}*/}
+                {/*    closeAction='cancel'>*/}
 
-                    <div style={{width: '890px', height: '630px'}}>
-                        <SortableTree
-                            treeData={treeData}
-                            onChange={treeData => this.setState({treeData: treeData})}
-                        />
-                    </div>
-                </ModalDialog>
-                }
+                {/*    <div style={{width: '890px', height: '630px'}}>*/}
+                {/*        <SortableTree*/}
+                {/*            treeData={treeData}*/}
+                {/*            onChange={treeData => this.setState({treeData: treeData})}*/}
+                {/*        />*/}
+                {/*    </div>*/}
+                {/*</ModalDialog>*/}
+                {/*}*/}
 
 
                 <div className='data-content'>
