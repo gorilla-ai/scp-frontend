@@ -19,9 +19,6 @@ class Scanner extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  ryan = () => {
-
-  }
   /**
    * Set input value change
    * @method
@@ -76,7 +73,6 @@ class Scanner extends Component {
             onChange={this.handleDataChange}
             disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
         }
-        {/*<Button variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>*/}
       </div>
     )
   }

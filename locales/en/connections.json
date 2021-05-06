@@ -758,6 +758,7 @@
     "txt-selectIP": "Please select IP field",
     "txt-testQuery": "Test Query",
     "txt-generateTopology": "Generate Topology",
+    "txt-warningMsg": "Network scope is large and will take some time to excute SNMP api. Please confirm to execute test query.",
     "txt-total": "Total upload count",
     "txt-success": "Total success count",
     "txt-fail": "Total fail count",

@@ -117,7 +117,7 @@ class AutoSettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, deviceList} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, deviceList, edgeData} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/config`,
@@ -130,7 +130,7 @@ class AutoSettings extends Component {
         let ipRangeData = [];
         let tempADdata = {...adData};
         let tempNetflowData = {...netflowData};
-        let edgeData = [];
+        let tempEdgeData = [];
         tempStatusEnable.ipRange = data['ip.enable'];
         tempStatusEnable.ad_ldap = data['ad.enable'];
         tempStatusEnable.netflow = data['netflow.enable'];
@@ -189,8 +189,10 @@ class AutoSettings extends Component {
               }
             });
             networkTopology.index = i;
-            edgeData.push(networkTopology);
+            tempEdgeData.push(networkTopology);
           })
+        } else {
+          tempEdgeData = edgeData;
         }
 
         this.setState({
@@ -203,8 +205,8 @@ class AutoSettings extends Component {
           adData: tempADdata,
           originalNetflowData: _.cloneDeep(tempNetflowData),
           netflowData: tempNetflowData,
-          originalEdgeData: _.cloneDeep(edgeData),
-          edgeData
+          originalEdgeData: _.cloneDeep(tempEdgeData),
+          edgeData: tempEdgeData
         }, () => {
           this.getDeviceList();
         });
@@ -460,36 +462,6 @@ class AutoSettings extends Component {
     }
   }
   /**
-   * Get and set Scanner test result
-   * @param {object} value - scanner test info
-   * @method
-   */
-  handleScannerTest = (value) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_scan?edge=${value.edge}&target=${value.ip}&mask=${value.mask}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          scannerTableData: data
-        }, () => {
-          PopupDialog.alert({
-            id: 'modalWindowSmall',
-            confirmText: t('txt-close'),
-            display: this.getScannerTestContent()
-          });
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg(t('auto-settings.txt-connectionsFail'), t('txt-error'));
-    })
-  }
-  /**
    * Get formatted edgeData for http request
    * @method
    * @returns formatted network topology data
@@ -516,6 +488,29 @@ class AutoSettings extends Component {
     })
 
     return networkTopology;
+  }
+  /**
+   * Show message to the user
+   * @param {number} [index] - index of edgeData
+   * @method
+   */
+  showMessage = (index) => {
+    PopupDialog.prompt({
+      title: t('network-inventory.txt-testQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('network-inventory.txt-warningMsg')}</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleNetworkTest('test', index);
+        }
+      }
+    });
   }
   /**
    * Get and network test result
@@ -547,12 +542,10 @@ class AutoSettings extends Component {
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
-    })
+    }, {showProgress: type === 'test'})
     .then(data => {
       if (data) {
-        if (type === 'generate') {
-          helper.showPopupMsg(t('txt-requestSent'));
-        } else if (type === 'test') {
+        if (type === 'test') {
           this.setState({
             networkTestResult: data
           }, () => {
@@ -565,6 +558,10 @@ class AutoSettings extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    if (type === 'generate') {
+      helper.showPopupMsg(t('txt-requestSent'));
+    }
   }
   /**
    * Toggle content type
@@ -682,9 +679,6 @@ class AutoSettings extends Component {
 
     requestData.networktopology = this.getFormattedEdgeData();
 
-    console.log(requestData);
-    return;
-
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -752,19 +746,27 @@ class AutoSettings extends Component {
    * @returns HTML DOM
    */
   displayNetworkTable = () => {
-    return (
-      <table className='c-table main-table'>
-        <thead>
-          <tr>
-            <th>Host</th>
-            <th>Port</th>
-          </tr>
-        </thead>
-        <tbody>
-          {this.state.networkTestResult.map(this.showNetworkData)}
-        </tbody>
-      </table>
-    )
+    const {networkTestResult} = this.state;
+
+    if (networkTestResult.length > 0) {
+      return (
+        <table className='c-table main-table'>
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>Port</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.networkTestResult.map(this.showNetworkData)}
+          </tbody>
+        </table>
+      )
+    } else {
+      return (
+        <div>{t('txt-notFound')}</div>
+      )
+    }
   }
   /**
    * Display network test result modal dialog
@@ -807,7 +809,7 @@ class AutoSettings extends Component {
       deviceList,
       edgeData,
       getInputWidth: this.getInputWidth,
-      handleScannerTest: this.handleScannerTest,
+      showMessage: this.showMessage,
       handleNetworkTest: this.handleNetworkTest,
       setEdgeData: this.setEdgeData
     };
@@ -1028,7 +1030,7 @@ class AutoSettings extends Component {
                     disabled={activeContent === 'viewMode'} />
                 </div>
                 <div className='group full multi'>
-                  {activeContent === 'viewMode' &&
+                  {activeContent === 'viewMode' && edgeData.length > 0 &&
                     <Button variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')}>{t('network-inventory.txt-generateTopology')}</Button>
                   }
                   <MultiInput

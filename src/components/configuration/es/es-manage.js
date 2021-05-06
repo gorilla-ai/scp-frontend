@@ -532,7 +532,7 @@ class EsManage extends Component {
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
-    })
+    }, {showProgress: false})
     .then(data => {
       return null;
     })

@@ -23,9 +23,6 @@ class Edge extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  ryan = () => {
-
-  }
   /**
    * Set input value change
    * @method
@@ -72,16 +69,14 @@ class Edge extends Component {
     const data = {
       activeContent,
       statusEnable,
-      deviceList,
       getInputWidth: this.props.getInputWidth,
-      handleScannerTest: this.props.handleScannerTest,
-      setScannerData: this.props.setScannerData
+      showMessage: this.props.showMessage
     };
 
     return (
       <div className='group-content edge'>
         {activeContent === 'editMode' &&
-          <Button variant='contained' color='primary' className='network-test' onClick={this.props.handleNetworkTest.bind(this, 'test', value.index)} disabled={this.checkValidData(value)}>{t('network-inventory.txt-testQuery')}</Button>
+          <Button variant='contained' color='primary' className='network-test' onClick={this.props.showMessage.bind(this, value.index)} disabled={this.checkValidData(value)}>{t('network-inventory.txt-testQuery')}</Button>
         }
         <label id='scannerLabel' htmlFor='autoSettingsEdge'>
           <span style={{width: this.props.getInputWidth('scanner')}}>Edge</span>
@@ -114,7 +109,6 @@ class Edge extends Component {
             }}
             value={value.scannerData.target}
             onChange={this.props.setEdgeData.bind(this, 'target', value)}
-            handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>
 
@@ -134,7 +128,6 @@ class Edge extends Component {
             }}
             value={value.scannerData.switch}
             onChange={this.props.setEdgeData.bind(this, 'switch', value)}
-            handleScannertest={this.handleScannerTest}
             disabled={activeContent === 'viewMode'} />
         </div>
       </div>

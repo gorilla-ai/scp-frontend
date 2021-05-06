@@ -1547,9 +1547,11 @@ button.standard:hover:not([disabled]) {
         }
         .group-content.edge {
           position: relative;
-          padding: 5px;
+          width: 90%;
+          padding: 5px 10px;
           margin-right: 5px;
           border: 1px solid var(--primaryBorder);
+          border-radius: 5px;
           .network-test {
             position: absolute;
             top: 50px;
@@ -3117,6 +3119,20 @@ button.standard:hover:not([disabled]) {
           overflow-y: auto;
           .c-la {
             width: 100%;
+          }
+          .dorp-down {
+            position: absolute;
+            top: 55px;
+            right: 220px;
+            .MuiInputBase-root {
+              margin-top: 5px;
+            }
+            .MuiSelect-root {
+              padding-top: 5px;
+              padding-bottom: 5px;
+              border: 1px solid #767676;
+              border-radius: 0;
+            }
           }
         }
         .file-options { //For Events File page

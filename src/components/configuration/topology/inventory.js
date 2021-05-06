@@ -70,7 +70,7 @@ class NetworkInventory extends Component {
 
     this.state = {
       activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
-      activeContent: 'autoSettings', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
+      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
       showFilter: false,
       showSeatData: false,
       modalFloorOpen: false,
@@ -81,7 +81,10 @@ class NetworkInventory extends Component {
       contextAnchor: null,
       menuType: '',
       LAconfig: {},
+      deviceEventsDataList: {},
       deviceEventsData: {},
+      eventsDateList: [],
+      eventsDate: '',
       deviceLAdata: {},
       deviceSearch: {
         ip: '',
@@ -1113,6 +1116,15 @@ class NetworkInventory extends Component {
       } else {
         this.getFloorList();
       }
+    } else if (activeTab === 'deviceLA') {
+      this.setState({
+        deviceEventsData: {},
+        deviceLAdata: {},
+        eventsDateList: [],
+        eventsDate: ''
+      }, () => {
+        this.loadLinkAnalysis();
+      });
     }
   }
   /**
@@ -1121,7 +1133,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, deviceSearch} = this.state;
+    const {activeTab, showFilter, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1139,72 +1151,84 @@ class NetworkInventory extends Component {
               value={deviceSearch.ip}
               onChange={this.handleSearchChange} />
           </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchMac'
-              name='mac'
-              label={t('ipFields.mac')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.mac}
-              onChange={this.handleSearchChange} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchHostName'
-              name='hostName'
-              label={t('ipFields.hostName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.hostName}
-              onChange={this.handleSearchChange} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchSystem'
-              name='system'
-              label={t('ipFields.system')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.system}
-              onChange={this.handleSearchChange} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchOwner'
-              name='owner'
-              label={t('ipFields.owner')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.owner}
-              onChange={this.handleSearchChange} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchAreaName'
-              name='areaName'
-              label={t('ipFields.areaName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.areaName}
-              onChange={this.handleSearchChange} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchSeatName'
-              name='seatName'
-              label={t('ipFields.seatName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.seatName}
-              onChange={this.handleSearchChange} />
-          </div>
+          {activeTab !== 'deviceLA' &&
+            <div className='group'>
+              <TextField
+                id='deviceSearchMac'
+                name='mac'
+                label={t('ipFields.mac')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.mac}
+                onChange={this.handleSearchChange} />
+            </div>
+          }
+          {activeTab !== 'deviceLA' &&
+            <div className='group'>
+              <TextField
+                id='deviceSearchHostName'
+                name='hostName'
+                label={t('ipFields.hostName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.hostName}
+                onChange={this.handleSearchChange} />
+            </div>
+          }
+          {activeTab !== 'deviceLA' &&
+            <div className='group'>
+              <TextField
+                id='deviceSearchSystem'
+                name='system'
+                label={t('ipFields.system')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.system}
+                onChange={this.handleSearchChange} />
+            </div>
+          }
+          {activeTab !== 'deviceLA' &&
+            <div className='group'>
+              <TextField
+                id='deviceSearchOwner'
+                name='owner'
+                label={t('ipFields.owner')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.owner}
+                onChange={this.handleSearchChange} />
+            </div>
+          }
+          {activeTab !== 'deviceLA' &&
+            <div className='group'>
+              <TextField
+                id='deviceSearchAreaName'
+                name='areaName'
+                label={t('ipFields.areaName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.areaName}
+                onChange={this.handleSearchChange} />
+            </div>
+          }
+          {activeTab !== 'deviceLA' &&
+            <div className='group'>
+              <TextField
+                id='deviceSearchSeatName'
+                name='seatName'
+                label={t('ipFields.seatName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.seatName}
+                onChange={this.handleSearchChange} />
+            </div>
+          }
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleFilterSubmit}>{t('txt-filter')}</Button>
@@ -1420,22 +1444,40 @@ class NetworkInventory extends Component {
    */
   loadLinkAnalysis = () => {
     const {baseUrl} = this.context;
+    const {LAconfig, deviceSearch} = this.state;
+    let url = `${baseUrl}/api/ipdevice/topology`;
+
+    if (deviceSearch.ip) {
+      url += `?ip=${deviceSearch.ip}`;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/ipdevice/la`,
+      url,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
+        let deviceEventsDataList = {};
         let deviceEventsData = {};
 
         _.forEach(data, val => {
+          deviceEventsDataList[helper.getFormattedDate(val.createDttm, 'local')] = val.topology;
+        })
+
+        _.forEach(data[0].topology, val => {
           deviceEventsData[val.id] = val.content;
         })
 
+        const eventsDateList = _.map(data, (val, i) => {
+          return <MenuItem key={i} value={helper.getFormattedDate(val.createDttm, 'local')}>{helper.getFormattedDate(val.createDttm, 'local')}</MenuItem>
+        });
+
         this.setState({
+          deviceEventsDataList,
           deviceEventsData,
-          deviceLAdata: analyze(deviceEventsData, this.state.LAconfig, {analyzeGis: false})
+          deviceLAdata: analyze(deviceEventsData, LAconfig, {analyzeGis: false}),
+          eventsDateList,
+          eventsDate: helper.getFormattedDate(data[0].createDttm, 'local')
         });
       } else {
         helper.showPopupMsg(t('txt-notFound'));
@@ -1447,21 +1489,43 @@ class NetworkInventory extends Component {
     })
   }
   /**
+   * Handle change of date list and reset LA data
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceDateChange = (event) => {
+    this.setState({
+      deviceEventsData: {},
+      deviceLAdata: {},
+      eventsDate: event.target.value
+    }, () => {
+      const {LAconfig, deviceEventsDataList, eventsDate} = this.state;
+      let deviceEventsData = {};
+
+      _.forEach(deviceEventsDataList[eventsDate], val => {
+        deviceEventsData[val.id] = val.content;
+      })
+
+      this.setState({
+        deviceEventsData,
+        deviceLAdata: analyze(deviceEventsData, LAconfig, {analyzeGis: false})
+      });
+    });
+  }
+  /**
    * Handle content tab change
    * @method
    * @param {object} event - event object
    * @param {string} newTab - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
   handleSubTabChange = (event, newTab) => {
-    if (newTab === 'deviceLA') {
-      this.setState({
-        showFilter: false
-      });
-    }
-
     this.setState({
       activeTab: newTab,
-      floorMapType: ''
+      floorMapType: '',
+      deviceEventsData: {},
+      deviceLAdata: {},
+      eventsDateList: [],
+      eventsDate: ''
     }, () => {
       if (newTab === 'deviceList') {
         this.getDeviceData();
@@ -3654,6 +3718,8 @@ class NetworkInventory extends Component {
       menuType,
       LAconfig,
       deviceEventsData,
+      eventsDateList,
+      eventsDate,
       deviceLAdata,
       deviceData,
       currentDeviceData,
@@ -3763,7 +3829,7 @@ class NetworkInventory extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {((activeTab === 'deviceList' && activeContent === 'tableList') || activeTab === 'deviceMap') &&
+            {((activeTab === 'deviceList' && activeContent === 'tableList') || activeTab === 'deviceMap' || activeTab === 'deviceLA') &&
               <div>
                 <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
                 {activeTab === 'deviceList' &&
@@ -3781,9 +3847,7 @@ class NetworkInventory extends Component {
 
           {activeContent === 'tableList' &&
             <div className='parent-content'>
-              {(activeTab === 'deviceList' || activeTab === 'deviceMap') &&
-                this.renderFilter()
-              }
+              {this.renderFilter()}
 
               <div className='main-content'>
                 <Tabs
@@ -3797,7 +3861,9 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
+                  {activeTab !== 'deviceLA' &&
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
+                  }
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
                   {activeTab === 'deviceMap' &&
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
@@ -3854,6 +3920,18 @@ class NetworkInventory extends Component {
                       source={deviceLAdata}
                       sourceItemOptions={LAconfig.la}
                       lng={language} />
+                    {eventsDateList.length > 0 &&
+                      <TextField
+                        id='deviceLAdropdown'
+                        className='dorp-down'
+                        select
+                        variant='outlined'
+                        size='small'
+                        value={eventsDate}
+                        onChange={this.handleDeviceDateChange}>
+                        {eventsDateList}
+                      </TextField>
+                    }
                   </div>
                 }
 
