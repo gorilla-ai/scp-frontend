@@ -1518,9 +1518,14 @@ button.standard:hover:not([disabled]) {
     .edge-settings {
       overflow-y: auto;
       #autoSettingsIpRange,
-      #autoSettingsScanner {
+      #autoSettingsScanner,
+      #autoSettingsNetworkTopology {
+        .group {
+          padding: 5px;
+        }
         .ip-range,
-        .scanner {
+        .scanner,
+        .network-topology {
           margin-right: 2.2%;
         }
         .ip-range {
@@ -1529,8 +1534,49 @@ button.standard:hover:not([disabled]) {
         .scanner {
           width: 27%;
         }
-        .group {
+        .network-topology {
+          width: 48%;
+        }
+      }
+    }
+    .auto-settings {
+      .generate-topo {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      #autoSettingsNetworkTopology {
+        #scannerLabel span {
+          margin-left: 0;
+        }
+        .group-content.edge {
+          position: relative;
+          width: 90%;
+          padding: 5px 10px;
+          margin-right: 5px;
+          border: 1px solid var(--primaryBorder);
+          border-radius: 5px;
+          .network-test {
+            position: absolute;
+            top: 50px;
+            right: -97px;
+          }
+        }
+        .target,
+        .switch {
+          .header {
+            margin-bottom: 5px;
+            color: var(--primaryContentHeader);
+          }
           padding: 5px;
+          margin-top: 15px;
+          border: 1px solid var(--primaryBorder);
+        }
+      }
+      #autoSettingsNetworkTarget {
+        .fg-close,
+        .fg-add {
+          margin-top: 22px;
         }
       }
     }
@@ -3074,6 +3120,20 @@ button.standard:hover:not([disabled]) {
           overflow-y: auto;
           .c-la {
             width: 100%;
+          }
+          .dorp-down {
+            position: absolute;
+            top: 55px;
+            right: 220px;
+            .MuiInputBase-root {
+              margin-top: 5px;
+            }
+            .MuiSelect-root {
+              padding-top: 5px;
+              padding-bottom: 5px;
+              border: 1px solid #767676;
+              border-radius: 0;
+            }
           }
         }
         .file-options { //For Events File page

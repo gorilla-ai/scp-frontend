@@ -15,11 +15,13 @@ import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
 import DataTable from 'react-ui/build/src/components/table'
+import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
+import Edge from './edge'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
 import IpRange from './ip-range'
@@ -42,12 +44,14 @@ class AutoSettings extends Component {
 
     this.state = {
       activeContent: 'viewMode', //'viewMode' or 'editMode'
+      networkTestOpen: false,
       originalStatusEnable: {},
       statusEnable: {
         ipRange: true,
         ad_ldap: true,
         netflow: true,
-        scanner: true
+        scanner: true,
+        networkTopology: true
       },
       originalIPrangeData: [],
       ipRangeData: [{
@@ -77,6 +81,23 @@ class AutoSettings extends Component {
         ip: '',
         mask: ''
       }],
+      originalEdgeData: [],
+      edgeData: [{
+        edge: '',
+        networkTopoData: {
+          target: [{
+            ip: '',
+            mask: ''
+          }],
+          switch: [{
+            ip: '',
+            mask: ''
+          }],
+        },
+        index: 0
+      }],
+      topoTriggerStatus: '',
+      networkTestResult: [],
       scannerTableData: [],
       formValidation: {
         ip: {
@@ -105,7 +126,7 @@ class AutoSettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData, edgeData} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/config`,
@@ -118,11 +139,13 @@ class AutoSettings extends Component {
         let ipRangeData = [];
         let tempADdata = {...adData};
         let tempNetflowData = {...netflowData};
-        let scannerData = [];
+        let tempScannerData = [];
+        let tempEdgeData = [];
         tempStatusEnable.ipRange = data['ip.enable'];
         tempStatusEnable.ad_ldap = data['ad.enable'];
         tempStatusEnable.netflow = data['netflow.enable'];
         tempStatusEnable.scanner = data['scanner.enable'];
+        tempStatusEnable.networkTopology = data['networktopology.enable'];
 
         let privateIParr = [];
         let publicIParr = [];
@@ -161,12 +184,38 @@ class AutoSettings extends Component {
 
         if (data.scanner && data.scanner.length > 0) {
           _.forEach(data.scanner, val => {
-            scannerData.push({
+            tempScannerData.push({
               edge: val.edge,
               ip: val.target,
               mask: val.mask
             });
           })
+        } else {
+          tempScannerData = scannerData;
+        }
+
+        if (data.networktopology && data.networktopology.length > 0) {
+          _.forEach(data.networktopology, (val, i) => {
+            let networkTopology = {};
+            networkTopology.edge = val.edge;
+            networkTopology.networkTopoData = {};
+            networkTopology.networkTopoData.target = _.map(val.targetInfo, val2 => {
+              return {
+                ip: val2.target,
+                mask: val2.mask
+              }
+            });
+            networkTopology.networkTopoData.switch = _.map(val.switchInfo, val2 => {
+              return {
+                ip: val2.host,
+                mask: val2.community
+              }
+            });
+            networkTopology.index = i;
+            tempEdgeData.push(networkTopology);
+          })
+        } else {
+          tempEdgeData = edgeData;
         }
 
         this.setState({
@@ -179,8 +228,11 @@ class AutoSettings extends Component {
           adData: tempADdata,
           originalNetflowData: _.cloneDeep(tempNetflowData),
           netflowData: tempNetflowData,
-          originalScannerData: _.cloneDeep(scannerData),
-          scannerData
+          originalScannerData: _.cloneDeep(tempScannerData),
+          scannerData: tempScannerData,
+          originalEdgeData: _.cloneDeep(tempEdgeData),
+          edgeData: tempEdgeData,
+          topoTriggerStatus: data['networktopology.trigger.enable']
         }, () => {
           this.getDeviceList();
         });
@@ -237,6 +289,28 @@ class AutoSettings extends Component {
     this.setState({
       scannerData
     });
+  }
+  /**
+   * Set IP edge data
+   * @method
+   * @param {string} type - edge type ('edge', 'target' or 'switch')
+   * @param {object} data - edge data
+   * @param {object} [scanner] - scanner data
+   */
+  setEdgeData = (type, data, scanner) => {
+    let tempEdgeData = this.state.edgeData;
+
+    if (type === 'edge') {
+      this.setState({
+        edgeData: data
+      });
+    } else {
+      tempEdgeData[data.index].networkTopoData[type] = scanner;
+
+      this.setState({
+        edgeData: tempEdgeData
+      });
+    }
   }
   /**
    * Set status data
@@ -454,12 +528,121 @@ class AutoSettings extends Component {
     })
   }
   /**
+   * Get formatted edgeData for http request
+   * @method
+   * @returns formatted network topology data
+   */
+  getFormattedEdgeData = () => {
+    let networkTopology = [];
+
+    _.forEach(this.state.edgeData, val => {
+      networkTopology.push({
+        edge: val.edge,
+        targetInfo: _.map(val.networkTopoData.target, val2 => {
+          return {
+            target: val2.ip,
+            mask: val2.mask
+          }
+        }),
+        switchInfo: _.map(val.networkTopoData.switch, val2 => {
+          return {
+            host: val2.ip,
+            community: val2.mask
+          }
+        })
+      });
+    })
+
+    return networkTopology;
+  }
+  /**
+   * Show message to the user
+   * @param {number} [index] - index of edgeData
+   * @method
+   */
+  showMessage = (index) => {
+    PopupDialog.prompt({
+      title: t('network-inventory.txt-testQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('network-inventory.txt-warningMsg')}</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleNetworkTest('test', index);
+        }
+      }
+    });
+  }
+  /**
+   * Get and network test result
+   * @param {string} type - button type ('generate' or 'test')
+   * @param {number} [index] - index of edgeData
+   * @method
+   */
+  handleNetworkTest = (type, index) => {
+    const {baseUrl} = this.context;
+    const {edgeData} = this.state;
+    const url = `${baseUrl}/api/ipdevice/topology`;
+    const formattedEdgeData = this.getFormattedEdgeData();
+    let requestData = {};
+
+    if (type === 'generate') {
+      requestData = {
+        isTest: false,
+        networktopology: formattedEdgeData
+      };
+    } else if (type === 'test') {
+      requestData = {
+        isTest: true,
+        networktopology: [formattedEdgeData[index]]
+      };
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: type === 'test'})
+    .then(data => {
+      if (data) {
+        if (type === 'test') {
+          this.setState({
+            networkTestResult: data
+          }, () => {
+            this.toggleNetworkTestDialog();
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    if (type === 'generate') {
+      helper.showPopupMsg(t('txt-requestSent'));
+    }
+  }
+  /**
    * Toggle content type
    * @method
    * @param {string} type - content type ('viewMode', 'editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalStatusEnable, originalIPrangeData, originalADdata, originalNetflowData, originalScannerData} = this.state;
+    const {
+      originalStatusEnable,
+      originalIPrangeData,
+      originalADdata,
+      originalNetflowData,
+      originalScannerData,
+      originalEdgeData
+    } = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -474,6 +657,7 @@ class AutoSettings extends Component {
         adData: _.cloneDeep(originalADdata),
         netflowData: _.cloneDeep(originalNetflowData),
         scannerData: _.cloneDeep(originalScannerData),
+        edgeData: _.cloneDeep(originalEdgeData),
         formValidation: {
           ip: {
             valid: true
@@ -495,7 +679,7 @@ class AutoSettings extends Component {
    */
   handleSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, scannerData, formValidation} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, scannerData, edgeData, formValidation} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
     let requestData = {
@@ -503,6 +687,7 @@ class AutoSettings extends Component {
       'ad.enable': statusEnable.ad_ldap,
       'netflow.enable': statusEnable.netflow,
       'scanner.enable': statusEnable.scanner,
+      'networktopology.enable': statusEnable.networkTopology
     };
     let ipRangePrivate = [];
     let ipRangePublic = [];
@@ -560,6 +745,7 @@ class AutoSettings extends Component {
     requestData['ad.domain'] = adData.domain;
     requestData['ad.username'] = adData.username;
     requestData['ad.password'] = adData.password;
+
     requestData.scanner = _.map(scannerData, val => {
       return {
         edge: val.edge,
@@ -567,6 +753,8 @@ class AutoSettings extends Component {
         mask: val.mask ? Number(val.mask) : ''
       };
     });
+
+    requestData.networktopology = this.getFormattedEdgeData();
 
     this.ah.one({
       url,
@@ -584,6 +772,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get input width based on content mode
+   * @method
+   * @param {string} type - input type ('ipRange' or 'scanner')
+   * @returns input width
+   */
   getInputWidth = (type) => {
     const {activeContent} = this.state;
 
@@ -602,28 +796,124 @@ class AutoSettings extends Component {
         return '26%';
       }
     }
+
+    if (type === 'networkTopology') {
+      return '50%';
+    }
+  }
+  /**
+   * Toggle test result modal dialog
+   * @method
+   */
+  toggleNetworkTestDialog = () => {
+    this.setState({
+      networkTestOpen: !this.state.networkTestOpen
+    });
+  }
+  /**
+   * Display network data
+   * @method
+   * @param {object} val - content of the data
+   * @param {number} i - index of the data
+   * @returns HTML DOM
+   */
+  showNetworkData = (val, i) => {
+    return (
+      <tr>
+        <td><div>{val.content.dstIP}</div><div>{val.content.srcIP}</div></td>
+        <td>{val.content.message}</td>
+      </tr>
+    )
+  }
+  /**
+   * Display Network data table
+   * @method
+   * @returns HTML DOM
+   */
+  displayNetworkTable = () => {
+    const {networkTestResult} = this.state;
+
+    if (networkTestResult.length > 0) {
+      return (
+        <table className='c-table main-table'>
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>Port</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.networkTestResult.map(this.showNetworkData)}
+          </tbody>
+        </table>
+      )
+    } else {
+      return (
+        <div>{t('txt-notFound')}</div>
+      )
+    }
+  }
+  /**
+   * Display network test result modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showNetworkTestDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.toggleNetworkTestDialog}
+    };
+
+    return (
+      <ModalDialog
+        id='testResultDialog'
+        className='modal-dialog'
+        title={t('network-inventory.txt-testQuery')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayNetworkTable()}
+      </ModalDialog>
+    )
   }
   render() {
     const {
       activeContent,
+      networkTestOpen,
       statusEnable,
       ipRangeData,
       adData,
       netflowData,
       deviceList,
       scannerData,
+      edgeData,
+      topoTriggerStatus,
       formValidation
     } = this.state;
-    const data = {
+    const scannerProps = {
       activeContent,
       statusEnable,
       deviceList,
       handleScannerTest: this.handleScannerTest
     };
+    const networkTopologyProps = {
+      activeContent,
+      statusEnable,
+      deviceList,
+      edgeData,
+      getInputWidth: this.getInputWidth,
+      showMessage: this.showMessage,
+      handleNetworkTest: this.handleNetworkTest,
+      setEdgeData: this.setEdgeData
+    };
     const adFormTitle = adData.type === 'AD' ? t('auto-settings.txt-AD') : t('auto-settings.txt-LDAP');
 
     return (
       <div className='parent-content'>
+        {networkTestOpen &&
+          this.showNetworkTestDialog()
+        }
+
         <div className='main-content basic-form'>
           <header className='main-header'>{t('network-inventory.txt-autoSettings')}</header>
 
@@ -662,7 +952,7 @@ class AutoSettings extends Component {
                   id='autoSettingsIpRange'
                   className='ip-range-group'
                   base={IpRange}
-                  props={data}
+                  props={scannerProps}
                   defaultItemValue={{
                     type: 'private',
                     ip: '',
@@ -842,7 +1132,7 @@ class AutoSettings extends Component {
                     id='autoSettingsScanner'
                     className='scanner-group'
                     base={Scanner}
-                    props={data}
+                    props={scannerProps}
                     defaultItemValue={{
                       edge: '',
                       ip: '',
@@ -851,6 +1141,52 @@ class AutoSettings extends Component {
                     value={scannerData}
                     onChange={this.setScannerData}
                     handleScannertest={this.handleScannerTest}
+                    disabled={activeContent === 'viewMode'} />
+                </div>
+              </div>
+            }
+
+            {deviceList.length > 0 &&
+              <div className='form-group normal'>
+                <header>{t('auto-settings.txt-newtorkTopology')}</header>
+                <div className='form-options'>
+                  <FormControlLabel
+                    className='toggle-btn'
+                    control={
+                      <Switch
+                        name='networkTopology'
+                        checked={statusEnable.networkTopology}
+                        onChange={this.handleStatusChange}
+                        color='primary' />
+                    }
+                    label={t('txt-switch')}
+                    disabled={activeContent === 'viewMode'} />
+                </div>
+                <div className='group full multi'>
+                  {activeContent === 'viewMode' && edgeData.length > 0 &&
+                    <Button variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')} disabled={topoTriggerStatus}>{t('network-inventory.txt-generateTopology')}</Button>
+                  }
+                  <MultiInput
+                    id='autoSettingsNetworkTopology'
+                    className='edge-group'
+                    base={Edge}
+                    props={networkTopologyProps}
+                    defaultItemValue={{
+                      edge: '',
+                      networkTopoData: {
+                        target: [{
+                          ip: '',
+                          mask: ''
+                        }],
+                        switch: [{
+                          ip: '',
+                          mask: ''
+                        }],
+                      },
+                      index: edgeData.length
+                    }}
+                    value={edgeData}
+                    onChange={this.setEdgeData.bind(this, 'edge')}
                     disabled={activeContent === 'viewMode'} />
                 </div>
               </div>
