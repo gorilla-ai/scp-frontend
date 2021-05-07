@@ -502,7 +502,7 @@ class HMDsettings extends Component {
             </div>
           }
 
-          <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>>
+          <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
               {MALWARE_DETECTION.map(this.showMalwarePath)}
