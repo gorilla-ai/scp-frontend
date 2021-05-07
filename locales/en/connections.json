@@ -735,6 +735,7 @@
     "txt-password": "Admin Password",
     "txt-netflow": "Netflow",
     "txt-scanner": "Scanner",
+    "txt-newtorkTopology": "Network Topology",
     "txt-connectionsFail": "Connections Fail",
     "txt-connectionsSuccess": "Connections Success"
   },

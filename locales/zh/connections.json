@@ -735,6 +735,7 @@
     "txt-password": "管理者密碼",
     "txt-netflow": "Netflow",
     "txt-scanner": "Scanner",
+    "txt-newtorkTopology": "Network Topology",
     "txt-connectionsFail": "連線失敗",
     "txt-connectionsSuccess": "連線成功"
   },

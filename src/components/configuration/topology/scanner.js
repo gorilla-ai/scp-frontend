@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
 let t = null;
@@ -32,19 +33,21 @@ class Scanner extends Component {
     });
   }
   render() {
-    const {activeContent, statusEnable, type, value} = this.props;
+    const {activeContent, statusEnable, deviceList, value} = this.props;
 
     return (
       <div className='group-content'>
-        <label id='scannerLabel'>
-          <span style={{width: this.props.getInputWidth('scanner')}}>IP</span>
-          {type === 'target' &&
-            <span style={{width: this.props.getInputWidth('scanner')}}>Mask</span>
-          }
-          {type === 'switch' &&
-            <span style={{width: this.props.getInputWidth('scanner')}}>Community</span>
-          }
-        </label>
+        <TextField
+          className='scanner'
+          name='edge'
+          select
+          variant='outlined'
+          size='small'
+          value={value.edge}
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode' || !statusEnable.scanner}>
+          {deviceList}
+        </TextField>
         <TextField
           className='scanner'
           name='ip'
@@ -53,26 +56,15 @@ class Scanner extends Component {
           value={value.ip}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        {type === 'target' &&
-          <TextField
-            className='scanner'
-            name='mask'
-            variant='outlined'
-            size='small'
-            value={value.mask}
-            onChange={this.handleDataChange}
-            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        }
-        {type === 'switch' &&
-          <TextField
-            className='scanner'
-            name='mask'
-            variant='outlined'
-            size='small'
-            value={value.mask}
-            onChange={this.handleDataChange}
-            disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        }
+        <TextField
+          className='scanner'
+          name='mask'
+          variant='outlined'
+          size='small'
+          value={value.mask}
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        <Button variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>
       </div>
     )
   }

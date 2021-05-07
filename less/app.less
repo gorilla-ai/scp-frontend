@@ -1518,20 +1518,24 @@ button.standard:hover:not([disabled]) {
     .edge-settings {
       overflow-y: auto;
       #autoSettingsIpRange,
-      #autoSettingsEdge,
-      #autoSettingsScanner {
+      #autoSettingsScanner,
+      #autoSettingsNetworkTopology {
+        .group {
+          padding: 5px;
+        }
         .ip-range,
-        .scanner {
+        .scanner,
+        .network-topology {
           margin-right: 2.2%;
         }
         .ip-range {
           width: 31.5%;
         }
         .scanner {
-          width: 48%;
+          width: 27%;
         }
-        .group {
-          padding: 5px;
+        .network-topology {
+          width: 48%;
         }
       }
     }
@@ -1541,7 +1545,7 @@ button.standard:hover:not([disabled]) {
         top: 0;
         right: 0;
       }
-      #autoSettingsEdge {
+      #autoSettingsNetworkTopology {
         #scannerLabel span {
           margin-left: 0;
         }
@@ -1569,7 +1573,7 @@ button.standard:hover:not([disabled]) {
           border: 1px solid var(--primaryBorder);
         }
       }
-      #autoSettingsScanner {
+      #autoSettingsNetworkTarget {
         .fg-close,
         .fg-add {
           margin-top: 22px;

@@ -7,7 +7,7 @@ import TextField from '@material-ui/core/TextField';
 
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
-import Scanner from './scanner'
+import NetworkTopology from './network-topology'
 
 let t = null;
 
@@ -47,14 +47,14 @@ class Edge extends Component {
     if (!data.edge) {
       valid = false;
     } else {
-      _.forEach(data.scannerData.target, val => {
+      _.forEach(data.networkTopoData.target, val => {
         if (!val.ip || !val.mask) {
           valid = false;
           return;
         }
       })
 
-      _.forEach(data.scannerData.switch, val => {
+      _.forEach(data.networkTopoData.switch, val => {
         if (!val.ip || !val.mask) {
           valid = false;
           return;
@@ -78,8 +78,8 @@ class Edge extends Component {
         {activeContent === 'editMode' &&
           <Button variant='contained' color='primary' className='network-test' onClick={this.props.showMessage.bind(this, value.index)} disabled={this.checkValidData(value)}>{t('network-inventory.txt-testQuery')}</Button>
         }
-        <label id='scannerLabel' htmlFor='autoSettingsEdge'>
-          <span style={{width: this.props.getInputWidth('scanner')}}>Edge</span>
+        <label id='scannerLabel' htmlFor='autoSettingsNetworkTarget'>
+          <span style={{width: this.props.getInputWidth('networkTopology')}}>Edge</span>
         </label>
         <TextField
           className='scanner'
@@ -89,16 +89,16 @@ class Edge extends Component {
           size='small'
           value={value.edge}
           onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode' || !statusEnable.scanner}>
+          disabled={activeContent === 'viewMode' || !statusEnable.networkTopology}>
           {deviceList}
         </TextField>
 
         <div className='target'>
           <div className='header'>Target</div>
           <MultiInput
-            id='autoSettingsScanner'
+            id='autoSettingsNetworkTarget'
             className='scanner-group'
-            base={Scanner}
+            base={NetworkTopology}
             props={{
               ...data,
               type: 'target'
@@ -107,7 +107,7 @@ class Edge extends Component {
               ip: '',
               mask: ''
             }}
-            value={value.scannerData.target}
+            value={value.networkTopoData.target}
             onChange={this.props.setEdgeData.bind(this, 'target', value)}
             disabled={activeContent === 'viewMode'} />
         </div>
@@ -115,9 +115,9 @@ class Edge extends Component {
         <div className='switch'>
           <div className='header'>Switch</div>
           <MultiInput
-            id='autoSettingsScanner'
+            id='autoSettingsNetworkTarget'
             className='scanner-group'
-            base={Scanner}
+            base={NetworkTopology}
             props={{
               ...data,
               type: 'switch'
@@ -126,7 +126,7 @@ class Edge extends Component {
               ip: '',
               mask: ''
             }}
-            value={value.scannerData.switch}
+            value={value.networkTopoData.switch}
             onChange={this.props.setEdgeData.bind(this, 'switch', value)}
             disabled={activeContent === 'viewMode'} />
         </div>
