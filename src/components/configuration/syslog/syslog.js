@@ -1132,6 +1132,9 @@ class Syslog extends Component {
               inputVariant='outlined'
               variant='inline'
               format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
               ampm={false}
               value={datetime.from}
               onChange={this.handleDateChange.bind(this, 'from')} />
@@ -1141,6 +1144,9 @@ class Syslog extends Component {
               inputVariant='outlined'
               variant='inline'
               format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
               ampm={false}
               value={datetime.to}
               onChange={this.handleDateChange.bind(this, 'to')} />

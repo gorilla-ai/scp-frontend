@@ -37,7 +37,7 @@
   "-1005": "Password is expired",
   "-1006": "Login fails exceed 5 times. The account has been locked, please contact administrator",
   "-1007": "Account service fails",
-  "-1008": "password must contain at least one lower-case alphabet/upper-case alphabet/digital/special character and have length more than 12",
+  "-1008": "password must contain at least one lower-case alphabet/upper-case alphabet/digital/special character and have length more than 12, and can't be same as the last five times password",
   "-1009": "Password incorrect",
   "-1010": "Error login fail",
 

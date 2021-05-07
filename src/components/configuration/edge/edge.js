@@ -642,11 +642,6 @@ class Edge extends Component {
         chassisLocation: allValue.chassisLocation,
         contact: allValue.contact,
         upgradeDatetime: allValue.upgradeDttm,
-        edgeModeType: allValue.agentStartDT && allValue.agentEndDT ? 'customTime' : 'anyTime',
-        edgeModeDatetime: {
-          from: allValue.agentStartDT ? allValue.agentStartDT : '',
-          to: allValue.agentEndDT ? allValue.agentEndDT : ''
-        },
         edgeGroupList: allValue.groupList,
         memo: allValue.memo ? allValue.memo : '',
         isNetTrapUpgrade: allValue.isNetTrapUpgrade,
@@ -751,20 +746,6 @@ class Edge extends Component {
   handleComboBoxChange = (event, value) => {
     let tempEdge = {...this.state.edge};
     tempEdge.info.edgeGroupList = value;
-
-    this.setState({
-      edge: tempEdge
-    });
-  }
-  /**
-   * Handle date change
-   * @method
-   * @param {string} type - date type ('from' or 'to')
-   * @param {object} newDatetime - new datetime object
-   */
-  handleDateChange = (type, newDatetime) => {
-    let tempEdge = {...this.state.edge};
-    tempEdge.info.edgeModeDatetime[type] = newDatetime;
 
     this.setState({
       edge: tempEdge
@@ -953,37 +934,6 @@ class Edge extends Component {
 
       if (edge.info.serviceMode) {
         requestData.agentMode = edge.info.serviceMode;
-      }
-
-      if (edge.info.edgeModeType === 'customTime') {
-        if (edge.info.edgeModeDatetime.from) {
-          if (edge.info.edgeModeDatetime.to) {
-            requestData.agentStartDt = moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-          } else { //End date is empty
-            helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
-            return;
-          }
-        } else {
-          helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
-          return;
-        }
-
-        if (edge.info.edgeModeDatetime.to) {
-          if (edge.info.edgeModeDatetime.from) {
-            requestData.agentEndDt = moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-          } else { //Start date is empty
-            helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
-            return;
-          }
-
-          if (moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
-            helper.showPopupMsg(t('edge-management.txt-edgeEditPastEndDate'), t('txt-error'));
-            return;
-          }
-        } else {
-          helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
-          return;
-        }
       }
     }
 
@@ -1394,62 +1344,14 @@ class Edge extends Component {
                       inputVariant='outlined'
                       variant='inline'
                       format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
                       ampm={false}
                       disablePast={true}
                       value={edge.info.upgradeDatetime}
                       onChange={this.handleUpgradeDateChange}
                       disabled={activeContent === 'viewEdge'} />
-                  </MuiPickersUtilsProvider>
-                }
-              </div>
-              <div className='group'>
-                <FormLabel>{t('edge-management.txt-activatTime')}</FormLabel>
-                <RadioGroup
-                  className='radio-group activate-time'
-                  name='edgeModeType'
-                  value={edge.info.edgeModeType}
-                  onChange={this.handleDataChange}>
-                  <FormControlLabel
-                    value='anyTime'
-                    control={
-                      <Radio
-                        className='radio-ui'
-                        color='primary' />
-                    }
-                    label={t('edge-management.txt-anyTime')}
-                    disabled={activeContent === 'viewEdge'} />
-                  <FormControlLabel
-                    value='customTime'
-                    control={
-                      <Radio
-                        className='radio-ui'
-                        color='primary' />
-                    }
-                    label={t('edge-management.txt-customTime')}
-                    disabled={activeContent === 'viewEdge'} />
-                </RadioGroup>
-
-                {edge.info.edgeModeType === 'customTime' &&
-                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                    <KeyboardDateTimePicker
-                      className='date-time-picker'
-                      inputVariant='outlined'
-                      variant='inline'
-                      format='YYYY-MM-DD HH:mm'
-                      ampm={false}
-                      invalidDateMessage={t('txt-checkDateFormat')}
-                      value={edge.info.edgeModeDatetime.from}
-                      onChange={this.handleDateChange.bind(this, 'from')} />
-                    <div className='between'>~</div>
-                    <KeyboardDateTimePicker
-                      className='date-time-picker'
-                      inputVariant='outlined'
-                      variant='inline'
-                      format='YYYY-MM-DD HH:mm'
-                      ampm={false}
-                      invalidDateMessage={t('txt-checkDateFormat')}
-                      value={edge.info.edgeModeDatetime.to}
-                      onChange={this.handleDateChange.bind(this, 'to')} />
                   </MuiPickersUtilsProvider>
                 }
               </div>

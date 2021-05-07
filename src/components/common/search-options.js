@@ -180,6 +180,9 @@ class SearchOptions extends Component {
             inputVariant='outlined'
             variant='inline'
             format='YYYY-MM-DD HH:mm'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
             ampm={false}
             value={datetime.from}
             onChange={this.props.handleDateChange.bind(this, 'from')} />
@@ -190,6 +193,9 @@ class SearchOptions extends Component {
             inputVariant='outlined'
             variant='inline'
             format='YYYY-MM-DD HH:mm'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
             ampm={false}
             value={datetime.to}
             onChange={this.props.handleDateChange.bind(this, 'to')}
@@ -205,6 +211,9 @@ class SearchOptions extends Component {
             inputVariant='outlined'
             variant='inline'
             format='YYYY-MM-DD'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
             value={datetime.from}
             onChange={this.props.handleDateChange.bind(this, 'from')} />
           <div className='between'>~</div>
@@ -214,6 +223,9 @@ class SearchOptions extends Component {
             inputVariant='outlined'
             variant='inline'
             format='YYYY-MM-DD'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
             value={datetime.to}
             onChange={this.props.handleDateChange.bind(this, 'to')}
             disabled={searchType && searchType === 'auto'} />
@@ -245,6 +257,9 @@ class SearchOptions extends Component {
           inputVariant='outlined'
           variant='inline'
           format='YYYY-MM-DD'
+          invalidDateMessage={t('txt-invalidDateMessage')}
+          maxDateMessage={t('txt-maxDateMessage')}
+          minDateMessage={t('txt-minDateMessage')}
           value={datetime}
           onChange={this.props.handleDateChange} />
       </MuiPickersUtilsProvider>
