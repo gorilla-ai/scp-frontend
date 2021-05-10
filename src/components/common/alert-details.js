@@ -589,7 +589,7 @@ class AlertDetails extends Component {
       filters: [
         {
           condition: 'must',
-          query: alertData.blackIP
+          query: '"' + alertData.blackIP + '"'
         }
       ]
     };
@@ -646,7 +646,7 @@ class AlertDetails extends Component {
       filters: [
         {
           condition: 'must',
-          query: alertData.blackIP
+          query: '"' + alertData.blackIP + '"'
         }
       ],
       search: [
@@ -723,7 +723,7 @@ class AlertDetails extends Component {
       filters: [
         {
           condition: 'must',
-          query: alertData.blackIP
+          query: '"' + alertData.blackIP + '"'
         },
         {
           condition: 'must',
