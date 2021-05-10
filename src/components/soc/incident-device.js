@@ -163,7 +163,7 @@ class IncidentDevice extends Component {
                     const {incidentDevice} = this.state;
                     let tempDeviceObj = incidentDevice;
 
-                    if (data.rt.isDefault){
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
                         tempDeviceObj.dataFieldsArr = ['incidentUnitDTO.isGovernment', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm']
                         this.setState({
                             accountType: constants.soc.LIMIT_ACCOUNT,
@@ -171,28 +171,18 @@ class IncidentDevice extends Component {
                         },()=>{
                             this.getDeviceData();
                         })
-                    }else{
-                        if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
-                            tempDeviceObj.dataFieldsArr = ['incidentUnitDTO.isGovernment', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm']
-                            this.setState({
-                                accountType: constants.soc.LIMIT_ACCOUNT,
-                                incidentDevice:tempDeviceObj
-                            },()=>{
-                                this.getDeviceData();
-                            })
-                        }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
-                            this.setState({
-                                accountType: constants.soc.NONE_LIMIT_ACCOUNT
-                            },()=>{
-                                this.getDeviceData();
-                            })
-                        }else {
-                            this.setState({
-                                accountType: constants.soc.CHECK_ERROR
-                            },()=>{
-                                this.getDeviceData();
-                            })
-                        }
+                    }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                        },()=>{
+                            this.getDeviceData();
+                        })
+                    }else {
+                        this.setState({
+                            accountType: constants.soc.CHECK_ERROR
+                        },()=>{
+                            this.getDeviceData();
+                        })
                     }
                 }
             })
