@@ -440,10 +440,10 @@ class IncidentUnit extends Component {
             contentType: 'text/plain'
         }).then(data => {
             if(data){
-                helper.showPopupMsg('', t('txt-error'),t('txt-update')+t('txt-success'));
+                helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
             }
         }).catch(err => {
-            helper.showPopupMsg('', t('txt-error'),t('txt-update')+t('txt-fail'));
+            helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
         })
 
     }
