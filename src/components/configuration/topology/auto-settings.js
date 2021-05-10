@@ -1164,7 +1164,7 @@ class AutoSettings extends Component {
                 </div>
                 <div className='group full multi'>
                   {activeContent === 'viewMode' && edgeData.length > 0 &&
-                    <Button variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')} disabled={topoTriggerStatus}>{t('network-inventory.txt-generateTopology')}</Button>
+                    <Button variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')} disabled={!topoTriggerStatus}>{t('network-inventory.txt-generateTopology')}</Button>
                   }
                   <MultiInput
                     id='autoSettingsNetworkTopology'

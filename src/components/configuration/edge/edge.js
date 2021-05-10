@@ -641,6 +641,7 @@ class Edge extends Component {
         chassisAddress: allValue.chassisAddress,
         chassisLocation: allValue.chassisLocation,
         contact: allValue.contact,
+        isUpgradeEnable: allValue.isUpgradeDateTimeEnable,
         upgradeDatetime: allValue.upgradeDttm,
         edgeGroupList: allValue.groupList,
         memo: allValue.memo ? allValue.memo : '',
@@ -1336,7 +1337,7 @@ class Edge extends Component {
                       onChange={this.toggleUpgradeCheckbox}
                       color='primary' />
                   }
-                  disabled={activeContent === 'viewEdge'} />
+                  disabled={activeContent === 'viewEdge' || !edge.info.isUpgradeEnable} />
                 {upgradeCheckbox &&
                   <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                     <KeyboardDateTimePicker
