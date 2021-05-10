@@ -54,12 +54,12 @@ class IncidentUnit extends Component {
             accountListOptions: [],
             accountType:constants.soc.LIMIT_ACCOUNT,
             incidentUnit: {
-                dataFieldsArr: ['isDefault','isGovernment', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
+                dataFieldsArr: ['isGovernment', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
-                    field: 'isDefault',
-                    desc: true
+                    field: 'level',
+                    desc: false
                 },
                 totalCount: 0,
                 currentPage: 1,
@@ -71,7 +71,6 @@ class IncidentUnit extends Component {
                     level: 'A',
                     industryType: '0',
                     isUse: false,
-                    isDefault: false,
                     isGovernment:false,
                     abbreviation: '',
                     relatedAccountList: []
@@ -79,7 +78,7 @@ class IncidentUnit extends Component {
             },
             isOrganizationDialogOpen: false,
             treeData: [],
-            treeObj: {}
+
         };
 
         this.ah = getInstance("chewbacca");
@@ -134,16 +133,7 @@ class IncidentUnit extends Component {
                                 return <span>{this.mappingType(value)}</span>
                             } else if (tempData === 'updateDttm') {
                                 return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === 'isDefault') {
-
-                                if (value){
-                                    return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
-                                }else {
-                                    return <span>{this.checkDefault(value)}</span>
-                                }
-
-                            }
-                            else if (tempData === 'isGovernment') {
+                            } else if (tempData === 'isGovernment') {
 
                                 if (value){
                                     return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
@@ -201,8 +191,7 @@ class IncidentUnit extends Component {
             .then(data => {
                 let jsonData = JSON.parse(data);
                 this.setState({
-                    treeData: jsonData.children,
-                    treeObj: jsonData
+                    treeData: jsonData,
                 })
 
             })
@@ -351,12 +340,11 @@ class IncidentUnit extends Component {
             accountType,
             isOrganizationDialogOpen,
             treeData,
-            treeObj
         } = this.state;
         const {session} = this.context;
 
         const actions = {
-            cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeODialog},
+            cancel: {text: t('txt-close'), className: 'standard', handler: this.closeODialog},
             confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
         };
 
@@ -374,12 +362,11 @@ class IncidentUnit extends Component {
                 <ModalDialog
                     id='addUnitDialog'
                     className='modal-dialog'
-                    title={t('txt-setOrganization') + '-' + t('txt-defaultUnit') + ' : ' + treeObj.title}
+                    title={t('txt-setOrganization')}
                     draggable={true}
                     global={true}
                     actions={actions}
                     closeAction='cancel'>
-
                     <div style={{width: '890px', height: '630px'}}>
                         <SortableTree
                             treeData={treeData}
@@ -402,6 +389,9 @@ class IncidentUnit extends Component {
                             <div className='content-header-btns'>
                                 {activeContent === 'viewDevice' &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                                }
+                                {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>
                                 }
                                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
@@ -440,14 +430,12 @@ class IncidentUnit extends Component {
     }
 
     handleUnitTreeConfirm = () =>{
-        const {treeData, treeObj} = this.state;
+        const {treeData} = this.state;
         const {baseUrl} = this.context;
-        let tempUnitTree = treeObj
-        tempUnitTree.children = treeData
 
         this.ah.one({
             url: `${baseUrl}/api/soc/unit/_overrideOrganization`,
-            data: JSON.stringify(tempUnitTree),
+            data: JSON.stringify(treeData),
             type: 'POST',
             contentType: 'text/plain'
         }).then(data => {
@@ -501,10 +489,7 @@ class IncidentUnit extends Component {
                     <Button variant='outlined' color='primary' className='standard btn edit'
                             onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
                     }
-                    {activeContent === 'viewDevice' && incidentUnit.info.isDefault && accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-                    <Button variant='outlined' color='primary' className='standard btn edit'
-                            onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>
-                    }
+
                 </div>
 
                 <div className='form-group normal'>
@@ -622,23 +607,8 @@ class IncidentUnit extends Component {
                             })}
                         </TextField>
                     </div>
-
-                    <div className='group'  style={{width: '25%'}}>
-                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
-                        <FormControlLabel
-                            className='switch-control'
-                            control={
-                                <Switch
-                                    checked={incidentUnit.info.isDefault}
-                                    onChange={(event) => this.handleChange('isDefault', event.target.checked)}
-                                    color='primary' />
-                            }
-                            label={t('txt-switch')}
-                            disabled={activeContent === 'viewDevice'}
-                        />
-                    </div>
                     <div className='group' style={{width: '25%'}}>
-                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-government')}</label>
+                        <label htmlFor='isGovernment' className='checkbox'>{it('unit.txt-government')}</label>
                         <FormControlLabel
                             className='switch-control'
                             control={
@@ -733,7 +703,6 @@ class IncidentUnit extends Component {
             .then(data => {
                 tmpIncidentUnit.info.id = data.rt.id;
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
-                tmpIncidentUnit.info.isDefault = data.rt.isDefault;
 
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(tmpIncidentUnit)
@@ -767,13 +736,6 @@ class IncidentUnit extends Component {
         if (incidentUnit.info.industryType.toString() === ''){
             // helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
             helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
-        }
-
-        if (!incidentUnit.info.isDefault) {
-            incidentUnit.info.isDefault = false;
-            this.setState({
-                incidentUnit: incidentUnit
-            });
         }
 
 
@@ -838,13 +800,6 @@ class IncidentUnit extends Component {
      * @param {object} allValue - IncidentDevice data
      */
     openDeleteMenu = (allValue) => {
-
-        if (allValue.isDefault){
-            helper.showPopupMsg('', t('txt-fail'), it('unit.txt-defaultDelete'));
-            return;
-        }
-
-
         PopupDialog.prompt({
             title: t('txt-delete'),
             id: 'modalWindowSmall',
@@ -958,7 +913,6 @@ class IncidentUnit extends Component {
                 name: allValue.name,
                 level: allValue.level,
                 isUse: allValue.isUse,
-                isDefault: allValue.isDefault,
                 isGovernment:allValue.isGovernment,
                 industryType: allValue.industryType,
                 abbreviation: allValue.abbreviation,
@@ -999,7 +953,6 @@ class IncidentUnit extends Component {
                 level: allValue.level,
                 isUse: allValue.isUse,
                 isGovernment:allValue.isGovernment,
-                isDefault: allValue.isDefault,
                 industryType: allValue.industryType,
                 abbreviation: allValue.abbreviation,
                 relatedAccountList: allValue.relatedAccountList

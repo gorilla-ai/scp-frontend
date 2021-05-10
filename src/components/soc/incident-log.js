@@ -96,26 +96,20 @@ class IncidentLog extends Component {
             .then(data => {
                 if (data) {
 
-                    if (data.rt.isDefault){
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
                         this.setState({
                             accountType: constants.soc.LIMIT_ACCOUNT
                         })
-                    }else{
-
-                        if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
-                            this.setState({
-                                accountType: constants.soc.LIMIT_ACCOUNT
-                            })
-                        }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
-                            this.setState({
-                                accountType: constants.soc.NONE_LIMIT_ACCOUNT
-                            })
-                        }else {
-                            this.setState({
-                                accountType: constants.soc.CHECK_ERROR
-                            })
-                        }
+                    }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                        this.setState({
+                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                        })
+                    }else {
+                        this.setState({
+                            accountType: constants.soc.CHECK_ERROR
+                        })
                     }
+
                 }
             })
             .catch(err => {
