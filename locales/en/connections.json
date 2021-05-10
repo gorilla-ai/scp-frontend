@@ -193,6 +193,12 @@
   "txt-invalidDateMessage": "Invalid Date Format",
   "txt-minDateMessage": "Date should not be before minimal date",
   "txt-maxDateMessage": "Date should not be after maximal date",
+  "txt-exportScheduledList": "Export List",
+  "txt-past7days": "Past 7 Days",
+  "txt-scheduledTask": "Scheduled Task",
+  "txt-downloadTask": "Downlaod",
+  "txt-deleteTask": "Delete Task",
+  "txt-retriggerTask": "Retrigger Task",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -455,13 +461,7 @@
     "txt-alertNetTrapBlackList": "NetTrap Query Black List",
     "txt-alertTrackOverrideSuccess": "Update Alert Track Success",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
-    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)",
-    "txt-exportScheduledList": "Export List",
-    "txt-past7days": "Past 7 Days",
-    "txt-scheduledTask": "Scheduled Task",
-    "txt-downloadTask": "Downlaod",
-    "txt-deleteTask": "Delete Task",
-    "txt-retriggerTask": "Retrigger Task"
+    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
   },
 
   "events": {

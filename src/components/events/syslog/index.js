@@ -6,9 +6,20 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import InfiniteScroll from 'react-infinite-scroll-component'
+
 import Button from '@material-ui/core/Button';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import HourglassEmptyIcon from '@material-ui/icons/HourglassEmpty';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import Popover from '@material-ui/core/Popover';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import TextField from '@material-ui/core/TextField';
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
@@ -77,6 +88,13 @@ class SyslogController extends Component {
         refreshTime: '60000' //1 min.
       },
       eventHistogram: {},
+      popOverAnchor: null,
+      taskServiceList: {
+        data: [],
+        scrollCount: 0,
+        pageSize: 10,
+        hasMore: true
+      },
       filterData: [{
         condition: 'must',
         query: ''
@@ -1798,12 +1816,232 @@ class SyslogController extends Component {
   }
   /**
    * Handle CSV download
+   * @param {string} id - service task ID
    * @method
    */
-  getCSVfile = () => {
+  getCSVfile = (id) => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
-    this.getCSVrequestData(url, 'columns');
+    const url = `${baseUrl}${contextRoot}/api/taskService/file/_download?id=${id}`;
+    window.open(url, '_blank');
+  }
+  /**
+   * Handle CSV download click
+   * @method
+   * @param {object} event - event object
+   */
+  handleCSVclick = (event) => {
+    this.setState({
+      popOverAnchor: event.currentTarget
+    }, () => {
+      this.getTaskService('firstLoad');
+    });
+  }
+  /**
+   * Get list of task service
+   * @method
+   * @param {string} options - option for 'firstLoad'
+   */
+  getTaskService = (options) => {
+    const {taskServiceList} = this.state;
+    const {baseUrl} = this.context;
+    const datetime = {
+      from: moment(helper.getSubstractDate(7, 'day', moment().utc())).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    let fromItem = 0;
+
+    if (options !== 'firstLoad') {
+      fromItem = taskServiceList.pageSize - 1; //index starts from zero
+
+      if (taskServiceList.scrollCount > 0) {
+        fromItem = taskServiceList.scrollCount + taskServiceList.pageSize;
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/taskService/list?source=SCP&type=exportSyslog&createStartDttm=${datetime.from}&from=${fromItem}&size=${taskServiceList.pageSize}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempTaskServiceList = {...taskServiceList};
+
+        if (options === 'firstLoad') {
+          if (data.list && data.list.length > 0) {
+            tempTaskServiceList.data = data.list;
+          }
+        } else {
+          tempTaskServiceList.scrollCount = fromItem;
+
+          if (data.list && data.list.length > 0) {
+            tempTaskServiceList.data = _.concat(taskServiceList.data, data.list);
+            tempTaskServiceList.hasMore = true;
+          } else {
+            tempTaskServiceList.hasMore = false;
+          }
+        }
+
+        this.setState({
+          taskServiceList: tempTaskServiceList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Delete service task
+   * @method
+   * @param {string} id - service data ID
+   */
+  deleteServiceTask = (id) => {
+    const {baseUrl} = this.context;
+
+    ah.one({
+      url: `${baseUrl}/api/taskService/${id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getTaskService('firstLoad');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
+    })
+  }
+  /**
+   * Delete service task
+   * @method
+   * @param {string} id - service data ID
+   */
+  retriggerServiceTask = (id) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/taskService/async/_reimport`;
+    const requestData = {
+      id: [id]
+    };
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getTaskService('firstLoad');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display service task list
+   * @method
+   * @param {object} val - content of the list
+   * @param {number} i - index of the list
+   * @returns HTML DOM
+   */
+  displayServiceTaskList = (val, i) => {
+    const fileName = val.name;
+    let newFileName = fileName;
+
+    if (fileName.length > 23) {
+      newFileName = fileName.substr(0, 23) + '...';
+    }
+
+    return (
+      <ListItem Key={val.id}>
+        <ListItemText primary={newFileName} className='list-text' title={fileName} />
+        <div className='date-time'>{helper.getFormattedDate(val.lastUpdateDttm, 'local')}</div>
+        <ListItemIcon className='list-icon'>
+          {val.progress === 100 &&
+            <span title={t('txt-downloadTask')}><GetAppIcon className='c-link' onClick={this.getCSVfile.bind(this, val.id)} /></span>
+          }
+          {val.progress !== 100 &&
+            <span title={t('txt-scheduledTask')}><HourglassEmptyIcon /></span>
+          }
+          <span title={t('txt-deleteTask')}><HighlightOffIcon className='c-link delete-icon' onClick={this.deleteServiceTask.bind(this, val.id)} /></span>
+          {val.progress !== 100 &&
+            <span title={t('txt-retriggerTask')}><RefreshIcon className='c-link' onClick={this.retriggerServiceTask.bind(this, val.id)} /></span>
+          }
+        </ListItemIcon>
+      </ListItem>
+    )
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  handlePopoverClose = () => {
+    let tempTaskServiceList = {...this.state.taskServiceList};
+    tempTaskServiceList.data = [];
+    tempTaskServiceList.scrollCount = 0;
+
+    this.setState({
+      popOverAnchor: null,
+      taskServiceList: tempTaskServiceList
+    });
+  }
+  /**
+   * Handle scheduled download click
+   * @method
+   */
+  registerDownload = () => {
+    const {baseUrl} = this.context;
+    const {datetime, filterData, account} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/taskService`;
+    const filterDataArr = helper.buildFilterDataArray(filterData); //Remove empty filter array
+    let requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      type: ['exportSyslog']
+    };
+
+    if (filterDataArr.length > 0) {
+      requestData.filters = filterDataArr;
+    }
+
+    let tempColumns = [];
+
+    _.forEach(account.fields, val => {
+      if (val !== 'alertRule' && val != '_tableMenu_') {
+        tempColumns.push({
+          [val]: this.getCustomFieldName(val)
+        });
+      }
+    })
+
+    requestData.columns = tempColumns;
+
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
+    requestData.timeZone = utc_offset;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.handlePopoverClose();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle Charts CSV download
@@ -2000,6 +2238,8 @@ class SyslogController extends Component {
       saveQueryOpen,
       filterData,
       markData,
+      popOverAnchor,
+      taskServiceList,
       syslogContextAnchor,
       currentSyslogData,
       queryContextAnchor,
@@ -2068,8 +2308,47 @@ class SyslogController extends Component {
           <div className='secondary-btn-group right'>
             <Button id='syslogFilterBtn' variant='outlined' color='primary' className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></Button>
             <Button id='syslogChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
-            <Button id='syslogDownloadBtn' variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button id='syslogDownloadBtn' variant='outlined' color='primary' className='last' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
+
+          <Popover
+            id='csvDownloadContent'
+            open={Boolean(popOverAnchor)}
+            anchorEl={popOverAnchor}
+            onClose={this.handlePopoverClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}>
+            <div className='content'>
+              <List>
+                <ListItem button>
+                  <ListItemText primary={t('txt-exportCSV')} onClick={this.registerDownload} />
+                </ListItem>
+              </List>
+
+              <div>
+                {taskServiceList.data.length > 0 &&
+                  <div className='scheduled-list'>
+                    <div className='header'><span>{t('txt-exportScheduledList')}</span> {t('txt-past7days')}</div>
+                    <List className='service-list'>
+                      <InfiniteScroll
+                        dataLength={taskServiceList.data.length}
+                        next={this.getTaskService}
+                        hasMore={taskServiceList.hasMore}
+                        height={300}>
+                        {taskServiceList.data.map(this.displayServiceTaskList)}
+                      </InfiniteScroll>
+                    </List>
+                  </div>
+                }
+              </div>
+            </div>
+          </Popover>
 
           <SearchOptions
             datetime={datetime}

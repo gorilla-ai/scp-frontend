@@ -660,14 +660,14 @@ class ThreatsController extends Component {
       id: [id]
     };
 
-    this.ah.one({
+    ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         this.getTaskService('firstLoad');
       }
       return null;
@@ -686,26 +686,25 @@ class ThreatsController extends Component {
   displayServiceTaskList = (val, i) => {
     const fileName = val.name;
     let newFileName = fileName;
-    let title = helper.getFormattedDate(val.lastUpdateDttm, 'local');
 
     if (fileName.length > 23) {
       newFileName = fileName.substr(0, 23) + '...';
-      title = title + ' (' + fileName + ')';
     }
 
     return (
       <ListItem Key={val.id}>
-        <ListItemText primary={newFileName} className='list-text' title={title} />
+        <ListItemText primary={newFileName} className='list-text' title={fileName} />
+        <div className='date-time'>{helper.getFormattedDate(val.lastUpdateDttm, 'local')}</div>
         <ListItemIcon className='list-icon'>
           {val.progress === 100 &&
-            <span title={t('alert.txt-downloadTask')}><GetAppIcon className='c-link' onClick={this.getCSVfile.bind(this, val.id)} /></span>
+            <span title={t('txt-downloadTask')}><GetAppIcon className='c-link' onClick={this.getCSVfile.bind(this, val.id)} /></span>
           }
           {val.progress !== 100 &&
-            <span title={t('alert.txt-scheduledTask')}><HourglassEmptyIcon /></span>
+            <span title={t('txt-scheduledTask')}><HourglassEmptyIcon /></span>
           }
-          <span title={t('alert.txt-deleteTask')}><HighlightOffIcon className='c-link delete-icon' onClick={this.deleteServiceTask.bind(this, val.id)} /></span>
+          <span title={t('txt-deleteTask')}><HighlightOffIcon className='c-link delete-icon' onClick={this.deleteServiceTask.bind(this, val.id)} /></span>
           {val.progress !== 100 &&
-            <span title={t('alert.txt-retriggerTask')}><RefreshIcon className='c-link' onClick={this.retriggerServiceTask.bind(this, val.id)} /></span>
+            <span title={t('txt-retriggerTask')}><RefreshIcon className='c-link' onClick={this.retriggerServiceTask.bind(this, val.id)} /></span>
           }
         </ListItemIcon>
       </ListItem>
@@ -779,6 +778,10 @@ class ThreatsController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Set alert track data
+   * @method
+   */
   loadTrackData = () => {
     const {baseUrl} = this.context;
     const {account, trackData,activeTab} = this.state;
@@ -3163,7 +3166,7 @@ class ThreatsController extends Component {
               <div>
                 {taskServiceList.data.length > 0 &&
                   <div className='scheduled-list'>
-                    <div className='header'><span>{t('alert.txt-exportScheduledList')}</span> {t('alert.txt-past7days')}</div>
+                    <div className='header'><span>{t('txt-exportScheduledList')}</span> {t('txt-past7days')}</div>
                     <List className='service-list'>
                       <InfiniteScroll
                         dataLength={taskServiceList.data.length}
