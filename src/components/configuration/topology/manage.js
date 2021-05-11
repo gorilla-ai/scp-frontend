@@ -3,15 +3,15 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import TextField from '@material-ui/core/TextField';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

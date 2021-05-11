@@ -2,8 +2,8 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import TextField from '@material-ui/core/TextField'
 
 import MultiInput from 'react-ui/build/src/components/multi-input'
 

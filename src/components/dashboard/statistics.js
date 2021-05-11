@@ -12,7 +12,7 @@ import DataTable from 'react-ui/build/src/components/table'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

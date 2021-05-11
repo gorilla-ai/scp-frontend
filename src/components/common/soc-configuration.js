@@ -6,7 +6,7 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import _ from "lodash";
-import constants from "../constant/constant-incidnet";
+import constants from "../constant/constant-incidnet"
 import helper from "./helper";
 
 

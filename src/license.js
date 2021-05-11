@@ -6,7 +6,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import TextField from '@material-ui/core/TextField';
+import TextField from '@material-ui/core/TextField'
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 

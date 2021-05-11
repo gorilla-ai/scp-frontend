@@ -6,17 +6,17 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
 import AdConfig from './ad-config'
-import {BaseDataContext} from '../../../common/context';
+import {BaseDataContext} from '../../../common/context'
 import Config from '../../../common/configuration'
 import MuiTableContent from '../../../common/mui-table-content'
 import helper from '../../../common/helper'

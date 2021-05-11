@@ -5,11 +5,11 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
@@ -19,7 +19,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import JSONTree from 'react-json-tree'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from './context'
 
 import EncodeDecode from './encode-decode'
 import helper from './helper'

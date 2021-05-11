@@ -3,15 +3,15 @@ import PropTypes from 'prop-types'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
-import GetAppIcon from '@material-ui/icons/GetApp';
-import HighlightOffIcon from '@material-ui/icons/HighlightOff';
-import HourglassEmptyIcon from '@material-ui/icons/HourglassEmpty';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Popover from '@material-ui/core/Popover';
-import RefreshIcon from '@material-ui/icons/Refresh';
+import GetAppIcon from '@material-ui/icons/GetApp'
+import HighlightOffIcon from '@material-ui/icons/HighlightOff'
+import HourglassEmptyIcon from '@material-ui/icons/HourglassEmpty'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import Popover from '@material-ui/core/Popover'
+import RefreshIcon from '@material-ui/icons/Refresh'
 
 import {BaseDataContext} from './context'
 

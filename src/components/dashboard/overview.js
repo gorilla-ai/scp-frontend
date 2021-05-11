@@ -9,7 +9,7 @@ import cx from 'classnames'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import WORLDMAP from '../../mock/world-map-low.json'
 

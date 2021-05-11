@@ -5,11 +5,11 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
+import Button from '@material-ui/core/Button'
 import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@material-ui/core/TextField'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'

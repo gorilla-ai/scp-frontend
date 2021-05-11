@@ -8,15 +8,15 @@ import queryString from 'query-string'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import WorkIcon from '@material-ui/icons/Work';
-import WorkOffIcon from '@material-ui/icons/WorkOff';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline'
+import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import WorkIcon from '@material-ui/icons/Work'
+import WorkOffIcon from '@material-ui/icons/WorkOff'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'

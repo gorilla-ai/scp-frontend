@@ -6,7 +6,7 @@ import cx from 'classnames'
 
 import License from '../../../license'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 

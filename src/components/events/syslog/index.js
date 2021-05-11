@@ -8,10 +8,10 @@ import queryString from 'query-string'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
@@ -22,7 +22,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {arrayMove} from 'react-sortable-hoc'
 import JSONTree from 'react-json-tree'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import ExportCSV from '../../common/export-csv'
 import helper from '../../common/helper'
 import QueryOpenSave from '../../common/query-open-save'

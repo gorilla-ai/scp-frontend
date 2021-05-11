@@ -5,13 +5,13 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import Button from '@material-ui/core/Button'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import DataTable from 'react-ui/build/src/components/table'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from './context'
 import helper from './helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

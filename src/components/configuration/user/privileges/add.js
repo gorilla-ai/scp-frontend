@@ -1,14 +1,14 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import i18n from 'i18next'
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import TextField from '@material-ui/core/TextField';
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from '../../../common/context';
+import {BaseDataContext} from '../../../common/context'
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

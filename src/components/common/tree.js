@@ -2,13 +2,13 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import TreeItem from '@material-ui/lab/TreeItem';
-import TreeView from '@material-ui/lab/TreeView';
+import Button from '@material-ui/core/Button'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import helper from './helper'
 import Pagination from './pagination'

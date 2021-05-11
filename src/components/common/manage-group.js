@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import TextField from '@material-ui/core/TextField';
+import TextField from '@material-ui/core/TextField'
 
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from './context'
 import helper from './helper'
 import InputPath from './input-path'
 

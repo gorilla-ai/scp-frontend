@@ -8,8 +8,8 @@ import i18n from 'i18next'
 import qs from 'query-string'
 import $ from 'jquery'
 
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import helper from './components/common/helper'
 import License from './license'

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
+import Button from '@material-ui/core/Button'
 
 import Gis from 'react-gis/build/src/components'
 

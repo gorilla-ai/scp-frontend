@@ -7,10 +7,10 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import Checkbox from 'react-ui/build/src/components/checkbox'
@@ -22,11 +22,11 @@ import Popover from 'react-ui/build/src/components/popover'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {arrayMove} from 'react-sortable-hoc'
-import {GithubPicker} from 'react-color';
+import {GithubPicker} from 'react-color'
 import JSONTree from 'react-json-tree'
 
 import helper from '../../common/helper'
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import QueryOpenSave from '../../common/query-open-save'
 import SearchOptions from '../../common/search-options'
 import SortableList from '../../common/sortable-list'

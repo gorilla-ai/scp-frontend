@@ -4,16 +4,16 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import FileInput from 'react-ui/build/src/components/file-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import Manage from './manage'

@@ -2,9 +2,9 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles'
 
-import MUIDataTable from 'mui-datatables';
+import MUIDataTable from 'mui-datatables'
 
 import helper from '../common/helper'
 

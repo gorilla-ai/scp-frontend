@@ -6,20 +6,20 @@ import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import Button from '@material-ui/core/Button';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import Switch from '@material-ui/core/Switch';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
 
 import DataTable from 'react-ui/build/src/components/table'
-import ModalDialog from "react-ui/build/src/components/modal-dialog";
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import Edge from './edge'
 import FloorMap from '../../common/floor-map'
