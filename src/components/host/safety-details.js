@@ -668,6 +668,35 @@ class SafetyDetails extends Component {
       </tr>
     )
   }
+
+  /**
+   * Display individual table row for CVE info
+   * @method
+   * @param {number} hostCount - host count
+   * @param {string} val - CVE data
+   * @param {number} i - index of the CVE data array
+   * @returns HTML DOM
+   */
+  getCveInfo = (hostCount, val, i) => {
+    const severity = val.severity.toLowerCase();
+
+    return (
+      <tr>
+        <td className='name'>
+          <span>{val.id}</span><span className={severity}>{t('txt-' + severity)}</span>
+        </td>
+        <td>
+          <div>{this.getFormattedLength(val.description.description_data[0].value, 70)}</div>
+        </td>
+        <td className='host'>
+          <span>{t('host.txt-hostCount')}: {hostCount}</span> 
+        </td>
+        <td className='info'>
+          <span>{t('host.txt-viewInfo')}</span>
+        </td>
+      </tr>
+    )
+  }
   /**
    * Display Safety Scan content
    * @method
@@ -711,6 +740,16 @@ class SafetyDetails extends Component {
                     <table className='c-table main-table'>
                       {this.getBasicInfoContent()}
                     </table>
+
+                    {safetyScanType === 'getVansCpe' &&
+                      <table className='c-table main-table cve'>
+                        <tbody>
+                          {currentSafetyData.rawJsonObject &&
+                            currentSafetyData.rawJsonObject.rows.map(this.getCveInfo.bind(this, currentSafetyData.hostIdArraySize))
+                          }
+                        </tbody>
+                      </table>
+                    }
                   </div>
                 }
                 {contentType === 'availableHost' &&

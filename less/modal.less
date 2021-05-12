@@ -1328,6 +1328,9 @@ html[data-theme='dark'] {
         margin-top: 5px;
       }
       .main-table {
+        &.cve {
+          margin-top: 20px;
+        }
         a {
           text-decoration: underline;
         }
@@ -1336,12 +1339,45 @@ html[data-theme='dark'] {
           padding: 10px !important;
           border: 1px solid var(--primaryBorder) !important;
           white-space: pre-wrap;
-          &:nth-child(odd) {
-            width: 200px;
+          &.name {
+            width: 20%;
+            text-align: center;
+          }
+          &.host {
+            width: 15%;
+            text-align: center;
+          }
+          &.info {
+            width: 12%;
+            text-align: center;
+            span {
+              color: var(--tabMenuText);
+              padding: 3px 6px;
+              border: 2px solid #d9d9d9;
+              border-radius: 15px;
+              cursor: pointer;
+            }
           }
           .fg-eye {
             cursor: pointer;
           }
+        }
+        span.high,
+        span.medium,
+        span.low {
+          margin-left: 5px;
+        }
+        span.high {
+          color: #CC2943;
+          border: 1px solid #CC2943;
+        }
+        span.medium {
+          color: #CC7B29;
+          border: 1px solid #CC7B29;
+        }
+        span.low {
+          color: #29CC7A;
+          border: 1px solid #29CC7A;
         }
         ul.signature-list {
           padding: 0 10px;
