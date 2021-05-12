@@ -1,23 +1,23 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import i18n from 'i18next'
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 import cx from 'classnames'
 import im from 'object-path-immutable'
 import queryString from 'query-string'
 
-import Checkbox from '@material-ui/core/Checkbox';
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Checkbox from '@material-ui/core/Checkbox'
+import FormLabel from '@material-ui/core/FormLabel'
+import FormControl from '@material-ui/core/FormControl'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormGroup from '@material-ui/core/FormGroup'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from '../../../common/context';
+import {BaseDataContext} from '../../../common/context'
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

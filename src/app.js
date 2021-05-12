@@ -1,11 +1,11 @@
 import React from 'react'
 import {render} from 'react-dom'
 import {BrowserRouter, Route, Switch} from 'react-router-dom'
-import { ThemeProvider } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/core/styles'
 import _ from 'lodash'
 
-import createDarkTheme from './theme/dark';
-import createDefaultTheme from './theme/default';
+import createDarkTheme from './theme/dark'
+import createDefaultTheme from './theme/default'
 
 import Promise from 'bluebird'
 import $ from 'jquery'

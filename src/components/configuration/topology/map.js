@@ -5,20 +5,20 @@ import PropTypes from 'prop-types'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import Button from '@material-ui/core/Button';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import TreeItem from '@material-ui/lab/TreeItem';
-import TreeView from '@material-ui/lab/TreeView';
+import Button from '@material-ui/core/Button'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import DataTable from 'react-ui/build/src/components/table'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'

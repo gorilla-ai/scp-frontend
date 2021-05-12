@@ -193,6 +193,12 @@
   "txt-invalidDateMessage": "時間格式錯誤",
   "txt-minDateMessage": "時間不得在最小容許時間之前",
   "txt-maxDateMessage": "時間不得在最大容許時間之後",
+  "txt-exportScheduledList": "匯出排成列表",
+  "txt-past7days": "最近7天",
+  "txt-scheduledTask": "任務已排入",
+  "txt-downloadTask": "下載",
+  "txt-deleteTask": "刪除任務",
+  "txt-retriggerTask": "重新發送任務",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -456,13 +462,7 @@
     "txt-alertNetTrapBlackList": "NetTrap黑名單查詢紀錄",
     "txt-alertTrackOverrideSuccess": "更新追蹤告警成功",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
-    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)",
-    "txt-exportScheduledList": "匯出排成列表",
-    "txt-past7days": "最近7天",
-    "txt-scheduledTask": "任務已排入",
-    "txt-downloadTask": "下載",
-    "txt-deleteTask": "刪除任務",
-    "txt-retriggerTask": "重新發送任務"
+    "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
   },
 
   "events": {

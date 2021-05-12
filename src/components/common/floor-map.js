@@ -2,11 +2,11 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import TextField from '@material-ui/core/TextField';
-import TreeItem from '@material-ui/lab/TreeItem';
-import TreeView from '@material-ui/lab/TreeView';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import FileInput from 'react-ui/build/src/components/file-input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'

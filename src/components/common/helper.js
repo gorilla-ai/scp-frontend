@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import moment from 'moment'
 import cx from 'classnames'
 
-import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButton from '@material-ui/lab/ToggleButton'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

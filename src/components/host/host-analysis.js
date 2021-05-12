@@ -6,7 +6,7 @@ import cx from 'classnames'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import HMDscanInfo from '../common/hmd-scan-info'
 import IrSelections from '../common/ir-selections'

@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import TextField from '@material-ui/core/TextField';
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import TextField from '@material-ui/core/TextField'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import helper from './helper'
 

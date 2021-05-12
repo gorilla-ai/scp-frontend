@@ -6,15 +6,15 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import Gis from 'react-gis/build/src/components'
 
 import AlertDetails from '../common/alert-details'
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import SearchOptions from '../common/search-options'
 import helper from '../common/helper'
 import WORLDMAP from '../../mock/world-map-low.json'

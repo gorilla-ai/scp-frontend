@@ -7,22 +7,22 @@ import _ from 'lodash'
 import cx from 'classnames'
 import jschardet from 'jschardet'
 import queryString from 'query-string'
-import XLSX from 'xlsx';
+import XLSX from 'xlsx'
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import TextField from '@material-ui/core/TextField';
-import TreeItem from '@material-ui/lab/TreeItem';
-import TreeView from '@material-ui/lab/TreeView';
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import Tab from '@material-ui/core/Tab'
+import Tabs from '@material-ui/core/Tabs'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
@@ -35,7 +35,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import AutoSettings from './auto-settings'
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import FileUpload from '../../common/file-upload'
 import FilterContent from '../../common/filter-content'

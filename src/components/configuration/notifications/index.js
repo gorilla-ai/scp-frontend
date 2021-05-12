@@ -1,19 +1,19 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
 
-import { ReactMultiEmail } from 'react-multi-email';
+import { ReactMultiEmail } from 'react-multi-email'
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 

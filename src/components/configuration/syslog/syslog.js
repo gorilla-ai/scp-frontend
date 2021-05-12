@@ -6,14 +6,14 @@ import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
-import MomentUtils from '@date-io/moment';
-import 'moment/locale/zh-tw';
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import DataTable from 'react-ui/build/src/components/table'
 import LineChart from 'react-chart/build/src/components/line'
@@ -21,7 +21,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import SyslogConfig from './syslog-config'

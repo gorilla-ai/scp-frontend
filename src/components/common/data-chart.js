@@ -2,11 +2,11 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import Button from '@material-ui/core/Button'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from './context'
 import ChartContent from './chart-content'
 import helper from './helper'
 

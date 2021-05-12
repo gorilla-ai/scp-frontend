@@ -3,15 +3,15 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import cx from 'classnames'
 
-import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
-import MomentUtils from '@date-io/moment';
-import 'moment/locale/zh-tw';
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
-import Button from '@material-ui/core/Button';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from './context'
 import helper from './helper'
 
 let t = null;

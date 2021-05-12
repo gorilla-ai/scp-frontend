@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button';
+import Button from '@material-ui/core/Button'
 
 import MarkInput from './mark-input'
 

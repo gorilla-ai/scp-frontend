@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from './context'
 import helper from './helper'
 
 const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_', '_Raw', 'message', 'msg'];

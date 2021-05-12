@@ -1,16 +1,16 @@
 import React, {Component} from 'react'
 import i18n from 'i18next'
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from '../../../common/context';
+import {BaseDataContext} from '../../../common/context'
 import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
 import MuiTableContent from '../../../common/mui-table-content'

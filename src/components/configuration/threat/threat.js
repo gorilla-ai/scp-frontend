@@ -4,14 +4,14 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import cx from 'classnames'
 import jschardet from 'jschardet'
-import XLSX from 'xlsx';
+import XLSX from 'xlsx'
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import LineChart from 'react-chart/build/src/components/line'
@@ -21,7 +21,7 @@ import PieChart from 'react-chart/build/src/components/pie'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AddThreats from './add-threats'
-import {BaseDataContext} from '../../common/context';
+import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import FileUpload from '../../common/file-upload'
 import helper from '../../common/helper'

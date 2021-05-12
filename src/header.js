@@ -9,16 +9,16 @@ import queryString from 'query-string'
 import i18n from 'i18next'
 import _ from 'lodash'
 
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Progress from 'react-ui/build/src/components/progress'
 
 import AccountEdit from './components/configuration/user/accounts/account-edit'
-import {BaseDataContext} from './components/common/context';
+import {BaseDataContext} from './components/common/context'
 import helper from './components/common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
