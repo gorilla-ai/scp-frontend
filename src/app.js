@@ -1,7 +1,7 @@
 import React from 'react'
 import {render} from 'react-dom'
 import {BrowserRouter, Route, Switch} from 'react-router-dom'
-import { ThemeProvider } from '@material-ui/core/styles';  
+import { ThemeProvider } from '@material-ui/core/styles';
 import _ from 'lodash'
 
 import createDarkTheme from './theme/dark';
@@ -26,6 +26,7 @@ import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/incident'
 import IncidentISAC from './components/soc/incident-isac'
+import IncidentSOC from './components/soc/incident-soc'
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
@@ -244,6 +245,11 @@ const incidentISAC = () => (
     </BaseDataContext.Provider>
 );
 
+const incidentSOC = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentSOC/>
+    </BaseDataContext.Provider>
+);
 
 const Main = () => (
   <main className='main'>
@@ -276,6 +282,7 @@ const Main = () => (
         <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
         <Route exact path='/SCP/soc/incident' component={incident}/>
         <Route exact path='/SCP/soc/incident-ISAC' component={incidentISAC}/>
+        <Route exact path='/SCP/soc/incident-SOC' component={incidentSOC}/>
     </Switch>
   </main>
 );
