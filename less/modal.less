@@ -1328,6 +1328,11 @@ html[data-theme='dark'] {
         margin-top: 5px;
       }
       .main-table {
+        &.safety {
+          td:nth-child(odd) {
+            width: 180px;
+          }
+        }
         &.cve {
           margin-top: 20px;
         }
@@ -1365,7 +1370,7 @@ html[data-theme='dark'] {
         span.high,
         span.medium,
         span.low {
-          margin-left: 5px;
+          margin-left: 10px;
         }
         span.high {
           color: #CC2943;

@@ -668,16 +668,15 @@ class SafetyDetails extends Component {
       </tr>
     )
   }
-
   /**
    * Display individual table row for CVE info
    * @method
-   * @param {number} hostCount - host count
+   * @param {number} currentSafetyData - current safety data
    * @param {string} val - CVE data
    * @param {number} i - index of the CVE data array
    * @returns HTML DOM
    */
-  getCveInfo = (hostCount, val, i) => {
+  getCveInfo = (currentSafetyData, val, i) => {
     const severity = val.severity.toLowerCase();
 
     return (
@@ -689,10 +688,10 @@ class SafetyDetails extends Component {
           <div>{this.getFormattedLength(val.description.description_data[0].value, 70)}</div>
         </td>
         <td className='host'>
-          <span>{t('host.txt-hostCount')}: {hostCount}</span> 
+          <span>{t('host.txt-hostCount')}: {currentSafetyData.hostIdArraySize}</span> 
         </td>
         <td className='info'>
-          <span>{t('host.txt-viewInfo')}</span>
+          <span onClick={this.props.getHostInfo.bind(this, val, currentSafetyData, 'safetyPage')}>{t('host.txt-viewInfo')}</span>
         </td>
       </tr>
     )
@@ -703,7 +702,7 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
-    const {currentSafetyData, availableHostData, safetyScanType} = this.props;
+    const {currentSafetyData, safetyScanType} = this.props;
     const {contentType} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
@@ -737,7 +736,7 @@ class SafetyDetails extends Component {
                   <div>
                     <div className='header trigger'>{basicInfoText}</div>
                     <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
-                    <table className='c-table main-table'>
+                    <table className='c-table main-table safety'>
                       {this.getBasicInfoContent()}
                     </table>
 
@@ -745,7 +744,7 @@ class SafetyDetails extends Component {
                       <table className='c-table main-table cve'>
                         <tbody>
                           {currentSafetyData.rawJsonObject &&
-                            currentSafetyData.rawJsonObject.rows.map(this.getCveInfo.bind(this, currentSafetyData.hostIdArraySize))
+                            currentSafetyData.rawJsonObject.rows.map(this.getCveInfo.bind(this, currentSafetyData))
                           }
                         </tbody>
                       </table>
@@ -792,8 +791,8 @@ class SafetyDetails extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                        {availableHostData.length > 0 &&
-                          availableHostData.map(this.getHostTableBody)
+                        {currentSafetyData.disDevDtos.length > 0 &&
+                          currentSafetyData.disDevDtos.map(this.getHostTableBody)
                         }
                       </tbody>
                     </table>
@@ -808,7 +807,7 @@ class SafetyDetails extends Component {
   }
   render() {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.props.toggleSafetyDetails}
+      confirm: {text: t('txt-close'), handler: this.props.toggleSafetyDetails.bind(this, '', this.props.fromSafetyPage)}
     };
 
     return (
@@ -832,9 +831,9 @@ SafetyDetails.contextType = BaseDataContext;
 
 SafetyDetails.propTypes = {
   currentSafetyData: PropTypes.object.isRequired,
-  availableHostData: PropTypes.object.isRequired,
   safetyScanType: PropTypes.string.isRequired,
   showSafetyTab: PropTypes.string.isRequired,
+  fromSafetyPage: PropTypes.bool.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired
 };

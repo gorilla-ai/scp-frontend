@@ -289,8 +289,9 @@ class HostController extends Component {
         pageSize: 20
       },
       currentSafetyData: {},
-      availableHostData: [],
       safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
+      savedCpeData: {},
+      fromSafetyPage: false,
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
@@ -1755,18 +1756,28 @@ class HostController extends Component {
    * Toggle safety details dialog and set safety data
    * @method
    * @param {object} safetyData - active safety scan data
-   * @param {string} options - option to show safety scan tab ('basicInfo' or 'availableHost')
+   * @param {string | bool} options - option to show safety scan tab ('basicInfo' or 'availableHost'), option for true/false
    */
   toggleSafetyDetails = (safetyData, options) => {
+    const {savedCpeData, fromSafetyPage} = this.state;
     const showSafetyTab = options === 'availableHost' ? 'availableHost' : 'basicInfo';
+    let data = {};
+
+    if (options === true) {
+      this.setState({
+        currentSafetyData: savedCpeData,
+        safetyScanType: 'getVansCpe',
+        fromSafetyPage: false
+      });
+      return;
+    }
 
     if (!_.isEmpty(safetyData)) {
-      this.setState({
-        currentSafetyData: safetyData
-      });
+      data.currentSafetyData = safetyData;
     }
 
     this.setState({
+      ...data,
       safetyDetailsOpen: !this.state.safetyDetailsOpen,
       showSafetyTab
     });
@@ -1950,21 +1961,29 @@ class HostController extends Component {
    * Get Available Host data
    * @method
    * @param {object} safetyData - active safety scan data
+   * @param {object} [cpeData] - cpe data
+   * @param {string} [from] - from option for 'safetyPage'
    */
-  getHostInfo = (safetyData) => {
+  getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
+    const keyValue = safetyData.primaryKeyValue || safetyData.id;
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/hmdScanDistribution/disDevDtos?id=${safetyData.id}`,
+      url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        this.setState({
-          availableHostData: data
-        }, () => {
-          this.toggleSafetyDetails(safetyData);
-        });
+        if (from && from === 'safetyPage') {
+          this.setState({
+            safetyScanType: 'getVansCve',
+            safetyDetailsOpen: false,
+            savedCpeData: cpeData,
+            fromSafetyPage: true
+          });
+        }
+
+        this.toggleSafetyDetails(data);
       }
       return null;
     })
@@ -2310,8 +2329,8 @@ class HostController extends Component {
       eventInfo,
       openHmdType,
       currentSafetyData,
-      availableHostData,
       safetyScanType,
+      fromSafetyPage,      
       floorPlan,
       showLoadingIcon
     } = this.state;
@@ -2341,9 +2360,10 @@ class HostController extends Component {
         {safetyDetailsOpen &&
           <SafetyDetails
             currentSafetyData={currentSafetyData}
-            availableHostData={availableHostData}
             safetyScanType={safetyScanType}
             showSafetyTab={showSafetyTab}
+            fromSafetyPage={fromSafetyPage}
+            getHostInfo={this.getHostInfo}
             toggleSafetyDetails={this.toggleSafetyDetails}
             getIPdeviceInfo={this.getIPdeviceInfo} />
         }
