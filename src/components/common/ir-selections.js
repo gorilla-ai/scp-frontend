@@ -195,7 +195,6 @@ class IrSelections extends Component {
     this.props.triggerTask(this.state.irSelectedList);
   }
   render() {
-    const titleText = t('hmd-scan.txt-itemSelection');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleSelectionIR},
       confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
@@ -205,7 +204,7 @@ class IrSelections extends Component {
       <ModalDialog
         id='irSelectionDialog'
         className='modal-dialog'
-        title={titleText}
+        title={t('hmd-scan.txt-itemSelection')}
         draggable={true}
         global={true}
         actions={actions}

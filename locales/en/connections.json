@@ -339,6 +339,8 @@
     "txt-deviceMap": "Device Map",
     "txt-safetyScan": "Safety Scan",
     "txt-safetyScanType": "Safety Scan Type",
+    "txt-export-cpe": "Export CPE",
+    "txt-report-nccst": "Report NCCST",
     "txt-hostInfo": "Host Info",
     "txt-viewInfo": "View Info",
     "txt-hostList2": "Host",
