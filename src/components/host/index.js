@@ -228,7 +228,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'safetyScan', //'hostList', 'deviceMap' or 'safetyScan'
+      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
@@ -290,7 +290,7 @@ class HostController extends Component {
         pageSize: 20
       },
       currentSafetyData: {},
-      safetyScanType: 'getVansCpe', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
+      safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
       savedCpeData: {},
       fromSafetyPage: false,
       eventInfo: {
@@ -303,6 +303,7 @@ class HostController extends Component {
       openHmdType: '',
       showLoadingIcon: false,
       nccstSelectedList: [],
+      nccstCheckAll: false,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -664,8 +665,7 @@ class HostController extends Component {
     const datetime = this.getHostDateTime();
     const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
     let requestData = {
-      timestamp: ['2021-05-12T16:00:00Z', '2021-05-13T16:00:00Z'],
-      //timestamp: [datetime.from, datetime.to],
+      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData()
     };
 
@@ -967,7 +967,9 @@ class HostController extends Component {
    * @param {object} event - event object
    */
   toggleNCCSTcheckbox = (event) => {
+    const {safetyScanData} = this.state;
     let nccstSelectedList = _.cloneDeep(this.state.nccstSelectedList);
+    let nccstCheckAll = false;
 
     if (event.target.checked) {
       nccstSelectedList.push(event.target.name);
@@ -976,9 +978,23 @@ class HostController extends Component {
       nccstSelectedList.splice(index, 1);
     }
 
+    if (nccstSelectedList.length === safetyScanData.dataContent.length) {
+      nccstCheckAll = true;
+    }
+
     this.setState({
-      nccstSelectedList
+      nccstSelectedList,
+      nccstCheckAll
     });
+  }
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkNccstSelectedItem = (val) => {
+    return _.includes(this.state.nccstSelectedList, val);
   }
   /**
    * Display checkbox for NCCST list
@@ -987,7 +1003,7 @@ class HostController extends Component {
    * @param {number} i - index of the ICPE data
    * @returns HTML DOM
    */
-  showCheckboxList = (val, i) => {
+  showNccstCheckboxList = (val, i) => {
     return (
       <FormControlLabel
         key={i}
@@ -996,10 +1012,34 @@ class HostController extends Component {
           <Checkbox
             className='checkbox-ui'
             name={val.primaryKeyValue}
+            checked={this.checkNccstSelectedItem(val.primaryKeyValue)}
             onChange={this.toggleNCCSTcheckbox}
             color='primary' />
         } />
     )
+  }
+  /**
+   * Handle NCCST checkbox for all
+   * @method
+   * @param {object} event - event object
+   */
+  toggleNCCSTcheckAll = (event) => {
+    this.setState({
+      nccstCheckAll: !this.state.nccstCheckAll
+    }, () => {
+      const {safetyScanData, nccstCheckAll} = this.state;
+      let nccstSelectedList = [];
+
+      if (nccstCheckAll) {
+        nccstSelectedList = safetyScanData.dataContent.map(val => {
+          return val.primaryKeyValue;
+        });
+      }
+
+      this.setState({
+        nccstSelectedList
+      });
+    });
   }
   /**
    * Display NCCST list content
@@ -1007,22 +1047,22 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displayNCCSTlist = () => {
-    const {nccstCheckAll, safetyScanData}
+    const {safetyScanData, nccstCheckAll} = this.state;
 
     return (
       <div>
         <FormControlLabel
           control={
             <Checkbox
-              checked={nccstCheckAll}
-              onChange={handleChange}
+              className='checkbox-ui'
               name='nccstCheckAll'
+              checked={nccstCheckAll}
+              onChange={this.toggleNCCSTcheckAll}
               color='primary'
             />
           }
-          label="Primary"
-        />
-        {safetyScanData.dataContent.map(this.showCheckboxList)}
+          label={t('txt-selectAll')} />
+        {safetyScanData.dataContent.map(this.showNccstCheckboxList)}
       </div>
     )
   }
@@ -1055,9 +1095,51 @@ class HostController extends Component {
    * @method
    */
   confirmNCCSTlist = () => {
-    const {nccstSelectedList} = this.state;
+    const {baseUrl} = this.context;
+    const {safetyScanData, nccstSelectedList} = this.state;
+    let dataArr = [];
 
-    console.log(nccstSelectedList);
+    if (nccstSelectedList.length === 0) {
+      this.toggleReportNCCST();
+      return;
+    }
+
+    _.forEach(nccstSelectedList, val => {
+      _.forEach(safetyScanData.dataContent, val2 => {
+        if (val === val2.primaryKeyValue) {
+          dataArr.push({
+            asset_number: val2.rawJsonObject.asset_number,
+            product_name: val2.rawJsonObject.product_name,
+            product_vendor: val2.rawJsonObject.product_vendor,
+            product_version: val2.rawJsonObject.product_version,
+            category: val2.rawJsonObject.category,
+            cpe23: val2.rawJsonObject.cpe23,
+            product_cpename: val2.rawJsonObject.product_cpename
+          });
+        }
+      })
+    })
+
+    const requestData = {
+      data: dataArr
+    };
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/vans/_report`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.toggleReportNCCST();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Show NCCST list modal dialog
@@ -1066,7 +1148,9 @@ class HostController extends Component {
    */
   toggleReportNCCST = () => {
     this.setState({
-      reportNCCSTopen: !this.state.reportNCCSTopen
+      reportNCCSTopen: !this.state.reportNCCSTopen,
+      nccstSelectedList: [],
+      nccstCheckAll: false
     });
   }
   /**
@@ -2077,10 +2161,11 @@ class HostController extends Component {
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
+    const {assessmentDatetime} = this.state;
     const keyValue = safetyData.primaryKeyValue || safetyData.id;
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}`,
+      url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}&exactStartDttm=${assessmentDatetime.from}`,
       type: 'GET'
     })
     .then(data => {
@@ -2686,7 +2771,7 @@ class HostController extends Component {
                     </TextField>
                     <div className='safety-btns'>
                       <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
-                      <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST}>{t('host.txt-report-nccst')}</Button>
+                      <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
                     </div>
 
                     <div className='table-content'>

@@ -1900,7 +1900,7 @@ class SyslogController extends Component {
     const url = `${baseUrl}/api/taskService`;
     const filterDataArr = helper.buildFilterDataArray(filterData); //Remove empty filter array
     let requestData = {
-      timestamp: [dateTime.from, dateTime.to],
+      '@timestamp': [dateTime.from, dateTime.to],
       type: ['exportSyslog']
     };
 
