@@ -2769,11 +2769,12 @@ class HostController extends Component {
                       onChange={this.safetyScanChange}>
                       {this.getSafetyScanList()}
                     </TextField>
-                    <div className='safety-btns'>
-                      <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
-                      <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
-                    </div>
-
+                    {safetyScanType === 'getVansCpe' &&
+                      <div className='safety-btns'>
+                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
+                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                      </div>
+                    }
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
                         <ul className='safety-list'>
