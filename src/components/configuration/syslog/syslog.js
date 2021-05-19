@@ -14,6 +14,8 @@ import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import DataTable from 'react-ui/build/src/components/table'
 import LineChart from 'react-chart/build/src/components/line'
@@ -115,6 +117,8 @@ class Syslog extends Component {
       activeTimeline: '',
       activeConfigId: '',
       activeConfigName: '',
+      chartIntervalList: [],
+      chartIntervalValue: '',
       datetime: {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
@@ -791,6 +795,45 @@ class Syslog extends Component {
     })
   }
   /**
+   * Set chart interval buttons
+   * @method
+   */
+  setChartInterval = () => {
+    const {datetime} = this.state;
+    const dateTime = {
+      from: moment(datetime.from),
+      to: moment(datetime.to)
+    };
+    const day = dateTime.to.diff(dateTime.from, 'days');
+    let chartIntervalList = [];
+    let chartIntervalValue = '';
+
+    if (day < 1) {
+      chartIntervalList = ['1h'];
+      chartIntervalValue = '1h';
+    } else if (day >= 1 && day <= 7) {
+      chartIntervalList = ['1h', '1d'];
+      chartIntervalValue = '1h';
+    } else if (day > 7 && day <= 28) {
+      chartIntervalList = ['1d', '1w'];
+      chartIntervalValue = '1d';
+    } else if (day > 28) {
+      chartIntervalList = ['1d', '1w'];
+      chartIntervalValue = '1w';
+    }
+
+    chartIntervalList = _.map(chartIntervalList, val => {
+      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>;
+    });
+
+    this.setState({
+      chartIntervalList,
+      chartIntervalValue
+    }, () => {
+      this.getTimeline();
+    });
+  }
+  /**
    * Open syslog events chart dialog
    * @method
    * @param {string} type - syslog type
@@ -803,7 +846,7 @@ class Syslog extends Component {
       activeConfigId: allValue.id,
       activeConfigName: allValue.name
     }, () => {
-      this.getTimeline();
+      this.setChartInterval();
     });
   }
   /**
@@ -988,7 +1031,7 @@ class Syslog extends Component {
    */
   getTimeline = () => {
     const {baseUrl} = this.context;
-    const {activeTimeline, activeConfigId, datetime} = this.state;
+    const {activeTimeline, activeConfigId, chartIntervalValue, datetime} = this.state;
     const startDttm = moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const endDttm = moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const configId = activeTimeline === 'configId' ? activeConfigId : '';
@@ -1004,7 +1047,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&endDttm=${endDttm}${uri}`,
+      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&endDttm=${endDttm}&interval=${chartIntervalValue}${uri}`,
       type: 'GET'
     })
     .then(data => {
@@ -1067,13 +1110,38 @@ class Syslog extends Component {
     });
   }
   /**
+   * Handle chart interval change for Config Syslog
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - interval type ('1h', '1d' or '1w')
+   */
+  handleIntervalChange = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      chartIntervalValue: type
+    }, () => {
+      this.getTimeline();
+    });
+  }
+  /**
    * Display Events timeline content
    * @method
    * @returns HTML DOM
    */
   displayEventsTimeline = () => {
     const {locale} = this.context;
-    const {activeTimeline, activeConfigName, clickTimeline, datetime, eventsData} = this.state;
+    const {
+      activeTimeline,
+      activeConfigName,
+      clickTimeline,
+      chartIntervalList,
+      chartIntervalValue,
+      datetime,
+      eventsData
+    } = this.state;
     let type = '';
 
     if (activeTimeline === 'configId') {
@@ -1125,6 +1193,16 @@ class Syslog extends Component {
 
     return (
       <div>
+        <div className='interval-section'>
+          <ToggleButtonGroup
+            id='chartIntervalBtn'
+            className='chart-btn'
+            value={chartIntervalValue}
+            exclusive
+            onChange={this.handleIntervalChange}>
+            {chartIntervalList}
+          </ToggleButtonGroup>
+        </div>
         <div className='calendar-section'>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
             <KeyboardDateTimePicker
@@ -1151,7 +1229,7 @@ class Syslog extends Component {
               value={datetime.to}
               onChange={this.handleDateChange.bind(this, 'to')} />
           </MuiPickersUtilsProvider>
-          <Button variant='contained' color='primary' onClick={this.getTimeline}>{t('txt-search')}</Button>
+          <Button variant='contained' color='primary' onClick={this.setChartInterval}>{t('txt-search')}</Button>
           </div>
         <div className='chart-section'>
           {showTimeline &&

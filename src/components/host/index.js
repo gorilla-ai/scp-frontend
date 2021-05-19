@@ -2161,11 +2161,11 @@ class HostController extends Component {
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
-    const {assessmentDatetime} = this.state;
-    const keyValue = safetyData.primaryKeyValue || safetyData.id;
+    const keyValue = safetyData.primaryKeyValue || safetyData.id; 
+    const datetime = this.getHostDateTime();
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}&exactStartDttm=${assessmentDatetime.from}`,
+      url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}&exactStartDttm=${datetime.from}`,
       type: 'GET'
     })
     .then(data => {

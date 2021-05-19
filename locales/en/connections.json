@@ -292,7 +292,8 @@
     "txt-60m": "60 min.",
     "txt-1h": "1 hr.",
     "txt-12h": "12 hr.",
-    "txt-1d": "1 day",    
+    "txt-1d": "1 day",
+    "txt-1w": "1 week",
     "txt-today": "Today",
     "txt-week": "This week",
     "txt-interval": "Chart Interval "

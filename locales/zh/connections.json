@@ -293,7 +293,8 @@
     "txt-60m": "60分鐘",
     "txt-1h": "1小時",
     "txt-12h": "12小時",
-    "txt-1d": "1天",    
+    "txt-1d": "1天",
+    "txt-1w": "1週",
     "txt-today": "今天",
     "txt-week": "本週",
     "txt-chart-interval": "圖表區間"
