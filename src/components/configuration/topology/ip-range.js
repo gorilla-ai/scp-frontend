@@ -27,13 +27,13 @@ class IpRange extends Component {
     });
   }
   render() {
-    const {activeContent, statusEnable, value} = this.props;
+    const {activeContent, value} = this.props;
 
     return (
       <div className='group-content'>
         <TextField
-          className='ip-range'
           name='type'
+          className='ip-range'
           select
           variant='outlined'
           size='small'
@@ -45,16 +45,16 @@ class IpRange extends Component {
           <MenuItem value={'public'}>Public</MenuItem>
         </TextField>
         <TextField
-          className='ip-range'
           name='ip'
+          className='ip-range'
           variant='outlined'
           size='small'
           value={value.ip}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'} />
         <TextField
-          className='ip-range'
           name='mask'
+          className='ip-range'
           variant='outlined'
           size='small'
           value={value.mask}
@@ -66,6 +66,7 @@ class IpRange extends Component {
 }
 
 IpRange.propTypes = {
+  activeContent: PropTypes.string.isRequired,
   value: PropTypes.object.isRequired
 };
 

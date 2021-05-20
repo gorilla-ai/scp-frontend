@@ -11,14 +11,67 @@ import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import TextField from '@material-ui/core/TextField'
 
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import InputPath from '../common/input-path'
-import MultiInput from 'react-ui/build/src/components/multi-input'
+import ProductRegex from './product-regex'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
+const NOT_AVAILABLE = 'N/A';
+const PRODUCT_REGEX = [
+  {
+    name: 'regexp',
+    label: 'Regexp'
+  },
+  {
+    name: 'part',
+    label: 'Part'
+  },
+  {
+    name: 'vendor',
+    label: 'Vendor'
+  },
+  {
+    name: 'product',
+    label: 'Product'
+  },
+  {
+    name: 'version',
+    label: 'Version'
+  },
+  {
+    name: 'update',
+    label: 'Update'
+  },
+  {
+    name: 'edition',
+    label: 'Edition'
+  },
+  {
+    name: 'language',
+    label: 'Language'
+  },
+  {
+    name: 'sw_edition',
+    label: 'Software Edition'
+  },
+  {
+    name: 'target_sw',
+    label: 'Target Software'
+  },
+  {
+    name: 'target_hw',
+    label: 'Target Hardware'
+  },
+  {
+    name: 'other',
+    label: 'Other'
+  }
+];
 
 let t = null;
 let et = null;
@@ -55,6 +108,21 @@ class HMDsettings extends Component {
       originalFtpAccount: '',
       ftpAccount: '',
       ftpPassword: '',
+      originalProductRegex: '',
+      productRegexData: [{
+        regexp: '',
+        part: '',
+        vendor: '',
+        product: '',
+        version: '',
+        update: '',
+        edition: '',
+        language: '',
+        sw_edition: '',
+        target_sw: '',
+        target_hw: '',
+        other: ''
+      }],
       connectionsStatus: '',
       formValidation: {
         ip: {
@@ -79,6 +147,7 @@ class HMDsettings extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getSettingsInfo();
+    this.getProductRegexInfo();
   }
   /**
    * Get and set HMD settings data
@@ -172,6 +241,30 @@ class HMDsettings extends Component {
     })
   }
   /**
+   * Get and set product regex data
+   * @method
+   */
+  getProductRegexInfo = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/productRegex`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          originalProductRegex: _.cloneDeep(data),
+          productRegexData: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle content type
    * @method
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
@@ -183,7 +276,8 @@ class HMDsettings extends Component {
       originalPmInterval,
       originalFtpIp,
       originalFtpUrl,
-      originalFtpAccount
+      originalFtpAccount,
+      originalProductRegex
     } = this.state;
     let showPage = type;
 
@@ -199,7 +293,8 @@ class HMDsettings extends Component {
         pmInterval: _.cloneDeep(originalPmInterval),
         ftpIp: _.cloneDeep(originalFtpIp),
         ftpUrl: _.cloneDeep(originalFtpUrl),
-        ftpAccount: _.cloneDeep(originalFtpAccount)
+        ftpAccount: _.cloneDeep(originalFtpAccount),
+        productRegexData: _.cloneDeep(originalProductRegex)
       });
 
       this.clearData();
@@ -468,6 +563,16 @@ class HMDsettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Set Product Regex data
+   * @method
+   * @param {array} productRegexData - product regex data
+   */
+  setProductRegexData = (productRegexData) => {
+    this.setState({
+      productRegexData
+    });
+  }
   render() {
     const {
       activeContent,
@@ -478,8 +583,13 @@ class HMDsettings extends Component {
       ftpAccount,
       ftpPassword,
       connectionsStatus,
+      productRegexData,
       formValidation
     } = this.state;
+    const data = {
+      activeContent,
+      PRODUCT_REGEX
+    };
     let msg = '';
     let color = '';
 
@@ -560,7 +670,7 @@ class HMDsettings extends Component {
               <div className='group'>
                 <label>IP</label>
                 {activeContent === 'viewMode' &&
-                  <div className='flex-item'><span>{ftpIp}</span></div>
+                  <div className='flex-item'><span>{ftpIp || NOT_AVAILABLE}</span></div>
                 }
                 {activeContent === 'editMode' &&
                   <TextField
@@ -578,7 +688,7 @@ class HMDsettings extends Component {
               <div className='group'>
                 <label>URL</label>
                 {activeContent === 'viewMode' &&
-                  <div className='flex-item'><span>{ftpUrl}</span></div>
+                  <div className='flex-item'><span>{ftpUrl || NOT_AVAILABLE}</span></div>
                 }
                 {activeContent === 'editMode' &&
                   <TextField
@@ -597,7 +707,7 @@ class HMDsettings extends Component {
               <div className='group'>
                 <label>{t('txt-account')}</label>
                 {activeContent === 'viewMode' &&
-                  <div className='flex-item'><span>{ftpAccount}</span></div>
+                  <div className='flex-item'><span>{ftpAccount || NOT_AVAILABLE}</span></div>
                 }
                 {activeContent === 'editMode' &&
                   <TextField
@@ -630,6 +740,34 @@ class HMDsettings extends Component {
                   }
                 </div>
               }
+            </div>
+
+            <div className='form-group normal'>
+              <header>{t('network-inventory.txt-VansProductRegex')}</header>
+              <div className='group full multi'>
+                <MultiInput
+                  id='hmdSettingsProductRegex'
+                  className='ip-range-group'
+                  base={ProductRegex}
+                  props={data}
+                  defaultItemValue={{
+                    regexp: '',
+                    part: '',
+                    vendor: '',
+                    product: '',
+                    version: '',
+                    update: '',
+                    edition: '',
+                    language: '',
+                    sw_edition: '',
+                    target_sw: '',
+                    target_hw: '',
+                    other: ''
+                  }}
+                  value={productRegexData}
+                  onChange={this.setProductRegexData}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
             </div>
           </div>
 
