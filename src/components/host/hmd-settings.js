@@ -123,6 +123,8 @@ class HMDsettings extends Component {
         target_hw: '',
         other: ''
       }],
+      cpeInputTest: '',
+      cpeConvertResult: '',
       connectionsStatus: '',
       formValidation: {
         ip: {
@@ -361,7 +363,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, formValidation} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, productRegexData, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -463,6 +465,19 @@ class HMDsettings extends Component {
 
       apiArr.push({
         url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
+    }
+
+    if (productRegexData) {
+      const requestData = {
+        productRegex: productRegexData
+      };
+
+      apiArr.push({
+        url: `${baseUrl}/api/hmd/productRegex`,
         data: JSON.stringify(requestData),
         type: 'POST',
         contentType: 'text/plain'
@@ -573,6 +588,43 @@ class HMDsettings extends Component {
       productRegexData
     });
   }
+  /**
+   * Handle CPE convert test button
+   * @method
+   */
+  handleCPEconvertTest = () => {
+    const {baseUrl} = this.context;
+    const {productRegexData, cpeInputTest} = this.state;
+    const url = `${baseUrl}/api/hmd/productRegex/_test`;
+    let requestData = {
+      productRegex: productRegexData,
+      cpe23Uri: cpeInputTest
+    };
+
+    if (cpeInputTest === '' || productRegexData.length === 0) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        const cpeConvertResult = data.match ? t('txt-pass') : t('txt-fail');
+
+        this.setState({
+          cpeConvertResult
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {
       activeContent,
@@ -582,8 +634,10 @@ class HMDsettings extends Component {
       ftpUrl,
       ftpAccount,
       ftpPassword,
-      connectionsStatus,
       productRegexData,
+      cpeInputTest,
+      cpeConvertResult,
+      connectionsStatus,
       formValidation
     } = this.state;
     const data = {
@@ -767,6 +821,29 @@ class HMDsettings extends Component {
                   value={productRegexData}
                   onChange={this.setProductRegexData}
                   disabled={activeContent === 'viewMode'} />
+              </div>
+            </div>
+
+            <div className='form-group normal'>
+              <header>{t('network-inventory.txt-CPEconvertTest')}</header>
+              <div className='group'>
+                <label></label>
+                <TextField
+                  name='cpeInputTest'
+                  label={t('network-inventory.txt-CPEinputTest')}
+                  className='cpe-input-test'
+                  variant='outlined'
+                  size='small'
+                  value={cpeInputTest}
+                  onChange={this.handleDataChange} />
+                <button className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</button>
+                <TextField
+                  name='cpeConvertResult'
+                  label={t('network-inventory.txt-CPEconvertResult')}
+                  variant='outlined'
+                  size='small'
+                  value={cpeConvertResult}
+                  disabled={true} />
               </div>
             </div>
           </div>

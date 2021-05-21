@@ -44,6 +44,8 @@
   "-2001": "Unknown Target",
   "-2002": "Expired",
 
+  "-4002": "CPE format error",
+
   "-5000": "Format is incorrect",
   "-5001": "Port number is duplicated",
   "-5002": "IP is duplicated",
