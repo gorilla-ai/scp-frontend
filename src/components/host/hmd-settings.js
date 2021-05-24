@@ -613,10 +613,8 @@ class HMDsettings extends Component {
     })
     .then(data => {
       if (data) {
-        const cpeConvertResult = data.match ? t('txt-pass') : t('txt-fail');
-
         this.setState({
-          cpeConvertResult
+          cpeConvertResult: data.match
         });
       }
       return null;
@@ -624,6 +622,19 @@ class HMDsettings extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  showCpeResult = (type) => {
+    const {cpeConvertResult} = this.state;
+
+    if (cpeConvertResult !== '') {
+      if (type === 'class') {
+        return cpeConvertResult ? 'pass' : 'fail';
+      } else if (type === 'value') {
+        return cpeConvertResult ? t('txt-pass') : t('txt-fail');
+      }
+    }
+
+    return '';
   }
   render() {
     const {
@@ -840,9 +851,10 @@ class HMDsettings extends Component {
                 <TextField
                   name='cpeConvertResult'
                   label={t('network-inventory.txt-CPEconvertResult')}
+                  className={this.showCpeResult('class')}
                   variant='outlined'
                   size='small'
-                  value={cpeConvertResult}
+                  value={this.showCpeResult('value')}
                   disabled={true} />
               </div>
             </div>
