@@ -178,6 +178,10 @@
   "txt-description": "Description",
   "txt-reference": "Reference",
   "txt-syslog": "Syslog",
+  "txt-shutdown": "Shutdown",
+  "txt-logOff": "Log Off",
+  "txt-disconnectedNet": "Disconnected",
+  "txt-resume": "Resume",
   "txt-viewJSON": "$t(txt-view) JSON",
   "txt-exportCSV": "$t(txt-export) CSV",
   "txt-exportPDF": "$t(txt-export) PDF",
@@ -270,6 +274,7 @@
   "txt-table": "Table",
   "txt-linkAnalysis": "Link Analysis",
   "txt-map": "Map",
+
   "txt-setOrganization": "Organization Setting",
   "txt-defaultUnit": "Default Unit",
 
@@ -676,6 +681,8 @@
     "txt-irMsg": "IR data has been uploaded to",
     "txt-itemSelection": "Select IR Set",
     "txt-checkConnections": "Check connections",
+    "txt-lastTriggerTime": "Trigger Time",
+    "txt-executeTime": "Execute Time",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",

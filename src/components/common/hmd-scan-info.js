@@ -97,7 +97,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'gcb', 'ir', 'fileIntegrity', 'procMonitor' or 'settings'
+      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'gcb', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr' or 'settings'
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -227,6 +227,7 @@ class HMDscanInfo extends Component {
     });
 
     if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+      buttonGroupList.push(<ToggleButton value='edr'>EDR</ToggleButton>);
       buttonGroupList.push(<ToggleButton value='settings'>{t('txt-settings')}</ToggleButton>);
     }
 
@@ -1383,7 +1384,7 @@ class HMDscanInfo extends Component {
         {activeTab !== 'settings' &&
           <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('hmd-scan.txt-refresh')}</Button>
         }
-        {activeTab !== 'eventTracing' &&
+        {activeTab !== 'eventTracing' && activeTab !== 'edr' &&
           <div>
             <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
             <div className='last-update'>
@@ -1877,6 +1878,36 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Handle button click for EDR
+   * @method
+   * @param {string} type - btn type ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume')
+   */
+  handleEdrBtn = (type) => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    const requestData = {
+      hostId: currentDeviceData.ipDeviceUUID,
+      cmds: [type]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get formatted field name
    * @method
    * @param {string} tempData - original field name
@@ -2250,7 +2281,7 @@ class HMDscanInfo extends Component {
             </div>
           }
 
-          {activeTab !== 'dashboard' && activeTab !== 'eventTracing' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
+          {activeTab !== 'dashboard' && activeTab !== 'eventTracing' && activeTab !== 'edr' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
             <div>
               {this.getTriggerBtnInfo()}
               {this.getMainContent()}
@@ -2261,6 +2292,21 @@ class HMDscanInfo extends Component {
             <div>
               {this.getTriggerBtnInfo()}
               {this.getEventTracingContent()}
+            </div>
+          }
+
+          {activeTab === 'edr' &&
+            <div className='edr'>
+              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'shutdownHost')}>{t('txt-shutdown')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'logoffAllUsers')}>{t('txt-logOff')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'netcut')}>{t('txt-disconnectedNet')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'netcutResume')}>{t('txt-resume')}</Button>
+              {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
+                <div className='trigger-time'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].latestCreateDttm, 'local')}</div>
+              }
+              {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
+                <div className='execute-time'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].taskResponseDttm, 'local')}</div>
+              }
             </div>
           }
 

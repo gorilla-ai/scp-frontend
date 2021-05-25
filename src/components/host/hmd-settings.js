@@ -623,6 +623,12 @@ class HMDsettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get CPE content
+   * @method
+   * @param {string} type - content type ('class' or 'value')
+   * @returns CPE content
+   */
   showCpeResult = (type) => {
     const {cpeConvertResult} = this.state;
 
