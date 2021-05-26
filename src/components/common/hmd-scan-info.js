@@ -2297,16 +2297,53 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'edr' &&
             <div className='edr'>
-              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'shutdownHost')}>{t('txt-shutdown')}</Button>
-              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'logoffAllUsers')}>{t('txt-logOff')}</Button>
-              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'netcut')}>{t('txt-disconnectedNet')}</Button>
-              <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'netcutResume')}>{t('txt-resume')}</Button>
-              {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
-                <div className='trigger-time'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].latestCreateDttm, 'local')}</div>
-              }
-              {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
-                <div className='execute-time'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].taskResponseDttm, 'local')}</div>
-              }
+              {this.getTriggerBtnInfo()}
+              <div className='edr-btn-group'>
+                <div className='btn-group'>
+                  <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'shutdownHost')}>{t('txt-shutdown')}</Button>
+                  <div className='display-time'>
+                    {currentDeviceData.safetyScanInfo.netcutResult.length > 0 &&
+                      <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.netcutResult[0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                    {currentDeviceData.safetyScanInfo.netcutResult.length > 0 &&
+                      <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.netcutResult[0].taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                  </div>
+                </div>
+                <div className='btn-group'>
+                  <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'logoffAllUsers')}>{t('txt-logOff')}</Button>
+                  <div className='display-time'>
+                    {currentDeviceData.safetyScanInfo.netcutResumeResult.length > 0 &&
+                      <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.netcutResumeResult[0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                    {currentDeviceData.safetyScanInfo.netcutResumeResult.length > 0 &&
+                      <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.netcutResumeResult[0].taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                  </div>
+                </div>
+                <div className='btn-group'>
+                  <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'netcut')}>{t('txt-disconnectedNet')}</Button>
+                  <div className='display-time'>
+                    {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
+                      <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                    {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
+                      <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                  </div>
+                </div>
+                <div className='btn-group'>
+                  <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, 'netcutResume')}>{t('txt-resume')}</Button>
+                  <div className='display-time'>
+                    {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
+                      <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                    {currentDeviceData.safetyScanInfo.shutdownHostResult.length > 0 &&
+                      <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo.shutdownHostResult[0].taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+                    }
+                  </div>
+                </div>
+              </div>
             </div>
           }
 

@@ -571,8 +571,8 @@ html[data-theme='dark'] {
     background-color: var(--contentBackground);
     .hmd-btns-group {
       button {
-        padding-left: 21px !important;
-        padding-right: 21px !important;
+        padding-left: 19px !important;
+        padding-right: 19px !important;
       }
     }
     .info-content {
@@ -829,19 +829,31 @@ html[data-theme='dark'] {
         }
       }
       .edr {
-        margin-top: 30px;
-        button {
-          margin-right: 10px;
-        }
-        .trigger-time,
-        .execute-time {
-          margin-top: 10px;
-          span {
-            color: var(--formEmailGroup);
+        .edr-btn-group {
+          margin: 20px 0;
+          button {
+            margin-right: 10px;
           }
-        }
-        .trigger-time {
-          margin-top: 20px
+          .btn-group {
+            border: 1px solid var(--primaryBorder);
+            padding: 20px 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            button {
+              float: left;
+              margin-bottom: 25px;
+              margin-right: 20px;              
+            }            
+            .display-time {
+              margin-top: -2px;
+              .trigger,
+              .execute {
+                span {
+                  color: var(--formEmailGroup);
+                }
+              }
+            }
+          }
         }
       }
       .settings {

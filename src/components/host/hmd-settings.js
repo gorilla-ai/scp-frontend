@@ -124,6 +124,7 @@ class HMDsettings extends Component {
         other: ''
       }],
       cpeInputTest: '',
+      cpe23Uri: '',
       cpeConvertResult: '',
       connectionsStatus: '',
       formValidation: {
@@ -614,6 +615,7 @@ class HMDsettings extends Component {
     .then(data => {
       if (data) {
         this.setState({
+          cpe23Uri: data.cpe23Uri,
           cpeConvertResult: data.match
         });
       }
@@ -626,21 +628,14 @@ class HMDsettings extends Component {
   /**
    * Get CPE content
    * @method
-   * @param {string} type - content type ('class' or 'value')
    * @returns CPE content
    */
-  showCpeResult = (type) => {
+  showCpeResult = () => {
     const {cpeConvertResult} = this.state;
 
     if (cpeConvertResult !== '') {
-      if (type === 'class') {
-        return cpeConvertResult ? 'pass' : 'fail';
-      } else if (type === 'value') {
-        return cpeConvertResult ? t('txt-pass') : t('txt-fail');
-      }
+      return cpeConvertResult ? t('txt-pass') : t('txt-fail');
     }
-
-    return '';
   }
   render() {
     const {
@@ -653,6 +648,7 @@ class HMDsettings extends Component {
       ftpPassword,
       productRegexData,
       cpeInputTest,
+      cpe23Uri,
       cpeConvertResult,
       connectionsStatus,
       formValidation
@@ -815,7 +811,7 @@ class HMDsettings extends Component {
 
             <div className='form-group normal'>
               <header>{t('network-inventory.txt-VansProductRegex')}</header>
-              <div className='group full multi'>
+              <div className='group full multi product-regex-group'>
                 <MultiInput
                   id='hmdSettingsProductRegex'
                   className='ip-range-group'
@@ -843,7 +839,7 @@ class HMDsettings extends Component {
 
             <div className='form-group normal'>
               <header>{t('network-inventory.txt-CPEconvertTest')}</header>
-              <div className='group'>
+              <div className='group full'>
                 <label></label>
                 <TextField
                   name='cpeInputTest'
@@ -857,11 +853,12 @@ class HMDsettings extends Component {
                 <TextField
                   name='cpeConvertResult'
                   label={t('network-inventory.txt-CPEconvertResult')}
-                  className={this.showCpeResult('class')}
+                  className='cpe-convert-result'
                   variant='outlined'
                   size='small'
-                  value={this.showCpeResult('value')}
+                  value={cpe23Uri}
                   disabled={true} />
+                <div className='convert-result-text' style={{color: cpeConvertResult ? '#22ac38' : '#d10d25'}}>{this.showCpeResult()}</div>
               </div>
             </div>
           </div>
