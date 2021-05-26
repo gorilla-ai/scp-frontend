@@ -3,6 +3,9 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import 'react-sortable-tree/style.css';
+import SortableTree from 'react-sortable-tree';
+
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
@@ -28,6 +31,10 @@ const INIT = {
   name: '',
   header: '',
   data: [],
+  treeData: [
+    { title: 'Chicken', children: [{ title: 'Egg' }] },
+    { title: 'Fish', children: [{ title: 'fingerline' }] },
+  ],
   formValidation: {
     name: {
       valid: true
@@ -202,12 +209,21 @@ class Manage extends Component {
     })
   }
   /**
+   * Set tree data
+   * @method
+   */
+  setTreeData = (treeData) => {
+    this.setState({
+      treeData 
+    });
+  }
+  /**
    * Display department/title manage content
    * @method
    * @returns HTML DOM
    */
   displayDepartmentTitle = () => {
-    const {tableArr, tab, data} = this.state;
+    const {tableArr, tab, data, treeData} = this.state;
     const label = tab.department ? t('ownerFields.department') : t('ownerFields.title');
 
     let dataFields = {};
@@ -233,6 +249,13 @@ class Manage extends Component {
 
     return (
       <div>
+        <div className='tree-section'>
+          <SortableTree
+            treeData={treeData}
+            onChange={this.setTreeData}
+          />
+        </div>
+
         <ToggleButtonGroup
           id='manageBtn'
           value={tab.department ? 'department' : 'title'}
