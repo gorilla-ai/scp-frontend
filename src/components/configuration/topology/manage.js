@@ -31,10 +31,7 @@ const INIT = {
   name: '',
   header: '',
   data: [],
-  treeData: [
-    { title: 'Chicken', children: [{ title: 'Egg' }] },
-    { title: 'Fish', children: [{ title: 'fingerline' }] },
-  ],
+  treeData: [],
   formValidation: {
     name: {
       valid: true
@@ -62,6 +59,22 @@ class Manage extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setInitialTree();
+  }
+  ryan = () => {
+
+  }
+  setInitialTree = () => {
+    const treeData = [
+      { title: 'Chicken', children: [{ title: 'Egg' }] },
+      { title: 'Fish', children: [{ title: 'fingerline' }] },
+    ];
+
+    this.setState({
+      treeData
+    });
   }
   /**
    * Get and set department or title data
