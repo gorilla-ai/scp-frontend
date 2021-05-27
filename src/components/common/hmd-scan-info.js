@@ -1901,6 +1901,7 @@ class HMDscanInfo extends Component {
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
+        this.props.getHMDinfo(this.props.ipType);
       }
       return null;
     })
