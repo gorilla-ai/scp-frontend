@@ -1325,6 +1325,7 @@ class HostController extends Component {
       this.setState({
         safetyScanData: tempSafetyScanData
       }, () => {
+        this.getHostData();
         this.getSafetyScanData();
       });
     }
