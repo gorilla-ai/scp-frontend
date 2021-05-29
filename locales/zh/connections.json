@@ -683,6 +683,7 @@
     "txt-logoffAllUsers": "登出",
     "txt-netcut": "斷網",
     "txt-netcutResume": "恢復",
+    "txt-confirmTo": "確認要",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",

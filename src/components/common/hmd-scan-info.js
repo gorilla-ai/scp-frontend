@@ -142,6 +142,12 @@ class HMDscanInfo extends Component {
           }]
         }
       },
+      edrMoreInfo: {
+        shutdownHost: false,
+        logoffAllUsers: false,
+        netcut: false,
+        netcutResume: false
+      },
       formValidation: {
         fileIntegrity: {
           includePath: {
@@ -2220,24 +2226,104 @@ class HMDscanInfo extends Component {
     })
   }
   /**
+   * Display delete Edge content
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns HTML DOM
+   */
+  getDeleteEdgeContent = (allValue) => {
+    this.setState({
+      currentEdgeData: allValue
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {allValue.agentName || allValue.ipPort}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show Delete Edge dialog
+   * @method
+   * @param {object} allValue - Edge data
+   */
+  openTriggerMenu = (type) => {
+    PopupDialog.prompt({
+      title: this.props.currentDeviceData.hostName,
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('hmd-scan.txt-confirmTo')}{t('hmd-scan.txt-' + type)}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleEdrBtn(type);
+        }
+      }
+    });
+  }
+  /**
+   * Update EDR more info
+   * @method
+   * @param {string} type - EDR type ('shutdownHost', 'logoffAllUsers', 'netcut' or 'netcutResume')
+   */
+  handleMoreEdrInfo = (type) => {
+    const {edrMoreInfo} = this.state;
+    let tempEdrMoreInfo = {...edrMoreInfo};
+    tempEdrMoreInfo[type] = !edrMoreInfo[type];
+
+    this.setState({
+      edrMoreInfo: tempEdrMoreInfo
+    });
+  }
+  /**
+   * Display more EDR info
+   * @method
+   * @param {object} val - individual EDR list
+   * @param {number} i - index of the EDR list
+   * @returns HTML DOM
+   */
+  displayMoreEdrInfo = (val, i) => {
+    if (i === 0) return;
+
+    return (
+      <div key={i} className='btns'>
+        <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(val.latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
+        <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+      </div>
+    )
+  }
+  /**
    * Display view/edit settings content
    * @method
-   * @param {object} val - individual EDR
+   * @param {object} val - individual EDR ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume')
    * @param {number} i - index of the EDR list
    * @returns HTML DOM
    */
   getEdrButtonList = (val, i) => {
     const {currentDeviceData} = this.props;
+    const {edrMoreInfo} = this.state;
 
     return (
       <div key={i} className='btn-group'>
-        <Button variant='contained' color='primary' className='btn' onClick={this.handleEdrBtn.bind(this, val)}>{t('hmd-scan.txt-' + val)}</Button>
+        <Button variant='contained' color='primary' className='btn' onClick={this.openTriggerMenu.bind(this, val)}>{t('hmd-scan.txt-' + val)}</Button>
         <div className='display-time'>
           {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
             <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
           }
           {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
             <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+          }
+        </div>
+        {currentDeviceData.safetyScanInfo[val + 'Result'].length > 1 &&
+          <i className={`fg fg-arrow-${edrMoreInfo[val] ? 'top' : 'bottom'}`} onClick={this.handleMoreEdrInfo.bind(this, val)}></i>
+        }
+        <div className={cx('display-more', {'active': edrMoreInfo[val]})}>
+          {currentDeviceData.safetyScanInfo[val + 'Result'].length > 1 &&
+            currentDeviceData.safetyScanInfo[val + 'Result'].map(this.displayMoreEdrInfo)
           }
         </div>
       </div>

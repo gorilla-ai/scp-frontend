@@ -830,11 +830,14 @@ html[data-theme='dark'] {
       }
       .edr {
         .edr-btn-group {
+          overflow-y: auto;
+          max-height: 425px;
           margin: 20px 0;
           button {
             margin-right: 10px;
           }
           .btn-group {
+            position: relative;
             overflow: hidden;
             padding: 20px 15px;
             margin: 15px 0;
@@ -844,13 +847,33 @@ html[data-theme='dark'] {
               float: left;
               margin-right: 20px;
             }
-            .display-time {
-              margin-top: -2px;
+            .display-time,
+            .display-more {
               .trigger,
               .execute {
                 span {
                   color: var(--formEmailGroup);
                 }
+              }
+            }
+            .display-time {
+              margin-top: -2px;
+            }
+            i.fg {
+              position: absolute;
+              top: 15px;
+              right: 15px;
+              font-size: 30px;
+              cursor: pointer;
+            }
+            .display-more {
+              display: none;
+              margin-left: 83px;
+              &.active {
+                display: block;
+              }
+              .btns {
+                margin-top: 10px;
               }
             }
           }

@@ -683,6 +683,7 @@
     "txt-logoffAllUsers": "Log Off",
     "txt-netcut": "Disconnected",
     "txt-netcutResume": "Resume",
+    "txt-confirmTo": "Confirm to ",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
