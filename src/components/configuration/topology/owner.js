@@ -47,6 +47,7 @@ class NetworkOwner extends Component {
         department: 'all',
         title: 'all',
       },
+      openManage: false,
       addOwnerType: '',
       addOwnerTitle: '',
       showFilter: false,
@@ -634,6 +635,7 @@ class NetworkOwner extends Component {
    * @method
    */
   onDone = (options) => {
+    this.toggleManageDialog();
     this.getSearchData(options);
     this.getOwnerInfo();
   }
@@ -721,6 +723,15 @@ class NetworkOwner extends Component {
       </div>
     )
   }
+  /**
+   * Toggle manage dialog
+   * @method
+   */
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -728,6 +739,7 @@ class NetworkOwner extends Component {
       list,
       departmentDropdown,
       titleDropdown,
+      openManage,
       addOwnerTitle,
       owner,
       showFilter,
@@ -748,9 +760,10 @@ class NetworkOwner extends Component {
 
     return (
       <div>
-        <Manage
-          ref={ref => { this.name=ref }}
-          onDone={this.onDone} />
+        {openManage &&
+          <Manage
+            onDone={this.onDone} />
+        }
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
@@ -774,7 +787,7 @@ class NetworkOwner extends Component {
 
                 <div className='content-header-btns with-menu'>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <MuiTableContent
@@ -788,7 +801,7 @@ class NetworkOwner extends Component {
                 <header className='main-header'>{addOwnerTitle}</header>
 
                 <div className='content-header-btns'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <div className='form-group steps-owner'>

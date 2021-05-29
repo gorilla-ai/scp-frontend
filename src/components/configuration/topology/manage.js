@@ -3,12 +3,13 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import 'react-sortable-tree/style.css';
-import SortableTree from 'react-sortable-tree';
-
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -19,25 +20,6 @@ import helper from '../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const INIT = {
-  openManage: false,
-  openName: false,
-  tableArr: ['nameUUID', 'name', 'option'],
-  tab: {
-    department: true,
-    title: false
-  },
-  nameUUID: '',
-  name: '',
-  header: '',
-  data: [],
-  treeData: [],
-  formValidation: {
-    name: {
-      valid: true
-    }
-  }
-};
 const DEPARTMENT = 1;
 const TITLE = 2;
 
@@ -54,27 +36,56 @@ class Manage extends Component {
   constructor(props) {
     super(props);
 
-    this.state = _.cloneDeep(INIT);
+    this.state = {
+      openManage: false,
+      openName: false,
+      tableArr: ['nameUUID', 'name', 'option'],
+      tab: {
+        department: true,
+        title: false
+      },
+      nameUUID: '',
+      name: '',
+      header: '',
+      data: [],
+      departmentTree: [],
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
+    };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setInitialTree();
+    this.getDepartmentTree();
+    this.openManage();
   }
-  ryan = () => {
+  /**
+   * Get and set department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
 
-  }
-  setInitialTree = () => {
-    const treeData = [
-      { title: 'Chicken', children: [{ title: 'Egg' }] },
-      { title: 'Fish', children: [{ title: 'fingerline' }] },
-    ];
-
-    this.setState({
-      treeData
-    });
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          departmentTree: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set department or title data
@@ -222,13 +233,48 @@ class Manage extends Component {
     })
   }
   /**
-   * Set tree data
+   * Display tree item for department
    * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
    */
-  setTreeData = (treeData) => {
-    this.setState({
-      treeData 
-    });
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.name}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
+   * Get tree data
+   * @method
+   * @param {object} tree - tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeView component
+   */
+  displayTreeView = (tree, i) => {
+    return (
+      <TreeView
+        key={i}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}>
+        {tree.id &&
+          <TreeItem
+            nodeId={tree.id}
+            label={tree.name}>
+            {tree.children && tree.children.length > 0 &&
+              tree.children.map(this.getTreeItem)
+            }
+          </TreeItem>
+        }
+      </TreeView>
+    )
   }
   /**
    * Display department/title manage content
@@ -236,7 +282,7 @@ class Manage extends Component {
    * @returns HTML DOM
    */
   displayDepartmentTitle = () => {
-    const {tableArr, tab, data, treeData} = this.state;
+    const {tableArr, tab, data, departmentTree} = this.state;
     const label = tab.department ? t('ownerFields.department') : t('ownerFields.title');
 
     let dataFields = {};
@@ -263,10 +309,9 @@ class Manage extends Component {
     return (
       <div>
         <div className='tree-section'>
-          <SortableTree
-            treeData={treeData}
-            onChange={this.setTreeData}
-          />
+          {departmentTree && departmentTree.length > 0 &&
+            departmentTree.map(this.displayTreeView)
+          }
         </div>
 
         <ToggleButtonGroup
@@ -316,7 +361,6 @@ class Manage extends Component {
    * @method
    */
   closeTitleManage = () => {
-    this.setState(_.cloneDeep(INIT));
     this.props.onDone('fromManage');
   }
   /**
