@@ -63,7 +63,7 @@ class ExportCsv extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**

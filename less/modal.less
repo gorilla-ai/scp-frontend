@@ -1513,8 +1513,27 @@ html[data-theme='dark'] {
   width: 550px;
   height: 450px;
   .tree-section {
-    height: 400px;
-  }  
+    height: 375px;
+    margin-top: 20px;
+    .tree-label {
+      span {
+        float: left;
+      }
+      .action-icons {
+        display: flex;
+        justify-content: flex-end;
+        i {
+          margin: 0 4px;
+        }
+        .fg-add {
+          position: relative;
+          top: 0;
+          right: 0;
+          font-size: 1.4rem;
+        }
+      }
+    }
+  }
   .table-data {
     height: 330px;
     margin-top: 15px;

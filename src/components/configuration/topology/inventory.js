@@ -77,6 +77,7 @@ class NetworkInventory extends Component {
       modalIRopen: false,
       addSeatOpen: false,
       uploadOpen: false,
+      openManage: false,
       formTypeEdit: true,
       contextAnchor: null,
       menuType: '',
@@ -2844,13 +2845,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Open department / title edit dialog
-   * @method
-   */
-  openManage = () => {
-    this.manage.openManage();
-  }
-  /**
    * Open floor map edit dialog
    * @method
    */
@@ -3179,7 +3173,7 @@ class NetworkInventory extends Component {
                 }
               </RadioGroup>
               {ownerType === 'new' &&
-                <Button variant='outlined' color='primary' className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
+                <Button variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
               }
               <div className='user-pic'>
                 {ownerType === 'new' &&
@@ -3703,6 +3697,23 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Toggle manage dialog
+   * @method
+   */
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    });
+  }
+  /**
+   * Handle close on department/title management modal dialog
+   * @method
+   */
+  handleCloseManage = () => {
+    this.getOtherData();
+    this.toggleManageDialog();
+  }
   render() {
     const {baseUrl, contextRoot, language} = this.context;
     const {
@@ -3714,6 +3725,7 @@ class NetworkInventory extends Component {
       modalIRopen,
       addSeatOpen,
       uploadOpen,
+      openManage,
       contextAnchor,
       menuType,
       LAconfig,
@@ -3808,9 +3820,10 @@ class NetworkInventory extends Component {
             triggerTask={this.triggerTask} />
         }
 
-        <Manage
-          ref={ref => { this.manage = ref }}
-          onDone={this.getOtherData} />
+        {openManage &&
+          <Manage
+            handleCloseManage={this.handleCloseManage} />
+        }
 
         {showGlobalLoadingIcon &&
           <div id='g-progress-container'>

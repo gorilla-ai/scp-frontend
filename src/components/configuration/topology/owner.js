@@ -623,18 +623,11 @@ class NetworkOwner extends Component {
     })
   }
   /**
-   * Open department/title management modal dialog
-   * @method
-   */
-  openManage = () => {
-    this.name.openManage();
-  }
-  /**
    * Handle close on department/title management modal dialog
    * @param {string} options - option for 'fromManage'
    * @method
    */
-  onDone = (options) => {
+  handleCloseManage = (options) => {
     this.toggleManageDialog();
     this.getSearchData(options);
     this.getOwnerInfo();
@@ -762,7 +755,7 @@ class NetworkOwner extends Component {
       <div>
         {openManage &&
           <Manage
-            onDone={this.onDone} />
+            handleCloseManage={this.handleCloseManage} />
         }
 
         <div className='sub-header'>
