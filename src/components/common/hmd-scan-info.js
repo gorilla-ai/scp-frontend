@@ -2251,7 +2251,7 @@ class HMDscanInfo extends Component {
     PopupDialog.prompt({
       title: this.props.currentDeviceData.hostName,
       id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
+      confirmText: t('txt-confirm'),
       cancelText: t('txt-cancel'),
       display: (
         <div className='content delete'>
