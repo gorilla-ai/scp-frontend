@@ -3,9 +3,14 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -15,27 +20,6 @@ import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-
-const INIT = {
-  openManage: false,
-  openName: false,
-  tableArr: ['nameUUID', 'name', 'option'],
-  tab: {
-    department: true,
-    title: false
-  },
-  nameUUID: '',
-  name: '',
-  header: '',
-  data: [],
-  formValidation: {
-    name: {
-      valid: true
-    }
-  }
-};
-const DEPARTMENT = 1;
-const TITLE = 2;
 
 let t = null;
 let et = null;
@@ -50,42 +34,47 @@ class Manage extends Component {
   constructor(props) {
     super(props);
 
-    this.state = _.cloneDeep(INIT);
+    this.state = {
+      activeTab: 'department', //'department' or 'title'
+      openManage: true,
+      openName: false,
+      name: '',
+      header: '',
+      departmentList: [],
+      titleNameList: [],
+      parentTreetId: '',
+      treeId: '',
+      tableArr: ['nameUUID', 'name', 'option'],
+      nameUUID: '',
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
+    };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
+  componentDidMount() {
+    this.getDepartmentTree();
+  }
   /**
-   * Get and set department or title data
+   * Get and set department tree data
    * @method
-   * @param {string} tab - tab name ('department' or 'title')
    */
-  getNameList = (tab) => {
+  getDepartmentTree = () => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/name/_search`;
-    let nameType = '';
-
-    if (tab === 'department') {
-      nameType = DEPARTMENT;
-    } else if (tab === 'title') {
-      nameType = TITLE;
-    }
-
-    const requestData = {
-      nameType
-    };
 
     this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
     })
     .then(data => {
       if (data) {
         this.setState({
-          data
+          departmentList: data
         });
       }
       return null;
@@ -95,106 +84,141 @@ class Manage extends Component {
     })
   }
   /**
-   * Get department data and set open manage modal
-   * @method
-   */
-  openManage = () => {
-    this.getNameList('department');
-    this.setState({
-      openManage: true
-    });
-  }
-  /**
    * Handle tabs change
    * @method
    * @param {object} event - event object
    * @param {string} tab - tab name ('department' or 'title')
    */
   handleTabChange = (event, tab) => {
+    const activeTab = tab;
+
     if (!tab) {
       return;
     }
 
-    let tabs = {
-      department: false,
-      title: false
-    };
-    tabs[tab] = true;
+    if (tab === 'department') {
+      this.getDepartmentTree();
+    } else if (tab === 'title') {
+      this.getTitleNameList();
+    }
 
-    this.getNameList(tab);
     this.setState({
-      tab: tabs
+      activeTab
     });
   }
   /**
-   * Handle add/edit name action
+   * Handle tree action
    * @method
-   * @param {string} type - action type ('add' or 'edit')
-   * @param {string} nameUUID - name UUID
-   * @param {string} name - selected name value
+   * @param {string} type - action type ('add, 'edit' or 'delete')
+   * @param {object} tree - department tree data
+   * @param {object} event - click event
+   * @returns HTML DOM
    */
-  openName = (type, nameUUID, name) => {
-    const {tab} = this.state;
+  handleTreeAction = (type, tree, event) => {
     let header = '';
+    let name = '';
+    let parentTreetId = '';
+    let treeId = '';
+
+    if (event) {
+      event.preventDefault();
+    }
 
     if (type === 'add') {
-      header = tab.department ? t('txt-addDepartment') : t('txt-addTitle');
-      name = '';
-      nameUUID = '';
+      header = t('txt-addDepartment');
+      parentTreetId = tree ? tree.id : 'root';
     } else if (type === 'edit') {
-      header = tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
+      header = t('txt-updateDepartment');
+      name = tree.name;
+      parentTreetId = tree.parentId || tree.rootId;
+      treeId = tree.id;
+    } else if (type === 'delete') {
+      this.openDeleteTreeName(tree);
+      return;
     }
 
     this.setState({
       openName: true,
       header,
       name,
-      nameUUID
+      parentTreetId,
+      treeId
     });
   }
   /**
-   * Open delete name modal dialog
+   * Display department tree content
    * @method
-   * @param {string} nameUUID - name UUID
-   * @param {string} name - selected name value
+   * @param {object} tree - department tree data
+   * @returns HTML DOM
    */
-  openDeleteName = (nameUUID, name) => {
+  getDepartmentTreeLabel = (tree) => {
+    return (
+      <div className='tree-label'>
+        <span>{tree.name}</span> 
+        <div className='action-icons'>
+          <i className='c-link fg fg-add' title={t('txt-add')} onClick={this.handleTreeAction.bind(this, 'add', tree)} />
+          <i className='c-link fg fg-edit' title={t('txt-edit')} onClick={this.handleTreeAction.bind(this, 'edit', tree)} />
+          <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.handleTreeAction.bind(this, 'delete', tree)} />
+        </div>
+      </div>
+    );
+  }
+  /**
+   * Display department tree item
+   * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
+   */
+  getDepartmentTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={this.getDepartmentTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getDepartmentTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
+   * Open delete tree name modal dialog
+   * @method
+   * @param {object} tree - department tree data
+   */
+  openDeleteTreeName = (tree) => {
     PopupDialog.prompt({
-      title: this.state.tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
+      title: t('txt-deleteDepartment'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: (
         <div className='content delete'>
-          <span>{t('txt-delete-msg')}: {name}?</span>
+          <span>{t('txt-delete-msg')}: {tree.name}?</span>
         </div>
       ),
       act: (confirmed) => {
         if (confirmed) {
-          this.deleteName(nameUUID)
+          this.deleteTreeName(tree)
         }
       }
     });
   }
   /**
-   * Handle delete name confirm
+   * Handle delete tree name confirm
    * @method
-   * @param {string} nameUUID - name UUID
+   * @param {object} tree - department tree data
    */
-  deleteName = (nameUUID) => {
+  deleteTreeName = (tree) => {
     const {baseUrl} = this.context;
-    const {tab} = this.state;
-
-    if (!nameUUID) {
-      return;
-    }
 
     this.ah.one({
-      url: `${baseUrl}/api/name?uuid=${nameUUID}`,
+      url: `${baseUrl}/api/department?id=${tree.id}`,
       type: 'DELETE'
     })
     .then(data => {
-      this.getNameList(tab.department ? 'department' : 'title');
+      this.getDepartmentTree();
       return null;
     })
     .catch(err => {
@@ -206,51 +230,172 @@ class Manage extends Component {
    * @method
    * @returns HTML DOM
    */
-  displayDepartmentTitle = () => {
-    const {tableArr, tab, data} = this.state;
-    const label = tab.department ? t('ownerFields.department') : t('ownerFields.title');
-
+  displayDepartmentTitleContent = () => {
+    const {activeTab, departmentList, titleNameList, tableArr, nameUUID} = this.state;
     let dataFields = {};
-    tableArr.forEach(tempData => {
-      dataFields[tempData] = {
-        hide: tempData === 'nameUUID' ? true : false,
-        label: tempData === 'name' ? label : '',
-        sortable: false,
-        formatter: (value, allValue) => {
-          if (tempData === 'option') {
-            return (
-              <div>
-                <i className='c-link fg fg-edit' onClick={this.openName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
-                <i className='c-link fg fg-trashcan' onClick={this.openDeleteName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
-              </div>
-            )
-          } else {
-            return <span>{value}</span>
+
+    if (activeTab === 'title') {
+      tableArr.forEach(tempData => {
+        dataFields[tempData] = {
+          hide: tempData === 'nameUUID' ? true : false,
+          label: tempData === 'name' ? t('ownerFields.title') : '',
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === 'option') {
+              return (
+                <div>
+                  <i className='c-link fg fg-edit' onClick={this.openTitleName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
+                  <i className='c-link fg fg-trashcan' onClick={this.openDeleteTitleName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
+                </div>
+              )
+            } else {
+              return <span>{value}</span>
+            }
           }
-        }
-      };
-    })
+        };
+      })
+    }
 
     return (
       <div>
         <ToggleButtonGroup
           id='manageBtn'
-          value={tab.department ? 'department' : 'title'}
           exclusive
+          value={activeTab}
           onChange={this.handleTabChange}>
           <ToggleButton id='manageDepartment' value='department'>{t('ownerFields.department')}</ToggleButton>
           <ToggleButton id='manageTitle' value='title'>{t('ownerFields.title')}</ToggleButton>
         </ToggleButtonGroup>
 
-        <i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
+        {activeTab === 'department' &&
+          <div className='tree-section'>
+            <i className='c-link fg fg-add' onClick={this.handleTreeAction.bind(this, 'add')} title={t('txt-addDepartment')}></i>
+            {departmentList && departmentList.length > 0 &&
+              <TreeView
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {departmentList.map(this.getDepartmentTreeItem)}
+              </TreeView>
+            }
+          </div>
+        }
 
-        <div className='table-data'>
-          <DataTable
-            fields={dataFields}
-            data={data} />
-        </div>
+        {activeTab === 'title' &&
+          <div className='title-section'>
+            <i className='c-link fg fg-add' onClick={this.openTitleName.bind(this, 'add')} title={t('txt-addTitle')}></i>
+
+            <div className='table-data'>
+              <DataTable
+                fields={dataFields}
+                data={titleNameList} />
+            </div>
+          </div>
+        }
       </div>
     )
+  }
+  /**
+   * Get and set title data
+   * @method
+   */
+  getTitleNameList = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          titleNameList: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle add/edit title name action
+   * @method
+   * @param {string} type - action type ('add' or 'edit')
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   */
+  openTitleName = (type, nameUUID, name) => {
+    const {activeTab} = this.state;
+    let header = '';
+
+    if (type === 'add') {
+      header = t('txt-addTitle');
+      name = '';
+      nameUUID = '';
+    } else if (type === 'edit') {
+      header = t('txt-updateTitle');
+    }
+
+    this.setState({
+      openName: true,
+      header,
+      name,
+      nameUUID
+    });
+  }
+  /**
+   * Open delete title name modal dialog
+   * @method
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   */
+  openDeleteTitleName = (nameUUID, name) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteTitle'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}: {name}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteTitleName(nameUUID)
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete title name confirm
+   * @method
+   * @param {string} nameUUID - name UUID
+   */
+  deleteTitleName = (nameUUID) => {
+    const {baseUrl} = this.context;
+
+    if (!nameUUID) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/name?uuid=${nameUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      this.getTitleNameList();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display title manage content in modal dialog
@@ -271,7 +416,7 @@ class Manage extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayDepartmentTitle()}
+        {this.displayDepartmentTitleContent()}
       </ModalDialog>
     )
   }
@@ -280,8 +425,7 @@ class Manage extends Component {
    * @method
    */
   closeTitleManage = () => {
-    this.setState(_.cloneDeep(INIT));
-    this.props.onDone('fromManage');
+    this.props.handleCloseManage('fromManage');
   }
   /**
    * Handle name input value change
@@ -324,7 +468,7 @@ class Manage extends Component {
     const {header} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeTitleName},
-      confirm: {text: t('txt-confirm'), handler: this.confirmTitleName}
+      confirm: {text: t('txt-confirm'), handler: this.handleConfirmName}
     };
 
     return (
@@ -344,13 +488,13 @@ class Manage extends Component {
    * Handle name modal confirm
    * @method
    */
-  confirmTitleName = () => {
+  handleConfirmName = () => {
     const {baseUrl} = this.context;
-    const {tab, name, nameUUID, formValidation} = this.state;
-    const url = `${baseUrl}/api/name`;
+    const {activeTab, name, parentTreetId, treeId, nameUUID, formValidation} = this.state;
+    let url = '';
     let tempFormValidation = {...formValidation};
+    let requestType = 'POST';
     let requestData = {};
-    let requestType = '';
     let validate = true;
 
     if (name) {
@@ -368,19 +512,35 @@ class Manage extends Component {
       return;
     }
 
-    if (nameUUID) {
+    if (activeTab === 'department') {
+      url = `${baseUrl}/api/department`;
       requestData = {
-        nameUUID: nameUUID,
-        name: name,
-        nameType: tab.department ? DEPARTMENT : TITLE
+        name
       };
-      requestType = 'PATCH';
-    } else {
+
+      if (parentTreetId !== 'root') {
+        requestData.parentId = parentTreetId;
+      }
+
+      if (parentTreetId === treeId) {
+        requestData.id = treeId;
+      }
+
+      if (treeId) {
+        requestType = 'PATCH';
+        requestData.id = treeId;
+      }
+    } else if (activeTab === 'title') {
+      url = `${baseUrl}/api/name`;
       requestData = {
-        name: name,
-        nameType: tab.department ? DEPARTMENT : TITLE
+        name,
+        nameType: 2
       };
-      requestType = 'POST';
+
+      if (nameUUID) {
+        requestType = 'PATCH';
+        requestData.nameUUID = nameUUID;
+      }
     }
 
     ah.one({
@@ -391,11 +551,23 @@ class Manage extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.setState({
-          openName: false
-        });
+        if (activeTab === 'department') {
+          this.setState({
+            openName: false,
+            name: '',
+            parentTreetId: '',
+            treeId: ''
+          });
 
-        this.getNameList(tab.department ? 'department' : 'title');
+          this.getDepartmentTree();
+        } else if (activeTab === 'title') {
+          this.setState({
+            openName: false,
+            nameUUID: ''
+          });
+
+          this.getTitleNameList();
+        }
       }
       return null;
     })

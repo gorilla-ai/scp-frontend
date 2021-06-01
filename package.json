@@ -49,6 +49,7 @@
     "express-session": "^1.15.6",
     "font-gorilla": "git+ssh://git@git.gorilla-technology.com:scrd01/font-gorilla.git",
     "formidable": "^1.2.1",
+    "graceful-fs": "^4.2.6",
     "gui": "git+ssh://git@git.gorilla-technology.com:gorilla/f2e/gui.git",
     "html-to-image": "^1.3.20",
     "jest": "^23.6.0",
@@ -96,8 +97,7 @@
     "underscore.string": "^3.2.1",
     "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
     "widget-builder": "git+ssh://git@git.gorilla-technology.com:scrd01/widget-builder.git#react-v16-merge",
-    "xlsx": "^0.15.4",
-    "graceful-fs": "^4.2.6"
+    "xlsx": "^0.15.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

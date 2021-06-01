@@ -77,6 +77,7 @@ class NetworkInventory extends Component {
       modalIRopen: false,
       addSeatOpen: false,
       uploadOpen: false,
+      openManage: false,
       formTypeEdit: true,
       contextAnchor: null,
       menuType: '',
@@ -220,7 +221,7 @@ class NetworkInventory extends Component {
 
     this.getLAconfig();
     this.getOwnerData();
-    this.getOtherData();
+    this.getTitleData();
 
     if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
       this.getDeviceData();
@@ -299,60 +300,88 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Get and set Department and Title data
+   * Get and set title data
    * @param {string} options - option for calling type
    * @method
    */
-  getOtherData = (options) => {
+  getTitleData = (options) => {
     const {baseUrl} = this.context;
-    const apiNameType = [1, 2]; //1: Department, 2: Title
-    let apiArr = [];
+    const {addIP} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
 
-    _.forEach(apiNameType, val => {
-      const requestData = {
-        nameType: val
-      };
-
-      apiArr.push({
-        url: `${baseUrl}/api/name/_search`,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'application/json'
-      });
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
-
-    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        let departmentList = [];
         let titleList = [];
-        let tempAddIP = {...this.state.addIP};
+        let tempAddIP = {...addIP};
 
-        if (data[0].length > 0) {
-          departmentList = _.map(data[0], (val, i) => {
+        if (data.length > 0) {
+          titleList = _.map(data, (val, i) => {
             return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
           });
-          tempAddIP.newDepartment = departmentList[0].value;
-        } else {
-          tempAddIP.newDepartment = '';
-        }
-
-        if (data[1].length > 0) {
-          titleList = _.map(data[1], (val, i) => {
-            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
-          });
-          tempAddIP.newTitle = titleList[0].value;
+          tempAddIP.newTitle = data[0].nameUUID;
         } else {
           tempAddIP.newTitle = '';
         }
 
         this.setState({
-          departmentList,
           titleList,
           addIP: tempAddIP
+        }, () => {
+          this.getDepartmentData();
         });
 
         this.getFloorPlan(options);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {addIP} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentList = [];
+        let tempAddIP = {...addIP};
+
+        if (data.length > 0) {
+          _.forEach(data, val => {
+            helper.floorPlanRecursive(val, obj => {
+              departmentList.push(
+                <MenuItem key={obj.id} value={obj.id}>{obj.name}</MenuItem>
+              );
+            });
+          })
+
+          tempAddIP.newDepartment = data[0].id;
+        } else {
+          tempAddIP.newDepartment = '';
+        }
+
+        this.setState({
+          departmentList,
+          addIP: tempAddIP
+        });
       }
       return null;
     })
@@ -2844,13 +2873,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Open department / title edit dialog
-   * @method
-   */
-  openManage = () => {
-    this.manage.openManage();
-  }
-  /**
    * Open floor map edit dialog
    * @method
    */
@@ -3179,7 +3201,7 @@ class NetworkInventory extends Component {
                 }
               </RadioGroup>
               {ownerType === 'new' &&
-                <Button variant='outlined' color='primary' className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
+                <Button variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
               }
               <div className='user-pic'>
                 {ownerType === 'new' &&
@@ -3703,6 +3725,23 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Toggle manage dialog
+   * @method
+   */
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    });
+  }
+  /**
+   * Handle close on department/title management modal dialog
+   * @method
+   */
+  handleCloseManage = () => {
+    this.getTitleData();
+    this.toggleManageDialog();
+  }
   render() {
     const {baseUrl, contextRoot, language} = this.context;
     const {
@@ -3714,6 +3753,7 @@ class NetworkInventory extends Component {
       modalIRopen,
       addSeatOpen,
       uploadOpen,
+      openManage,
       contextAnchor,
       menuType,
       LAconfig,
@@ -3808,9 +3848,10 @@ class NetworkInventory extends Component {
             triggerTask={this.triggerTask} />
         }
 
-        <Manage
-          ref={ref => { this.manage = ref }}
-          onDone={this.getOtherData} />
+        {openManage &&
+          <Manage
+            handleCloseManage={this.handleCloseManage} />
+        }
 
         {showGlobalLoadingIcon &&
           <div id='g-progress-container'>

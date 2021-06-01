@@ -1528,7 +1528,7 @@ html[data-theme='dark'] {
       text-align: left;
     }
     tbody td.name {
-      width: 77%;
+      width: 85%;
       font-size: 15px;
     }
     tbody td.ip {
@@ -1545,6 +1545,33 @@ html[data-theme='dark'] {
 }
 /* configuration/topology/owner-mixname */
 #departmentTitleDialog-content {
+  width: 550px;
+  height: 450px;
+  .tree-section {
+    margin-top: 20px;
+    li {
+      margin-bottom: 1px;
+    }
+    .tree-label {
+      span {
+        float: left;
+      }
+      .action-icons {
+        display: flex;
+        justify-content: flex-end;
+        i {
+          font-size: 26px;
+          margin: 0 4px;
+        }
+        .fg-add {
+          position: relative;
+          top: 0;
+          right: 0;
+          font-size: 1.4rem;
+        }
+      }
+    }
+  }
   .table-data {
     height: 330px;
     margin-top: 15px;
@@ -1559,7 +1586,7 @@ html[data-theme='dark'] {
 #showSshAccountDialog-content {
   .table-data {
     height: 330px;
-    margin-top: 45px;    
+    margin-top: 45px;
     td {
       &.account {
         width: 90%;
