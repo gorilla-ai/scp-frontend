@@ -248,7 +248,8 @@ class HostController extends Component {
       severityList: [],
       hmdStatusList: [],
       scanStatusList: [],
-      privateMaskedIP: {},
+      departmentList: [],
+      privateMaskedIPtree: {},
       hostCreateTime: '',
       leftNavData: [],
       privateIpData: {},
@@ -256,6 +257,7 @@ class HostController extends Component {
         severitySelected: [],
         hmdStatusSelected: [],
         scanStatusSelected: [],
+        departmentSelected: [],
         maskedIPSelected: []
       },
       deviceSearch: {
@@ -315,6 +317,7 @@ class HostController extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     this.setLeftNavData();
+    this.getDepartmentList();
     this.getFloorPlan();
   }
   componentWillReceiveProps(nextProps) {
@@ -358,6 +361,29 @@ class HostController extends Component {
       return <MenuItem key={i} value={val.name + '-' + val.sort}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.sort)}</MenuItem>
     });
     return hostSortList;
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentList = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          departmentList: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set floor plan data
@@ -494,7 +520,7 @@ class HostController extends Component {
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, filterNav, deviceSearch, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
+    const {activeTab, deviceSearch, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
     const datetime = this.getHostDateTime();
     let url = `${baseUrl}/api/ipdevice/assessment/_search`;
@@ -627,6 +653,10 @@ class HostController extends Component {
 
     if (filterNav.scanStatusSelected.length > 0) {
       requestData.scanInfo = filterNav.scanStatusSelected;
+    }
+
+    if (filterNav.departmentSelected.length > 0) {
+      requestData.departmentArray = filterNav.departmentSelected;
     }
 
     if (filterNav.maskedIPSelected.length > 0) {
@@ -1154,6 +1184,23 @@ class HostController extends Component {
     });
   }
   /**
+   * Get list of selected checkbox
+   * @method
+   * @param {bool} checked - checkbox on/off
+   * @param {string} type - filterNav type
+   * @param {array.<string>} list - list of selected items
+   *  @param {string} id - selected checkbox id
+   */
+  getSelectedItems = (checked, type, list, id) => {
+    const {filterNav} = this.state;
+
+    if (checked) {
+      return _.concat(filterNav[type], ...list, id);
+    } else {
+      return _.without(filterNav[type], ...list, id);
+    }
+  }
+  /**
    * Handle private IP checkbox check/uncheck
    * @method
    * @param {string} ip - selected IP
@@ -1169,18 +1216,9 @@ class HostController extends Component {
       const maskedChildList = _.map(privateIpData[ip].buckets, val => {
         return val.ip;
       });
-
-      if (event.target.checked) {
-        selectedPrivateIP = _.concat(filterNav.maskedIPSelected, ...maskedChildList);
-      } else {
-        selectedPrivateIP = _.without(filterNav.maskedIPSelected, ...maskedChildList);
-      }
+      selectedPrivateIP = this.getSelectedItems(event.target.checked, 'maskedIPSelected', maskedChildList);
     } else if (type === 'ip') {
-      if (event.target.checked) {
-        selectedPrivateIP = _.concat(filterNav.maskedIPSelected, ip);
-      } else {
-        selectedPrivateIP = _.without(filterNav.maskedIPSelected, ip);
-      }
+      selectedPrivateIP = this.getSelectedItems(event.target.checked, 'maskedIPSelected', '', ip);
     }
 
     tempFilterNav.maskedIPSelected = selectedPrivateIP;
@@ -2236,6 +2274,58 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)})
   }
   /**
+   * Handle department checkbox check/uncheck
+   * @method
+   * @param {object} tree - department tree data
+   * @param {object} event - event object
+   */
+  toggleDepartmentCheckbox = (tree, event) => {
+    let tempFilterNav = {...this.state.filterNav};
+    let departmentChildList = [];
+
+    _.forEach(tree.children, val => {
+      helper.floorPlanRecursive(val, obj => {
+        departmentChildList.push(obj.id);
+      });
+    })
+
+    tempFilterNav.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
+
+    this.setState({
+      filterNav: tempFilterNav
+    }, () => {
+      this.handleSearchSubmit();
+    });
+  }
+  /**
+   * Display department tree content
+   * @method
+   * @param {object} tree - department tree data
+   * @returns HTML DOM
+   */
+  getDepartmentTreeLabel = (tree) => {
+    return <span><Checkbox checked={_.includes(this.state.filterNav.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
+  }
+  /**
+   * Display department tree item
+   * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
+   */
+  getDepartmentTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={this.getDepartmentTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getDepartmentTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
    * Display tree item
    * @method
    * @param {string} [type] - option for onLabelClick
@@ -2530,6 +2620,7 @@ class HostController extends Component {
       menuType,
       hostCreateTime,
       privateMaskedIPtree,
+      departmentList,
       leftNavData,
       filterNav,
       hostInfo,
@@ -2611,13 +2702,24 @@ class HostController extends Component {
             <div className='content'>
               {leftNavData.map(this.showLeftNavItems)}
               <div>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>{t('ownerFields.department')}</label>
+                {departmentList && departmentList.length > 0 &&
+                  <TreeView
+                    className='tree-view'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}>
+                    {departmentList.map(this.getDepartmentTreeItem)}
+                  </TreeView>
+                }
+              </div>
+              <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
                 <TreeView
                   className='tree-view'
                   defaultCollapseIcon={<ExpandMoreIcon />}
                   defaultExpandIcon={<ChevronRightIcon />}
                   defaultExpanded={['All']}>
-                  {privateMaskedIPtree &&
+                  {!_.isEmpty(privateMaskedIPtree) &&
                     <TreeItem
                       nodeId={privateMaskedIPtree.id}
                       label={privateMaskedIPtree.label}>

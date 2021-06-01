@@ -40,7 +40,7 @@ class Manage extends Component {
       openName: false,
       name: '',
       header: '',
-      departmentTree: [],
+      departmentList: [],
       titleNameList: [],
       parentTreetId: '',
       treeId: '',
@@ -74,7 +74,7 @@ class Manage extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          departmentTree: data
+          departmentList: data
         });
       }
       return null;
@@ -146,12 +146,12 @@ class Manage extends Component {
     });
   }
   /**
-   * Display tree department tree content
+   * Display department tree content
    * @method
    * @param {object} tree - department tree data
    * @returns HTML DOM
    */
-  getTreeLabel = (tree) => {
+  getDepartmentTreeLabel = (tree) => {
     return (
       <div className='tree-label'>
         <span>{tree.name}</span> 
@@ -164,20 +164,20 @@ class Manage extends Component {
     );
   }
   /**
-   * Display tree item for department
+   * Display department tree item
    * @method
    * @param {object} val - department tree data
    * @param {number} i - index of the department tree data
    * @returns TreeItem component
    */
-  getTreeItem = (val, i) => {
+  getDepartmentTreeItem = (val, i) => {
     return (
       <TreeItem
         key={val.id + i}
         nodeId={val.id}
-        label={this.getTreeLabel(val)}>
+        label={this.getDepartmentTreeLabel(val)}>
         {val.children && val.children.length > 0 &&
-          val.children.map(this.getTreeItem)
+          val.children.map(this.getDepartmentTreeItem)
         }
       </TreeItem>
     )
@@ -231,7 +231,7 @@ class Manage extends Component {
    * @returns HTML DOM
    */
   displayDepartmentTitleContent = () => {
-    const {activeTab, departmentTree, titleNameList, tableArr, nameUUID} = this.state;
+    const {activeTab, departmentList, titleNameList, tableArr, nameUUID} = this.state;
     let dataFields = {};
 
     if (activeTab === 'title') {
@@ -270,12 +270,11 @@ class Manage extends Component {
         {activeTab === 'department' &&
           <div className='tree-section'>
             <i className='c-link fg fg-add' onClick={this.handleTreeAction.bind(this, 'add')} title={t('txt-addDepartment')}></i>
-
-            {departmentTree && departmentTree.length > 0 &&
+            {departmentList && departmentList.length > 0 &&
               <TreeView
                 defaultCollapseIcon={<ExpandMoreIcon />}
                 defaultExpandIcon={<ChevronRightIcon />}>
-                {departmentTree.map(this.getTreeItem)}
+                {departmentList.map(this.getDepartmentTreeItem)}
               </TreeView>
             }
           </div>

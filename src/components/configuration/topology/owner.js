@@ -88,7 +88,7 @@ class NetworkOwner extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-   this.getSearchData('first');
+   this.getTitleData();
    this.getOwnerData();
   }
   componentWillReceiveProps(nextProps) {
@@ -97,63 +97,87 @@ class NetworkOwner extends Component {
     }
   }
   /**
-   * Get and set department and title data
-   * @param {string} options - option for 'first' or 'fromManage'
+   * Get and set title data
    * @method
    */
-  getSearchData = (options) => {
+  getTitleData = () => {
     const {baseUrl} = this.context;
-    const {activeContent, list} = this.state;
-    const apiNameType = [1, 2]; //1: Department, 2: Title
-    let apiArr = [];
+    const {list} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
 
-    _.forEach(apiNameType, val => {
-      const json = {nameType: val}
-
-      apiArr.push({
-        url: `${baseUrl}/api/name/_search`,
-        data: JSON.stringify(json),
-        type: 'POST',
-        contentType: 'application/json'
-      });
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
-
-    this.ah.all(apiArr)
     .then(data => {
       if (data) {
+        const titleList = _.map(data, val => {
+          return {
+            value: val.nameUUID,
+            text: val.name
+          };
+        });
         let tempList = {...list};
-        let departmentList = [];
-        let titleList = [];
-
-        _.forEach(data[0], val => {
-          departmentList.push({
-            value: val.nameUUID,
-            text: val.name
-          });
-        })
-
-        _.forEach(data[1], val => {
-          titleList.push({
-            value: val.nameUUID,
-            text: val.name
-          });
-        })
-
-        tempList.department = _.cloneDeep(departmentList);
         tempList.title = _.cloneDeep(titleList);
 
-        const departmentDropdown = _.map(data[0], (val, i) => {
-          return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
-        });
-
-        const titleDropdown = _.map(data[1], (val, i) => {
+        const titleDropdown = _.map(data, (val, i) => {
           return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
         });
 
         this.setState({
           list: tempList,
-          departmentDropdown,
           titleDropdown
+        }, () => {
+          this.getDepartmentData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+        let departmentDropdown = [];
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+
+            departmentDropdown.push(
+              <MenuItem key={obj.id} value={obj.id}>{obj.name}</MenuItem>
+            );
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+
+        this.setState({
+          list: tempList,
+          departmentDropdown
         });
       }
       return null;
@@ -545,7 +569,7 @@ class NetworkOwner extends Component {
       this.setState({
         currentOwnerData: {}
       }, () => {
-        this.getSearchData();
+        this.getTitleData();
         this.getOwnerData();
         this.toggleContent('tableList');
       });
@@ -624,13 +648,11 @@ class NetworkOwner extends Component {
   }
   /**
    * Handle close on department/title management modal dialog
-   * @param {string} options - option for 'fromManage'
    * @method
    */
-  handleCloseManage = (options) => {
+  handleCloseManage = () => {
     this.toggleManageDialog();
-    this.getSearchData(options);
-    this.getOwnerInfo();
+    this.getTitleData();
   }
   /**
    * Toggle filter content on/off

@@ -221,7 +221,7 @@ class NetworkInventory extends Component {
 
     this.getLAconfig();
     this.getOwnerData();
-    this.getOtherData();
+    this.getTitleData();
 
     if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
       this.getDeviceData();
@@ -300,60 +300,88 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Get and set Department and Title data
+   * Get and set title data
    * @param {string} options - option for calling type
    * @method
    */
-  getOtherData = (options) => {
+  getTitleData = (options) => {
     const {baseUrl} = this.context;
-    const apiNameType = [1, 2]; //1: Department, 2: Title
-    let apiArr = [];
+    const {addIP} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
 
-    _.forEach(apiNameType, val => {
-      const requestData = {
-        nameType: val
-      };
-
-      apiArr.push({
-        url: `${baseUrl}/api/name/_search`,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'application/json'
-      });
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
-
-    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        let departmentList = [];
         let titleList = [];
-        let tempAddIP = {...this.state.addIP};
+        let tempAddIP = {...addIP};
 
-        if (data[0].length > 0) {
-          departmentList = _.map(data[0], (val, i) => {
+        if (data.length > 0) {
+          titleList = _.map(data, (val, i) => {
             return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
           });
-          tempAddIP.newDepartment = departmentList[0].value;
-        } else {
-          tempAddIP.newDepartment = '';
-        }
-
-        if (data[1].length > 0) {
-          titleList = _.map(data[1], (val, i) => {
-            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
-          });
-          tempAddIP.newTitle = titleList[0].value;
+          tempAddIP.newTitle = data[0].nameUUID;
         } else {
           tempAddIP.newTitle = '';
         }
 
         this.setState({
-          departmentList,
           titleList,
           addIP: tempAddIP
+        }, () => {
+          this.getDepartmentData();
         });
 
         this.getFloorPlan(options);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {addIP} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentList = [];
+        let tempAddIP = {...addIP};
+
+        if (data.length > 0) {
+          _.forEach(data, val => {
+            helper.floorPlanRecursive(val, obj => {
+              departmentList.push(
+                <MenuItem key={obj.id} value={obj.id}>{obj.name}</MenuItem>
+              );
+            });
+          })
+
+          tempAddIP.newDepartment = data[0].id;
+        } else {
+          tempAddIP.newDepartment = '';
+        }
+
+        this.setState({
+          departmentList,
+          addIP: tempAddIP
+        });
       }
       return null;
     })
@@ -3711,7 +3739,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleCloseManage = () => {
-    this.getOtherData();
+    this.getTitleData();
     this.toggleManageDialog();
   }
   render() {
