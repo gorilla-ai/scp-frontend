@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -747,6 +748,19 @@ class NetworkOwner extends Component {
       openManage: !this.state.openManage
     });
   }
+  /**
+   * Toggle manage dialog
+   * @method
+   */
+  renderDepartmentList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('ownerFields.department')}
+        variant='outlined'
+        defaultValue={this.state.owner.info.department} />
+    )
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -772,6 +786,14 @@ class NetworkOwner extends Component {
         this.handleTableSort(changedColumn, direction === 'desc');
       }
     };
+
+    const top100Films = [
+      { title: 'The Shawshank Redemption', year: 1994 },
+      { title: 'The Godfather', year: 1972 },
+      { title: 'The Godfather: Part II', year: 1974 },
+      { title: 'The Dark Knight', year: 2008 },
+      { title: '12 Angry Men', year: 1957 }
+    ];    
 
     return (
       <div>
@@ -896,19 +918,12 @@ class NetworkOwner extends Component {
                         onChange={this.handleDataChange} />
                     </div>
                     <div className='group'>
-                      <TextField
-                        id='ownerDepartment'
-                        name='department'
-                        select
-                        label={t('ownerFields.department')}
-                        variant='outlined'
-                        fullWidth
-                        size='small'
-                        value={owner.info.department}
-                        onChange={this.handleDataChange}
-                        disabled={departmentDropdown.length === 0}>
-                        {departmentDropdown}
-                      </TextField>
+                      <Autocomplete
+                        id='combo-box-demo'
+                        options={list.department}
+                        defaultValue={{ value: owner.info.department }}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList} />
                     </div>
                     <div className='group'>
                       <TextField
