@@ -1806,19 +1806,26 @@ class HostController extends Component {
   /**
    * Toggle Host Analysis dialog on/off
    * @method
+   * @param {string} [from] - option for from page
    */
-  toggleHostAnalysis = () => {
-    this.setState({
-      hostAnalysisOpen: !this.state.hostAnalysisOpen,
-      safetyDetailsOpen: false,
-      eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
-        dataFields: {},
-        dataContent: [],
-        scrollCount: 1,
-        hasMore: false
-      }
-    });
+  toggleHostAnalysis = (from) => {
+    if (from === 'safetyScan') {
+      this.setState({
+        hostAnalysisOpen: !this.state.hostAnalysisOpen
+      });
+    } else {
+      this.setState({
+        hostAnalysisOpen: !this.state.hostAnalysisOpen,
+        safetyDetailsOpen: false,
+        eventInfo: {
+          dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
+          dataFields: {},
+          dataContent: [],
+          scrollCount: 1,
+          hasMore: false
+        }
+      });
+    }
   }
   /**
    * Redirect to Threats page
@@ -2194,14 +2201,20 @@ class HostController extends Component {
   /**
    * Get Available Host data
    * @method
-   * @param {object} safetyData - active safety scan data
+   * @param {object || string} safetyData - active safety scan data, or primary key value
    * @param {object} [cpeData] - cpe data
    * @param {string} [from] - from option for 'safetyPage'
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
-    const keyValue = safetyData.primaryKeyValue || safetyData.id; 
     const datetime = this.getHostDateTime();
+    let keyValue = '';
+
+    if (typeof safetyData === 'string') {
+      keyValue = safetyData;
+    } else {
+      keyValue = safetyData.primaryKeyValue || safetyData.id;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}&exactStartDttm=${datetime.from}`,
@@ -2218,7 +2231,7 @@ class HostController extends Component {
           });
         }
 
-        this.toggleSafetyDetails(data);
+        this.toggleSafetyDetails(data, from);
       }
       return null;
     })
@@ -2661,7 +2674,8 @@ class HostController extends Component {
             getIPdeviceInfo={this.getIPdeviceInfo}
             loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis}
-            toggleSafetyDetails={this.toggleSafetyDetails} />
+            toggleSafetyDetails={this.toggleSafetyDetails}
+            getHostInfo={this.getHostInfo} />
         }
 
         {safetyDetailsOpen &&

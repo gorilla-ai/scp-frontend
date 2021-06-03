@@ -192,7 +192,9 @@ class HostAnalysis extends Component {
           triggerFilesTask={this.triggerFilesTask}
           addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.props.getIPdeviceInfo}
-          loadEventTracing={this.props.loadEventTracing} />
+          loadEventTracing={this.props.loadEventTracing}
+          toggleHostAnalysis={this.toggleHostAnalysis}
+          getHostInfo={this.props.getHostInfo} />
       )
     }
   }
