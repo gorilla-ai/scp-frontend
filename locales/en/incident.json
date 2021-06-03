@@ -172,7 +172,8 @@
 		"txt-abbreviation": "Unit Abbreviation",
 		"txt-exists": "OID already exists",
 		"txt-defaultDelete": "Default Unit can't delete",
-		"txt-existDevice": "The Unit still has equipment devices in use, so it cannot be deleted"
+		"txt-existDevice": "The Unit still has equipment devices in use, so it cannot be deleted",
+		"txt-existChildren": "The Unit still has sub unit or deportment, so it cannot be deleted "
 	},
 	"device": {
 		"txt-edgeDevice": "Available Edge Device",

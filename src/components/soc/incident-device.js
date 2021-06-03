@@ -5,7 +5,6 @@ import {BaseDataContext} from "../common/context";
 import SocConfig from "../common/soc-configuration";
 import helper from "../common/helper";
 import cx from "classnames";
-import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import {downloadWithForm} from "react-ui/build/src/utils/download";
@@ -19,8 +18,10 @@ import TextField from '@material-ui/core/TextField';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
 import Button from "@material-ui/core/Button";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
 import constants from "../constant/constant-incidnet";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+
+
 let t = null;
 let f = null;
 let et = null;
@@ -728,27 +729,57 @@ class IncidentDevice extends Component {
                             disabled={activeContent === 'viewDevice'}/>
                     </div>
                     }
-                        <div className='group'>
-                            <label htmlFor='unitId'>{it('unit.txt-name')}</label>
-                            <TextField
-                                id='unitId'
-                                name='unitId'
-                                required
-                                error={!(incidentDevice.info.unitId || '')}
-                                helperText={it('txt-required')}
-                                variant='outlined'
-                                fullWidth={true}
-                                size='small'
-                                select
-                                onChange={this.handleDataChangeMui}
-                                value={incidentDevice.info.unitId}
-                                disabled={activeContent === 'viewDevice'}>
-                                {
-                                    _.map(unitList, el => {
-                                        return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                    })
-                                }
-                            </TextField>
+                    <div className='group'>
+                        <label htmlFor='unitId'>{it('unit.txt-name')}</label>
+                        {activeContent === 'addDevice' &&
+                        <Autocomplete
+                            id='unitId'
+                            name='unitId'
+                            required
+                            helperText={it('txt-required')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            options={unitList}
+                            select
+                            onChange={this.onUnitChange}
+                            value={incidentDevice.info.unitId}
+                            getOptionLabel={(option) => option.text}
+                            disabled={activeContent === 'viewDevice'}
+                            renderInput={(params) =>
+                                <TextField
+                                    {...params}
+                                    required
+                                    error={!(incidentDevice.info.unitId || '')}
+                                    helperText={it('txt-required')}
+                                    variant='outlined'
+                                    fullWidth={true}
+                                    size='small'
+                                    InputProps={{...params.InputProps, type: 'search'}}
+                                />}
+                        />
+                        }
+                        {activeContent === 'viewDevice' &&
+                        <TextField
+                            id='unitId'
+                            name='unitId'
+                            required
+                            error={!(incidentDevice.info.unitId || '')}
+                            helperText={it('txt-required')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            onChange={this.handleDataChangeMui}
+                            value={incidentDevice.info.unitId}
+                            disabled={activeContent === 'viewDevice'}>
+                            {
+                                _.map(unitList, el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
+                        }
                         </div>
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
@@ -1339,6 +1370,14 @@ class IncidentDevice extends Component {
             });
         }
     };
+
+    onUnitChange = (event, values) => {
+        let tempDevice = {...this.state.incidentDevice};
+        tempDevice.info['unitId'] = values.value;
+        this.setState({
+            incidentDevice: tempDevice
+        });
+    }
 
     /**
      * Handle Incident Device edit input data change

@@ -173,7 +173,8 @@
 		"txt-abbreviation": "機關英文縮寫",
 		"txt-exists": "OID 已存在",
 		"txt-defaultDelete": "預設機關無法刪除",
-		"txt-existDevice": "機關尚有使用中設備，故無法刪除"
+		"txt-existDevice": "機關尚有使用中設備，故無法刪除",
+		"txt-existChildren": "機關架構尚有子機關/部門，故無法刪除"
 	},
 	"device": {
 		"txt-edgeDevice": "可收錄之Edge設備",
