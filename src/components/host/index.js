@@ -2591,7 +2591,7 @@ class HostController extends Component {
    */
   exportCPE = () => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/vans/_export`;
+    const url = `${baseUrl}${contextRoot}/api/hmd/vans/_export`;
     const datetime = this.getHostDateTime();
     const dataOptions = {
       timestamp: [datetime.from, datetime.to],
