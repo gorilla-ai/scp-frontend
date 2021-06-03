@@ -294,7 +294,7 @@ class HostController extends Component {
       currentSafetyData: {},
       safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
       savedCpeData: {},
-      fromSafetyPage: false,
+      fromSafetyPage: '',
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
@@ -1997,19 +1997,28 @@ class HostController extends Component {
    * Toggle safety details dialog and set safety data
    * @method
    * @param {object} safetyData - active safety scan data
-   * @param {string | bool} options - option to show safety scan tab ('basicInfo' or 'availableHost'), option for true/false
+   * @param {string | bool} options - option to show safety scan tab ('basicInfo' or 'showAvailableHost'); option for 'getVansCpe' or 'availableHost'
    */
   toggleSafetyDetails = (safetyData, options) => {
     const {savedCpeData, fromSafetyPage} = this.state;
-    const showSafetyTab = options === 'availableHost' ? 'availableHost' : 'basicInfo';
+    const showSafetyTab = options === 'showAvailableHost' ? 'availableHost' : 'basicInfo';
     let data = {};
 
-    if (options === true) {
+    if (options === 'getVansCpe') {
       this.setState({
         currentSafetyData: savedCpeData,
         safetyScanType: 'getVansCpe',
-        fromSafetyPage: false
+        fromSafetyPage: ''
       });
+      return;
+    }
+
+    if (options === 'availableHost') {
+      this.setState({
+        safetyDetailsOpen: !this.state.safetyDetailsOpen,
+        fromSafetyPage: ''
+      });
+      this.toggleHostAnalysis('safetyScan');
       return;
     }
 
@@ -2199,18 +2208,18 @@ class HostController extends Component {
     }
   }
   /**
-   * Get Available Host data
+   * Get available host data
    * @method
-   * @param {object || string} safetyData - active safety scan data, or primary key value
+   * @param {object | string} safetyData - active safety scan data, or primary key value
    * @param {object} [cpeData] - cpe data
-   * @param {string} [from] - from option for 'safetyPage'
+   * @param {string} [from] - from option for 'safetyPage' or 'showAvailableHost'
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
     const datetime = this.getHostDateTime();
     let keyValue = '';
 
-    if (typeof safetyData === 'string') {
+    if (from === 'showAvailableHost') {
       keyValue = safetyData;
     } else {
       keyValue = safetyData.primaryKeyValue || safetyData.id;
@@ -2222,13 +2231,30 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        if (from && from === 'safetyPage') {
+        if (_.isEmpty(data)) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
+
+        if (from === 'safetyPage') {
           this.setState({
             safetyScanType: 'getVansCve',
             safetyDetailsOpen: false,
             savedCpeData: cpeData,
-            fromSafetyPage: true
+            fromSafetyPage: 'getVansCve'
           });
+        }
+
+        if (from === 'showAvailableHost') {
+          this.setState({
+            currentSafetyData: data,
+            fromSafetyPage: 'availableHost',
+            safetyDetailsOpen: !this.state.safetyDetailsOpen,
+            showSafetyTab: 'availableHost'
+          }, () => {
+            this.toggleHostAnalysis('safetyScan');
+          });
+          return;
         }
 
         this.toggleSafetyDetails(data, from);
@@ -2650,7 +2676,7 @@ class HostController extends Component {
       openHmdType,
       currentSafetyData,
       safetyScanType,
-      fromSafetyPage,      
+      fromSafetyPage,
       floorPlan,
       showLoadingIcon
     } = this.state;

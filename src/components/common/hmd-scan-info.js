@@ -978,15 +978,6 @@ class HMDscanInfo extends Component {
     });
   }
   /**
-   * Handle click for available host count
-   * @method
-   * @param {string} md5 - MD5 string
-   */  
-  handleHostCountClick = (md5) => {
-    this.props.toggleHostAnalysis('safetyScan');
-    this.props.getHostInfo(md5, '', 'availableHost');
-  }
-  /**
    * Display Scan File (Malware) content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
@@ -1087,7 +1078,7 @@ class HMDscanInfo extends Component {
                     <li><span className='blue-color'>{f('malwareFields._IsVerifyTrust')}</span>: {this.getBoolValue(val._IsVerifyTrust)}</li>
                   }
                   {val.hostIdArrCnt && val._FileInfo &&
-                    <li><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.handleHostCountClick.bind(this, val._FileInfo._HashValues._MD5)}>{helper.numberWithCommas(val.hostIdArrCnt)}</span></li>
+                    <li><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost')}>{helper.numberWithCommas(val.hostIdArrCnt)}</span></li>
                   }
                 </ul>
               </div>
