@@ -1077,8 +1077,8 @@ class HMDscanInfo extends Component {
                   {val._IsVerifyTrust &&
                     <li><span className='blue-color'>{f('malwareFields._IsVerifyTrust')}</span>: {this.getBoolValue(val._IsVerifyTrust)}</li>
                   }
-                  {val.hostIdArrCnt &&
-                    <li><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: {helper.numberWithCommas(val.hostIdArrCnt)}</li>
+                  {val.hostIdArrCnt && val._FileInfo &&
+                    <li><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost')}>{helper.numberWithCommas(val.hostIdArrCnt)}</span></li>
                   }
                 </ul>
               </div>

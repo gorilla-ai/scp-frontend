@@ -59,7 +59,7 @@ class HostAnalysis extends Component {
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
-      this.props.toggleSafetyDetails('', 'availableHost');
+      this.props.toggleSafetyDetails('', 'showAvailableHost');
     }
   }
   /**
@@ -192,7 +192,8 @@ class HostAnalysis extends Component {
           triggerFilesTask={this.triggerFilesTask}
           addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.props.getIPdeviceInfo}
-          loadEventTracing={this.props.loadEventTracing} />
+          loadEventTracing={this.props.loadEventTracing}
+          getHostInfo={this.props.getHostInfo} />
       )
     }
   }
