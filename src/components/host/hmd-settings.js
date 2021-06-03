@@ -856,7 +856,7 @@ class HMDsettings extends Component {
                   className='cpe-convert-result'
                   variant='outlined'
                   size='small'
-                  value={cpe23Uri}
+                  value={cpe23Uri || ''}
                   disabled={true} />
                 <div className='convert-result-text' style={{color: cpeConvertResult ? '#22ac38' : '#d10d25'}}>{this.showCpeResult()}</div>
               </div>
