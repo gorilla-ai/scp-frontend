@@ -9,6 +9,7 @@ import jschardet from 'jschardet'
 import queryString from 'query-string'
 import XLSX from 'xlsx'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
@@ -353,7 +354,6 @@ class NetworkInventory extends Component {
    */
   getDepartmentData = () => {
     const {baseUrl} = this.context;
-    const {addIP} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/department/_tree`,
@@ -362,25 +362,20 @@ class NetworkInventory extends Component {
     .then(data => {
       if (data) {
         let departmentList = [];
-        let tempAddIP = {...addIP};
 
         if (data.length > 0) {
           _.forEach(data, val => {
             helper.floorPlanRecursive(val, obj => {
-              departmentList.push(
-                <MenuItem key={obj.id} value={obj.id}>{obj.name}</MenuItem>
-              );
+              departmentList.push({
+                value: obj.id,
+                text: obj.name
+              });
             });
           })
-
-          tempAddIP.newDepartment = data[0].id;
-        } else {
-          tempAddIP.newDepartment = '';
         }
 
         this.setState({
-          departmentList,
-          addIP: tempAddIP
+          departmentList
         });
       }
       return null;
@@ -1902,11 +1897,14 @@ class NetworkInventory extends Component {
           ownerUUID: currentDeviceData.ownerUUID,
           ownerID: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerID : '',
           ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : '',
-          department: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.departmentName : '',
           title: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.titleName : '',
-          newDepartment: departmentList[0] ? departmentList[0].value : '',
           newTitle: titleList[0] ? titleList[0].value : ''
         };
+
+        if (currentDeviceData.ownerObj.department) {
+          const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': currentDeviceData.ownerObj.department });
+          addIP.department = departmentList[selectedDepartmentIndex]
+        }
 
         if (currentDeviceData.areaUUID) {
           this.setState({
@@ -2639,7 +2637,7 @@ class NetworkInventory extends Component {
       let formData = new FormData();
       formData.append('ownerID', addIP.newOwnerID);
       formData.append('ownerName', addIP.newOwnerName);
-      formData.append('department', addIP.newDepartment);
+      formData.append('department', addIP.newDepartment.value);
       formData.append('title', addIP.newTitle);
 
       if (addIP.file) {
@@ -2807,9 +2805,9 @@ class NetworkInventory extends Component {
    * @param {object} event - event object
    */
   handleOwnerTypeChange = (event) => {
-    const {departmentList, titleList, addIP} = this.state;
+    const {titleList, addIP} = this.state;
     const tempAddIP = {...addIP};
-    tempAddIP.newDepartment = departmentList[0] ? departmentList[0].value : '';
+    tempAddIP.newDepartment = {};
     tempAddIP.newTitle = titleList[0] ? titleList[0].value : '';
 
     this.setState({
@@ -2826,6 +2824,7 @@ class NetworkInventory extends Component {
    */
   getOwnerInfo = (event) => {
     const {baseUrl} = this.context;
+    const {departmentList} = this.state;
     const value = event.target ? event.target.value : event;
 
     ah.one({
@@ -2839,9 +2838,11 @@ class NetworkInventory extends Component {
         let tempAddIP = {...this.state.addIP};
         tempAddIP.ownerUUID = data.ownerUUID;
         tempAddIP.ownerID = data.ownerID;
-        tempAddIP.department = data.departmentName;
         tempAddIP.title = data.titleName;
         tempAddIP.ownerPic = data.base64;
+
+        const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': data.department });
+        tempAddIP.department = departmentList[selectedDepartmentIndex]
 
         const inventoryParam = queryString.parse(location.search);
 
@@ -2957,6 +2958,38 @@ class NetworkInventory extends Component {
       previewOwnerPic: value ? URL.createObjectURL(value) : '',
       addIP: tempAddIP
     });
+  }
+  /**
+   * Display department list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   */
+  renderDepartmentList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('ownerFields.department')}
+        variant='outlined' />
+    )
+  }
+  /**
+   * Handle department combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected department info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {departmentList, addIP} = this.state;
+    let tempAddIP = {...addIP};
+
+    if (value && value.value) {
+      const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': value.value });
+      tempAddIP.newDepartment = departmentList[selectedDepartmentIndex]
+
+      this.setState({
+        addIP: tempAddIP
+      });
+    }
   }
   /**
    * Display add/edit IP device form content
@@ -3271,19 +3304,13 @@ class NetworkInventory extends Component {
                         onChange={this.handleAddIpChange} />
                     </div>
                     <div className='group'>
-                      <TextField
-                        id='addIPstepsDepartment'
-                        name='newDepartment'
-                        label={t('ownerFields.department')}
-                        select
-                        variant='outlined'
-                        fullWidth
-                        size='small'
+                      <Autocomplete
+                        id='combo-box-demo'
+                        options={departmentList}
                         value={addIP.newDepartment}
-                        onChange={this.handleSelectionChange}
-                        disabled={departmentList.length === 0}>
-                        {departmentList}
-                      </TextField>
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList}
+                        onChange={this.handleComboBoxChange} />
                     </div>
                     <div className='group'>
                       <TextField
@@ -3329,15 +3356,12 @@ class NetworkInventory extends Component {
                         disabled />
                     </div>
                     <div className='group'>
-                      <TextField
-                        key='departmentName'
-                        id='addIPstepsDepartment'
-                        name='department'
-                        label={t('ownerFields.department')}
-                        variant='outlined'
-                        fullWidth
-                        size='small'
-                        value={addIP.department || ''}
+                      <Autocomplete
+                        id='combo-box-demo'
+                        options={departmentList}
+                        value={addIP.department}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList}
                         disabled />
                     </div>
                     <div className='group'>
