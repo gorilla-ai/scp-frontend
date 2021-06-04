@@ -55,8 +55,27 @@ class IncidentComment extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
 	}
+
+    refresh() {
+        const {baseUrl} = this.context
+
+        ah.one({
+            url: `${baseUrl}/api/soc/command/_search`
+        })
+            .then(data => {
+                this.setState({open: true, comments: data.rt, selected: 'selected',})
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+    }
 	close() {
-    	this.setState({open: false})
+        this.setState({
+            open: false,
+            comments: [],
+            selected: 'new',
+            comment: null
+        })
     }
     handleChange(field, value) {
     	this.setState({[field]: value}, () => {
@@ -139,7 +158,16 @@ class IncidentComment extends Component {
             dataType: 'json'
         })
         .then(data => {
-            this.open()
+
+            this.setState({
+                open: false,
+                comments: [],
+                selected: 'new',
+                comment: null
+            },()=>{
+                this.open()
+            })
+            helper.showPopupMsg('', t('txt-success'),   it('txt-new')+it('txt-comment-example')+t('txt-success'))
         })
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
@@ -180,7 +208,8 @@ class IncidentComment extends Component {
                         dataType: 'json'
                     })
                     .then(data => {
-                        this.open()
+                        this.close()
+                        helper.showPopupMsg('', t('txt-success'),   it('txt-update')+it('txt-comment-example')+t('txt-success'))
                     })
                     .catch(err => {
                         helper.showPopupMsg('', t('txt-error'), err.message)
@@ -207,7 +236,15 @@ class IncidentComment extends Component {
                         type: 'DELETE'
                     })
                     .then(data => {
-                        this.open()
+                        this.setState({
+                            open: false,
+                            comments: [],
+                            selected: 'new',
+                            comment: null
+                        },()=>{
+                            this.open()
+                        })
+                        helper.showPopupMsg('', t('txt-success'),   it('txt-delete')+it('txt-comment-example')+t('txt-success'))
                     })
                     .catch(err => {
                         helper.showPopupMsg('', t('txt-error'), err.message)

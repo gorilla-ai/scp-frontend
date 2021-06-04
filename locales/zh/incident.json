@@ -136,6 +136,9 @@
 	"txt-validUnit": "請檢查是否正確輸入資安事件申報機關資料",
 	"txt-superAccount-not-set-unit": "此帳號未設定綁定機關，將跳轉至預設畫面",
 	"txt-isGovernmentNotFound": "沒有轉發給NCCST的機關/單位",
+	"txt-new": "新增",
+	"txt-update": "更新",
+	"txt-delete": "刪除",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",

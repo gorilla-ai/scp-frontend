@@ -136,6 +136,9 @@
 	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",
 	"txt-superAccount-not-set-unit": "No binding unit has been set for this account, it will jump to the default page.",
 	"txt-isGovernmentNotFound": "Authorities/units not forwarded to NCCST",
+	"txt-new": "Add",
+	"txt-update": "Edit",
+	"txt-delete": "Delete",
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",
