@@ -115,6 +115,7 @@ class IncidentDevice extends Component {
                 pageSize: 20,
                 edgeItem: '',
                 usedDeviceIdList: [],
+
                 info: {
                     id: '',
                     unitId: '',
@@ -129,7 +130,8 @@ class IncidentDevice extends Component {
                     protectTypeInfo: '',
                     note: '',
                     reason:'',
-                    updateDttm: ''
+                    updateDttm: '',
+                    selectUnitObject :{},
                 }
             }
         };
@@ -602,6 +604,7 @@ class IncidentDevice extends Component {
      */
     displayEditDeviceContent = () => {
         const {activeContent, dataFromEdgeDevice, incidentDevice, unitList, edgeList, accountType} = this.state;
+
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-device')}</header>
@@ -610,7 +613,7 @@ class IncidentDevice extends Component {
                     {activeContent === 'viewDevice' &&
                         <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                     }
-                    {activeContent !== 'addDevice' &&
+                    {activeContent === 'viewDevice' &&
                         <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
                     }
                 </div>
@@ -731,7 +734,6 @@ class IncidentDevice extends Component {
                     }
                     <div className='group'>
                         <label htmlFor='unitId'>{it('unit.txt-name')}</label>
-                        {activeContent === 'addDevice' &&
                         <Autocomplete
                             id='unitId'
                             name='unitId'
@@ -743,14 +745,14 @@ class IncidentDevice extends Component {
                             options={unitList}
                             select
                             onChange={this.onUnitChange}
-                            value={incidentDevice.info.unitId}
+                            value={incidentDevice.info.selectUnitObject}
                             getOptionLabel={(option) => option.text}
                             disabled={activeContent === 'viewDevice'}
                             renderInput={(params) =>
                                 <TextField
                                     {...params}
                                     required
-                                    error={!(incidentDevice.info.unitId || '')}
+                                    error={!(incidentDevice.info.selectUnitObject.value || '')}
                                     helperText={it('txt-required')}
                                     variant='outlined'
                                     fullWidth={true}
@@ -758,28 +760,6 @@ class IncidentDevice extends Component {
                                     InputProps={{...params.InputProps, type: 'search'}}
                                 />}
                         />
-                        }
-                        {activeContent === 'viewDevice' &&
-                        <TextField
-                            id='unitId'
-                            name='unitId'
-                            required
-                            error={!(incidentDevice.info.unitId || '')}
-                            helperText={it('txt-required')}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            onChange={this.handleDataChangeMui}
-                            value={incidentDevice.info.unitId}
-                            disabled={activeContent === 'viewDevice'}>
-                            {
-                                _.map(unitList, el => {
-                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                })
-                            }
-                        </TextField>
-                        }
                         </div>
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
@@ -824,6 +804,9 @@ class IncidentDevice extends Component {
             return
         }
 
+        // TODO Assign unit id
+        incidentDevice.info.unitId = incidentDevice.info.selectUnitObject.value;
+
         let apiType = 'POST';
 
         if (incidentDevice.info.id) {
@@ -861,7 +844,7 @@ class IncidentDevice extends Component {
      */
     checkAddData = (incidentDevice) => {
 
-        if (!incidentDevice.info.unitId || !incidentDevice.info.deviceId || !incidentDevice.info.deviceCompany ||
+        if (!incidentDevice.info.selectUnitObject || !incidentDevice.info.deviceId || !incidentDevice.info.deviceCompany ||
             !incidentDevice.info.deviceName || !incidentDevice.info.protectType) {
             helper.showPopupMsg('', t('txt-error'), t('txt-allRequired'));
             return false;
@@ -1110,7 +1093,11 @@ class IncidentDevice extends Component {
                 protectType: allValue.protectType,
                 protectTypeInfo: allValue.protectTypeInfo,
                 note: allValue.note,
-                updateDttm: allValue.updateDttm
+                updateDttm: allValue.updateDttm,
+                selectUnitObject:{
+                    text:allValue.incidentUnitDTO.name || '',
+                    value:allValue.unitId
+                }
             };
             this.setState({
                 showFilter: false,
@@ -1133,13 +1120,17 @@ class IncidentDevice extends Component {
                 protectType: allValue.protectType,
                 protectTypeInfo: allValue.protectTypeInfo,
                 note: allValue.note,
-                updateDttm: allValue.updateDttm
+                updateDttm: allValue.updateDttm,
+                selectUnitObject:{
+                    text: '',
+                    value:''
+                }
             };
             this.setState({
                 showFilter: false,
-                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
+
         } else if (type === 'tableList') {
             tempIncidentDevice.info = _.cloneDeep(incidentDevice.info);
         } else if (type === 'cancel-add') {
@@ -1150,9 +1141,6 @@ class IncidentDevice extends Component {
             showPage = 'viewDevice';
             dataFromEdgeDevice = false;
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
-            // this.setState({
-            //     setType:null
-            // })
         }
 
         this.setState({
@@ -1373,7 +1361,7 @@ class IncidentDevice extends Component {
 
     onUnitChange = (event, values) => {
         let tempDevice = {...this.state.incidentDevice};
-        tempDevice.info['unitId'] = values.value;
+        tempDevice.info['selectUnitObject'] = values;
         this.setState({
             incidentDevice: tempDevice
         });
@@ -1434,7 +1422,6 @@ class IncidentDevice extends Component {
 
             })
 
-            // tempSendDevice.info[type] = value;
             this.setState({
                 healthStatistic: tempSendDevice
             });
@@ -1509,7 +1496,6 @@ class IncidentDevice extends Component {
         let tempSendCheck = {...this.state.sendCheck};
         const {baseUrl, contextRoot} = this.context;
 
-        // tempSendCheck.sendStatus = !this.state.sendCheck.sendStatus;
         tempSendCheck.sendStatus = value;
 
         ah.one({
