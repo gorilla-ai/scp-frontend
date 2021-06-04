@@ -317,7 +317,6 @@ class HostController extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     this.setLeftNavData();
-    this.getDepartmentList();
     this.getFloorPlan();
   }
   componentWillReceiveProps(nextProps) {
@@ -361,29 +360,6 @@ class HostController extends Component {
       return <MenuItem key={i} value={val.name + '-' + val.sort}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.sort)}</MenuItem>
     });
     return hostSortList;
-  }
-  /**
-   * Get and set department data
-   * @method
-   */
-  getDepartmentList = () => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/department/_tree`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          departmentList: data
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Get and set floor plan data
@@ -616,6 +592,7 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
+          departmentList: data.deptTree,
           hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
           hostInfo: tempHostInfo,
           showLoadingIcon: false

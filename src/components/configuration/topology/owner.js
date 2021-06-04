@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -40,17 +41,16 @@ class NetworkOwner extends Component {
         department: [],
         title: []
       },
-      departmentDropdown: [],
       titleDropdown: [],
       search: {
         name: '',
-        department: 'all',
-        title: 'all',
+        department: {},
+        title: 'all'
       },
       openManage: false,
       addOwnerType: '',
       addOwnerTitle: '',
-      showFilter: false,
+      showFilter: true,
       currentOwnerData: {},
       owner: {
         dataFieldsArr: ['ownerID', 'ownerName', 'departmentName', 'titleName', '_menu'],
@@ -158,7 +158,6 @@ class NetworkOwner extends Component {
       if (data) {
         let tempList = {...list};
         let departmentList = [];
-        let departmentDropdown = [];
 
         _.forEach(data, val => {
           helper.floorPlanRecursive(val, obj => {
@@ -166,18 +165,13 @@ class NetworkOwner extends Component {
               value: obj.id,
               text: obj.name
             });
-
-            departmentDropdown.push(
-              <MenuItem key={obj.id} value={obj.id}>{obj.name}</MenuItem>
-            );
           });
         })
 
         tempList.department = _.cloneDeep(departmentList);
 
         this.setState({
-          list: tempList,
-          departmentDropdown
+          list: tempList
         });
       }
       return null;
@@ -221,8 +215,8 @@ class NetworkOwner extends Component {
       requestData.ownerName = '%' + search.name + '%';
     }
 
-    if (search.department != 'all') {
-      requestData.department = search.department;
+    if (!_.isEmpty(search.department)) {
+      requestData.department = search.department.value;
     }
 
     if (search.title != 'all') {
@@ -360,7 +354,7 @@ class NetworkOwner extends Component {
    */
   getOwnerInfo = (allValue) => {
     const {baseUrl} = this.context;
-    const {currentOwnerData, owner} = this.state;
+    const {list, currentOwnerData, owner} = this.state;
     const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
     let tempOwner = {...owner};
 
@@ -379,6 +373,9 @@ class NetworkOwner extends Component {
           });
         }
 
+        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data.department });
+        tempOwner.info.department = list.department[selectedDepartmentIndex];
+
         this.setState({
           owner: tempOwner
         }, () => {
@@ -390,6 +387,51 @@ class NetworkOwner extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Display department list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   */
+  renderDepartmentList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('ownerFields.department')}
+        variant='outlined' />
+    )
+  }
+  /**
+   * Handle department combo box change
+   * @method
+   * @param {string} type - combo type ('search' or 'owner')
+   * @param {object} event - select event
+   * @param {object} value - selected department info
+   */
+  handleComboBoxChange = (type, event, value) => {
+    const {list, search, owner} = this.state;
+
+    if (value && value.value) {
+      const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
+
+      if (type === 'search') {
+        let tempSearch = {...search};
+        tempSearch.department = list.department[selectedDepartmentIndex]
+
+        this.setState({
+          search: tempSearch
+        });
+      }
+
+      if (type === 'owner') {
+        let tempOwner = {...owner};
+        tempOwner.info.department = list.department[selectedDepartmentIndex];
+
+        this.setState({
+          owner: tempOwner 
+        });
+      }
+    }
   }
   /**
    * Toggle and display page content
@@ -420,7 +462,7 @@ class NetworkOwner extends Component {
 
         if (list.department[0] && list.title[0]) {
           tempOwner.info = {
-            department: list.department[0].value,
+            department: {},
             title: list.title[0].value
           };
         }
@@ -534,8 +576,8 @@ class NetworkOwner extends Component {
     formData.append('ownerID', owner.info.ownerID);
     formData.append('ownerName', owner.info.ownerName);
 
-    if (owner.info.department) {
-      formData.append('department', owner.info.department);
+    if (owner.info.department.value) {
+      formData.append('department', owner.info.department.value);
     } else {
       formData.append('department', '');
     }
@@ -671,7 +713,7 @@ class NetworkOwner extends Component {
     this.setState({
       search: {
         name: '',
-        department: 'all',
+        department: {},
         title: 'all',
       }
     });
@@ -682,7 +724,7 @@ class NetworkOwner extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {list, departmentDropdown, titleDropdown, search, showFilter} = this.state;
+    const {list, titleDropdown, search, showFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -701,19 +743,13 @@ class NetworkOwner extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <TextField
-              id='ownerDept'
-              name='department'
-              select
-              label={t('ownerFields.department')}
-              variant='outlined'
-              fullWidth
-              size='small'
+            <Autocomplete
+              id='combo-box-demo'
+              options={list.department}
               value={search.department}
-              onChange={this.handleSearchChange}>
-              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
-              {departmentDropdown}
-            </TextField>
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderDepartmentList}
+              onChange={this.handleComboBoxChange.bind(this, 'search')} />
           </div>
           <div className='group'>
             <TextField
@@ -752,7 +788,6 @@ class NetworkOwner extends Component {
     const {
       activeContent,
       list,
-      departmentDropdown,
       titleDropdown,
       openManage,
       addOwnerTitle,
@@ -771,7 +806,7 @@ class NetworkOwner extends Component {
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort(changedColumn, direction === 'desc');
       }
-    };
+    }; 
 
     return (
       <div>
@@ -896,19 +931,13 @@ class NetworkOwner extends Component {
                         onChange={this.handleDataChange} />
                     </div>
                     <div className='group'>
-                      <TextField
-                        id='ownerDepartment'
-                        name='department'
-                        select
-                        label={t('ownerFields.department')}
-                        variant='outlined'
-                        fullWidth
-                        size='small'
+                      <Autocomplete
+                        id='combo-box-demo'
+                        options={list.department}
                         value={owner.info.department}
-                        onChange={this.handleDataChange}
-                        disabled={departmentDropdown.length === 0}>
-                        {departmentDropdown}
-                      </TextField>
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList}
+                        onChange={this.handleComboBoxChange.bind(this, 'owner')} />
                     </div>
                     <div className='group'>
                       <TextField
