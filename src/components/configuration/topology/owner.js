@@ -50,7 +50,7 @@ class NetworkOwner extends Component {
       openManage: false,
       addOwnerType: '',
       addOwnerTitle: '',
-      showFilter: true,
+      showFilter: false,
       currentOwnerData: {},
       owner: {
         dataFieldsArr: ['ownerID', 'ownerName', 'departmentName', 'titleName', '_menu'],
