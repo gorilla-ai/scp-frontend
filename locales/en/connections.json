@@ -767,6 +767,7 @@
     "txt-uploadFailedMAC": "MAC format is incorrect, please try upload again.",
     "txt-uploadFailed": "The following IP contains error, please try again.",
     "txt-autoSettings": "Auto Settings",
+    "txt-batchUpdates": "Batch Updates",
     "txt-withHeader": "With Header",
     "txt-selectIP": "Please select IP field",
     "txt-testQuery": "Test Query",

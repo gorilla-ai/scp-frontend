@@ -71,7 +71,7 @@ class NetworkInventory extends Component {
 
     this.state = {
       activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
-      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps' or 'autoSettings'
+      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps', 'autoSettings' or 'batchUpdates'
       showFilter: false,
       showSeatData: false,
       modalFloorOpen: false,
@@ -119,6 +119,7 @@ class NetworkInventory extends Component {
         }
       },
       currentDeviceData: {},
+      batchUpdatesList: [],
       floorList: [],
       mapAreaUUID: '',
       currentMap: '',
@@ -702,6 +703,51 @@ class NetworkInventory extends Component {
     }
   }
   /**
+   * Toggle batch updates for row checkbox
+   * @method
+   * @param {object} allValue - allValue for table row
+   * @param {object} event - events for click checkboxs
+   */
+  toggleBatchUpdates = (allValue, event) => {
+    const {batchUpdatesList} = this.state;
+    const checked = event.target.checked;
+    let tempBatchUpdatesList = _.cloneDeep(batchUpdatesList);
+
+    if (checked) {
+      tempBatchUpdatesList.push(allValue);
+    } else {
+      const batchListIndex = _.findIndex(tempBatchUpdatesList, { 'ipDeviceUUID': allValue.ipDeviceUUID });
+      tempBatchUpdatesList.splice(batchListIndex, 1);
+    }
+
+    this.setState({
+      batchUpdatesList: tempBatchUpdatesList
+    })
+  }
+  /**
+   * Handle button for batch updates
+   * @method
+   */
+  handleBatchUpdates = () => {
+    this.getOwnerInfo(this.state.ownerList[0].value, 'batchUpdates');
+  }
+  /**
+   * Handle batch updates confirm
+   * @method
+   */
+  handleBatchUpdatesConfirm = () => {
+    this.handleAddIpConfirm('batchUpdates');
+  }
+  /**
+   * Handle batch updates confirm
+   * @method
+   * @param {string} ipDeviceUUID - IP device UUID
+   */
+  checkBatchUpdates = (ipDeviceUUID) => {
+    const selectedDepartmentIndex = _.findIndex(this.state.batchUpdatesList, { 'ipDeviceUUID': ipDeviceUUID });
+    return selectedDepartmentIndex > -1 ? true : false;
+  }
+  /**
    * Get and set device data / Handle delete IP device confirm
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
@@ -886,6 +932,14 @@ class NetworkInventory extends Component {
                     <div className='table-menu menu active'>
                       <i className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}></i>
                       <i className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            className='checkbox-ui batch-updates'
+                            checked={this.checkBatchUpdates(allValue.ipDeviceUUID)}
+                            onChange={this.toggleBatchUpdates.bind(this, allValue)}
+                            color='primary' />
+                        } />
                     </div>
                   )
                 } else {
@@ -1816,15 +1870,22 @@ class NetworkInventory extends Component {
    * @param {string} formType - show form content type ('new' or 'edit')
    */
   toggleContent = (type, formType) => {
-    const {formTypeEdit, currentDeviceData, floorList, ownerList, departmentList, titleList, addSeat} = this.state;
+    const {activeContent, formTypeEdit, currentDeviceData, floorList, ownerList, departmentList, titleList, addSeat} = this.state;
     let tempAddSeat = {...addSeat};
-    let activeContent = '';
+    let tempActiveContent = '';
 
     if (type === 'cancel') {
+      if (activeContent === 'batchUpdates') {
+        this.setState({
+          activeContent: 'tableList'
+        });
+        return;
+      }
+
       if (formTypeEdit) {
-        activeContent = 'dataInfo';
+        tempActiveContent = 'dataInfo';
       } else {
-        activeContent = 'tableList';
+        tempActiveContent = 'tableList';
 
         this.getFloorPlan();
       }
@@ -1866,13 +1927,13 @@ class NetworkInventory extends Component {
         }
       });
     } else if (type === 'showList') {
-      activeContent = 'tableList';
+      tempActiveContent = 'tableList';
     } else if (type === 'autoSettings') {
-      activeContent = type;
+      tempActiveContent = type;
     } else if (type === 'showData') {
-      activeContent = 'dataInfo';
+      tempActiveContent = 'dataInfo';
     } else if (type === 'showForm') {
-      activeContent = 'addIPsteps';
+      tempActiveContent = 'addIPsteps';
       let formTypeEdit = '';
       let addIP = {};
       let ownerType = 'existing';
@@ -1946,7 +2007,7 @@ class NetworkInventory extends Component {
       }
 
       this.setState({
-        activeContent,
+        activeContent: tempActiveContent,
         activeSteps: 1,
         formTypeEdit,
         addIP,
@@ -1963,15 +2024,15 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
-      activeContent
+      activeContent: tempActiveContent
     }, () => {
       const inventoryParam = queryString.parse(location.search);
 
       if (!_.isEmpty(inventoryParam) && inventoryParam.ip) {
-        if (activeContent === 'dataInfo') {
+        if (tempActiveContent === 'dataInfo') {
           this.getOwnerSeat(currentDeviceData);
         }
-        if (activeContent === 'tableList') {
+        if (tempActiveContent === 'tableList') {
           this.getDeviceData();
         }
       }
@@ -2628,8 +2689,9 @@ class NetworkInventory extends Component {
   /**
    * Add new owner if new owner is selected
    * @method
+   * @param {string} [from] - option for from page
    */
-  handleAddIpConfirm = () => {
+  handleAddIpConfirm = (from) => {
     const {baseUrl} = this.context;
     const {addIP, ownerType} = this.state;
 
@@ -2654,33 +2716,36 @@ class NetworkInventory extends Component {
       })
       .then(data => {
         if (data) { //Return ownerUUID
-          this.handleIPdeviceConfirm(data);
+          this.handleIPdeviceConfirm(data, from);
         }
         return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
 
-        this.setState({
-          activeSteps: 3,
-          ownerIDduplicated: true,
-          changeAreaMap: false
-        });
+        if (from !== 'batchUpdates') {
+          this.setState({
+            activeSteps: 3,
+            ownerIDduplicated: true,
+            changeAreaMap: false
+          });
+        }
       })
     } else if (ownerType === 'existing') {
-      this.handleIPdeviceConfirm();
+      this.handleIPdeviceConfirm('', from);
     }
   }
   /**
    * Handle add/edit form confirm
    * @method
    * @param {string} [ownerUUID] - owner ID
+   * @param {string} [from] - option for from page
    */
-  handleIPdeviceConfirm = (ownerUUID) => {
+  handleIPdeviceConfirm = (ownerUUID, from) => {
     const {baseUrl} = this.context;
-    const {formTypeEdit, currentDeviceData, mapAreaUUID, floorPlan, addIP, addSeat} = this.state;
+    const {formTypeEdit, currentDeviceData, batchUpdatesList, mapAreaUUID, floorPlan, addIP, addSeat} = this.state;
     const url = `${baseUrl}/api/ipdevice`;
-    const requestType = formTypeEdit ? 'PATCH' : 'POST';
+    let requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {
       ip: addIP.ip,
       mac: addIP.mac,
@@ -2703,6 +2768,23 @@ class NetworkInventory extends Component {
 
     requestData.ownerUUID = ownerUUID || addIP.ownerUUID;
 
+    if (from === 'batchUpdates') {
+      requestType = 'PATCH';
+      requestData = {
+        devices: _.map(batchUpdatesList, val => {
+          return {
+            ip: val.ip,
+            mac: val.mac,
+            areaUUID: val.areaUUID,
+            seatUUID: val.seatUUID,
+            ipDeviceUUID: val.ipDeviceUUID,
+            ownerUUID: ownerUUID || addIP.ownerUUID
+          }
+        })
+      };
+    }
+    return;
+
     ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -2718,6 +2800,10 @@ class NetworkInventory extends Component {
         } else {
           this.toggleContent('showList');
         }
+
+        this.setState({
+          batchUpdatesList: []
+        });
       }
       return null;
     })
@@ -2821,8 +2907,9 @@ class NetworkInventory extends Component {
    * Handle existing owners dropdown change
    * @method
    * @param {string | object} event - owner ID or event object
+   * @param {string} [from] - option for from page
    */
-  getOwnerInfo = (event) => {
+  getOwnerInfo = (event, from) => {
     const {baseUrl} = this.context;
     const {departmentList} = this.state;
     const value = event.target ? event.target.value : event;
@@ -2852,6 +2939,13 @@ class NetworkInventory extends Component {
 
         this.setState({
           addIP: tempAddIP
+        }, () => {
+          if (from === 'batchUpdates') {
+            this.setState({
+              activeContent: 'batchUpdates',
+              ownerType: 'existing'
+            });
+          }
         });
       }
       return null;
@@ -3000,6 +3094,7 @@ class NetworkInventory extends Component {
     const {contextRoot} = this.context;
     const {
       activeSteps,
+      activeContent,
       formTypeEdit,
       currentDeviceData,
       addIP,
@@ -3034,10 +3129,12 @@ class NetworkInventory extends Component {
       <div className='parent-content'>
         <div className='main-content basic-form'>
           <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
-          <div className='steps-indicator'>
-            {addIPtext.map(this.showAddIpSteps)}
-          </div>
-          {activeSteps === 1 &&
+          {activeContent !== 'batchUpdates' &&
+            <div className='steps-indicator'>
+              {addIPtext.map(this.showAddIpSteps)}
+            </div>
+          }
+          {activeSteps === 1 && activeContent !== 'batchUpdates' &&
             <div className='form-group steps-address'>
               <header>{t('txt-ipAddress')}</header>
               <div className='group'>
@@ -3071,7 +3168,7 @@ class NetworkInventory extends Component {
               </div>
             </div>
           }
-          {activeSteps === 2 &&
+          {activeSteps === 2 && activeContent !== 'batchUpdates' &&
             <div className='form-group steps-host'>
               <header>{t('alert.txt-systemInfo')}</header>
               <div className='group'>
@@ -3207,7 +3304,7 @@ class NetworkInventory extends Component {
               </div>
             </div>
           }
-          {activeSteps === 3 &&
+          {(activeSteps === 3 || activeContent === 'batchUpdates') &&
             <div className='form-group steps-owner'>
               <header>{t('ipFields.owner')}</header>
               <RadioGroup
@@ -3381,7 +3478,7 @@ class NetworkInventory extends Component {
               </div>
             </div>
           }
-          {activeSteps === 4 &&
+          {activeSteps === 4 && activeContent !== 'batchUpdates' &&
             <div className='form-group steps-floor'>
               <header>{t('alert.txt-floorInfo')}</header>
               <Button variant='outlined' color='primary' className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</Button>
@@ -3417,10 +3514,15 @@ class NetworkInventory extends Component {
           }
           <footer>
             <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-            {activeSteps > 1 &&
+            {activeSteps > 1 && activeContent !== 'batchUpdates' &&
               <Button variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
             }
-            <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
+            {activeContent !== 'batchUpdates' &&
+              <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
+            }
+            {activeContent === 'batchUpdates' &&
+              <Button variant='contained' color='primary' className='next-step' onClick={this.handleBatchUpdatesConfirm}>{t('txt-confirm')}</Button>
+            }
           </footer>
         </div>
       </div>
@@ -3782,6 +3884,7 @@ class NetworkInventory extends Component {
       menuType,
       LAconfig,
       deviceEventsData,
+      batchUpdatesList,
       eventsDateList,
       eventsDate,
       deviceLAdata,
@@ -3930,6 +4033,9 @@ class NetworkInventory extends Component {
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
                   }
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
+                  {activeTab === 'deviceList' &&
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleBatchUpdates} disabled={batchUpdatesList.length === 0}>{t('network-inventory.txt-batchUpdates')}</Button>
+                  }
                   {activeTab === 'deviceMap' &&
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
                   }
@@ -4055,8 +4161,7 @@ class NetworkInventory extends Component {
 
                     <footer>
                       <Button variant='outlined' color='primary' className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-                      <Button variant='contained' color='primary'
- className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
+                      <Button variant='contained' color='primary' className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
                     </footer>
                   </div>
                 }
@@ -4084,7 +4189,7 @@ class NetworkInventory extends Component {
             </div>
           }
 
-          {activeContent === 'addIPsteps' &&
+          {(activeContent === 'addIPsteps' || activeContent === 'batchUpdates') &&
             this.displayAddIpSteps()
           }
 
