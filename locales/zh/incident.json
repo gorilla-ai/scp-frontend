@@ -274,5 +274,20 @@
 		"txt-port": "NCCST-Port",
 		"txt-account": "帳號",
 		"txt-password": "密碼"
-	}
+	},
+	"txt-device-comment": "設備備註",
+	"txt-unit-select": "設備單位管理",
+	"required": {
+		"oid": "機關單位OID為必填欄位",
+		"deviceId": "設備代號為必填欄位",
+		"deviceName" : "設備名稱為必填欄位",
+		"deviceCompany": "設備所屬公司為必填欄位",
+		"unit": "機關單位為必選欄位",
+		"protectType": "設備類型為必填欄位",
+		"abbreviation": "機關單位英文縮寫為必填欄位",
+		"level": "機關單位等級為必填欄位",
+		"industryType": "機關單位領域為必填欄位"
+	},
+	"txt-addUnitFromDepartment": "從部門與組織管理新增列管單位",
+	"txt-existingDepartment": "從列管機關單位中選擇"
 }

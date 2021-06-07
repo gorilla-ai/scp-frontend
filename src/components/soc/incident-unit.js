@@ -807,8 +807,6 @@ class IncidentUnit extends Component {
     };
 
     checkAddData = (incidentUnit) => {
-        console.log('incidentUnit ==== ' ,incidentUnit)
-
 
         if (!incidentUnit.info.oid ||
             !incidentUnit.info.name||
