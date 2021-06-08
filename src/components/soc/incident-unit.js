@@ -493,18 +493,18 @@ class IncidentUnit extends Component {
         const {treeData} = this.state;
         const {baseUrl} = this.context;
 
-        // this.ah.one({
-        //     url: `${baseUrl}/api/soc/unit/_overrideOrganization`,
-        //     data: JSON.stringify(treeData),
-        //     type: 'POST',
-        //     contentType: 'text/plain'
-        // }).then(data => {
-        //     if(data){
-        //         helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
-        //     }
-        // }).catch(err => {
-        //     helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
-        // })
+        ah.one({
+            url: `${baseUrl}/api/department/_tree`,
+            data: JSON.stringify(treeData),
+            type: 'POST',
+            contentType: 'text/plain'
+        }).then(data => {
+            if(data.status.includes('success')){
+                helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
+            }
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
+        })
 
     }
 
