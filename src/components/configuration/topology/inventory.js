@@ -965,6 +965,7 @@ class NetworkInventory extends Component {
 
         this.setState({
           deviceData: tempDeviceData,
+          batchUpdatesList: [],
           activeIPdeviceUUID: ''
         }, () => {
           if (options === 'previous' || options === 'next') {
