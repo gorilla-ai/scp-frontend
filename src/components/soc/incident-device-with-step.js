@@ -170,13 +170,23 @@ class IncidentDeviceStep extends Component {
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
         this.checkAccountType();
-        this.checkUnitOrgFromDepartment();
         this.getUnitList();
+
         this.getSendCheck();
+    }
+
+    comparer(otherArray){
+        return function(current){
+            return otherArray.filter(function(other){
+                return other.value === current.value && other.display === current.display
+            }).length === 0;
+        }
     }
 
     checkUnitOrgFromDepartment = () => {
         const {baseUrl, session} = this.context;
+        const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType} = this.state;
+
         this.ah.one({
             url: `${baseUrl}/api/department/_tree`,
             type: 'GET'
@@ -198,8 +208,13 @@ class IncidentDeviceStep extends Component {
                     });
                 })
 
+                let onlyInA = departmentList.filter(this.comparer(unitList));
+                let onlyInB = unitList.filter(this.comparer(departmentList));
+
+                let result = onlyInA.concat(onlyInB);
+
                 this.setState({
-                    departmentList:departmentList
+                    departmentList:result
                 })
 
             })
@@ -540,6 +555,8 @@ class IncidentDeviceStep extends Component {
                 });
                 this.setState({
                     unitList: list
+                },()=>{
+                    this.checkUnitOrgFromDepartment();
                 });
             }
             return null;
@@ -2303,6 +2320,7 @@ class IncidentDeviceStep extends Component {
         }, () => {
             if (type === 'tableList') {
                 this.getDeviceData();
+                this.getUnitList();
             }
         });
     };
