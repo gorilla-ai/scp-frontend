@@ -181,6 +181,7 @@ class Incident extends Component {
                         accountRoleType:constants.soc.SOC_Analyzer
                     })
                 }
+                getData = true
             } else {
                 const {session} = this.context;
 
@@ -245,7 +246,7 @@ class Incident extends Component {
                 }
             }
 
-            if ( getData){
+            if (getData){
                 this.getOptions();
                 this.loadDashboard();
             }
@@ -2480,9 +2481,9 @@ class Incident extends Component {
                 },
                 eventConnectionList: eventNetworkList
             };
-            if (alertData._edgeInfo) {
+            if (alertData._edgeInfo || alertData._edgeId) {
                 let searchRequestData = {
-                    deviceId: alertData._edgeInfo.agentId
+                    deviceId: alertData._edgeInfo.agentId || alertData._edgeId
                 };
 
                 ah.one({
