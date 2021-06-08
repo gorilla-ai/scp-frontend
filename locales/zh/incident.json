@@ -136,6 +136,9 @@
 	"txt-validUnit": "請檢查是否正確輸入資安事件申報機關資料",
 	"txt-superAccount-not-set-unit": "此帳號未設定綁定機關，將跳轉至預設畫面",
 	"txt-isGovernmentNotFound": "沒有轉發給NCCST的機關/單位",
+	"txt-new": "新增",
+	"txt-update": "更新",
+	"txt-delete": "刪除",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",
@@ -173,7 +176,8 @@
 		"txt-abbreviation": "機關英文縮寫",
 		"txt-exists": "OID 已存在",
 		"txt-defaultDelete": "預設機關無法刪除",
-		"txt-existDevice": "機關尚有使用中設備，故無法刪除"
+		"txt-existDevice": "機關尚有使用中設備，故無法刪除",
+		"txt-existChildren": "機關架構尚有子機關/部門，故無法刪除"
 	},
 	"device": {
 		"txt-edgeDevice": "可收錄之Edge設備",
@@ -270,5 +274,20 @@
 		"txt-port": "NCCST-Port",
 		"txt-account": "帳號",
 		"txt-password": "密碼"
-	}
+	},
+	"txt-device-comment": "設備備註",
+	"txt-unit-select": "設備單位管理",
+	"required": {
+		"oid": "機關單位OID為必填欄位",
+		"deviceId": "設備代號為必填欄位",
+		"deviceName" : "設備名稱為必填欄位",
+		"deviceCompany": "設備所屬公司為必填欄位",
+		"unit": "機關單位為必選欄位",
+		"protectType": "設備類型為必填欄位",
+		"abbreviation": "機關單位英文縮寫為必填欄位",
+		"level": "機關單位等級為必填欄位",
+		"industryType": "機關單位領域為必填欄位"
+	},
+	"txt-addUnitFromDepartment": "從部門與組織管理新增列管單位",
+	"txt-existingDepartment": "從列管機關單位中選擇"
 }

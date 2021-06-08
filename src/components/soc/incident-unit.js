@@ -20,6 +20,7 @@ import SortableTree from 'react-sortable-tree';
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
+import Manage from "../configuration/topology/manage";
 // import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
 
 let t = null;
@@ -45,6 +46,7 @@ class IncidentUnit extends Component {
         this.state = {
             activeContent: 'tableList', //tableList, viewDevice, editDevice
             showFilter: false,
+            openManage: false,
             currentIncidentDeviceData: {},
             originalIncidentDeviceData: {},
             unitSearch: {
@@ -78,7 +80,7 @@ class IncidentUnit extends Component {
             },
             isOrganizationDialogOpen: false,
             treeData: [],
-
+            departmentList:[]
         };
 
         this.ah = getInstance("chewbacca");
@@ -93,8 +95,9 @@ class IncidentUnit extends Component {
 
         this.getOptions();
 
-        this.checkUnitOrg();
+        // this.checkUnitOrg();
 
+        this.checkUnitOrgFromDepartment()
     }
 
 
@@ -184,12 +187,17 @@ class IncidentUnit extends Component {
 
     checkUnitOrg = () => {
         const {baseUrl, session} = this.context;
+
+        // /SCP/api/department/_tree
+
         this.ah.one({
             url: `${baseUrl}/api/soc/unit/_getOrganization`,
             type: 'GET'
         })
             .then(data => {
                 let jsonData = JSON.parse(data);
+                console.log('jsonData === ' ,jsonData)
+
                 this.setState({
                     treeData: jsonData,
                 })
@@ -199,6 +207,39 @@ class IncidentUnit extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message);
             })
     }
+
+    checkUnitOrgFromDepartment = () => {
+        const {baseUrl, session} = this.context;
+        this.ah.one({
+            url: `${baseUrl}/api/department/_tree`,
+            type: 'GET'
+        })
+            .then(data => {
+                let  departmentList = [];
+
+                _.forEach(data, val => {
+                    helper.floorPlanRecursive(val, obj => {
+                        departmentList.push(
+                            {
+                                id:obj.id,
+                                name: obj.name,
+                                title:obj.name
+                            }
+                        );
+                    });
+                })
+
+                this.setState({
+                    treeData: data,
+                    departmentList:departmentList
+                })
+
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
+    }
+
 
     checkAccountType = () => {
         const {baseUrl, session} = this.context;
@@ -336,6 +377,7 @@ class IncidentUnit extends Component {
             baseUrl,
             contextRoot,
             showFilter,
+            openManage,
             incidentUnit: incidentUnit,
             accountType,
             isOrganizationDialogOpen,
@@ -350,7 +392,10 @@ class IncidentUnit extends Component {
 
         return (
             <div>
-
+                {openManage &&
+                <Manage
+                    handleCloseManage={this.toggleManageDialog} />
+                }
                 <div className="sub-header">
                     <div className='secondary-btn-group right'>
                         <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
@@ -393,6 +438,9 @@ class IncidentUnit extends Component {
                                 {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>
                                 }
+                                {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+                                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>
+                                }
                                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
                             <TableContent
@@ -420,26 +468,38 @@ class IncidentUnit extends Component {
     openODialog = () => {
         this.setState({
             isOrganizationDialogOpen: true
+        },()=>{
+            this.checkUnitOrgFromDepartment()
         })
     }
 
     closeODialog = () => {
         this.setState({
             isOrganizationDialogOpen: false
+        },()=>{
+            this.checkUnitOrgFromDepartment()
         })
+    }
+
+    toggleManageDialog = () => {
+        this.setState({
+            openManage: !this.state.openManage
+        },()=>{
+            this.checkUnitOrgFromDepartment()
+        });
     }
 
     handleUnitTreeConfirm = () =>{
         const {treeData} = this.state;
         const {baseUrl} = this.context;
 
-        this.ah.one({
-            url: `${baseUrl}/api/soc/unit/_overrideOrganization`,
+        ah.one({
+            url: `${baseUrl}/api/department/_tree`,
             data: JSON.stringify(treeData),
             type: 'POST',
             contentType: 'text/plain'
         }).then(data => {
-            if(data){
+            if(data.status.includes('success')){
                 helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
             }
         }).catch(err => {
@@ -475,7 +535,7 @@ class IncidentUnit extends Component {
      * @returns HTML DOM
      */
     displayEditDeviceContent = () => {
-        const {activeContent, incidentUnit, accountType} = this.state;
+        const {activeContent, incidentUnit, accountType, departmentList} = this.state;
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-unit')}</header>
@@ -514,18 +574,31 @@ class IncidentUnit extends Component {
                     </div>
                     <div className='group'>
                         <label htmlFor='name'>{it('unit.txt-name')}</label>
-                        <TextField
+                        <Autocomplete
+                            freeSolo
                             id='name'
                             name='name'
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
                             required
                             error={!(incidentUnit.info.name || '').trim()}
                             helperText={it('txt-required')}
-                            onChange={this.handleDataChangeMui}
+                            onChange={this.onNameChange}
                             value={incidentUnit.info.name}
-                            disabled={activeContent === 'viewDevice'}/>
+                            disableClearable
+                            disabled={activeContent === 'viewDevice'}
+                            options={departmentList.map((option) => option.name)}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    required
+                                    error={!(incidentUnit.info.name || '').trim()}
+                                    helperText={it('txt-required')}
+                                    variant='outlined'
+                                    fullWidth={true}
+                                    size='small'
+                                    InputProps={{ ...params.InputProps, type: 'search' }}
+                                    />
+                            )}
+                        />
                     </div>
                     <div className='group'>
                         <label htmlFor='abbreviation'>{it('unit.txt-abbreviation')}</label>
@@ -617,7 +690,7 @@ class IncidentUnit extends Component {
                                     onChange={(event) => this.handleChange('isGovernment', event.target.checked)}
                                     color='primary' />
                             }
-                            label={t('txt-switch')}
+                            // label={t('txt-switch')}
                             disabled={activeContent === 'viewDevice'}
                         />
                     </div>
@@ -669,6 +742,23 @@ class IncidentUnit extends Component {
         })
     }
 
+    onNameChange = (event, values) => {
+        let temp = {...this.state.incidentUnit};
+        temp.info['name'] = values;
+
+        const {departmentList} = this.state
+        _.forEach(departmentList, value =>{
+            if(values === value.name){
+                temp.info.id = value.id;
+            }
+        })
+
+        this.setState({
+            incidentUnit: temp
+        })
+    }
+
+
     /**
      * Handle IncidentUnit Edit confirm
      * @method
@@ -717,8 +807,6 @@ class IncidentUnit extends Component {
     };
 
     checkAddData = (incidentUnit) => {
-
-
 
         if (!incidentUnit.info.oid ||
             !incidentUnit.info.name||
@@ -849,11 +937,16 @@ class IncidentUnit extends Component {
             type: 'DELETE'
         })
             .then(data => {
-                if (data.ret === 0) {
-                    this.getData();
+                if (data.rt === 'ERR_CHILD_DEPT_EXIST') {
+                    // this.getData();
+                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existChildren'));
                 }else if (data.ret === -1004) {
                     // this.getData();
-                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existDevice'));
+                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existChildren'));
+                }else{
+                    helper.showPopupMsg('', t('txt-success'),t('txt-delete')+t('txt-success'));
+                    this.getData();
+                    this.checkUnitOrgFromDepartment();
                 }
                 return null;
             })
@@ -907,6 +1000,7 @@ class IncidentUnit extends Component {
         let showPage = type;
 
         if (type === 'viewDevice') {
+
             tempIncidentDevice.info = {
                 id: allValue.id,
                 oid: allValue.oid,
@@ -939,7 +1033,7 @@ class IncidentUnit extends Component {
             })
             tempIncidentDevice.info.showFontendRelatedList = result
 
-
+            console.log("tempIncidentDevice === " ,tempIncidentDevice)
             this.setState({
                 showFilter: false,
                 // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
@@ -999,6 +1093,7 @@ class IncidentUnit extends Component {
         }, () => {
             if (type === 'tableList') {
                 this.getData();
+                this.checkUnitOrgFromDepartment();
             }
         });
     };

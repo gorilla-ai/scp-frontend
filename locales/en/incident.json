@@ -136,6 +136,9 @@
 	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",
 	"txt-superAccount-not-set-unit": "No binding unit has been set for this account, it will jump to the default page.",
 	"txt-isGovernmentNotFound": "Authorities/units not forwarded to NCCST",
+	"txt-new": "Add",
+	"txt-update": "Edit",
+	"txt-delete": "Delete",
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",
@@ -172,7 +175,8 @@
 		"txt-abbreviation": "Unit Abbreviation",
 		"txt-exists": "OID already exists",
 		"txt-defaultDelete": "Default Unit can't delete",
-		"txt-existDevice": "The Unit still has equipment devices in use, so it cannot be deleted"
+		"txt-existDevice": "The Unit still has equipment devices in use, so it cannot be deleted",
+		"txt-existChildren": "The Unit still has sub unit or deportment, so it cannot be deleted "
 	},
 	"device": {
 		"txt-edgeDevice": "Available Edge Device",
@@ -266,5 +270,20 @@
 		"txt-port": "NCCST-Port",
 		"txt-account": "Account",
 		"txt-password": "Password"
-	}
+	},
+	"txt-device-comment": "Device Comment",
+	"txt-unit-select": "Device Unit Management",
+	"required": {
+		"oid": "Unit OID must be required",
+		"deviceId": "Device must be required",
+		"deviceName" : "Device Name must be required",
+		"deviceCompany": "Device Company must be required",
+		"unit": "Unit must be required",
+		"protectType": "Device protectType must be required",
+		"abbreviation": "Device abbreviation must be required",
+		"level": "Unit level must be required",
+		"industryType": "Unit industryType must be required"
+	},
+	"txt-addUnitFromDepartment": "Select From Department ",
+	"txt-existingDepartment": "Select Unit From SOC Unit"
 }
