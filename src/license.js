@@ -8,8 +8,12 @@ import cx from 'classnames'
 
 import TextField from '@material-ui/core/TextField'
 
+import {downloadLink} from 'react-ui/build/src/utils/download'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from './components/common/context'
+import FileUpload from './components/common/file-upload'
 import helper from './components/common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -23,6 +27,8 @@ class License extends Component {
     super(props, context);
 
     this.state = {
+      uplaodFileOpen: false,
+      file: '',
       lms: {
         returnCode: null,
         expireDate: null,
@@ -52,7 +58,7 @@ class License extends Component {
    * @returns HTML DOM
    */
   loadData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const apiArr = [
       {
         url: `${baseUrl}/api/lms/_registerKey`,
@@ -89,11 +95,23 @@ class License extends Component {
     });
   }
   /**
+   * Download unregistry license file
+   * @method
+   */
+  downloadLicense = () => {
+    const {baseUrl} = this.context;
+    const {key} = this.state;
+    const url =  `${baseUrl}/api/lms/goc?key=${key}`;
+
+    downloadLink(url);
+  }
+  /**
    * Handle license activate button
    * @method
    */
   activateLicense = () => {
-    const {baseUrl, contextRoot, from} = this.props;
+    const {baseUrl, contextRoot} = this.context;
+    const {from} = this.props;
     const {originalKey, key, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -138,7 +156,22 @@ class License extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data[1].returnCode !== '0') {
-        helper.showPopupMsg('', t('txt-error'), lt(`${data[1].returnCode}`));
+        if (data[1].returnCode === '-3028') {
+          PopupDialog.alert({
+            id: 'modalWindowSmall',
+            confirmText: t('txt-download'),
+            display: (
+              <div className='content download'><span>{lt('l-offline-upload-msg')}</span></div>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                this.downloadLicense();
+              }
+            }
+          });
+        } else {
+          helper.showPopupMsg('', t('txt-error'), lt(`${data[1].returnCode}`));
+        }
       } else {
         PopupDialog.alert({
           id: 'modalWindowSmall',
@@ -164,6 +197,85 @@ class License extends Component {
     })
   }
   /**
+   * Toggle upload file dialog on/off
+   * @method
+   */
+  toggleFileUpload = () => {
+    this.setState({
+      uplaodFileOpen: !this.state.uplaodFileOpen
+    });
+  }
+  /**
+   * Handle upload file change
+   * @method
+   * @param {object} value - file to be set
+   */
+  handleFileChange = (value) => {
+    this.setState({
+      file: value
+    });
+  }
+  /**
+   * Upload offline file
+   * @method
+   */
+  uploadOfflineFile = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFileUpload},
+      confirm: {text: t('txt-confirm'), handler: this.handleFileUpload}
+    };
+    const fileTitle = '';
+
+    return (
+      <ModalDialog
+        id='uploadFileDialog'
+        className='modal-dialog'
+        title={lt('l-upload-offline-file')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <FileUpload
+          id='uploadFile'
+          btnText={t('txt-upload')}
+          supportText={fileTitle}
+          fileType=''
+          handleFileChange={this.handleFileChange} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle file upload
+   * @method
+   */
+  handleFileUpload = () => {
+    const {baseUrl} = this.context;
+    let formData = new FormData();
+    formData.append('file', this.state.file);
+
+    this.ah.one({
+      url: `${baseUrl}/api/lms/uploadCA`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        if (data.returnCode === '0') {
+          this.toggleFileUpload();
+          this.props.onPass();
+        } else {
+          helper.showPopupMsg('', t('txt-error'), lt(`${data.returnCode}`));
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle license activate button
    * @method
    */
@@ -180,12 +292,19 @@ class License extends Component {
   }
   render() {
     const {from} = this.props;
-    const {lms, showKeyInput, originalKey, key, formValidation} = this.state;
+    const {
+      uplaodFileOpen,
+      lms,
+      showKeyInput,
+      originalKey,
+      key,
+      formValidation
+    } = this.state;
     let text = lt('l-license-none');
     let licenseDate = '';
     let error = true;
 
-    if (lms.expireDate) {
+    if (lms && lms.expireDate) {
       licenseDate = moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
       if (lms.returnCode === '0') {
@@ -198,6 +317,11 @@ class License extends Component {
 
     return (
       <div id='g-login' className={cx('c-center global c-flex fdc', {'config': from === 'config'})}>
+
+        {uplaodFileOpen &&
+          this.uploadOfflineFile()
+        }
+
         <div id='form' className={cx('fdc lms', {'config': from === 'config'})}>
           <section>
             <span className='msg'>{lt('l-license-status')}:</span>
@@ -219,7 +343,10 @@ class License extends Component {
                 helperText={formValidation.key.valid ? '' : lt('key-empty')}
                 value={key}
                 onChange={this.handleInputChange} />
-              <button id='license-activate' onClick={this.activateLicense}>{lt('l-activate')}</button>
+              <div className='license-group-btn'>
+                <button id='license-activate' onClick={this.activateLicense}>{lt('l-activate')}</button>
+                <button id='licenseUpload' onClick={this.toggleFileUpload}>{lt('l-upload-offline-file')}</button>
+              </div>
             </div>
           }
           {from === 'config' && originalKey &&
@@ -261,6 +388,8 @@ class License extends Component {
     )
   }
 }
+
+License.contextType = BaseDataContext;
 
 License.propTypes = {
 };

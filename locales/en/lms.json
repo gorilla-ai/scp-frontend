@@ -14,6 +14,7 @@
 	"18": "Install path not matched",
   "19": "Invalid License Key",
 
+  "-98": "Upload file fail",
   "-99": "Server is not Rechievable",
 	"-2000": "Setting initialize error",
 	"-2001": "SOAP_SSL initialize error",
@@ -31,6 +32,7 @@
 	"-2014": "WMI initialize error",
 	"-2015": "Network card info unavailabled via WMI",
 	"-2016": "Network card info unavailabled",
+	"-2022": "The file uploaded is inactive license",
 
 	"l-license": "License",
 	"l-license-status": "License Status",
@@ -42,6 +44,8 @@
 	"l-license-renew-key": "Renew License Key",
 	"l-activate": "Activate",
 	"l-activate-success": "Activate Success",
+	"l-upload-offline-file": "Upload Offline File",
+	"l-offline-upload-msg": "Can not connect to License Registration Service. Please download the registration file and contact authorized agents. Then you can upload the verified file for offline registration.",
 
 	"key-acivated": "License is acivated already",
 	"key-empty": "License key cannot be empty"

@@ -80,6 +80,16 @@ html[data-theme='dark'] {
       min-height: 20px;
     }
   }
+  .license-group-btn {
+    display: flex;
+    justify-content: space-between;
+    #license-activate {
+      width: 36%;
+    }
+    #licenseUpload {
+      width: 60%;
+    }
+  }
   #g-footer {
     color: #fff;
     position: absolute;
@@ -121,5 +131,15 @@ html[data-theme='dark'] {
     &.invalid {
       border-color: #D0021B;
     }
+  }
+}
+#modalWindowSmall-content {
+  .content.download {
+    width: 300px;
+  }
+}
+#uploadFileDialog-content {
+  .file-input {
+    height: 35px;
   }
 }
