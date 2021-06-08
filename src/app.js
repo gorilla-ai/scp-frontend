@@ -21,7 +21,6 @@ import EdgeManagement from './components/configuration/edge/edge'
 import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
 import Host from './components/host/index'
-import IncidentDevice from './components/soc/incident-device'
 import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/incident'
@@ -55,6 +54,7 @@ import 'purecss/build/pure-min.css'
 import 'react-chart/build/css/react-chart.css'
 import 'react-gis/build/css/react-gis.css'
 import 'react-la/build/css/react-la.css'
+import IncidentDeviceStep from "./components/soc/incident-device-with-step";
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
@@ -217,7 +217,7 @@ const productInfo = () => (
 
 const incidentDevice = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentDevice/>
+    <IncidentDeviceStep/>
   </BaseDataContext.Provider>
 );
 
