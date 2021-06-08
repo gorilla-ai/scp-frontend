@@ -2744,7 +2744,7 @@ class NetworkInventory extends Component {
   handleIPdeviceConfirm = (ownerUUID, from) => {
     const {baseUrl} = this.context;
     const {formTypeEdit, currentDeviceData, batchUpdatesList, mapAreaUUID, floorPlan, addIP, addSeat} = this.state;
-    const url = `${baseUrl}/api/ipdevice`;
+    let url = `${baseUrl}/api/ipdevice`;
     let requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {
       ip: addIP.ip,
@@ -2769,6 +2769,7 @@ class NetworkInventory extends Component {
     requestData.ownerUUID = ownerUUID || addIP.ownerUUID;
 
     if (from === 'batchUpdates') {
+      url = `${baseUrl}/api/ipdevices`;
       requestType = 'PATCH';
       requestData = {
         devices: _.map(batchUpdatesList, val => {
@@ -2783,7 +2784,6 @@ class NetworkInventory extends Component {
         })
       };
     }
-    return;
 
     ah.one({
       url,
@@ -2795,15 +2795,21 @@ class NetworkInventory extends Component {
       if (data.ret === 0) {
         this.getDeviceData();
 
+        if (from === 'batchUpdates') {
+          this.toggleContent('showList');
+
+          this.setState({
+            batchUpdatesList: [],
+            addIP: {}
+          });
+          return;
+        }
+
         if (formTypeEdit) {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
         } else {
           this.toggleContent('showList');
         }
-
-        this.setState({
-          batchUpdatesList: []
-        });
       }
       return null;
     })
