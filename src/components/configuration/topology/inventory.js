@@ -2211,9 +2211,9 @@ class NetworkInventory extends Component {
         actions={actions}
         closeAction='cancel'>
           <FileUpload
-            supportText={t('network-inventory.txt-batchUploadIp')}
             id='csvFileInput'
             fileType='csv'
+            supportText={t('network-inventory.txt-batchUploadIp')}
             btnText={t('txt-upload')}
             handleFileChange={this.parseCSVfile} />
           <div className='csv-options'>

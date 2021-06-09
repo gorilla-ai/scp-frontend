@@ -406,9 +406,9 @@ class ThreatIntelligence extends Component {
         actions={actions}
         closeAction='cancel'>
         <FileUpload
-          supportText={fileTitle}
           id='uploadThreat'
           fileType='text'
+          supportText={fileTitle}
           btnText={t('txt-upload')}
           handleFileChange={this.parseUploadFile} />
       </ModalDialog>
@@ -707,9 +707,9 @@ class ThreatIntelligence extends Component {
         actions={actions}
         closeAction='cancel'>
         <FileUpload
-          supportText={fileTitle}
           id='importThreat'
           fileType='indicators'
+          supportText={fileTitle}
           btnText={t('txt-upload')}
           handleFileChange={this.getIndicatorsFile} />
       </ModalDialog>

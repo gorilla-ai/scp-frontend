@@ -208,11 +208,11 @@ class License extends Component {
   /**
    * Handle upload file change
    * @method
-   * @param {object} value - file to be set
+   * @param {object} file - file to be set
    */
-  handleFileChange = (value) => {
+  handleFileChange = (file) => {
     this.setState({
-      file: value
+      file
     });
   }
   /**
@@ -224,7 +224,6 @@ class License extends Component {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFileUpload},
       confirm: {text: t('txt-confirm'), handler: this.handleFileUpload}
     };
-    const fileTitle = '';
 
     return (
       <ModalDialog
@@ -238,8 +237,6 @@ class License extends Component {
         <FileUpload
           id='uploadFile'
           btnText={t('txt-upload')}
-          supportText={fileTitle}
-          fileType=''
           handleFileChange={this.handleFileChange} />
       </ModalDialog>
     )
