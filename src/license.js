@@ -99,9 +99,9 @@ class License extends Component {
    * @method
    */
   downloadLicense = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {key} = this.state;
-    const url =  `${baseUrl}/api/lms/goc?key=${key}`;
+    const url = `${baseUrl}${contextRoot}/api/lms/goc?key=${key}`;
 
     downloadLink(url);
   }
