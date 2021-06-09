@@ -1849,6 +1849,8 @@ class IncidentDeviceStep extends Component {
     toggleManageDialog = () => {
         this.setState({
             openManage: !this.state.openManage
+        },()=>{
+            this.checkUnitOrgFromDepartment()
         });
     }
     getBtnText = () => {
