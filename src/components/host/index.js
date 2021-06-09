@@ -2254,7 +2254,7 @@ class HostController extends Component {
 
     return (
       <li key={i}>
-        <div className='device-alert'>
+        <div className='device-alert product-safety'>
           <i className='fg fg-wifi-beacon-1'></i>
           {this.getPrimaryContent(val.primaryKeyValue)}
         </div>

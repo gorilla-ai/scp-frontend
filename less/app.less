@@ -1943,6 +1943,9 @@ button.standard:hover:not([disabled]) {
                 float: left;
                 padding: 10px;
                 overflow: hidden;
+                &.product-safety {
+                  width: 100%;
+                }
                 .fg-host {
                   float: left;
                   color: #fff;
@@ -1951,6 +1954,7 @@ button.standard:hover:not([disabled]) {
               }
               .info {
                 float: left;
+                margin-left: 1%;
                 ul {
                   margin-bottom: 5px;
                   li {
@@ -1983,10 +1987,9 @@ button.standard:hover:not([disabled]) {
                 cursor: pointer;
               }
               .host-count {
-                float: right;
+                float: left;
                 font-size: .9em;
                 margin-top: 10px;
-                margin-right: 15px;
                 border-left: 1px solid var(--primaryBorder);
                 padding-left: 10px;
               }
@@ -2083,7 +2086,6 @@ button.standard:hover:not([disabled]) {
                   font-size: 17px;
                   color: var(--formEmailGroup);
                   padding-right: 10px;
-                  border-right: 1px solid var(--primaryBorder);
                 }
               }
               .info {
@@ -2132,7 +2134,7 @@ button.standard:hover:not([disabled]) {
                 }
               }
               .view-details {
-                margin-top: 3px;
+                margin-top: -20px;
               }
             }
           }
