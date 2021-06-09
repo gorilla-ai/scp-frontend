@@ -60,8 +60,6 @@ class ProductInfo extends Component {
               <div className='table-content'>
                 <div className='table no-pagination'>
                   <License
-                    baseUrl={baseUrl}
-                    contextRoot={contextRoot}
                     from='config' />
                 </div>
               </div>

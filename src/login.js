@@ -324,7 +324,6 @@ class Login extends Component {
     )
   }
   render() {
-    const {baseUrl, contextRoot} = this.props;
     const {license} = this.state;
 
     if (license === null) { //Show loading icon
@@ -334,8 +333,6 @@ class Login extends Component {
     } else { //Show license info
       return (
         <License
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           from='login'
           onPass={this.onPass} />
       )

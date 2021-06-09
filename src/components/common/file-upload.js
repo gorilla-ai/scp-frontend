@@ -38,9 +38,9 @@ class FileUpload extends Component {
     this.props.handleFileChange(file);
   }
   render() {
-    const {supportText, id, fileType, btnText, readOnly} = this.props;
+    const {id, fileType, supportText, btnText, readOnly} = this.props;
+    const disabled = readOnly || false;
     let validate = {};
-    let disabled = readOnly || false;
 
     if (fileType == 'indicators') {
       validate = {
@@ -80,24 +80,27 @@ class FileUpload extends Component {
 
     return (
       <div className='content'>
-        <label htmlFor={id}>{supportText}</label>
+        {supportText &&
+          <label htmlFor={id}>{supportText}</label>
+        }
         <FileInput
           id={id}
           className='file-input'
           disabled={disabled}
           validate={validate}
-          onChange={this.handleFileChange}
-          btnText={btnText} />
+          btnText={btnText}
+          onChange={this.handleFileChange} />
       </div>
     )
   }
 }
 
 FileUpload.propTypes = {
-  supportText: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
-  fileType: PropTypes.string.isRequired,
+  fileType: PropTypes.string,
+  supportText: PropTypes.string,
   btnText: PropTypes.string.isRequired,
+  readOnly: PropTypes.bool,
   handleFileChange: PropTypes.func.isRequired
 };
 
