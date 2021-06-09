@@ -145,7 +145,6 @@ class IncidentDeviceStep extends Component {
                     reason:'',
                     updateDttm: '',
                     selectUnitObject :{},
-                    addUnitObject :{},
                 }
             },
             unit: {
@@ -208,13 +207,13 @@ class IncidentDeviceStep extends Component {
                     });
                 })
 
-                let onlyInA = departmentList.filter(this.comparer(unitList));
-                let onlyInB = unitList.filter(this.comparer(departmentList));
-
-                let result = onlyInA.concat(onlyInB);
+                // let onlyInA = departmentList.filter(this.comparer(unitList));
+                // let onlyInB = unitList.filter(this.comparer(departmentList));
+                //
+                // let result = onlyInA.concat(onlyInB);
 
                 this.setState({
-                    departmentList:result
+                    departmentList:departmentList
                 })
 
             })
@@ -830,7 +829,7 @@ class IncidentDeviceStep extends Component {
                                     size='small'
                                     options={unitList}
                                     select
-                                    onChange={this.onUnitChange}
+                                    // onChange={this.onUnitChange}
                                     value={incidentDevice.info.selectUnitObject}
                                     getOptionLabel={(option) => option.text}
                                     disabled={activeContent === 'viewDevice'}
@@ -864,7 +863,6 @@ class IncidentDeviceStep extends Component {
                             </div>
                         </div>
                     </React.Fragment>
-
                 }
 
                 { activeContent === 'editDevice' &&
@@ -997,36 +995,8 @@ class IncidentDeviceStep extends Component {
                     {activeSteps === 3 &&
                     <div className='form-group steps-owner'>
                         <header>{it('txt-unit-select')}</header>
-                        <RadioGroup
-                            style={{marginLeft: '60px'}}
-                            className='radio-group owner-type'
-                            value={ownerType}
-                            onChange={this.handleOwnerTypeChange}>
-                            <FormControlLabel
-                                value='new'
-                                control={
-                                    <Radio
-                                        className='radio-ui'
-                                        color='primary'/>
-                                }
-                                label={it('txt-addUnitFromDepartment')}/>
-                            {!_.isEmpty(unitList) &&
-                            <FormControlLabel
-                                value='existing'
-                                control={
-                                    <Radio
-                                        className='radio-ui'
-                                        color='primary'/>
-                                }
-                                label={it('txt-existingDepartment')}/>
-                            }
-                        </RadioGroup>
-                        {ownerType === 'new' &&
                         <Button variant='outlined' color='primary' className='standard manage'
                                 onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
-                        }
-
-                        {ownerType === 'new' &&
                         <React.Fragment>
                             <div className='group'>
                                 <label htmlFor='unitId'>{it('unit.txt-name')}</label>
@@ -1038,17 +1008,16 @@ class IncidentDeviceStep extends Component {
                                     variant='outlined'
                                     fullWidth={true}
                                     size='small'
-                                    options={departmentList}
+                                    options={unitList}
                                     select
-                                    onChange={this.onDepartmentChange}
-                                    value={incidentDevice.info.addUnitObject}
+                                    onChange={this.onUnitChange}
+                                    value={incidentDevice.info.selectUnitObject}
                                     getOptionLabel={(option) => option.text}
-                                    disabled={activeContent === 'viewDevice'}
                                     renderInput={(params) =>
                                         <TextField
                                             {...params}
                                             required
-                                            error={!(incidentDevice.info.addUnitObject ? incidentDevice.info.addUnitObject.value : '' || '')}
+                                            error={!(incidentDevice.info.selectUnitObject ? incidentDevice.info.selectUnitObject.value : '' || '')}
                                             helperText={it('txt-required')}
                                             variant='outlined'
                                             fullWidth={true}
@@ -1070,7 +1039,8 @@ class IncidentDeviceStep extends Component {
                                     helperText={it('txt-required')}
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.oid}
-                                    disabled={activeContent === 'viewDevice'}/>
+                                    disabled={ownerType === 'existing'}
+                                />
                             </div>
 
                             <div className='group'>
@@ -1086,7 +1056,8 @@ class IncidentDeviceStep extends Component {
                                     helperText={it('txt-required')}
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.abbreviation}
-                                    disabled={activeContent === 'viewDevice'}/>
+                                    disabled={ownerType === 'existing'}
+                                />
                             </div>
 
                             <div className='group'>
@@ -1103,7 +1074,8 @@ class IncidentDeviceStep extends Component {
                                     select
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.level}
-                                    disabled={activeContent === 'viewDevice'}>
+                                    disabled={ownerType === 'existing'}
+                                >
                                     {
                                         _.map([
                                             {
@@ -1147,7 +1119,8 @@ class IncidentDeviceStep extends Component {
                                     select
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.industryType}
-                                    disabled={activeContent === 'viewDevice'}>
+                                    disabled={ownerType === 'existing'}
+                                >
                                     {_.map(_.range(0, 14), el => {
                                         return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
                                     })}
@@ -1163,46 +1136,12 @@ class IncidentDeviceStep extends Component {
                                             onChange={(event) => this.handleChange('isGovernment', event.target.checked)}
                                             color='primary'/>
                                     }
-                                    // label={t('txt-switch')}
-                                    disabled={activeContent === 'viewDevice'}
+                                    disabled={ownerType === 'existing'}
                                 />
                             </div>
                         </React.Fragment>
-                        }
-                        {ownerType === 'existing' &&
-                        <div className='group'>
-                            <label htmlFor='unitId'>{it('unit.txt-name')}</label>
-                            <Autocomplete
-                                id='unitId'
-                                name='unitId'
-                                required
-                                helperText={it('txt-required')}
-                                variant='outlined'
-                                fullWidth={true}
-                                size='small'
-                                options={unitList}
-                                select
-                                onChange={this.onUnitChange}
-                                value={incidentDevice.info.selectUnitObject}
-                                getOptionLabel={(option) => option.text}
-                                disabled={activeContent === 'viewDevice'}
-                                renderInput={(params) =>
-                                    <TextField
-                                        {...params}
-                                        required
-                                        error={!(incidentDevice.info.selectUnitObject ? incidentDevice.info.selectUnitObject.value : '' || '')}
-                                        helperText={it('txt-required')}
-                                        variant='outlined'
-                                        fullWidth={true}
-                                        size='small'
-                                        InputProps={{...params.InputProps, type: 'search'}}
-                                    />}
-                            />
-                        </div>
-                        }
                     </div>
                     }
-
                     {activeSteps === 4 &&
                     <div className='form-group steps-host'>
                         <header>{it('txt-note')} ({t('txt-memoMaxLength')})</header>
@@ -1231,6 +1170,7 @@ class IncidentDeviceStep extends Component {
                     <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
                 </footer>
                 }
+
                 { activeContent === 'addDevice' &&
                 <React.Fragment>
                     <div className='steps-indicator'>
@@ -1361,36 +1301,6 @@ class IncidentDeviceStep extends Component {
                     {activeSteps === 3 &&
                     <div className='form-group steps-owner'>
                         <header>{it('txt-unit-select')}</header>
-                        <RadioGroup
-                            style={{marginLeft: '60px'}}
-                            className='radio-group owner-type'
-                            value={ownerType}
-                            onChange={this.handleOwnerTypeChange}>
-                            <FormControlLabel
-                                value='new'
-                                control={
-                                    <Radio
-                                        className='radio-ui'
-                                        color='primary'/>
-                                }
-                                label={it('txt-addUnitFromDepartment')}/>
-                            {!_.isEmpty(unitList) &&
-                            <FormControlLabel
-                                value='existing'
-                                control={
-                                    <Radio
-                                        className='radio-ui'
-                                        color='primary'/>
-                                }
-                                label={it('txt-existingDepartment')}/>
-                            }
-                        </RadioGroup>
-                        {ownerType === 'new' &&
-                        <Button variant='outlined' color='primary' className='standard manage'
-                                onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
-                        }
-
-                        {ownerType === 'new' &&
                         <React.Fragment>
                             <div className='group'>
                                 <label htmlFor='unitId'>{it('unit.txt-name')}</label>
@@ -1404,15 +1314,14 @@ class IncidentDeviceStep extends Component {
                                     size='small'
                                     options={departmentList}
                                     select
-                                    onChange={this.onDepartmentChange}
-                                    value={incidentDevice.info.addUnitObject}
+                                    onChange={this.onUnitChange}
+                                    value={incidentDevice.info.selectUnitObject}
                                     getOptionLabel={(option) => option.text}
-                                    disabled={activeContent === 'viewDevice'}
                                     renderInput={(params) =>
                                         <TextField
                                             {...params}
                                             required
-                                            error={!(incidentDevice.info.addUnitObject ? incidentDevice.info.addUnitObject.value : '' || '')}
+                                            error={!(incidentDevice.info.selectUnitObject ? incidentDevice.info.selectUnitObject.value : '' || '')}
                                             helperText={it('txt-required')}
                                             variant='outlined'
                                             fullWidth={true}
@@ -1434,7 +1343,8 @@ class IncidentDeviceStep extends Component {
                                     helperText={it('txt-required')}
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.oid}
-                                    disabled={activeContent === 'viewDevice'}/>
+                                    disabled={ownerType === 'existing'}
+                                />
                             </div>
 
                             <div className='group'>
@@ -1450,7 +1360,8 @@ class IncidentDeviceStep extends Component {
                                     helperText={it('txt-required')}
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.abbreviation}
-                                    disabled={activeContent === 'viewDevice'}/>
+                                    disabled={ownerType === 'existing'}
+                                />
                             </div>
 
                             <div className='group'>
@@ -1467,7 +1378,8 @@ class IncidentDeviceStep extends Component {
                                     select
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.level}
-                                    disabled={activeContent === 'viewDevice'}>
+                                    disabled={ownerType === 'existing'}
+                                >
                                     {
                                         _.map([
                                             {
@@ -1511,7 +1423,8 @@ class IncidentDeviceStep extends Component {
                                     select
                                     onChange={this.handleUnitDataChangeMui}
                                     value={unit.industryType}
-                                    disabled={activeContent === 'viewDevice'}>
+                                    disabled={ownerType === 'existing'}
+                                >
                                     {_.map(_.range(0, 14), el => {
                                         return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
                                     })}
@@ -1527,43 +1440,10 @@ class IncidentDeviceStep extends Component {
                                             onChange={(event) => this.handleChange('isGovernment', event.target.checked)}
                                             color='primary'/>
                                     }
-                                    // label={t('txt-switch')}
-                                    disabled={activeContent === 'viewDevice'}
+                                    disabled={ownerType === 'existing'}
                                 />
                             </div>
                         </React.Fragment>
-                        }
-                        {ownerType === 'existing' &&
-                        <div className='group'>
-                            <label htmlFor='unitId'>{it('unit.txt-name')}</label>
-                            <Autocomplete
-                                id='unitId'
-                                name='unitId'
-                                required
-                                helperText={it('txt-required')}
-                                variant='outlined'
-                                fullWidth={true}
-                                size='small'
-                                options={unitList}
-                                select
-                                onChange={this.onUnitChange}
-                                value={incidentDevice.info.selectUnitObject}
-                                getOptionLabel={(option) => option.text}
-                                disabled={activeContent === 'viewDevice'}
-                                renderInput={(params) =>
-                                    <TextField
-                                        {...params}
-                                        required
-                                        error={!(incidentDevice.info.selectUnitObject ? incidentDevice.info.selectUnitObject.value : '' || '')}
-                                        helperText={it('txt-required')}
-                                        variant='outlined'
-                                        fullWidth={true}
-                                        size='small'
-                                        InputProps={{...params.InputProps, type: 'search'}}
-                                    />}
-                            />
-                        </div>
-                        }
                     </div>
                     }
 
@@ -1793,7 +1673,7 @@ class IncidentDeviceStep extends Component {
                         validate = false;
                     }
 
-                    if (incidentDevice.info.addUnitObject.value) {
+                    if (incidentDevice.info.selectUnitObject.value) {
 
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.unit'));
@@ -1894,15 +1774,12 @@ class IncidentDeviceStep extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
-
-                if (data.status === 'success'){
+                if (data.status.includes('success')){
                     this.handleDeviceSubmit()
                 }
-                return true;
             })
             .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), it('unit.txt-exists'));
-                return false;
+                helper.showPopupMsg('', t('txt-error'), err.message);
             })
     };
 
@@ -1946,12 +1823,7 @@ class IncidentDeviceStep extends Component {
         }
 
         // TODO Assign unit id
-
-        if (ownerType === 'new') {
-            incidentDevice.info.unitId = incidentDevice.info.addUnitObject.value;
-        }else{
-            incidentDevice.info.unitId = incidentDevice.info.selectUnitObject.value;
-        }
+        incidentDevice.info.unitId = incidentDevice.info.selectUnitObject.value;
 
 
         let apiType = 'POST';
@@ -2230,8 +2102,10 @@ class IncidentDeviceStep extends Component {
      * @param {object} allValue - Edge data
      */
     toggleContent = (type, allValue) => {
-        const {originalIncidentDeviceData, incidentDevice, edgeList} = this.state;
+        const {baseUrl} = this.context;
+        const {originalIncidentDeviceData, incidentDevice, unit,edgeList} = this.state;
         let tempIncidentDevice = {...incidentDevice};
+        let tempUnit = {...unit}
         let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         let showPage = type;
         this.getOptions()
@@ -2258,9 +2132,21 @@ class IncidentDeviceStep extends Component {
                     value:allValue.unitId
                 }
             };
+
+            if (allValue.incidentUnitDTO){
+                tempUnit.id = allValue.incidentUnitDTO.id
+                tempUnit.oid = allValue.incidentUnitDTO.oid
+                tempUnit.name = allValue.incidentUnitDTO.name
+                tempUnit.abbreviation = allValue.incidentUnitDTO.abbreviation
+                tempUnit.industryType = allValue.incidentUnitDTO.industryType.toString()
+                tempUnit.level = allValue.incidentUnitDTO.level
+                tempUnit.isGovernment = allValue.incidentUnitDTO.isGovernment
+            }
+
             this.setState({
                 showFilter: false,
-                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
+                unit:tempUnit,
+
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'addDevice') {
@@ -2287,6 +2173,18 @@ class IncidentDeviceStep extends Component {
             };
             this.setState({
                 showFilter: false,
+                ownerType: 'new',
+                unit: {
+                    id: '',
+                    oid: '',
+                    name: '',
+                    level: '',
+                    industryType: '',
+                    isUse: true,
+                    isGovernment:false,
+                    abbreviation: '',
+                    relatedAccountList: []
+                },
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
 
@@ -2307,18 +2205,6 @@ class IncidentDeviceStep extends Component {
             incidentDevice: tempIncidentDevice,
             dataFromEdgeDevice: dataFromEdgeDevice,
             activeSteps:1,
-            ownerType: 'existing',
-            unit: {
-                id: '',
-                oid: '',
-                name: '',
-                level: 'A',
-                industryType: '1',
-                isUse: true,
-                isGovernment:false,
-                abbreviation: '',
-                relatedAccountList: []
-            }
         }, () => {
             if (type === 'tableList') {
                 this.getDeviceData();
@@ -2542,24 +2428,57 @@ class IncidentDeviceStep extends Component {
     };
 
     onUnitChange = (event, values) => {
-        let tempDevice = {...this.state.incidentDevice};
-        tempDevice.info['selectUnitObject'] = values;
-        this.setState({
-            incidentDevice: tempDevice
-        });
-    }
 
-    onDepartmentChange = (event, values) => {
+        const {baseUrl, contextRoot} = this.context;
         let tempDevice = {...this.state.incidentDevice};
         let tempUnit = {...this.state.unit}
-        tempDevice.info['addUnitObject'] = values;
-        tempUnit.id = values.value;
-        tempUnit.name = values.text;
-        this.setState({
-            incidentDevice: tempDevice,
-            unit:tempUnit
-        });
+        tempDevice.info['selectUnitObject'] = values;
+
+        this.ah.one({
+            url: `${baseUrl}/api/soc/unit?uuid=${values.value}`,
+            type: 'GET',
+        })
+            .then(data => {
+                if(data.id){
+                    console.log('data == ' ,data)
+                    tempUnit.id = data.id
+                    tempUnit.oid = data.oid
+                    tempUnit.name = data.name
+                    tempUnit.abbreviation = data.abbreviation
+                    tempUnit.industryType = data.industryType.toString()
+                    tempUnit.level = data.level
+                    tempUnit.isGovernment = data.isGovernment
+
+                    this.setState({
+                        incidentDevice: tempDevice,
+                        unit:tempUnit
+                    });
+                }else{
+                    console.log('empty == ' )
+                    tempUnit.id = values.value;
+                    tempUnit.name = values.text;
+                    tempUnit.oid = ''
+                    tempUnit.abbreviation = ''
+                    tempUnit.industryType = ''
+                    tempUnit.level = ''
+                    tempUnit.isGovernment = ''
+
+                    this.setState({
+                        ownerType:'new',
+                        incidentDevice: tempDevice,
+                        unit:tempUnit
+                    });
+                }
+
+
+            })
+            .catch(err => {
+                // helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
+            })
+
+
     }
+
 
     /**
      * Handle Incident Device edit input data change

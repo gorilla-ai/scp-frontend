@@ -80,7 +80,8 @@ class IncidentUnit extends Component {
             },
             isOrganizationDialogOpen: false,
             treeData: [],
-            departmentList:[]
+            departmentList:[],
+            unitList:[]
         };
 
         this.ah = getInstance("chewbacca");
@@ -101,10 +102,10 @@ class IncidentUnit extends Component {
     }
 
 
-    getData = () => {
+    getData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
         const {unitSearch, incidentUnit: incidentUnit} = this.state;
-        const url = `${baseUrl}/api/soc/unit/_search`;
+        const url = `${baseUrl}/api/soc/unit/_search?page=${incidentUnit.currentPage}&pageSize=${incidentUnit.pageSize}`;
         let requestData = {};
 
         if (unitSearch.keyword) {
@@ -125,6 +126,7 @@ class IncidentUnit extends Component {
                 let tempEdge = {...incidentUnit};
                 tempEdge.dataContent = data.rows;
                 tempEdge.totalCount = data.counts;
+                tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentUnit.currentPage;
 
                 let dataFields = {};
                 incidentUnit.dataFieldsArr.forEach(tempData => {
@@ -185,31 +187,44 @@ class IncidentUnit extends Component {
         return info;
     };
 
-    checkUnitOrg = () => {
-        const {baseUrl, session} = this.context;
-
-        // /SCP/api/department/_tree
+    getUnitList = () => {
+        const {baseUrl, contextRoot, session} = this.context;
+        const url = `${baseUrl}/api/soc/unit/_search`;
+        let requestData = {
+            account:session.accountId
+        };
 
         this.ah.one({
-            url: `${baseUrl}/api/soc/unit/_getOrganization`,
-            type: 'GET'
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
         })
             .then(data => {
-                let jsonData = JSON.parse(data);
-                console.log('jsonData === ' ,jsonData)
-
-                this.setState({
-                    treeData: jsonData,
-                })
-
+                if (data) {
+                    let list = [];
+                    _.forEach(data.rows, val => {
+                        let tmp = {
+                            value: val.id, text: val.name
+                        };
+                        list.push(tmp)
+                    });
+                    this.setState({
+                        unitList: list
+                    },()=>{
+                        this.checkUnitOrgFromDepartment();
+                    });
+                }
+                return null;
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message);
             })
-    }
+    };
 
     checkUnitOrgFromDepartment = () => {
         const {baseUrl, session} = this.context;
+        const {unitList} = this.state;
         this.ah.one({
             url: `${baseUrl}/api/department/_tree`,
             type: 'GET'
@@ -223,15 +238,22 @@ class IncidentUnit extends Component {
                             {
                                 id:obj.id,
                                 name: obj.name,
-                                title:obj.name
+                                title:obj.name,
+                                value:obj.id,
+                                text: obj.name,
                             }
                         );
                     });
                 })
 
+                let onlyInA = departmentList.filter(this.comparer(unitList));
+                let onlyInB = unitList.filter(this.comparer(departmentList));
+
+                let result = onlyInA.concat(onlyInB);
+
                 this.setState({
                     treeData: data,
-                    departmentList:departmentList
+                    departmentList:result
                 })
 
             })
@@ -240,6 +262,13 @@ class IncidentUnit extends Component {
             })
     }
 
+    comparer(otherArray){
+        return function(current){
+            return otherArray.filter(function(other){
+                return other.value === current.value && other.display === current.display
+            }).length === 0;
+        }
+    }
 
     checkAccountType = () => {
         const {baseUrl, session} = this.context;
@@ -515,7 +544,7 @@ class IncidentUnit extends Component {
      * @param {string | number} value - new page number
      */
     handlePaginationChange = (type, value) => {
-        let tempDevice = {...this.state.incidentDevice};
+        let tempDevice = {...this.state.incidentUnit};
         tempDevice[type] = Number(value);
 
         if (type === 'pageSize') {
@@ -523,7 +552,7 @@ class IncidentUnit extends Component {
         }
 
         this.setState({
-            incidentDevice: tempDevice
+            incidentUnit: tempDevice
         }, () => {
             this.getData();
         });
@@ -584,7 +613,7 @@ class IncidentUnit extends Component {
                             onChange={this.onNameChange}
                             value={incidentUnit.info.name}
                             disableClearable
-                            disabled={activeContent === 'viewDevice'}
+                            disabled={activeContent === 'viewDevice' || activeContent === 'editDevice'}
                             options={departmentList.map((option) => option.name)}
                             renderInput={(params) => (
                                 <TextField
