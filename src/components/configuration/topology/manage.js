@@ -188,22 +188,51 @@ class Manage extends Component {
    * @param {object} tree - department tree data
    */
   openDeleteTreeName = (tree) => {
-    PopupDialog.prompt({
-      title: t('txt-deleteDepartment'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: (
-        <div className='content delete'>
-          <span>{t('txt-delete-msg')}: {tree.name}?</span>
-        </div>
-      ),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteTreeName(tree)
-        }
-      }
-    });
+    // TODO asking Incident Unit
+    const {baseUrl, contextRoot} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/soc/unit?uuid=${tree.id}`,
+      type: 'GET',
+    }).then(data => {
+          if(data.id){
+            PopupDialog.prompt({
+              title: t('txt-deleteDepartment'),
+              id: 'modalWindowSmall',
+              confirmText: t('txt-delete'),
+              cancelText: t('txt-cancel'),
+              display: (
+                  <div className='content delete'>
+                    <span>{t('txt-delete-msg-with-soc')}: {tree.name} ?</span>
+                  </div>
+              ),
+              act: (confirmed) => {
+                if (confirmed) {
+                  this.deleteTreeName(tree)
+                }
+              }
+            });
+          }else{
+            PopupDialog.prompt({
+              title: t('txt-deleteDepartment'),
+              id: 'modalWindowSmall',
+              confirmText: t('txt-delete'),
+              cancelText: t('txt-cancel'),
+              display: (
+                  <div className='content delete'>
+                    <span>{t('txt-delete-msg')}: {tree.name}?</span>
+                  </div>
+              ),
+              act: (confirmed) => {
+                if (confirmed) {
+                  this.deleteTreeName(tree)
+                }
+              }
+            });
+          }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle delete tree name confirm
