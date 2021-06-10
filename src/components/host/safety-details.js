@@ -4,7 +4,9 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import TextField from '@material-ui/core/TextField'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -26,7 +28,12 @@ class SafetyDetails extends Component {
     super(props);
 
     this.state = {
-      contentType: '' //'basicInfo' or 'availableHost'
+      contentType: '', //'basicInfo' or 'availableHost'
+      showVansNotes: true,
+      vansNotes: {
+        status: '',
+        notes: ''
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -44,6 +51,15 @@ class SafetyDetails extends Component {
   toggleContent = (contentType) => {
     this.setState({
       contentType
+    });
+  }
+  /**
+   * Toggle Vans note content on/off
+   * @method
+   */
+  toggleVansNotes = () => {
+    this.setState({
+      showVansNotes: !this.state.showVansNotes
     });
   }
   /**
@@ -697,13 +713,35 @@ class SafetyDetails extends Component {
     )
   }
   /**
+   * Handle vans notes data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleVansNotesChange = (event) => {
+    let tempVansNotes = {...this.state.vansNotes};
+    tempVansNotes[event.target.name] = event.target.value;
+
+    this.setState({
+      vansNotes: tempVansNotes
+    });
+  }
+  /**
+   * Handle vans notes save
+   * @method
+   */
+  handleVansNotesSave = () => {
+    const {vansNotes} = this.state;
+
+    console.log(vansNotes.notes);
+  }
+  /**
    * Display Safety Scan content
    * @method
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
     const {currentSafetyData, safetyScanType} = this.props;
-    const {contentType} = this.state;
+    const {contentType, showVansNotes, vansNotes} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
 
@@ -728,7 +766,36 @@ class SafetyDetails extends Component {
               <ul>
                 <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{basicInfoText}</span></li>
                 <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.hostIdArraySize}</span></li>
+                <li className={cx('header', {'active': contentType === 'vansNotes'})} onClick={this.toggleVansNotes}><span>{t('host.txt-vansNotes')}</span> <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i></li>
               </ul>
+              {showVansNotes &&
+                <div className='vans-notes'>
+                  <div className='group'>
+                    <TextField
+                      name='status'
+                      label={t('host.txt-status')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={vansNotes.status}
+                      onChange={this.handleVansNotesChange} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      name='notes'
+                      className='notes'
+                      label={t('host.txt-notes')}
+                      multiline
+                      rows={6}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={vansNotes.notes}
+                      onChange={this.handleVansNotesChange} />
+                  </div>
+                  <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
+                </div>
+              }
             </div>
             <div className='content'>
               <div className='safety-details'>

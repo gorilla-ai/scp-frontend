@@ -228,7 +228,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
+      activeTab: 'safetyScan', //'hostList', 'deviceMap' or 'safetyScan'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
