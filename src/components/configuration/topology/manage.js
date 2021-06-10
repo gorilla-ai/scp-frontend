@@ -20,6 +20,7 @@ import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import SortableTree from "react-sortable-tree";
 
 let t = null;
 let et = null;
@@ -35,13 +36,15 @@ class Manage extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'department', //'department' or 'title'
+      activeTab: 'department', //'department' or 'title'  or 'drag'
       openManage: true,
       openName: false,
+      openDrag: false,
       name: '',
       header: '',
       departmentList: [],
       titleNameList: [],
+      treeData:[],
       parentTreetId: '',
       treeId: '',
       tableArr: ['nameUUID', 'name', 'option'],
@@ -74,7 +77,8 @@ class Manage extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          departmentList: data
+          departmentList: data,
+          treeData:data
         });
       }
       return null;
@@ -100,6 +104,8 @@ class Manage extends Component {
       this.getDepartmentTree();
     } else if (tab === 'title') {
       this.getTitleNameList();
+    } else if (tab === 'drag') {
+      this.getDepartmentTree();
     }
 
     this.setState({
@@ -202,9 +208,14 @@ class Manage extends Component {
               confirmText: t('txt-delete'),
               cancelText: t('txt-cancel'),
               display: (
-                  <div className='content delete'>
-                    <span>{t('txt-delete-msg-with-soc')}: {tree.name} ?</span>
-                  </div>
+                  <React.Fragment>
+                    <div className='content '>
+                      <span>{t('txt-delete-msg-with-soc')}?</span>
+                    </div>
+                    <div className='content delete'>
+                      <span>{tree.name} </span>
+                    </div>
+                  </React.Fragment>
               ),
               act: (confirmed) => {
                 if (confirmed) {
@@ -260,7 +271,7 @@ class Manage extends Component {
    * @returns HTML DOM
    */
   displayDepartmentTitleContent = () => {
-    const {activeTab, departmentList, titleNameList, tableArr, nameUUID} = this.state;
+    const {activeTab, departmentList, treeData, titleNameList, tableArr, nameUUID} = this.state;
     let dataFields = {};
 
     if (activeTab === 'title') {
@@ -319,6 +330,14 @@ class Manage extends Component {
                 data={titleNameList} />
             </div>
           </div>
+        }
+        {activeTab === 'drag' &&
+        <div className='title-section'>
+          <SortableTree
+              treeData={treeData}
+              onChange={treeData => this.setState({treeData: treeData})}
+          />
+        </div>
         }
       </div>
     )
@@ -513,6 +532,56 @@ class Manage extends Component {
       </ModalDialog>
     )
   }
+
+  dragModal = () => {
+    const {treeData} = this.state;
+
+    const actions = {
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.closeODialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
+    };
+
+    return (
+        <ModalDialog
+            id='addUnitDialog'
+            className='modal-dialog'
+            title={t('txt-setOrganization')}
+            draggable={true}
+            global={true}
+            actions={actions}
+            closeAction='cancel'>
+          <div style={{width: '890px', height: '630px'}}>
+            <SortableTree
+                treeData={treeData}
+                onChange={treeData => this.setState({treeData: treeData})}
+            />
+          </div>
+        </ModalDialog>
+    )
+  }
+
+  closeODialog = () => {
+    this.setState({openDrag: false})
+  }
+
+  handleUnitTreeConfirm = () =>{
+    const {treeData} = this.state;
+    const {baseUrl} = this.context;
+
+    ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      data: JSON.stringify(treeData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }).then(data => {
+      if(data.status.includes('success')){
+        helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
+      }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
+    })
+  }
+
   /**
    * Handle name modal confirm
    * @method
@@ -630,6 +699,7 @@ class Manage extends Component {
         {openName &&
           this.titleNameModal()
         }
+
       </div>
     )
   }

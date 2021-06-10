@@ -538,7 +538,6 @@ class IncidentUnit extends Component {
         }).catch(err => {
             helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
         })
-
     }
 
     /**
