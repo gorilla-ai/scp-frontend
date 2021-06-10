@@ -604,7 +604,6 @@ class IncidentUnit extends Component {
                     <div className='group'>
                         <label htmlFor='name'>{it('unit.txt-name')}</label>
                         <Autocomplete
-                            freeSolo
                             id='name'
                             name='name'
                             required

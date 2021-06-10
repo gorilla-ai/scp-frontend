@@ -2440,7 +2440,6 @@ class IncidentDeviceStep extends Component {
         })
             .then(data => {
                 if(data.id){
-                    console.log('data == ' ,data)
                     tempUnit.id = data.id
                     tempUnit.oid = data.oid
                     tempUnit.name = data.name
@@ -2454,7 +2453,6 @@ class IncidentDeviceStep extends Component {
                         unit:tempUnit
                     });
                 }else{
-                    console.log('empty == ' )
                     tempUnit.id = values.value;
                     tempUnit.name = values.text;
                     tempUnit.oid = ''
