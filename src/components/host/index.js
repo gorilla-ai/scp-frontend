@@ -2041,7 +2041,7 @@ class HostController extends Component {
     }
 
     if (safetyData.length > 80) {
-      const newValue = safetyData.substr(0, 80) + '...';
+      const newValue = safetyData.substr(0, 200) + '...';
       content = <span className='primary-content' title={safetyData}>{newValue}</span>;
     } else {
       content = <span className='primary-content'>{content}</span>;
@@ -2261,10 +2261,10 @@ class HostController extends Component {
         <div className='info'>
           {this.getSecondaryContent(val)}
         </div>
+        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.hostIdArraySize)}</div>
         <div className='view-details' onClick={this.getHostInfo.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
-        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.hostIdArraySize)}</div>
       </li>
     )
   }

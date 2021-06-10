@@ -743,7 +743,7 @@ class SafetyDetails extends Component {
                     {safetyScanType === 'getVansCpe' &&
                       <table className='c-table main-table cve'>
                         <tbody>
-                          {currentSafetyData.rawJsonObject &&
+                          {currentSafetyData.rawJsonObject.rows &&
                             currentSafetyData.rawJsonObject.rows.map(this.getCveInfo.bind(this, currentSafetyData))
                           }
                         </tbody>
