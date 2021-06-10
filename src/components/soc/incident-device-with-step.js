@@ -827,7 +827,7 @@ class IncidentDeviceStep extends Component {
                                     variant='outlined'
                                     fullWidth={true}
                                     size='small'
-                                    options={unitList}
+                                    options={departmentList}
                                     select
                                     // onChange={this.onUnitChange}
                                     value={incidentDevice.info.selectUnitObject}
@@ -1008,7 +1008,7 @@ class IncidentDeviceStep extends Component {
                                     variant='outlined'
                                     fullWidth={true}
                                     size='small'
-                                    options={unitList}
+                                    options={departmentList}
                                     select
                                     onChange={this.onUnitChange}
                                     value={incidentDevice.info.selectUnitObject}
