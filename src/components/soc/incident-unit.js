@@ -97,8 +97,8 @@ class IncidentUnit extends Component {
         this.getOptions();
 
         // this.checkUnitOrg();
-
-        this.checkUnitOrgFromDepartment()
+        this.getUnitList();
+        // this.checkUnitOrgFromDepartment()
     }
 
 
@@ -464,12 +464,12 @@ class IncidentUnit extends Component {
                                 {activeContent === 'viewDevice' &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                                 }
-                                {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>
-                                }
-                                {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-                                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>
-                                }
+                                {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT &&*/}
+                                {/*    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>*/}
+                                {/*}*/}
+                                {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT &&*/}
+                                {/*    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>*/}
+                                {/*}*/}
                                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
                             <TableContent
@@ -498,7 +498,7 @@ class IncidentUnit extends Component {
         this.setState({
             isOrganizationDialogOpen: true
         },()=>{
-            this.checkUnitOrgFromDepartment()
+            this.getUnitList()
         })
     }
 
@@ -506,7 +506,8 @@ class IncidentUnit extends Component {
         this.setState({
             isOrganizationDialogOpen: false
         },()=>{
-            this.checkUnitOrgFromDepartment()
+            this.getUnitList()
+            // this.checkUnitOrgFromDepartment()
         })
     }
 
@@ -514,7 +515,10 @@ class IncidentUnit extends Component {
         this.setState({
             openManage: !this.state.openManage
         },()=>{
-            this.checkUnitOrgFromDepartment()
+            this.getUnitList()
+            if (!this.state.openManage){
+                this.checkAccountType();
+            }
         });
     }
 
@@ -534,7 +538,6 @@ class IncidentUnit extends Component {
         }).catch(err => {
             helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
         })
-
     }
 
     /**
@@ -568,7 +571,6 @@ class IncidentUnit extends Component {
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-unit')}</header>
-
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
                     <Button variant='outlined' color='primary' className='standard btn edit'
@@ -578,14 +580,15 @@ class IncidentUnit extends Component {
                     <Button variant='outlined' color='primary' className='standard btn edit'
                             onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
                     }
-
                 </div>
 
-                <div className='form-group normal'>
+                <div className='form-group steps-owner'>
                     <header>
                         <div className='text'>{t('edge-management.txt-basicInfo')}</div>
                     </header>
-
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+                        <Button variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>
+                    }
                     <div className='group'>
                         <label htmlFor='oid'>{it('unit.txt-oid')}</label>
                         <TextField
@@ -974,7 +977,7 @@ class IncidentUnit extends Component {
                 }else{
                     helper.showPopupMsg('', t('txt-success'),t('txt-delete')+t('txt-success'));
                     this.getData();
-                    this.checkUnitOrgFromDepartment();
+                    this.getUnitList()
                 }
                 return null;
             })
@@ -1121,7 +1124,7 @@ class IncidentUnit extends Component {
         }, () => {
             if (type === 'tableList') {
                 this.getData();
-                this.checkUnitOrgFromDepartment();
+                this.getUnitList()
             }
         });
     };

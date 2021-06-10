@@ -260,6 +260,7 @@
   "txt-pcapNotAvailable": "找不到PCAP檔案",
   "txt-file-format-error": "檔案格式必須為",
   "txt-delete-msg": "確定要刪除",
+  "txt-delete-msg-with-soc": "此部門刪除將會連帶刪除其SOC相關資訊，確定要刪除",
   "txt-account-unlocked": "帳號已鎖住",
   "txt-account-unlock": "確定要解鎖帳號",
   "txt-account-delete": "確定要刪除帳號",

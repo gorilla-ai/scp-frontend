@@ -260,6 +260,7 @@
   "txt-pcapNotAvailable": "PCAP content is not available",
   "txt-file-format-error": "File format should be in ",
   "txt-delete-msg": "Are you sure you want to delete this",
+  "txt-delete-msg-with-soc": "Delete this will also delete its SOC related information, Are you sure you want to delete this",
   "txt-account-unlocked": "Account is locked",
   "txt-account-unlock": "Are you sure you want to unlcok this account",
   "txt-account-delete": "Are you sure you want to delete this account",
