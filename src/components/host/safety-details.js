@@ -41,7 +41,26 @@ class SafetyDetails extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.setVansNotes();
     this.toggleContent(this.props.showSafetyTab);
+  }
+  /**
+   * Set Vans notes if available
+   * @method
+   */
+  setVansNotes = () => {
+    const {currentSafetyData} = this.props;
+    const {vansNotes} = this.state;
+
+    if (currentSafetyData.annotationObj) {
+      let tempVansNotes = {...vansNotes};
+      tempVansNotes.notes = currentSafetyData.annotationObj.annotation;
+      tempVansNotes.status = currentSafetyData.annotationObj.status;
+
+      this.setState({
+        vansNotes: tempVansNotes
+      });
+    }
   }
   /**
    * Toggle content type
@@ -730,9 +749,35 @@ class SafetyDetails extends Component {
    * @method
    */
   handleVansNotesSave = () => {
+    const {baseUrl} = this.context;
+    const {currentSafetyData} = this.props;
     const {vansNotes} = this.state;
+    const url = `${baseUrl}/api/annotation`;
+    const requestData = {
+      attribute: currentSafetyData.primaryKeyValue,
+      status: vansNotes.status,
+      annotation: vansNotes.notes
+    };
 
-    console.log(vansNotes.notes);
+    if (vansNotes.status === '' && vansNotes.notes === '') {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-saved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display Safety Scan content

@@ -4,6 +4,9 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button'
+import TextField from '@material-ui/core/TextField'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
@@ -47,7 +50,12 @@ class HostAnalysis extends Component {
         network: false
       },
       modalYaraRuleOpen: false,
-      modalIRopen: false
+      modalIRopen: false,
+      showVansNotes: true,
+      vansNotes: {
+        status: '',
+        notes: ''
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -198,13 +206,70 @@ class HostAnalysis extends Component {
     }
   }
   /**
+   * Toggle Vans note content on/off
+   * @method
+   */
+  toggleVansNotes = () => {
+    this.setState({
+      showVansNotes: !this.state.showVansNotes
+    });
+  }
+  /**
+   * Handle vans notes data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleVansNotesChange = (event) => {
+    let tempVansNotes = {...this.state.vansNotes};
+    tempVansNotes[event.target.name] = event.target.value;
+
+    this.setState({
+      vansNotes: tempVansNotes
+    });
+  }
+  /**
+   * Handle vans notes save
+   * @method
+   */
+  handleVansNotesSave = () => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const {vansNotes} = this.state;
+    const url = `${baseUrl}/api/annotation`;
+    const requestData = {
+      attribute: hostData.ipDeviceUUID,
+      status: vansNotes.status,
+      annotation: vansNotes.notes
+    };
+
+    if (vansNotes.status === '' && vansNotes.notes === '') {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-saved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display Host Analysis content
    * @method
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
     const {hostData, assessmentDatetime} = this.props;
-    const {showContent} = this.state;
+    const {showContent, showVansNotes, vansNotes} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
     const hostName = hostData.hostName || NOT_AVAILABLE;
@@ -248,7 +313,38 @@ class HostAnalysis extends Component {
               <li className='child' onClick={this.getContent.bind(this, 'info')}><span className={cx({'active': showContent.info})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'safety')}><span className={cx({'active': showContent.safety})}>{t('alert.txt-safetyScanInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'network')}><span className={cx({'active': showContent.network})}>{t('txt-networkBehavior')}</span></li>
+              <li className='header' onClick={this.toggleVansNotes}>
+                <span className='name'><span>{t('host.txt-vansNotes')}</span> <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i></span>
+              </li>
             </ul>
+            {showVansNotes &&
+              <div className='vans-notes'>
+                <div className='group'>
+                  <TextField
+                    name='status'
+                    label={t('host.txt-status')}
+                    variant='outlined'
+                    fullWidth
+                    size='small'
+                    value={vansNotes.status}
+                    onChange={this.handleVansNotesChange} />
+                </div>
+                <div className='group'>
+                  <TextField
+                    name='notes'
+                    className='notes'
+                    label={t('host.txt-notes')}
+                    multiline
+                    rows={6}
+                    variant='outlined'
+                    fullWidth
+                    size='small'
+                    value={vansNotes.notes}
+                    onChange={this.handleVansNotesChange} />
+                </div>
+                <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
+              </div>
+            }
           </div>
           <div className='content'>
             {showContent.info &&

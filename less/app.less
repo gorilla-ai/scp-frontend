@@ -1986,12 +1986,15 @@ button.standard:hover:not([disabled]) {
                 border-radius: 15px;
                 cursor: pointer;
               }
-              .host-count {
+              .common-info {
                 float: left;
+                display: flex;
                 font-size: .9em;
                 margin-top: 10px;
-                border-left: 1px solid var(--primaryBorder);
-                padding-left: 10px;
+                div {
+                  border-left: 1px solid var(--primaryBorder);
+                  padding: 0 10px;
+                }
               }
             }
           }

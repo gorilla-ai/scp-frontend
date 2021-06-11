@@ -21,6 +21,7 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import Popover from 'react-ui/build/src/components/popover'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -1801,6 +1802,10 @@ class HostController extends Component {
           scrollCount: 1,
           hasMore: false
         }
+      }, () => {
+        if (!this.state.hostAnalysisOpen) {
+          this.getHostData();
+        }
       });
     }
   }
@@ -2007,6 +2012,10 @@ class HostController extends Component {
       ...data,
       safetyDetailsOpen: !this.state.safetyDetailsOpen,
       showSafetyTab
+    }, () => {
+      if (!this.state.safetyDetailsOpen) {
+        this.getSafetyScanData();
+      }
     });
   }
   /**
@@ -2185,6 +2194,37 @@ class HostController extends Component {
     }
   }
   /**
+   * Handle popover open
+   * @method
+   * @param {string} notes - vans notes to be displayed
+   * @param {object} event - event object
+   */
+  openPopover = (notes, event) => {
+    Popover.openId('vansNotesDisplay', event, notes);
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  closePopover = () => {
+    Popover.closeId('vansNotesDisplay');
+  }
+  /**
+   * Display common info for safety scan table
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  getCommonContent = (safetyData) => {
+    return (
+      <div className='common-info'>
+        {safetyData.annotationObj &&
+          <div onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</div>
+        }
+        <div>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</div>
+      </div>
+    )
+  }
+  /**
    * Get available host data
    * @method
    * @param {object | string} safetyData - active safety scan data, or primary key value
@@ -2261,7 +2301,7 @@ class HostController extends Component {
         <div className='info'>
           {this.getSecondaryContent(val)}
         </div>
-        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.hostIdArraySize)}</div>
+        {this.getCommonContent(val)}
         <div className='view-details' onClick={this.getHostInfo.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
