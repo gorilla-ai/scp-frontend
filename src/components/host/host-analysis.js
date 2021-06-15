@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -53,8 +54,9 @@ class HostAnalysis extends Component {
       modalIRopen: false,
       showVansNotes: true,
       vansNotes: {
+        id: '',
         status: '',
-        notes: ''
+        annotation: ''
       }
     };
 
@@ -63,11 +65,29 @@ class HostAnalysis extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getVansData();
     this.hmdTypeChecking();
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
       this.props.toggleSafetyDetails('', 'showAvailableHost');
+    }
+  }
+  /**
+   * Set Vans info data if available
+   * @method
+   */
+  getVansData = () => {
+    const {hostData} = this.props;
+
+    if (hostData.annotationObj) {
+      this.setState({
+        vansNotes: {
+          id: hostData.annotationObj.id,
+          status: hostData.annotationObj.status,
+          annotation: hostData.annotationObj.annotation
+        }
+      });
     }
   }
   /**
@@ -215,7 +235,7 @@ class HostAnalysis extends Component {
     });
   }
   /**
-   * Handle vans notes data change
+   * Handle vans annotation data change
    * @method
    * @param {object} event - event object
    */
@@ -228,7 +248,7 @@ class HostAnalysis extends Component {
     });
   }
   /**
-   * Handle vans notes save
+   * Handle vans annotation save
    * @method
    */
   handleVansNotesSave = () => {
@@ -236,25 +256,89 @@ class HostAnalysis extends Component {
     const {hostData} = this.props;
     const {vansNotes} = this.state;
     const url = `${baseUrl}/api/annotation`;
-    const requestData = {
+    let requestType = 'POST';
+    let requestData = {
       attribute: hostData.ipDeviceUUID,
       status: vansNotes.status,
-      annotation: vansNotes.notes
+      annotation: vansNotes.annotation
     };
 
-    if (vansNotes.status === '' && vansNotes.notes === '') {
+    if (vansNotes.id) {
+      requestData.id = vansNotes.id;
+      requestType = 'PATCH';
+    }
+
+    if (vansNotes.status === '' && vansNotes.annotation === '') {
       return;
     }
 
-    this.ah.one({
+    ah.one({
       url,
       data: JSON.stringify(requestData),
-      type: 'POST',
+      type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         helper.showPopupMsg(t('txt-saved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete vans annotation content
+   * @method
+   * @returns HTML DOM
+   */
+  getDeleteVansNotesContent = () => {
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}?</span>
+      </div>
+    )
+  }
+  /**
+   * Handle vans annotation delete
+   * @method
+   */
+  handleVansNotesDelete = () => {
+    PopupDialog.prompt({
+      title: t('host.txt-deleteVansNotes'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteVansNotesContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteVansNotes();
+        }
+      }
+    });
+  }
+  /**
+   * Delete vans annotation
+   * @method
+   */
+  deleteVansNotes = () => {
+    const {baseUrl} = this.context;
+    const {vansNotes} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/annotation?id=${vansNotes.id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+           vansNotes: {
+            id: '',
+            status: '',
+            annotation: ''
+          }
+        });
       }
       return null;
     })
@@ -314,7 +398,8 @@ class HostAnalysis extends Component {
               <li className='child' onClick={this.getContent.bind(this, 'safety')}><span className={cx({'active': showContent.safety})}>{t('alert.txt-safetyScanInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'network')}><span className={cx({'active': showContent.network})}>{t('txt-networkBehavior')}</span></li>
               <li className='header' onClick={this.toggleVansNotes}>
-                <span className='name'><span>{t('host.txt-vansNotes')}</span> <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i></span>
+                <span className='name'>{t('host.txt-vansNotes')}</span>
+                <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i>
               </li>
             </ul>
             {showVansNotes &&
@@ -331,18 +416,21 @@ class HostAnalysis extends Component {
                 </div>
                 <div className='group'>
                   <TextField
-                    name='notes'
+                    name='annotation'
                     className='notes'
-                    label={t('host.txt-notes')}
+                    label={t('host.txt-annotation')}
                     multiline
                     rows={6}
                     variant='outlined'
                     fullWidth
                     size='small'
-                    value={vansNotes.notes}
+                    value={vansNotes.annotation}
                     onChange={this.handleVansNotesChange} />
                 </div>
                 <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
+                {vansNotes.id &&
+                  <Button variant='outlined' color='primary' className='delete' onClick={this.handleVansNotesDelete}>{t('txt-delete')}</Button>
+                }
               </div>
             }
           </div>

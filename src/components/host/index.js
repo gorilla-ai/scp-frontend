@@ -229,7 +229,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'safetyScan', //'hostList', 'deviceMap' or 'safetyScan'
+      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
@@ -267,7 +267,9 @@ class HostController extends Component {
         hostName: '',
         deviceType: '',
         system: '',
-        scanInfo: ''
+        scanInfo: '',
+        status: '',
+        annotation: ''
       },
       subTabMenu: {
         table: t('host.txt-hostList'),
@@ -659,6 +661,12 @@ class HostController extends Component {
 
     if (deviceSearch.system) {
       requestData.system = deviceSearch.system;
+    }
+
+    if (deviceSearch.status || deviceSearch.annotation) {
+      requestData.annotationObj = {};
+      requestData.annotationObj.status = deviceSearch.status;
+      requestData.annotationObj.annotation = deviceSearch.annotation;
     }
 
     return requestData;
@@ -1462,6 +1470,28 @@ class HostController extends Component {
               value={deviceSearch.scanInfo}
               onChange={this.handleDeviceSearch} />
           </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchStatus'
+              name='status'
+              label={t('host.txt-status')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.status}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchNotes'
+              name='annotation'
+              label={t('host.txt-annotation')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.annotation}
+              onChange={this.handleDeviceSearch} />
+          </div>
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
@@ -1482,7 +1512,9 @@ class HostController extends Component {
         hostName: '',
         deviceType: '',
         system: '',
-        scanInfo: ''
+        scanInfo: '',
+        status: '',
+        annotation: ''
       }
     });
   }
@@ -1603,6 +1635,8 @@ class HostController extends Component {
       } else if (val.name === 'version') {
         context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
+      } else if (val.name === 'vansNotes' && dataInfo[val.path]) {
+        return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span>{dataInfo[val.path].status}</span></li>
       }
 
       return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
@@ -1890,8 +1924,8 @@ class HostController extends Component {
         icon: 'report'
       },
       {
-        name: 'remarks',
-        path: 'remarks',
+        name: 'vansNotes',
+        path: 'annotationObj',
         icon: 'edit'
       }
     ];
@@ -2196,11 +2230,11 @@ class HostController extends Component {
   /**
    * Handle popover open
    * @method
-   * @param {string} notes - vans notes to be displayed
+   * @param {string} annotation - vans annotation to be displayed
    * @param {object} event - event object
    */
-  openPopover = (notes, event) => {
-    Popover.openId('vansNotesDisplay', event, notes);
+  openPopover = (annotation, event) => {
+    Popover.openId('vansNotesDisplay', event, annotation);
   }
   /**
    * Handle popover close
