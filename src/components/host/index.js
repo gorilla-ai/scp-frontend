@@ -22,6 +22,7 @@ import Gis from 'react-gis/build/src/components'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Popover from 'react-ui/build/src/components/popover'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -1482,13 +1483,11 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextField
+            <TextareaAutosize
               id='deviceSearchNotes'
+              className='textarea-autosize search-annotation'
               name='annotation'
-              label={t('host.txt-annotation')}
-              variant='outlined'
-              fullWidth
-              size='small'
+              placeholder={t('host.txt-annotation')}
               value={deviceSearch.annotation}
               onChange={this.handleDeviceSearch} />
           </div>

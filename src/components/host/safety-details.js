@@ -6,6 +6,7 @@ import cx from 'classnames'
 
 import Button from '@material-ui/core/Button'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -892,15 +893,11 @@ class SafetyDetails extends Component {
                       onChange={this.handleVansNotesChange} />
                   </div>
                   <div className='group'>
-                    <TextField
+                    <TextareaAutosize
                       name='annotation'
-                      className='notes'
-                      label={t('host.txt-annotation')}
-                      multiline
+                      className='textarea-autosize notes'
+                      placeholder={t('host.txt-annotation')}
                       rows={6}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
                       value={vansNotes.annotation}
                       onChange={this.handleVansNotesChange} />
                   </div>

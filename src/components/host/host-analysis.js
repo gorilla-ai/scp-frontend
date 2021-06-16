@@ -9,6 +9,7 @@ import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -415,15 +416,11 @@ class HostAnalysis extends Component {
                     onChange={this.handleVansNotesChange} />
                 </div>
                 <div className='group'>
-                  <TextField
+                  <TextareaAutosize
                     name='annotation'
-                    className='notes'
-                    label={t('host.txt-annotation')}
-                    multiline
+                    className='textarea-autosize notes'
+                    placeholder={t('host.txt-annotation')}
                     rows={6}
-                    variant='outlined'
-                    fullWidth
-                    size='small'
                     value={vansNotes.annotation}
                     onChange={this.handleVansNotesChange} />
                 </div>
