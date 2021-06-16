@@ -326,9 +326,12 @@ class NetworkInventory extends Component {
         let tempAddIP = {...addIP};
 
         if (data.length > 0) {
-          titleList = _.map(data, (val, i) => {
-            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
-          });
+          _.forEach(data, val => {
+            titleList.push({
+              value: val.nameUUID,
+              text: val.name
+            });
+          })
           tempAddIP.newTitle = data[0].nameUUID;
         } else {
           tempAddIP.newTitle = '';
@@ -1958,14 +1961,17 @@ class NetworkInventory extends Component {
           ownerPic: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.base64 : '',
           ownerUUID: currentDeviceData.ownerUUID,
           ownerID: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerID : '',
-          ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : '',
-          title: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.titleName : '',
-          newTitle: titleList[0] ? titleList[0].value : ''
+          ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : ''
         };
 
         if (currentDeviceData.ownerObj.department) {
           const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': currentDeviceData.ownerObj.department });
-          addIP.department = departmentList[selectedDepartmentIndex]
+          addIP.department = departmentList[selectedDepartmentIndex];
+        }
+
+        if (currentDeviceData.ownerObj.title) {
+          const selectedTitleIndex = _.findIndex(titleList, { 'value': currentDeviceData.ownerObj.title });
+          addIP.title = titleList[selectedTitleIndex];
         }
 
         if (currentDeviceData.areaUUID) {
@@ -2898,10 +2904,10 @@ class NetworkInventory extends Component {
    * @param {object} event - event object
    */
   handleOwnerTypeChange = (event) => {
-    const {titleList, addIP} = this.state;
+    const {addIP} = this.state;
     const tempAddIP = {...addIP};
     tempAddIP.newDepartment = {};
-    tempAddIP.newTitle = titleList[0] ? titleList[0].value : '';
+    tempAddIP.newTitle = {};
 
     this.setState({
       ownerType: event.target.value,
@@ -2960,19 +2966,6 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Handle Department/Title dropdown change
-   * @method
-   * @param {object} event - event object
-   */
-  handleSelectionChange = (event) => {
-    const tempAddIP = {...this.state.addIP};
-    tempAddIP[event.target.name] = event.target.value;
-
-    this.setState({
-      addIP: tempAddIP
-    });
   }
   /**
    * Open floor map edit dialog
@@ -3070,22 +3063,43 @@ class NetworkInventory extends Component {
       <TextField
         {...params}
         label={t('ownerFields.department')}
-        variant='outlined' />
+        variant='outlined'
+        size='small' />
     )
   }
   /**
-   * Handle department combo box change
+   * Display title list
    * @method
+   * @param {object} params - parameters for Autocomplete
+   */
+  renderTitleList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('ownerFields.title')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle department/title combo box change
+   * @method
+   * @param {object} from - form page ('department' or 'title')
    * @param {object} event - select event
    * @param {object} value - selected department info
    */
-  handleComboBoxChange = (event, value) => {
-    const {departmentList, addIP} = this.state;
+  handleComboBoxChange = (from, event, value) => {
+    const {departmentList, titleList, addIP} = this.state;
     let tempAddIP = {...addIP};
 
     if (value && value.value) {
-      const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': value.value });
-      tempAddIP.newDepartment = departmentList[selectedDepartmentIndex]
+      if (from === 'department') {
+        const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': value.value });
+        tempAddIP.newDepartment = departmentList[selectedDepartmentIndex];
+      } else if (from === 'title') {
+        const selectedTitleIndex = _.findIndex(titleList, { 'value': value.value });
+        tempAddIP.newTitle = titleList[selectedTitleIndex];
+      }
 
       this.setState({
         addIP: tempAddIP
@@ -3414,22 +3428,16 @@ class NetworkInventory extends Component {
                         value={addIP.newDepartment}
                         getOptionLabel={(option) => option.text}
                         renderInput={this.renderDepartmentList}
-                        onChange={this.handleComboBoxChange} />
+                        onChange={this.handleComboBoxChange.bind(this, 'department')} />
                     </div>
                     <div className='group'>
-                      <TextField
-                        id='addIPstepsTitle'
-                        name='newTitle'
-                        label={t('ownerFields.title')}
-                        select
-                        variant='outlined'
-                        fullWidth
-                        size='small'
+                      <Autocomplete
+                        id='combo-box-demo'
+                        options={titleList}
                         value={addIP.newTitle}
-                        onChange={this.handleSelectionChange}
-                        disabled={titleList.length === 0}>
-                        {titleList}
-                      </TextField>
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderTitleList}
+                        onChange={this.handleComboBoxChange.bind(this, 'title')} />
                     </div>
                   </div>
                 }
@@ -3469,15 +3477,12 @@ class NetworkInventory extends Component {
                         disabled />
                     </div>
                     <div className='group'>
-                      <TextField
-                        key='titleName'
-                        id='addIPstepsTitle'
-                        name='title'
-                        label={t('ownerFields.title')}
-                        variant='outlined'
-                        fullWidth
-                        size='small'
-                        value={addIP.title || ''}
+                      <Autocomplete
+                        id='combo-box-demo'
+                        options={titleList}
+                        value={addIP.title}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderTitleList}
                         disabled />
                     </div>
                   </div>

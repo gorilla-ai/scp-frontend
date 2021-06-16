@@ -1388,7 +1388,7 @@ class Edge extends Component {
                     </React.Fragment>
                   )}
                   renderInput={(params) => (
-                    <TextField {...params} variant='outlined' />
+                    <TextField {...params} variant='outlined' size='small' />
                   )}
                   getOptionSelected={(option, value) => (
                     option.value === value.value
@@ -1501,7 +1501,7 @@ class Edge extends Component {
                 </React.Fragment>
               )}
               renderInput={(params) => (
-                <TextField {...params} label={f('edgeFields.groups')} variant='outlined' />
+                <TextField {...params} label={f('edgeFields.groups')} variant='outlined' size='small' />
               )}
               getOptionSelected={(option, value) => (
                 option.value === value.value

@@ -473,7 +473,7 @@ class EsManage extends Component {
             </React.Fragment>
           )}
           renderInput={(params) => (
-            <TextField {...params} variant='outlined' />
+            <TextField {...params} variant='outlined' size='small' />
           )}
           getOptionSelected={(option, value) => (
             option.value === value.value
