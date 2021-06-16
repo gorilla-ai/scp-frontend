@@ -4,15 +4,12 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
-import TextField from '@material-ui/core/TextField'
-
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import VansNotes from '../common/vans-notes'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -32,12 +29,7 @@ class SafetyDetails extends Component {
 
     this.state = {
       contentType: '', //'basicInfo' or 'availableHost'
-      showVansNotes: true,
-      vansNotes: {
-        id: '',
-        status: '',
-        annotation: ''
-      }
+      showVansNotes: true
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -45,25 +37,7 @@ class SafetyDetails extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setVansNotes();
     this.toggleContent(this.props.showSafetyTab);
-  }
-  /**
-   * Set Vans annotation if available
-   * @method
-   */
-  setVansNotes = () => {
-    const {currentSafetyData} = this.props;
-
-    if (currentSafetyData.annotationObj) {
-      this.setState({
-        vansNotes: {
-          id: currentSafetyData.annotationObj.id,
-          status: currentSafetyData.annotationObj.status,
-          annotation: currentSafetyData.annotationObj.annotation
-        }
-      });
-    }
   }
   /**
    * Toggle content type
@@ -735,125 +709,13 @@ class SafetyDetails extends Component {
     )
   }
   /**
-   * Handle vans annotation data change
-   * @method
-   * @param {object} event - event object
-   */
-  handleVansNotesChange = (event) => {
-    let tempVansNotes = {...this.state.vansNotes};
-    tempVansNotes[event.target.name] = event.target.value;
-
-    this.setState({
-      vansNotes: tempVansNotes
-    });
-  }
-  /**
-   * Handle vans annotation save
-   * @method
-   */
-  handleVansNotesSave = () => {
-    const {baseUrl} = this.context;
-    const {currentSafetyData} = this.props;
-    const {vansNotes} = this.state;
-    const url = `${baseUrl}/api/annotation`;
-    let requestType = 'POST';
-    let requestData = {
-      attribute: currentSafetyData.primaryKeyValue,
-      status: vansNotes.status,
-      annotation: vansNotes.annotation
-    };
-
-    if (vansNotes.id) {
-      requestData.id = vansNotes.id;
-      requestType = 'PATCH';
-    }
-
-    if (vansNotes.status === '' && vansNotes.annotation === '') {
-      return;
-    }
-
-    ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: requestType,
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        helper.showPopupMsg(t('txt-saved'));
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Display delete vans annotation content
-   * @method
-   * @returns HTML DOM
-   */
-  getDeleteVansNotesContent = () => {
-    return (
-      <div className='content delete'>
-        <span>{t('txt-delete-msg')}?</span>
-      </div>
-    )
-  }
-  /**
-   * Handle vans annotation delete
-   * @method
-   */
-  handleVansNotesDelete = () => {
-    PopupDialog.prompt({
-      title: t('host.txt-deleteVansNotes'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: this.getDeleteVansNotesContent(),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteVansNotes();
-        }
-      }
-    });
-  }
-  /**
-   * Delete vans annotation
-   * @method
-   */
-  deleteVansNotes = () => {
-    const {baseUrl} = this.context;
-    const {vansNotes} = this.state;
-
-    ah.one({
-      url: `${baseUrl}/api/annotation?id=${vansNotes.id}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.setState({
-           vansNotes: {
-            id: '',
-            status: '',
-            annotation: ''
-          }
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Display Safety Scan content
    * @method
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
     const {currentSafetyData, safetyScanType} = this.props;
-    const {contentType, showVansNotes, vansNotes} = this.state;
+    const {contentType, showVansNotes} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
 
@@ -878,34 +740,11 @@ class SafetyDetails extends Component {
               <ul>
                 <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{basicInfoText}</span></li>
                 <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.hostIdArraySize}</span></li>
-                <li className={cx('header', {'active': contentType === 'vansNotes'})} onClick={this.toggleVansNotes}><span>{t('host.txt-vansNotes')}</span> <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i></li>
+                <li className='header' onClick={this.toggleVansNotes}><span>{t('host.txt-vansNotes')}</span> <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i></li>
               </ul>
               {showVansNotes &&
-                <div className='vans-notes'>
-                  <div className='group'>
-                    <TextField
-                      name='status'
-                      label={t('host.txt-status')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={vansNotes.status}
-                      onChange={this.handleVansNotesChange} />
-                  </div>
-                  <div className='group'>
-                    <TextareaAutosize
-                      name='annotation'
-                      className='textarea-autosize notes'
-                      placeholder={t('host.txt-annotation')}
-                      rows={6}
-                      value={vansNotes.annotation}
-                      onChange={this.handleVansNotesChange} />
-                  </div>
-                  <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
-                  {vansNotes.id &&
-                    <Button variant='outlined' color='primary' className='delete' onClick={this.handleVansNotesDelete}>{t('txt-delete')}</Button>
-                  }
-                </div>
+                <VansNotes
+                  currentData={currentSafetyData} />
               }
             </div>
             <div className='content'>
