@@ -4,7 +4,12 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button'
+import TextField from '@material-ui/core/TextField'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -47,7 +52,13 @@ class HostAnalysis extends Component {
         network: false
       },
       modalYaraRuleOpen: false,
-      modalIRopen: false
+      modalIRopen: false,
+      showVansNotes: true,
+      vansNotes: {
+        id: '',
+        status: '',
+        annotation: ''
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -55,11 +66,29 @@ class HostAnalysis extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getVansData();
     this.hmdTypeChecking();
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
       this.props.toggleSafetyDetails('', 'showAvailableHost');
+    }
+  }
+  /**
+   * Set Vans info data if available
+   * @method
+   */
+  getVansData = () => {
+    const {hostData} = this.props;
+
+    if (hostData.annotationObj) {
+      this.setState({
+        vansNotes: {
+          id: hostData.annotationObj.id,
+          status: hostData.annotationObj.status,
+          annotation: hostData.annotationObj.annotation
+        }
+      });
     }
   }
   /**
@@ -198,13 +227,134 @@ class HostAnalysis extends Component {
     }
   }
   /**
+   * Toggle Vans note content on/off
+   * @method
+   */
+  toggleVansNotes = () => {
+    this.setState({
+      showVansNotes: !this.state.showVansNotes
+    });
+  }
+  /**
+   * Handle vans annotation data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleVansNotesChange = (event) => {
+    let tempVansNotes = {...this.state.vansNotes};
+    tempVansNotes[event.target.name] = event.target.value;
+
+    this.setState({
+      vansNotes: tempVansNotes
+    });
+  }
+  /**
+   * Handle vans annotation save
+   * @method
+   */
+  handleVansNotesSave = () => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const {vansNotes} = this.state;
+    const url = `${baseUrl}/api/annotation`;
+    let requestType = 'POST';
+    let requestData = {
+      attribute: hostData.ipDeviceUUID,
+      status: vansNotes.status,
+      annotation: vansNotes.annotation
+    };
+
+    if (vansNotes.id) {
+      requestData.id = vansNotes.id;
+      requestType = 'PATCH';
+    }
+
+    if (vansNotes.status === '' && vansNotes.annotation === '') {
+      return;
+    }
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-saved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete vans annotation content
+   * @method
+   * @returns HTML DOM
+   */
+  getDeleteVansNotesContent = () => {
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}?</span>
+      </div>
+    )
+  }
+  /**
+   * Handle vans annotation delete
+   * @method
+   */
+  handleVansNotesDelete = () => {
+    PopupDialog.prompt({
+      title: t('host.txt-deleteVansNotes'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteVansNotesContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteVansNotes();
+        }
+      }
+    });
+  }
+  /**
+   * Delete vans annotation
+   * @method
+   */
+  deleteVansNotes = () => {
+    const {baseUrl} = this.context;
+    const {vansNotes} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/annotation?id=${vansNotes.id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+           vansNotes: {
+            id: '',
+            status: '',
+            annotation: ''
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display Host Analysis content
    * @method
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
     const {hostData, assessmentDatetime} = this.props;
-    const {showContent} = this.state;
+    const {showContent, showVansNotes, vansNotes} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
     const hostName = hostData.hostName || NOT_AVAILABLE;
@@ -248,7 +398,38 @@ class HostAnalysis extends Component {
               <li className='child' onClick={this.getContent.bind(this, 'info')}><span className={cx({'active': showContent.info})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'safety')}><span className={cx({'active': showContent.safety})}>{t('alert.txt-safetyScanInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'network')}><span className={cx({'active': showContent.network})}>{t('txt-networkBehavior')}</span></li>
+              <li className='header' onClick={this.toggleVansNotes}>
+                <span className='name'>{t('host.txt-vansNotes')}</span>
+                <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i>
+              </li>
             </ul>
+            {showVansNotes &&
+              <div className='vans-notes'>
+                <div className='group'>
+                  <TextField
+                    name='status'
+                    label={t('host.txt-status')}
+                    variant='outlined'
+                    fullWidth
+                    size='small'
+                    value={vansNotes.status}
+                    onChange={this.handleVansNotesChange} />
+                </div>
+                <div className='group'>
+                  <TextareaAutosize
+                    name='annotation'
+                    className='textarea-autosize notes'
+                    placeholder={t('host.txt-annotation')}
+                    rows={6}
+                    value={vansNotes.annotation}
+                    onChange={this.handleVansNotesChange} />
+                </div>
+                <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
+                {vansNotes.id &&
+                  <Button variant='outlined' color='primary' className='delete' onClick={this.handleVansNotesDelete}>{t('txt-delete')}</Button>
+                }
+              </div>
+            }
           </div>
           <div className='content'>
             {showContent.info &&

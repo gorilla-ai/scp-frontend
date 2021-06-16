@@ -21,6 +21,8 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import Popover from 'react-ui/build/src/components/popover'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -266,7 +268,9 @@ class HostController extends Component {
         hostName: '',
         deviceType: '',
         system: '',
-        scanInfo: ''
+        scanInfo: '',
+        status: '',
+        annotation: ''
       },
       subTabMenu: {
         table: t('host.txt-hostList'),
@@ -658,6 +662,12 @@ class HostController extends Component {
 
     if (deviceSearch.system) {
       requestData.system = deviceSearch.system;
+    }
+
+    if (deviceSearch.status || deviceSearch.annotation) {
+      requestData.annotationObj = {};
+      requestData.annotationObj.status = deviceSearch.status;
+      requestData.annotationObj.annotation = deviceSearch.annotation;
     }
 
     return requestData;
@@ -1461,6 +1471,26 @@ class HostController extends Component {
               value={deviceSearch.scanInfo}
               onChange={this.handleDeviceSearch} />
           </div>
+          <div className='group'>
+            <TextField
+              id='deviceSearchStatus'
+              name='status'
+              label={t('host.txt-status')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.status}
+              onChange={this.handleDeviceSearch} />
+          </div>
+          <div className='group'>
+            <TextareaAutosize
+              id='deviceSearchNotes'
+              className='textarea-autosize search-annotation'
+              name='annotation'
+              placeholder={t('host.txt-annotation')}
+              value={deviceSearch.annotation}
+              onChange={this.handleDeviceSearch} />
+          </div>
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
@@ -1481,7 +1511,9 @@ class HostController extends Component {
         hostName: '',
         deviceType: '',
         system: '',
-        scanInfo: ''
+        scanInfo: '',
+        status: '',
+        annotation: ''
       }
     });
   }
@@ -1602,6 +1634,8 @@ class HostController extends Component {
       } else if (val.name === 'version') {
         context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
+      } else if (val.name === 'vansNotes' && dataInfo[val.path]) {
+        return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span>{dataInfo[val.path].status}</span></li>
       }
 
       return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
@@ -1801,6 +1835,10 @@ class HostController extends Component {
           scrollCount: 1,
           hasMore: false
         }
+      }, () => {
+        if (!this.state.hostAnalysisOpen) {
+          this.getHostData();
+        }
       });
     }
   }
@@ -1885,8 +1923,8 @@ class HostController extends Component {
         icon: 'report'
       },
       {
-        name: 'remarks',
-        path: 'remarks',
+        name: 'vansNotes',
+        path: 'annotationObj',
         icon: 'edit'
       }
     ];
@@ -2007,6 +2045,10 @@ class HostController extends Component {
       ...data,
       safetyDetailsOpen: !this.state.safetyDetailsOpen,
       showSafetyTab
+    }, () => {
+      if (!this.state.safetyDetailsOpen) {
+        this.getSafetyScanData();
+      }
     });
   }
   /**
@@ -2185,6 +2227,37 @@ class HostController extends Component {
     }
   }
   /**
+   * Handle popover open
+   * @method
+   * @param {string} annotation - vans annotation to be displayed
+   * @param {object} event - event object
+   */
+  openPopover = (annotation, event) => {
+    Popover.openId('vansNotesDisplay', event, annotation);
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  closePopover = () => {
+    Popover.closeId('vansNotesDisplay');
+  }
+  /**
+   * Display common info for safety scan table
+   * @method
+   * @param {object} safetyData - active safety scan data
+   */
+  getCommonContent = (safetyData) => {
+    return (
+      <div className='common-info'>
+        {safetyData.annotationObj &&
+          <div onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</div>
+        }
+        <div>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</div>
+      </div>
+    )
+  }
+  /**
    * Get available host data
    * @method
    * @param {object | string} safetyData - active safety scan data, or primary key value
@@ -2261,7 +2334,7 @@ class HostController extends Component {
         <div className='info'>
           {this.getSecondaryContent(val)}
         </div>
-        <div className='host-count'>{t('host.txt-hostCount')}: {helper.numberWithCommas(val.hostIdArraySize)}</div>
+        {this.getCommonContent(val)}
         <div className='view-details' onClick={this.getHostInfo.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>

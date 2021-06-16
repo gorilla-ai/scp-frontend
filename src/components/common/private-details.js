@@ -46,7 +46,9 @@ class PrivateDetails extends Component {
     this.getPrivateInfo();
   }
   componentDidUpdate(prevProps) {
-    this.getPrivateInfo(prevProps);
+    if (!prevProps || (this.props.topoInfo !== prevProps.topoInfo)) {
+      this.getPrivateInfo(prevProps);
+    }
   }
   /**
    * Get and set the ip, owner, area and host information
