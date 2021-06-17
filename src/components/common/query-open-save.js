@@ -4,6 +4,7 @@ import cx from 'classnames'
 
 import { ReactMultiEmail } from 'react-multi-email'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -45,6 +46,8 @@ class QueryOpenSave extends Component {
     super(props);
 
     this.state = {
+      queryList: [],
+      activeQuery: {},
       severityList: [],
       periodMinList: [],
       newQueryName: true,
@@ -73,10 +76,29 @@ class QueryOpenSave extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.setQueryList(this.props.queryData.list);
     this.setSeverityList();
   }
   /**
-   * Set Severity list
+   * Set query list
+   * @method
+   * @param {array.<object>} list - query list to be set
+   */
+  setQueryList = (list) => {
+    const queryList = _.map(list, val => {
+      return {
+        value: val.id,
+        text: val.name
+      }
+    });
+
+    this.setState({
+      queryList,
+      activeQuery: queryList[0]
+    });
+  }
+  /**
+   * Set severity list
    * @method
    */
   setSeverityList = () => {
@@ -108,7 +130,7 @@ class QueryOpenSave extends Component {
    */
   handleQueryAction = (type) => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, filterData, queryData, markData} = this.props;   
+    const {activeTab, filterData, queryData, markData} = this.props;
 
     if (type === 'open') {
       let tempQueryData = {...queryData};
@@ -332,9 +354,11 @@ class QueryOpenSave extends Component {
    * @returns HTML DOM
    */
   getDeleteQueryContent = () => {
+    const {queryData} = this.props;
+
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {this.getQueryName()}?</span>
+        <span>{t('txt-delete-msg')}: {queryData.name}?</span>
       </div>
     )
   }
@@ -436,6 +460,7 @@ class QueryOpenSave extends Component {
         }
 
         this.props.setQueryData(tempQueryData);
+        this.setQueryList(newQueryList);
       } else {
         helper.showPopupMsg('', t('txt-error'), err.message);
       }
@@ -493,10 +518,10 @@ class QueryOpenSave extends Component {
    * @param {string} type - input type ('id' or 'name')
    * @param {object} event - event object
    */
-  handleQueryChange = (type, event) => {
+  handleQueryChange = (type, event, comboValue) => {
     const {activeTab, queryData} = this.props;
-    const {newQueryName, pattern} = this.state;
-    const value = event.target.value;
+    const {queryList, activeQuery, newQueryName, pattern} = this.state;
+    let value = event.target.value;
     let tempQueryData = {...queryData};
     let tempPattern = {...pattern};
     let queryName = '';
@@ -521,6 +546,18 @@ class QueryOpenSave extends Component {
         severity: 'Emergency'
       };
       tempQueryData.emailList = [];
+
+      if (comboValue && comboValue.value) {
+        const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
+        value = comboValue.value;
+        tempQueryData.id = comboValue.value;
+
+        this.setState({
+          activeQuery: queryList[selectedQueryIndex]
+        });
+      } else {
+        return;
+      }
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
@@ -816,6 +853,32 @@ class QueryOpenSave extends Component {
     )
   }
   /**
+   * Display query list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   */
+  renderQueryList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('events.connections.txt-queryName')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Get filter group background color
+   * @method
+   * @param {object} queryDataList - query data list
+   */
+  getQueryColor = (queryDataList) => {
+    if (queryDataList.length === 0) {
+      return {
+        display: 'none'
+      }
+    }
+  }
+  /**
    * Display query menu content
    * @method
    * @param {string} type - query type ('open' or 'save')
@@ -824,8 +887,8 @@ class QueryOpenSave extends Component {
   displayQueryContent = (type) => {
     const {locale} = this.context;
     const {activeTab, queryData, filterData, markData} = this.props;
-    const {formValidation} = this.state;
-    const displayList = _.map(queryData.list, (val, i) => {
+    const {queryList, activeQuery, formValidation} = this.state;
+    const displayQueryList = _.map(queryData.list, (val, i) => {
       return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
     });
     let tempFilterData = [];
@@ -844,30 +907,25 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <TextField
-            id='queryNameDropdown'
-            className='query-name dropdown'
-            select
-            label={t('events.connections.txt-queryName')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={queryData.id}
-            onChange={this.handleQueryChange.bind(this, 'id')}>
-            {displayList}
-          </TextField>
+          <Autocomplete
+            className='combo-box query-name dropdown'
+            options={queryList}
+            value={activeQuery}
+            getOptionLabel={(option) => option.text}
+            renderInput={this.renderQueryList}
+            onChange={this.handleQueryChange.bind(this, 'id')} />
 
-          {queryDataList && queryDataList.length > 0 &&
-            <div className='filter-group'>
-              {queryDataList.map(this.displayFilterQuery)}
-            </div>
-          }
-
-          {queryDataMark && queryDataMark.length > 0 &&
-            <div className='filter-group'>
-              {queryDataMark.map(this.displayMarkSearch)}
-            </div>
-          }
+          <div className='filter-group' style={this.getQueryColor(queryDataList)}>
+            {queryDataList && queryDataList.length > 0 &&
+              queryDataList.map(this.displayFilterQuery)
+            }
+          </div>
+          
+          <div className='filter-group' style={this.getQueryColor(queryDataMark)}>
+            {queryDataMark && queryDataMark.length > 0 &&
+              queryDataMark.map(this.displayMarkSearch)
+            }
+          </div>
 
           {activeTab === 'alert' && queryData.emailList.length > 0 &&
             <div className='email-list'>
@@ -922,7 +980,7 @@ class QueryOpenSave extends Component {
               value={dropDownValue}
               onChange={this.handleQueryChange.bind(this, 'id')}>
               <MenuItem value='new'>{t('events.connections.txt-addQuery')}</MenuItem>
-              {displayList}
+              {displayQueryList}
             </TextField>
 
             {dropDownValue === 'new' &&

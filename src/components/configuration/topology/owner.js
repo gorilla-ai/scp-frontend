@@ -770,7 +770,7 @@ class NetworkOwner extends Component {
           </div>
           <div className='group'>
             <Autocomplete
-              id='combo-box-demo'
+              className='combo-box'
               options={list.department}
               value={search.department}
               getOptionLabel={(option) => option.text}
@@ -779,6 +779,7 @@ class NetworkOwner extends Component {
           </div>
           <div className='group'>
             <Autocomplete
+              className='combo-box'
               options={list.title}
               value={search.title}
               getOptionLabel={(option) => option.text}
@@ -950,7 +951,7 @@ class NetworkOwner extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={list.department}
                         value={owner.info.department}
                         getOptionLabel={(option) => option.text}
@@ -959,6 +960,7 @@ class NetworkOwner extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
+                        className='combo-box'
                         options={list.title}
                         value={owner.info.title}
                         getOptionLabel={(option) => option.text}

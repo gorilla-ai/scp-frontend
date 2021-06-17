@@ -3423,7 +3423,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={departmentList}
                         value={addIP.newDepartment}
                         getOptionLabel={(option) => option.text}
@@ -3432,7 +3432,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={titleList}
                         value={addIP.newTitle}
                         getOptionLabel={(option) => option.text}
@@ -3469,7 +3469,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={departmentList}
                         value={addIP.department}
                         getOptionLabel={(option) => option.text}
@@ -3478,7 +3478,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={titleList}
                         value={addIP.title}
                         getOptionLabel={(option) => option.text}

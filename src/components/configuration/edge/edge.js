@@ -1367,7 +1367,7 @@ class Edge extends Component {
               }
               {activeContent === 'editEdge' &&
                 <Autocomplete
-                  className='checkboxes-tags groups'
+                  className='combo-box checkboxes-tags groups'
                   multiple
                   value={edge.info.edgeGroupList}
                   options={_.map(allGroupList, (val) => { return { value: val }})}
@@ -1480,7 +1480,7 @@ class Edge extends Component {
           </div>
           <div className='group' style={{width: '300px'}}>
             <Autocomplete
-              className='checkboxes-tags'
+              className='combo-box checkboxes-tags'
               multiple
               value={edgeSearch.groups}
               options={_.map(allGroupList, (val) => { return { value: val }})}
