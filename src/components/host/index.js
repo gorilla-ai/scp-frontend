@@ -272,6 +272,10 @@ class HostController extends Component {
         status: '',
         annotation: ''
       },
+      hmdSearch: {
+        status: '',
+        annotation: ''
+      },
       subTabMenu: {
         table: t('host.txt-hostList'),
         statistics: t('host.txt-deviceMap')
@@ -621,7 +625,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {filterNav, deviceSearch} = this.state;
+    const {activeTab, filterNav, deviceSearch, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -664,10 +668,15 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
-    if (deviceSearch.status || deviceSearch.annotation) {
+    if (deviceSearch.status || deviceSearch.annotation || hmdSearch.status || hmdSearch.annotation) {
       requestData.annotationObj = {};
       requestData.annotationObj.status = deviceSearch.status;
       requestData.annotationObj.annotation = deviceSearch.annotation;
+
+      if (activeTab === 'safetyScan') {
+        requestData.annotationObj.disStatus = hmdSearch.status;
+        requestData.annotationObj.disAnnotation = hmdSearch.annotation;
+      }
     }
 
     return requestData;
@@ -1393,6 +1402,19 @@ class HostController extends Component {
     });
   }
   /**
+   * Handle HMD search value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleHmdSearch = (event) => {
+    let tempHmdSearch = {...this.state.hmdSearch};
+    tempHmdSearch[event.target.name] = event.target.value.trim();
+
+    this.setState({
+      hmdSearch: tempHmdSearch
+    });
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
@@ -1606,6 +1628,20 @@ class HostController extends Component {
     }
   }
   /**
+   * Get vans status color
+   * @method
+   * @param {string} color - color defined by user
+   * @returns style object
+   */
+  getVansStatusColor = (color) => {
+    if (color) {
+      return {
+        color: '#fff',
+        backgroundColor: color
+      };
+    }
+  }
+  /**
    * Display Host info list
    * @method
    * @param {object} dataInfo - Host data
@@ -1635,7 +1671,7 @@ class HostController extends Component {
         context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
       } else if (val.name === 'vansNotes' && dataInfo[val.path]) {
-        return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span>{dataInfo[val.path].status}</span></li>
+        return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span className='vans-status' style={this.getVansStatusColor(dataInfo[val.path].color)}>{dataInfo[val.path].status}</span></li>
       }
 
       return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
@@ -2251,9 +2287,9 @@ class HostController extends Component {
     return (
       <div className='common-info'>
         {safetyData.annotationObj &&
-          <div onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</div>
+          <span className='vans-status' style={this.getVansStatusColor(safetyData.annotationObj.color)} onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</span>
         }
-        <div>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</div>
+        <span>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</span>
       </div>
     )
   }
@@ -2713,6 +2749,7 @@ class HostController extends Component {
       departmentList,
       leftNavData,
       filterNav,
+      hmdSearch,
       hostInfo,
       hostData,
       hostSort,
@@ -2951,7 +2988,6 @@ class HostController extends Component {
                 {activeTab === 'safetyScan' &&
                   <div>
                     <TextField
-                      id='safetyScanType'
                       className='safety-scan-type'
                       name='safetyScanType'
                       label={t('host.txt-safetyScanType')}
@@ -2962,6 +2998,21 @@ class HostController extends Component {
                       onChange={this.safetyScanChange}>
                       {this.getSafetyScanList()}
                     </TextField>
+                    <TextField
+                      className='search-status'
+                      name='status'
+                      label={t('host.txt-status')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={hmdSearch.status}
+                      onChange={this.handleHmdSearch} />
+                    <TextareaAutosize
+                      className='textarea-autosize search-annotation'
+                      name='annotation'
+                      placeholder={t('host.txt-annotation')}
+                      value={hmdSearch.annotation}
+                      onChange={this.handleHmdSearch} />
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>

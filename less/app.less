@@ -1914,9 +1914,11 @@ button.standard:hover:not([disabled]) {
           padding-top: 4px;
         }
         &.host {
-          .safety-scan-type {
+          .safety-scan-type,
+          .search-status,
+          .search-annotation {
             width: 165px;
-            margin: 15px 20px 10px 20px;
+            margin: 15px 0px 10px 20px;
           }
           .safety-btns {
             position: absolute;
@@ -1950,6 +1952,10 @@ button.standard:hover:not([disabled]) {
                   float: left;
                   color: #fff;
                   font-size: 35px;
+                }
+                .vans-status {
+                  padding: 0 5px;
+                  border-radius: 5px;
                 }
               }
               .info {
@@ -1991,9 +1997,10 @@ button.standard:hover:not([disabled]) {
                 display: flex;
                 font-size: .9em;
                 margin-top: 10px;
-                div {
-                  border-left: 1px solid var(--primaryBorder);
+                span {
+                  display: block;
                   padding: 0 10px;
+                  border-left: 1px solid var(--primaryBorder);
                 }
               }
             }
@@ -2820,7 +2827,7 @@ button.standard:hover:not([disabled]) {
             .status {
               display: block;
               float: left;
-              font-size: 15px;
+              font-size: 0.95em;
               color: var(--primaryTextColor);
               font-weight: normal;
               margin-right: 50px;

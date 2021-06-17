@@ -744,7 +744,8 @@ class SafetyDetails extends Component {
               </ul>
               {showVansNotes &&
                 <VansNotes
-                  currentData={currentSafetyData} />
+                  currentData={currentSafetyData}
+                  currentType={safetyScanType} />
               }
             </div>
             <div className='content'>

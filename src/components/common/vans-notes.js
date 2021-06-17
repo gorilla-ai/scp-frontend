@@ -17,6 +17,16 @@ import helper from './helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const COLOR_LIST = ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB'];
+const MODULE_TYPE = {
+  device: 'device',
+  scanFile: 'malware',
+  gcbDetection: 'gcb',
+  getFileIntegrity: 'fileIntegrity',
+  getEventTraceResult: 'eventTracing',
+  getProcessMonitorResult: 'processMonitor',
+  getVansCpe: 'cpe',
+  getVansCve: 'cve'
+};
 
 let t = null;
 let f = null;
@@ -46,9 +56,6 @@ class VansNotes extends Component {
   }
   componentDidMount() {
     this.getVansData();
-  }
-  ryan = () => {
-
   }
   /**
    * Set Vans info data if available
@@ -106,14 +113,16 @@ class VansNotes extends Component {
    */
   handleVansNotesSave = () => {
     const {baseUrl} = this.context;
-    const {currentData} = this.props;
+    const {currentData, currentType} = this.props;
     const {vansNotes} = this.state;
     const url = `${baseUrl}/api/annotation`;
     let requestType = 'POST';
     let requestData = {
       attribute: currentData.ipDeviceUUID || currentData.primaryKeyValue,
       status: vansNotes.status,
-      annotation: vansNotes.annotation
+      annotation: vansNotes.annotation,
+      color: vansNotes.color,
+      module: MODULE_TYPE[currentType]
     };
 
     if (vansNotes.id) {
@@ -185,20 +194,27 @@ class VansNotes extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.setState({
-           vansNotes: {
-            id: '',
-            status: '',
-            annotation: '',
-            color: ''
-          }
-        });
+        this.handleVansNotesClear();
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Clear vans annotation
+   * @method
+   */
+  handleVansNotesClear = () => {
+    this.setState({
+       vansNotes: {
+        id: '',
+        status: '',
+        annotation: '',
+        color: ''
+      }
+    });
   }
   render() {
     const {vansNotes} = this.state;
@@ -220,22 +236,21 @@ class VansNotes extends Component {
             name='annotation'
             className='textarea-autosize notes'
             placeholder={t('host.txt-annotation')}
-            rows={6}
+            rows={5}
             value={vansNotes.annotation}
             onChange={this.handleVansNotesChange} />
         </div>
-        {/*<div className='group color'>
+        <div className='group color'>
           <label>{t('txt-color')}</label>
+          {vansNotes.color &&
+            <div className='color-box' className={'color-box ' + helper.showColor(vansNotes.color)}></div>
+          }
           <GithubPicker
             width='213px'
             colors={COLOR_LIST}
             triangle='hide'
             onChangeComplete={this.handleDataChange} />
         </div>
-        <div className='group picker'>
-          <label>{t('txt-selected')}</label>
-          <div className='color-box' className={'color-box ' + helper.showColor(vansNotes.color)}></div>
-        </div>*/}
         <div className='group btn-group'>
           <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
           {vansNotes.id &&
@@ -250,7 +265,8 @@ class VansNotes extends Component {
 VansNotes.contextType = BaseDataContext;
 
 VansNotes.propTypes = {
-  currentData: PropTypes.object.isRequired
+  currentData: PropTypes.object.isRequired,
+  currentType: PropTypes.string.isRequired
 };
 
 export default VansNotes;

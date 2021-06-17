@@ -267,7 +267,8 @@ class HostAnalysis extends Component {
             </ul>
             {showVansNotes &&
               <VansNotes
-                currentData={hostData} />
+                currentData={hostData}
+                currentType='device' />
             }
           </div>
           <div className='content'>
