@@ -168,7 +168,7 @@ class Tree extends Component {
 
         <div className='content'>
           {activeTab === 'alert' &&
-            <Button id='alertDownloadBtn' variant='outlined' color='primary' className='standard csv-btn active' onClick={this.props.getLeftNavCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button id='alertDownloadBtn' variant='outlined' color='primary' className='standard csv-btn active' onClick={this.props.getLeftNavCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           }
 
           {activeTab !== 'alert' && !_.isEmpty(treeData) &&

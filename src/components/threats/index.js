@@ -3018,7 +3018,7 @@ class ThreatsController extends Component {
               <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
             }
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='threatsDownloadBtn' variant='outlined' color='primary' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
+              <Button id='threatsDownloadBtn' variant='outlined' color='primary' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-file-csv'/></Button>
             }
             {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
               <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this,'select')}><WorkIcon/></Button>
