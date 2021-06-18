@@ -4,6 +4,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'

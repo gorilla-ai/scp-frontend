@@ -70,7 +70,7 @@ class VansNotes extends Component {
           id: currentData.annotationObj.id,
           status: currentData.annotationObj.status,
           annotation: currentData.annotationObj.annotation,
-          color: ''
+          color: currentData.annotationObj.color
         }
       });
     }
