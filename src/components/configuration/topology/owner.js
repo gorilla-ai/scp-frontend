@@ -464,7 +464,7 @@ class NetworkOwner extends Component {
           tempOwner.info.title = list.title[selectedTitleIndex];
 
           this.setState({
-            owner: tempOwner 
+            owner: tempOwner
           });
         }
       }

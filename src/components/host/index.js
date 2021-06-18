@@ -200,6 +200,16 @@ const SAFETY_SCAN_LIST = [
     value: 'getVansCve'
   }
 ];
+const MODULE_TYPE = {
+  device: 'device',
+  scanFile: 'malware',
+  gcbDetection: 'gcb',
+  getFileIntegrity: 'fileIntegrity',
+  getEventTraceResult: 'eventTracing',
+  getProcessMonitorResult: 'processMonitor',
+  getVansCpe: 'cpe',
+  getVansCve: 'cve'
+};
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -248,6 +258,8 @@ class HostController extends Component {
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
+      vansDeviceStatusList: [],
+      vansHmdStatusList: [],
       severityList: [],
       hmdStatusList: [],
       scanStatusList: [],
@@ -270,11 +282,11 @@ class HostController extends Component {
         deviceType: '',
         system: '',
         scanInfo: '',
-        status: '',
+        status: {},
         annotation: ''
       },
       hmdSearch: {
-        status: '',
+        status: {},
         annotation: ''
       },
       subTabMenu: {
@@ -327,6 +339,7 @@ class HostController extends Component {
 
     this.setLeftNavData();
     this.getFloorPlan();
+    this.getVansStatus('device');
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
@@ -480,6 +493,43 @@ class HostController extends Component {
         }, () => {
           this.getHostData();
         });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get vans status list
+   * @method
+   * @param {string} moduleType - vans module type
+   */
+  getVansStatus = (moduleType) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/annotation/statusList?module=${moduleType}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data, val => {
+          return {
+            value: val,
+            text: val
+          }
+        });
+
+        if (moduleType === 'device') {
+          this.setState({
+            vansDeviceStatusList: list
+          });
+        } else {
+          this.setState({
+            vansHmdStatusList: list
+          });
+        }
       }
       return null;
     })
@@ -669,13 +719,13 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
-    if (deviceSearch.status || deviceSearch.annotation || hmdSearch.status || hmdSearch.annotation) {
+    if (deviceSearch.status.value || deviceSearch.annotation || hmdSearch.status.value || hmdSearch.annotation) {
       requestData.annotationObj = {};
-      requestData.annotationObj.status = deviceSearch.status;
+      requestData.annotationObj.status = deviceSearch.status.value;
       requestData.annotationObj.annotation = deviceSearch.annotation;
 
       if (activeTab === 'safetyScan') {
-        requestData.annotationObj.disStatus = hmdSearch.status;
+        requestData.annotationObj.disStatus = hmdSearch.status.value;
         requestData.annotationObj.disAnnotation = hmdSearch.annotation;
       }
     }
@@ -1384,6 +1434,7 @@ class HostController extends Component {
     }, () => {
       if (newTab === 'safetyScan') {
         this.getSafetyScanData();
+        this.getVansStatus('malware');
       } else {
         this.getHostData();
       }
@@ -1416,12 +1467,56 @@ class HostController extends Component {
     });
   }
   /**
+   * Display status list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   */
+  renderStatusList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('host.txt-status')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle status combo box change
+   * @method
+   * @param {string} type - combo type
+   * @param {object} event - select event
+   * @param {object} value - selected department info
+   */
+  handleComboBoxChange = (type, event, value) => {
+    const {vansDeviceStatusList, vansHmdStatusList, deviceSearch, hmdSearch} = this.state;
+
+    if (value && value.value) {
+      if (type === 'device') {
+        const selectedStatusIndex = _.findIndex(vansDeviceStatusList, { 'value': value.value });
+        let tempDeviceSearch = {...deviceSearch};
+        tempDeviceSearch.status = vansDeviceStatusList[selectedStatusIndex];
+
+        this.setState({
+          deviceSearch: tempDeviceSearch
+        });
+      } else {
+        const selectedStatusIndex = _.findIndex(vansHmdStatusList, { 'value': value.value });
+        let tempHmdSearch = {...hmdSearch};
+        tempHmdSearch.status = vansHmdStatusList[selectedStatusIndex];
+
+        this.setState({
+          hmdSearch: tempHmdSearch
+        });
+      }
+    }
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-   const {showFilter, deviceSearch} = this.state;
+   const {showFilter, vansDeviceStatusList, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1495,15 +1590,13 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextField
-              id='deviceSearchStatus'
-              name='status'
-              label={t('host.txt-status')}
-              variant='outlined'
-              fullWidth
-              size='small'
+            <Autocomplete
+              className='combo-box'
+              options={vansDeviceStatusList}
               value={deviceSearch.status}
-              onChange={this.handleDeviceSearch} />
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderStatusList}
+              onChange={this.handleComboBoxChange.bind(this, 'device')} />
           </div>
           <div className='group'>
             <TextareaAutosize
@@ -2638,14 +2731,19 @@ class HostController extends Component {
    * @param {object} event - event object
    */
   safetyScanChange = (event) => {
-    let tempSafetyScanData = {...this.state.safetyScanData};
+    const {hmdSearch, safetyScanData} = this.state;
+    let tempHmdSearch = {...hmdSearch};
+    let tempSafetyScanData = {...safetyScanData};
+    tempHmdSearch.status = {};
     tempSafetyScanData.dataContent = [];
     tempSafetyScanData.currentPage = 1;
 
     this.setState({
+      hmdSearch: tempHmdSearch,
       safetyScanData: tempSafetyScanData,
       safetyScanType: event.target.value
     }, () => {
+      this.getVansStatus(MODULE_TYPE[event.target.value]);
       this.clearSafetyScanData();
       this.getSafetyScanData();
     });
@@ -2746,6 +2844,7 @@ class HostController extends Component {
       contextAnchor,
       menuType,
       hostCreateTime,
+      vansHmdStatusList,
       privateMaskedIPtree,
       departmentList,
       leftNavData,
@@ -2999,15 +3098,13 @@ class HostController extends Component {
                       onChange={this.safetyScanChange}>
                       {this.getSafetyScanList()}
                     </TextField>
-                    <TextField
-                      className='search-status'
-                      name='status'
-                      label={t('host.txt-status')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
+                    <Autocomplete
+                      className='combo-box'
+                      options={vansHmdStatusList}
                       value={hmdSearch.status}
-                      onChange={this.handleHmdSearch} />
+                      getOptionLabel={(option) => option.text}
+                      renderInput={this.renderStatusList}
+                      onChange={this.handleComboBoxChange.bind(this, MODULE_TYPE[safetyScanType])} />
                     <TextareaAutosize
                       className='textarea-autosize search-annotation'
                       name='annotation'
