@@ -167,7 +167,7 @@ class DataChart extends Component {
       return (
         <div className={cx('main-chart', {'active': mainContentData.showChart})}>
           <i id='chartCloseBtn' className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}></i>
-          <Button id='csvDownloadBtn' variant='outlined' color='primary' className='standard csv-btn' onClick={mainContentData.getChartsCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+          <Button id='csvDownloadBtn' variant='outlined' color='primary' className='standard csv-btn' onClick={mainContentData.getChartsCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           <div className='chart-content interval-options'>
             <ToggleButtonGroup
               id='chartIntervalBtn'

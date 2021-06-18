@@ -3423,7 +3423,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={departmentList}
                         value={addIP.newDepartment}
                         getOptionLabel={(option) => option.text}
@@ -3432,7 +3432,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={titleList}
                         value={addIP.newTitle}
                         getOptionLabel={(option) => option.text}
@@ -3469,7 +3469,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={departmentList}
                         value={addIP.department}
                         getOptionLabel={(option) => option.text}
@@ -3478,7 +3478,7 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
-                        id='combo-box-demo'
+                        className='combo-box'
                         options={titleList}
                         value={addIP.title}
                         getOptionLabel={(option) => option.text}
@@ -4013,7 +4013,7 @@ class NetworkInventory extends Component {
               <div>
                 <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
                 {activeTab === 'deviceList' &&
-                  <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+                  <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
                 }
               </div>
             }

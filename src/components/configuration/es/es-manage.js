@@ -452,7 +452,7 @@ class EsManage extends Component {
       <div>
         <label>{t('txt-esImportMsg')}</label>
         <Autocomplete
-          className='checkboxes-tags groups'
+          className='combo-box checkboxes-tags groups'
           multiple
           value={selectedImportList}
           options={importList}
