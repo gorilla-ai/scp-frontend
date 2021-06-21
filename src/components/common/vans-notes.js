@@ -5,7 +5,11 @@ import cx from 'classnames'
 
 import {GithubPicker} from 'react-color'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
@@ -42,6 +46,9 @@ class VansNotes extends Component {
     super(props);
 
     this.state = {
+      statusType: '', //'new' or 'existing'
+      statusList: [],
+      originalStatus: {},
       vansNotes: {
         id: '',
         status: '',
@@ -58,22 +65,97 @@ class VansNotes extends Component {
     this.getVansData();
   }
   /**
-   * Set Vans info data if available
+   * Set vans info data if available
    * @method
    */
   getVansData = () => {
-    const {currentData} = this.props;
+    const {currentData, currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
+    let statusList = [];
+    let statusType = 'new';
+    let currentStatus = '';
+
+    if (currentType === 'device') {
+      statusList = vansDeviceStatusList;
+    } else {
+      statusList = vansHmdStatusList;
+    }
 
     if (currentData.annotationObj) {
+      if (currentData.annotationObj.status) {
+        const selectedStatusIndex = _.findIndex(statusList, { 'value': currentData.annotationObj.status });
+        currentStatus = statusList[selectedStatusIndex];
+        statusType = 'existing';
+      }
+
       this.setState({
         vansNotes: {
           id: currentData.annotationObj.id,
-          status: currentData.annotationObj.status,
+          status: currentStatus,
           annotation: currentData.annotationObj.annotation,
           color: currentData.annotationObj.color
         }
       });
     }
+
+    this.setState({
+      statusType,
+      statusList,
+      originalStatus: currentStatus
+    });
+  }
+  /**
+   * Display status list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   */
+  renderStatusList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('host.txt-status')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle status combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected status info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {statusList, vansNotes} = this.state;
+
+    if (value && value.value) {
+      const selectedStatusIndex = _.findIndex(statusList, { 'value': value.value });
+      let tempVansNotes = {...vansNotes};
+      tempVansNotes.status = statusList[selectedStatusIndex];
+
+      this.setState({
+        vansNotes: tempVansNotes
+      });
+    }
+  }
+  /**
+   * Handle status type value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleRadioChange = (event) => {
+    const {originalStatus, vansNotes} = this.state;
+    const type = event.target.value;
+    let tempVansNotes = {...vansNotes};
+
+    if (type === 'new') {
+      tempVansNotes.status = '';
+    } else if (type === 'existing') {
+      tempVansNotes.status = originalStatus;
+    }
+
+    this.setState({
+      statusType: event.target.value,
+      vansNotes: tempVansNotes
+    });
   }
   /**
    * Handle vans annotation data change
@@ -114,12 +196,12 @@ class VansNotes extends Component {
   handleVansNotesSave = () => {
     const {baseUrl} = this.context;
     const {currentData, currentType} = this.props;
-    const {vansNotes} = this.state;
+    const {statusType, vansNotes} = this.state;
     const url = `${baseUrl}/api/annotation`;
     let requestType = 'POST';
     let requestData = {
       attribute: currentData.ipDeviceUUID || currentData.primaryKeyValue,
-      status: vansNotes.status,
+      status: statusType === 'new' ? vansNotes.status : vansNotes.status.value,
       annotation: vansNotes.annotation,
       color: vansNotes.color,
       module: MODULE_TYPE[currentType]
@@ -130,7 +212,7 @@ class VansNotes extends Component {
       requestType = 'PATCH';
     }
 
-    if (vansNotes.status === '' && vansNotes.annotation === '') {
+    if (requestData.status === '' && requestData.annotation === '') {
       return;
     }
 
@@ -228,19 +310,45 @@ class VansNotes extends Component {
     }
   }
   render() {
-    const {vansNotes} = this.state;
+    const {statusType, statusList, vansNotes} = this.state;
 
     return (
       <div className='vans-notes'>
         <div className='group'>
-          <TextField
-            name='status'
-            label={t('host.txt-status')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={vansNotes.status}
-            onChange={this.handleVansNotesChange} />
+          {statusList.length > 0 &&
+            <RadioGroup
+              className='radio-group'
+              value={statusType}
+              onChange={this.handleRadioChange}>
+              <FormControlLabel
+                value='new'
+                control={<Radio color='primary' />}
+                label={t('txt-add')} />
+              <FormControlLabel
+                value='existing'
+                control={<Radio color='primary' />}
+                label={t('txt-existing')} />
+            </RadioGroup>
+          }
+          {statusType === 'new' &&
+            <TextField
+              name='status'
+              label={t('host.txt-status')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={vansNotes.status}
+              onChange={this.handleVansNotesChange} />
+          }
+          {statusType === 'existing' &&
+            <Autocomplete
+              className='combo-box'
+              options={statusList}
+              value={vansNotes.status}
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderStatusList}
+              onChange={this.handleComboBoxChange} />
+          }
         </div>
         <div className='group'>
           <TextareaAutosize
@@ -280,7 +388,9 @@ VansNotes.contextType = BaseDataContext;
 
 VansNotes.propTypes = {
   currentData: PropTypes.object.isRequired,
-  currentType: PropTypes.string.isRequired
+  currentType: PropTypes.string.isRequired,
+  vansDeviceStatusList: PropTypes.array,
+  vansHmdStatusList: PropTypes.array
 };
 
 export default VansNotes;

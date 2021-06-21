@@ -269,6 +269,7 @@ class HostController extends Component {
       hostCreateTime: '',
       leftNavData: [],
       privateIpData: {},
+      currentHostModule: 'device',
       filterNav: {
         severitySelected: [],
         hmdStatusSelected: [],
@@ -340,7 +341,7 @@ class HostController extends Component {
 
     this.setLeftNavData();
     this.getFloorPlan();
-    this.getVansStatus('device');
+    this.getVansStatus();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
@@ -504,13 +505,13 @@ class HostController extends Component {
   /**
    * Get vans status list
    * @method
-   * @param {string} moduleType - vans module type
    */
-  getVansStatus = (moduleType) => {
+  getVansStatus = () => {
     const {baseUrl} = this.context;
+    const {currentHostModule} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/annotation/statusList?module=${moduleType}`,
+      url: `${baseUrl}/api/annotation/statusList?module=${currentHostModule}`,
       type: 'GET'
     })
     .then(data => {
@@ -522,7 +523,7 @@ class HostController extends Component {
           }
         });
 
-        if (moduleType === 'device') {
+        if (currentHostModule === 'device') {
           this.setState({
             vansDeviceStatusList: list
           });
@@ -1442,8 +1443,12 @@ class HostController extends Component {
       activeTab: newTab
     }, () => {
       if (newTab === 'safetyScan') {
-        this.getSafetyScanData();
-        this.getVansStatus('malware');
+        this.setState({
+          currentHostModule: 'malware'
+        }, () => {
+          this.getSafetyScanData();
+          this.getVansStatus();
+        });
       } else {
         this.getHostData();
       }
@@ -1625,7 +1630,7 @@ class HostController extends Component {
     )
   }
   /**
-   * Clear filter input value
+   * Clear input value for main filter
    * @method
    */
   clearFilter = () => {
@@ -1638,6 +1643,18 @@ class HostController extends Component {
         system: '',
         scanInfo: '',
         status: '',
+        annotation: ''
+      }
+    });
+  }
+  /**
+   * Clear input value for HMD filter
+   * @method
+   */
+  clearHmdFilter = () => {
+    this.setState({
+      hmdSearch: {
+        status: {},
         annotation: ''
       }
     });
@@ -1977,6 +1994,7 @@ class HostController extends Component {
       }, () => {
         if (!this.state.hostAnalysisOpen) {
           this.getHostData();
+          this.getVansStatus();
         }
       });
     }
@@ -2187,6 +2205,7 @@ class HostController extends Component {
     }, () => {
       if (!this.state.safetyDetailsOpen) {
         this.getSafetyScanData();
+        this.getVansStatus();
       }
     });
   }
@@ -2751,11 +2770,12 @@ class HostController extends Component {
     tempSafetyScanData.currentPage = 1;
 
     this.setState({
+      currentHostModule: MODULE_TYPE[event.target.value],
       hmdSearch: tempHmdSearch,
       safetyScanData: tempSafetyScanData,
       safetyScanType: event.target.value
     }, () => {
-      this.getVansStatus(MODULE_TYPE[event.target.value]);
+      this.getVansStatus();
       this.clearSafetyScanData();
       this.getSafetyScanData();
     });
@@ -2856,6 +2876,7 @@ class HostController extends Component {
       contextAnchor,
       menuType,
       hostCreateTime,
+      vansDeviceStatusList,
       vansHmdStatusList,
       privateMaskedIPtree,
       departmentList,
@@ -2896,6 +2917,7 @@ class HostController extends Component {
             hostData={hostData}
             eventInfo={eventInfo}
             openHmdType={openHmdType}
+            vansDeviceStatusList={vansDeviceStatusList}
             getIPdeviceInfo={this.getIPdeviceInfo}
             loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis}
@@ -2909,6 +2931,7 @@ class HostController extends Component {
             safetyScanType={safetyScanType}
             showSafetyTab={showSafetyTab}
             fromSafetyPage={fromSafetyPage}
+            vansHmdStatusList={vansHmdStatusList}
             getHostInfo={this.getHostInfo}
             toggleSafetyDetails={this.toggleSafetyDetails}
             getIPdeviceInfo={this.getIPdeviceInfo} />
@@ -3141,6 +3164,7 @@ class HostController extends Component {
                       value={hmdSearch.annotation}
                       onChange={this.handleHmdSearch} />
                     <Button variant='outlined' color='primary' className='standard btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>

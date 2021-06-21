@@ -714,7 +714,7 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
-    const {currentSafetyData, safetyScanType} = this.props;
+    const {currentSafetyData, safetyScanType, vansHmdStatusList} = this.props;
     const {contentType, showVansNotes} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
@@ -745,7 +745,8 @@ class SafetyDetails extends Component {
               {showVansNotes &&
                 <VansNotes
                   currentData={currentSafetyData}
-                  currentType={safetyScanType} />
+                  currentType={safetyScanType}
+                  vansHmdStatusList={vansHmdStatusList} />
               }
             </div>
             <div className='content'>
@@ -852,8 +853,9 @@ SafetyDetails.propTypes = {
   safetyScanType: PropTypes.string.isRequired,
   showSafetyTab: PropTypes.string.isRequired,
   fromSafetyPage: PropTypes.bool.isRequired,
+  vansHmdStatusList: PropTypes.array,
   toggleSafetyDetails: PropTypes.func.isRequired,
-  getIPdeviceInfo: PropTypes.func.isRequired
+  getIPdeviceInfo: PropTypes.func.isRequired,
 };
 
 export default SafetyDetails;

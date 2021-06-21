@@ -215,7 +215,7 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
-    const {hostData, assessmentDatetime} = this.props;
+    const {hostData, assessmentDatetime, vansDeviceStatusList} = this.props;
     const {showContent, showVansNotes} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
@@ -268,7 +268,8 @@ class HostAnalysis extends Component {
             {showVansNotes &&
               <VansNotes
                 currentData={hostData}
-                currentType='device' />
+                currentType='device'
+                vansDeviceStatusList={vansDeviceStatusList} />
             }
           </div>
           <div className='content'>
@@ -505,7 +506,8 @@ HostAnalysis.propTypes = {
   getIPdeviceInfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
-  openHmdType: PropTypes.string
+  openHmdType: PropTypes.string,
+  vansDeviceStatusList: PropTypes.array
 };
 
 export default HostAnalysis;
