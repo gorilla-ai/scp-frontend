@@ -205,16 +205,27 @@ class VansNotes extends Component {
   /**
    * Clear vans annotation
    * @method
+   * @param {string} [color] - option for clear color
    */
-  handleVansNotesClear = () => {
-    this.setState({
-       vansNotes: {
-        id: '',
-        status: '',
-        annotation: '',
-        color: ''
-      }
-    });
+  handleVansNotesClear = (color) => {
+    let tempVansNotes = {...this.state.vansNotes};
+
+    if (color) {
+      tempVansNotes.color = '';
+
+      this.setState({
+         vansNotes: tempVansNotes
+      });
+    } else {
+      this.setState({
+         vansNotes: {
+          id: '',
+          status: '',
+          annotation: '',
+          color: ''
+        }
+      });
+    }
   }
   render() {
     const {vansNotes} = this.state;
@@ -244,6 +255,9 @@ class VansNotes extends Component {
           <label>{t('txt-color')}</label>
           {vansNotes.color &&
             <div className='color-box' className={'color-box ' + helper.showColor(vansNotes.color)}></div>
+          }
+          {vansNotes.color &&
+            <Button variant='outlined' color='primary' className='clear' onClick={this.handleVansNotesClear.bind(this, 'color')}>{t('txt-clearText')}</Button>
           }
           <GithubPicker
             width='213px'

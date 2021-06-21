@@ -12,6 +12,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
@@ -260,10 +261,10 @@ class HostController extends Component {
       menuType: '', //hmdTriggerAll' or 'hmdDownload
       vansDeviceStatusList: [],
       vansHmdStatusList: [],
-      severityList: [],
-      hmdStatusList: [],
-      scanStatusList: [],
-      departmentList: [],
+      severityList: null,
+      hmdStatusList: null,
+      scanStatusList: null,
+      departmentList: null,
       privateMaskedIPtree: {},
       hostCreateTime: '',
       leftNavData: [],
@@ -866,8 +867,16 @@ class HostController extends Component {
     return (
       <div key={i}>
         <label className={cx('header-text', {'hide': !this.state.showLeftNav})}>{val.text}</label>
-        <div className='checkbox-group'>
-          {this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))}
+        <div className='left-nav-group'>
+          {!this.state[val.list] &&
+            <span className='loading no-padding'><i className='fg fg-loading-2'></i></span>
+          }
+          {this.state[val.list] && this.state[val.list].length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {this.state[val.list] && this.state[val.list].length > 0 &&
+            this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))
+          }
         </div>
       </div>
     )
@@ -2381,7 +2390,10 @@ class HostController extends Component {
     return (
       <div className='common-info'>
         {safetyData.annotationObj &&
-          <span className='vans-status' style={this.getVansStatusColor(safetyData.annotationObj.color)} onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</span>
+          <span className='divider'></span>
+        }
+        {safetyData.annotationObj &&
+          <span className='vans-status scan' style={this.getVansStatusColor(safetyData.annotationObj.color)} onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</span>
         }
         <span>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</span>
       </div>
@@ -2913,7 +2925,7 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><PictureAsPdfIcon /></Button>
             <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           </div>
 
@@ -2931,6 +2943,12 @@ class HostController extends Component {
               {leftNavData.map(this.showLeftNavItems)}
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('ownerFields.department')}</label>
+                {!departmentList &&
+                  <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
+                }
+                {departmentList && departmentList.length === 0 &&
+                  <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
+                }
                 {departmentList && departmentList.length > 0 &&
                   <TreeView
                     className='tree-view'
@@ -2942,21 +2960,29 @@ class HostController extends Component {
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
-                <TreeView
-                  className='tree-view'
-                  defaultCollapseIcon={<ExpandMoreIcon />}
-                  defaultExpandIcon={<ChevronRightIcon />}
-                  defaultExpanded={['All']}>
-                  {!_.isEmpty(privateMaskedIPtree) &&
-                    <TreeItem
-                      nodeId={privateMaskedIPtree.id}
-                      label={privateMaskedIPtree.label}>
-                      {privateMaskedIPtree.children.length > 0 &&
-                        privateMaskedIPtree.children.map(this.getTreeItem.bind(this, ''))
-                      }
-                    </TreeItem>
-                  }
-                </TreeView>
+                {!privateMaskedIPtree.children &&
+                  <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
+                }
+                {privateMaskedIPtree.children && privateMaskedIPtree.children.length === 0 &&
+                  <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
+                }
+                {privateMaskedIPtree.children && privateMaskedIPtree.children.length > 0 &&
+                  <TreeView
+                    className='tree-view'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                    defaultExpanded={['All']}>
+                    {!_.isEmpty(privateMaskedIPtree) &&
+                      <TreeItem
+                        nodeId={privateMaskedIPtree.id}
+                        label={privateMaskedIPtree.label}>
+                        {privateMaskedIPtree.children.length > 0 &&
+                          privateMaskedIPtree.children.map(this.getTreeItem.bind(this, ''))
+                        }
+                      </TreeItem>
+                    }
+                  </TreeView>
+                }
               </div>
             </div>
             <div className='expand-collapse' onClick={this.toggleLeftNav}>
@@ -3030,6 +3056,9 @@ class HostController extends Component {
                 {activeTab === 'hostList' &&
                   <div className='table-content'>
                     <div className='table' style={{height: '64vh'}}>
+                      {(!hostInfo.dataContent || hostInfo.dataContent.length === 0) &&
+                        <span className='loading'><i className='fg fg-loading-2'></i></span>
+                      }
                       <ul className='host-list'>
                         {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
                           hostInfo.dataContent.map(this.getHostList)
@@ -3111,6 +3140,7 @@ class HostController extends Component {
                       placeholder={t('host.txt-annotation')}
                       value={hmdSearch.annotation}
                       onChange={this.handleHmdSearch} />
+                    <Button variant='outlined' color='primary' className='standard btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
@@ -3119,6 +3149,9 @@ class HostController extends Component {
                     }
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
+                        {(!safetyScanData.dataContent || safetyScanData.dataContent.length === 0) &&
+                          <span className='loading'><i className='fg fg-loading-2'></i></span>
+                        }
                         <ul className='safety-list'>
                           {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
                             safetyScanData.dataContent.map(this.getSafetyList)

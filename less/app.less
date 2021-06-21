@@ -1344,8 +1344,11 @@ button.standard:hover:not([disabled]) {
           display: block;
           text-align: center;
           margin-top: 50px;
+          &.no-padding {
+            margin: 0;
+          }
         }
-        .checkbox-group {
+        .left-nav-group {
           width: 100%;
           padding: 10px 5px;
           border-radius: 5px;
@@ -1920,11 +1923,22 @@ button.standard:hover:not([disabled]) {
             width: 165px;
             margin: 15px 0px 10px 20px;
           }
-          .combo-box {
+          .combo-box,
+          .filter-btn {
             display: inline-flex;
             vertical-align: top;
+          }
+          .combo-box {
             width: 165px;
             margin: 15px 0px 10px 20px;
+          }
+          .filter-btn {
+            color: #fff;
+            margin: 18px 0px 10px 20px;
+            background-color: var(--buttonSelectedColor);
+            &:hover {
+              background-color: var(--buttonSelectedColor) !important;
+            }
           }
           .safety-btns {
             position: absolute;
@@ -2640,6 +2654,9 @@ button.standard:hover:not([disabled]) {
           padding: 0 5px;
           margin: 0 5px;
           border-radius: 5px;
+          &.scan {
+            margin: 0 10px 0 -10px;
+          }
         }
         .edit-syslog-config {
           height: 70vh;
