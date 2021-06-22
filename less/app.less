@@ -1344,8 +1344,11 @@ button.standard:hover:not([disabled]) {
           display: block;
           text-align: center;
           margin-top: 50px;
+          &.no-padding {
+            margin: 0;
+          }
         }
-        .checkbox-group {
+        .left-nav-group {
           width: 100%;
           padding: 10px 5px;
           border-radius: 5px;
@@ -1914,9 +1917,32 @@ button.standard:hover:not([disabled]) {
           padding-top: 4px;
         }
         &.host {
-          .safety-scan-type {
+          .safety-scan-type,
+          .search-status,
+          .search-annotation {
             width: 165px;
-            margin: 15px 20px 10px 20px;
+            margin: 15px 0px 10px 20px;
+          }
+          .combo-box,
+          .filter-btn,
+          .clear-btn {
+            display: inline-flex;
+            vertical-align: top;
+          }
+          .combo-box {
+            width: 165px;
+            margin: 15px 0px 10px 20px;
+          }
+          .filter-btn {
+            color: #fff;
+            margin: 18px 0px 10px 20px;
+            background-color: var(--buttonSelectedColor);
+            &:hover {
+              background-color: var(--buttonSelectedColor) !important;
+            }
+          }
+          .clear-btn {
+            margin: 18px 0px 10px 5px;
           }
           .safety-btns {
             position: absolute;
@@ -1991,9 +2017,10 @@ button.standard:hover:not([disabled]) {
                 display: flex;
                 font-size: .9em;
                 margin-top: 10px;
-                div {
-                  border-left: 1px solid var(--primaryBorder);
+                span {
+                  display: block;
                   padding: 0 10px;
+                  border-left: 1px solid var(--primaryBorder);
                 }
               }
             }
@@ -2627,6 +2654,14 @@ button.standard:hover:not([disabled]) {
             }
           }
         }
+        .vans-status {
+          padding: 0 5px;
+          margin: 0 5px;
+          border-radius: 5px;
+          &.scan {
+            margin: 0 10px 0 -10px;
+          }
+        }
         .edit-syslog-config {
           height: 70vh;
           overflow-y: auto;
@@ -2820,7 +2855,7 @@ button.standard:hover:not([disabled]) {
             .status {
               display: block;
               float: left;
-              font-size: 15px;
+              font-size: 0.95em;
               color: var(--primaryTextColor);
               font-weight: normal;
               margin-right: 50px;

@@ -1310,37 +1310,6 @@ html[data-theme='dark'] {
 }
 
 #hostModalDialog-content {
-  .color-box {
-    float: left;
-    width: 30px;
-    height: 30px;
-    margin-top: 4px;
-    border-radius: 5px;
-    &.red {
-      background-color: #B80000;
-    }
-    &.orange {
-      background-color: #DB3E00;
-    }     
-    &.yellow {
-      background-color: #FCCB00;
-    }
-    &.green {
-      background-color: #008B02;
-    }
-    &.darkGreen {
-      background-color: #006B76;
-    }
-    &.blue {
-      background-color: #1273DE;
-    }
-    &.darkBlue {
-      background-color: #004DCF;
-    }
-    &.purple {
-      background-color: #5300EB;
-    }
-  }
   .main-content {
     & > .nav ul li.header {
       cursor: pointer;
@@ -1354,27 +1323,69 @@ html[data-theme='dark'] {
     }
     .vans-notes {
       overflow: hidden;
-      overflow-y: auto;
-      height: 340px;
       padding: 5px 10px 15px 10px;
+      overflow-y: auto;
       .group {
         margin: 16px 0;
-        &.color {
-          margin-top: -10px;
-          margin-bottom: -5px;
-        }
-        &.picker label {
+        &.color label {
           float: left;
-          margin-top: 8px;
-          margin-right: 10px;
+          margin: -10px 5px 10px 0;
+        }
+        input {
+          font-size: .95em;
+        }
+        button.clear {
+          float: left;
+          line-height: 1.3;
+          padding: 0;
+          margin: -8px 0 0 8px;
+        }
+        .radio-group {
+          flex-direction: row;
+          margin: -15px 0 10px 0;
         }
       }
+      .color-box {
+        float: left;
+        width: 30px;
+        height: 15px;
+        margin-top: -6px;
+        border-radius: 3px;
+        &.red {
+          background-color: #B80000;
+        }
+        &.orange {
+          background-color: #DB3E00;
+        }     
+        &.yellow {
+          background-color: #FCCB00;
+        }
+        &.green {
+          background-color: #008B02;
+        }
+        &.darkGreen {
+          background-color: #006B76;
+        }
+        &.blue {
+          background-color: #1273DE;
+        }
+        &.darkBlue {
+          background-color: #004DCF;
+        }
+        &.purple {
+          background-color: #5300EB;
+        }
+      }
+      .github-picker {
+        clear: both;
+        margin-left: -5px;
+      }
       .notes {
-        font-size: 17px;
+        font-size: 15px;
         padding: 8px 10px;
       }
       .btn-group {
-        margin-top: 70px;
+        margin-top: 15px;
         button.save,
         button.delete {
           float: right;
@@ -1849,12 +1860,13 @@ html[data-theme='dark'] {
     }
   }
   .filter-group {
-    min-width: 400px;
+    min-width: 485px;
     overflow-y: hidden;
     padding: 10px 6px 5px 6px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
+    clear: both;
   }
   .checkbox-ui {
     margin-left: 5px;

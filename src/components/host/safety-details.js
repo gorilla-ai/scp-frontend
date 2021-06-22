@@ -9,7 +9,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
-import VansNotes from '../common/vans-notes'
+import VansNotes from './vans-notes'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -714,7 +714,7 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displaySafetyDetails = () => {
-    const {currentSafetyData, safetyScanType} = this.props;
+    const {currentSafetyData, safetyScanType, vansHmdStatusList} = this.props;
     const {contentType, showVansNotes} = this.state;
 
     let basicInfoText = t('host.txt-basicInfo');
@@ -744,7 +744,9 @@ class SafetyDetails extends Component {
               </ul>
               {showVansNotes &&
                 <VansNotes
-                  currentData={currentSafetyData} />
+                  currentData={currentSafetyData}
+                  currentType={safetyScanType}
+                  vansHmdStatusList={vansHmdStatusList} />
               }
             </div>
             <div className='content'>
@@ -851,6 +853,8 @@ SafetyDetails.propTypes = {
   safetyScanType: PropTypes.string.isRequired,
   showSafetyTab: PropTypes.string.isRequired,
   fromSafetyPage: PropTypes.bool.isRequired,
+  vansHmdStatusList: PropTypes.array.isRequired,
+  getHostInfo: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired
 };

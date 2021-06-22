@@ -4,6 +4,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
@@ -11,6 +12,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
@@ -199,6 +201,16 @@ const SAFETY_SCAN_LIST = [
     value: 'getVansCve'
   }
 ];
+const MODULE_TYPE = {
+  device: 'device',
+  scanFile: 'malware',
+  gcbDetection: 'gcb',
+  getFileIntegrity: 'fileIntegrity',
+  getEventTraceResult: 'eventTracing',
+  getProcessMonitorResult: 'processMonitor',
+  getVansCpe: 'cpe',
+  getVansCve: 'cve'
+};
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -247,14 +259,17 @@ class HostController extends Component {
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
-      severityList: [],
-      hmdStatusList: [],
-      scanStatusList: [],
-      departmentList: [],
+      vansDeviceStatusList: [],
+      vansHmdStatusList: [],
+      severityList: null,
+      hmdStatusList: null,
+      scanStatusList: null,
+      departmentList: null,
       privateMaskedIPtree: {},
       hostCreateTime: '',
       leftNavData: [],
       privateIpData: {},
+      currentHostModule: 'device',
       filterNav: {
         severitySelected: [],
         hmdStatusSelected: [],
@@ -269,7 +284,11 @@ class HostController extends Component {
         deviceType: '',
         system: '',
         scanInfo: '',
-        status: '',
+        status: {},
+        annotation: ''
+      },
+      hmdSearch: {
+        status: {},
         annotation: ''
       },
       subTabMenu: {
@@ -322,6 +341,7 @@ class HostController extends Component {
 
     this.setLeftNavData();
     this.getFloorPlan();
+    this.getVansStatus();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
@@ -483,6 +503,43 @@ class HostController extends Component {
     })
   }
   /**
+   * Get vans status list
+   * @method
+   */
+  getVansStatus = () => {
+    const {baseUrl} = this.context;
+    const {currentHostModule} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/annotation/statusList?module=${currentHostModule}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data, val => {
+          return {
+            value: val,
+            text: val
+          }
+        });
+
+        if (currentHostModule === 'device') {
+          this.setState({
+            vansDeviceStatusList: list
+          });
+        } else {
+          this.setState({
+            vansHmdStatusList: list
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get formatted datetime
    * @method
    * @returns formatted datetime object
@@ -621,7 +678,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {filterNav, deviceSearch} = this.state;
+    const {activeTab, filterNav, deviceSearch, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -664,10 +721,15 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
-    if (deviceSearch.status || deviceSearch.annotation) {
+    if (deviceSearch.status.value || deviceSearch.annotation || hmdSearch.status.value || hmdSearch.annotation) {
       requestData.annotationObj = {};
-      requestData.annotationObj.status = deviceSearch.status;
+      requestData.annotationObj.status = deviceSearch.status.value;
       requestData.annotationObj.annotation = deviceSearch.annotation;
+
+      if (activeTab === 'safetyScan') {
+        requestData.annotationObj.disStatus = hmdSearch.status.value;
+        requestData.annotationObj.disAnnotation = hmdSearch.annotation;
+      }
     }
 
     return requestData;
@@ -806,8 +868,16 @@ class HostController extends Component {
     return (
       <div key={i}>
         <label className={cx('header-text', {'hide': !this.state.showLeftNav})}>{val.text}</label>
-        <div className='checkbox-group'>
-          {this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))}
+        <div className='left-nav-group'>
+          {!this.state[val.list] &&
+            <span className='loading no-padding'><i className='fg fg-loading-2'></i></span>
+          }
+          {this.state[val.list] && this.state[val.list].length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {this.state[val.list] && this.state[val.list].length > 0 &&
+            this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))
+          }
         </div>
       </div>
     )
@@ -1373,7 +1443,12 @@ class HostController extends Component {
       activeTab: newTab
     }, () => {
       if (newTab === 'safetyScan') {
-        this.getSafetyScanData();
+        this.setState({
+          currentHostModule: 'malware'
+        }, () => {
+          this.getSafetyScanData();
+          this.getVansStatus();
+        });
       } else {
         this.getHostData();
       }
@@ -1393,12 +1468,70 @@ class HostController extends Component {
     });
   }
   /**
+   * Handle HMD search value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleHmdSearch = (event) => {
+    let tempHmdSearch = {...this.state.hmdSearch};
+    tempHmdSearch[event.target.name] = event.target.value.trim();
+
+    this.setState({
+      hmdSearch: tempHmdSearch
+    });
+  }
+  /**
+   * Display status list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderStatusList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('host.txt-status')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle status combo box change
+   * @method
+   * @param {string} type - combo type
+   * @param {object} event - select event
+   * @param {object} value - selected department info
+   */
+  handleComboBoxChange = (type, event, value) => {
+    const {vansDeviceStatusList, vansHmdStatusList, deviceSearch, hmdSearch} = this.state;
+
+    if (value && value.value) {
+      if (type === 'device') {
+        const selectedStatusIndex = _.findIndex(vansDeviceStatusList, { 'value': value.value });
+        let tempDeviceSearch = {...deviceSearch};
+        tempDeviceSearch.status = vansDeviceStatusList[selectedStatusIndex];
+
+        this.setState({
+          deviceSearch: tempDeviceSearch
+        });
+      } else {
+        const selectedStatusIndex = _.findIndex(vansHmdStatusList, { 'value': value.value });
+        let tempHmdSearch = {...hmdSearch};
+        tempHmdSearch.status = vansHmdStatusList[selectedStatusIndex];
+
+        this.setState({
+          hmdSearch: tempHmdSearch
+        });
+      }
+    }
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-   const {showFilter, deviceSearch} = this.state;
+   const {showFilter, vansDeviceStatusList, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1472,15 +1605,13 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextField
-              id='deviceSearchStatus'
-              name='status'
-              label={t('host.txt-status')}
-              variant='outlined'
-              fullWidth
-              size='small'
+            <Autocomplete
+              className='combo-box'
+              options={vansDeviceStatusList}
               value={deviceSearch.status}
-              onChange={this.handleDeviceSearch} />
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderStatusList}
+              onChange={this.handleComboBoxChange.bind(this, 'device')} />
           </div>
           <div className='group'>
             <TextareaAutosize
@@ -1500,7 +1631,7 @@ class HostController extends Component {
     )
   }
   /**
-   * Clear filter input value
+   * Clear input value for main filter
    * @method
    */
   clearFilter = () => {
@@ -1513,6 +1644,18 @@ class HostController extends Component {
         system: '',
         scanInfo: '',
         status: '',
+        annotation: ''
+      }
+    });
+  }
+  /**
+   * Clear input value for HMD filter
+   * @method
+   */
+  clearHmdFilter = () => {
+    this.setState({
+      hmdSearch: {
+        status: {},
         annotation: ''
       }
     });
@@ -1606,6 +1749,20 @@ class HostController extends Component {
     }
   }
   /**
+   * Get vans status color
+   * @method
+   * @param {string} color - color defined by user
+   * @returns style object
+   */
+  getVansStatusColor = (color) => {
+    if (color) {
+      return {
+        color: '#fff',
+        backgroundColor: color
+      };
+    }
+  }
+  /**
    * Display Host info list
    * @method
    * @param {object} dataInfo - Host data
@@ -1635,7 +1792,7 @@ class HostController extends Component {
         context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
       } else if (val.name === 'vansNotes' && dataInfo[val.path]) {
-        return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span>{dataInfo[val.path].status}</span></li>
+        return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span className='vans-status' style={this.getVansStatusColor(dataInfo[val.path].color)}>{dataInfo[val.path].status}</span></li>
       }
 
       return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
@@ -1838,6 +1995,7 @@ class HostController extends Component {
       }, () => {
         if (!this.state.hostAnalysisOpen) {
           this.getHostData();
+          this.getVansStatus();
         }
       });
     }
@@ -2048,6 +2206,7 @@ class HostController extends Component {
     }, () => {
       if (!this.state.safetyDetailsOpen) {
         this.getSafetyScanData();
+        this.getVansStatus();
       }
     });
   }
@@ -2251,9 +2410,12 @@ class HostController extends Component {
     return (
       <div className='common-info'>
         {safetyData.annotationObj &&
-          <div onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</div>
+          <span className='divider'></span>
         }
-        <div>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</div>
+        {safetyData.annotationObj &&
+          <span className='vans-status scan' style={this.getVansStatusColor(safetyData.annotationObj.color)} onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</span>
+        }
+        <span>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</span>
       </div>
     )
   }
@@ -2601,14 +2763,20 @@ class HostController extends Component {
    * @param {object} event - event object
    */
   safetyScanChange = (event) => {
-    let tempSafetyScanData = {...this.state.safetyScanData};
+    const {hmdSearch, safetyScanData} = this.state;
+    let tempHmdSearch = {...hmdSearch};
+    let tempSafetyScanData = {...safetyScanData};
+    tempHmdSearch.status = {};
     tempSafetyScanData.dataContent = [];
     tempSafetyScanData.currentPage = 1;
 
     this.setState({
+      currentHostModule: MODULE_TYPE[event.target.value],
+      hmdSearch: tempHmdSearch,
       safetyScanData: tempSafetyScanData,
       safetyScanType: event.target.value
     }, () => {
+      this.getVansStatus();
       this.clearSafetyScanData();
       this.getSafetyScanData();
     });
@@ -2709,10 +2877,13 @@ class HostController extends Component {
       contextAnchor,
       menuType,
       hostCreateTime,
+      vansDeviceStatusList,
+      vansHmdStatusList,
       privateMaskedIPtree,
       departmentList,
       leftNavData,
       filterNav,
+      hmdSearch,
       hostInfo,
       hostData,
       hostSort,
@@ -2742,11 +2913,11 @@ class HostController extends Component {
         {hostAnalysisOpen &&
           <HostAnalysis
             activeTab={activeTab}
-            datetime={datetime}
             assessmentDatetime={assessmentDatetime}
             hostData={hostData}
             eventInfo={eventInfo}
             openHmdType={openHmdType}
+            vansDeviceStatusList={vansDeviceStatusList}
             getIPdeviceInfo={this.getIPdeviceInfo}
             loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis}
@@ -2760,6 +2931,7 @@ class HostController extends Component {
             safetyScanType={safetyScanType}
             showSafetyTab={showSafetyTab}
             fromSafetyPage={fromSafetyPage}
+            vansHmdStatusList={vansHmdStatusList}
             getHostInfo={this.getHostInfo}
             toggleSafetyDetails={this.toggleSafetyDetails}
             getIPdeviceInfo={this.getIPdeviceInfo} />
@@ -2776,8 +2948,8 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><i className='fg fg-data-download'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><PictureAsPdfIcon /></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           </div>
 
           <SearchOptions
@@ -2794,6 +2966,12 @@ class HostController extends Component {
               {leftNavData.map(this.showLeftNavItems)}
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('ownerFields.department')}</label>
+                {!departmentList &&
+                  <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
+                }
+                {departmentList && departmentList.length === 0 &&
+                  <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
+                }
                 {departmentList && departmentList.length > 0 &&
                   <TreeView
                     className='tree-view'
@@ -2805,21 +2983,29 @@ class HostController extends Component {
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
-                <TreeView
-                  className='tree-view'
-                  defaultCollapseIcon={<ExpandMoreIcon />}
-                  defaultExpandIcon={<ChevronRightIcon />}
-                  defaultExpanded={['All']}>
-                  {!_.isEmpty(privateMaskedIPtree) &&
-                    <TreeItem
-                      nodeId={privateMaskedIPtree.id}
-                      label={privateMaskedIPtree.label}>
-                      {privateMaskedIPtree.children.length > 0 &&
-                        privateMaskedIPtree.children.map(this.getTreeItem.bind(this, ''))
-                      }
-                    </TreeItem>
-                  }
-                </TreeView>
+                {!privateMaskedIPtree.children &&
+                  <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
+                }
+                {privateMaskedIPtree.children && privateMaskedIPtree.children.length === 0 &&
+                  <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
+                }
+                {privateMaskedIPtree.children && privateMaskedIPtree.children.length > 0 &&
+                  <TreeView
+                    className='tree-view'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                    defaultExpanded={['All']}>
+                    {!_.isEmpty(privateMaskedIPtree) &&
+                      <TreeItem
+                        nodeId={privateMaskedIPtree.id}
+                        label={privateMaskedIPtree.label}>
+                        {privateMaskedIPtree.children.length > 0 &&
+                          privateMaskedIPtree.children.map(this.getTreeItem.bind(this, ''))
+                        }
+                      </TreeItem>
+                    }
+                  </TreeView>
+                }
               </div>
             </div>
             <div className='expand-collapse' onClick={this.toggleLeftNav}>
@@ -2893,6 +3079,9 @@ class HostController extends Component {
                 {activeTab === 'hostList' &&
                   <div className='table-content'>
                     <div className='table' style={{height: '64vh'}}>
+                      {(!hostInfo.dataContent || hostInfo.dataContent.length === 0) &&
+                        <span className='loading'><i className='fg fg-loading-2'></i></span>
+                      }
                       <ul className='host-list'>
                         {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
                           hostInfo.dataContent.map(this.getHostList)
@@ -2951,7 +3140,6 @@ class HostController extends Component {
                 {activeTab === 'safetyScan' &&
                   <div>
                     <TextField
-                      id='safetyScanType'
                       className='safety-scan-type'
                       name='safetyScanType'
                       label={t('host.txt-safetyScanType')}
@@ -2962,6 +3150,21 @@ class HostController extends Component {
                       onChange={this.safetyScanChange}>
                       {this.getSafetyScanList()}
                     </TextField>
+                    <Autocomplete
+                      className='combo-box'
+                      options={vansHmdStatusList}
+                      value={hmdSearch.status}
+                      getOptionLabel={(option) => option.text}
+                      renderInput={this.renderStatusList}
+                      onChange={this.handleComboBoxChange.bind(this, MODULE_TYPE[safetyScanType])} />
+                    <TextareaAutosize
+                      className='textarea-autosize search-annotation'
+                      name='annotation'
+                      placeholder={t('host.txt-annotation')}
+                      value={hmdSearch.annotation}
+                      onChange={this.handleHmdSearch} />
+                    <Button variant='outlined' color='primary' className='standard btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
@@ -2970,6 +3173,9 @@ class HostController extends Component {
                     }
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
+                        {(!safetyScanData.dataContent || safetyScanData.dataContent.length === 0) &&
+                          <span className='loading'><i className='fg fg-loading-2'></i></span>
+                        }
                         <ul className='safety-list'>
                           {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
                             safetyScanData.dataContent.map(this.getSafetyList)

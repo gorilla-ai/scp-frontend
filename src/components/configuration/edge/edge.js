@@ -17,8 +17,6 @@ import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormLabel from '@material-ui/core/FormLabel'
 import MenuItem from '@material-ui/core/MenuItem'
-import Radio from '@material-ui/core/Radio'
-import RadioGroup from '@material-ui/core/RadioGroup'
 import Switch from '@material-ui/core/Switch'
 import Tab from '@material-ui/core/Tab'
 import Tabs from '@material-ui/core/Tabs'
@@ -1367,7 +1365,7 @@ class Edge extends Component {
               }
               {activeContent === 'editEdge' &&
                 <Autocomplete
-                  className='checkboxes-tags groups'
+                  className='combo-box checkboxes-tags groups'
                   multiple
                   value={edge.info.edgeGroupList}
                   options={_.map(allGroupList, (val) => { return { value: val }})}
@@ -1480,7 +1478,7 @@ class Edge extends Component {
           </div>
           <div className='group' style={{width: '300px'}}>
             <Autocomplete
-              className='checkboxes-tags'
+              className='combo-box checkboxes-tags'
               multiple
               value={edgeSearch.groups}
               options={_.map(allGroupList, (val) => { return { value: val }})}
@@ -1578,7 +1576,7 @@ class Edge extends Component {
             {activeContent === 'tableList' &&
               <div>
                 <Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
               </div>
             }
           </div>
