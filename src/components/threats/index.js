@@ -2872,11 +2872,16 @@ class ThreatsController extends Component {
    */
   queryDialog = (type) => {
     const {activeTab, account, filterData, queryData, notifyEmailData} = this.state;
-
+    const {sessionRights} = this.context;
+    let moduleWithSOC = false
+    if (sessionRights.Module_Soc) {
+      moduleWithSOC = true
+    }
     return (
       <QueryOpenSave
         activeTab={activeTab}
         type={type}
+        moduleWithSOC={moduleWithSOC}
         account={account}
         filterData={filterData}
         queryData={queryData}
