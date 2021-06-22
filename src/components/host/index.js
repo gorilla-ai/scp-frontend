@@ -1484,6 +1484,7 @@ class HostController extends Component {
    * Display status list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderStatusList = (params) => {
     return (

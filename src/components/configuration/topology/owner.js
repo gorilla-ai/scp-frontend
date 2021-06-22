@@ -391,6 +391,7 @@ class NetworkOwner extends Component {
    * Display department list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderDepartmentList = (params) => {
     return (
@@ -405,6 +406,7 @@ class NetworkOwner extends Component {
    * Display title list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderTitleList = (params) => {
     return (

@@ -856,6 +856,7 @@ class QueryOpenSave extends Component {
    * Display query list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderQueryList = (params) => {
     return (

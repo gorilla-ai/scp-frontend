@@ -107,6 +107,7 @@ class VansNotes extends Component {
    * Display status list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderStatusList = (params) => {
     return (
@@ -309,11 +310,25 @@ class VansNotes extends Component {
       });
     }
   }
+  /**
+   * Get vans notes height
+   * @method
+   * @returns CSS height
+   */
+  getHeight = () => {
+    const {currentType} = this.props;
+
+    if (currentType === 'device') {
+      return { height: '340px' };
+    } else {
+      return { height: '390px' };
+    }
+  }
   render() {
     const {statusType, statusList, vansNotes} = this.state;
 
     return (
-      <div className='vans-notes'>
+      <div className='vans-notes' style={this.getHeight()}>
         <div className='group'>
           {statusList.length > 0 &&
             <RadioGroup

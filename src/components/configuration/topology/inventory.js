@@ -3057,6 +3057,7 @@ class NetworkInventory extends Component {
    * Display department list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderDepartmentList = (params) => {
     return (
@@ -3071,6 +3072,7 @@ class NetworkInventory extends Component {
    * Display title list
    * @method
    * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
    */
   renderTitleList = (params) => {
     return (
