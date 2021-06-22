@@ -15,8 +15,8 @@ import TextField from '@material-ui/core/TextField'
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {BaseDataContext} from './context'
-import helper from './helper'
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

@@ -2913,7 +2913,6 @@ class HostController extends Component {
         {hostAnalysisOpen &&
           <HostAnalysis
             activeTab={activeTab}
-            datetime={datetime}
             assessmentDatetime={assessmentDatetime}
             hostData={hostData}
             eventInfo={eventInfo}

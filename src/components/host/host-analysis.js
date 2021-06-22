@@ -13,7 +13,7 @@ import HMDscanInfo from '../common/hmd-scan-info'
 import IrSelections from '../common/ir-selections'
 import NetworkBehavior from '../common/network-behavior'
 import PrivateDetails from '../common/private-details'
-import VansNotes from '../common/vans-notes'
+import VansNotes from './vans-notes'
 import YaraRule from '../common/yara-rule'
 
 import {downloadLink} from 'react-ui/build/src/utils/download'
@@ -177,7 +177,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {datetime, assessmentDatetime, hostData, eventInfo, openHmdType} = this.props;
+    const {assessmentDatetime, hostData, eventInfo, openHmdType} = this.props;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -501,13 +501,17 @@ class HostAnalysis extends Component {
 HostAnalysis.contextType = BaseDataContext;
 
 HostAnalysis.propTypes = {
+  activeTab: PropTypes.string.isRequired,
   assessmentDatetime:  PropTypes.object.isRequired,
   hostData: PropTypes.object.isRequired,
+  eventInfo: PropTypes.object.isRequired,
+  openHmdType: PropTypes.string.isRequired,
+  vansDeviceStatusList: PropTypes.array.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
-  openHmdType: PropTypes.string,
-  vansDeviceStatusList: PropTypes.array
+  toggleSafetyDetails: PropTypes.func.isRequired,
+  getHostInfo: PropTypes.func.isRequired
 };
 
 export default HostAnalysis;

@@ -9,7 +9,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
-import VansNotes from '../common/vans-notes'
+import VansNotes from './vans-notes'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -853,9 +853,10 @@ SafetyDetails.propTypes = {
   safetyScanType: PropTypes.string.isRequired,
   showSafetyTab: PropTypes.string.isRequired,
   fromSafetyPage: PropTypes.bool.isRequired,
-  vansHmdStatusList: PropTypes.array,
+  vansHmdStatusList: PropTypes.array.isRequired,
+  getHostInfo: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
-  getIPdeviceInfo: PropTypes.func.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired
 };
 
 export default SafetyDetails;
