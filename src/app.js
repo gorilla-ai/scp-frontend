@@ -36,6 +36,7 @@ import NotificationSettings from './components/configuration/notifications'
 import ProductInfo from './components/configuration/product/product-info'
 import ServiceStatus from './components/configuration/service/status'
 import SeverityTable from './components/configuration/edge/severity'
+import Soar from './components/soar/index'
 import StatisticsUIF from './components/dashboard/statisticsUIF'
 import Syslog from './components/events/syslog/index'
 import SyslogConfig from './components/configuration/syslog/syslog'
@@ -121,6 +122,12 @@ const NetflowComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Netflow
       searchFields={appcfg.searchFields} />
+  </BaseDataContext.Provider>
+)
+
+const SoarComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <Soar />
   </BaseDataContext.Provider>
 )
 
@@ -263,6 +270,7 @@ const Main = () => (
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
+      <Route exact path='/SCP/soar' component={SoarComp} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
       <Route exact path='/SCP/configuration/threat' component={Threat} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
