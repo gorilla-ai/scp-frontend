@@ -380,7 +380,7 @@ class VansNotes extends Component {
             <div className='color-box' className={'color-box ' + helper.showColor(vansNotes.color)}></div>
           }
           {vansNotes.color &&
-            <Button variant='outlined' color='primary' className='clear' onClick={this.handleVansNotesClear.bind(this, 'color')}>{t('txt-clearText')}</Button>
+            <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansNotesClear.bind(this, 'color')}>{t('txt-clearText')}</Button>
           }
           <GithubPicker
             width='213px'
@@ -389,9 +389,9 @@ class VansNotes extends Component {
             onChangeComplete={this.handleDataChange} />
         </div>
         <div className='group btn-group'>
-          <Button variant='contained' color='primary' className='save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
+          <Button variant='contained' color='primary' className='btn save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
           {vansNotes.id &&
-            <Button variant='outlined' color='primary' className='delete' onClick={this.handleVansNotesDelete}>{t('txt-delete')}</Button>
+            <Button variant='outlined' color='primary' className='standard btn delete' onClick={this.handleVansNotesDelete}>{t('txt-delete')}</Button>
           }
         </div>
       </div>
