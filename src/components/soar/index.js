@@ -7,9 +7,14 @@ import cx from 'classnames'
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
+  updateEdge,
   removeElements,
-  Controls
+  MiniMap,
+  Controls,
+  Background,  
 } from 'react-flow-renderer';
+
+import JSONTree from 'react-json-tree'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
@@ -37,7 +42,7 @@ import helper from '../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NODE_TYPE = ['input', 'default', 'output'];
-let id = 0;
+let id = 1;
 
 let t = null;
 let f = null;
@@ -57,7 +62,8 @@ class SoarController extends Component {
 
     this.state = {
       reactFlowInstance: null,
-      flowData: []
+      flowData: [],
+      selectedNode: {}
     };
 
     this.reactFlowWrapper = React.createRef();
@@ -72,27 +78,55 @@ class SoarController extends Component {
   getFlowData = () => {
     const flowData = [
       {
-        id: '1',
+        id: '0_Adapter',
         type: 'input',
-        data: { label: 'Input Node' },
-        position: { x: 250, y: 25 }
+        data: { label: 'Adapter' },
+        position: { x: 500, y: 50 }
       },
       {
-        id: '2',
-        data: { label: 'Default Node' },
-        position: { x: 100, y: 125 }
+        id: '1_Node',
+        data: { label: 'Node' },
+        position: { x: 300, y: 200 }
       },
       {
-        id: '3',
+        id: '2_Action',
         type: 'output',
-        data: { label: 'Output Node' },
-        position: { x: 250, y: 250 }
+        data: { label: 'Action' },
+        position: { x: 300, y: 400 }
       }
     ];
+
+    id = (flowData.length) - 1;
+
+    // const flowData = [
+    //   {
+    //     id: '1_Adapter',
+    //     type: 'input',
+    //     data: { label: 'Adapter' },
+    //     position: { x: 500, y: 50 }
+    //   }
+    // ];
 
     this.setState({
       flowData
     });
+  }
+  getNodeText = (val) => {
+    let nodeText = '';
+
+    switch (val) {
+      case 'input':
+        nodeText = 'Adapter';
+        break;
+      case 'default':
+        nodeText = 'Node';
+        break;
+      case 'output':
+        nodeText = 'Action';
+        break;
+    }
+
+    return nodeText;
   }
   onLoad = (_reactFlowInstance) => {
     this.setState({
@@ -114,15 +148,16 @@ class SoarController extends Component {
       y: event.clientY - reactFlowBounds.top,
     });
     const newNode = {
-      id: `dndnode_${id++}`,
+      id: ++id + '_' + this.getNodeText(type),
       type,
       position,
-      data: { label: `${type} node` }
+      data: { label: this.getNodeText(type) }
     };
-    let tempFlowData = _.cloneDeep(flowData);
+    const tempFlowData = _.cloneDeep(flowData);
+    const newFlowData = tempFlowData.concat(newNode)
 
     this.setState({
-      flowData: tempFlowData.concat(newNode)
+      flowData: newFlowData
     }, () => {
       this.viewData();
     });
@@ -140,9 +175,43 @@ class SoarController extends Component {
       this.viewData();
     });
   }
+  onNodeClick = (event) => {
+    const {flowData} = this.state;
+    const nodeId = !_.isEmpty(event.target.dataset) ? event.target.dataset.id : '';
+
+    if (nodeId) {
+      const selectedFlowIndex = _.findIndex(flowData, { 'id': nodeId });
+      const selectedNode = flowData[selectedFlowIndex];
+
+      this.setState({
+        selectedNode
+      });
+    } else {
+      this.setState({
+        selectedNode: {}
+      });
+    }
+  }
   onConnect = (params) => {
+    let edgeParams = {...params};
+    edgeParams.id = ++id + '_' + 'Link';
+    edgeParams.animated = true;
+    edgeParams.arrowHeadType = 'arrow';
+    edgeParams.type = 'smoothstep';
+    edgeParams.nodeType = 'link';
+
     this.setState({
-      flowData: addEdge(params, this.state.flowData)
+      flowData: addEdge(edgeParams, this.state.flowData)
+    }, () => {
+      this.viewData();
+    });
+  }
+  onEdgeUpdate = (oldEdge, newConnection) => {
+    let edgeParams = {...newConnection};
+    edgeParams.id = oldEdge.id;
+
+    this.setState({
+      flowData: updateEdge(oldEdge, edgeParams, this.state.flowData)
     }, () => {
       this.viewData();
     });
@@ -151,12 +220,10 @@ class SoarController extends Component {
     console.log(this.state.flowData);
   }
   getNodeType = (val, i) => {
-    return <div key={i} className={'dndnode ' + val} onDragStart={this.onDragStart.bind(this, val)} draggable>{helper.capitalizeFirstLetter(val)} Node</div>
+    return <div key={i} className={'dndnode ' + val} onDragStart={this.onDragStart.bind(this, val)} draggable>{this.getNodeText(val)}</div>
   }
   render() {
-    const {
-      flowData
-    } = this.state;
+    const {flowData, selectedNode} = this.state;
 
     return (
       <div>
@@ -175,15 +242,39 @@ class SoarController extends Component {
                 onConnect={this.onConnect}
                 onElementsRemove={this.onElementsRemove}
                 deleteKeyCode={46}
+                onClick={this.onNodeClick}
                 onDrop={this.onDrop}
-                onDragOver={this.onDragOver} >
+                onDragOver={this.onDragOver}
+                onEdgeUpdate={this.onEdgeUpdate} >
+                <MiniMap
+                  className='mini-map'
+                  nodeStrokeColor={(n) => {
+                    if (n.style && n.style.background) return n.style.background;
+                    if (n.type === 'input') return '#0041d0';
+                    if (n.type === 'output') return '#ff0072';
+                    if (n.type === 'default') return '#1a192b';
+                    return '#eee';
+                  }}
+                  nodeColor={(n) => {
+                    if (n.style && n.style.background) return n.style.background;
+                    return '#fff';
+                  }}
+                  nodeBorderRadius={2} />
                 <Controls />
+                <Background color='#aaa' gap={16} />
               </ReactFlow>
             </div>
 
             <aside>
               {NODE_TYPE.map(this.getNodeType)}
-              <Button variant='outlined' color='primary' className='standard btn' onClick={this.viewData}>View Data</Button>
+              <div className='selected-node'>
+                <div>Selected Node:</div>
+                <JSONTree data={selectedNode} theme={helper.getJsonViewTheme()} />
+              </div>
+              <div>
+                <div>Node Data:</div>
+                <JSONTree data={flowData} theme={helper.getJsonViewTheme()} />
+              </div>
             </aside>
           </ReactFlowProvider>
         </div>
