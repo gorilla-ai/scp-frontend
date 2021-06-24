@@ -1284,52 +1284,62 @@ button.standard:hover:not([disabled]) {
   .data-content {
     display: flex;
     min-height: 87vh;
-
-    .reactflow-wrapper {
-      flex-grow: 1;
-      height: 87vh;
-      border-right: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
-    }
-    aside {
-      height: 87vh;
-      overflow-y: auto;
-      max-width: 250px;
-      width: 20%;
-      background: #fcfcfc;
-      border-right: 1px solid #eee;
-      font-size: 12px;
-      padding: 15px 10px;
-    }
-    .dndnode {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 20px;
-      margin-bottom: 15px;
-      border: 1px solid #1a192b;
-      cursor: grab;
-      border-radius: 3px;
-      font-size: 12px;
-      text-align: center;
-      padding: 18px 10px;
-      &.input {
-        border-color: #0041d0;
+    &.react-flow-demo {
+      .reactflow-wrapper {
+        flex-grow: 1;
+        height: 87vh;
+        border-right: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
       }
-      &.output {
-        border-color: #ff0072;
+      aside {
+        overflow-y: auto;
+        font-size: 12px;
+        height: 87vh;
+        max-width: 250px;
+        width: 20%;
+        padding: 20px 10px 0 10px;
+        border-right: 1px solid #eee;
+        border-bottom: 1px solid #ccc;
+        background: #fcfcfc;
+      }
+      .dndnode {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 20px;
+        margin-bottom: 15px;
+        border: 1px solid #1a192b;
+        cursor: grab;
+        border-radius: 3px;
+        font-size: 12px;
+        text-align: center;
+        padding: 18px 10px;
+        &.input {
+          border-color: #0041d0;
+        }
+        &.output {
+          border-color: #ff0072;
+        }
+      }
+      .mini-map {
+        border: 1px solid #ccc;
+      }
+      .selected-node {
+        padding: 10px 0 5px 0;
+        margin: 18px 0 10px 0;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+      }
+      .btn-group {
+        text-align: center;
+        padding-top: 15px;
+        margin-top: 25px;
+        border-top: 1px solid #ccc;
+        button {
+          margin: 0 5px;
+        }
       }
     }
-    .mini-map {
-      border: 1px solid #ccc;
-    }
-    .selected-node {
-      padding: 10px 0 5px 0;
-      margin: 25px 0 10px 0;
-      border-top: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
-    }
-
     .left-nav {
       position: relative;
       flex-grow: 0;

@@ -11,28 +11,16 @@ import ReactFlow, {
   removeElements,
   MiniMap,
   Controls,
-  Background,  
+  Background
 } from 'react-flow-renderer';
 
 import JSONTree from 'react-json-tree'
+import localforage from 'localforage';
 
-import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
-import Checkbox from '@material-ui/core/Checkbox'
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
-import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
-import TextField from '@material-ui/core/TextField'
-import TreeItem from '@material-ui/lab/TreeItem'
-import TreeView from '@material-ui/lab/TreeView'
-import Tab from '@material-ui/core/Tab'
-import Tabs from '@material-ui/core/Tabs'
-
-import {downloadWithForm} from 'react-ui/build/src/utils/download'
-import Gis from 'react-gis/build/src/components'
+import Popover from '@material-ui/core/Popover';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
@@ -42,6 +30,7 @@ import helper from '../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NODE_TYPE = ['input', 'default', 'output'];
+const FLOW_KEY = 'example-flow';
 let id = 1;
 
 let t = null;
@@ -63,13 +52,27 @@ class SoarController extends Component {
     this.state = {
       reactFlowInstance: null,
       flowData: [],
-      selectedNode: {}
+      selectedNode: {},
+      contextAnchor: {
+        node: null,
+        link: null
+      },
+      activeElementType: '',
+      activeElement: {
+        node: null,
+        link: null
+      }
     };
 
     this.reactFlowWrapper = React.createRef();
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    localforage.config({
+      name: 'react-flow-demo',
+      storeName: 'flows',
+    });
+
     this.getFlowData();
   }
   ryan = () => {
@@ -93,6 +96,16 @@ class SoarController extends Component {
         type: 'output',
         data: { label: 'Action' },
         position: { x: 300, y: 400 }
+      },
+      {
+        id: '3_Link',
+        source: '1_Node',
+        target: '2_Action',
+        label: 'hello ABC',
+        labelStyle: { fill: 'red', fontWeight: 700 },
+        arrowHeadType: 'arrow',
+        animated: true,
+        type: 'smoothstep'
       }
     ];
 
@@ -131,9 +144,66 @@ class SoarController extends Component {
   onLoad = (_reactFlowInstance) => {
     this.setState({
       reactFlowInstance: _reactFlowInstance
-    }, () => {
-      this.viewData();
     });
+  }
+  onConnect = (params) => {
+    const edgeParams = {
+      ...params,
+      id: ++id + '_' + 'Link',
+      label: 'default link',
+      arrowHeadType: 'arrow',
+      labelStyle: {
+        fill: 'red',
+        fontWeight: 700
+      },
+      animated: true,
+      type: 'smoothstep'
+    };
+
+    this.setState({
+      flowData: addEdge(edgeParams, this.state.flowData)
+    });
+  }
+  setActiveElement = (type, from, event, element) => {
+    const {contextAnchor, activeElement} = this.state;
+    let tempActiveElement = {...activeElement};
+    tempActiveElement[type] = [element];
+
+    if (from === 'contextMenu') {
+      let tempContextAnchor = {...contextAnchor};
+      tempContextAnchor[type] = event.currentTarget;
+
+      this.setState({
+        contextAnchor: tempContextAnchor
+      });
+    }
+
+    this.setState({
+      activeElementType: type,
+      activeElement: tempActiveElement
+    });
+
+    event.preventDefault();
+  }
+  onElementClick = (event, element) => {
+    const {flowData} = this.state;
+    const type = element.source ? 'link' : 'type';
+    const selectedFlowIndex = _.findIndex(flowData, { 'id': element.id });
+    const selectedNode = flowData[selectedFlowIndex];
+
+    this.setState({
+      selectedNode
+    }, () => {
+      this.setActiveElement(type, 'click', event, element);
+    });   
+  }
+  onElementsRemove = () => {
+    const {flowData, activeElementType, activeElement} = this.state;
+
+    this.setState({
+      flowData: removeElements(activeElement[activeElementType], flowData)
+    });
+    this.handleCloseMenu();
   }
   onDragOver = (event) => {
     event.preventDefault();
@@ -158,53 +228,27 @@ class SoarController extends Component {
 
     this.setState({
       flowData: newFlowData
-    }, () => {
-      this.viewData();
     });
 
     event.preventDefault();
   }
+  handleCloseMenu = (type) => {
+    this.setState({
+      contextAnchor: {
+        node: null,
+        link: null
+      }
+    });
+  }
+  onNodeContextMenu = (event, node) => {
+    this.setActiveElement('node', 'contextMenu', event, node);
+  }
+  onEdgeContextMenu = (event, link) => {
+    this.setActiveElement('link', 'contextMenu', event, link);
+  }
   onDragStart = (nodeType, event) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
-  }
-  onElementsRemove = (elementsToRemove) => {
-    this.setState({
-      flowData: removeElements(elementsToRemove, this.state.flowData)
-    }, () => {
-      this.viewData();
-    });
-  }
-  onNodeClick = (event) => {
-    const {flowData} = this.state;
-    const nodeId = !_.isEmpty(event.target.dataset) ? event.target.dataset.id : '';
-
-    if (nodeId) {
-      const selectedFlowIndex = _.findIndex(flowData, { 'id': nodeId });
-      const selectedNode = flowData[selectedFlowIndex];
-
-      this.setState({
-        selectedNode
-      });
-    } else {
-      this.setState({
-        selectedNode: {}
-      });
-    }
-  }
-  onConnect = (params) => {
-    let edgeParams = {...params};
-    edgeParams.id = ++id + '_' + 'Link';
-    edgeParams.animated = true;
-    edgeParams.arrowHeadType = 'arrow';
-    edgeParams.type = 'smoothstep';
-    edgeParams.nodeType = 'link';
-
-    this.setState({
-      flowData: addEdge(edgeParams, this.state.flowData)
-    }, () => {
-      this.viewData();
-    });
   }
   onEdgeUpdate = (oldEdge, newConnection) => {
     let edgeParams = {...newConnection};
@@ -212,40 +256,65 @@ class SoarController extends Component {
 
     this.setState({
       flowData: updateEdge(oldEdge, edgeParams, this.state.flowData)
-    }, () => {
-      this.viewData();
     });
-  }
-  viewData = () => {
-    console.log(this.state.flowData);
   }
   getNodeType = (val, i) => {
     return <div key={i} className={'dndnode ' + val} onDragStart={this.onDragStart.bind(this, val)} draggable>{this.getNodeText(val)}</div>
   }
+  onSave = () => {
+    const {reactFlowInstance} = this.state;
+
+    if (reactFlowInstance) {
+      localforage.setItem(FLOW_KEY, reactFlowInstance.toObject());
+      helper.showPopupMsg(t('txt-saved', ''));
+    }
+  }
+  onRestore = () => {
+    const restoreFlow = async () => {
+      const flow = await localforage.getItem(FLOW_KEY);
+
+      if (flow) {
+        this.setState({
+          flowData: flow.elements || []
+        });
+      }
+    };
+
+    restoreFlow();
+  }
   render() {
-    const {flowData, selectedNode} = this.state;
+    const {flowData, selectedNode, contextAnchor} = this.state;
 
     return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' className='' title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
-        <div className='data-content'>
+        <div className='data-content react-flow-demo'>
+          <Menu
+            anchorEl={contextAnchor.node || contextAnchor.link}
+            keepMounted
+            open={Boolean(contextAnchor.node || contextAnchor.link)}
+            onClose={this.handleCloseMenu}>
+            <MenuItem onClick={this.onElementsRemove}>Remove</MenuItem>
+          </Menu>
+
           <ReactFlowProvider>
             <div className='reactflow-wrapper' ref={this.reactFlowWrapper}>
               <ReactFlow
                 elements={flowData}
                 onLoad={this.onLoad}
                 onConnect={this.onConnect}
+                onElementClick={this.onElementClick}
                 onElementsRemove={this.onElementsRemove}
-                deleteKeyCode={46}
-                onClick={this.onNodeClick}
-                onDrop={this.onDrop}
                 onDragOver={this.onDragOver}
-                onEdgeUpdate={this.onEdgeUpdate} >
+                onDrop={this.onDrop}
+                onNodeContextMenu={this.onNodeContextMenu}
+                onEdgeContextMenu={this.onEdgeContextMenu}
+                onEdgeUpdate={this.onEdgeUpdate}
+                deleteKeyCode={46} >
                 <MiniMap
                   className='mini-map'
                   nodeStrokeColor={(n) => {
@@ -267,6 +336,10 @@ class SoarController extends Component {
 
             <aside>
               {NODE_TYPE.map(this.getNodeType)}
+              <div className='btn-group'>
+                <Button variant='contained' color='primary' onClick={this.onSave}>Save</Button>
+                <Button variant='contained' color='primary' onClick={this.onRestore}>Restore</Button>
+              </div>
               <div className='selected-node'>
                 <div>Selected Node:</div>
                 <JSONTree data={selectedNode} theme={helper.getJsonViewTheme()} />
