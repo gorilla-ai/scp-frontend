@@ -345,6 +345,7 @@
     "txt-hostList": "Host List",
     "txt-deviceMap": "Device Map",
     "txt-safetyScan": "Safety Scan",
+    "txt-vans": "VANS",
     "txt-safetyScanType": "Safety Scan Type",
     "txt-export-cpe": "Export CPE",
     "txt-report-nccst": "Report NCCST",
@@ -405,7 +406,14 @@
     "txt-os": "Operating System",
     "txt-update": "Update",
     "txt-edition": "Edition",
-    "txt-language": "Language"
+    "txt-language": "Language",
+    "txt-dept": "Department",
+    "txt-vansCount": "CVE Count",
+    "txt-vansHigh": "CVE High",
+    "txt-cveMedium": "CVE Medium",
+    "txt-vansLow": "CVE Low",
+    "txt-gcbCount": "GCB Count",
+    "txt-malwareCount": "Malware Count"
   },
 
   "alert": {

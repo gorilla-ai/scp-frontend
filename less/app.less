@@ -2190,6 +2190,56 @@ button.standard:hover:not([disabled]) {
               }
             }
           }
+          .host-table {
+            table {
+              width: 100%;
+              tr {
+                border-bottom: 1px solid var(--primaryBorder);
+                &.child-data {
+                  background-color: var(--tableRowOdd) !important;
+                }
+              }
+              tr:nth-child(even),
+              tr:nth-child(odd) {
+                background-color: var(--tableRowEven);
+              }
+              button:hover {
+                background-color: var(--buttonHoverColor);
+              }
+              .secondary-row {
+                display: none;
+                &.active {
+                  display: table-row;
+                }
+              }
+            }
+            ul {
+              display: flex;
+              justify-content: space-between;
+              align-items: stretch;
+              &.header {
+                font-size: 1em;
+                font-weight: bold;
+                line-height: 1.5rem;
+              }
+              &.item {
+                &:hover {
+                  background-color: #e2ecfd !important;
+                }
+                &:nth-of-type(odd) {
+                  background-color: #f5f5f5;
+                }
+                &:nth-of-type(even) {
+                  background-color: #fff;
+                }
+              }
+              li {
+                flex-basis: 15%;
+                padding: 10px 50px;
+                border-bottom: 1px solid #e0e0e0;
+              }
+            }
+          }
         }
         &.basic-form { //For content with form input
           min-height: 84vh;

@@ -33,6 +33,7 @@ import HostAnalysis from './host-analysis'
 import Pagination from '../common/pagination'
 import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
+import VansCharts from './vans-charts'
 import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -242,7 +243,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
+      activeTab: 'vansCharts', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
@@ -326,6 +327,7 @@ class HostController extends Component {
         hasMore: false
       },
       openHmdType: '',
+      vansChartsData: {},
       showLoadingIcon: false,
       nccstSelectedList: [],
       nccstCheckAll: false,
@@ -666,6 +668,37 @@ class HostController extends Component {
         if (activeTab === 'hostList' && data.count === 0) {
           helper.showPopupMsg(t('txt-notFound'));
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set vans charts data
+   * @method
+   */
+  getVansChartsData = () => {
+    const {baseUrl} = this.context;
+    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/ipdevice/assessment/deptCountsTable`;
+    const requestData = {
+      timestamp: ['2021-06-23T16:00:00Z', '2021-06-24T16:00:00Z']
+      //timestamp: [datetime.from, datetime.to]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          vansChartsData: data
+        });
       }
       return null;
     })
@@ -1429,7 +1462,7 @@ class HostController extends Component {
    * Handle content tab change
    * @method
    * @param {object} event - event object
-   * @param {string} newTab - content type ('hostList', 'deviceMap' or 'safetyScan')
+   * @param {string} newTab - content type ('hostList', 'deviceMap', 'safetyScan' or 'vansCharts')
    */
   handleSubTabChange = (event, newTab) => {
     if (newTab === 'deviceMap') {
@@ -1449,6 +1482,8 @@ class HostController extends Component {
           this.getSafetyScanData();
           this.getVansStatus();
         });
+      } else if (newTab === 'vansCharts') {
+        this.getVansChartsData();
       } else {
         this.getHostData();
       }
@@ -2898,6 +2933,7 @@ class HostController extends Component {
       currentSafetyData,
       safetyScanType,
       fromSafetyPage,
+      vansChartsData,
       floorPlan,
       showLoadingIcon
     } = this.state;
@@ -3048,9 +3084,10 @@ class HostController extends Component {
                   textColor='primary'
                   value={activeTab}
                   onChange={this.handleSubTabChange}>
-                  <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
-                  <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
-                  <Tab id='hostMapTab' label={t('host.txt-safetyScan')} value='safetyScan' />
+                  <Tab label={t('host.txt-hostList')} value='hostList' />
+                  <Tab label={t('host.txt-deviceMap')} value='deviceMap' />
+                  <Tab label={t('host.txt-safetyScan')} value='safetyScan' />
+                  <Tab label={t('host.txt-vans')} value='vansCharts' />
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
@@ -3191,6 +3228,13 @@ class HostController extends Component {
                           onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
                       </footer>
                     </div>
+                  </div>
+                }
+
+                {activeTab === 'vansCharts' &&
+                  <div className='host-table'>
+                    <VansCharts
+                      vansChartsData={vansChartsData} />
                   </div>
                 }
               </div>
