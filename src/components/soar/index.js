@@ -283,7 +283,7 @@ class SoarController extends Component {
     restoreFlow();
   }
   render() {
-    const {flowData, selectedNode, contextAnchor} = this.state;
+    const {flowData, selectedNode, contextAnchor, activeElementType} = this.state;
 
     return (
       <div>
@@ -298,7 +298,7 @@ class SoarController extends Component {
             keepMounted
             open={Boolean(contextAnchor.node || contextAnchor.link)}
             onClose={this.handleCloseMenu}>
-            <MenuItem onClick={this.onElementsRemove}>Remove</MenuItem>
+            <MenuItem onClick={this.onElementsRemove}>Remove {activeElementType}</MenuItem>
           </Menu>
 
           <ReactFlowProvider>
