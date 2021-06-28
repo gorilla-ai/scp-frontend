@@ -563,7 +563,7 @@ button.standard:hover:not([disabled]) {
 }
 .MuiTableCell-head div,
 .MuiTableSortLabel-icon {
-  color: var(--buttonSelectedColor) !important;
+  color: var(--primaryContentHeader) !important;
 }
 .MuiTableCell-body {
   .severity-level {
@@ -2191,25 +2191,27 @@ button.standard:hover:not([disabled]) {
             }
           }
           .host-table {
-            table {
-              width: 100%;
-              tr {
-                border-bottom: 1px solid var(--primaryBorder);
-                &.child-data {
-                  background-color: var(--tableRowOdd) !important;
-                }
+            .table-header {
+              overflow: hidden;
+              padding: 15px 20px 5px 15px;
+              background-color: var(--tableRowEven);
+              border-bottom: 1px solid var(--primaryBorder);
+              header {
+                float: left;
+                color: var(--primaryContentHeader);
+                font-weight: bold;
               }
-              tr:nth-child(even),
-              tr:nth-child(odd) {
-                background-color: var(--tableRowEven);
+              .radio-group {
+                float: right;
+                flex-direction: row;
+                margin-top: -8px;
+                margin-right: 10px;
               }
-              button:hover {
-                background-color: var(--buttonHoverColor);
-              }
-              .secondary-row {
-                display: none;
-                &.active {
-                  display: table-row;
+              .header-btn-group {
+                float: right;
+                button {
+                  float: left;
+                  margin: 0 5px;
                 }
               }
             }
@@ -2217,26 +2219,52 @@ button.standard:hover:not([disabled]) {
               display: flex;
               justify-content: space-between;
               align-items: stretch;
+              background-color: var(--tableRowEven);
+              &:hover {
+                background-color: var(--tabMenuHover);
+              }
               &.header {
+                color: var(--primaryContentHeader);
                 font-size: 1em;
                 font-weight: bold;
                 line-height: 1.5rem;
               }
-              &.item {
-                &:hover {
-                  background-color: #e2ecfd !important;
+              &.child-row {
+                display: none;
+                &.active {
+                  display: block;
                 }
-                &:nth-of-type(odd) {
-                  background-color: #f5f5f5;
+                li {
+                  padding: 0;
                 }
-                &:nth-of-type(even) {
-                  background-color: #fff;
+                ul.child-data {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: stretch;
+                  background-color: var(--tableRowOdd);
+                  cursor: default;
+                  &:hover {
+                    background-color: var(--tabMenuHover);
+                  }
+                  li {
+                    flex-basis: 15%;
+                    padding: 10px 50px;
+                  }
                 }
               }
               li {
+                position: relative;
                 flex-basis: 15%;
                 padding: 10px 50px;
-                border-bottom: 1px solid #e0e0e0;
+                border-bottom: 1px solid var(--primaryBorder);
+                &.vans-name button {
+                  position: absolute;
+                  left: 15px;
+                  top: 6px;
+                  &:hover {
+                    background-color: var(--buttonHoverColor);
+                  }
+                }
               }
             }
           }

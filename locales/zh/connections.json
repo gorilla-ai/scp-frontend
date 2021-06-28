@@ -412,7 +412,11 @@
     "txt-cveMedium": "CVE中風險",
     "txt-vansLow": "CVE低風險",
     "txt-gcbCount": "GCB問題",
-    "txt-malwareCount": "Malware威脅"
+    "txt-malwareCount": "Malware威脅",
+    "txt-tableOptions": "功能",
+    "txt-hmdStats": "弱點統計",
+    "txt-deviceCount": "主機數量",
+    "txt-hmdCount": "弱點數量"
   },
 
   "alert": {

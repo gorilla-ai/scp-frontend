@@ -55,6 +55,10 @@ class VansRow extends Component {
   getVansRowData = () => {
     console.log(this.props.row);
   }
+  /**
+   * Toggle table row on/off
+   * @method
+   */
   toggleRow = () => {
     this.setState({
       open: !this.state.open
@@ -68,16 +72,31 @@ class VansRow extends Component {
    */
   displayChildData = (val) => {
     return (
-      <tr key={val.id} className='child-data'>
-        <td className='vans-name'>{val.name}</td>
-        <td className='vans-count'>{val.vansCounts}</td>
-        <td className='vans-high'>{val.vansHigh}</td>
-        <td className='vans-medium'>{val.vansMedium}</td>
-        <td className='vans-low'>{val.vansLow}</td>
-        <td className='gcb-count'>{val.gcbCounts}</td>
-        <td className='malware-count'>{val.malwareCounts}</td>
-      </tr>
+      <ul key={val.id} className='child-data'>
+        <li className='vans-name'>{val.name}</li>
+        <li className='vans-count'>{val.vansCounts}</li>
+        <li className='vans-high'>{val.vansHigh}</li>
+        <li className='vans-medium'>{val.vansMedium}</li>
+        <li className='vans-low'>{val.vansLow}</li>
+        <li className='gcb-count'>{val.gcbCounts}</li>
+        <li className='malware-count'>{val.malwareCounts}</li>
+        <li className='actions'>
+          <i className='c-link fg fg-chart-columns'></i>
+          <i className='c-link fg fg-file-csv'></i>
+        </li>
+      </ul>
     )
+  }
+  /**
+   * Check child element
+   * @method
+   * @param {object} child - vans child data
+   * @returns cursor pointer
+   */
+  checkChildNode = (child) => {
+    if (child && child.length > 0) {
+      return { cursor: 'pointer' };
+    }
   }
   render() {
    const {row} = this.props;
@@ -85,33 +104,33 @@ class VansRow extends Component {
 
     return (
       <React.Fragment>
-        <tr>
-          <td className='vans-name'>
+        <ul style={this.checkChildNode(row.children)} onClick={this.toggleRow}>
+          <li className='vans-name'>
             {row.children && row.children.length > 0 &&
               <IconButton aria-label='expand row' size='small' onClick={this.toggleRow}>
                 {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
               </IconButton>
             }
             {row.name}
-          </td>
-          <td className='vans-count'>{row.vansCounts}</td>
-          <td className='vans-high'>{row.vansHigh}</td>
-          <td className='vans-medium'>{row.vansMedium}</td>
-          <td className='vans-low'>{row.vansLow}</td>
-          <td className='gcb-count'>{row.gcbCounts}</td>
-          <td className='malware-count'>{row.malwareCounts}</td>
-        </tr>
-        <tr className={cx('secondary-row', {'active': open})}>
-          <td colSpan={7}>
+          </li>
+          <li className='vans-count'>{row.vansCounts}</li>
+          <li className='vans-high'>{row.vansHigh}</li>
+          <li className='vans-medium'>{row.vansMedium}</li>
+          <li className='vans-low'>{row.vansLow}</li>
+          <li className='gcb-count'>{row.gcbCounts}</li>
+          <li className='malware-count'>{row.malwareCounts}</li>
+          <li className='actions'>
+            <i className='c-link fg fg-chart-columns'></i>
+            <i className='c-link fg fg-file-csv'></i>
+          </li>
+        </ul>
+        <ul className={cx('child-row', {'active': open})}>
+          <li>
             <Collapse in={open} timeout='auto' unmountOnExit>
-              <table className='c-table main-table with-border'>
-                <tbody>
-                  {row.children.map(this.displayChildData)}
-                </tbody>
-              </table>
+              {row.children.map(this.displayChildData)}
             </Collapse>
-          </td>
-        </tr>
+          </li>
+        </ul>
       </React.Fragment>
     )
   }

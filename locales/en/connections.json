@@ -413,7 +413,11 @@
     "txt-cveMedium": "CVE Medium",
     "txt-vansLow": "CVE Low",
     "txt-gcbCount": "GCB Count",
-    "txt-malwareCount": "Malware Count"
+    "txt-malwareCount": "Malware Count",
+    "txt-tableOptions": "Actions",
+    "txt-hmdStats": "HMD Stats",
+    "txt-deviceCount": "Device Count",
+    "txt-hmdCount": "HMD Count"
   },
 
   "alert": {
