@@ -408,16 +408,20 @@
     "txt-edition": "Edition",
     "txt-language": "Language",
     "txt-dept": "Department",
-    "txt-vansCount": "CVE Count",
+    "txt-vansCounts": "CVE Count",
     "txt-vansHigh": "CVE High",
-    "txt-cveMedium": "CVE Medium",
+    "txt-vansMedium": "CVE Medium",
     "txt-vansLow": "CVE Low",
-    "txt-gcbCount": "GCB Count",
-    "txt-malwareCount": "Malware Count",
+    "txt-gcbCounts": "GCB Count",
+    "txt-malwareCounts": "Malware Count",
     "txt-tableOptions": "Actions",
     "txt-hmdStats": "HMD Stats",
+    "txt-threatsDevice": "Device",
     "txt-deviceCount": "Device Count",
-    "txt-hmdCount": "HMD Count"
+    "txt-hmdCount": "HMD Count",
+    "txt-deviceName": "Device Name",
+    "txt-deviceIP": "Device IP",
+    "txt-mark": "Mark"
   },
 
   "alert": {

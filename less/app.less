@@ -1102,9 +1102,9 @@ button.standard:hover:not([disabled]) {
     padding: 15px;
     background-color: var(--primaryBackground);
     .charts {
-      width: 100%;
       display: flex;
       flex-wrap: wrap;
+      width: 100%;
       .chart-group {
         width: 24.4%;
         margin: 5px;
@@ -2191,6 +2191,7 @@ button.standard:hover:not([disabled]) {
             }
           }
           .host-table {
+            padding: 10px;
             .table-header {
               overflow: hidden;
               padding: 15px 20px 5px 15px;
@@ -2213,6 +2214,12 @@ button.standard:hover:not([disabled]) {
                   float: left;
                   margin: 0 5px;
                 }
+              }
+            }
+            .vans-table {
+              .body {
+                height: 300px;
+                overflow-y: auto;
               }
             }
             ul {
@@ -2242,25 +2249,23 @@ button.standard:hover:not([disabled]) {
                   justify-content: space-between;
                   align-items: stretch;
                   background-color: var(--tableRowOdd);
-                  cursor: default;
                   &:hover {
                     background-color: var(--tabMenuHover);
                   }
                   li {
                     flex-basis: 15%;
-                    padding: 10px 50px;
+                    padding: 10px 10px;
                   }
                 }
               }
               li {
                 position: relative;
                 flex-basis: 15%;
-                padding: 10px 50px;
+                padding: 10px 10px;
                 border-bottom: 1px solid var(--primaryBorder);
                 &.vans-name button {
-                  position: absolute;
-                  left: 15px;
-                  top: 6px;
+                  float: left;
+                  margin-top: -3px;
                   &:hover {
                     background-color: var(--buttonHoverColor);
                   }

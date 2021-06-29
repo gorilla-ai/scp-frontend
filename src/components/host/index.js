@@ -34,6 +34,8 @@ import Pagination from '../common/pagination'
 import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
+import VansDevice from './vans-device'
+import VansPieChart from './vans-pie-chart'
 import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -212,6 +214,7 @@ const MODULE_TYPE = {
   getVansCpe: 'cpe',
   getVansCve: 'cve'
 };
+const VANS_DATA = ['vansCounts', 'vansHigh', 'vansMedium', 'vansLow', 'gcbCounts', 'malwareCounts'];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -257,6 +260,7 @@ class HostController extends Component {
       safetyDetailsOpen: false,
       hostDeviceOpen: false,
       reportNCCSTopen: false,
+      vansPieChartOpen: false,
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
@@ -328,6 +332,8 @@ class HostController extends Component {
       },
       openHmdType: '',
       vansChartsData: {},
+      vansData: {},
+      vansPieChartData: {},
       showLoadingIcon: false,
       nccstSelectedList: [],
       nccstCheckAll: false,
@@ -678,15 +684,22 @@ class HostController extends Component {
   /**
    * Get and set vans charts data
    * @method
+   * @param {string} type - chart data type ('assessment' or 'hmd')
    */
-  getVansChartsData = () => {
+  getVansChartsData = (type) => {
     const {baseUrl} = this.context;
     const datetime = this.getHostDateTime();
-    const url = `${baseUrl}/api/ipdevice/assessment/deptCountsTable`;
     const requestData = {
       timestamp: ['2021-06-23T16:00:00Z', '2021-06-24T16:00:00Z']
       //timestamp: [datetime.from, datetime.to]
     };
+    let url = `${baseUrl}/api/`;
+
+    if (type === 'assessment') {
+      url += 'ipdevice/assessment/deptCountsTable';
+    } else if (type === 'hmd') {
+      url += 'hmd/hmdScanDistribution/deptCountsTable';
+    }
 
     this.ah.one({
       url,
@@ -697,7 +710,8 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          vansChartsData: data
+          vansChartsData: data,
+          vansData: {}
         });
       }
       return null;
@@ -1162,6 +1176,17 @@ class HostController extends Component {
     });
   }
   /**
+   * Toggle NCCST list modal dialog on/off
+   * @method
+   */
+  toggleReportNCCST = () => {
+    this.setState({
+      reportNCCSTopen: !this.state.reportNCCSTopen,
+      nccstSelectedList: [],
+      nccstCheckAll: false
+    });
+  }
+  /**
    * Display NCCST list content
    * @method
    * @returns HTML DOM
@@ -1262,15 +1287,34 @@ class HostController extends Component {
     })
   }
   /**
-   * Show NCCST list modal dialog
+   * Toggle Vans Pie Chart modal dialog on/off
    * @method
-   * @returns ModalDialog component
+   * @param {array.<object>} data - vans data
    */
-  toggleReportNCCST = () => {
+  togglePieChart = (data) => {
     this.setState({
-      reportNCCSTopen: !this.state.reportNCCSTopen,
-      nccstSelectedList: [],
-      nccstCheckAll: false
+      vansPieChartOpen: !this.state.vansPieChartOpen
+    }, () => {
+      if (this.state.vansPieChartOpen) {
+        let vansPieChartData = {};
+
+        _.forEach(VANS_DATA, val => {
+          vansPieChartData[val] = [];
+        })
+
+        _.forEach(data, val => {
+          _.forEach(vansPieChartData, (val2, key) => {
+            vansPieChartData[key].push({
+              key: val.name,
+              doc_count: val[key]
+            });
+          })
+        })
+
+        this.setState({
+          vansPieChartData
+        });
+      }
     });
   }
   /**
@@ -1483,7 +1527,7 @@ class HostController extends Component {
           this.getVansStatus();
         });
       } else if (newTab === 'vansCharts') {
-        this.getVansChartsData();
+        this.getVansChartsData('assessment');
       } else {
         this.getHostData();
       }
@@ -2895,6 +2939,16 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+  /**
+   * Set Vans device data
+   * @param {object} vansData - vans data
+   * @method
+   */
+  setVansDeviceData = (vansData) => {
+    this.setState({
+      vansData
+    });
+  }
   render() {
     const {
       activeTab,
@@ -2908,6 +2962,7 @@ class HostController extends Component {
       safetyDetailsOpen,
       hostDeviceOpen,
       reportNCCSTopen,
+      vansPieChartOpen,
       showSafetyTab,
       contextAnchor,
       menuType,
@@ -2934,6 +2989,8 @@ class HostController extends Component {
       safetyScanType,
       fromSafetyPage,
       vansChartsData,
+      vansData,
+      vansPieChartData,
       floorPlan,
       showLoadingIcon
     } = this.state;
@@ -3232,10 +3289,30 @@ class HostController extends Component {
                 }
 
                 {activeTab === 'vansCharts' &&
-                  <div className='host-table'>
-                    <VansCharts
-                      vansChartsData={vansChartsData} />
-                  </div>
+                  <React.Fragment>
+                    {vansPieChartOpen &&
+                      <VansPieChart
+                        vansDataType={VANS_DATA}
+                        vansPieChartData={vansPieChartData}
+                        togglePieChart={this.togglePieChart} />
+                    }
+
+                    <div className='host-table'>
+                      <VansCharts
+                        vansChartsData={vansChartsData}
+                        getVansChartsData={this.getVansChartsData}
+                        setVansDeviceData={this.setVansDeviceData}
+                        togglePieChart={this.togglePieChart} />
+                    </div>
+
+                    {vansData.devs && vansData.devs.length > 0 &&
+                      <div className='host-table'>
+                        <VansDevice
+                          vansChartsData={vansChartsData}
+                          vansData={vansData} />
+                      </div>
+                    }
+                  </React.Fragment>
                 }
               </div>
             </div>

@@ -3,14 +3,9 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import TextField from '@material-ui/core/TextField'
-
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -27,33 +22,17 @@ let f = null;
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show Vans Charts component
  */
-class VansNotes extends Component {
+class VansCharts extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      countType: 'device' //'device' or 'hmd'
+      countType: 'assessment' //'assessment' or 'hmd'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
-  }
-  componentDidMount() {
-    this.getVansChartData();
-  }
-  componentDidUpdate(prevProps) {
-    this.getVansChartData();
-  }
-  ryan = () => {
-
-  }
-  /**
-   * Set vans info data if available
-   * @method
-   */
-  getVansChartData = () => {
-    console.log(this.props.vansChartsData);
   }
   /**
    * Handle count type value change
@@ -63,7 +42,24 @@ class VansNotes extends Component {
   handleRadioChange = (event) => {
     this.setState({
       countType: event.target.value
+    }, () => {
+      this.props.getVansChartsData(this.state.countType);
     });
+  }
+  /**
+   * Set Vans child data
+   * @method
+   * @param {object} val - individual child data
+   * @param {number} i - index of the child data
+   */
+  setVansRowsData = (val, i) => {
+    return (
+      <VansRow
+        key={val.id}
+        countType={this.state.countType}
+        row={val}
+        setVansDeviceData={this.props.setVansDeviceData} />
+    )
   }
   render() {
    const {vansChartsData} = this.props;
@@ -74,7 +70,7 @@ class VansNotes extends Component {
         <div className='table-header'>
           <header>{t('host.txt-hmdStats')}</header>
           <div className='header-btn-group'>
-            <i className='c-link fg fg-chart-columns'></i>
+            <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, vansChartsData.deptTree)}></i>
             <i className='c-link fg fg-file-csv'></i>
           </div>
           <RadioGroup
@@ -82,11 +78,11 @@ class VansNotes extends Component {
             value={countType}
             onChange={this.handleRadioChange}>
             <FormControlLabel
-              value='device'
+              value='assessment'
               control={<Radio color='primary' />}
               label={t('host.txt-deviceCount')} />
             <FormControlLabel
-              value='hmt'
+              value='hmd'
               control={<Radio color='primary' />}
               label={t('host.txt-hmdCount')} />
           </RadioGroup>
@@ -94,20 +90,18 @@ class VansNotes extends Component {
         <div className='vans-table'>
           <ul className='header'>
             <li>{t('host.txt-dept')}</li>
-            <li>{t('host.txt-vansCount')}</li>
+            <li>{t('host.txt-vansCounts')}</li>
             <li>{t('host.txt-vansHigh')}</li>
-            <li>{t('host.txt-cveMedium')}</li>
+            <li>{t('host.txt-vansMedium')}</li>
             <li>{t('host.txt-vansLow')}</li>
-            <li>{t('host.txt-gcbCount')}</li>
-            <li>{t('host.txt-malwareCount')}</li>
+            <li>{t('host.txt-gcbCounts')}</li>
+            <li>{t('host.txt-malwareCounts')}</li>
             <li>{t('host.txt-tableOptions')}</li>
           </ul>
 
           <div className='body'>
             {vansChartsData.deptTree && vansChartsData.deptTree.length > 0 &&
-              vansChartsData.deptTree.map((row) => {
-                return <VansRow key={row.id} row={row} />
-              })
+              vansChartsData.deptTree.map(this.setVansRowsData)
             }
           </div>
         </div>
@@ -116,10 +110,13 @@ class VansNotes extends Component {
   }
 }
 
-VansNotes.contextType = BaseDataContext;
+VansCharts.contextType = BaseDataContext;
 
-VansNotes.propTypes = {
-  vansChartsData: PropTypes.object.isRequired
+VansCharts.propTypes = {
+  vansChartsData: PropTypes.object.isRequired,
+  getVansChartsData: PropTypes.func.isRequired,
+  setVansDeviceData: PropTypes.func.isRequired,
+  togglePieChart: PropTypes.func.isRequired
 };
 
-export default VansNotes;
+export default VansCharts;

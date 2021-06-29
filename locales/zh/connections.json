@@ -407,16 +407,20 @@
     "txt-edition": "版本",
     "txt-language": "語言",
     "txt-dept": "單位",
-    "txt-vansCount": "CVE通報(總數)",
+    "txt-vansCounts": "CVE通報(總數)",
     "txt-vansHigh": "CVE高風險",
-    "txt-cveMedium": "CVE中風險",
+    "txt-vansMedium": "CVE中風險",
     "txt-vansLow": "CVE低風險",
-    "txt-gcbCount": "GCB問題",
-    "txt-malwareCount": "Malware威脅",
+    "txt-gcbCounts": "GCB問題",
+    "txt-malwareCounts": "Malware威脅",
     "txt-tableOptions": "功能",
     "txt-hmdStats": "弱點統計",
+    "txt-threatsDevice": "威脅主機",
     "txt-deviceCount": "主機數量",
-    "txt-hmdCount": "弱點數量"
+    "txt-hmdCount": "弱點數量",
+    "txt-deviceName": "主機名稱",
+    "txt-deviceIP": "主機IP",
+    "txt-mark": "標記"
   },
 
   "alert": {

@@ -2318,3 +2318,21 @@ html[data-theme='dark'] {
   max-height: 400px;
   padding: 25px;
 }
+#vansPieChartdialog-content {
+  height: 78vh;
+  padding: 5px;
+  overflow-y: auto;
+  .charts {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    .chart-group {
+      width: 49.0%;
+      margin: 5px;
+      overflow: hidden;
+      border: 1px solid var(--primaryBorder);
+      border-radius: 5px;
+      background-color: var(--primaryContentBackground);
+    }
+  }
+}
