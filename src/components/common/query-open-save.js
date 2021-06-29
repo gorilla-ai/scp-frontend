@@ -871,12 +871,11 @@ class QueryOpenSave extends Component {
    * Get filter group background color
    * @method
    * @param {object} queryDataList - query data list
+   * @returns css display
    */
   getQueryColor = (queryDataList) => {
-    if (queryDataList.length === 0) {
-      return {
-        display: 'none'
-      }
+    if (queryDataList && queryDataList.length === 0) {
+      return { display: 'none' };
     }
   }
   /**
