@@ -76,7 +76,7 @@ const SCAN_RESULT = [
     result: '_VansResult'
   }
 ];
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected'];
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected'];
 const HMD_TRIGGER = [
   {
     name: 'Yara Scan',

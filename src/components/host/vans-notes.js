@@ -370,7 +370,7 @@ class VansNotes extends Component {
             name='annotation'
             className='textarea-autosize notes'
             placeholder={t('host.txt-annotation')}
-            rows={5}
+            rows={3}
             value={vansNotes.annotation}
             onChange={this.handleVansNotesChange} />
         </div>

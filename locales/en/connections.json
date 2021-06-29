@@ -360,6 +360,7 @@
     "txt-isAreaNull": "No Area",
     "txt-isSeatNull": "No Seat",
     "txt-isConnected": "Connected",
+    "txt-isDisconnected": "Disconnected",
     "txt-title-scanFile": "Malware Information",
     "txt-title-gcbDetection": "GCB Information",
     "txt-title-getFileIntegrity": "File Information",
