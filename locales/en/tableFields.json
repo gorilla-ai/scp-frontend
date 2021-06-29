@@ -550,8 +550,17 @@
     "serviceName": "Service Name"
   },
   "incidentFields": {
+    "severity": "Severity Label",
+    "impact": "ImpactAssessment Level",
+    "eventDescription": "Rule Info",
+    "accountQueryDTO": {
+      "module":  "Create Source",
+      "name": "Filter Name"
+    },
+    "flowId": "Flow Type",
     "isDefault": "Default Unit",
     "isGovernment":"Forward NCCST",
+    "flowName": "Flow Name",
     "id": "ID",
     "title": "Title",
     "category": "Category",

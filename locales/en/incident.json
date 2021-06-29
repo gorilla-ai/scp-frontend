@@ -18,9 +18,11 @@
 	"txt-incident-device-management": "Incident Device Management",
 	"txt-incident-unit-management": "Incident Unit Management",
 	"txt-incident-config-management": "Incident Config Management",
-	"txt-incident-log-management": "Incident Send Log",
+	"txt-incident-log-management": "Incident Publish Record",
 	"txt-incident-isac-management": "ISAC Config Management",
-	"txt-incident-soc-management": "Government G-SOC Config Management",
+	"txt-incident-soc-management": "G-SOC Config Management",
+	"txt-incident-soc-rule": "Incident Automated Management",
+	"txt-incident-soc-flow": "Incident Flow Management",
 	"txt-incident-isac-config": "ISAC Config Settings",
 	"txt-incident-soc-config": "SOC Config Settings",
 	"txt-incident-events": "Incident Events",
@@ -139,6 +141,10 @@
 	"txt-new": "Add",
 	"txt-update": "Edit",
 	"txt-delete": "Delete",
+
+	"txt-soc-filter": "Filter Basic Info",
+	"txt-soc-filter-input": "Filter",
+
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",
@@ -179,9 +185,9 @@
 		"txt-existChildren": "The Unit still has sub unit or deportment, so it cannot be deleted "
 	},
 	"device": {
-		"txt-edgeDevice": "Available Edge Device",
+		"txt-edgeDevice": "Available Device",
 		"txt-name": "Device Name",
-		"txt-id": "Device ID (Edge Device do not modify)",
+		"txt-id": "Device ID (Device do not modify)",
 		"txt-id-limit": "Device ID",
 		"txt-company": "Device Company",
 		"txt-exists": "Device ID already exists"

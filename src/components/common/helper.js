@@ -365,6 +365,16 @@ const helper = {
               severity: 'Emergency'
             };
 
+            tempQueryData.soc={
+              id:'',
+              severity: 'Emergency',
+              limitQuery: 10,
+              title: '',
+              eventDescription:'',
+              impact: 4,
+              category: 1,
+            }
+
             if (data[0].patternId) {
               tempQueryData.patternId = data[0].patternId;
             }

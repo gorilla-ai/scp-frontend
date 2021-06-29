@@ -2931,7 +2931,15 @@ class ThreatsController extends Component {
     let tempQueryData = {...this.state.queryData};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
-
+    tempQueryData.soc={
+      id:'',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription:'',
+      impact: 4,
+      category: 1,
+    }
     this.setState({
       queryData: tempQueryData,
       notifyEmailData: []

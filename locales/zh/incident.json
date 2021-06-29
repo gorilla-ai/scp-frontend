@@ -21,6 +21,8 @@
 	"txt-incident-log-management": "事件發布紀錄",
 	"txt-incident-isac-management": "轉發ISAC設定管理",
 	"txt-incident-soc-management": "轉發政府GSOC設定管理",
+	"txt-incident-soc-rule": "情資事件自動化模板管理",
+	"txt-incident-soc-flow": "情資事件流程管理",
 	"txt-incident-isac-config": "ISAC參數設定",
 	"txt-incident-soc-config": "SOC參數設定",
 	"txt-incident-events": "監控觸發紀錄",
@@ -139,6 +141,10 @@
 	"txt-new": "新增",
 	"txt-update": "更新",
 	"txt-delete": "刪除",
+
+	"txt-soc-filter": "查詢條件基本資料",
+	"txt-soc-filter-input": "查詢條件",
+
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",
@@ -180,9 +186,9 @@
 		"txt-existChildren": "機關架構尚有子機關/部門，故無法刪除"
 	},
 	"device": {
-		"txt-edgeDevice": "可收錄之Edge設備",
+		"txt-edgeDevice": "可收錄之設備",
 		"txt-name": "設備名稱與型號",
-		"txt-id": "設備代號(Edge設備請勿隨意更改)",
+		"txt-id": "設備代號(收錄設備請勿隨意更改)",
 		"txt-id-limit": "設備代號",
 		"txt-company": "設備廠商",
 		"txt-exists": "設備代號已存在"

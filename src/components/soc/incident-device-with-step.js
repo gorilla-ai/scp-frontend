@@ -73,6 +73,7 @@ class IncidentDeviceStep extends Component {
             openManage: false,
             ownerType: 'existing',
             activeSteps: 1,
+            edgeList:[],
             healthStatistic: {
                 dataFieldsArr: ['select', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
                 // dataFieldsArr: ['select', 'deviceId', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
@@ -87,6 +88,11 @@ class IncidentDeviceStep extends Component {
                 currentPage: 1,
                 pageSize: 1000,
                 edgeItem: '',
+                deviceItem:{
+                  id:'',
+                  value:'',
+                  text:'',
+                },
                 usedDeviceIdList: [],
                 sendDataDeviceList: [],
                 selected: {
@@ -127,6 +133,11 @@ class IncidentDeviceStep extends Component {
                 currentPage: 1,
                 pageSize: 20,
                 edgeItem: '',
+                deviceItem:{
+                    id:'',
+                    value:'',
+                    text:'',
+                },
                 usedDeviceIdList: [],
 
                 info: {
@@ -720,7 +731,7 @@ class IncidentDeviceStep extends Component {
                                     value={incidentDevice.edgeItem}
                                     disabled={activeContent === 'viewDevice'}>
                                     {_.map(edgeList, el => {
-                                        return <MenuItem value={el}>{el.agentName}</MenuItem>
+                                        return <MenuItem value={el}>{el.agentName || el.agentId}</MenuItem>
                                     })}
                                 </TextField>
                             </div>
@@ -754,7 +765,7 @@ class IncidentDeviceStep extends Component {
                                     error={!(incidentDevice.info.deviceName || '')}
                                     required
                                     helperText={it('txt-required')}
-                                    disabled={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
+                                    disabled={activeContent === 'viewDevice'}/>
                             </div>
 
                             <div className='group'>
@@ -866,7 +877,7 @@ class IncidentDeviceStep extends Component {
                 }
 
                 { activeContent === 'editDevice' &&
-                <React.Fragment>
+                    <React.Fragment>
                     <div className='steps-indicator'>
                         {stepTitle.map(this.showUnitStepIcon)}
                     </div>
@@ -928,7 +939,7 @@ class IncidentDeviceStep extends Component {
                                 error={!(incidentDevice.info.deviceName || '')}
                                 required
                                 helperText={it('txt-required')}
-                                disabled={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
+                                disabled={activeContent === 'viewDevice'}/>
                         </div>
 
                         <div className='group'>
@@ -1162,7 +1173,7 @@ class IncidentDeviceStep extends Component {
                 </React.Fragment>
                 }
                 {activeContent === 'editDevice' &&
-                <footer>
+                    <footer>
                     <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
                     {activeSteps > 1 &&
                     <Button variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
@@ -1172,7 +1183,7 @@ class IncidentDeviceStep extends Component {
                 }
 
                 { activeContent === 'addDevice' &&
-                <React.Fragment>
+                    <React.Fragment>
                     <div className='steps-indicator'>
                         {stepTitle.map(this.showUnitStepIcon)}
                     </div>
@@ -1234,7 +1245,7 @@ class IncidentDeviceStep extends Component {
                                 error={!(incidentDevice.info.deviceName || '')}
                                 required
                                 helperText={it('txt-required')}
-                                disabled={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
+                                disabled={activeContent === 'viewDevice'}/>
                         </div>
 
                         <div className='group'>
@@ -1467,28 +1478,17 @@ class IncidentDeviceStep extends Component {
                 </React.Fragment>
                 }
                 {activeContent === 'addDevice' &&
-                <footer>
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
-                    {activeSteps > 1 &&
-                    <Button variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
-                    }
-                    <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
-                </footer>
+                    <footer>
+                        <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                        {activeSteps > 1 &&
+                        <Button variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
+                        }
+                        <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
+                    </footer>
                 }
             </div>
         )
     };
-
-    handleOwnerTypeChange = (event) => {
-        const {departmentList, incidentDevice, titleList, addIP, originalIncidentDeviceData} = this.state;
-        let tempIncidentDevice = incidentDevice;
-        // tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
-
-        this.setState({
-            ownerType: event.target.value,
-            // incidentDevice:tempIncidentDevice
-        });
-    }
 
     handleChange(field, value) {
         let tempDevice = {...this.state.unit};
@@ -2173,7 +2173,6 @@ class IncidentDeviceStep extends Component {
             };
             this.setState({
                 showFilter: false,
-                ownerType: 'new',
                 unit: {
                     id: '',
                     oid: '',
@@ -2553,7 +2552,7 @@ class IncidentDeviceStep extends Component {
             _.forEach(edgeItemList, val => {
                 if (val.agentId === event.target.value) {
                     tempSendDevice.info.deviceId = val.agentId
-                    tempSendDevice.info.deviceName = val.agentName
+                    tempSendDevice.info.deviceName = val.agentName ||  val.agentId
                     tempSendDevice.info.deviceCompany = val.agentCompany
                 } else {
                     tempSendDevice.info.deviceId = ''
@@ -2629,18 +2628,6 @@ class IncidentDeviceStep extends Component {
             });
     };
 
-    /**
-     * Handle CSV download
-     * @method
-     */
-    getCSV_File = () => {
-        const {baseUrl, contextRoot} = this.context;
-        const url = `${baseUrl}${contextRoot}/api/soc/device/_export`;
-        let requestData = {
-            "columns": []
-        };
-        downloadWithForm(url, {payload: JSON.stringify(requestData)});
-    }
 
     getOptions = () => {
         const {baseUrl, contextRoot} = this.context;
@@ -2652,8 +2639,7 @@ class IncidentDeviceStep extends Component {
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
-        })
-            .then(data => {
+        }).then(data => {
                 if (data) {
                     let edgeList = [];
 
@@ -2679,12 +2665,59 @@ class IncidentDeviceStep extends Component {
 
                     this.setState({
                         edgeList: edgeList,
+                    },()=>{
+                        this.getNetProxyList()
                     });
                 }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+    }
+
+    getNetProxyList = () => {
+        const {baseUrl, contextRoot,} = this.context;
+        const {edgeList} = this.state;
+        let usedDeviceIdList = {...this.state.usedDeviceIdList}
+        let tempEdgeList =edgeList
+
+        ah.one({
+            url: `${baseUrl}/api/v2/log/config`,
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).then(data => {
+            if (data) {
+                let netProxyList = [];
+                let lookup = _.keyBy(usedDeviceIdList, function (o) {
+                    return o.deviceId
+                });
+
+                let result = _.filter(data.rt.loghostList, function (u) {
+                    return lookup[u] === undefined;
+                });
+
+                _.forEach(result, val => {
+                    let netProxyItem = {
+                        text: val,
+                        value: val,
+                        agentName: val,
+                        agentId: val,
+                        agentCompany: 'NSGUARD'
+                    }
+                    netProxyList.push(netProxyItem)
+                })
+
+                let children = tempEdgeList.concat(netProxyList);
+                this.setState({
+                    edgeList: children,
+                },()=>{
+                    console.log("new edgeList ", this.state.edgeList )
+                });
+            }
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+
     }
 }
 

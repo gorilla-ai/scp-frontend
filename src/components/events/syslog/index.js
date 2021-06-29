@@ -2042,11 +2042,16 @@ class SyslogController extends Component {
    */
   queryDialog = (type) => {
     const {activeTab, account, filterData, markData, queryData, notifyEmailData} = this.state;
-
+    const {sessionRights} = this.context;
+    let moduleWithSOC = false
+    if (sessionRights.Module_Soc) {
+      moduleWithSOC = true
+    }
     return (
       <QueryOpenSave
         activeTab={activeTab}
         type={type}
+        moduleWithSOC={moduleWithSOC}
         account={account}
         filterData={filterData}
         markData={markData}
@@ -2099,7 +2104,15 @@ class SyslogController extends Component {
     let tempQueryData = {...queryData};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
-
+    tempQueryData.soc={
+      id:'',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription:'',
+      impact: 4,
+      category: 1,
+    }
     this.setState({
       queryData: tempQueryData,
       notifyEmailData: []
