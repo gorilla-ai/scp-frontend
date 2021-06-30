@@ -420,7 +420,8 @@
     "txt-hmdCount": "弱點數量",
     "txt-deviceName": "主機名稱",
     "txt-deviceIP": "主機IP",
-    "txt-mark": "標記"
+    "txt-mark": "標記",
+    "txt-parentDept": "直屬設備"
   },
 
   "alert": {

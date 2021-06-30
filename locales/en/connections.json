@@ -421,7 +421,8 @@
     "txt-hmdCount": "HMD Count",
     "txt-deviceName": "Device Name",
     "txt-deviceIP": "Device IP",
-    "txt-mark": "Mark"
+    "txt-mark": "Mark",
+    "txt-parentDept": "Parent Department"
   },
 
   "alert": {

@@ -14,7 +14,6 @@ import helper from '../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
-let f = null;
 
 /**
  * Vans Row
@@ -31,7 +30,6 @@ class VansRow extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   /**
@@ -39,8 +37,13 @@ class VansRow extends Component {
    * @method
    * @param {string} toggle - toggle child on/off ('toogle' or 'noToggle')
    * @param {array.<object>} data - vans child data
+   * @param {object} event - event object
    */
-  toggleRow = (toggle, data) => {
+  toggleRow = (toggle, data, event) => {
+    if (event.target.className === 'c-link fg fg-chart-columns') {
+      return;
+    }
+
     if (toggle === 'toggle') {
       this.setState({
         open: !this.state.open
@@ -76,9 +79,15 @@ class VansRow extends Component {
    * @returns HTML component
    */
   displayChildData = (val, i) => {
+    let vansName = val.name;
+
+    if (vansName === 'parentDept') {
+      vansName = t('host.txt-parentDept');
+    }
+
     return (
       <ul key={val.id} style={this.checkChildNode(val.devs)} className='child-data' onClick={this.toggleRow.bind(this, 'noToggle', val)}>
-        <li className='vans-name'>{val.name}</li>
+        <li className='vans-name'>{vansName}</li>
         <li className='vans-count'>{val.vansCounts}</li>
         <li className='vans-high'>{val.vansHigh}</li>
         <li className='vans-medium'>{val.vansMedium}</li>
@@ -86,7 +95,7 @@ class VansRow extends Component {
         <li className='gcb-count'>{val.gcbCounts}</li>
         <li className='malware-count'>{val.malwareCounts}</li>
         <li className='actions'>
-          <i className='c-link fg fg-chart-columns'></i>
+          <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, val.devs)}></i>
           <i className='c-link fg fg-file-csv'></i>
         </li>
       </ul>
@@ -114,7 +123,7 @@ class VansRow extends Component {
           <li className='gcb-count'>{row.gcbCounts}</li>
           <li className='malware-count'>{row.malwareCounts}</li>
           <li className='actions'>
-            <i className='c-link fg fg-chart-columns'></i>
+            <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, row.children)}></i>
             <i className='c-link fg fg-file-csv'></i>
           </li>
         </ul>
@@ -134,7 +143,9 @@ VansRow.contextType = BaseDataContext;
 
 VansRow.propTypes = {
   countType: PropTypes.string.isRequired,
-  row: PropTypes.object.isRequired
+  row: PropTypes.object.isRequired,
+  setVansDeviceData: PropTypes.func.isRequired,
+  togglePieChart: PropTypes.func.isRequired
 };
 
 export default VansRow;

@@ -14,7 +14,6 @@ import VansRow from './vans-row'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
-let f = null;
 
 /**
  * Vans Charts
@@ -31,7 +30,6 @@ class VansCharts extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   /**
@@ -43,7 +41,7 @@ class VansCharts extends Component {
     this.setState({
       countType: event.target.value
     }, () => {
-      this.props.getVansChartsData(this.state.countType);
+      this.props.clearVansData(this.state.countType);
     });
   }
   /**
@@ -53,12 +51,15 @@ class VansCharts extends Component {
    * @param {number} i - index of the child data
    */
   setVansRowsData = (val, i) => {
+    const {countType} = this.state;
+
     return (
       <VansRow
         key={val.id}
-        countType={this.state.countType}
+        countType={countType}
         row={val}
-        setVansDeviceData={this.props.setVansDeviceData} />
+        setVansDeviceData={this.props.setVansDeviceData}
+        togglePieChart={this.props.togglePieChart} />
     )
   }
   render() {
@@ -114,8 +115,8 @@ VansCharts.contextType = BaseDataContext;
 
 VansCharts.propTypes = {
   vansChartsData: PropTypes.object.isRequired,
-  getVansChartsData: PropTypes.func.isRequired,
   setVansDeviceData: PropTypes.func.isRequired,
+  clearVansData: PropTypes.func.isRequired,
   togglePieChart: PropTypes.func.isRequired
 };
 

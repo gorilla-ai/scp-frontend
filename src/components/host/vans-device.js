@@ -9,7 +9,6 @@ import helper from '../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
-let f = null;
 
 /**
  * Vans Device
@@ -21,11 +20,7 @@ class VansDevice extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-    };
-
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   /**
@@ -51,24 +46,29 @@ class VansDevice extends Component {
     )
   }
   render() {
-   const {vansChartsData, vansData} = this.props;
-   let tableHeader = '';
-   let parentDept = '';
+    const {vansChartsData, vansData} = this.props;
+    let tableHeader = '';
+    let parentDept = '';
+    let vansName = vansData.name;
 
-   if (vansData.parentId) {
-    const selectedDeptIndex = _.findIndex(vansChartsData.deptTree, { 'id': vansData.parentId });
-    parentDept = vansChartsData.deptTree[selectedDeptIndex].name;
-    tableHeader = parentDept + ' / ';
-   }
+    if (vansData.parentId) {
+      const selectedDeptIndex = _.findIndex(vansChartsData.deptTree, { 'id': vansData.parentId });
+      parentDept = vansChartsData.deptTree[selectedDeptIndex].name;
+      tableHeader = parentDept + ' / ';
+    }
 
-   tableHeader += vansData.name + ' ' + t('host.txt-threatsDevice');
+    if (vansName === 'parentDept') {
+      vansName = t('host.txt-parentDept');
+    }
+
+    tableHeader += vansName + ' ' + t('host.txt-threatsDevice');
 
     return (
       <React.Fragment>
         <div className='table-header'>
           <header>{tableHeader}</header>
           <div className='header-btn-group'>
-            <i className='c-link fg fg-chart-columns'></i>
+            <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, vansData.devs)}></i>
             <i className='c-link fg fg-file-csv'></i>
           </div>
         </div>
@@ -100,7 +100,8 @@ VansDevice.contextType = BaseDataContext;
 
 VansDevice.propTypes = {
   vansChartsData: PropTypes.object.isRequired,
-  vansData: PropTypes.array.isRequired
+  vansData: PropTypes.array.isRequired,
+  togglePieChart: PropTypes.func.isRequired
 };
 
 export default VansDevice;

@@ -721,6 +721,29 @@ class HostController extends Component {
     })
   }
   /**
+   * Set Vans device data
+   * @param {object} vansData - vans data
+   * @method
+   */
+  setVansDeviceData = (vansData) => {
+    this.setState({
+      vansData
+    });
+  }
+  /**
+   * Clear Vans data
+   * @method
+   * @param {string} type - chart data type ('assessment' or 'hmd')
+   */
+  clearVansData = (type) => {
+    this.setState({
+      vansChartsData: {},
+      vansData: {}
+    }, () => {
+      this.getVansChartsData(type);
+    });
+  }
+  /**
    * Get Host and Safety Scan request data
    * @method
    */
@@ -1305,7 +1328,7 @@ class HostController extends Component {
         _.forEach(data, val => {
           _.forEach(vansPieChartData, (val2, key) => {
             vansPieChartData[key].push({
-              key: val.name,
+              key: val.name || val.hostName,
               doc_count: val[key]
             });
           })
@@ -2939,16 +2962,6 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
-  /**
-   * Set Vans device data
-   * @param {object} vansData - vans data
-   * @method
-   */
-  setVansDeviceData = (vansData) => {
-    this.setState({
-      vansData
-    });
-  }
   render() {
     const {
       activeTab,
@@ -3147,11 +3160,13 @@ class HostController extends Component {
                   <Tab label={t('host.txt-vans')} value='vansCharts' />
                 </Tabs>
 
-                <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
-                </div>
+                {activeTab !== 'vansCharts' &&
+                  <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
+                  </div>
+                }
 
                 <Menu
                   anchorEl={contextAnchor}
@@ -3300,8 +3315,8 @@ class HostController extends Component {
                     <div className='host-table'>
                       <VansCharts
                         vansChartsData={vansChartsData}
-                        getVansChartsData={this.getVansChartsData}
                         setVansDeviceData={this.setVansDeviceData}
+                        clearVansData={this.clearVansData}
                         togglePieChart={this.togglePieChart} />
                     </div>
 
@@ -3309,7 +3324,8 @@ class HostController extends Component {
                       <div className='host-table'>
                         <VansDevice
                           vansChartsData={vansChartsData}
-                          vansData={vansData} />
+                          vansData={vansData}
+                          togglePieChart={this.togglePieChart} />
                       </div>
                     }
                   </React.Fragment>
