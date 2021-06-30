@@ -32,7 +32,7 @@ class VansDevice extends Component {
    */
   showVansDeviceData = (val, i) => {
     return (
-      <ul>
+      <ul className='c-link' onClick={this.props.getIPdeviceInfo.bind(this, val, 'toggle')}>
         <li className='device-name'>{val.hostName}</li>
         <li className='device-ip'>{val.ip}</li>
         <li className='vans-count'>{val.vansCounts}</li>
@@ -69,7 +69,7 @@ class VansDevice extends Component {
           <header>{tableHeader}</header>
           <div className='header-btn-group'>
             <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, vansData.devs)}></i>
-            <i className='c-link fg fg-file-csv'></i>
+            <i className='c-link fg fg-file-csv' onClick={this.props.getCSVfile.bind(this, vansData.id)}></i>
           </div>
         </div>
         <div className='vans-table'>
@@ -101,7 +101,9 @@ VansDevice.contextType = BaseDataContext;
 VansDevice.propTypes = {
   vansChartsData: PropTypes.object.isRequired,
   vansData: PropTypes.array.isRequired,
-  togglePieChart: PropTypes.func.isRequired
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  togglePieChart: PropTypes.func.isRequired,
+  getCSVfile: PropTypes.func.isRequired
 };
 
 export default VansDevice;

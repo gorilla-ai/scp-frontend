@@ -333,6 +333,7 @@ class HostController extends Component {
       openHmdType: '',
       vansChartsData: {},
       vansData: {},
+      vansTableType: 'assessment', //'assessment' or 'hmd'
       vansPieChartData: {},
       showLoadingIcon: false,
       nccstSelectedList: [],
@@ -684,20 +685,20 @@ class HostController extends Component {
   /**
    * Get and set vans charts data
    * @method
-   * @param {string} type - chart data type ('assessment' or 'hmd')
    */
-  getVansChartsData = (type) => {
+  getVansChartsData = () => {
     const {baseUrl} = this.context;
+    const {vansTableType} = this.state;
     const datetime = this.getHostDateTime();
     const requestData = {
-      timestamp: ['2021-06-23T16:00:00Z', '2021-06-24T16:00:00Z']
-      //timestamp: [datetime.from, datetime.to]
+      timestamp: [datetime.from, datetime.to]
+      //timestamp: ['2021-06-23T16:00:00Z', '2021-06-24T16:00:00Z']
     };
     let url = `${baseUrl}/api/`;
 
-    if (type === 'assessment') {
+    if (vansTableType === 'assessment') {
       url += 'ipdevice/assessment/deptCountsTable';
-    } else if (type === 'hmd') {
+    } else if (vansTableType === 'hmd') {
       url += 'hmd/hmdScanDistribution/deptCountsTable';
     }
 
@@ -733,14 +734,15 @@ class HostController extends Component {
   /**
    * Clear Vans data
    * @method
-   * @param {string} type - chart data type ('assessment' or 'hmd')
+   * @param {string} vansTableType - vans table type ('assessment' or 'hmd')
    */
-  clearVansData = (type) => {
+  clearVansData = (vansTableType) => {
     this.setState({
       vansChartsData: {},
-      vansData: {}
+      vansData: {},
+      vansTableType
     }, () => {
-      this.getVansChartsData(type);
+      this.getVansChartsData();
     });
   }
   /**
@@ -2095,7 +2097,9 @@ class HostController extends Component {
           hasMore: false
         }
       }, () => {
-        if (!this.state.hostAnalysisOpen) {
+        const {activeTab, hostAnalysisOpen} = this.state;
+
+        if (activeTab === 'hostList' && !this.state.hostAnalysisOpen) {
           this.getHostData();
           this.getVansStatus();
         }
@@ -2608,13 +2612,33 @@ class HostController extends Component {
   /**
    * Handle CSV download
    * @method
+   * @param {string} [options] - option for 'default' or department ID
    */
-  getCSVfile = () => {
+  getCSVfile = (options) => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
-    const dataOptions = this.getHostData('csv');
+    const {vansTableType} = this.state;
+    let url = '';
+    let requestData = this.getHostData('csv');
 
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+    if (options === 'default') {
+      url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
+    } else {
+      if (vansTableType === 'assessment') {
+        url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/deptCountsTable/_export`;
+        
+        if (options && typeof options === 'string') {
+          requestData.deptId = options;
+        }
+      } else if (vansTableType === 'hmd') {
+        url = `${baseUrl}${contextRoot}/api/hmd/hmdScanDistribution/deptCountsTable/_export`;
+
+        if (options && typeof options === 'string') {
+          requestData.deptId = options;
+        }
+      }
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Handle PDF export
@@ -2623,9 +2647,9 @@ class HostController extends Component {
   exportAllPdf = () => {
     const {baseUrl, contextRoot} = this.context
     const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
-    const dataOptions = this.getHostData('pdf')
+    const requestData = this.getHostData('pdf')
 
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)})
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Handle department checkbox check/uncheck
@@ -3003,6 +3027,7 @@ class HostController extends Component {
       fromSafetyPage,
       vansChartsData,
       vansData,
+      vansTableType,
       vansPieChartData,
       floorPlan,
       showLoadingIcon
@@ -3055,7 +3080,7 @@ class HostController extends Component {
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><PictureAsPdfIcon /></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           </div>
 
           <SearchOptions
@@ -3315,9 +3340,11 @@ class HostController extends Component {
                     <div className='host-table'>
                       <VansCharts
                         vansChartsData={vansChartsData}
+                        vansTableType={vansTableType}
                         setVansDeviceData={this.setVansDeviceData}
                         clearVansData={this.clearVansData}
-                        togglePieChart={this.togglePieChart} />
+                        togglePieChart={this.togglePieChart}
+                        getCSVfile={this.getCSVfile} />
                     </div>
 
                     {vansData.devs && vansData.devs.length > 0 &&
@@ -3325,7 +3352,9 @@ class HostController extends Component {
                         <VansDevice
                           vansChartsData={vansChartsData}
                           vansData={vansData}
-                          togglePieChart={this.togglePieChart} />
+                          getIPdeviceInfo={this.getIPdeviceInfo}
+                          togglePieChart={this.togglePieChart}
+                          getCSVfile={this.getCSVfile} />
                       </div>
                     }
                   </React.Fragment>

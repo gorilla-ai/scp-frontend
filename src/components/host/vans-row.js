@@ -79,6 +79,7 @@ class VansRow extends Component {
    * @returns HTML component
    */
   displayChildData = (val, i) => {
+    const {countType} = this.props;
     let vansName = val.name;
 
     if (vansName === 'parentDept') {
@@ -96,7 +97,7 @@ class VansRow extends Component {
         <li className='malware-count'>{val.malwareCounts}</li>
         <li className='actions'>
           <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, val.devs)}></i>
-          <i className='c-link fg fg-file-csv'></i>
+          <i className='c-link fg fg-file-csv' onClick={this.props.getCSVfile.bind(this, val.id)}></i>
         </li>
       </ul>
     )
@@ -124,7 +125,7 @@ class VansRow extends Component {
           <li className='malware-count'>{row.malwareCounts}</li>
           <li className='actions'>
             <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, row.children)}></i>
-            <i className='c-link fg fg-file-csv'></i>
+            <i className='c-link fg fg-file-csv' onClick={this.props.getCSVfile.bind(this, row.id)}></i>
           </li>
         </ul>
         <ul className={cx('child-row', {'active': open})}>
@@ -142,10 +143,10 @@ class VansRow extends Component {
 VansRow.contextType = BaseDataContext;
 
 VansRow.propTypes = {
-  countType: PropTypes.string.isRequired,
   row: PropTypes.object.isRequired,
   setVansDeviceData: PropTypes.func.isRequired,
-  togglePieChart: PropTypes.func.isRequired
+  togglePieChart: PropTypes.func.isRequired,
+  getCSVfile: PropTypes.func.isRequired
 };
 
 export default VansRow;

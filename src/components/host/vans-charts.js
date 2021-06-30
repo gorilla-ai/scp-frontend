@@ -25,10 +25,6 @@ class VansCharts extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      countType: 'assessment' //'assessment' or 'hmd'
-    };
-
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     this.ah = getInstance('chewbacca');
   }
@@ -38,11 +34,7 @@ class VansCharts extends Component {
    * @param {object} event - event object
    */
   handleRadioChange = (event) => {
-    this.setState({
-      countType: event.target.value
-    }, () => {
-      this.props.clearVansData(this.state.countType);
-    });
+    this.props.clearVansData(event.target.value);
   }
   /**
    * Set Vans child data
@@ -51,20 +43,17 @@ class VansCharts extends Component {
    * @param {number} i - index of the child data
    */
   setVansRowsData = (val, i) => {
-    const {countType} = this.state;
-
     return (
       <VansRow
         key={val.id}
-        countType={countType}
         row={val}
         setVansDeviceData={this.props.setVansDeviceData}
-        togglePieChart={this.props.togglePieChart} />
+        togglePieChart={this.props.togglePieChart}
+        getCSVfile={this.props.getCSVfile} />
     )
   }
   render() {
-   const {vansChartsData} = this.props;
-   const {countType} = this.state;
+    const {vansChartsData, vansTableType} = this.props;
 
     return (
       <React.Fragment>
@@ -72,11 +61,11 @@ class VansCharts extends Component {
           <header>{t('host.txt-hmdStats')}</header>
           <div className='header-btn-group'>
             <i className='c-link fg fg-chart-columns' onClick={this.props.togglePieChart.bind(this, vansChartsData.deptTree)}></i>
-            <i className='c-link fg fg-file-csv'></i>
+            <i className='c-link fg fg-file-csv' onClick={this.props.getCSVfile}></i>
           </div>
           <RadioGroup
             className='radio-group'
-            value={countType}
+            value={vansTableType}
             onChange={this.handleRadioChange}>
             <FormControlLabel
               value='assessment'
@@ -115,9 +104,11 @@ VansCharts.contextType = BaseDataContext;
 
 VansCharts.propTypes = {
   vansChartsData: PropTypes.object.isRequired,
+  vansTableType: PropTypes.string.isRequired,
   setVansDeviceData: PropTypes.func.isRequired,
   clearVansData: PropTypes.func.isRequired,
-  togglePieChart: PropTypes.func.isRequired
+  togglePieChart: PropTypes.func.isRequired,
+  getCSVfile: PropTypes.func.isRequired
 };
 
 export default VansCharts;
