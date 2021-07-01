@@ -54,7 +54,8 @@ class VansNotes extends Component {
         status: '',
         annotation: '',
         color: ''
-      }
+      },
+      showColorPalette: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -277,7 +278,14 @@ class VansNotes extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.handleVansNotesClear();
+        this.setState({
+          vansNotes: {
+            id: '',
+            status: '',
+            annotation: '',
+            color: ''
+          }
+        });
       }
       return null;
     })
@@ -288,27 +296,31 @@ class VansNotes extends Component {
   /**
    * Clear vans annotation
    * @method
-   * @param {string} [color] - option for clear color
+   * @param {string} type - button type ('clear' or 'palette')
    */
-  handleVansNotesClear = (color) => {
-    let tempVansNotes = {...this.state.vansNotes};
-
-    if (color) {
+  handleVansColorButton = (type) => {
+    if (type === 'clear') {
+      let tempVansNotes = {...this.state.vansNotes};
       tempVansNotes.color = '';
 
       this.setState({
-         vansNotes: tempVansNotes
+        vansNotes: tempVansNotes,
+        showColorPalette: false
       });
-    } else {
+    } else if (type === 'palette') {
       this.setState({
-         vansNotes: {
-          id: '',
-          status: '',
-          annotation: '',
-          color: ''
-        }
+        showColorPalette: !this.state.showColorPalette
       });
     }
+  }
+  /**
+   * Show color palette
+   * @method
+   */
+  turnOnColorPalette = () => {
+    this.setState({
+      showColorPalette: true
+    });
   }
   /**
    * Get vans notes height
@@ -325,7 +337,7 @@ class VansNotes extends Component {
     }
   }
   render() {
-    const {statusType, statusList, vansNotes} = this.state;
+    const {statusType, statusList, vansNotes, showColorPalette} = this.state;
 
     return (
       <div className='vans-notes' style={this.getHeight()}>
@@ -377,16 +389,21 @@ class VansNotes extends Component {
         <div className='group color'>
           <label>{t('txt-color')}</label>
           {vansNotes.color &&
-            <div className='color-box' className={'color-box ' + helper.showColor(vansNotes.color)}></div>
+            <React.Fragment>
+              <div className='color-box' className={'c-link color-box ' + helper.showColor(vansNotes.color)} onClick={this.turnOnColorPalette}></div>
+              <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansColorButton.bind(this, 'clear')}>{t('txt-clearText')}</Button>
+            </React.Fragment>
           }
-          {vansNotes.color &&
-            <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansNotesClear.bind(this, 'color')}>{t('txt-clearText')}</Button>
+          {!vansNotes.color &&
+            <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansColorButton.bind(this, 'palette')}>{t('txt-palette')}</Button>
           }
-          <GithubPicker
-            width='213px'
-            colors={COLOR_LIST}
-            triangle='hide'
-            onChangeComplete={this.handleDataChange} />
+          {showColorPalette &&
+            <GithubPicker
+              width='213px'
+              colors={COLOR_LIST}
+              triangle='hide'
+              onChangeComplete={this.handleDataChange} />
+          }
         </div>
         <div className='group btn-group'>
           <Button variant='contained' color='primary' className='btn save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
