@@ -691,8 +691,8 @@ class HostController extends Component {
     const {vansTableType} = this.state;
     const datetime = this.getHostDateTime();
     const requestData = {
-      timestamp: [datetime.from, datetime.to]
-      //timestamp: ['2021-06-23T16:00:00Z', '2021-06-24T16:00:00Z']
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData()
     };
     let url = `${baseUrl}/api/`;
 
@@ -1525,6 +1525,8 @@ class HostController extends Component {
         this.getHostData();
         this.getSafetyScanData();
       });
+    } else if (activeTab === 'vansCharts') {
+      this.getVansChartsData();
     }
   }
   /**
@@ -1552,7 +1554,7 @@ class HostController extends Component {
           this.getVansStatus();
         });
       } else if (newTab === 'vansCharts') {
-        this.getVansChartsData('assessment');
+        this.getVansChartsData();
       } else {
         this.getHostData();
       }
