@@ -63,13 +63,25 @@ class VansNotes extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getVansData();
+    this.setVansData();
+    this.setVansStatus();
+  }
+  componentDidUpdate(prevProps) {
+    const {currentData, vansDeviceStatusList} = this.props;
+
+    if (!prevProps || (prevProps && currentData.annotationObj && currentData.annotationObj.id && !prevProps.currentData.annotationObj)) {
+      this.setVansData();
+    }
+
+    if (!prevProps || (prevProps && vansDeviceStatusList !== prevProps.vansDeviceStatusList)) {
+      this.setVansStatus();
+    }
   }
   /**
-   * Set vans info data if available
+   * Set vans info data
    * @method
    */
-  getVansData = () => {
+  setVansData = () => {
     const {currentData, currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
     let statusList = [];
     let statusType = 'new';
@@ -100,8 +112,26 @@ class VansNotes extends Component {
 
     this.setState({
       statusType,
-      statusList,
       originalStatus: currentStatus
+    });
+  }
+  /**
+   * Set vans status
+   * @method
+   */
+  setVansStatus = () => {
+    const {currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
+    let statusList = [];
+
+    if (currentType === 'device') {
+      statusList = vansDeviceStatusList;
+    } else {
+      statusList = vansHmdStatusList;
+    }
+
+    this.setState({
+      statusList,
+      originalStatus: {}
     });
   }
   /**
@@ -227,6 +257,8 @@ class VansNotes extends Component {
     .then(data => {
       if (data.ret === 0) {
         helper.showPopupMsg(t('txt-saved'));
+        this.props.getIPdeviceInfo();
+        this.props.getVansStatus();
       }
       return null;
     })
@@ -286,6 +318,9 @@ class VansNotes extends Component {
             color: ''
           }
         });
+
+        this.props.getIPdeviceInfo();
+        this.props.getVansStatus();
       }
       return null;
     })
@@ -421,6 +456,7 @@ VansNotes.contextType = BaseDataContext;
 VansNotes.propTypes = {
   currentData: PropTypes.object.isRequired,
   currentType: PropTypes.string.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired,
   vansDeviceStatusList: PropTypes.array,
   vansHmdStatusList: PropTypes.array
 };

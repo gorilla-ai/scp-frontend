@@ -283,7 +283,9 @@ class HostAnalysis extends Component {
               <VansNotes
                 currentData={hostData}
                 currentType='device'
-                vansDeviceStatusList={vansDeviceStatusList} />
+                vansDeviceStatusList={vansDeviceStatusList}
+                getIPdeviceInfo={this.props.getIPdeviceInfo}
+                getVansStatus={this.props.getVansStatus} />
             }
           </div>
           <div className='content'>
@@ -525,7 +527,8 @@ HostAnalysis.propTypes = {
   loadEventTracing: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
-  getHostInfo: PropTypes.func.isRequired
+  getHostInfo: PropTypes.func.isRequired,
+  getVansStatus: PropTypes.func.isRequired
 };
 
 export default HostAnalysis;

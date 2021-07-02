@@ -555,8 +555,6 @@ class QueryOpenSave extends Component {
         this.setState({
           activeQuery: queryList[selectedQueryIndex]
         });
-      } else {
-        return;
       }
 
       _.forEach(queryData.list, val => {
@@ -995,7 +993,7 @@ class QueryOpenSave extends Component {
                 error={!formValidation.queryName.valid}
                 helperText={formValidation.queryName.msg}
                 value={queryData.inputName}
-                onChange={this.handleQueryChange.bind(this, 'name')}/>
+                onChange={this.handleQueryChange.bind(this, 'name')} />
             }
           </div>
 

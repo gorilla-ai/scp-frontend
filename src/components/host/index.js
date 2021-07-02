@@ -2922,7 +2922,8 @@ class HostController extends Component {
             loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis}
             toggleSafetyDetails={this.toggleSafetyDetails}
-            getHostInfo={this.getHostInfo} />
+            getHostInfo={this.getHostInfo}
+            getVansStatus={this.getVansStatus} />
         }
 
         {safetyDetailsOpen &&
@@ -2934,7 +2935,8 @@ class HostController extends Component {
             vansHmdStatusList={vansHmdStatusList}
             getHostInfo={this.getHostInfo}
             toggleSafetyDetails={this.toggleSafetyDetails}
-            getIPdeviceInfo={this.getIPdeviceInfo} />
+            getIPdeviceInfo={this.getIPdeviceInfo}
+            getVansStatus={this.getVansStatus} />
         }
 
         {hostDeviceOpen &&

@@ -760,7 +760,9 @@ class SafetyDetails extends Component {
                 <VansNotes
                   currentData={currentSafetyData}
                   currentType={safetyScanType}
-                  vansHmdStatusList={vansHmdStatusList} />
+                  vansHmdStatusList={vansHmdStatusList}
+                  getIPdeviceInfo={this.props.getIPdeviceInfo}
+                  getVansStatus={this.props.getVansStatus} />
               }
             </div>
             <div className='content'>
@@ -870,7 +872,8 @@ SafetyDetails.propTypes = {
   vansHmdStatusList: PropTypes.array.isRequired,
   getHostInfo: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
-  getIPdeviceInfo: PropTypes.func.isRequired
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  getVansStatus: PropTypes.func.isRequired
 };
 
 export default SafetyDetails;
