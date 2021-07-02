@@ -346,6 +346,7 @@
     "txt-hostList": "Host List",
     "txt-deviceMap": "Device Map",
     "txt-safetyScan": "Safety Scan",
+    "txt-vans": "VANS",
     "txt-safetyScanType": "Safety Scan Type",
     "txt-export-cpe": "Export CPE",
     "txt-report-nccst": "Report NCCST",
@@ -406,7 +407,23 @@
     "txt-os": "Operating System",
     "txt-update": "Update",
     "txt-edition": "Edition",
-    "txt-language": "Language"
+    "txt-language": "Language",
+    "txt-dept": "Department",
+    "txt-vansCounts": "CVE Count",
+    "txt-vansHigh": "CVE High",
+    "txt-vansMedium": "CVE Medium",
+    "txt-vansLow": "CVE Low",
+    "txt-gcbCounts": "GCB Count",
+    "txt-malwareCounts": "Malware Count",
+    "txt-tableOptions": "Actions",
+    "txt-hmdStats": "HMD Stats",
+    "txt-threatsDevice": "Device",
+    "txt-deviceCount": "Device Count",
+    "txt-hmdCount": "HMD Count",
+    "txt-deviceName": "Device Name",
+    "txt-deviceIP": "Device IP",
+    "txt-mark": "Mark",
+    "txt-parentDept": "Parent Department"
   },
 
   "alert": {

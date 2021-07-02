@@ -563,7 +563,7 @@ button.standard:hover:not([disabled]) {
 }
 .MuiTableCell-head div,
 .MuiTableSortLabel-icon {
-  color: var(--buttonSelectedColor) !important;
+  color: var(--primaryContentHeader) !important;
 }
 .MuiTableCell-body {
   .severity-level {
@@ -1102,9 +1102,9 @@ button.standard:hover:not([disabled]) {
     padding: 15px;
     background-color: var(--primaryBackground);
     .charts {
-      width: 100%;
       display: flex;
       flex-wrap: wrap;
+      width: 100%;
       .chart-group {
         width: 24.4%;
         margin: 5px;
@@ -2187,6 +2187,93 @@ button.standard:hover:not([disabled]) {
               margin-top: 160px;
               .fg-loading-2 {
                 font-size: 30px;
+              }
+            }
+          }
+          .host-table {
+            padding: 10px;
+            .table-header {
+              overflow: hidden;
+              padding: 15px 20px 5px 15px;
+              background-color: var(--tableRowEven);
+              border-bottom: 1px solid var(--primaryBorder);
+              header {
+                float: left;
+                color: var(--primaryContentHeader);
+                font-weight: bold;
+              }
+              .radio-group {
+                float: right;
+                flex-direction: row;
+                margin-top: -8px;
+                margin-right: 10px;
+              }
+              .header-btn-group {
+                float: right;
+                button {
+                  float: left;
+                  margin: 0 5px;
+                }
+              }
+            }
+            .vans-table {
+              .body {
+                height: 300px;
+                overflow-y: auto;
+              }
+            }
+            ul {
+              display: flex;
+              justify-content: space-between;
+              align-items: stretch;
+              background-color: var(--tableRowEven);
+              &:hover {
+                background-color: var(--tabMenuHover);
+              }
+              &.header {
+                color: var(--primaryContentHeader);
+                font-size: 1em;
+                font-weight: bold;
+                line-height: 1.5rem;
+              }
+              &.child-row {
+                display: none;
+                &.active {
+                  display: block;
+                }
+                li {
+                  padding: 0;
+                }
+                ul.child-data {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: stretch;
+                  background-color: var(--tableRowOdd);
+                  &:hover {
+                    background-color: var(--tabMenuHover);
+                  }
+                  li {
+                    flex-basis: 15%;
+                    padding: 10px 10px;
+                    &.vans-name {
+                      flex-basis: 14.5%;
+                      padding-left: 40px;
+                    }
+                  }
+                }
+              }
+              li {
+                position: relative;
+                flex-basis: 15%;
+                padding: 10px 10px;
+                border-bottom: 1px solid var(--primaryBorder);
+                &.vans-name button {
+                  float: left;
+                  margin-top: -3px;
+                  &:hover {
+                    background-color: var(--buttonHoverColor);
+                  }
+                }
               }
             }
           }
