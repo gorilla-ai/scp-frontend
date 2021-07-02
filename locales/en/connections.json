@@ -363,6 +363,7 @@
     "txt-isSeatNull": "No Seat",
     "txt-isConnected": "Connected",
     "txt-isDisconnected": "Disconnected",
+    "txt-isNotScan": "Not Scan",
     "txt-title-scanFile": "Malware Information",
     "txt-title-gcbDetection": "GCB Information",
     "txt-title-getFileIntegrity": "File Information",
@@ -961,7 +962,9 @@
     "errCode": "Error",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type",
-    "version": "Version"
+    "version": "Version",
+    "latestTime": "Last Scan",
+    "theLastestTaskResponseDttm": "Last Scan"
   },
   "syslogFields": {
     "port": "Received Port",

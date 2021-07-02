@@ -362,6 +362,7 @@
     "txt-isSeatNull": "未設定座位",
     "txt-isConnected": "已連線",
     "txt-isDisconnected": "未連線",
+    "txt-isNotScan": "未執行掃描",
     "txt-title-scanFile": "惡意程式資訊",
     "txt-title-gcbDetection": "GCB漏洞掃描資訊",
     "txt-title-getFileIntegrity": "檔案完整性掃描資訊",
@@ -960,7 +961,9 @@
     "errCode": "錯誤訊息",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type",
-    "version": "版本"
+    "version": "版本",
+    "latestTime": "最後掃描時間",
+    "theLastestTaskResponseDttm": "最後掃描時間"
   },
   "syslogFields": {
     "port": "接收Port",

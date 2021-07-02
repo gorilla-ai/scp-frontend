@@ -79,7 +79,7 @@ const SCAN_RESULT = [
     result: '_VansResult'
   }
 ];
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected'];
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
 const HMD_TRIGGER = [
   {
     name: 'Yara Scan',
@@ -171,6 +171,18 @@ const HOST_SORT_LIST = [
   },
   {
     name: 'system',
+    sort: 'desc'
+  },
+  {
+    name: 'hostName',
+    sort: 'desc'
+  },
+  {
+    name: 'theLastestTaskResponseDttm',
+    sort: 'asc'
+  },
+  {
+    name: 'theLastestTaskResponseDttm',
     sort: 'desc'
   }
 ];
@@ -301,7 +313,7 @@ class HostController extends Component {
         statistics: t('host.txt-deviceMap')
       },
       hostInfo: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -314,7 +326,7 @@ class HostController extends Component {
       selectedTreeID: '',
       floorMapType: '',
       safetyScanData: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -326,7 +338,7 @@ class HostController extends Component {
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
-        dataContent: [],
+        dataContent: null,
         scrollCount: 1,
         hasMore: false
       },
@@ -620,6 +632,9 @@ class HostController extends Component {
 
         if (!data.rows || data.rows.length === 0) {
           if (activeTab === 'hostList') {
+            this.setState({
+              hostInfo: tempHostInfo
+            });
             helper.showPopupMsg(t('txt-notFound'));
           } else if (activeTab === 'deviceMap') {
             this.setState({
@@ -641,8 +656,14 @@ class HostController extends Component {
         })
 
         _.forEach(HMD_STATUS_LIST, val => {
+          let text = t('host.txt-' + val);
+
+          if (data.devInfoAgg[val]) {
+            text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+          }
+
           hmdStatusList.push({
-            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')',
+            text,
             value: val
           });
         })
@@ -854,12 +875,19 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
+        let tempSafetyScanData = {...safetyScanData};
+
         if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
+          tempSafetyScanData.dataContent = [];
+          tempSafetyScanData.totalCount = 0;
+
+          this.setState({
+            safetyScanData: tempSafetyScanData
+          });
           helper.showPopupMsg(t('txt-notFound'));
           return;
         }
 
-        let tempSafetyScanData = {...safetyScanData};
         tempSafetyScanData.dataContent = data.hmdScanDistribution;
         tempSafetyScanData.totalCount = data.count;
 
@@ -1499,7 +1527,7 @@ class HostController extends Component {
 
     if (activeTab === 'hostList') {
       let tempHostInfo = {...hostInfo};
-      tempHostInfo.dataContent = [];
+      tempHostInfo.dataContent = null;
       tempHostInfo.totalCount = 0;
       tempHostInfo.currentPage = 1;
 
@@ -1515,7 +1543,7 @@ class HostController extends Component {
       this.getHostData();
     } else if (activeTab === 'safetyScan') {
       let tempSafetyScanData = {...safetyScanData};
-      tempSafetyScanData.dataContent = [];
+      tempSafetyScanData.dataContent = null;
       tempSafetyScanData.totalCount = 0;
       tempSafetyScanData.currentPage = 1;
 
@@ -1773,7 +1801,7 @@ class HostController extends Component {
   clearSafetyScanData = () => {
     this.setState({
       safetyScanData: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -1897,6 +1925,9 @@ class HostController extends Component {
       } else if (val.name === 'version') {
         context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
+      } else if (val.name === 'latestTime') {
+        if (!content) return;
+        content = helper.getFormattedDate(content, 'local');
       } else if (val.name === 'vansNotes' && dataInfo[val.path]) {
         return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span className='vans-status' style={this.getVansStatusColor(dataInfo[val.path].color)}>{dataInfo[val.path].status}</span></li>
       }
@@ -2094,7 +2125,7 @@ class HostController extends Component {
         eventInfo: {
           dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
           dataFields: {},
-          dataContent: [],
+          dataContent: null,
           scrollCount: 1,
           hasMore: false
         }
@@ -2187,6 +2218,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'latestTime',
+        path: 'theLastestTaskResponseDttm',
+        icon: 'clock'
       },
       {
         name: 'vansNotes',
@@ -2895,7 +2931,7 @@ class HostController extends Component {
     let tempHmdSearch = {...hmdSearch};
     let tempSafetyScanData = {...safetyScanData};
     tempHmdSearch.status = {};
-    tempSafetyScanData.dataContent = [];
+    tempSafetyScanData.dataContent = null;
     tempSafetyScanData.currentPage = 1;
 
     this.setState({
@@ -3217,14 +3253,14 @@ class HostController extends Component {
                 {activeTab === 'hostList' &&
                   <div className='table-content'>
                     <div className='table' style={{height: '64vh'}}>
-                      {(!hostInfo.dataContent || hostInfo.dataContent.length === 0) &&
+                      {!hostInfo.dataContent &&
                         <span className='loading'><i className='fg fg-loading-2'></i></span>
                       }
-                      <ul className='host-list'>
-                        {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
-                          hostInfo.dataContent.map(this.getHostList)
-                        }
-                      </ul>
+                      {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
+                        <ul className='host-list'>
+                          {hostInfo.dataContent.map(this.getHostList)}
+                        </ul>
+                      }
                     </div>
                     <footer>
                       <Pagination
@@ -3311,14 +3347,14 @@ class HostController extends Component {
                     }
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
-                        {(!safetyScanData.dataContent || safetyScanData.dataContent.length === 0) &&
+                        {!safetyScanData.dataContent &&
                           <span className='loading'><i className='fg fg-loading-2'></i></span>
                         }
-                        <ul className='safety-list'>
-                          {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
-                            safetyScanData.dataContent.map(this.getSafetyList)
-                          }
-                        </ul>
+                        {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
+                          <ul className='safety-list'>
+                            {safetyScanData.dataContent.map(this.getSafetyList)}
+                          </ul>
+                        }
                       </div>
                       <footer>
                         <Pagination
