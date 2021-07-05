@@ -1721,18 +1721,27 @@ html[data-theme='dark'] {
 }
 /* configuration/user/accounts/account-edit */
 #accountEditDialog {
-  #accountEditDialog-content {
-    width: 464px;
-  }
   .account-form {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    .group {
+    .basic-info {
       width: 80%;
+      margin: 0 auto;
+      &.more {
+        float: left;
+        width: 50%;
+        margin-right: 5%;
+      }
+    }
+    .group {
       margin: 10px;
     }
+    .switch-control {
+      position: relative;
+      width: 45%;
+      margin-left: 0px;
+    }
     .privileges-list {
+      float: left;
+      width: 40%;
       margin-top: 10px;
     }
   }

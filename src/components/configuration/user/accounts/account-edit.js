@@ -12,6 +12,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormGroup from '@material-ui/core/FormGroup'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -32,13 +33,14 @@ const INITIAL_STATE = {
   info: null,
   error: false,
   accountData: {
-      account: '',
-      name: '',
-      email: '',
-      unit: '',
-      title: '',
-      phone: '',
-      selected: []
+    account: '',
+    name: '',
+    email: '',
+    unit: '',
+    title: '',
+    phone: '',
+    syncAD: false,
+    selected: []
   },
   privileges: [],
   showPrivileges: true,
@@ -245,99 +247,145 @@ class AccountEdit extends Component {
     });
   }
   /**
+   * Toggle sync data
+   * @method
+   * @param {object} event - event object
+   */
+  handleSyncAdChange = (event) => {
+    let tempAccountData = {...this.state.accountData};
+    tempAccountData.syncAD = event.target.checked;
+
+    this.setState({
+      accountData: tempAccountData
+    });
+  }
+  /**
+   * Set content width
+   * @method
+   * @returns content width
+   */
+  getContentWidth = () => {
+    const {showPrivileges} = this.state;
+
+    if (showPrivileges) {
+      return { width: '600px' };
+    } else {
+      return { width: '450px' };
+    }
+  }
+  /**
    * Display account edit content
    * @method
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {
-    const {id, accountData, privileges, showPrivileges, formValidation} = this.state;
+    const {
+      id,
+      accountData,
+      privileges,
+      showPrivileges,
+      formValidation
+    } = this.state;
 
     return (
-      <div className='account-form'>
-        <div className='group'>
-          <TextField
-            id='account-edit-account'
-            name='account'
-            label={t('l-account')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!formValidation.account.valid}
-            helperText={formValidation.account.valid ? '' : c('txt-required')}
-            value={accountData.account}
-            onChange={this.handleDataChange}
-            disabled={id} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='account-edit-name'
-            name='name'
-            label={t('l-name')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!formValidation.name.valid}
-            helperText={formValidation.name.valid ? '' : c('txt-required')}
-            value={accountData.name}
-            onChange={this.handleDataChange} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='account-edit-email'
-            name='email'
-            label={t('l-email')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            error={!formValidation.email.valid}
-            helperText={formValidation.email.msg}
-            required
-            value={accountData.email}
-            onChange={this.handleDataChange} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='account-edit-unit'
-            name='unit'
-            label={t('l-unit')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!formValidation.unit.valid}
-            helperText={formValidation.unit.valid ? '' : c('txt-required')}
-            value={accountData.unit}
-            onChange={this.handleDataChange} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='account-edit-title'
-            name='title'
-            label={t('l-title')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!formValidation.title.valid}
-            helperText={formValidation.title.valid ? '' : c('txt-required')}
-            value={accountData.title}
-            onChange={this.handleDataChange} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='account-edit-phone'
-            name='phone'
-            label={t('l-phone')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!formValidation.phone.valid}
-            helperText={formValidation.phone.valid ? '' : c('txt-required')}
-            value={accountData.phone}
-            onChange={this.handleDataChange} />
+      <div className='account-form' style={this.getContentWidth()}>
+        <div className={cx('basic-info', {'more': showPrivileges && privileges.length > 0})}>
+          <div className='group'>
+            <TextField
+              id='account-edit-account'
+              name='account'
+              label={t('l-account')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!formValidation.account.valid}
+              helperText={formValidation.account.valid ? '' : c('txt-required')}
+              value={accountData.account}
+              onChange={this.handleDataChange}
+              disabled={id} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='account-edit-name'
+              name='name'
+              label={t('l-name')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!formValidation.name.valid}
+              helperText={formValidation.name.valid ? '' : c('txt-required')}
+              value={accountData.name}
+              onChange={this.handleDataChange} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='account-edit-email'
+              name='email'
+              label={t('l-email')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              error={!formValidation.email.valid}
+              helperText={formValidation.email.msg}
+              required
+              value={accountData.email}
+              onChange={this.handleDataChange} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='account-edit-unit'
+              name='unit'
+              label={t('l-unit')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!formValidation.unit.valid}
+              helperText={formValidation.unit.valid ? '' : c('txt-required')}
+              value={accountData.unit}
+              onChange={this.handleDataChange} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='account-edit-title'
+              name='title'
+              label={t('l-title')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!formValidation.title.valid}
+              helperText={formValidation.title.valid ? '' : c('txt-required')}
+              value={accountData.title}
+              onChange={this.handleDataChange} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='account-edit-phone'
+              name='phone'
+              label={t('l-phone')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!formValidation.phone.valid}
+              helperText={formValidation.phone.valid ? '' : c('txt-required')}
+              value={accountData.phone}
+              onChange={this.handleDataChange} />
+          </div>
+          {!id &&
+            <FormControlLabel
+              className='switch-control'
+              control={
+                <Switch
+                  checked={accountData.syncAD}
+                  onChange={this.handleSyncAdChange}
+                  color='primary' />
+              }
+              label='Sync AD' />
+          }
         </div>
         {showPrivileges &&
           <div className='group privileges-list'>

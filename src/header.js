@@ -427,7 +427,7 @@ class Header extends Component {
     });
   }
   render() {
-    const {contextRoot, sessionRights, session, language} = this.context;
+    const {contextRoot, language, session, sessionRights} = this.context;
     const {productName} = this.props;
     const {contextAnchor, showChangePassword} = this.state;
     let showLanguage = '';
@@ -490,7 +490,7 @@ class Header extends Component {
               <MenuItem id='header-btn-lanuage' onClick={this.changeLng.bind(this, showLanguage)}>{t('lng.' + showLanguage)}</MenuItem>
               <MenuItem id='header-btn-theme' onClick={this.toggleTheme}>{l('toggle-theme')}</MenuItem>
               <MenuItem id='header-btn-account' onClick={this.editAccount}>{l('login.txt-account')}</MenuItem>
-              <MenuItem id='header-btn-password' onClick={this.showChangePassword}>{l('login.txt-changePassword')}</MenuItem>
+              <MenuItem id='header-btn-password' onClick={this.showChangePassword} disabled={session.syncAD}>{l('login.txt-changePassword')}</MenuItem>
               <MenuItem id='header-btn-logout' onClick={this.logout}>{l('login.btn-logout')}</MenuItem>
             </Menu>
           </header>
