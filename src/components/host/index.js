@@ -1165,7 +1165,7 @@ class HostController extends Component {
       nccstSelectedList.splice(index, 1);
     }
 
-    if (nccstSelectedList.length === safetyScanData.dataContent.length) {
+    if (safetyScanData.dataContent && nccstSelectedList.length === safetyScanData.dataContent.length) {
       nccstCheckAll = true;
     }
 
@@ -3342,7 +3342,9 @@ class HostController extends Component {
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
-                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                        {safetyScanData.dataContent &&
+                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                        }
                       </div>
                     }
                     <div className='table-content'>
