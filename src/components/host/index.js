@@ -48,6 +48,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
 const SCAN_RESULT = [
   {
     name: 'Yara Scan',
@@ -79,7 +80,6 @@ const SCAN_RESULT = [
     result: '_VansResult'
   }
 ];
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
 const HMD_TRIGGER = [
   {
     name: 'Yara Scan',
@@ -138,6 +138,14 @@ const HMD_LIST = [
   {
     name: 'VANS',
     value: 'isVans'
+  },
+  {
+    name: 'Snapshot',
+    value: 'isSnapshot'
+  },
+  {
+    name: 'Process White List',
+    value: 'isProcWhiteList'
   }
 ];
 const HOST_SORT_LIST = [
