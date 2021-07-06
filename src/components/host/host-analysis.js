@@ -50,7 +50,7 @@ class HostAnalysis extends Component {
       },
       modalYaraRuleOpen: false,
       modalIRopen: false,
-      showVansNotes: true
+      showVansNotes: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -59,6 +59,7 @@ class HostAnalysis extends Component {
   }
   componentDidMount() {
     this.hmdTypeChecking();
+    this.checkVansNotes();
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
@@ -82,6 +83,19 @@ class HostAnalysis extends Component {
     this.setState({
       showContent: tempShowshowContent
     });
+  }
+  /**
+   * Show / not show default Vans notes
+   * @method
+   */
+  checkVansNotes = () => {
+    const {hostData} = this.props;
+
+    if (hostData.annotationObj && (hostData.annotationObj.status || hostData.annotationObj.annotation)) {
+      this.setState({
+        showVansNotes: true
+      });
+    }
   }
   /**
    * Set corresponding content based on content type
@@ -269,7 +283,9 @@ class HostAnalysis extends Component {
               <VansNotes
                 currentData={hostData}
                 currentType='device'
-                vansDeviceStatusList={vansDeviceStatusList} />
+                vansDeviceStatusList={vansDeviceStatusList}
+                getIPdeviceInfo={this.props.getIPdeviceInfo}
+                getVansStatus={this.props.getVansStatus} />
             }
           </div>
           <div className='content'>
@@ -511,7 +527,8 @@ HostAnalysis.propTypes = {
   loadEventTracing: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
-  getHostInfo: PropTypes.func.isRequired
+  getHostInfo: PropTypes.func.isRequired,
+  getVansStatus: PropTypes.func.isRequired
 };
 
 export default HostAnalysis;

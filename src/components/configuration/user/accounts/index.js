@@ -18,8 +18,8 @@ import AccountEdit from './account-edit'
 import AdConfig from './ad-config'
 import {BaseDataContext} from '../../../common/context'
 import Config from '../../../common/configuration'
-import MuiTableContent from '../../../common/mui-table-content'
 import helper from '../../../common/helper'
+import MuiTableContent from '../../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -575,7 +575,7 @@ class AccountList extends Component {
           onClose={this.handleCloseMenu}>
           <MenuItem id='account-menu-edit' onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
           <MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
-          <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
+          <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)} disabled={currentAccountData.syncAD}>{c('txt-resetPassword')}</MenuItem>
           {currentAccountData.isLock &&
             <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
           }

@@ -40,6 +40,7 @@
   "-1008": "password must contain at least one lower-case alphabet/upper-case alphabet/digital/special character and have length more than 12, and can't be same as the last five times password",
   "-1009": "Password incorrect",
   "-1010": "Error login fail",
+  "-1011": "Fail to connect Email Server",
 
   "-2001": "Unknown Target",
   "-2002": "Expired",

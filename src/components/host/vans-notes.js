@@ -54,7 +54,8 @@ class VansNotes extends Component {
         status: '',
         annotation: '',
         color: ''
-      }
+      },
+      showColorPalette: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -62,13 +63,25 @@ class VansNotes extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getVansData();
+    this.setVansData();
+    this.setVansStatus();
+  }
+  componentDidUpdate(prevProps) {
+    const {currentData, vansDeviceStatusList} = this.props;
+
+    if (!prevProps || (prevProps && currentData.annotationObj && currentData.annotationObj.id && !prevProps.currentData.annotationObj)) {
+      this.setVansData();
+    }
+
+    if (!prevProps || (prevProps && vansDeviceStatusList !== prevProps.vansDeviceStatusList)) {
+      this.setVansStatus();
+    }
   }
   /**
-   * Set vans info data if available
+   * Set vans info data
    * @method
    */
-  getVansData = () => {
+  setVansData = () => {
     const {currentData, currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
     let statusList = [];
     let statusType = 'new';
@@ -99,8 +112,26 @@ class VansNotes extends Component {
 
     this.setState({
       statusType,
-      statusList,
       originalStatus: currentStatus
+    });
+  }
+  /**
+   * Set vans status
+   * @method
+   */
+  setVansStatus = () => {
+    const {currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
+    let statusList = [];
+
+    if (currentType === 'device') {
+      statusList = vansDeviceStatusList;
+    } else {
+      statusList = vansHmdStatusList;
+    }
+
+    this.setState({
+      statusList,
+      originalStatus: {}
     });
   }
   /**
@@ -226,6 +257,8 @@ class VansNotes extends Component {
     .then(data => {
       if (data.ret === 0) {
         helper.showPopupMsg(t('txt-saved'));
+        this.props.getIPdeviceInfo();
+        this.props.getVansStatus();
       }
       return null;
     })
@@ -277,7 +310,17 @@ class VansNotes extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.handleVansNotesClear();
+        this.setState({
+          vansNotes: {
+            id: '',
+            status: '',
+            annotation: '',
+            color: ''
+          }
+        });
+
+        this.props.getIPdeviceInfo();
+        this.props.getVansStatus();
       }
       return null;
     })
@@ -288,27 +331,31 @@ class VansNotes extends Component {
   /**
    * Clear vans annotation
    * @method
-   * @param {string} [color] - option for clear color
+   * @param {string} type - button type ('clear' or 'palette')
    */
-  handleVansNotesClear = (color) => {
-    let tempVansNotes = {...this.state.vansNotes};
-
-    if (color) {
+  handleVansColorButton = (type) => {
+    if (type === 'clear') {
+      let tempVansNotes = {...this.state.vansNotes};
       tempVansNotes.color = '';
 
       this.setState({
-         vansNotes: tempVansNotes
+        vansNotes: tempVansNotes,
+        showColorPalette: false
       });
-    } else {
+    } else if (type === 'palette') {
       this.setState({
-         vansNotes: {
-          id: '',
-          status: '',
-          annotation: '',
-          color: ''
-        }
+        showColorPalette: !this.state.showColorPalette
       });
     }
+  }
+  /**
+   * Show color palette
+   * @method
+   */
+  turnOnColorPalette = () => {
+    this.setState({
+      showColorPalette: true
+    });
   }
   /**
    * Get vans notes height
@@ -325,7 +372,7 @@ class VansNotes extends Component {
     }
   }
   render() {
-    const {statusType, statusList, vansNotes} = this.state;
+    const {statusType, statusList, vansNotes, showColorPalette} = this.state;
 
     return (
       <div className='vans-notes' style={this.getHeight()}>
@@ -377,16 +424,21 @@ class VansNotes extends Component {
         <div className='group color'>
           <label>{t('txt-color')}</label>
           {vansNotes.color &&
-            <div className='color-box' className={'color-box ' + helper.showColor(vansNotes.color)}></div>
+            <React.Fragment>
+              <div className='color-box' className={'c-link color-box ' + helper.showColor(vansNotes.color)} onClick={this.turnOnColorPalette}></div>
+              <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansColorButton.bind(this, 'clear')}>{t('txt-clearText')}</Button>
+            </React.Fragment>
           }
-          {vansNotes.color &&
-            <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansNotesClear.bind(this, 'color')}>{t('txt-clearText')}</Button>
+          {!vansNotes.color &&
+            <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansColorButton.bind(this, 'palette')}>{t('txt-palette')}</Button>
           }
-          <GithubPicker
-            width='213px'
-            colors={COLOR_LIST}
-            triangle='hide'
-            onChangeComplete={this.handleDataChange} />
+          {showColorPalette &&
+            <GithubPicker
+              width='213px'
+              colors={COLOR_LIST}
+              triangle='hide'
+              onChangeComplete={this.handleDataChange} />
+          }
         </div>
         <div className='group btn-group'>
           <Button variant='contained' color='primary' className='btn save' onClick={this.handleVansNotesSave}>{t('txt-save')}</Button>
@@ -404,6 +456,7 @@ VansNotes.contextType = BaseDataContext;
 VansNotes.propTypes = {
   currentData: PropTypes.object.isRequired,
   currentType: PropTypes.string.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired,
   vansDeviceStatusList: PropTypes.array,
   vansHmdStatusList: PropTypes.array
 };

@@ -203,6 +203,7 @@
   "txt-downloadTask": "Downlaod",
   "txt-deleteTask": "Delete Task",
   "txt-retriggerTask": "Retrigger Task",
+  "txt-palette": "Palette",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -345,6 +346,7 @@
     "txt-hostList": "Host List",
     "txt-deviceMap": "Device Map",
     "txt-safetyScan": "Safety Scan",
+    "txt-vans": "VANS",
     "txt-safetyScanType": "Safety Scan Type",
     "txt-export-cpe": "Export CPE",
     "txt-report-nccst": "Report NCCST",
@@ -361,6 +363,7 @@
     "txt-isSeatNull": "No Seat",
     "txt-isConnected": "Connected",
     "txt-isDisconnected": "Disconnected",
+    "txt-isNotScan": "Not Scan",
     "txt-title-scanFile": "Malware Information",
     "txt-title-gcbDetection": "GCB Information",
     "txt-title-getFileIntegrity": "File Information",
@@ -405,7 +408,23 @@
     "txt-os": "Operating System",
     "txt-update": "Update",
     "txt-edition": "Edition",
-    "txt-language": "Language"
+    "txt-language": "Language",
+    "txt-dept": "Department",
+    "txt-vansCounts": "CVE Count",
+    "txt-vansHigh": "CVE High",
+    "txt-vansMedium": "CVE Medium",
+    "txt-vansLow": "CVE Low",
+    "txt-gcbCounts": "GCB Count",
+    "txt-malwareCounts": "Malware Count",
+    "txt-tableOptions": "Actions",
+    "txt-hmdStats": "HMD Stats",
+    "txt-threatsDevice": "Device",
+    "txt-deviceCount": "Device Count",
+    "txt-hmdCount": "HMD Count",
+    "txt-deviceName": "Device Name",
+    "txt-deviceIP": "Device IP",
+    "txt-mark": "Mark",
+    "txt-parentDept": "Parent Department"
   },
 
   "alert": {
@@ -946,7 +965,9 @@
     "errCode": "Error",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type",
-    "version": "Version"
+    "version": "Version",
+    "latestTime": "Last Scan",
+    "theLastestTaskResponseDttm": "Last Scan"
   },
   "syslogFields": {
     "port": "Received Port",
