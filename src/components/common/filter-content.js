@@ -61,6 +61,8 @@ class FilterContent extends Component {
           <div className='button-group open-query'>
             <Button id='openQueryBtn' variant='outlined' color='primary' className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</Button>
             <Button id='saveQueryBtn' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</Button>
+            <Button id='publicOpenQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicOpen')}>{t('events.connections.txt-publicOpenQuery')}</Button>
+            <Button id='publicSaveQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicSave')}>{t('events.connections.txt-publicSaveQuery')}</Button>
           </div>
         }
         <FilterInput

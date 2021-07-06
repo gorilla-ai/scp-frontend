@@ -76,16 +76,28 @@ class QueryOpenSave extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setQueryList(this.props.queryData.list);
+    this.setQueryList();
     this.setSeverityList();
   }
+  ryan = () => {}
   /**
    * Set query list
    * @method
-   * @param {array.<object>} list - query list to be set
+   * @param {array.<object>} [list] - query list to be set
    */
   setQueryList = (list) => {
-    const queryList = _.map(list, val => {
+    const {type, queryData, queryDataPublic} = this.props;
+    let dataList = list;
+
+    if (!list) {
+      if (type === 'open') {
+        dataList = queryData.list;
+      } else if (type === 'publicOpen') {
+        dataList = queryDataPublic.list;
+      }
+    }
+
+    const queryList = _.map(dataList, val => {
       return {
         value: val.id,
         text: val.name
@@ -126,37 +138,50 @@ class QueryOpenSave extends Component {
   /**
    * Set and close query menu
    * @method
-   * @param {string} type - query type ('open' or 'save')
+   * @param {string} type - query type ('open', 'save', 'publicOpen' or 'publicSave')
    */
   handleQueryAction = (type) => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, filterData, queryData, markData} = this.props;
+    const {activeTab, filterData, queryData, queryDataPublic, markData} = this.props;
 
-    if (type === 'open') {
-      let tempQueryData = {...queryData};
-      tempQueryData.openFlag = true;
-      tempQueryData.displayId = queryData.id;
-      tempQueryData.displayName = queryData.name;
+    if (type === 'open' || type === 'publicOpen') {
+      if (type === 'open') {
+        let tempQueryData = {...queryData};
+        tempQueryData.openFlag = true;
+        tempQueryData.displayId = queryData.id;
+        tempQueryData.displayName = queryData.name;
 
-      this.props.setQueryData(tempQueryData);
+        this.props.setQueryData(tempQueryData);
 
-      if (queryData.query) {
-        if (activeTab === 'logs') {
-          let formattedMarkData = [];
+        if (queryData.query) {
+          if (activeTab === 'logs') {
+            let formattedMarkData = [];
 
-          _.forEach(queryData.query.search, val => {
-            if (val) {
-              formattedMarkData.push({
-                data: val
-              });
-            }
-          })
-          this.props.setMarkData(formattedMarkData);
+            _.forEach(queryData.query.search, val => {
+              if (val) {
+                formattedMarkData.push({
+                  data: val
+                });
+              }
+            })
+            this.props.setMarkData(formattedMarkData);
+          }
+          this.props.setFilterData(queryData.query.filter);
+          this.props.setNotifyEmailData([]);
         }
-        this.props.setFilterData(queryData.query.filter);
-        this.props.setNotifyEmailData([]);
+      } else if (type === 'publicOpen') {
+        let tempQueryDataPublic = {...queryDataPublic};
+        tempQueryDataPublic.openFlag = true;
+        tempQueryDataPublic.displayId = queryDataPublic.id;
+        tempQueryDataPublic.displayName = queryDataPublic.name;
+
+        this.props.setQueryData(tempQueryDataPublic);
+
+        if (queryDataPublic.query) {
+          this.props.setFilterData(queryDataPublic.query.filter);
+        }
       }
-    } else if (type === 'save') {
+    } else if (type === 'save' || type === 'publicSave') {
       const {baseUrl} = this.context;
       const {account, queryData, notifyEmailData} = this.props;
       const {newQueryName, formValidation} = this.state;
@@ -742,7 +767,7 @@ class QueryOpenSave extends Component {
   /**
    * Get query alert content
    * @method
-   * @param {string} type - query dialog type ('open' or 'save')
+   * @param {string} type - query dialog type ('open', 'save', 'publicOpen' or 'publicSave')
    * @returns HTML DOM
    */
   getQueryAlertContent = (type) => {
@@ -879,28 +904,43 @@ class QueryOpenSave extends Component {
   /**
    * Display query menu content
    * @method
-   * @param {string} type - query type ('open' or 'save')
+   * @param {string} type - query type ('open', 'save', 'publicOpen' or 'publicSave')
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {
     const {locale} = this.context;
-    const {activeTab, queryData, filterData, markData} = this.props;
+    const {activeTab, queryData, queryDataPublic, filterData, markData} = this.props;
     const {queryList, activeQuery, formValidation} = this.state;
-    const displayQueryList = _.map(queryData.list, (val, i) => {
-      return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
-    });
+    let displayQueryList = [];
     let tempFilterData = [];
     let tempMarkData = [];
 
-    if (type === 'open') {
+    if (type === 'open' || type === 'publicOpen') {
       let queryDataList = [];
       let queryDataMark = [];
 
-      if (activeTab === 'logs' && !_.isEmpty(queryData.query)) {
-        queryDataList = queryData.query.filter;
-        queryDataMark = queryData.query.search;
-      } else {
-        queryDataList = queryData.query.filter;
+      if (type === 'open') {
+        displayQueryList = _.map(queryData.list, (val, i) => {
+          return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+        });
+
+        if (activeTab === 'logs' && !_.isEmpty(queryData.query)) {
+          queryDataList = queryData.query.filter;
+          queryDataMark = queryData.query.search;
+        } else {
+          queryDataList = queryData.query.filter;
+        }
+      } else if (type === 'publicOpen') {
+        displayQueryList = _.map(queryDataPublic.list, (val, i) => {
+          return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+        });
+
+        if (activeTab === 'logs' && !_.isEmpty(queryDataPublic.query)) {
+          queryDataList = queryDataPublic.query.filter;
+          queryDataMark = queryDataPublic.query.search;
+        } else {
+          queryDataList = queryDataPublic.query.filter;
+        }
       }
 
       return (
@@ -939,7 +979,7 @@ class QueryOpenSave extends Component {
           <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</Button>
         </div>
       )
-    } else if (type === 'save') {
+    } else if (type === 'save' || type === 'publicSave') {
       let dropDownValue = 'new';
 
       _.forEach(filterData, val => {
@@ -951,16 +991,24 @@ class QueryOpenSave extends Component {
         }
       })
 
-      _.forEach(markData, val => {
-        if (val.data) {
-          tempMarkData.push({
-            data: val.data
-          });
-        }
-      })
+      if (type === 'save') {
+        _.forEach(markData, val => {
+          if (val.data) {
+            tempMarkData.push({
+              data: val.data
+            });
+          }
+        })
 
-      if (queryData.openFlag) {
-        dropDownValue = queryData.id;
+        if (queryData.openFlag) {
+          dropDownValue = queryData.id;
+        }
+      }
+
+      if (type === 'publicSave') {
+        if (queryDataPublic.openFlag) {
+          dropDownValue = queryDataPublic.id;
+        }
       }
 
       return (
@@ -1003,17 +1051,17 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {tempMarkData.length > 0 &&
+          {type === 'save' && tempMarkData.length > 0 &&
             <div className='filter-group'>
               {tempMarkData.map(this.displayMarkSearch)}
             </div>
           }
 
-          {activeTab === 'alert' &&
+          {type === 'save' && activeTab === 'alert' &&
             this.displayEmailInput()
           }
 
-          {activeTab === 'logs' &&
+          {type === 'save' && activeTab === 'logs' &&
             this.getQueryAlertContent(type)
           }
         </div>
@@ -1029,14 +1077,14 @@ class QueryOpenSave extends Component {
     };
     let displayContent = this.displayQueryContent(type);
 
-    if (type === 'open' && queryData.list.length === 0) {
+    if ((type === 'open' || type === 'publicOpen') && queryData.list.length === 0) {
       actions = {
         cancel: {text: t('txt-close'), handler: this.props.closeDialog}
       };
       displayContent = <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>;
     }
 
-    if (type === 'save') {
+    if (type === 'save' || type === 'publicSave') {
       if (filterData.length === 0 || filterData[0].query === '') {
         actions = {
           cancel: {text: t('txt-close'), handler: this.props.closeDialog}

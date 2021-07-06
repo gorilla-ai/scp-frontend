@@ -502,6 +502,8 @@
       "txt-enterQueryName": "Enter Query Name",
       "txt-openQuery": "Open Query Filter",
       "txt-saveQuery": "Save Query Filter",
+      "txt-publicOpenQuery": "Open Public Query Filter",
+      "txt-publicSaveQuery": "Save Public Query Filter",
       "txt-querySaved": "Query Filter Saved",
       "txt-queryName": "Query Filter Name",
       "txt-addQuery": "Add New Query",
