@@ -89,8 +89,8 @@ class IncidentReview extends Component {
 		})
 	}
 	handleChangeMuiComment(event){
-		console.log("event.target.name == " , event.target.name)
-		console.log("event.target.value == " , event.target.value)
+		// console.log("event.target.name == " , event.target.name)
+		// console.log("event.target.value == " , event.target.value)
 
 		// this.setState({[event.target.name]: event.target.value}, () => {
 		// 	if (event.target.name === 'selected') {

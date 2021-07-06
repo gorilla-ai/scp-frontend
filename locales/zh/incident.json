@@ -14,7 +14,9 @@
 	"txt-incident-device": "資安事件設備",
 	"txt-incident-unit": "資安事件申報機關",
 	"txt-incident-log": "事件發布紀錄",
-	"txt-incident-management": "情資事件管理",
+	"txt-incident-management": "情資事件",
+	"txt-incident-modify": "情資事件管理",
+	"txt-incident-search": "所有紀錄查詢",
 	"txt-incident-device-management": "設備管理",
 	"txt-incident-unit-management": "機關管理",
 	"txt-incident-config-management": "事件參數設定",
@@ -144,7 +146,9 @@
 
 	"txt-soc-filter": "查詢條件基本資料",
 	"txt-soc-filter-input": "查詢條件",
-
+	"txt-soc-flow-basic": "基本資料",
+	"txt-soc-flow-step": "流程類型及步驟",
+	"txt-view-flow": "瀏覽流程狀態",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",

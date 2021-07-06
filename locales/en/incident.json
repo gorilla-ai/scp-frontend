@@ -14,7 +14,9 @@
 	"txt-incident-device": "Incident Device",
 	"txt-incident-unit": "Incident Unit",
 	"txt-incident-log": "Incident Log",
-	"txt-incident-management": "Incident Management",
+	"txt-incident-management": "Incident",
+	"txt-incident-modify": "Incident Management",
+	"txt-incident-search": "History Search",
 	"txt-incident-device-management": "Incident Device Management",
 	"txt-incident-unit-management": "Incident Unit Management",
 	"txt-incident-config-management": "Incident Config Management",
@@ -144,7 +146,9 @@
 
 	"txt-soc-filter": "Filter Basic Info",
 	"txt-soc-filter-input": "Filter",
-
+	"txt-soc-flow-basic": "Basic Info ",
+	"txt-soc-flow-step": "Flow Type & Step",
+	"txt-view-flow": "View Flow Status",
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",

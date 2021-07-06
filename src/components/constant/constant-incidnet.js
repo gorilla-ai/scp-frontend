@@ -20,6 +20,7 @@ const constants = {
 		SOC_Analyzer: 1,
 		SOC_Executor: 2,
 		SOC_Super: 3,
+		SOC_Ciso: 4,
 		// incident Device
 		SEND_STATUS_SUCCESS: 1,
 		SEND_STATUS_ERROR_NOT_CONNECT_NCCST: 2,

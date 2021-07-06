@@ -54,6 +54,7 @@ class IncidentFlow extends Component {
             accountType: constants.soc.LIMIT_ACCOUNT,
             severityList: [],
             flowList: [],
+            stepList:[],
             originalData: {},
             formValidation: {
                 name: {
@@ -143,31 +144,28 @@ class IncidentFlow extends Component {
         const severityList = _.map(SEVERITY_TYPE, (val, i) => {
             return <MenuItem key={i} value={val}>{val}</MenuItem>
         });
+        let flowSourceList = [];
+        ah.one({
+            url: `${baseUrl}/api/soc/flowEngine/_search`,
+            data: JSON.stringify({}),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).then(data => {
+            if (data) {
+                let list = _.map(data.rt.rows, val => {
+                    flowSourceList.push(val)
+                    return <MenuItem key={val.entityId} value={val.entityId}>{`${val.entityName}`}</MenuItem>
+                });
 
-        // TODO API
-        // ah.one({
-        //     url: `${baseUrl}/api/flowEngine/_search`,
-        //     data: JSON.stringify({}),
-        //     type: 'POST',
-        //     contentType: 'application/json',
-        //     dataType: 'json'
-        // }).then(data => {
-        //     if (data) {
-        //         console.log('data == ', data)
-        //         let list = _.map(data.rt.rows, val => {
-        //                 return {
-        //                     value: val.id,
-        //                     text: val.name
-        //                 }
-        //         });
-        //
-        //         this.setState({
-        //             flowList:list
-        //         });
-        //     }
-        // }).catch(err => {
-        //      helper.showPopupMsg('', t('txt-error'), err.message)
-        // });
+                this.setState({
+                    flowSourceList:flowSourceList,
+                    flowList:list
+                });
+            }
+        }).catch(err => {
+             helper.showPopupMsg('', t('txt-error'), err.message)
+        });
 
         this.setState({
             severityList,
@@ -280,9 +278,6 @@ class IncidentFlow extends Component {
         let temp = {...this.state.incidentRule};
         temp[type] = Number(value);
 
-        if (type === 'pageSize') {
-            temp.currentPage = 0;
-        }
         this.setState({
             incidentRule: temp
         }, () => {
@@ -311,7 +306,7 @@ class IncidentFlow extends Component {
         const {originalData, incidentRule} = this.state;
         let tempData = {...incidentRule};
         let showPage = type;
-
+        let tempStepList = [];
         if (type === 'tableList') {
             tempData.info = {
                 id: '',
@@ -321,6 +316,9 @@ class IncidentFlow extends Component {
                 impact: 4,
                 flowId: ''
             };
+            this.setState({
+                stepList:[],
+            });
         } else if (type === 'view') {
             tempData.info = {
                 id: allValue.id,
@@ -342,12 +340,36 @@ class IncidentFlow extends Component {
                 tempData.info['impact'] = 3
             }
 
+            if (allValue.flowId){
+                _.forEach(this.state.flowSourceList , flowVal =>{
+                    if (flowVal.entityId === allValue.flowId){
+                        for (const [key, value] of Object.entries(flowVal.entities)) {
+                            tempStepList.push(value.entityName)
+                        }
+                    }
+                })
+            }
+
+
             this.setState({
+                stepList:tempStepList,
                 originalData: _.cloneDeep(tempData)
             });
         } else if (type === 'cancel') {
             showPage = 'view';
             tempData = _.cloneDeep(originalData);
+            if (tempData.info.flowId){
+                _.forEach(this.state.flowSourceList , flowVal =>{
+                    if (flowVal.entityId === tempData.info.flowId){
+                        for (const [key, value] of Object.entries(flowVal.entities)) {
+                            tempStepList.push(value.entityName)
+                        }
+                    }
+                })
+            }
+            this.setState({
+                stepList:tempStepList,
+            });
         } else if (type === 'save') {
             showPage = 'view';
         }
@@ -364,8 +386,9 @@ class IncidentFlow extends Component {
     }
 
     handleSeverityWithSOCChange = (event) => {
-        const {incidentRule} = this.state;
+        const {incidentRule, flowSourceList} = this.state;
         let tempData = {...incidentRule};
+        let tempStepList = [];
         tempData.info[event.target.name] = event.target.value;
 
         if (event.target.name === 'severity'){
@@ -383,8 +406,18 @@ class IncidentFlow extends Component {
             }
 
         }
+        if (event.target.name === 'flowId'){
+            _.forEach(flowSourceList , flowVal =>{
+                if (flowVal.entityId === event.target.value){
+                    for (const [key, value] of Object.entries(flowVal.entities)) {
+                        tempStepList.push(value.entityName)
+                    }
+                }
+            })
+        }
 
         this.setState({
+            stepList:tempStepList,
             incidentRule: tempData
         });
     }
@@ -469,7 +502,7 @@ class IncidentFlow extends Component {
 
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
-                            <header className='main-header'>{it('txt-incident-soc-rule')}</header>
+                            <header className='main-header'>{it('txt-incident-soc-flow')}</header>
                             <MuiTableContent
                                 data={incidentRule}
                                 tableOptions={tableOptions}/>
@@ -485,10 +518,12 @@ class IncidentFlow extends Component {
     }
 
     displayEditContent = () => {
-        const {activeContent, severityList, flowList, incidentRule, formValidation} = this.state;
+        const {activeContent, severityList, flowList, incidentRule, formValidation, stepList} = this.state;
+        let stepTitle =  ['SOC 1', 'SOC 2' , '設備單位承辦人', '資訊中心承辦人'];
 
-        const stepTitle =  ['SOC 1', 'SOC 2' , '設備單位承辦人', '資訊中心承辦人'];
-        const stepTitle2 = ['SOC 1', 'SOC 2' , '設備單位承辦人', '設備單位資安長', '資訊中心承辦人', '資訊中心資安長'];
+        if (stepList.length > 0){
+            stepTitle = stepList
+        }
 
         let pageType = '';
 
@@ -500,7 +535,7 @@ class IncidentFlow extends Component {
 
         return (
             <div className='main-content basic-form'>
-                <header className='main-header'>{it('txt-incident-soc-rule')}</header>
+                <header className='main-header'>{it('txt-incident-soc-flow')}</header>
 
                 <div className='content-header-btns'>
                     {activeContent === 'view' &&
@@ -513,7 +548,7 @@ class IncidentFlow extends Component {
 
                 <div className='form-group normal'>
                     <header>
-                        <div className='text'>{it('txt-soc-filter')}</div>
+                        <div className='text'>{it('txt-soc-flow-basic')}</div>
                     </header>
                     <div className='group '>
                         <TextField
@@ -565,31 +600,14 @@ class IncidentFlow extends Component {
                             }
                         </TextField>
                     </div>
-
-                    {/*<div className='group' style={{width: '33vh'}}>*/}
-                    {/*    <TextField*/}
-                    {/*        id='flowId'*/}
-                    {/*        name='flowId'*/}
-                    {/*        variant='outlined'*/}
-                    {/*        fullWidth*/}
-                    {/*        size='small'*/}
-                    {/*        onChange={this.handleSeverityWithSOCChange}*/}
-                    {/*        required*/}
-                    {/*        select*/}
-                    {/*        label={f('incidentFields.flowId')}*/}
-                    {/*        value={incidentRule.info.flowId}*/}
-                    {/*        disabled={activeContent === 'view'}>*/}
-                    {/*        {flowList}*/}
-                    {/*    </TextField>*/}
-                    {/*</div>*/}
                 </div>
 
                 <div className='form-group normal'>
                     <header>
-                        <div className='text'>{it('txt-soc-filter')}</div>
+                        <div className='text'>{it('txt-soc-flow-step')}</div>
                     </header>
 
-                    <div className='group' style={{width: '33vh'}}>
+                    <div className='group'>
                         <TextField
                             id='flowId'
                             name='flowId'

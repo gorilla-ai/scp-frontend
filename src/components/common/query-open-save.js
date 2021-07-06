@@ -122,7 +122,10 @@ class QueryOpenSave extends Component {
     },()=>{
 
       if (this.props.type === 'open'){
-        this.getQuerySOCValue();
+
+        if (queryList.length > 0){
+          this.getQuerySOCValue();
+        }
       }
     });
   }
@@ -155,8 +158,7 @@ class QueryOpenSave extends Component {
       url,
       type: 'GET',
       contentType: 'text/plain'
-    })
-        .then(data => {
+    }).then(data => {
           if (data) {
             tempQueryData.soc = {
               id : data.id,
@@ -1216,7 +1218,8 @@ class QueryOpenSave extends Component {
                       variant='outlined'
                       size='small'
                       value={severityType}
-                      onChange={this.handleSeverityWithSOCChange}>
+                      onChange={this.handleSeverityWithSOCChange}
+                      disabled={patternCheckboxDisabled}>
                     {severityList}
                   </TextField>
                 </div>
@@ -1252,7 +1255,8 @@ class QueryOpenSave extends Component {
                     required
                     select
                     label={f('incidentFields.category')}
-                    value={soc.category}>
+                    value={soc.category}
+                    disabled={patternCheckboxDisabled}>
                   {_.map(_.range(1, 9), el => {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                   })}
@@ -1283,7 +1287,8 @@ class QueryOpenSave extends Component {
                     error={!formValidation.title.valid}
                     helperText={formValidation.title.msg}
                     value={soc.title}
-                    onChange={this.handleSeverityWithSOCChange}>
+                    onChange={this.handleSeverityWithSOCChange}
+                    disabled={patternCheckboxDisabled}>
                 </TextField>
               </div>
               <div className='top-group'  style={{width: '100%'}}>
@@ -1297,7 +1302,8 @@ class QueryOpenSave extends Component {
                     value={soc.eventDescription}
                     error={!formValidation.eventDescription.valid}
                     helperText={formValidation.eventDescription.msg}
-                    onChange={this.handleSeverityWithSOCChange}>
+                    onChange={this.handleSeverityWithSOCChange}
+                    disabled={patternCheckboxDisabled}>
                 </TextField>
               </div>
             </div>
@@ -1482,7 +1488,7 @@ class QueryOpenSave extends Component {
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {
-    const {locale} = this.context;
+    const {locale, sessionRights} = this.context;
     const {activeTab, queryData, filterData, markData, moduleWithSOC} = this.props;
     const {queryList, activeQuery, formValidation} = this.state;
     const displayQueryList = _.map(queryData.list, (val, i) => {
@@ -1537,7 +1543,7 @@ class QueryOpenSave extends Component {
             this.getQueryAlertContent(type)
           }
 
-          {activeTab === 'logs' && queryData.patternId &&
+          {activeTab === 'logs' && queryData.patternId && moduleWithSOC &&
             this.getQueryWithSOCByLog(type)
           }
 
@@ -1626,7 +1632,7 @@ class QueryOpenSave extends Component {
             this.getQueryAlertContent(type)
           }
 
-          {activeTab === 'logs' &&
+          {activeTab === 'logs' && moduleWithSOC &&
             this.getQueryWithSOCByLog(type)
           }
 

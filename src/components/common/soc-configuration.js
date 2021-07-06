@@ -13,6 +13,11 @@ import helper from "./helper";
 let t = null;
 let it = null;
 
+const INIT = {
+    openIncidentManagement: false,
+};
+
+
 /**
  * SOC-Configuration
  * @class
@@ -26,6 +31,7 @@ class SocConfig extends Component {
         this.state = {
             showContent: true,
             accountRoleType:constants.soc.SOC_Analyzer,
+            ..._.cloneDeep(INIT)
         };
 
         t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -55,6 +61,11 @@ class SocConfig extends Component {
                 accountRoleType:constants.soc.SOC_Analyzer
             });
         }
+
+        const openIncidentManagement = this.getActiveFrame('incident') || this.getActiveFrame('incident-search');
+        this.setState({
+            openIncidentManagement,
+        });
     }
 
 
@@ -78,7 +89,8 @@ class SocConfig extends Component {
     getActiveFrame = (frame) => {
         const path = window.location.pathname;
         const pattern = {
-            soc: '/SCP/SOC/management'
+            incident: '/SCP/soc/incident',
+            "incident-search": '/SCP/soc/incident-search'
         };
 
         return path === pattern[frame];
@@ -107,16 +119,32 @@ class SocConfig extends Component {
     };
 
     render() {
-        const {showContent} = this.state;
+        const {showContent, openIncidentManagement} = this.state;
         const {accountType} = this.props;
         return (
             <div className={cx('left-nav', {'collapse': !showContent})}>
 
-                <div className='item frame incident'>
-                    <Link to='/SCP/soc/incident'>
-                        <span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident-management')}</span>
-                    </Link>
+                <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openIncidentManagement', openIncidentManagement)}>
+                    <span className={`${this.getActiveFrame('incident') || this.getActiveFrame('incident-search')}}`}>{it('txt-incident-management')}</span>
+                    <i className={`c-link fg fg-arrow-${openIncidentManagement ? 'top' : 'bottom'}`}/>
                 </div>
+
+                {openIncidentManagement &&
+                <div className='item open-edge'>
+                    <div className='subframe'>
+                        <Link to='/SCP/soc/incident'>
+                            <span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident-modify')}</span>
+                        </Link>
+                    </div>
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
+                        <div className='subframe'>
+                            <Link to='/SCP/soc/incident-search'>
+                                <span className={`${this.getActiveFrame('incident-search')}`}>{it('txt-incident-search')}</span>
+                            </Link>
+                        </div>
+                    }
+                </div>
+                }
 
                 <div className='item frame incident-device'>
                     <Link to='/SCP/soc/incident-device'>

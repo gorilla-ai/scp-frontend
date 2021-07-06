@@ -2711,7 +2711,7 @@ class IncidentDeviceStep extends Component {
                 this.setState({
                     edgeList: children,
                 },()=>{
-                    console.log("new edgeList ", this.state.edgeList )
+                    // console.log("new edgeList ", this.state.edgeList )
                 });
             }
         }).catch(err => {

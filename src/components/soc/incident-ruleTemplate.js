@@ -266,9 +266,6 @@ class IncidentRuleTemplate extends Component {
         let temp = {...this.state.incidentRule};
         temp[type] = Number(value);
 
-        if (type === 'pageSize') {
-            temp.currentPage = 0;
-        }
         this.setState({
             incidentRule: temp
         }, () => {
@@ -724,7 +721,7 @@ class IncidentRuleTemplate extends Component {
                     <header>
                         <div className='text'>{t('events.connections.txt-addSOCScript')}</div>
                     </header>
-                    <div className='group'>
+                    <div className='group full'>
                         <TextField
                             name='title'
                             variant='outlined'
@@ -739,7 +736,7 @@ class IncidentRuleTemplate extends Component {
                             disabled={activeContent === 'view'}>
                         </TextField>
                     </div>
-                    <div className='group'>
+                    <div className='group full'>
                         <TextField
                             name='eventDescription'
                             variant='outlined'
@@ -774,7 +771,7 @@ class IncidentRuleTemplate extends Component {
                         </div>
                     }
 
-                    <div className='group' style={{width: '33vh'}}>
+                    <div className='group'>
                         <TextField
                             id='impact'
                             name='impact'
@@ -794,7 +791,7 @@ class IncidentRuleTemplate extends Component {
                             }
                         </TextField>
                     </div>
-                    <div className='group' style={{width: '34vh'}}>
+                    <div className='group'>
                         <TextField
                             id='category'
                             name='category'
@@ -845,7 +842,7 @@ class IncidentRuleTemplate extends Component {
      * @returns HTML DOM
      */
     renderFilter = () => {
-        const {showFilter, searchParam} = this.state;
+        const {showFilter, searchParam, severityList} = this.state;
         const {locale} = this.context;
 
         let dateLocale = locale;
@@ -892,7 +889,21 @@ class IncidentRuleTemplate extends Component {
                             }
                         </TextField>
                     </div>
-
+                    <div className='group'>
+                        <label htmlFor='searchCategory'>{f('incidentFields.severity')}</label>
+                        <TextField
+                            id='searchCategory'
+                            name='severity'
+                            select
+                            required={true}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            value={searchParam.severity}
+                            onChange={this.handleLogInputSearchMui}>
+                            {severityList}
+                        </TextField>
+                    </div>
                 </div>
                 <div className='button-group'>
                     <Button variant='contained' color='primary' className='filter' onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</Button>
@@ -901,6 +912,7 @@ class IncidentRuleTemplate extends Component {
             </div>
         )
     };
+
 
     /* ---- Func Space ---- */
     /**
@@ -927,6 +939,11 @@ class IncidentRuleTemplate extends Component {
      */
     handleLogInputSearchMui = (event) => {
         let tempSearch = {...this.state.searchParam};
+
+        if (event.target.name === 'category'){
+            tempSearch[event.target.name] = event.target.value;
+        }
+
         tempSearch[event.target.name] = event.target.value.trim();
 
         this.setState({
