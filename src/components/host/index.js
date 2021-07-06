@@ -146,6 +146,14 @@ const HMD_LIST = [
   {
     name: 'Process White List',
     value: 'isProcWhiteList'
+  },
+  {
+    name: 'Not Snapshot',
+    value: 'isNotSnapshot'
+  },
+  {
+    name: 'Not Process White List',
+    value: 'isNotProcWhiteList'
   }
 ];
 const HOST_SORT_LIST = [
