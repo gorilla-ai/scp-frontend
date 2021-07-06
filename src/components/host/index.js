@@ -140,19 +140,19 @@ const HMD_LIST = [
     value: 'isVans'
   },
   {
-    name: 'Snapshot',
+    name: 'is Applied File Integrity',
     value: 'isSnapshot'
   },
   {
-    name: 'Process White List',
+    name: 'is Applied Process Monitor',
     value: 'isProcWhiteList'
   },
   {
-    name: 'Not Snapshot',
+    name: 'Not Applied File Integrity',
     value: 'isNotSnapshot'
   },
   {
-    name: 'Not Process White List',
+    name: 'Not Applied Process Monitor',
     value: 'isNotProcWhiteList'
   }
 ];
