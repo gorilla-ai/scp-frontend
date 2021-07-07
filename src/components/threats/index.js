@@ -2378,13 +2378,18 @@ class ThreatsController extends Component {
       query: ''
     }];
     let tempQueryData = {...this.state.queryData};
+    let tempQueryDataPublic = {...this.state.queryDataPublic};
     tempQueryData.displayId = '';
     tempQueryData.displayName = '';
     tempQueryData.openFlag = false;
+    tempQueryDataPublic.displayId = '';
+    tempQueryDataPublic.displayName = '';
+    tempQueryDataPublic.openFlag = false;
 
     this.setState({
       filterData,
-      queryData: tempQueryData
+      queryData: tempQueryData,
+      queryDataPublic: tempQueryDataPublic
     });
   }
   /**
@@ -2899,12 +2904,20 @@ class ThreatsController extends Component {
   /**
    * Set query data
    * @method
-   * @param {object} queryData - query data to be set
+   * @param {object} query - query data to be set
    */
-  setQueryData = (queryData) => {
-    this.setState({
-      queryData
-    });
+  setQueryData = (query) => {
+    const {queryModalType} = this.state;
+
+    if (queryModalType === 'open' || queryModalType === 'save') {
+      this.setState({
+        queryData: query
+      });
+    } else if (queryModalType === 'publicOpen' || queryModalType === 'publicSave') {
+      this.setState({
+        queryDataPublic: query
+      });
+    }
   }
   /**
    * Set notify email data
@@ -2937,6 +2950,7 @@ class ThreatsController extends Component {
         setQueryData={this.setQueryData}
         setNotifyEmailData={this.setNotifyEmailData}
         getSavedQuery={this.getSavedQuery}
+        getPublicSavedQuery={this.getPublicSavedQuery}
         closeDialog={this.closeDialog} />
     )
   }
@@ -2976,11 +2990,15 @@ class ThreatsController extends Component {
    */
   clearQueryData = () => {
     let tempQueryData = {...this.state.queryData};
+    let tempQueryDataPublic = {...this.state.queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
+    tempQueryDataPublic.inputName = '';
+    tempQueryDataPublic.openFlag = false;
 
     this.setState({
       queryData: tempQueryData,
+      queryDataPublic: tempQueryDataPublic,
       notifyEmailData: []
     });
   }
