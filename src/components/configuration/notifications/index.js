@@ -22,6 +22,7 @@ import 'react-multi-email/style.css';
 
 let t = null;
 let et = null;
+let c = null;
 
 /**
  * Notifications
@@ -71,11 +72,27 @@ class Notifications extends Component {
           emails: [],
           enable: true
         }
+      },
+      formValidation: {
+        notificationsServer: {
+          valid: true
+        },
+        notificationsSender: {
+          valid: true,
+          msg: ''
+        },
+        notificationsSenderAccount: {
+          valid: true
+        },
+        notificationsSenderPassword: {
+          valid: true
+        }
       }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    c = global.chewbaccaI18n.getFixedT(null, 'accounts');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -203,7 +220,22 @@ class Notifications extends Component {
 
       this.setState({
         notifications: _.cloneDeep(originalNotifications),
-        emails: _.cloneDeep(originalEmails)
+        emails: _.cloneDeep(originalEmails),
+        formValidation: {
+          notificationsServer: {
+            valid: true
+          },
+          notificationsSender: {
+            valid: true,
+            msg: ''
+          },
+          notificationsSenderAccount: {
+            valid: true
+          },
+          notificationsSenderPassword: {
+            valid: true
+          }
+        }
       });
     }
 
@@ -217,7 +249,8 @@ class Notifications extends Component {
    */
   handleNotificationsConfirm = () => {
     const {baseUrl} = this.context;
-    const {notifications, emails, lineBotSetting} = this.state;
+    const {notifications, emails, lineBotSetting, formValidation} = this.state;
+    const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const mailServerRequestData = {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
@@ -227,7 +260,6 @@ class Notifications extends Component {
       senderAcct: notifications.senderAccount,
       senderPasswd: notifications.senderPassword
     };
-
     const emailsSettings = {
       'notify.service.failure.id': {
         receipts: emails.service.emails,
@@ -265,6 +297,52 @@ class Notifications extends Component {
         contentType: 'text/plain'
       }
     ];
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (notifications.server) {
+      tempFormValidation.notificationsServer.valid = true;
+    } else {
+      tempFormValidation.notificationsServer.valid = false;
+      validate = false;
+    }
+
+    if (notifications.sender) {
+      if (emailPattern.test(notifications.sender)) { //Check email format
+        tempFormValidation.notificationsSender.valid = true;
+        tempFormValidation.notificationsSender.msg = '';
+      } else {
+        tempFormValidation.notificationsSender.valid = false;
+        tempFormValidation.notificationsSender.msg = c('txt-email-invalid');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.notificationsSender.valid = false;
+      tempFormValidation.notificationsSender.msg = t('txt-required');
+      validate = false;
+    }
+
+    if (notifications.senderAccount) {
+      tempFormValidation.notificationsSenderAccount.valid = true;
+    } else {
+      tempFormValidation.notificationsSenderAccount.valid = false;
+      validate = false;
+    }
+
+    if (notifications.senderPassword) {
+      tempFormValidation.notificationsSenderPassword.valid = true;
+    } else {
+      tempFormValidation.notificationsSenderPassword.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     this.ah.all(apiArr)
     .then(data => {
@@ -495,7 +573,7 @@ class Notifications extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, openEmailDialog, notifications, emails, lineBotSetting} = this.state;
+    const {activeContent, openEmailDialog, notifications, emails, lineBotSetting, formValidation} = this.state;
     const EMAIL_SETTINGS = [
       {
         type: 'service',
@@ -578,6 +656,9 @@ class Notifications extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
+                      required
+                      error={!formValidation.notificationsServer.valid}
+                      helperText={formValidation.notificationsServer.valid ? '' : t('txt-required')}
                       value={notifications.server}
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
@@ -607,6 +688,9 @@ class Notifications extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
+                      required
+                      error={!formValidation.notificationsSender.valid}
+                      helperText={formValidation.notificationsSender.msg}
                       value={notifications.sender}
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
@@ -652,6 +736,9 @@ class Notifications extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
+                      required
+                      error={!formValidation.notificationsSenderAccount.valid}
+                      helperText={formValidation.notificationsSenderAccount.valid ? '' : t('txt-required')}
                       value={notifications.senderAccount}
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
@@ -665,6 +752,9 @@ class Notifications extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
+                      required
+                      error={!formValidation.notificationsSenderPassword.valid}
+                      helperText={formValidation.notificationsSenderPassword.valid ? '' : t('txt-required')}
                       value={notifications.senderPassword}
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />

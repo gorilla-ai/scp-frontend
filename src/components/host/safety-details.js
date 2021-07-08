@@ -29,7 +29,7 @@ class SafetyDetails extends Component {
 
     this.state = {
       contentType: '', //'basicInfo' or 'availableHost'
-      showVansNotes: true
+      showVansNotes: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -38,6 +38,7 @@ class SafetyDetails extends Component {
   }
   componentDidMount() {
     this.toggleContent(this.props.showSafetyTab);
+    this.checkVansNotes();
   }
   /**
    * Toggle content type
@@ -48,6 +49,19 @@ class SafetyDetails extends Component {
     this.setState({
       contentType
     });
+  }
+  /**
+   * Show / not show default Vans notes
+   * @method
+   */
+  checkVansNotes = () => {
+    const {currentSafetyData} = this.props;
+
+    if (currentSafetyData.annotationObj && (currentSafetyData.annotationObj.status || currentSafetyData.annotationObj.annotation)) {
+      this.setState({
+        showVansNotes: true
+      });
+    }
   }
   /**
    * Toggle Vans note content on/off
@@ -746,7 +760,9 @@ class SafetyDetails extends Component {
                 <VansNotes
                   currentData={currentSafetyData}
                   currentType={safetyScanType}
-                  vansHmdStatusList={vansHmdStatusList} />
+                  vansHmdStatusList={vansHmdStatusList}
+                  getIPdeviceInfo={this.props.getIPdeviceInfo}
+                  getVansStatus={this.props.getVansStatus} />
               }
             </div>
             <div className='content'>
@@ -856,7 +872,8 @@ SafetyDetails.propTypes = {
   vansHmdStatusList: PropTypes.array.isRequired,
   getHostInfo: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
-  getIPdeviceInfo: PropTypes.func.isRequired
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  getVansStatus: PropTypes.func.isRequired
 };
 
 export default SafetyDetails;

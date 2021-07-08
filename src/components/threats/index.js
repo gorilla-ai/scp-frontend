@@ -276,6 +276,17 @@ class ThreatsController extends Component {
         emailList: [],
         openFlag: false
       },
+      queryDataPublic: {
+        id: '',
+        name: '',
+        inputName: '',
+        displayId: '',
+        displayName: '',
+        list: [],
+        query: '',
+        formattedQuery: '',
+        openFlag: false
+      },
       tableType:'list',
       threatsList:[],
       originalThreatsList:[],
@@ -291,6 +302,7 @@ class ThreatsController extends Component {
       saveQueryOpen: false,
       currentTableIndex: '',
       currentTableID: '',
+      queryModalType: '',
       alertDetailsOpen: false,
       alertDetails: {
         all: [],
@@ -334,6 +346,7 @@ class ThreatsController extends Component {
         account: tempAccount
       }, () => {
         this.getSavedQuery();
+        this.getPublicSavedQuery();
         this.loadTreeData();
         this.setChartIntervalBtn();
         this.setStatisticsTab();
@@ -493,6 +506,24 @@ class ThreatsController extends Component {
       if (!_.isEmpty(data)) {
         this.setState({
           queryData: data
+        });
+      }
+      return null;
+    });
+  }
+  /**
+   * Get and set the public saved query
+   * @method
+   */
+  getPublicSavedQuery = () => {
+    const {baseUrl} = this.context;
+    const {queryDataPublic} = this.state;
+
+    helper.getPublicSavedQuery(baseUrl, queryDataPublic, 'alert')
+    .then(data => {
+      if (!_.isEmpty(data)) {
+        this.setState({
+          queryDataPublic: data
         });
       }
       return null;
@@ -2347,13 +2378,18 @@ class ThreatsController extends Component {
       query: ''
     }];
     let tempQueryData = {...this.state.queryData};
+    let tempQueryDataPublic = {...this.state.queryDataPublic};
     tempQueryData.displayId = '';
     tempQueryData.displayName = '';
     tempQueryData.openFlag = false;
+    tempQueryDataPublic.displayId = '';
+    tempQueryDataPublic.displayName = '';
+    tempQueryDataPublic.openFlag = false;
 
     this.setState({
       filterData,
-      queryData: tempQueryData
+      queryData: tempQueryData,
+      queryDataPublic: tempQueryDataPublic
     });
   }
   /**
@@ -2733,6 +2769,7 @@ class ThreatsController extends Component {
       handleSubTabChange: this.handleSubTabChange,
       currentTableID: this.state.currentTableID,
       queryData: this.state.queryData,
+      queryDataPublic: this.state.queryDataPublic,
       filterData: this.state.filterData,
       account: this.state.account,
       showFilter: this.state.showFilter,
@@ -2810,29 +2847,49 @@ class ThreatsController extends Component {
   /**
    * Toggle query menu on/off
    * @method
-   * @param {string} type - type of query menu ('open' or 'save')
+   * @param {string} type - type of query menu ('open', 'save', 'publicOpen' or 'publicSave')
    */
   openQuery = (type) => {
-    if (type === 'open') {
-      const {queryData} = this.state;
-      let tempQueryData = {...queryData};
+    if (type === 'open' || type === 'publicOpen') {
+      if (type === 'open') {
+        const {queryData} = this.state;
+        let tempQueryData = {...queryData};
 
-      if (queryData.list.length > 0) {
-        tempQueryData.id = queryData.list[0].id;
-        tempQueryData.name = queryData.list[0].name;
-        tempQueryData.query = queryData.list[0].queryText;
-        tempQueryData.emailList = queryData.list[0].emailList;
+        if (queryData.list.length > 0) {
+          tempQueryData.id = queryData.list[0].id;
+          tempQueryData.name = queryData.list[0].name;
+          tempQueryData.query = queryData.list[0].queryText;
+          tempQueryData.emailList = queryData.list[0].emailList;
+        }
+
+        this.setState({
+          queryData: tempQueryData,
+          openQueryOpen: true
+        });
+      } else if (type === 'publicOpen') {
+        const {queryDataPublic} = this.state;
+        let tempQueryDataPublic = {...queryDataPublic};
+
+        if (tempQueryDataPublic.list.length > 0) {
+          tempQueryDataPublic.id = queryDataPublic.list[0].id;
+          tempQueryDataPublic.name = queryDataPublic.list[0].name;
+          tempQueryDataPublic.query = queryDataPublic.list[0].queryText;
+        }
+
+        this.setState({
+          queryDataPublic: tempQueryDataPublic,
+          openQueryOpen: true
+        });
       }
-
-      this.setState({
-        queryData: tempQueryData,
-        openQueryOpen: true
-      });
-    } else if (type === 'save') {
+    } else if (type === 'save' || type === 'publicSave') {
       this.setState({
         saveQueryOpen: true
       });
     }
+
+    this.setState({
+      queryModalType: type
+    });
   }
   /**
    * Set filter data
@@ -2847,12 +2904,20 @@ class ThreatsController extends Component {
   /**
    * Set query data
    * @method
-   * @param {object} queryData - query data to be set
+   * @param {object} query - query data to be set
    */
-  setQueryData = (queryData) => {
-    this.setState({
-      queryData
-    });
+  setQueryData = (query) => {
+    const {queryModalType} = this.state;
+
+    if (queryModalType === 'open' || queryModalType === 'save') {
+      this.setState({
+        queryData: query
+      });
+    } else if (queryModalType === 'publicOpen' || queryModalType === 'publicSave') {
+      this.setState({
+        queryDataPublic: query
+      });
+    }
   }
   /**
    * Set notify email data
@@ -2867,24 +2932,25 @@ class ThreatsController extends Component {
   /**
    * Display query menu modal dialog
    * @method
-   * @param {string} type - query type ('open' or 'save')
    * @returns QueryOpenSave component
    */
-  queryDialog = (type) => {
-    const {activeTab, account, filterData, queryData, notifyEmailData} = this.state;
+  queryDialog = () => {
+    const {activeTab, account, filterData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
 
     return (
       <QueryOpenSave
         activeTab={activeTab}
-        type={type}
+        type={queryModalType}
         account={account}
         filterData={filterData}
         queryData={queryData}
+        queryDataPublic={queryDataPublic}
         notifyEmailData={notifyEmailData}
         setFilterData={this.setFilterData}
         setQueryData={this.setQueryData}
         setNotifyEmailData={this.setNotifyEmailData}
         getSavedQuery={this.getSavedQuery}
+        getPublicSavedQuery={this.getPublicSavedQuery}
         closeDialog={this.closeDialog} />
     )
   }
@@ -2923,12 +2989,17 @@ class ThreatsController extends Component {
    * @method
    */
   clearQueryData = () => {
-    let tempQueryData = {...this.state.queryData};
+    const {queryData, queryDataPublic} = this.state;
+    let tempQueryData = {...queryData};
+    let tempQueryDataPublic = {...queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
+    tempQueryDataPublic.inputName = '';
+    tempQueryDataPublic.openFlag = false;
 
     this.setState({
       queryData: tempQueryData,
+      queryDataPublic: tempQueryDataPublic,
       notifyEmailData: []
     });
   }
@@ -2972,11 +3043,11 @@ class ThreatsController extends Component {
     return (
       <div>
         {openQueryOpen &&
-          this.queryDialog('open')
+          this.queryDialog()
         }
 
         {saveQueryOpen &&
-          this.queryDialog('save')
+          this.queryDialog()
         }
 
         {alertDetailsOpen &&

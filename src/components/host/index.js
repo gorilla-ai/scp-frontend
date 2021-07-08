@@ -33,6 +33,9 @@ import HostAnalysis from './host-analysis'
 import Pagination from '../common/pagination'
 import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
+import VansCharts from './vans-charts'
+import VansDevice from './vans-device'
+import VansPieChart from './vans-pie-chart'
 import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -45,6 +48,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
 const SCAN_RESULT = [
   {
     name: 'Yara Scan',
@@ -76,7 +80,6 @@ const SCAN_RESULT = [
     result: '_VansResult'
   }
 ];
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected'];
 const HMD_TRIGGER = [
   {
     name: 'Yara Scan',
@@ -135,6 +138,22 @@ const HMD_LIST = [
   {
     name: 'VANS',
     value: 'isVans'
+  },
+  {
+    name: 'is Applied File Integrity',
+    value: 'isSnapshot'
+  },
+  {
+    name: 'is Applied Process Monitor',
+    value: 'isProcWhiteList'
+  },
+  {
+    name: 'Not Applied File Integrity',
+    value: 'isNotSnapshot'
+  },
+  {
+    name: 'Not Applied Process Monitor',
+    value: 'isNotProcWhiteList'
   }
 ];
 const HOST_SORT_LIST = [
@@ -168,6 +187,18 @@ const HOST_SORT_LIST = [
   },
   {
     name: 'system',
+    sort: 'desc'
+  },
+  {
+    name: 'hostName',
+    sort: 'desc'
+  },
+  {
+    name: 'theLastestTaskResponseDttm',
+    sort: 'asc'
+  },
+  {
+    name: 'theLastestTaskResponseDttm',
     sort: 'desc'
   }
 ];
@@ -211,6 +242,7 @@ const MODULE_TYPE = {
   getVansCpe: 'cpe',
   getVansCve: 'cve'
 };
+const VANS_DATA = ['vansCounts', 'vansHigh', 'vansMedium', 'vansLow', 'gcbCounts', 'malwareCounts'];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -242,7 +274,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeTab: 'hostList', //'hostList', 'deviceMap' or 'safetyScan'
+      activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       showFilter: false,
       showLeftNav: true,
@@ -256,6 +288,7 @@ class HostController extends Component {
       safetyDetailsOpen: false,
       hostDeviceOpen: false,
       reportNCCSTopen: false,
+      vansPieChartOpen: false,
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //hmdTriggerAll' or 'hmdDownload
@@ -296,7 +329,7 @@ class HostController extends Component {
         statistics: t('host.txt-deviceMap')
       },
       hostInfo: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -309,7 +342,7 @@ class HostController extends Component {
       selectedTreeID: '',
       floorMapType: '',
       safetyScanData: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -321,11 +354,15 @@ class HostController extends Component {
       eventInfo: {
         dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
-        dataContent: [],
+        dataContent: null,
         scrollCount: 1,
         hasMore: false
       },
       openHmdType: '',
+      vansChartsData: {},
+      vansData: {},
+      vansTableType: 'assessment', //'assessment' or 'hmd'
+      vansPieChartData: {},
       showLoadingIcon: false,
       nccstSelectedList: [],
       nccstCheckAll: false,
@@ -611,6 +648,9 @@ class HostController extends Component {
 
         if (!data.rows || data.rows.length === 0) {
           if (activeTab === 'hostList') {
+            this.setState({
+              hostInfo: tempHostInfo
+            });
             helper.showPopupMsg(t('txt-notFound'));
           } else if (activeTab === 'deviceMap') {
             this.setState({
@@ -632,8 +672,14 @@ class HostController extends Component {
         })
 
         _.forEach(HMD_STATUS_LIST, val => {
+          let text = t('host.txt-' + val);
+
+          if (data.devInfoAgg[val]) {
+            text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+          }
+
           hmdStatusList.push({
-            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')',
+            text,
             value: val
           });
         })
@@ -672,6 +718,69 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Get and set vans charts data
+   * @method
+   */
+  getVansChartsData = () => {
+    const {baseUrl} = this.context;
+    const {vansTableType} = this.state;
+    const datetime = this.getHostDateTime();
+    const requestData = {
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData()
+    };
+    let url = `${baseUrl}/api/`;
+
+    if (vansTableType === 'assessment') {
+      url += 'ipdevice/assessment/deptCountsTable';
+    } else if (vansTableType === 'hmd') {
+      url += 'hmd/hmdScanDistribution/deptCountsTable';
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          vansChartsData: data,
+          vansData: {}
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Vans device data
+   * @param {object} vansData - vans data
+   * @method
+   */
+  setVansDeviceData = (vansData) => {
+    this.setState({
+      vansData
+    });
+  }
+  /**
+   * Clear Vans data
+   * @method
+   * @param {string} vansTableType - vans table type ('assessment' or 'hmd')
+   */
+  clearVansData = (vansTableType) => {
+    this.setState({
+      vansChartsData: {},
+      vansData: {},
+      vansTableType
+    }, () => {
+      this.getVansChartsData();
+    });
   }
   /**
    * Get Host and Safety Scan request data
@@ -782,12 +891,19 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
+        let tempSafetyScanData = {...safetyScanData};
+
         if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
+          tempSafetyScanData.dataContent = [];
+          tempSafetyScanData.totalCount = 0;
+
+          this.setState({
+            safetyScanData: tempSafetyScanData
+          });
           helper.showPopupMsg(t('txt-notFound'));
           return;
         }
 
-        let tempSafetyScanData = {...safetyScanData};
         tempSafetyScanData.dataContent = data.hmdScanDistribution;
         tempSafetyScanData.totalCount = data.count;
 
@@ -1065,7 +1181,7 @@ class HostController extends Component {
       nccstSelectedList.splice(index, 1);
     }
 
-    if (nccstSelectedList.length === safetyScanData.dataContent.length) {
+    if (safetyScanData.dataContent && nccstSelectedList.length === safetyScanData.dataContent.length) {
       nccstCheckAll = true;
     }
 
@@ -1126,6 +1242,17 @@ class HostController extends Component {
       this.setState({
         nccstSelectedList
       });
+    });
+  }
+  /**
+   * Toggle NCCST list modal dialog on/off
+   * @method
+   */
+  toggleReportNCCST = () => {
+    this.setState({
+      reportNCCSTopen: !this.state.reportNCCSTopen,
+      nccstSelectedList: [],
+      nccstCheckAll: false
     });
   }
   /**
@@ -1229,15 +1356,34 @@ class HostController extends Component {
     })
   }
   /**
-   * Show NCCST list modal dialog
+   * Toggle Vans Pie Chart modal dialog on/off
    * @method
-   * @returns ModalDialog component
+   * @param {array.<object>} data - vans data
    */
-  toggleReportNCCST = () => {
+  togglePieChart = (data) => {
     this.setState({
-      reportNCCSTopen: !this.state.reportNCCSTopen,
-      nccstSelectedList: [],
-      nccstCheckAll: false
+      vansPieChartOpen: !this.state.vansPieChartOpen
+    }, () => {
+      if (this.state.vansPieChartOpen) {
+        let vansPieChartData = {};
+
+        _.forEach(VANS_DATA, val => {
+          vansPieChartData[val] = [];
+        })
+
+        _.forEach(data, val => {
+          _.forEach(vansPieChartData, (val2, key) => {
+            vansPieChartData[key].push({
+              key: val.name || val.hostName,
+              doc_count: val[key]
+            });
+          })
+        })
+
+        this.setState({
+          vansPieChartData
+        });
+      }
     });
   }
   /**
@@ -1397,7 +1543,7 @@ class HostController extends Component {
 
     if (activeTab === 'hostList') {
       let tempHostInfo = {...hostInfo};
-      tempHostInfo.dataContent = [];
+      tempHostInfo.dataContent = null;
       tempHostInfo.totalCount = 0;
       tempHostInfo.currentPage = 1;
 
@@ -1413,7 +1559,7 @@ class HostController extends Component {
       this.getHostData();
     } else if (activeTab === 'safetyScan') {
       let tempSafetyScanData = {...safetyScanData};
-      tempSafetyScanData.dataContent = [];
+      tempSafetyScanData.dataContent = null;
       tempSafetyScanData.totalCount = 0;
       tempSafetyScanData.currentPage = 1;
 
@@ -1423,13 +1569,15 @@ class HostController extends Component {
         this.getHostData();
         this.getSafetyScanData();
       });
+    } else if (activeTab === 'vansCharts') {
+      this.getVansChartsData();
     }
   }
   /**
    * Handle content tab change
    * @method
    * @param {object} event - event object
-   * @param {string} newTab - content type ('hostList', 'deviceMap' or 'safetyScan')
+   * @param {string} newTab - content type ('hostList', 'deviceMap', 'safetyScan' or 'vansCharts')
    */
   handleSubTabChange = (event, newTab) => {
     if (newTab === 'deviceMap') {
@@ -1449,6 +1597,8 @@ class HostController extends Component {
           this.getSafetyScanData();
           this.getVansStatus();
         });
+      } else if (newTab === 'vansCharts') {
+        this.getVansChartsData();
       } else {
         this.getHostData();
       }
@@ -1667,7 +1817,7 @@ class HostController extends Component {
   clearSafetyScanData = () => {
     this.setState({
       safetyScanData: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -1791,6 +1941,9 @@ class HostController extends Component {
       } else if (val.name === 'version') {
         context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
+      } else if (val.name === 'latestTime') {
+        if (!content) return;
+        content = helper.getFormattedDate(content, 'local');
       } else if (val.name === 'vansNotes' && dataInfo[val.path]) {
         return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span className='vans-status' style={this.getVansStatusColor(dataInfo[val.path].color)}>{dataInfo[val.path].status}</span></li>
       }
@@ -1988,12 +2141,14 @@ class HostController extends Component {
         eventInfo: {
           dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
           dataFields: {},
-          dataContent: [],
+          dataContent: null,
           scrollCount: 1,
           hasMore: false
         }
       }, () => {
-        if (!this.state.hostAnalysisOpen) {
+        const {activeTab, hostAnalysisOpen} = this.state;
+
+        if (activeTab === 'hostList' && !this.state.hostAnalysisOpen) {
           this.getHostData();
           this.getVansStatus();
         }
@@ -2079,6 +2234,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'latestTime',
+        path: 'theLastestTaskResponseDttm',
+        icon: 'clock'
       },
       {
         name: 'vansNotes',
@@ -2506,13 +2666,33 @@ class HostController extends Component {
   /**
    * Handle CSV download
    * @method
+   * @param {string} [options] - option for 'default' or department ID
    */
-  getCSVfile = () => {
+  getCSVfile = (options) => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
-    const dataOptions = this.getHostData('csv');
+    const {vansTableType} = this.state;
+    let url = '';
+    let requestData = this.getHostData('csv');
 
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+    if (options === 'default') {
+      url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
+    } else {
+      if (vansTableType === 'assessment') {
+        url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/deptCountsTable/_export`;
+        
+        if (options && typeof options === 'string') {
+          requestData.deptId = options;
+        }
+      } else if (vansTableType === 'hmd') {
+        url = `${baseUrl}${contextRoot}/api/hmd/hmdScanDistribution/deptCountsTable/_export`;
+
+        if (options && typeof options === 'string') {
+          requestData.deptId = options;
+        }
+      }
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Handle PDF export
@@ -2521,9 +2701,9 @@ class HostController extends Component {
   exportAllPdf = () => {
     const {baseUrl, contextRoot} = this.context
     const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
-    const dataOptions = this.getHostData('pdf')
+    const requestData = this.getHostData('pdf')
 
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)})
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Handle department checkbox check/uncheck
@@ -2767,7 +2947,7 @@ class HostController extends Component {
     let tempHmdSearch = {...hmdSearch};
     let tempSafetyScanData = {...safetyScanData};
     tempHmdSearch.status = {};
-    tempSafetyScanData.dataContent = [];
+    tempSafetyScanData.dataContent = null;
     tempSafetyScanData.currentPage = 1;
 
     this.setState({
@@ -2873,6 +3053,7 @@ class HostController extends Component {
       safetyDetailsOpen,
       hostDeviceOpen,
       reportNCCSTopen,
+      vansPieChartOpen,
       showSafetyTab,
       contextAnchor,
       menuType,
@@ -2898,6 +3079,10 @@ class HostController extends Component {
       currentSafetyData,
       safetyScanType,
       fromSafetyPage,
+      vansChartsData,
+      vansData,
+      vansTableType,
+      vansPieChartData,
       floorPlan,
       showLoadingIcon
     } = this.state;
@@ -2922,7 +3107,8 @@ class HostController extends Component {
             loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis}
             toggleSafetyDetails={this.toggleSafetyDetails}
-            getHostInfo={this.getHostInfo} />
+            getHostInfo={this.getHostInfo}
+            getVansStatus={this.getVansStatus} />
         }
 
         {safetyDetailsOpen &&
@@ -2934,7 +3120,8 @@ class HostController extends Component {
             vansHmdStatusList={vansHmdStatusList}
             getHostInfo={this.getHostInfo}
             toggleSafetyDetails={this.toggleSafetyDetails}
-            getIPdeviceInfo={this.getIPdeviceInfo} />
+            getIPdeviceInfo={this.getIPdeviceInfo}
+            getVansStatus={this.getVansStatus} />
         }
 
         {hostDeviceOpen &&
@@ -2949,7 +3136,7 @@ class HostController extends Component {
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><PictureAsPdfIcon /></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           </div>
 
           <SearchOptions
@@ -3048,16 +3235,19 @@ class HostController extends Component {
                   textColor='primary'
                   value={activeTab}
                   onChange={this.handleSubTabChange}>
-                  <Tab id='hostListTab' label={t('host.txt-hostList')} value='hostList' />
-                  <Tab id='hostMapTab' label={t('host.txt-deviceMap')} value='deviceMap' />
-                  <Tab id='hostMapTab' label={t('host.txt-safetyScan')} value='safetyScan' />
+                  <Tab label={t('host.txt-hostList')} value='hostList' />
+                  <Tab label={t('host.txt-deviceMap')} value='deviceMap' />
+                  <Tab label={t('host.txt-safetyScan')} value='safetyScan' />
+                  <Tab label={t('host.txt-vans')} value='vansCharts' />
                 </Tabs>
 
-                <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
-                </div>
+                {activeTab !== 'vansCharts' &&
+                  <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
+                  </div>
+                }
 
                 <Menu
                   anchorEl={contextAnchor}
@@ -3079,14 +3269,14 @@ class HostController extends Component {
                 {activeTab === 'hostList' &&
                   <div className='table-content'>
                     <div className='table' style={{height: '64vh'}}>
-                      {(!hostInfo.dataContent || hostInfo.dataContent.length === 0) &&
+                      {!hostInfo.dataContent &&
                         <span className='loading'><i className='fg fg-loading-2'></i></span>
                       }
-                      <ul className='host-list'>
-                        {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
-                          hostInfo.dataContent.map(this.getHostList)
-                        }
-                      </ul>
+                      {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
+                        <ul className='host-list'>
+                          {hostInfo.dataContent.map(this.getHostList)}
+                        </ul>
+                      }
                     </div>
                     <footer>
                       <Pagination
@@ -3164,23 +3354,25 @@ class HostController extends Component {
                       value={hmdSearch.annotation}
                       onChange={this.handleHmdSearch} />
                     <Button variant='outlined' color='primary' className='standard btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
-                    <Button variant='outlined' color='primary' className='clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
-                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                        {safetyScanData.dataContent &&
+                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                        }
                       </div>
                     }
                     <div className='table-content'>
                       <div className='table' style={{height: '57vh'}}>
-                        {(!safetyScanData.dataContent || safetyScanData.dataContent.length === 0) &&
+                        {!safetyScanData.dataContent &&
                           <span className='loading'><i className='fg fg-loading-2'></i></span>
                         }
-                        <ul className='safety-list'>
-                          {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
-                            safetyScanData.dataContent.map(this.getSafetyList)
-                          }
-                        </ul>
+                        {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
+                          <ul className='safety-list'>
+                            {safetyScanData.dataContent.map(this.getSafetyList)}
+                          </ul>
+                        }
                       </div>
                       <footer>
                         <Pagination
@@ -3192,6 +3384,38 @@ class HostController extends Component {
                       </footer>
                     </div>
                   </div>
+                }
+
+                {activeTab === 'vansCharts' &&
+                  <React.Fragment>
+                    {vansPieChartOpen &&
+                      <VansPieChart
+                        vansDataType={VANS_DATA}
+                        vansPieChartData={vansPieChartData}
+                        togglePieChart={this.togglePieChart} />
+                    }
+
+                    <div className='host-table'>
+                      <VansCharts
+                        vansChartsData={vansChartsData}
+                        vansTableType={vansTableType}
+                        setVansDeviceData={this.setVansDeviceData}
+                        clearVansData={this.clearVansData}
+                        togglePieChart={this.togglePieChart}
+                        getCSVfile={this.getCSVfile} />
+                    </div>
+
+                    {vansData.devs && vansData.devs.length > 0 &&
+                      <div className='host-table'>
+                        <VansDevice
+                          vansChartsData={vansChartsData}
+                          vansData={vansData}
+                          getIPdeviceInfo={this.getIPdeviceInfo}
+                          togglePieChart={this.togglePieChart}
+                          getCSVfile={this.getCSVfile} />
+                      </div>
+                    }
+                  </React.Fragment>
                 }
               </div>
             </div>
