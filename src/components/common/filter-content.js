@@ -4,6 +4,7 @@ import cx from 'classnames'
 
 import Button from '@material-ui/core/Button'
 
+import {BaseDataContext} from './context'
 import FilterInput from './filter-input'
 
 let t = null;
@@ -46,6 +47,7 @@ class FilterContent extends Component {
     }
   }
   render() {
+    const {sessionRights} = this.context;
     const {showFilter, queryData} = this.props;
     let filterTitle = t('txt-filter');
 
@@ -62,7 +64,9 @@ class FilterContent extends Component {
             <Button id='openQueryBtn' variant='outlined' color='primary' className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</Button>
             <Button id='saveQueryBtn' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</Button>
             <Button id='publicOpenQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicOpen')}>{t('events.connections.txt-publicOpenQuery')}</Button>
-            <Button id='publicSaveQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicSave')}>{t('events.connections.txt-publicSaveQuery')}</Button>
+            {sessionRights.Module_Config &&
+              <Button id='publicSaveQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicSave')}>{t('events.connections.txt-publicSaveQuery')}</Button>
+            }
           </div>
         }
         <FilterInput
@@ -76,6 +80,8 @@ class FilterContent extends Component {
     )
   }
 }
+
+FilterContent.contextType = BaseDataContext;
 
 FilterContent.propTypes = {
   activeTab: PropTypes.string.isRequired,

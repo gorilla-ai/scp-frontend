@@ -233,7 +233,7 @@ class QueryOpenSave extends Component {
         return;
       }
 
-      if (activeTab === 'logs') { //Form validation
+      if (type === 'save' && activeTab === 'logs') { //Form validation
         if (patternCheckbox) {
           if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
             this.setState({
@@ -721,6 +721,11 @@ class QueryOpenSave extends Component {
           }
         })
         this.props.setQueryData(tempQueryData);
+
+        this.setState({
+          patternCheckbox,
+          publicCheckbox
+        });
       } else if (type === 'publicOpen' || type === 'publicSave') {
         tempQueryDataPublic.id = value;
         tempQueryDataPublic.openFlag = true;
@@ -771,8 +776,6 @@ class QueryOpenSave extends Component {
       }
 
       this.setState({
-        patternCheckbox,
-        publicCheckbox,
         dialogOpenType: 'change'
       });
     } else if (fieldType === 'name') {
@@ -894,7 +897,7 @@ class QueryOpenSave extends Component {
   /**
    * Get query alert content
    * @method
-   * @param {string} type - query dialog type ('open', 'save', 'publicOpen' or 'publicSave')
+   * @param {string} type - query dialog type ('open' or 'save')
    * @returns HTML DOM
    */
   getQueryAlertContent = (type) => {
@@ -1024,7 +1027,7 @@ class QueryOpenSave extends Component {
    * @returns css display
    */
   getQueryColor = (queryDataList) => {
-    if (queryDataList && queryDataList.length === 0) {
+    if (!queryDataList || (queryDataList && queryDataList.length === 0)) {
       return { display: 'none' };
     }
   }
@@ -1113,7 +1116,7 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {activeTab === 'logs' && queryData.patternId &&
+          {type === 'open' && activeTab === 'logs' && queryData.patternId &&
             this.getQueryAlertContent(type)
           }
 

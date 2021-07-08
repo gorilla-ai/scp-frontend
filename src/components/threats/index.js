@@ -296,7 +296,7 @@ class ThreatsController extends Component {
       currentQueryValue: '',
       notifyEmailData: [],
       newQueryName: true,
-      showFilter: true,
+      showFilter: false,
       showChart: false,
       openQueryOpen: false,
       saveQueryOpen: false,
@@ -2989,8 +2989,9 @@ class ThreatsController extends Component {
    * @method
    */
   clearQueryData = () => {
-    let tempQueryData = {...this.state.queryData};
-    let tempQueryDataPublic = {...this.state.queryDataPublic};
+    const {queryData, queryDataPublic} = this.state;
+    let tempQueryData = {...queryData};
+    let tempQueryDataPublic = {...queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
     tempQueryDataPublic.inputName = '';
