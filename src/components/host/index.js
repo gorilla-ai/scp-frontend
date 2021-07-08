@@ -3354,7 +3354,7 @@ class HostController extends Component {
                       value={hmdSearch.annotation}
                       onChange={this.handleHmdSearch} />
                     <Button variant='outlined' color='primary' className='standard btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
-                    <Button variant='outlined' color='primary' className='clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>

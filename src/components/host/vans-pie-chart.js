@@ -35,12 +35,22 @@ class VansPicChart extends Component {
    */
   displayVansPieChart = (val, i) => {
     const {vansPieChartData} = this.props;
+    let newVansData = [];
+
+    _.forEach(vansPieChartData[val], val => {
+      const vansName = val.key === 'parentDept' ? t('host.txt-parentDept') : val.key;
+
+      newVansData.push({
+        ...val,
+        key: vansName
+      });
+    })
 
     return (
       <div key={i} className='chart-group'>
         <PieChart
           title={t('host.txt-' + val)}
-          data={vansPieChartData[val]}
+          data={newVansData}
           keyLabels={{
             key: t('txt-dept'),
             doc_count: t('txt-count')

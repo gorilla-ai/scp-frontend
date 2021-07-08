@@ -183,7 +183,7 @@ class ExportCsv extends Component {
 ExportCsv.contextType = BaseDataContext;
 
 ExportCsv.propTypes = {
-  popOverAnchor: PropTypes.object.isRequired,
+  popOverAnchor: PropTypes.object,
   taskServiceList: PropTypes.object.isRequired,
   handlePopoverClose: PropTypes.func.isRequired,
   registerDownload: PropTypes.func.isRequired,
