@@ -139,9 +139,6 @@ const INCIDENT_STATUS_ANALYZED = 6
 const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
 const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
 
-const SOC_Analyzer = 1
-const SOC_Executor = 2
-const SOC_Super = 3
 
 let t = null;
 let f = null;

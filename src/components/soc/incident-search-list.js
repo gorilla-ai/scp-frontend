@@ -111,7 +111,7 @@ class IncidentSearch extends Component {
             deviceListOptions: [],
             showDeviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString', 'dstIPListString'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString', 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: [],
@@ -142,7 +142,7 @@ class IncidentSearch extends Component {
         const {locale, sessionRights} = this.context;
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
-        // this.checkAccountType();
+        this.checkAccountType();
         this.setDefaultSearchOptions();
 
     }

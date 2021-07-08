@@ -121,7 +121,8 @@ class IncidentReview extends Component {
             let url = `${baseUrl}/api/soc/_${reviewType}`
 
             if (reviewType === 'draw') {
-                url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
+                // url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
+	            url =  `${baseUrl}/api/soc/analyzer/_draw`
             }
 
 		    ah.one({

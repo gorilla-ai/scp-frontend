@@ -15,6 +15,7 @@ let it = null;
 
 const INIT = {
     openIncidentManagement: false,
+    openConfigManagement: false,
 };
 
 
@@ -30,7 +31,7 @@ class SocConfig extends Component {
 
         this.state = {
             showContent: true,
-            accountRoleType:constants.soc.SOC_Analyzer,
+            accountRoleType:[constants.soc.SOC_Analyzer],
             ..._.cloneDeep(INIT)
         };
 
@@ -41,30 +42,44 @@ class SocConfig extends Component {
 
     componentDidMount() {
         const {session} =  this.props;
-        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-            if (_.includes(session.roles, 'SOC Executor')){
 
-                this.setState({
-                    accountRoleType:constants.soc.SOC_Executor
-                });
-            }else{
-                this.setState({
-                    accountRoleType:constants.soc.SOC_Super
-                })
-            }
-        } else  if (_.includes(session.roles, 'SOC Executor')){
-            this.setState({
-                accountRoleType:constants.soc.SOC_Executor
-            });
-        } else  if (_.includes(session.roles, 'SOC Analyzer')){
-            this.setState({
-                accountRoleType:constants.soc.SOC_Analyzer
-            });
-        }
+        this.setState({
+            accountRoleType:session.roles
+        });
 
-        const openIncidentManagement = this.getActiveFrame('incident') || this.getActiveFrame('incident-search');
+        // if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
+        //     if (_.includes(session.roles, 'SOC Executor')){
+        //
+        //         this.setState({
+        //             accountRoleType:constants.soc.SOC_Executor
+        //         });
+        //     }else{
+        //         this.setState({
+        //             accountRoleType:constants.soc.SOC_Super
+        //         })
+        //     }
+        // } else  if (_.includes(session.roles, 'SOC Executor')){
+        //     this.setState({
+        //         accountRoleType:constants.soc.SOC_Executor
+        //     });
+        // } else  if (_.includes(session.roles, 'SOC Analyzer')){
+        //     this.setState({
+        //         accountRoleType:constants.soc.SOC_Analyzer
+        //     });
+        // }
+
+        const openIncidentManagement = this.getActiveFrame('incident') ||
+            this.getActiveFrame('incident-search') ||
+            this.getActiveFrame('incidentLog') ||
+            this.getActiveFrame('incidentSOCRule') ||
+            this.getActiveFrame('incidentSOCFlow') ||
+            this.getActiveFrame('incidentManagement');
+
+        const openConfigManagement = this.getActiveFrame('incidentSettingSOC') || this.getActiveFrame('incidentSettingISAC');
+
         this.setState({
             openIncidentManagement,
+            openConfigManagement
         });
     }
 
@@ -90,7 +105,13 @@ class SocConfig extends Component {
         const path = window.location.pathname;
         const pattern = {
             incident: '/SCP/soc/incident',
-            "incident-search": '/SCP/soc/incident-search'
+            "incident-search": '/SCP/soc/incident-search',
+            incidentLog:'/SCP/soc/incident-log',
+            incidentSOCRule:'/SCP/soc/incident-RuleTemplate',
+            incidentSOCFlow:'/SCP/soc/incident-Flow',
+            incidentSettingISAC:'/SCP/soc/incident-ISAC',
+            incidentSettingSOC:'/SCP/soc/incident-SOC',
+            incidentManagement:'/SCP/soc/incident-management'
         };
 
         return path === pattern[frame];
@@ -119,13 +140,19 @@ class SocConfig extends Component {
     };
 
     render() {
-        const {showContent, openIncidentManagement} = this.state;
+        const {showContent, openIncidentManagement, openConfigManagement} = this.state;
         const {accountType} = this.props;
         return (
             <div className={cx('left-nav', {'collapse': !showContent})}>
 
                 <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openIncidentManagement', openIncidentManagement)}>
-                    <span className={`${this.getActiveFrame('incident') || this.getActiveFrame('incident-search')}}`}>{it('txt-incident-management')}</span>
+                    <span className={`${this.getActiveFrame('incident') || 
+                    this.getActiveFrame('incident-search')  || 
+                    this.getActiveFrame('incidentLog') ||
+                    this.getActiveFrame('incidentSOCRule') ||
+                    this.getActiveFrame('incidentSOCFlow') ||
+                    this.getActiveFrame('incidentManagement')
+                    }`}>{it('txt-incident-management')}</span>
                     <i className={`c-link fg fg-arrow-${openIncidentManagement ? 'top' : 'bottom'}`}/>
                 </div>
 
@@ -133,15 +160,43 @@ class SocConfig extends Component {
                 <div className='item open-edge'>
                     <div className='subframe'>
                         <Link to='/SCP/soc/incident'>
-                            <span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident-modify')}</span>
+                            <span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident-sign')}</span>
                         </Link>
                     </div>
-                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
+                    <div className='subframe'>
+                        <Link to='/SCP/soc/incident-management'>
+                            <span className={`${this.getActiveFrame('incidentManagement')}`}>{it('txt-incident-modify')}</span>
+                        </Link>
+                    </div>
+
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
                         <div className='subframe'>
                             <Link to='/SCP/soc/incident-search'>
                                 <span className={`${this.getActiveFrame('incident-search')}`}>{it('txt-incident-search')}</span>
                             </Link>
                         </div>
+                    }
+                    <div className='subframe'>
+                        <Link to='/SCP/soc/incident-log'>
+                            <span className={`${this.getActiveFrame('incidentLog')}`}>{it('txt-incident-log-management')}</span>
+                        </Link>
+                    </div>
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &&
+                    <div className='subframe'>
+                        <Link to='/SCP/soc/incident-RuleTemplate'>
+                            <span
+                                className={`${this.getActiveFrame('incidentSOCRule')}`}>{it('txt-incident-soc-rule')}</span>
+                        </Link>
+                    </div>
+                    }
+
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer)|| _.includes(this.state.accountRoleType, constants.soc.SOC_Executor))  &&
+                    <div className='subframe'>
+                        <Link to='/SCP/soc/incident-Flow'>
+                            <span
+                                className={`${this.getActiveFrame('incidentSOCFlow')}`}>{it('txt-incident-soc-flow')}</span>
+                        </Link>
+                    </div>
                     }
                 </div>
                 }
@@ -152,7 +207,7 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
-                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
+                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer)|| _.includes(this.state.accountRoleType, constants.soc.SOC_Executor))  &&
                     <div className='item frame incident-unit'>
                         <Link to='/SCP/soc/incident-unit'>
                             <span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit-management')}</span>
@@ -160,48 +215,31 @@ class SocConfig extends Component {
                     </div>
                 }
 
-                <div className='item frame incident-log'>
-                    <Link to='/SCP/soc/incident-log'>
-                        <span className={`${this.getActiveFrame('incidentLog')}`}>{it('txt-incident-log-management')}</span>
-                    </Link>
+                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer)|| _.includes(this.state.accountRoleType, constants.soc.SOC_Executor))  &&
+                <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openConfigManagement', openConfigManagement)}>
+                    <span className={`${this.getActiveFrame('incidentSettingISAC') ||
+                    this.getActiveFrame('incidentSettingSOC')
+                    }`}>{it('txt-incident-config')}</span>
+                    <i className={`c-link fg fg-arrow-${openConfigManagement ? 'top' : 'bottom'}`}/>
                 </div>
+                }
 
-                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
-                    <div className='item frame incident-ISAC'>
+                {openConfigManagement && accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer)|| _.includes(this.state.accountRoleType, constants.soc.SOC_Executor))  &&
+                <div className='item open-edge'>
+                    <div className='subframe'>
                         <Link to='/SCP/soc/incident-ISAC'>
                             <span
                                 className={`${this.getActiveFrame('incidentSettingISAC')}`}>{it('txt-incident-isac-management')}</span>
                         </Link>
                     </div>
-                }
-
-                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
-                <div className='item frame incident-SOC'>
-                    <Link to='/SCP/soc/incident-SOC'>
+                    <div className='subframe'>
+                        <Link to='/SCP/soc/incident-SOC'>
                             <span
                                 className={`${this.getActiveFrame('incidentSettingSOC')}`}>{it('txt-incident-soc-management')}</span>
-                    </Link>
+                        </Link>
+                    </div>
                 </div>
                 }
-
-                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
-                <div className='item frame incident-SOC'>
-                    <Link to='/SCP/soc/incident-RuleTemplate'>
-                            <span
-                                className={`${this.getActiveFrame('incidentSOCRule')}`}>{it('txt-incident-soc-rule')}</span>
-                    </Link>
-                </div>
-                }
-
-                {accountType === constants.soc.NONE_LIMIT_ACCOUNT && this.state.accountRoleType !== constants.soc.SOC_Super &&
-                <div className='item frame incident-SOC'>
-                    <Link to='/SCP/soc/incident-Flow'>
-                            <span
-                                className={`${this.getActiveFrame('incidentSOCFlow')}`}>{it('txt-incident-soc-flow')}</span>
-                    </Link>
-                </div>
-                }
-
 
                 <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})}
                      onClick={this.toggleLeftNav}>

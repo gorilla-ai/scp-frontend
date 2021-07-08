@@ -265,9 +265,13 @@ class PrivilegeEdit extends Component {
     const {name} = this.state;
     let showCheckbox = false;
 
-    if (name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor') {
+    if (name.includes('SOC')){
       showCheckbox = true;
     }
+
+    // if (name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor'|| name === 'SOC CISO') {
+    //   showCheckbox = true;
+    // }
 
     if (val.text.includes('SOC')) {
       return (

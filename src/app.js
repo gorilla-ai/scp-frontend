@@ -58,6 +58,7 @@ import 'react-chart/build/css/react-chart.css'
 import 'react-gis/build/css/react-gis.css'
 import 'react-la/build/css/react-la.css'
 import IncidentDeviceStep from "./components/soc/incident-device-with-step";
+import IncidentManagement from "./components/soc/incident-manager";
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
@@ -272,6 +273,12 @@ const incidentSearch = () => (
     </BaseDataContext.Provider>
 );
 
+const incidentManagement = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentManagement/>
+    </BaseDataContext.Provider>
+);
+
 
 const Main = () => (
   <main className='main'>
@@ -308,6 +315,8 @@ const Main = () => (
       <Route exact path='/SCP/soc/incident-RuleTemplate' component={incidentRule}/>
       <Route exact path='/SCP/soc/incident-Flow' component={incidentFlow}/>
       <Route exact path='/SCP/soc/incident-search' component={incidentSearch}/>
+      <Route exact path='/SCP/soc/incident-management' component={incidentManagement}/>
+
     </Switch>
   </main>
 );

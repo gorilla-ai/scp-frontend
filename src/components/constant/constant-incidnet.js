@@ -17,10 +17,13 @@ const constants = {
 		INCIDENT_STATUS_EXECUTOR_UNREVIEWED: 7,
 		INCIDENT_STATUS_EXECUTOR_CLOSE: 8,
 		// soc rule
-		SOC_Analyzer: 1,
-		SOC_Executor: 2,
-		SOC_Super: 3,
-		SOC_Ciso: 4,
+		SOC_Analyzer: 'SOC Analyzer',
+		SOC_Executor: 'SOC Executor',
+		SOC_Super: 'SOC Supervisor',
+		SOC_Ciso: 'SOC CISO',
+		SOC_NORMAL_Super: 'SOC單位設備承辦人',
+		SOC_NORMAL_Ciso: 'SOC單位設備資安長',
+
 		// incident Device
 		SEND_STATUS_SUCCESS: 1,
 		SEND_STATUS_ERROR_NOT_CONNECT_NCCST: 2,
