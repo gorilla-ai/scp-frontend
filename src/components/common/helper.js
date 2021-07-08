@@ -321,6 +321,51 @@ const helper = {
       </div>
     )
   },
+  getPublicSavedQuery: function(baseUrl, queryDataPublic, type) {
+    let tempQueryDataPublic = {...queryDataPublic};
+
+    return (
+      ah.one({
+        url: `${baseUrl}/api/account/${type}/public/queryText`,
+        type: 'GET'
+      }, {showProgress: false})
+      .then(data => {
+        if (data.ret === 0) {
+          data = data.rt;
+
+          if (data.length > 0) {
+            let formattedQueryText = [];
+            tempQueryDataPublic.id = data[0].id;
+            tempQueryDataPublic.name = data[0].name;
+            tempQueryDataPublic.query = {};
+
+            _.forEach(data[0].queryText.filter, val => {
+              let formattedValue = val.condition.toLowerCase();
+              formattedValue = formattedValue.replace(' ', '_');
+
+              formattedQueryText.push({
+                condition: formattedValue,
+                query: val.query.trim()
+              });
+            })
+
+            tempQueryDataPublic.query.filter = formattedQueryText;
+
+            if (type === 'syslog') {
+              tempQueryDataPublic.query.search = data[0].queryText.search;
+            }
+
+            tempQueryDataPublic.list = data;
+
+            return tempQueryDataPublic;
+          }
+        }
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    )
+  },
   getSavedQuery: function(baseUrl, account, queryData, type) {
     const urlParam = type === 'syslog' ? 'v1/' : '';
     let tempQueryData = {...queryData};

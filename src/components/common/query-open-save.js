@@ -76,16 +76,27 @@ class QueryOpenSave extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setQueryList(this.props.queryData.list);
+    this.setQueryList();
     this.setSeverityList();
   }
   /**
    * Set query list
    * @method
-   * @param {array.<object>} list - query list to be set
+   * @param {array.<object>} [list] - query list to be set
    */
   setQueryList = (list) => {
-    const queryList = _.map(list, val => {
+    const {type, queryData, queryDataPublic} = this.props;
+    let dataList = list;
+
+    if (!list) {
+      if (type === 'open') {
+        dataList = queryData.list;
+      } else if (type === 'publicOpen') {
+        dataList = queryDataPublic.list;
+      }
+    }
+
+    const queryList = _.map(dataList, val => {
       return {
         value: val.id,
         text: val.name
@@ -126,39 +137,51 @@ class QueryOpenSave extends Component {
   /**
    * Set and close query menu
    * @method
-   * @param {string} type - query type ('open' or 'save')
    */
-  handleQueryAction = (type) => {
+  handleQueryAction = () => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, filterData, queryData, markData} = this.props;
+    const {activeTab, type, filterData, queryData, queryDataPublic, markData} = this.props;
 
-    if (type === 'open') {
-      let tempQueryData = {...queryData};
-      tempQueryData.openFlag = true;
-      tempQueryData.displayId = queryData.id;
-      tempQueryData.displayName = queryData.name;
+    if (type === 'open' || type === 'publicOpen') {
+      if (type === 'open') {
+        let tempQueryData = {...queryData};
+        tempQueryData.openFlag = true;
+        tempQueryData.displayId = queryData.id;
+        tempQueryData.displayName = queryData.name;
 
-      this.props.setQueryData(tempQueryData);
+        this.props.setQueryData(tempQueryData);
 
-      if (queryData.query) {
-        if (activeTab === 'logs') {
-          let formattedMarkData = [];
+        if (queryData.query) {
+          if (activeTab === 'logs') {
+            let formattedMarkData = [];
 
-          _.forEach(queryData.query.search, val => {
-            if (val) {
-              formattedMarkData.push({
-                data: val
-              });
-            }
-          })
-          this.props.setMarkData(formattedMarkData);
+            _.forEach(queryData.query.search, val => {
+              if (val) {
+                formattedMarkData.push({
+                  data: val
+                });
+              }
+            })
+            this.props.setMarkData(formattedMarkData);
+          }
+          this.props.setFilterData(queryData.query.filter);
+          this.props.setNotifyEmailData([]);
         }
-        this.props.setFilterData(queryData.query.filter);
-        this.props.setNotifyEmailData([]);
+      } else if (type === 'publicOpen') {
+        let tempQueryDataPublic = {...queryDataPublic};
+        tempQueryDataPublic.openFlag = true;
+        tempQueryDataPublic.displayId = queryDataPublic.id;
+        tempQueryDataPublic.displayName = queryDataPublic.name;
+
+        this.props.setQueryData(tempQueryDataPublic);
+
+        if (queryDataPublic.query) {
+          this.props.setFilterData(queryDataPublic.query.filter);
+        }
       }
-    } else if (type === 'save') {
+    } else if (type === 'save' || type === 'publicSave') {
       const {baseUrl} = this.context;
-      const {account, queryData, notifyEmailData} = this.props;
+      const {account, queryData, queryDataPublic, notifyEmailData} = this.props;
       const {newQueryName, formValidation} = this.state;
       let tempFormValidation = {...formValidation};
       let tempFilterData = [];
@@ -184,10 +207,10 @@ class QueryOpenSave extends Component {
       }
 
       if (newQueryName) { //Form validation
-        if (queryData.inputName) {
+        if (queryData.inputName || queryDataPublic.inputName) {
           const specialCharTest = /[\[\]<>?]+/; //[]<> are not allowed
 
-          if (specialCharTest.test(queryData.inputName)) {
+          if (specialCharTest.test(queryData.inputName || queryDataPublic.inputName)) {
             tempFormValidation.queryName.valid = false;
             tempFormValidation.queryName.msg = t('txt-checkRequiredFieldType');
             validate = false;
@@ -210,7 +233,7 @@ class QueryOpenSave extends Component {
         return;
       }
 
-      if (activeTab === 'logs') { //Form validation
+      if (type === 'save' && activeTab === 'logs') { //Form validation
         if (patternCheckbox) {
           if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
             this.setState({
@@ -259,32 +282,55 @@ class QueryOpenSave extends Component {
       }
 
       if (newQueryName) {
+        let accountId = '';
+        let queryName = '';
+
+        if (type === 'publicSave') {
+          accountId = 'Default';
+          queryName = queryDataPublic.inputName;
+        } else if (type === 'save') {
+          accountId = account.id;
+          queryName = queryData.inputName;
+        }
+
         requestData = {
-          accountId: account.id,
-          name: queryData.inputName,
+          accountId,
+          name: queryName,
           queryText
         };
+
         requestType = 'POST';
       } else {
+        let queryId = '';
+        let accountId = '';
+
+        if (type === 'publicSave') {
+          queryId = queryData.id;
+          accountId = 'Default';
+        } else if (type === 'save') {
+          queryId = queryDataPublic.id;
+          accountId = account.id;
+        }
+
         requestData = {
-          id: queryData.id,
-          accountId: account.id,
+          id: queryId,
+          accountId,
           name: this.getQueryName(),
           queryText
         };
 
-        if (patternCheckbox) {
+        if (type === 'save' && patternCheckbox) {
           requestData.patternId = queryData.patternId;
         }
 
         requestType = 'PATCH';
       }
 
-      if (activeTab === 'alert') {
+      if (type === 'save' && activeTab === 'alert') {
         requestData.emailList = notifyEmailData;
       }
 
-      if (activeTab === 'logs') {
+      if (type === 'save' && activeTab === 'logs') {
         if (patternCheckbox) {
           requestData.emailList = notifyEmailData;
 
@@ -319,8 +365,13 @@ class QueryOpenSave extends Component {
       .then(data => {
         if (data) {
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
-          this.props.getSavedQuery();
-          this.props.setNotifyEmailData([]);
+
+          if (type === 'save') {
+            this.props.getSavedQuery();
+            this.props.setNotifyEmailData([]);
+          } else if (type === 'publicSave') {
+            this.props.getPublicSavedQuery();
+          }
         }
         return null;
       })
@@ -336,10 +387,17 @@ class QueryOpenSave extends Component {
    * @returns matched query name
    */
   getQueryName = () => {
-    const {queryData} = this.props;
+    const {type, queryData, queryDataPublic} = this.props;
+    let queryList = '';
     let queryName = '';
 
-    _.forEach(queryData.list, val => {
+    if (type === 'save') {
+      queryList = queryData.list;
+    } else if (type === 'publicSave') {
+      queryList = queryDataPublic.list;
+    }
+
+    _.forEach(queryList, val => {
       if (val.id === queryData.id) {
         queryName = val.name;
         return false;
@@ -354,11 +412,18 @@ class QueryOpenSave extends Component {
    * @returns HTML DOM
    */
   getDeleteQueryContent = () => {
-    const {queryData} = this.props;
+    const {type, queryData, queryDataPublic} = this.props;
+    let queryName = '';
+
+    if (type === 'open') {
+      queryName = queryData.name;
+    } else if (type === 'publicOpen') {
+      queryName = queryDataPublic.name;
+    }
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {queryData.name}?</span>
+        <span>{t('txt-delete-msg')}: {queryName}?</span>
       </div>
     )
   }
@@ -386,19 +451,28 @@ class QueryOpenSave extends Component {
    */
   deleteFilterQuery = () => {
     const {baseUrl} = this.context;
-    const {activeTab, queryData} = this.props;
+    const {activeTab, type, queryData, queryDataPublic} = this.props;
+    let queryId = '';
     let url = '';
 
-    if (!queryData.id) {
+    if (type === 'open' && !queryData.id) {
+      return;
+    } else if (type === 'publicOpen' && !queryDataPublic.id) {
       return;
     }
 
+    if (type === 'open') {
+      queryId = queryData.id;
+    } else if (type === 'publicOpen') {
+      queryId = queryDataPublic.id;
+    }
+
     if (activeTab === 'alert') {
-      url = `${baseUrl}/api/account/alert/queryText?id=${queryData.id}`;
+      url = `${baseUrl}/api/account/alert/queryText?id=${queryId}`;
     } else if (activeTab === 'logs') {
-      url = `${baseUrl}/api/v1/account/syslog/queryText?id=${queryData.id}`;
+      url = `${baseUrl}/api/v1/account/syslog/queryText?id=${queryId}`;
     } else {
-      url = `${baseUrl}/api/account/event/queryText?id=${queryData.id}`;
+      url = `${baseUrl}/api/account/event/queryText?id=${queryId}`;
     }
 
     this.ah.one({
@@ -409,57 +483,85 @@ class QueryOpenSave extends Component {
       if (data) {
         let newQueryList = [];
         let tempQueryData = {...queryData};
+        let tempQueryDataPublic = {...queryDataPublic};
 
-        _.forEach(queryData.list, val => {
-          if (val.id !== queryData.id) {
-            newQueryList.push(val);
-          }
-        })
-
-        if (newQueryList.length > 0) {
-          tempQueryData.id = newQueryList[0].id;
-          tempQueryData.name = newQueryList[0].name;
-          tempQueryData.list = newQueryList;
-          tempQueryData.query = newQueryList[0].queryText;
-          tempQueryData.emailList = newQueryList[0].emailList;
-
-          if (activeTab === 'logs') {
-            tempQueryData.patternId = '';
-            tempQueryData.pattern = {
-              name: '',
-              periodMin: 10,
-              threshold: 1,
-              severity: ''
-            };
-
-            if (newQueryList[0].patternId) {
-              tempQueryData.patternId = newQueryList[0].patternId;
+        if (type === 'open') {
+          _.forEach(queryData.list, val => {
+            if (val.id !== queryData.id) {
+              newQueryList.push(val);
             }
-
-            if (newQueryList[0].patternName) {
-              tempQueryData.pattern.name = newQueryList[0].patternName;
+          })
+        } else if (type === 'publicOpen') {
+          _.forEach(queryDataPublic.list, val => {
+            if (val.id !== queryDataPublic.id) {
+              newQueryList.push(val);
             }
-
-            if (newQueryList[0].periodMin) {
-              tempQueryData.pattern.periodMin = newQueryList[0].periodMin;
-            }
-
-            if (newQueryList[0].threshold) {
-              tempQueryData.pattern.threshold = newQueryList[0].threshold;
-            }
-
-            if (newQueryList[0].severity) {
-              tempQueryData.pattern.severity = newQueryList[0].severity;
-            }
-          }
-        } else {
-          tempQueryData.id = '';
-          tempQueryData.name = '';
-          tempQueryData.list = [];
-          tempQueryData.query = '';
+          })
         }
 
-        this.props.setQueryData(tempQueryData);
+        if (newQueryList.length > 0) {
+          if (type === 'open') {
+            tempQueryData.id = newQueryList[0].id;
+            tempQueryData.name = newQueryList[0].name;
+            tempQueryData.list = newQueryList;
+            tempQueryData.query = newQueryList[0].queryText;
+            tempQueryData.emailList = newQueryList[0].emailList;
+
+            if (activeTab === 'logs') {
+              tempQueryData.patternId = '';
+              tempQueryData.pattern = {
+                name: '',
+                periodMin: 10,
+                threshold: 1,
+                severity: ''
+              };
+
+              if (newQueryList[0].patternId) {
+                tempQueryData.patternId = newQueryList[0].patternId;
+              }
+
+              if (newQueryList[0].patternName) {
+                tempQueryData.pattern.name = newQueryList[0].patternName;
+              }
+
+              if (newQueryList[0].periodMin) {
+                tempQueryData.pattern.periodMin = newQueryList[0].periodMin;
+              }
+
+              if (newQueryList[0].threshold) {
+                tempQueryData.pattern.threshold = newQueryList[0].threshold;
+              }
+
+              if (newQueryList[0].severity) {
+                tempQueryData.pattern.severity = newQueryList[0].severity;
+              }
+            }
+          } else if (type === 'publicOpen') {
+            tempQueryDataPublic.id = newQueryList[0].id;
+            tempQueryDataPublic.name = newQueryList[0].name;
+            tempQueryDataPublic.list = newQueryList;
+            tempQueryDataPublic.query = newQueryList[0].queryText;
+          }
+        } else {
+          if (type === 'open') {
+            tempQueryData.id = '';
+            tempQueryData.name = '';
+            tempQueryData.list = [];
+            tempQueryData.query = '';
+          } else if (type === 'publicOpen') {
+            tempQueryDataPublic.id = '';
+            tempQueryDataPublic.name = '';
+            tempQueryDataPublic.list = [];
+            tempQueryDataPublic.query = '';
+          }
+        }
+
+        if (type === 'open') {
+          this.props.setQueryData(tempQueryData);
+        } else if (type === 'publicOpen') {
+          this.props.setQueryData(tempQueryDataPublic);
+        }
+
         this.setQueryList(newQueryList);
       } else {
         helper.showPopupMsg('', t('txt-error'), err.message);
@@ -515,107 +617,156 @@ class QueryOpenSave extends Component {
   /**
    * Set query data for new selected saved query
    * @method
-   * @param {string} type - input type ('id' or 'name')
+   * @param {string} fieldType - input type ('id' or 'name')
    * @param {object} event - event object
    */
-  handleQueryChange = (type, event, comboValue) => {
-    const {activeTab, queryData} = this.props;
+  handleQueryChange = (fieldType, event, comboValue) => {
+    const {activeTab, type, queryData, queryDataPublic} = this.props;
     const {queryList, activeQuery, newQueryName, pattern} = this.state;
-    let value = event.target.value;
     let tempQueryData = {...queryData};
-    let tempPattern = {...pattern};
+    let tempQueryDataPublic = {...queryDataPublic};
+    let value = event.target.value;
     let queryName = '';
 
-    if (type === 'id') {
-      let patternCheckbox = false;
-      let publicCheckbox = false;
-      tempQueryData.id = value;
-      tempQueryData.openFlag = true;
-      tempQueryData.query = {}; //Reset data to empty
-      tempQueryData.patternId = '';
-      tempQueryData.pattern = {
-        name: '',
-        periodMin: 10,
-        threshold: 1,
-        severity: ''
-      };
-      tempPattern = {
-        name: '',
-        periodMin: 10,
-        threshold: 1,
-        severity: 'Emergency'
-      };
-      tempQueryData.emailList = [];
+    if (fieldType === 'id') {
+      if (type === 'open' || type === 'save') {
+        let tempPattern = {...pattern};
+        let patternCheckbox = false;
+        let publicCheckbox = false;
+        tempQueryData.id = value;
+        tempQueryData.openFlag = true;
+        tempQueryData.query = {}; //Reset data to empty
+        tempQueryData.patternId = '';
+        tempQueryData.pattern = {
+          name: '',
+          periodMin: 10,
+          threshold: 1,
+          severity: ''
+        };
+        tempPattern = {
+          name: '',
+          periodMin: 10,
+          threshold: 1,
+          severity: 'Emergency'
+        };
+        tempQueryData.emailList = [];
 
-      if (comboValue && comboValue.value) {
-        const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
-        value = comboValue.value;
-        tempQueryData.id = comboValue.value;
+        if (comboValue && comboValue.value) {
+          const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
+          value = comboValue.value;
+          tempQueryData.id = comboValue.value;
+
+          this.setState({
+            activeQuery: queryList[selectedQueryIndex]
+          });
+        }
+
+        _.forEach(queryData.list, val => {
+          if (val.id === value) {
+            let formattedQueryText = [];
+            tempQueryData.name = val.name;
+
+            _.forEach(val.queryText.filter, val => {
+              let formattedValue = val.condition.toLowerCase();
+              formattedValue = formattedValue.replace(' ', '_');
+
+              formattedQueryText.push({
+                condition: formattedValue,
+                query: val.query.trim()
+              });
+            })
+
+            tempQueryData.query.filter = formattedQueryText;
+
+            if (activeTab === 'logs') {
+              tempQueryData.query.search = val.queryText.search;
+            }
+
+            if (val.patternId) {
+              tempQueryData.patternId = val.patternId;
+            }
+
+            if (val.patternName) {
+              tempQueryData.pattern.name = val.patternName;
+              tempPattern.name = val.patternName;
+            }
+
+            if (val.periodMin) {
+              tempQueryData.pattern.periodMin = val.periodMin;
+              tempPattern.periodMin = val.periodMin;
+            }
+
+            if (val.threshold) {
+              tempQueryData.pattern.threshold = val.threshold;
+              tempPattern.threshold = val.threshold;
+            }
+
+            if (val.severity) {
+              tempQueryData.pattern.severity = val.severity;
+              tempPattern.severity = val.severity;
+              patternCheckbox = true;
+            }
+
+            if (val.isPublic) {
+              publicCheckbox = true;
+            }
+
+            if (val.emailList.length > 0) {
+              tempQueryData.emailList = val.emailList;
+              this.props.setNotifyEmailData(val.emailList);
+            } else {
+              this.props.setNotifyEmailData([]);
+            }
+            return false;
+          }
+        })
+        this.props.setQueryData(tempQueryData);
 
         this.setState({
-          activeQuery: queryList[selectedQueryIndex]
+          patternCheckbox,
+          publicCheckbox
         });
-      }
+      } else if (type === 'publicOpen' || type === 'publicSave') {
+        tempQueryDataPublic.id = value;
+        tempQueryDataPublic.openFlag = true;
+        tempQueryDataPublic.query = {}; //Reset data to empty
 
-      _.forEach(queryData.list, val => {
-        if (val.id === value) {
-          let formattedQueryText = [];
-          tempQueryData.name = val.name;
+        if (comboValue && comboValue.value) {
+          const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
+          value = comboValue.value;
+          tempQueryDataPublic.id = comboValue.value;
 
-          _.forEach(val.queryText.filter, val => {
-            let formattedValue = val.condition.toLowerCase();
-            formattedValue = formattedValue.replace(' ', '_');
-
-            formattedQueryText.push({
-              condition: formattedValue,
-              query: val.query.trim()
-            });
-          })
-
-          tempQueryData.query.filter = formattedQueryText;
-
-          if (activeTab === 'logs') {
-            tempQueryData.query.search = val.queryText.search;
-          }
-
-          if (val.patternId) {
-            tempQueryData.patternId = val.patternId;
-          }
-
-          if (val.patternName) {
-            tempQueryData.pattern.name = val.patternName;
-            tempPattern.name = val.patternName;
-          }
-
-          if (val.periodMin) {
-            tempQueryData.pattern.periodMin = val.periodMin;
-            tempPattern.periodMin = val.periodMin;
-          }
-
-          if (val.threshold) {
-            tempQueryData.pattern.threshold = val.threshold;
-            tempPattern.threshold = val.threshold;
-          }
-
-          if (val.severity) {
-            tempQueryData.pattern.severity = val.severity;
-            tempPattern.severity = val.severity;
-            patternCheckbox = true;
-          }
-
-          if (val.isPublic) {
-            publicCheckbox = true;
-          }
-
-          if (val.emailList.length > 0) {
-            tempQueryData.emailList = val.emailList;
-            this.props.setNotifyEmailData(val.emailList);
-          } else {
-            this.props.setNotifyEmailData([]);
-          }
-          return false;
+          this.setState({
+            activeQuery: queryList[selectedQueryIndex]
+          });
         }
-      })
+
+        _.forEach(queryDataPublic.list, val => {
+          if (val.id === value) {
+            let formattedQueryText = [];
+            tempQueryDataPublic.name = val.name;
+
+            _.forEach(val.queryText.filter, val => {
+              let formattedValue = val.condition.toLowerCase();
+              formattedValue = formattedValue.replace(' ', '_');
+
+              formattedQueryText.push({
+                condition: formattedValue,
+                query: val.query.trim()
+              });
+            })
+
+            tempQueryDataPublic.query.filter = formattedQueryText;
+
+            if (activeTab === 'logs') {
+              tempQueryDataPublic.query.search = val.queryText.search;
+            }
+
+            return false;
+          }
+        })
+        this.props.setQueryData(tempQueryDataPublic);
+      }
 
       if (value === 'new') {
         queryName = true;
@@ -625,16 +776,20 @@ class QueryOpenSave extends Component {
       }
 
       this.setState({
-        patternCheckbox,
-        publicCheckbox,
         dialogOpenType: 'change'
       });
-    } else if (type === 'name') {
+    } else if (fieldType === 'name') {
       queryName = newQueryName;
-      tempQueryData.inputName = value;
+
+      if (type === 'open' || type === 'save') {
+        tempQueryData.inputName = value;
+        this.props.setQueryData(tempQueryData);
+      } else if (type === 'publicOpen' || type === 'publicSave') {
+        tempQueryDataPublic.inputName = value;
+        this.props.setQueryData(tempQueryDataPublic);
+      }
     }
 
-    this.props.setQueryData(tempQueryData);
     this.clearErrorInfo();
 
     this.setState({
@@ -872,35 +1027,64 @@ class QueryOpenSave extends Component {
    * @returns css display
    */
   getQueryColor = (queryDataList) => {
-    if (queryDataList && queryDataList.length === 0) {
+    if (!queryDataList || (queryDataList && queryDataList.length === 0)) {
       return { display: 'none' };
+    }
+  }
+  /**
+   * Get delete btn disabled status
+   * @method
+   * @returns boolean true/false
+   */
+  deleteBtnDisabled = () => {
+    const {type, queryData, queryDataPublic} = this.props;
+
+    if (type === 'open') {
+      return queryData.displayId === queryData.id;
+    } else if (type === 'publicOpen') {
+      return queryDataPublic.displayId === queryDataPublic.id;
     }
   }
   /**
    * Display query menu content
    * @method
-   * @param {string} type - query type ('open' or 'save')
+   * @param {string} type - query type ('open', 'save', 'publicOpen' or 'publicSave')
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {
     const {locale} = this.context;
-    const {activeTab, queryData, filterData, markData} = this.props;
+    const {activeTab, queryData, queryDataPublic, filterData, markData} = this.props;
     const {queryList, activeQuery, formValidation} = this.state;
-    const displayQueryList = _.map(queryData.list, (val, i) => {
-      return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
-    });
+    let displayQueryList = [];
     let tempFilterData = [];
     let tempMarkData = [];
 
-    if (type === 'open') {
+    if (type === 'open' || type === 'publicOpen') {
       let queryDataList = [];
       let queryDataMark = [];
 
-      if (activeTab === 'logs' && !_.isEmpty(queryData.query)) {
-        queryDataList = queryData.query.filter;
-        queryDataMark = queryData.query.search;
-      } else {
-        queryDataList = queryData.query.filter;
+      if (type === 'open') {
+        displayQueryList = _.map(queryData.list, (val, i) => {
+          return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+        });
+
+        if (activeTab === 'logs' && !_.isEmpty(queryData.query)) {
+          queryDataList = queryData.query.filter;
+          queryDataMark = queryData.query.search;
+        } else {
+          queryDataList = queryData.query.filter;
+        }
+      } else if (type === 'publicOpen') {
+        displayQueryList = _.map(queryDataPublic.list, (val, i) => {
+          return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+        });
+
+        if (activeTab === 'logs' && !_.isEmpty(queryDataPublic.query)) {
+          queryDataList = queryDataPublic.query.filter;
+          queryDataMark = queryDataPublic.query.search;
+        } else {
+          queryDataList = queryDataPublic.query.filter;
+        }
       }
 
       return (
@@ -932,14 +1116,14 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {activeTab === 'logs' && queryData.patternId &&
+          {type === 'open' && activeTab === 'logs' && queryData.patternId &&
             this.getQueryAlertContent(type)
           }
 
-          <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</Button>
+          <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={this.deleteBtnDisabled()}>{t('txt-delete')}</Button>
         </div>
       )
-    } else if (type === 'save') {
+    } else if (type === 'save' || type === 'publicSave') {
       let dropDownValue = 'new';
 
       _.forEach(filterData, val => {
@@ -951,16 +1135,30 @@ class QueryOpenSave extends Component {
         }
       })
 
-      _.forEach(markData, val => {
-        if (val.data) {
-          tempMarkData.push({
-            data: val.data
-          });
-        }
-      })
+      if (type === 'save') {
+        displayQueryList = _.map(queryData.list, (val, i) => {
+          return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+        });
 
-      if (queryData.openFlag) {
-        dropDownValue = queryData.id;
+        _.forEach(markData, val => {
+          if (val.data) {
+            tempMarkData.push({
+              data: val.data
+            });
+          }
+        })
+
+        if (queryData.openFlag) {
+          dropDownValue = queryData.id;
+        }
+      } else if (type === 'publicSave') {
+        displayQueryList = _.map(queryDataPublic.list, (val, i) => {
+          return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+        });
+
+        if (queryDataPublic.openFlag) {
+          dropDownValue = queryDataPublic.id;
+        }
       }
 
       return (
@@ -992,7 +1190,7 @@ class QueryOpenSave extends Component {
                 required
                 error={!formValidation.queryName.valid}
                 helperText={formValidation.queryName.msg}
-                value={queryData.inputName}
+                value={type === 'save' ? queryData.inputName : queryDataPublic.inputName}
                 onChange={this.handleQueryChange.bind(this, 'name')} />
             }
           </div>
@@ -1003,17 +1201,17 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {tempMarkData.length > 0 &&
+          {type === 'save' && tempMarkData.length > 0 &&
             <div className='filter-group'>
               {tempMarkData.map(this.displayMarkSearch)}
             </div>
           }
 
-          {activeTab === 'alert' &&
+          {type === 'save' && activeTab === 'alert' &&
             this.displayEmailInput()
           }
 
-          {activeTab === 'logs' &&
+          {type === 'save' && activeTab === 'logs' &&
             this.getQueryAlertContent(type)
           }
         </div>
@@ -1021,11 +1219,11 @@ class QueryOpenSave extends Component {
     }
   }
   render() {
-    const {type, queryData, filterData} = this.props;
+    const {type, queryData, queryDataPublic, filterData} = this.props;
     const titleText = t(`events.connections.txt-${type}Query`);
     let actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleQueryAction.bind(this, type)}
+      confirm: {text: t('txt-confirm'), handler: this.handleQueryAction}
     };
     let displayContent = this.displayQueryContent(type);
 
@@ -1036,7 +1234,15 @@ class QueryOpenSave extends Component {
       displayContent = <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>;
     }
 
-    if (type === 'save') {
+
+    if (type === 'publicOpen' && queryDataPublic.list.length === 0) {
+      actions = {
+        cancel: {text: t('txt-close'), handler: this.props.closeDialog}
+      };
+      displayContent = <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>;
+    }
+
+    if (type === 'save' || type === 'publicSave') {
       if (filterData.length === 0 || filterData[0].query === '') {
         actions = {
           cancel: {text: t('txt-close'), handler: this.props.closeDialog}
@@ -1071,6 +1277,7 @@ QueryOpenSave.propTypes = {
   setFilterData: PropTypes.func.isRequired,
   setQueryData: PropTypes.func.isRequired,
   getSavedQuery: PropTypes.func.isRequired,
+  getPublicSavedQuery: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };
 
