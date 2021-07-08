@@ -537,6 +537,10 @@
     }
   },
 
+  "soar": {
+    "txt-ruleList": "SOAR 規則清單"
+  },
+
   "notifications": {
     "txt-testEmails": "寄信測試",
     "txt-settings": "通知設定",

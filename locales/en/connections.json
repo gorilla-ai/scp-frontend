@@ -538,6 +538,10 @@
     }
   },
 
+  "soar": {
+    "txt-ruleList": "SOAR Rules"
+  },
+
   "notifications": {
     "txt-testEmails": "Test Emails",
     "txt-settings": "Notification Settings",

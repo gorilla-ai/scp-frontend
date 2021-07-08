@@ -1697,10 +1697,10 @@ class ThreatsController extends Component {
               tempThreatsData.currentPage = page;
               let dataFieldsArr = [];
 
-              if (this.state.tableType === 'select'){
-                dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
-              }else{
-                dataFieldsArr =  [ '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              if (this.state.tableType === 'select') {
+                dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
+              } else {
+                dataFieldsArr =  [ '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
               }
 
               tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
@@ -1717,15 +1717,15 @@ class ThreatsController extends Component {
                         return allValue;
                       }
 
-                      if (val === 'select'){
+                      if (val === 'select') {
                         return (
-                            <Checkbox
-                                id={allValue.id}
-                                className='checkbox-ui'
-                                name='select'
-                                checked={allValue.select}
-                                onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
-                                color='primary' />
+                          <Checkbox
+                            id={allValue.id}
+                            className='checkbox-ui'
+                            name='select'
+                            checked={allValue.select}
+                            onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
+                            color='primary' />
                         )
                       }
 
@@ -1737,13 +1737,13 @@ class ThreatsController extends Component {
                         }
                         return (
                           <TableCell
-                              activeTab={activeTab}
-                              fieldValue={value}
-                              fieldName={val}
-                              allValue={allValue}
-                              alertLevelColors={ALERT_LEVEL_COLORS}
-                              handleOpenQueryMenu={this.handleOpenQueryMenu}
-                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                            activeTab={activeTab}
+                            fieldValue={value}
+                            fieldName={val}
+                            allValue={allValue}
+                            alertLevelColors={ALERT_LEVEL_COLORS}
+                            handleOpenQueryMenu={this.handleOpenQueryMenu}
+                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
                         )
                       }
                     }

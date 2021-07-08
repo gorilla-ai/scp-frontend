@@ -636,5 +636,13 @@
     "threatType": "情資類型",
     "dataSourceType": "情資嚴重等級",
     "createDttm": "建立時間 "
+  },
+  "soarFields": {
+    "flowName": "Name",
+    "aggField": "AGG File ID",
+    "adapter": "Adapter",
+    "action": "Action ",
+    "status": "Status",
+    "isEnable": "Enable"
   }
 }

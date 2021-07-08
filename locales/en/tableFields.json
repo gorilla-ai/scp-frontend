@@ -637,5 +637,13 @@
     "threatType": "threat Type",
     "dataSourceType": "Threat Severity Type",
     "createDttm": "Create Datetime"
+  },
+  "soarFields": {
+    "flowName": "Name",
+    "aggField": "AGG File ID",
+    "adapter": "Adapter",
+    "action": "Action ",
+    "status": "Status",
+    "isEnable": "Enable"
   }
 }
