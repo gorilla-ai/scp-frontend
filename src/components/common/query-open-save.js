@@ -723,6 +723,7 @@ class QueryOpenSave extends Component {
         this.props.setQueryData(tempQueryData);
 
         this.setState({
+          pattern: tempPattern,
           patternCheckbox,
           publicCheckbox
         });
@@ -793,8 +794,7 @@ class QueryOpenSave extends Component {
     this.clearErrorInfo();
 
     this.setState({
-      newQueryName: queryName,
-      pattern: tempPattern
+      newQueryName: queryName
     });
   }
   /**
