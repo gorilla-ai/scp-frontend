@@ -857,10 +857,10 @@ class Edge extends Component {
     };
 
     this.ah.one({
-        url,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'text/plain'
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
     .then(data => {
       return null;

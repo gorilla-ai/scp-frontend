@@ -2736,7 +2736,7 @@ class ThreatsController extends Component {
           };
         }
       },
-      pagination:true
+      pagination: true
     };
 
 
