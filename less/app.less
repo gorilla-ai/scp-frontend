@@ -1284,6 +1284,16 @@ button.standard:hover:not([disabled]) {
   .data-content {
     display: flex;
     min-height: 87vh;
+    &.soar-index {
+      .mui-data-table {
+        .item {
+          padding: 0 5px;
+          margin-right: 10px;
+          border: 1px solid var(--primaryBorder);
+          border-radius: 5px;
+        }
+      }
+    }
     &.react-flow-demo {
       .reactflow-wrapper {
         flex-grow: 1;

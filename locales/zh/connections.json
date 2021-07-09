@@ -538,7 +538,10 @@
   },
 
   "soar": {
-    "txt-ruleList": "SOAR 規則清單"
+    "txt-ruleList": "SOAR 規則清單",
+    "txt-disableRule": "請確認是否關閉此規則",
+    "txt-addRule": "新增規則",
+    "txt-deleteRule": "刪除規則"
   },
 
   "notifications": {

@@ -539,7 +539,10 @@
   },
 
   "soar": {
-    "txt-ruleList": "SOAR Rules"
+    "txt-ruleList": "SOAR Rules",
+    "txt-disableRule": "Confirm to disable rule",
+    "txt-addRule": "Add Rule",
+    "txt-deleteRule": "Delete Rule"
   },
 
   "notifications": {

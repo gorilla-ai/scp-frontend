@@ -638,9 +638,10 @@
     "createDttm": "建立時間 "
   },
   "soarFields": {
-    "flowName": "Name",
-    "aggField": "AGG File ID",
+    "flowName": "Flow Name",
+    "aggField": "AGG Field",
     "adapter": "Adapter",
+    "condition": "SOAR Condition",
     "action": "Action ",
     "status": "Status",
     "isEnable": "Enable"

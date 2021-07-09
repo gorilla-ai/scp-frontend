@@ -15,6 +15,7 @@ import Tabs from '@material-ui/core/Tabs'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -41,16 +42,21 @@ class SoarController extends Component {
     this.state = {
       activeTab: 'rule',
       showFilter: false,
+      soarColumns: {},
+      filterList: {
+        adapter: [],
+        action: []
+      },
       soarSearch: {
         flowName: '',
         aggField: '',
-        adapter: '',
-        action: '',
-        status: '',
-        isEnable: ''
+        adapter: 'all',
+        action: 'all',
+        status: 'all',
+        isEnable: 'all'
       },
       soarData: {
-        dataFieldsArr: ['flowName', 'aggField', 'adapter', 'action', 'status', 'isEnable', '_menu'],
+        dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'status', 'isEnable', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -61,46 +67,134 @@ class SoarController extends Component {
         currentPage: 1,
         oldPage: 1,
         pageSize: 20
-      }
+      },
+      currentSoarData: {}
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getSoarColumn();
     this.getSoarData();
   }
-  ryan = () => {
+  /**
+   * Get and set columns data and filter list
+   * @method
+   */
+  getSoarColumn = () => {
+    const {baseUrl} = this.context;
+    const {filterList, soarSearch} = this.state;
+    let tempFilterList = {...filterList};
 
+    this.ah.one({
+      url: `${baseUrl}/api/soar/columns`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const status = ['error', 'ready'];
+        const isEnable = [
+          {
+            text: 'true',
+            value: true
+          },
+          {
+            text: 'false',
+            value: false
+          }
+        ];
+
+        tempFilterList.adapter = _.map(data.adapter, (val, i) => {
+          return <MenuItem key={i} value={val}>{val}</MenuItem>
+        });
+
+        tempFilterList.action = _.map(data.action, (val, i) => {
+          return <MenuItem key={i} value={val}>{val}</MenuItem>
+        });
+
+        tempFilterList.status = _.map(status, (val, i) => {
+          return <MenuItem key={i} value={val}>{val}</MenuItem>
+        });
+
+        tempFilterList.isEnable = _.map(isEnable, (val, i) => {
+          return <MenuItem key={i} value={val.value}>{val.text}</MenuItem>
+        });
+
+        this.setState({
+          filterList: tempFilterList,
+          soarColumns: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set SOAR data
    * @method
-   * @param {string} [fromPage] - option for 'currentPage'
+   * @param {string} [options] - option for 'currentPage' or 'toggle'
+   * @param {string} [flowId] - flow ID
    */
-  getSoarData = (fromPage) => {
+  getSoarData = (options, flowId) => {
     const {baseUrl} = this.context;
-    const {soarData} = this.state;
-    const page = fromPage === 'currentPage' ? soarData.currentPage : 0;
+    const {soarSearch, soarData} = this.state;
+    const page = options === 'currentPage' ? soarData.currentPage : 0;
     const url = `${baseUrl}/api/soar/flowList?page=${page + 1}&pageSize=${soarData.pageSize}`;
-    const requestData = {
-      flowName: '',
-      aggField: '',
-      status: '',
-      isEnable: '',
-      adapter: '',
-      action: ''
-    };
+    let requestData = {};
 
-    this.ah.one({
+    if (soarSearch.flowName) {
+      requestData.flowName = soarSearch.flowName;
+    }
+
+    if (soarSearch.aggField) {
+      requestData.aggField = soarSearch.aggField;
+    }
+
+    if (soarSearch.status && soarSearch.status !== 'all') {
+      requestData.status = soarSearch.status;
+    }
+
+    if (soarSearch.isEnable !== 'all') {
+      requestData.isEnable = soarSearch.isEnable;
+    }
+
+    if (soarSearch.adapter && soarSearch.adapter !== 'all') {
+      requestData.adapter = soarSearch.adapter;
+    }
+
+    if (soarSearch.action && soarSearch.action !== 'all') {
+      requestData.action = soarSearch.action;
+    }
+
+    let apiArr = [{
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
-    })
+    }];
+
+    //Combine the two APIs to show the loading icon
+    if (options === 'toggle') {
+      apiArr.unshift({
+        url: `${baseUrl}/api/soar/enableFlow?flowId=${flowId}`,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
+    }
+
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
+        if (options === 'toggle') {
+          data = data[1];
+        } else {
+          data = data[0];
+        }
+
         let tempSoarData = {...soarData};
-        let statusOn = false;
         tempSoarData.dataContent = data.rules;
         tempSoarData.totalCount = data.count;
         tempSoarData.currentPage = page;
@@ -117,26 +211,40 @@ class SoarController extends Component {
                 const allValue = tempSoarData.dataContent[dataIndex];
                 let value = tempSoarData.dataContent[dataIndex][val];
 
-                if (val === 'action') {
-                  return value.toString(', ');
-                } else if (val === '_menu') {
-                  return (
-                    <div className='table-menu menu active'>
-                      <i className='fg fg-edit' title={t('txt-edit')}></i>
-                      <i className='fg fg-trashcan' title={t('txt-delete')}></i>
-                    </div>
-                  )
+                if (val === 'adapter') {
+                  return <span className='item'>{value}</span>;
+                } else if (val === 'condition') {
+                  return allValue.node.map(this.getListItem.bind(this, val))
+                } else if (val === 'action') {
+                  return value.map(this.getListItem.bind(this, val))
+                } else if (val === 'status') {
+                  let color = '';
+
+                  if (value === 'ready') {
+                    color = '#22ac38';
+                  } else if (value === 'error') {
+                    color = '#d0021b';
+                  }
+
+                  return <span className='item' style={{backgroundColor: color, color: '#fff'}}>{value}</span>;
                 } else if (val === 'isEnable') {
                   return (
                     <FormControlLabel
                       className='switch-control'
                       control={
                         <Switch
-                          checked={statusOn}
-                          onChange={this.handleSoarStatusChange}
+                          checked={allValue.isEnable}
+                          onChange={this.openSwitchConfirmModal.bind(this, allValue)}
                           color='primary' />
                       }
                       label={t('txt-switch')} />
+                  )
+                } else if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-edit' title={t('txt-edit')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
+                    </div>
                   )
                 } else {
                   return value;
@@ -156,12 +264,117 @@ class SoarController extends Component {
     })
   }
   /**
+   * Show the switch confirm modal dialog
+   * @method
+   * @param {string} allValue - flow rule data
+   * @param {object} event - event object
+   */
+  openSwitchConfirmModal = (allValue, event) => {
+    const type = event.target.checked ? 'on' : 'off';
+
+    if (type === 'on') {
+      this.getSoarData('toggle', allValue.flowId);
+    } else if (type === 'off') {
+      PopupDialog.prompt({
+        title: t('txt-close'),
+        id: 'modalWindowSmall',
+        confirmText: t('txt-ok'),
+        cancelText: t('txt-cancel'),
+        display: (
+          <div className='content delete'>
+            <span>{t('soar.txt-disableRule')}: {allValue.flowName}?</span>
+          </div>
+        ),
+        act: (confirmed) => {
+          if (confirmed) {
+            this.getSoarData('toggle', allValue.flowId);
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Display list value
+   * @method
+   * @param {object} type - data type ('condition' or 'action')
+   * @param {object} val - individual rule data
+   * @param {number} i - index of the rule data
+   * @returns HTML DOM
+   */
+  getListItem = (type, val, i) => {
+    const value = type === 'condition' ? val.name : val;
+
+    return <span key={i} className='item'>{value}</span>
+  }
+  /**
    * Handle Soar status toggle
    * @method
    * @param {string} type - status action type ('start' or 'stop')
    */
   handleSoarStatusChange = (type) => {
 
+  }
+  /**
+   * Display delete SOAR content
+   * @method
+   * @param {object} allValue - SOAR data
+   * @returns HTML DOM
+   */
+  getDeleteSoarContent = (allValue) => {
+    this.setState({
+      currentSoarData: allValue
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {allValue.flowName}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show Delete SOAR rule dialog
+   * @method
+   * @param {object} allValue - SOAR data
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('soar.txt-deleteRule'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteSoarContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteSoar();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete SOAR confirm
+   * @method
+   */
+  deleteSoar = () => {
+    const {baseUrl} = this.context;
+    const {currentSoarData} = this.state;
+
+    if (!currentSoarData.flowId) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/esoar/flow?flowId=${currentSoarData.flowId}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSoarData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle content tab change
@@ -202,7 +415,7 @@ class SoarController extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, soarSearch} = this.state;
+    const {showFilter, filterList, soarColumns, soarSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -243,6 +456,7 @@ class SoarController extends Component {
               value={soarSearch.adapter}
               onChange={this.handleSoarSearch}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {filterList.adapter}
             </TextField>
           </div>
           <div className='group'>
@@ -257,6 +471,7 @@ class SoarController extends Component {
               value={soarSearch.action}
               onChange={this.handleSoarSearch}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {filterList.action}
             </TextField>
           </div>
           <div className='group'>
@@ -271,6 +486,7 @@ class SoarController extends Component {
               value={soarSearch.status}
               onChange={this.handleSoarSearch}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {filterList.status}
             </TextField>
           </div>
           <div className='group'>
@@ -285,6 +501,7 @@ class SoarController extends Component {
               value={soarSearch.isEnable}
               onChange={this.handleSoarSearch}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {filterList.isEnable}
             </TextField>
           </div>
         </div>
@@ -335,12 +552,12 @@ class SoarController extends Component {
   clearFilter = () => {
     this.setState({
       soarSearch: {
-        name: '',
+        flowName: '',
         aggField: '',
-        adapter: '',
-        action: '',
-        status: '',
-        isEnable: ''
+        adapter: 'all',
+        action: 'all',
+        status: 'all',
+        isEnable: 'all'
       }
     });
   }
@@ -370,7 +587,7 @@ class SoarController extends Component {
           </div>
         </div>
 
-        <div className='data-content'>
+        <div className='data-content soar-index'>
           <div className='parent-content'>
             {this.renderFilter()}
             <div className='main-content'>
@@ -381,6 +598,11 @@ class SoarController extends Component {
                 onChange={this.handleSubTabChange}>
                 <Tab label={t('soar.txt-ruleList')} value='rule' />
               </Tabs>
+
+              <div className='content-header-btns with-menu'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSettingsBtn}>{t('txt-settings')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleAddRuleBtn}>{t('soar.txt-addRule')}</Button>
+              </div>
 
               {soarData.dataContent &&
                 <MuiTableContent
