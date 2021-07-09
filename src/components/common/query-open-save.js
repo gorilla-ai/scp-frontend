@@ -286,7 +286,7 @@ class QueryOpenSave extends Component {
         let queryName = '';
 
         if (type === 'publicSave') {
-          accountId = 'Default';
+          accountId = 'IsPublic';
           queryName = queryDataPublic.inputName;
         } else if (type === 'save') {
           accountId = account.id;
@@ -305,10 +305,10 @@ class QueryOpenSave extends Component {
         let accountId = '';
 
         if (type === 'publicSave') {
-          queryId = queryData.id;
-          accountId = 'Default';
-        } else if (type === 'save') {
           queryId = queryDataPublic.id;
+          accountId = 'IsPublic';
+        } else if (type === 'save') {
+          queryId = queryData.id;
           accountId = account.id;
         }
 
@@ -389,16 +389,19 @@ class QueryOpenSave extends Component {
   getQueryName = () => {
     const {type, queryData, queryDataPublic} = this.props;
     let queryList = '';
+    let query = '';
     let queryName = '';
 
     if (type === 'save') {
       queryList = queryData.list;
+      query = queryData;
     } else if (type === 'publicSave') {
       queryList = queryDataPublic.list;
+      query = queryDataPublic;
     }
 
     _.forEach(queryList, val => {
-      if (val.id === queryData.id) {
+      if (val.id === query.id) {
         queryName = val.name;
         return false;
       }
