@@ -363,7 +363,7 @@ class SoarController extends Component {
     }
 
     ah.one({
-      url: `${baseUrl}/api/esoar/flow?flowId=${currentSoarData.flowId}`,
+      url: `${baseUrl}/api/soar/flow?flowId=${currentSoarData.flowId}`,
       type: 'DELETE'
     })
     .then(data => {
