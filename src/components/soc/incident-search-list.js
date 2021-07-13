@@ -344,158 +344,6 @@ class IncidentSearch extends Component {
             })
     };
 
-
-    /**
-     * Get and set Incident Device table data
-     * @method
-     * @param {string} fromSearch - option for the 'search'
-     */
-    loadWithoutDateTimeData = (fromSearch, searchPayload) => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {incident} = this.state;
-        const sort = incident.sort.desc ? 'desc' : 'asc';
-        const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-
-        searchPayload.account = session.accountId
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(searchPayload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data) {
-                    let tempEdge = {...incident};
-                    tempEdge.dataContent = data.rt.rows;
-                    tempEdge.totalCount = data.rt.counts;
-                    tempEdge.currentPage = page;
-
-                    tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                        return {
-                            name: val === '_menu' ? '' : val,
-                            label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                            options: {
-                                filter: true,
-                                sort: val === 'severity',
-                                customBodyRenderLite: (dataIndex, options) => {
-                                    const allValue = tempEdge.dataContent[dataIndex];
-                                    let value = tempEdge.dataContent[dataIndex][val];
-
-                                    if (options === 'getAllValue') {
-                                        return allValue;
-                                    }
-
-                                    if (val === '_menu') {
-                                        return <div className='table-menu active'>
-                                            <IconButton aria-label="more"
-                                                        onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                                <MoreIcon/>
-                                            </IconButton>
-                                        </div>
-                                    } else if (val === 'type') {
-                                        let tmpList = [];
-                                        tmpList = allValue.ttpList;
-                                        if (tmpList.length === 0) {
-                                            return <span>{it('txt-incident-event')}</span>
-                                        } else {
-                                            return <span>{it('txt-incident-related')}</span>
-                                        }
-                                    } else if (val === 'category') {
-                                        return <span>{it(`category.${value}`)}</span>
-                                    } else if (val === 'status') {
-                                        return <span>{it(`status.${value}`)}</span>
-                                    } else if (val === 'createDttm') {
-                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                    } else if (val === 'tag') {
-                                        const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                        return <div>
-                                            {
-                                                _.map(allValue.tagList, el => {
-                                                    return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square'
-                                                             style={{backgroundColor: el.tag.color}}></div>
-                                                        &nbsp;{el.tag.tag}
-                                                    </div>
-                                                })
-                                            }
-                                        </div>
-
-                                    } else if (val === 'severity') {
-                                        return <span className='severity-level'
-                                                     style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString') {
-                                        let formattedPatternIP = ''
-                                        if (value.length > 32) {
-                                            formattedPatternIP = value.substr(0, 32) + '...';
-                                        } else {
-                                            formattedPatternIP = value
-                                        }
-                                        return <span>{formattedPatternIP}</span>
-                                    } else {
-                                        return <span>{value}</span>
-                                    }
-                                }
-                            }
-                        };
-                    });
-
-                    this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
-                    })
-                }
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    };
-
-    loadCondition = (from, type) => {
-        const {session} = this.context
-        let fromSearch = from
-        if (from === 'button') {
-            fromSearch = 'search'
-        }
-        let search = {
-            subStatus: 0,
-            keyword: '',
-            category: 0,
-            isExpired: 2,
-            accountRoleType: this.state.accountRoleType,
-            isExecutor: _.includes(session.roles, 'SOC Executor'),
-
-        }
-        if (type === 'expired') {
-            this.setState({loadListType: 0})
-            search.status = 0
-            search.isExpired = 1;
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else if (type === 'unhandled') {
-            this.setState({loadListType: 1})
-            if (search.accountRoleType === constants.soc.SOC_Executor) {
-                search.status = 2
-                search.subStatus = 6
-            } else if (search.accountRoleType === constants.soc.SOC_Super) {
-                search.status = 7
-            } else if (search.accountRoleType === constants.soc.SOC_Ciso) {
-                search.status = 7
-            } else {
-                search.status = 1
-            }
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else if (type === 'mine') {
-            this.setState({loadListType: 2})
-            search.status = 0
-            search.creator = session.accountId
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else {
-
-        }
-        this.clearFilter()
-    }
-
     /**
      * Handle open menu
      * @method
@@ -545,9 +393,6 @@ class IncidentSearch extends Component {
         } = this.state
         const {session} = this.context
         let superUserCheck = false;
-        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')) {
-            superUserCheck = true
-        }
 
         const tableOptions = {
             onChangePage: (currentPage) => {
@@ -705,23 +550,6 @@ class IncidentSearch extends Component {
                     displayPage === 'ttps' && this.displayTtpPage()
                 }
             </div>
-
-            {
-                activeContent === 'editIncident' &&
-                <footer>
-                    <Button variant='outlined' color='primary' className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-                    <Button variant='contained' color='primary' onClick={this.handleSubmit}>{t('txt-save')}</Button>
-                </footer>
-            }
-            {
-                activeContent === 'addIncident' &&
-                <footer>
-                    <Button variant='outlined' color='primary' className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
-                    <Button variant='contained' color='primary' onClick={this.handleSubmit}>{t('txt-save')}</Button>
-                </footer>
-            }
         </div>
     };
 
@@ -1362,395 +1190,6 @@ class IncidentSearch extends Component {
         </div>
     };
 
-    handleSubmit = () => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {activeContent, incidentType, attach} = this.state;
-        let incident = {...this.state.incident};
-
-        if (!this.checkRequired(incident.info)) {
-            return
-        }
-
-        if (incident.info.showFontendRelatedList) {
-            incident.info.relatedList = _.map(incident.info.showFontendRelatedList, el => {
-                return {incidentRelatedId: el.value}
-            })
-        }
-
-        if (incident.info.eventList) {
-            incident.info.eventList = _.map(incident.info.eventList, el => {
-
-                _.forEach(el.eventConnectionList, eventConnectItem => {
-                    if (eventConnectItem.srcPort === '') {
-                        eventConnectItem.srcPort = 0
-                    }
-
-                    if (eventConnectItem.dstPort === '') {
-                        eventConnectItem.dstPort = 0
-                    }
-                })
-                return {
-                    ...el,
-                    startDttm: Moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-                    endDttm: Moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-                }
-            })
-        }
-
-
-        if (incident.info.accidentCatogory) {
-            if (incident.info.accidentCatogory === 5) {
-                incident.info.accidentAbnormal = null
-            } else {
-                incident.info.accidentAbnormalOther = null
-            }
-        }
-
-        if (incident.info.expireDttm) {
-            incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-        }
-
-
-        if (!incident.info.creator) {
-            incident.info.creator = session.accountId;
-        }
-
-        // add for save who edit
-        incident.info.editor = session.accountId;
-
-        if (activeContent === 'addIncident') {
-
-            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor') || _.includes(session.roles, 'SOC Executor')) {
-                incident.info.status = constants.soc.INCIDENT_STATUS_ANALYZED;
-            } else {
-                incident.info.status = constants.soc.INCIDENT_STATUS_UNREVIEWED;
-            }
-        }
-
-        ah.one({
-            url: `${baseUrl}/api/soc`,
-            data: JSON.stringify(incident.info),
-            type: activeContent === 'addIncident' ? 'POST' : 'PATCH',
-            contentType: 'application/json',
-            dataType: 'json'
-        }).then(data => {
-            incident.info.id = data.rt.id;
-            incident.info.updateDttm = data.rt.updateDttm;
-            incident.info.status = data.rt.status;
-
-            this.setState({
-                originalIncident: _.cloneDeep(incident)
-            }, () => {
-                if (attach) {
-                    this.uploadAttachment()
-                }
-                this.getIncident(incident.info.id);
-                this.toggleContent('cancel');
-            });
-
-            return null;
-        })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
-    };
-
-    checkRequired(incident) {
-        const {incidentType} = this.state;
-
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
-            PopupDialog.alert({
-                title: t('txt-tips'),
-                display: it('txt-validBasic'),
-                confirmText: t('txt-close')
-            });
-
-            return false
-        }
-
-        // always check event list
-        if (!incident.eventList) {
-            PopupDialog.alert({
-                title: t('txt-tips'),
-                display: it('txt-validEvents'),
-                confirmText: t('txt-close')
-            });
-
-            return false
-        } else {
-
-            let eventCheck = true;
-
-            if (incident.eventList.length <= 0) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validEvents'),
-                    confirmText: t('txt-close')
-                });
-                eventCheck = false;
-            } else {
-                _.forEach(incident.eventList, event => {
-                    if (_.size(event.eventConnectionList) <= 0) {
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-validEvents'),
-                            confirmText: t('txt-close')
-                        });
-                        eventCheck = false
-                    } else {
-                        _.forEach(event.eventConnectionList, eventConnect => {
-
-                            if (!helper.ValidateIP_Address(eventConnect.srcIp)) {
-                                PopupDialog.alert({
-                                    title: t('txt-tips'),
-                                    display: t('network-topology.txt-ipValidationFail'),
-                                    confirmText: t('txt-close')
-                                });
-                                eventCheck = false
-                                return
-                            }
-
-                            if (!helper.ValidateIP_Address(eventConnect.dstIp)) {
-                                PopupDialog.alert({
-                                    title: t('txt-tips'),
-                                    display: t('network-topology.txt-ipValidationFail'),
-                                    confirmText: t('txt-close')
-                                });
-                                eventCheck = false
-                                return
-                            }
-
-                            if (eventConnect.dstPort) {
-                                if (!helper.ValidatePort(eventConnect.dstPort)) {
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-portValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    eventCheck = false
-                                    return
-                                }
-                            }
-
-                            if (eventConnect.srcPort) {
-                                if (!helper.ValidatePort(eventConnect.srcPort)) {
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-portValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    eventCheck = false
-
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-
-
-            if (!eventCheck) {
-                return false
-            }
-
-            let empty = _.filter(incident.eventList, function (o) {
-                return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency
-            });
-
-            if (_.size(empty) > 0) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validEvents'),
-                    confirmText: t('txt-close')
-                });
-
-                return false
-            }
-        }
-
-        // check ttp list
-        if (incidentType === 'ttps') {
-
-            if (!incident.description) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validTechniqueInfa'),
-                    confirmText: t('txt-close')
-                });
-
-                return false
-            }
-
-
-            if (!incident.ttpList) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validTTPs'),
-                    confirmText: t('txt-close')
-                });
-
-                return false
-            } else {
-                let statusCheck = true
-                let fileCheck = false
-                let urlCheck = false
-                let socketCheck = false
-                _.forEach(incident.ttpList, ttp => {
-
-                    if (_.size(ttp.obsFileList) > 0) {
-                        _.forEach(ttp.obsFileList, file => {
-                            if (file.fileName && file.fileExtension) {
-                                if (file.md5 || file.sha1 || file.sha256) {
-                                    if (helper.validateInputRuleData('fileHashMd5', file.md5)) {
-                                        fileCheck = true
-                                    } else if (helper.validateInputRuleData('fileHashSha1', file.sha1)) {
-                                        fileCheck = true
-                                    } else if (helper.validateInputRuleData('fileHashSha256', file.sha256)) {
-                                        fileCheck = true
-                                    } else {
-                                        fileCheck = false
-                                        return
-                                    }
-                                } else {
-                                    fileCheck = false
-                                    return
-                                }
-                            }
-                        })
-                    } else {
-                        fileCheck = true
-                    }
-
-                    if (_.size(ttp.obsUriList) > 0) {
-                        _.forEach(ttp.obsUriList, uri => {
-                            if (uri.uriType && uri.uriValue) {
-                                urlCheck = true
-                            } else {
-                                urlCheck = false
-                                return
-                            }
-                        })
-                    } else {
-                        urlCheck = true
-                    }
-
-
-                    if (_.size(ttp.obsSocketList) > 0) {
-                        _.forEach(ttp.obsSocketList, socket => {
-                            if (socket.ip || socket.port) {
-                                if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-ipValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    socketCheck = false
-                                    return
-                                }
-
-                                if (socket.port) {
-                                    if (!helper.ValidatePort(socket.port)) {
-                                        PopupDialog.alert({
-                                            title: t('txt-tips'),
-                                            display: t('network-topology.txt-portValidationFail'),
-                                            confirmText: t('txt-close')
-                                        });
-                                        socketCheck = false
-                                        return
-                                    } else {
-                                        if (!socket.ip) {
-                                            PopupDialog.alert({
-                                                title: t('txt-tips'),
-                                                display: t('network-topology.txt-ipValidationFail'),
-                                                confirmText: t('txt-close')
-                                            });
-                                            socketCheck = false
-                                            return
-                                        }
-                                        socketCheck = true
-                                    }
-                                }
-                                socketCheck = true
-                            } else {
-                                socketCheck = false
-                                return
-                            }
-                        })
-                    } else {
-                        socketCheck = true
-                    }
-
-                    if (!fileCheck && !urlCheck && !socketCheck) {
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                    if (!fileCheck) {
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-checkFileFieldType'),
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                    if (!urlCheck) {
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-checkUrlFieldType'),
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-                    if (!socketCheck) {
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-checkIPFieldType'),
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                    if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0) {
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                })
-
-                let empty = _.filter(incident.ttpList, function (o) {
-                    if (o.infrastructureType === undefined || o.infrastructureType === 0) {
-                        o.infrastructureType = '0'
-                    }
-                    if (!o.title || !o.infrastructureType) {
-                        statusCheck = false
-                    }
-                });
-
-                if (_.size(empty) > 0) {
-                    PopupDialog.alert({
-                        title: t('txt-tips'),
-                        display: it('txt-validTechniqueInfa'),
-                        confirmText: t('txt-close')
-                    });
-                    statusCheck = false
-                }
-
-                return statusCheck
-            }
-        }
-
-        return true
-    }
-
     getIncident = (id, type) => {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         this.handleCloseMenu()
@@ -1982,30 +1421,6 @@ class IncidentSearch extends Component {
         )
     };
 
-    renderStatistics = () => {
-        const {showChart, dashboard} = this.state
-
-        return <div className={cx('main-filter', {'active': showChart})}>
-            <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
-            <div className='incident-statistics' id='incident-statistics'>
-                <div className='item c-link' onClick={this.loadCondition.bind(this, 'button', 'expired')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
-                    <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
-                </div>
-
-                <div className='item c-link' onClick={this.loadCondition.bind(this, 'button', 'unhandled')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
-                    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
-                </div>
-
-                <div className='item c-link' onClick={this.loadCondition.bind(this, 'button', 'mine')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
-                    <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
-                </div>
-            </div>
-        </div>
-    }
-
     /* ---- Func Space ---- */
 
     /**
@@ -2071,15 +1486,7 @@ class IncidentSearch extends Component {
         })
             .then(data => {
                 if (data.ret === 0) {
-                    if (this.state.loadListType === 0) {
-                        this.loadCondition('other', 'expired')
-                    } else if (this.state.loadListType === 1) {
-                        this.loadCondition('other', 'unhandled')
-                    } else if (this.state.loadListType === 2) {
-                        this.loadCondition('other', 'mine')
-                    } else if (this.state.loadListType === 3) {
-                        this.loadData()
-                    }
+                   this.loadData()
                 }
                 return null
             })
@@ -2295,17 +1702,7 @@ class IncidentSearch extends Component {
             incident: tempIncident
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
-                // if (this.state.loadListType === 0) {
-                //     this.loadCondition('other', 'expired')
-                // } else if (this.state.loadListType === 1) {
-                //     this.loadCondition('other', 'unhandled')
-                // } else if (this.state.loadListType === 2) {
-                //     this.loadCondition('other', 'mine')
-                // } else if (this.state.loadListType === 3) {
-                //     this.loadData()
-                // }
                 this.loadData()
-                // this.loadDashboard()
             }
         })
     };
@@ -2354,15 +1751,7 @@ class IncidentSearch extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (this.state.loadListType === 0) {
-                    this.loadCondition('other', 'expired')
-                } else if (this.state.loadListType === 1) {
-                    this.loadCondition('other', 'unhandled')
-                } else if (this.state.loadListType === 2) {
-                    this.loadCondition('other', 'mine')
-                } else if (this.state.loadListType === 3) {
-                    this.loadData()
-                }
+                this.loadData()
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
 
             })
@@ -2388,15 +1777,7 @@ class IncidentSearch extends Component {
                 if (confirmed) {
                     this.sendIncident(incidentId);
                 } else {
-                    if (this.state.loadListType === 0) {
-                        this.loadCondition('expired')
-                    } else if (this.state.loadListType === 1) {
-                        this.loadCondition('unhandled')
-                    } else if (this.state.loadListType === 2) {
-                        this.loadCondition('mine')
-                    } else if (this.state.loadListType === 3) {
-                        this.loadData()
-                    }
+                    this.loadData()
                 }
             }
         });
@@ -2733,16 +2114,6 @@ class IncidentSearch extends Component {
         this.setState({
             incident: tmpIncident
         }, () => {
-            // if (this.state.loadListType === 0) {
-            //     this.loadCondition('other', 'expired')
-            // } else if (this.state.loadListType === 1) {
-            //     this.loadCondition('other', 'unhandled')
-            // } else if (this.state.loadListType === 2) {
-            //     this.loadCondition('other', 'mine')
-            // } else if (this.state.loadListType === 3) {
-            //     this.loadData()
-            // }
-
             this.loadData()
 
         });
