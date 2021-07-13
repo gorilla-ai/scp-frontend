@@ -128,8 +128,8 @@ class IncidentManagement extends Component {
                     socType: 1
                 }
             },
-            accountRoleType:constants.soc.SOC_Analyzer,
-            loadListType:constants.soc.SOC_Analyzer,
+            accountRoleType:[],
+            loadListType:1,
             attach: null,
             contextAnchor: null,
             currentData: {},
@@ -191,106 +191,20 @@ class IncidentManagement extends Component {
                     sessionStorage.removeItem(alertDataId)
                     const {session} = this.context;
 
-                    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                        if (_.includes(session.roles, 'SOC Executor')){
-                            this.setState({
-                                accountRoleType:constants.soc.SOC_Executor
-                            },() => {
-                            })
-                        }else{
-                            if (this.state.accountDefault === true){
-                                this.setState({
-                                    accountRoleType:constants.soc.SOC_Super
-                                },() => {
-                                })
-                            }else{
-                                if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
-                                    PopupDialog.alert({
-                                        id: 'modalWindowSmall',
-                                        title: t('txt-tips'),
-                                        confirmText: t('txt-close'),
-                                        display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span></div>,
-                                        act:(confirmed) => {
-                                            window.location.href = '/SCP?lng=' + locale;
-                                        }
-                                    });
+                    this.setState({
+                        accountRoleType: session.roles
+                    });
 
-                                }else{
-                                    this.setState({
-                                        accountRoleType:constants.soc.SOC_Super
-                                    },() => {
-                                    })
-                                }
-                            }
-                        }
-                    } else  if (_.includes(session.roles, 'SOC Executor')){
-                        this.setState({
-                            accountRoleType:constants.soc.SOC_Executor
-                        })
-                    } else  if (_.includes(session.roles, 'SOC Analyzer')){
-                        this.setState({
-                            accountRoleType:constants.soc.SOC_Analyzer
-                        })
-                    }
                     getData = true
                 } else {
                     const {session} = this.context;
 
-                    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                        if (_.includes(session.roles, 'SOC Executor')){
-                            this.setState({
-                                accountRoleType:constants.soc.SOC_Executor
-                            },() => {
-                                this.loadCondition('button','unhandled')
-                            })
-                            getData =true;
-                        }else{
-                            if (this.state.accountDefault === true){
-                                this.setState({
-                                    accountRoleType:constants.soc.SOC_Super
-                                },() => {
-                                    this.loadCondition('button','unhandled')
-                                })
-                                getData =true;
-                            }else{
-                                if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
-                                    PopupDialog.alert({
-                                        id: 'modalWindowSmall',
-                                        title: t('txt-tips'),
-                                        confirmText: t('txt-close'),
-                                        display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span></div>,
-                                        act:(confirmed) => {
-                                            window.location.href = '/SCP?lng=' + locale;
-                                        }
-                                    });
-
-                                }else{
-                                    this.setState({
-                                        accountRoleType:constants.soc.SOC_Super
-                                    },() => {
-                                        this.loadCondition('button','unhandled')
-                                    })
-                                    getData =true;
-                                }
-                            }
-                        }
-                    } else  if (_.includes(session.roles, 'SOC Executor')){
-                        this.setState({
-                            accountRoleType:constants.soc.SOC_Executor
-                        },() => {
-                            this.loadCondition('button','unhandled')
-                        })
-                        getData =true;
-                    } else  if (_.includes(session.roles, 'SOC Analyzer')){
-                        this.setState({
-                            accountRoleType:constants.soc.SOC_Analyzer
-                        },() => {
-                            this.loadCondition('button','unhandled')
-                        })
-                        getData =true;
-                    } else{
-
-                    }
+                    this.setState({
+                        accountRoleType: session.roles
+                    }, () => {
+                        this.loadCondition('button', 'unhandled')
+                    });
+                    getData = true
                 }
 
                 if (getData){
@@ -414,8 +328,7 @@ class IncidentManagement extends Component {
                                     if (allValue.flowData){
 
                                         if (allValue.flowData.finish){
-                                            status = 'Close'
-                                            return <span>{status}</span>
+                                            return <span>{it('status.3')}</span>
                                         }
 
                                         if (allValue.flowData.currentEntity){
@@ -531,8 +444,11 @@ class IncidentManagement extends Component {
                                         if (allValue.flowData){
 
                                             if (allValue.flowData.finish){
-                                                status = 'Close'
-                                                return <span>{status}</span>
+                                                if (value === constants.soc.INCIDENT_STATUS_SUBMITTED){
+                                                    return <span>{it('status.4')}</span>
+                                                }else{
+                                                    return <span>{it('status.3')}</span>
+                                                }
                                             }
 
                                             if (allValue.flowData.currentEntity){
@@ -772,9 +688,6 @@ class IncidentManagement extends Component {
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
                 <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
                 <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
-                {currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) &&
-                    <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
-                }
                 {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) &&
                 <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
@@ -2311,38 +2224,38 @@ class IncidentManagement extends Component {
                     {/*        }*/}
                     {/*    </TextField>*/}
                     {/*</div>*/}
-                    <div className='group'>
-                        <label htmlFor='isExpired'>{it('txt-expired')}</label>
-                        <TextField
-                            id='isExpired'
-                            name='isExpired'
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            value={search.isExpired}
-                            onChange={this.handleSearchMui}>
-                            {
-                                _.map([
-                                    {
-                                        value: 2,
-                                        text: it('txt-allSearch')
-                                    },
-                                    {
-                                        value: 1,
-                                        text: it('unit.txt-isDefault')
-                                    },
-                                    {
-                                        value: 0,
-                                        text: it('unit.txt-isNotDefault')
-                                    }
-                                ], el => {
-                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                })}
-                            }
-                        </TextField>
-                    </div>
+                    {/*<div className='group'>*/}
+                    {/*    <label htmlFor='isExpired'>{it('txt-expired')}</label>*/}
+                    {/*    <TextField*/}
+                    {/*        id='isExpired'*/}
+                    {/*        name='isExpired'*/}
+                    {/*        required={true}*/}
+                    {/*        variant='outlined'*/}
+                    {/*        fullWidth={true}*/}
+                    {/*        size='small'*/}
+                    {/*        select*/}
+                    {/*        value={search.isExpired}*/}
+                    {/*        onChange={this.handleSearchMui}>*/}
+                    {/*        {*/}
+                    {/*            _.map([*/}
+                    {/*                {*/}
+                    {/*                    value: 2,*/}
+                    {/*                    text: it('txt-allSearch')*/}
+                    {/*                },*/}
+                    {/*                {*/}
+                    {/*                    value: 1,*/}
+                    {/*                    text: it('unit.txt-isDefault')*/}
+                    {/*                },*/}
+                    {/*                {*/}
+                    {/*                    value: 0,*/}
+                    {/*                    text: it('unit.txt-isNotDefault')*/}
+                    {/*                }*/}
+                    {/*            ], el => {*/}
+                    {/*                return <MenuItem value={el.value}>{el.text}</MenuItem>*/}
+                    {/*            })}*/}
+                    {/*        }*/}
+                    {/*    </TextField>*/}
+                    {/*</div>*/}
                     <div className='group' style={{width: '500px'}}>
                         <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
                         <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
@@ -2385,10 +2298,10 @@ class IncidentManagement extends Component {
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
                 </div>
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
-                    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
-                </div>
+                {/*<div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>*/}
+                {/*    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>*/}
+                {/*    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>*/}
+                {/*</div>*/}
 
                 <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>

@@ -142,6 +142,7 @@ class SocConfig extends Component {
     render() {
         const {showContent, openIncidentManagement, openConfigManagement} = this.state;
         const {accountType} = this.props;
+
         return (
             <div className={cx('left-nav', {'collapse': !showContent})}>
 

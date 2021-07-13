@@ -128,8 +128,8 @@ class IncidentSearch extends Component {
                     socType: 1
                 }
             },
-            accountRoleType: constants.soc.SOC_Analyzer,
-            loadListType: constants.soc.SOC_Analyzer,
+            accountRoleType: [],
+            loadListType: 1,
             attach: null,
             contextAnchor: null,
             currentData: {},

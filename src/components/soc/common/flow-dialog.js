@@ -1,22 +1,10 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import React, {Component} from 'react'
 import _ from 'lodash'
 import cx from "classnames"
-
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import MultiInput from 'react-ui/build/src/components/multi-input'
-import TextField from '@material-ui/core/TextField';
 import {BaseDataContext} from "../../common/context"
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
+import {default as ah} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
-import Checkbox from '@material-ui/core/Checkbox';
-
-import Select from 'react-select'
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import SocConfig from "../../common/soc-configuration";
-import MuiTableContent from "../../common/mui-table-content";
 
 let t = null
 let et = null
@@ -45,17 +33,21 @@ class IncidentFlowDialog extends Component {
 
 	open(id) {
 		const {baseUrl, session} = this.context
-
+		let tempList = [];
+		let activeSteps = 1;
 		ah.one({
 			url: `${baseUrl}/api/soc/flowEngine/instance?id=${id}`,
 			type: 'GET',
 			contentType: 'application/json',
 			dataType: 'json'
 		}).then(result => {
-			console.log('result == ' , result)
-			this.setState({open: true})
+			Object.keys(result.rt.entities).forEach(key => {
+				tempList.push(result.rt.entities[key].entityName)
+			})
+			activeSteps = tempList.indexOf(result.rt.currentEntity[id].entityName) + 1
+			this.setState({open: true, activeSteps: activeSteps, stepTitleList: tempList})
 		}).catch(err => {
-			helper.showPopupMsg('', t('txt-error'), err.message)
+			helper.showPopupMsg('', t('txt-error'), it('txt-flow-msg-na'))
 		})
 	}
 	close() {

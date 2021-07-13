@@ -127,7 +127,7 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-            accountRoleType: [constants.soc.SOC_Analyzer],
+            accountRoleType: [],
             loadListType: 1,
             attach: null,
             contextAnchor: null,
@@ -185,127 +185,16 @@ class Incident extends Component {
         }, () => {
             setTimeout(() => {
                 let getData = false;
-                if (alertData) {
-                    this.toggleContent('redirect', alertData);
-                    sessionStorage.removeItem(alertDataId)
-                    const {session} = this.context;
+                const {session} = this.context;
 
-                    // if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                    //     if (_.includes(session.roles, 'SOC Executor')){
-                    //         this.setState({
-                    //             accountRoleType:constants.soc.SOC_Executor
-                    //         },() => {
-                    //         })
-                    //     }else{
-                    //         if (this.state.accountDefault === true){
-                    //             this.setState({
-                    //                 accountRoleType:constants.soc.SOC_Super
-                    //             },() => {
-                    //             })
-                    //         }else{
-                    //             if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
-                    //                 PopupDialog.alert({
-                    //                     id: 'modalWindowSmall',
-                    //                     title: t('txt-tips'),
-                    //                     confirmText: t('txt-close'),
-                    //                     display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span></div>,
-                    //                     act:(confirmed) => {
-                    //                         window.location.href = '/SCP?lng=' + locale;
-                    //                     }
-                    //                 });
-                    //
-                    //             }else{
-                    //                 this.setState({
-                    //                     accountRoleType:constants.soc.SOC_Super
-                    //                 },() => {
-                    //                 })
-                    //             }
-                    //         }
-                    //     }
-                    // } else  if (_.includes(session.roles, 'SOC Executor')){
-                    //     this.setState({
-                    //         accountRoleType:constants.soc.SOC_Executor
-                    //     })
-                    // } else  if (_.includes(session.roles, 'SOC Analyzer')){
-                    //     this.setState({
-                    //         accountRoleType:constants.soc.SOC_Analyzer
-                    //     })
-                    // }
-
-                    this.setState({
-                        accountRoleType: session.roles
-                    });
-
-                    getData = true
-                } else {
-                    const {session} = this.context;
-
-                    // if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
-                    //     if (_.includes(session.roles, 'SOC Executor')){
-                    //         this.setState({
-                    //             accountRoleType:constants.soc.SOC_Executor
-                    //         },() => {
-                    //             this.loadCondition('button','unhandled')
-                    //         })
-                    //         getData =true;
-                    //     }else{
-                    //         if (this.state.accountDefault === true){
-                    //             this.setState({
-                    //                 accountRoleType:constants.soc.SOC_Super
-                    //             },() => {
-                    //                 this.loadCondition('button','unhandled')
-                    //             })
-                    //             getData =true;
-                    //         }else{
-                    //             if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT){
-                    //                 PopupDialog.alert({
-                    //                     id: 'modalWindowSmall',
-                    //                     title: t('txt-tips'),
-                    //                     confirmText: t('txt-close'),
-                    //                     display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span></div>,
-                    //                     act:(confirmed) => {
-                    //                         window.location.href = '/SCP?lng=' + locale;
-                    //                     }
-                    //                 });
-                    //
-                    //             }else{
-                    //                 this.setState({
-                    //                     accountRoleType:constants.soc.SOC_Super
-                    //                 },() => {
-                    //                     this.loadCondition('button','unhandled')
-                    //                 })
-                    //                 getData =true;
-                    //             }
-                    //         }
-                    //     }
-                    // } else  if (_.includes(session.roles, 'SOC Executor')){
-                    //     this.setState({
-                    //         accountRoleType:constants.soc.SOC_Executor
-                    //     },() => {
-                    //         this.loadCondition('button','unhandled')
-                    //     })
-                    //     getData =true;
-                    // } else  if (_.includes(session.roles, 'SOC Analyzer')){
-                    //     this.setState({
-                    //         accountRoleType:constants.soc.SOC_Analyzer
-                    //     },() => {
-                    //         this.loadCondition('button','unhandled')
-                    //     })
-                    //     getData =true;
-                    // } else{
-                    //
-                    // }
-                    this.setState({
-                        accountRoleType: session.roles
-                    }, () => {
-                        this.loadCondition('button', 'unhandled')
-                    });
-                    getData = true
-                }
-
+                this.setState({
+                    accountRoleType: session.roles
+                }, () => {
+                    this.loadCondition('button', 'unhandled')
+                });
+                getData = true
                 if (getData){
                     this.getOptions();
-                    this.loadDashboard();
                 }
 
             }, 2000);
@@ -374,7 +263,7 @@ class Incident extends Component {
         search.account = session.accountId
 
         ah.one({
-            url: `${baseUrl}/soc/incident/flow/_search?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
@@ -423,8 +312,7 @@ class Incident extends Component {
                                     if (allValue.flowData) {
 
                                         if (allValue.flowData.finish) {
-                                            status = 'Close'
-                                            return <span>{status}</span>
+                                            return <span>{it('status.3')}</span>
                                         }
 
                                         if (allValue.flowData.currentEntity) {
@@ -491,13 +379,14 @@ class Incident extends Component {
         searchPayload.account = session.accountId
 
         ah.one({
-            url: `${baseUrl}/soc/incident/flow/_search?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
             .then(data => {
+
                 if (data) {
                     let tempEdge = {...incident};
                     tempEdge.dataContent = data.rt.rows;
@@ -540,8 +429,7 @@ class Incident extends Component {
                                         if (allValue.flowData) {
 
                                             if (allValue.flowData.finish) {
-                                                status = 'Close'
-                                                return <span>{status}</span>
+                                                return <span>{it('status.3')}</span>
                                             }
 
                                             if (allValue.flowData.currentEntity) {
@@ -585,79 +473,16 @@ class Incident extends Component {
                     });
 
                     this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
-                        this.loadDashboard()
+                        // this.loadDashboard()
                     })
                 }
                 return null
             })
             .catch(err => {
+
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
     };
-
-    loadDashboard = () => {
-        const {baseUrl, session} = this.context
-
-        let roleType = 'analyzer';
-
-        const payload = {
-            keyword: '',
-            category: 0,
-            status: 0,
-            startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            isExpired: 2,
-            accountRoleType:this.state.accountRoleType,
-            account: session.accountId
-        }
-
-        switch (this.state.accountRoleType){
-            case 1:
-                roleType = 'analyzer'
-                break
-            case 2:
-                roleType = 'executor'
-                break
-            case 3:
-                roleType = 'normal/supervisor'
-                break
-            case 4:
-                roleType = 'normal/ciso'
-                break
-            case 5:
-                roleType = 'supervisor'
-                break
-            case 6:
-                roleType = 'ciso'
-                break
-        }
-
-        ah.all([
-            {
-                url: `${baseUrl}/soc/incident/flow/_search?page=1&pageSize=20`,
-                data: JSON.stringify(payload),
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json'
-            },
-            {
-                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?creator=${session.accountId}`
-            }
-        ])
-        .then(data => {
-            let dashboard = {
-                all: data[0].rt.counts,
-                expired: data[1].rt.rows[0].expireCount,
-                unhandled: data[1].rt.rows[0].dealCount,
-                mine: data[1].rt.rows[0].myCount,
-            }
-
-            this.setState({dashboard})
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
-    }
 
     loadCondition = (from,type) => {
         const {session} = this.context
@@ -666,33 +491,18 @@ class Incident extends Component {
             fromSearch = 'search'
         }
         let search = {
-            subStatus:0,
             keyword: '',
-            category: 0,
-            isExpired: 2,
             accountRoleType: this.state.accountRoleType,
         }
         if (type === 'expired') {
-            this.setState({loadListType: 1})
-            // search.status = 0
+            this.setState({loadListType: 0})
             search.isExpired = 1;
             this.loadWithoutDateTimeData(fromSearch, search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
-            // if (search.accountRoleType === constants.soc.SOC_Executor){
-            //     search.status = 2
-            //     search.subStatus = 6
-            // }else if(search.accountRoleType === constants.soc.SOC_Super){
-            //     search.status = 7
-            // }else if(search.accountRoleType === constants.soc.SOC_Ciso){
-            //     search.status = 7
-            // }else{
-            //     search.status = 1
-            // }
             this.loadWithoutDateTimeData(fromSearch, search)
         } else if (type === 'mine') {
-            this.setState({loadListType: 1})
-            // search.status = 0
+            this.setState({loadListType: 2})
             search.creator = session.accountId
             this.loadWithoutDateTimeData(fromSearch, search)
         }else{
@@ -761,27 +571,22 @@ class Incident extends Component {
             }}/>
 
             {this.state.loadListType === 1 && (
-                <IncidentTag ref={ref => {
-                    this.incidentTag = ref
-                }} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
+                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
             )}
+
 
             {this.state.loadListType === 3 && (
-                <IncidentTag ref={ref => {
-                    this.incidentTag = ref
-                }} onLoad={this.loadData.bind(this)}/>
+                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this)}/>
             )}
-
 
             <IncidentFlowDialog ref={ref => {
                 this.incidentFlowDialog = ref
             }}/>
 
             <IncidentReview ref={ref => {
-                this.incidentReview = ref
-            }} onLoad={this.getIncident.bind(this)}/>
-
+                this.incidentReview = ref}} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
             }
+
             <Menu
                 anchorEl={contextAnchor}
                 keepMounted
@@ -860,22 +665,25 @@ class Incident extends Component {
 
         let editCheck = true
         let drawCheck = false
-        let submitCheck = false
-        let returnCheck = false
-
+        let submitCheck = true
+        let returnCheck = true
+        let closeCheck = false
 
         if (session.accountId === incident.info.creator) {
             drawCheck = true
         }
 
-        if (!_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer)) {
-            returnCheck = true
+        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer) && this.state.accountRoleType.length === 1) {
+            returnCheck = false
         }
 
         if (_.includes(this.state.accountRoleType,constants.soc.SOC_NORMAL_Ciso ) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) {
             editCheck = false
         }
 
+        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
+            closeCheck = true
+        }
 
         let tmpTagList = []
 
@@ -920,14 +728,17 @@ class Incident extends Component {
                 {editCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
                 }
-                {drawCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>
-                }
+                {/*{drawCheck &&*/}
+                {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>*/}
+                {/*}*/}
                 {submitCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
                 }
                 {returnCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
+                }
+                {closeCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
                 }
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
@@ -2634,7 +2445,7 @@ class Incident extends Component {
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
-                this.loadDashboard()
+                // this.loadDashboard()
             }
         })
     };
@@ -3443,7 +3254,7 @@ class Incident extends Component {
             keyword: '',
             category: 0,
             isExpired: 2,
-            accountRoleType,
+            accountRoleType:search.accountRoleType,
         }
 
 
@@ -3472,7 +3283,7 @@ class Incident extends Component {
         }
 
         ah.one({
-            url: `${baseUrl}/soc/incident/flow/_search`,
+            url: `${baseUrl}/api/soc/_searchV3`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
