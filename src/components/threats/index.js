@@ -440,7 +440,7 @@ class ThreatsController extends Component {
       });
     }
 
-   if(_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
+   if(!_.includes(session.roles, constants.soc.SOC_Analyzer) || !_.includes(session.roles, constants.soc.SOC_Executor) ){
      this.checkAccountSocPrivType()
    }else{
      this.setState({
@@ -1234,11 +1234,7 @@ class ThreatsController extends Component {
     // add for save who edit
     incident.info.editor = session.accountId;
 
-    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor') || _.includes(session.roles, 'SOC Executor')) {
-      incident.info.status = INCIDENT_STATUS_ANALYZED;
-    } else {
-      incident.info.status = INCIDENT_STATUS_UNREVIEWED;
-    }
+    incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
     ah.one({
       url: `${baseUrl}/api/soc`,
@@ -2635,7 +2631,7 @@ class ThreatsController extends Component {
     let timeInMss = Date.now();
     sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
 
-    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss;
+    window.location.href = '/SCP/soc/incident-management?alertDataId=' + timeInMss;
   };
   /**
    * Set new datetime and reload page data
