@@ -674,12 +674,9 @@ class IncidentManagement extends Component {
                 <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
             )}
 
-
             <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}}/>
-
             <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
 
-        }
             <Menu
                 anchorEl={contextAnchor}
                 keepMounted
