@@ -19,6 +19,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import MainSettings from './main-settings'
 import MuiTableContent from '../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -41,6 +42,7 @@ class SoarController extends Component {
 
     this.state = {
       activeTab: 'rule',
+      activeContent: 'table', //'table', 'settings', or 'flow'
       showFilter: false,
       soarColumns: {},
       filterList: {
@@ -377,17 +379,6 @@ class SoarController extends Component {
     })
   }
   /**
-   * Handle content tab change
-   * @method
-   * @param {object} event - event object
-   * @param {string} newTab - content type ('rule')
-   */
-  handleSubTabChange = (event, newTab) => {
-    this.setState({
-      activeTab: newTab
-    });
-  }
-  /**
    * Toggle filter content on/off
    * @method
    */
@@ -407,6 +398,16 @@ class SoarController extends Component {
 
     this.setState({
       soarSearch: tempSoarSearch
+    });
+  }
+  /**
+   * Toggle page content
+   * @method
+   * @param {string} type - content type ('table', 'settings' or 'flow')
+   */
+  toggleContent = (type) => {
+    this.setState({
+      activeContent: type
     });
   }
   /**
@@ -564,6 +565,7 @@ class SoarController extends Component {
   render() {
     const {
       activeTab,
+      activeContent,
       showFilter,
       soarData
     } = this.state;
@@ -581,37 +583,39 @@ class SoarController extends Component {
 
     return (
       <div>
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-          </div>
-        </div>
-
-        <div className='data-content soar-index'>
-          <div className='parent-content'>
-            {this.renderFilter()}
-            <div className='main-content'>
-              <Tabs
-                indicatorColor='primary'
-                textColor='primary'
-                value={activeTab}
-                onChange={this.handleSubTabChange}>
-                <Tab label={t('soar.txt-ruleList')} value='rule' />
-              </Tabs>
-
-              <div className='content-header-btns with-menu'>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSettingsBtn}>{t('txt-settings')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleAddRuleBtn}>{t('soar.txt-addRule')}</Button>
+        {activeContent === 'table' &&
+          <React.Fragment>
+            <div className='sub-header'>
+              <div className='secondary-btn-group right'>
+                <Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
               </div>
-
-              {soarData.dataContent &&
-                <MuiTableContent
-                  data={soarData}
-                  tableOptions={tableOptions} />
-              }
             </div>
-          </div>
-        </div>
+
+            <div className='data-content soar-index'>
+              <div className='parent-content'>
+                {this.renderFilter()}
+                <div className='main-content'>
+                  <header className='main-header'>{t('soar.txt-ruleList')}</header>
+                  <div className='content-header-btns with-menu'>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'settings')}>{t('txt-settings')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleAddRuleBtn}>{t('soar.txt-addRule')}</Button>
+                  </div>
+
+                  {soarData.dataContent &&
+                    <MuiTableContent
+                      data={soarData}
+                      tableOptions={tableOptions} />
+                  }
+                </div>
+              </div>
+            </div>
+          </React.Fragment>
+        }
+
+        {activeContent === 'settings' &&
+          <MainSettings
+            toggleContent={this.toggleContent} />
+        }
       </div>
     )
   }

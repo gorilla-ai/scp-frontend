@@ -9,8 +9,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 
-import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
-
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../common/context'
@@ -50,11 +48,6 @@ class Notifications extends Component {
         senderPassword: ''
       },
       originalEmails: {},
-      lineBotSetting:{
-        channelAccessToken:'',
-        channelSecret:'',
-        qrcodeLink:'',
-      },
       emails: {
         service: {
           emails: [],
@@ -72,6 +65,11 @@ class Notifications extends Component {
           emails: [],
           enable: true
         }
+      },
+      lineBotSetting:{
+        channelAccessToken:'',
+        channelSecret:'',
+        qrcodeLink:'',
       },
       formValidation: {
         notificationsServer: {
@@ -596,7 +594,6 @@ class Notifications extends Component {
         checkboxText: t('notifications.txt-sendResult')
       }
     ];
-
     const actions = {
       cancel: {
         color: 'default',
@@ -611,13 +608,12 @@ class Notifications extends Component {
         handler: this.handleTestEmailConfirm
       }
     };
-    let accountName = '';
-    if(lineBotSetting.qrcodeLink.includes('sid/L/')){
-      let tempSpiltAccountNameArray =  lineBotSetting.qrcodeLink.split("sid/L/");
-      let tmpNameArray = tempSpiltAccountNameArray[1].split(".");
+    let accountName = 'N/A';
+
+    if (lineBotSetting.qrcodeLink.includes('sid/L/')) {
+      const tempSpiltAccountNameArray =  lineBotSetting.qrcodeLink.split("sid/L/");
+      const tmpNameArray = tempSpiltAccountNameArray[1].split(".");
       accountName = '@'+ tmpNameArray[0];
-    }else{
-      accountName = 'N/A'
     }
 
     return (
