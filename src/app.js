@@ -411,7 +411,7 @@ function start() {
 
   // set uif
   setupConfigService(baseUrl)
-  // setWidgetLocales(lng)
+  setWidgetLocales(lng)
 
 
   Promise.resolve($.get(url))
