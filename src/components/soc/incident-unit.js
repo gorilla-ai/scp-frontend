@@ -10,7 +10,6 @@ import TableContent from "../common/table-content";
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
 import _ from "lodash";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import constants from "../constant/constant-incidnet";
@@ -21,6 +20,8 @@ import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import Manage from "../configuration/topology/manage";
+import MuiTableContent from "../common/mui-table-content";
+
 // import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
 
 let t = null;
@@ -57,7 +58,7 @@ class IncidentUnit extends Component {
             accountType:constants.soc.LIMIT_ACCOUNT,
             incidentUnit: {
                 dataFieldsArr: ['isGovernment', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
-                dataFields: {},
+                dataFields: [],
                 dataContent: [],
                 sort: {
                     field: 'level',
@@ -102,10 +103,14 @@ class IncidentUnit extends Component {
     }
 
 
-    getData = (fromSearch) => {
+    getData = (options) => {
         const {baseUrl, contextRoot} = this.context;
         const {unitSearch, incidentUnit: incidentUnit} = this.state;
-        const url = `${baseUrl}/api/soc/unit/_search?page=${incidentUnit.currentPage}&pageSize=${incidentUnit.pageSize}`;
+
+        const sort = incidentUnit.sort.desc ? 'desc' : 'asc';
+        const page = options === 'currentPage' ? incidentUnit.currentPage : 0;
+        const url = `${baseUrl}/api/soc/unit/_search?page=${page + 1}&pageSize=${incidentUnit.pageSize}&orders=${incidentUnit.sort.field} ${sort}`;
+
         let requestData = {};
 
         if (unitSearch.keyword) {
@@ -124,48 +129,100 @@ class IncidentUnit extends Component {
         .then(data => {
             if (data) {
                 let tempEdge = {...incidentUnit};
+                // tempEdge.dataContent = data.rows;
+                // tempEdge.totalCount = data.counts;
+                // tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentUnit.currentPage;
+                //
+                // let dataFields = {};
+                // incidentUnit.dataFieldsArr.forEach(tempData => {
+                //     dataFields[tempData] = {
+                //         label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
+                //         sortable: this.checkSortable(tempData),
+                //         formatter: (value, allValue, i) => {
+                //             if (tempData === 'industryType') {
+                //                 return <span>{this.mappingType(value)}</span>
+                //             } else if (tempData === 'updateDttm') {
+                //                 return <span>{helper.getFormattedDate(value, 'local')}</span>
+                //             } else if (tempData === 'isGovernment') {
+                //
+                //                 if (value){
+                //                     return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
+                //                 }else {
+                //                     return <span>{this.checkDefault(value)}</span>
+                //                 }
+                //
+                //             }
+                //             else if (tempData === '_menu') {
+                //                 return (
+                //                     <div className='table-menu menu active'>
+                //                         <i className='fg fg-edit'
+                //                            onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                //                            title={t('txt-view')}/>
+                //                         <i className='fg fg-trashcan'
+                //                            onClick={this.openDeleteMenu.bind(this, allValue)}
+                //                            title={t('txt-delete')}/>
+                //                     </div>
+                //                 )
+                //             } else {
+                //                 return <span>{value}</span>
+                //             }
+                //         }
+                //     };
+                // });
+                //
+                // tempEdge.dataFields = dataFields;
+
+
                 tempEdge.dataContent = data.rows;
                 tempEdge.totalCount = data.counts;
-                tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentUnit.currentPage;
+                tempEdge.currentPage = page;
 
-                let dataFields = {};
-                incidentUnit.dataFieldsArr.forEach(tempData => {
-                    dataFields[tempData] = {
-                        label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
-                        sortable: this.checkSortable(tempData),
-                        formatter: (value, allValue, i) => {
-                            if (tempData === 'industryType') {
-                                return <span>{this.mappingType(value)}</span>
-                            } else if (tempData === 'updateDttm') {
-                                return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === 'isGovernment') {
+                tempEdge.dataFields = _.map(incidentUnit.dataFieldsArr, val => {
+                    return {
+                        name: val === '_menu' ? '' : val,
+                        label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                        options: {
+                            filter: true,
+                            sort: this.checkSortable(val),
+                            viewColumns: val !== '_menu',
+                            customBodyRenderLite: (dataIndex, options) => {
+                                const allValue = tempEdge.dataContent[dataIndex];
+                                let value = tempEdge.dataContent[dataIndex][val];
 
-                                if (value){
-                                    return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
-                                }else {
-                                    return <span>{this.checkDefault(value)}</span>
+                                if (options === 'getAllValue') {
+                                    return allValue;
                                 }
 
-                            }
-                            else if (tempData === '_menu') {
-                                return (
-                                    <div className='table-menu menu active'>
-                                        <i className='fg fg-edit'
-                                           onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
-                                           title={t('txt-view')}/>
-                                        <i className='fg fg-trashcan'
-                                           onClick={this.openDeleteMenu.bind(this, allValue)}
-                                           title={t('txt-delete')}/>
-                                    </div>
-                                )
-                            } else {
-                                return <span>{value}</span>
+                                if (val === 'industryType') {
+                                    return <span>{this.mappingType(value)}</span>
+                                } else if (val === 'updateDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (val === 'isGovernment') {
+
+                                    if (value) {
+                                        return <span style={{color: '#f13a56'}}>{this.checkDefault(value)}</span>
+                                    } else {
+                                        return <span>{this.checkDefault(value)}</span>
+                                    }
+
+                                } else if (val === '_menu') {
+                                    return (
+                                        <div className='table-menu menu active'>
+                                            <i className='fg fg-edit'
+                                               onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                                               title={t('txt-view')}/>
+                                            <i className='fg fg-trashcan'
+                                               onClick={this.openDeleteMenu.bind(this, allValue)}
+                                               title={t('txt-delete')}/>
+                                        </div>
+                                    )
+                                } else {
+                                    return <span>{value}</span>
+                                }
                             }
                         }
                     };
                 });
-
-                tempEdge.dataFields = dataFields;
 
                 this.setState({
                     incidentUnit: tempEdge
@@ -414,6 +471,18 @@ class IncidentUnit extends Component {
         } = this.state;
         const {session} = this.context;
 
+        const tableOptions = {
+            onChangePage: (currentPage) => {
+                this.handlePaginationChange('currentPage', currentPage);
+            },
+            onChangeRowsPerPage: (numberOfRows) => {
+                this.handlePaginationChange('pageSize', numberOfRows);
+            },
+            onColumnSortChange: (changedColumn, direction) => {
+                this.handleTableSort(changedColumn, direction === 'desc');
+            }
+        };
+
         const actions = {
             cancel: {text: t('txt-close'), className: 'standard', handler: this.closeODialog},
             confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
@@ -425,6 +494,7 @@ class IncidentUnit extends Component {
                 <Manage
                     handleCloseManage={this.toggleManageDialog} />
                 }
+
                 <div className="sub-header">
                     <div className='secondary-btn-group right'>
                         <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
@@ -460,28 +530,13 @@ class IncidentUnit extends Component {
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-unit')}</header>
-                            <div className='content-header-btns'>
-                                {activeContent === 'viewDevice' &&
-                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-                                }
-                                {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT &&*/}
-                                {/*    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openODialog.bind(this)}>{t('txt-setOrganization')}</Button>*/}
-                                {/*}*/}
-                                {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT &&*/}
-                                {/*    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>*/}
-                                {/*}*/}
-                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
+
+                            <div className='content-header-btns with-menu '>
+                                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
-                            <TableContent
-                                dataTableData={incidentUnit.dataContent}
-                                dataTableFields={incidentUnit.dataFields}
-                                dataTableSort={incidentUnit.sort}
-                                paginationTotalCount={incidentUnit.totalCount}
-                                paginationPageSize={incidentUnit.pageSize}
-                                paginationCurrentPage={incidentUnit.currentPage}
-                                handleTableSort={this.handleTableSort}
-                                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}/>
+                            <MuiTableContent
+                                data={incidentUnit}
+                                tableOptions={tableOptions} />
                         </div>
                         }
 
@@ -549,15 +604,10 @@ class IncidentUnit extends Component {
     handlePaginationChange = (type, value) => {
         let tempDevice = {...this.state.incidentUnit};
         tempDevice[type] = Number(value);
-
-        if (type === 'pageSize') {
-            tempDevice.currentPage = 1;
-        }
-
         this.setState({
             incidentUnit: tempDevice
         }, () => {
-            this.getData();
+            this.getData(type);
         });
     };
 
@@ -1064,7 +1114,6 @@ class IncidentUnit extends Component {
             })
             tempIncidentDevice.info.showFontendRelatedList = result
 
-            console.log("tempIncidentDevice === " ,tempIncidentDevice)
             this.setState({
                 showFilter: false,
                 // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),

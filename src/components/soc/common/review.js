@@ -89,8 +89,8 @@ class IncidentReview extends Component {
 		})
 	}
 	handleChangeMuiComment(event){
-		console.log("event.target.name == " , event.target.name)
-		console.log("event.target.value == " , event.target.value)
+		// console.log("event.target.name == " , event.target.name)
+		// console.log("event.target.value == " , event.target.value)
 
 		// this.setState({[event.target.name]: event.target.value}, () => {
 		// 	if (event.target.name === 'selected') {
@@ -121,7 +121,8 @@ class IncidentReview extends Component {
             let url = `${baseUrl}/api/soc/_${reviewType}`
 
             if (reviewType === 'draw') {
-                url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
+                // url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
+	            url =  `${baseUrl}/api/soc/analyzer/_draw`
             }
 
 		    ah.one({
@@ -132,8 +133,15 @@ class IncidentReview extends Component {
 			    dataType: 'json'
 		    }).then(data => {
 			    helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
+
+			    if (this.props.loadTab === 'manager'){
+				    this.props.onLoad(incidentId, 'view')
+			    }else{
+				    this.props.onLoad('button', 'unhandled')
+			    }
+
 			    this.close()
-			    this.props.onLoad(incidentId, 'view')
+
 		    })
 			    .catch(err => {
 				    helper.showPopupMsg('', t('txt-error'), err.message)

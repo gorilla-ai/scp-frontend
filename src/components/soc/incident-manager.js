@@ -7,6 +7,7 @@ import moment from 'moment'
 import FileInput from 'react-ui/build/src/components/file-input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TableContent from '../common/table-content'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -49,7 +50,7 @@ const ALERT_LEVEL_COLORS = {
     Notice: '#7ACC29'
 };
 
-class Incident extends Component {
+class IncidentManagement extends Component {
     constructor(props) {
         super(props);
 
@@ -127,8 +128,8 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-            accountRoleType: [],
-            loadListType: 1,
+            accountRoleType:[],
+            loadListType:1,
             attach: null,
             contextAnchor: null,
             currentData: {},
@@ -185,16 +186,30 @@ class Incident extends Component {
         }, () => {
             setTimeout(() => {
                 let getData = false;
-                const {session} = this.context;
+                if (alertData) {
+                    this.toggleContent('redirect', alertData);
+                    sessionStorage.removeItem(alertDataId)
+                    const {session} = this.context;
 
-                this.setState({
-                    accountRoleType: session.roles
-                }, () => {
-                    this.loadCondition('button', 'unhandled')
-                });
-                getData = true
+                    this.setState({
+                        accountRoleType: session.roles
+                    });
+
+                    getData = true
+                } else {
+                    const {session} = this.context;
+
+                    this.setState({
+                        accountRoleType: session.roles
+                    }, () => {
+                        this.loadCondition('button', 'unhandled')
+                    });
+                    getData = true
+                }
+
                 if (getData){
                     this.getOptions();
+                    this.loadDashboard();
                 }
 
             }, 2000);
@@ -259,11 +274,12 @@ class Incident extends Component {
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
@@ -309,13 +325,13 @@ class Incident extends Component {
                                 } else if (val === 'status') {
                                     // return <span>{it(`status.${value}`)}</span>
                                     let status = 'N/A'
-                                    if (allValue.flowData) {
+                                    if (allValue.flowData){
 
-                                        if (allValue.flowData.finish) {
+                                        if (allValue.flowData.finish){
                                             return <span>{it('status.3')}</span>
                                         }
 
-                                        if (allValue.flowData.currentEntity) {
+                                        if (allValue.flowData.currentEntity){
                                             status = allValue.flowData.currentEntity[allValue.id].entityName
                                         }
                                     }
@@ -355,7 +371,7 @@ class Incident extends Component {
                     };
                 });
 
-                this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
+                this.setState({incident: tempEdge, activeContent: 'tableList',loadListType :3,})
             }
             return null
         })
@@ -379,17 +395,16 @@ class Incident extends Component {
         searchPayload.account = session.accountId
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
             .then(data => {
-
                 if (data) {
                     let tempEdge = {...incident};
-                    tempEdge.dataContent = data.rt.rows;
+                     tempEdge.dataContent = data.rt.rows;
                     tempEdge.totalCount = data.rt.counts;
                     tempEdge.currentPage = page;
 
@@ -426,13 +441,17 @@ class Incident extends Component {
                                         return <span>{it(`category.${value}`)}</span>
                                     } else if (val === 'status') {
                                         let status = 'N/A'
-                                        if (allValue.flowData) {
+                                        if (allValue.flowData){
 
-                                            if (allValue.flowData.finish) {
-                                                return <span>{it('status.3')}</span>
+                                            if (allValue.flowData.finish){
+                                                if (value === constants.soc.INCIDENT_STATUS_SUBMITTED){
+                                                    return <span>{it('status.4')}</span>
+                                                }else{
+                                                    return <span>{it('status.3')}</span>
+                                                }
                                             }
 
-                                            if (allValue.flowData.currentEntity) {
+                                            if (allValue.flowData.currentEntity){
                                                 status = allValue.flowData.currentEntity[allValue.id].entityName
                                             }
                                         }
@@ -473,16 +492,74 @@ class Incident extends Component {
                     });
 
                     this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
-                        // this.loadDashboard()
+                        this.loadDashboard()
                     })
                 }
                 return null
             })
             .catch(err => {
-
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
     };
+
+    loadDashboard = () => {
+        const {baseUrl, session} = this.context
+
+        let roleType = 'analyzer';
+
+        const payload = {
+            keyword: '',
+            category: 0,
+            status: 0,
+            startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+            endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+            isExpired: 2,
+            isExecutor:_.includes(session.roles, 'SOC Executor'),
+            accountRoleType:this.state.accountRoleType,
+            account: session.accountId
+        }
+
+        switch (this.state.accountRoleType){
+            case 1:
+                roleType = 'analyzer'
+                break
+            case 2:
+                roleType = 'executor'
+                break
+            case 3:
+                roleType = 'supervisor'
+                break
+            case 4:
+                roleType = 'ciso'
+                break
+        }
+
+        ah.all([
+            {
+                url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
+                data: JSON.stringify(payload),
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json'
+            },
+            {
+                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?creator=${session.accountId}`
+            }
+        ])
+        .then(data => {
+            let dashboard = {
+                all: data[0].rt.counts,
+                expired: data[1].rt.rows[0].expireCount,
+                unhandled: data[1].rt.rows[0].dealCount,
+                mine: data[1].rt.rows[0].myCount,
+            }
+
+            this.setState({dashboard})
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
+    }
 
     loadCondition = (from,type) => {
         const {session} = this.context
@@ -491,20 +568,37 @@ class Incident extends Component {
             fromSearch = 'search'
         }
         let search = {
+            subStatus:0,
             keyword: '',
+            category: 0,
+            isExpired: 2,
             accountRoleType: this.state.accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
+
         }
         if (type === 'expired') {
             this.setState({loadListType: 0})
+            search.status = 0
             search.isExpired = 1;
-            this.loadWithoutDateTimeData(fromSearch, search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
-            this.loadWithoutDateTimeData(fromSearch, search)
+            if (search.accountRoleType === constants.soc.SOC_Executor){
+                search.status = 2
+                search.subStatus = 6
+            }else if(search.accountRoleType === constants.soc.SOC_Super){
+                search.status = 7
+            }else if(search.accountRoleType === constants.soc.SOC_Ciso){
+                search.status = 7
+            }else{
+                search.status = 1
+            }
+            this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'mine') {
             this.setState({loadListType: 2})
+            search.status = 0
             search.creator = session.accountId
-            this.loadWithoutDateTimeData(fromSearch, search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         }else{
 
         }
@@ -566,45 +660,48 @@ class Incident extends Component {
         };
 
         return <div>
-            <IncidentComment ref={ref => {
-                this.incidentComment = ref
-            }}/>
-
+            <IncidentComment ref={ref => { this.incidentComment=ref }} />
+            {this.state.loadListType === 0 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />
+            )}
             {this.state.loadListType === 1 && (
-                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','unhandled')} />
             )}
-
-
+            {this.state.loadListType === 2 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','mine')} />
+            )}
             {this.state.loadListType === 3 && (
-                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this)}/>
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
             )}
 
-            <IncidentFlowDialog ref={ref => {
-                this.incidentFlowDialog = ref
-            }}/>
 
-            <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
+            <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}}/>
 
+            <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
 
+        }
             <Menu
                 anchorEl={contextAnchor}
                 keepMounted
                 open={Boolean(contextAnchor)}
                 onClose={this.handleCloseMenu}>
-                <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
+                <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
                 <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
                 <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
+                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) &&
+                <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                }
             </Menu>
 
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
-                    {/*<button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}*/}
-                    {/*        title={t('txt-filter')}><i className='fg fg-filter'/></button>*/}
-                    {/*<button className={cx('', {'active': showChart})} onClick={this.toggleChart}*/}
-                    {/*        title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>*/}
+                    <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
+                            title={t('txt-filter')}><i className='fg fg-filter'/></button>
+                    <button className={cx('', {'active': showChart})} onClick={this.toggleChart}
+                            title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
                     {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-                    <button className='' onClick={this.openIncidentTag.bind(this, null)}
-                            title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
+                        <button className='' onClick={this.openIncidentTag.bind(this, null)}
+                                title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
                     }
                     <button className='' onClick={this.openIncidentComment.bind(this)}
                             title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
@@ -615,32 +712,31 @@ class Incident extends Component {
                 <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
 
                 <div className='parent-content'>
-                    {/*{this.renderStatistics()}*/}
-                    {/*{this.renderFilter()}*/}
+                    {this.renderStatistics()}
+                    {this.renderFilter()}
 
                     {activeContent === 'tableList' &&
                     <div className='main-content'>
-                        <header className='main-header'>{it('txt-incident-sign')}</header>
+                        <header className='main-header'>{it('txt-incident')}</header>
                         <div className='content-header-btns with-menu '>
                             {activeContent === 'viewIncident' &&
-                            <Button variant='outlined' color='primary' className='standard btn edit'
-                                    onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                             }
-                            {/*{_.size(incident.dataContent) > 0 &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>*/}
-                            {/*}*/}
-                        </div>
+                            {_.size(incident.dataContent) > 0 &&
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
+                            }
+                            {accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&
+                            <Button variant='outlined' color='primary' className='standard btn edit'
+                                    onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>
+                            }
+                            {accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&
+                            <Button variant='outlined' color='primary' className='standard btn edit'
+                                    onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
+                            }
+                            </div>
                         <MuiTableContent
                             data={incident}
-                            tableOptions={tableOptions}/>
+                            tableOptions={tableOptions} />
                     </div>
                     }
 
@@ -662,26 +758,95 @@ class Incident extends Component {
         const {session} = this.context
         const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
 
-        let editCheck = true
+        let editCheck = false
         let drawCheck = false
-        let submitCheck = true
-        let returnCheck = true
+        let submitCheck = false
+        let auditCheck = false
+        let returnCheck = false
+        let publishCheck = false
+        let transferCheck = false
+        // new
+        let signCheck = false
         let closeCheck = false
 
-        if (session.accountId === incident.info.creator) {
-            drawCheck = true
-        }
 
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer) && this.state.accountRoleType.length === 1) {
-            returnCheck = false
-        }
+        if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
+            // 待送審
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
 
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_NORMAL_Ciso ) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) {
-            editCheck = false
-        }
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
 
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
-            closeCheck = true
+            }else {
+                // editCheck = true
+                // submitCheck = true
+            }
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
+            // 待審核
+            if (session.accountId === incident.info.creator) {
+                // drawCheck = true
+            }
+
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
+                // editCheck = true
+                // returnCheck = true
+                // auditCheck = true
+                closeCheck = true
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
+
+            }else {
+                // editCheck = true
+            }
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
+            // 結案(未發布)
+            if (session.accountId === incident.info.creator) {
+            }
+
+            if (this.state.accountRoleType === constants.soc.SOC_Super) {
+                publishCheck = true
+            }
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
+                // editCheck = true
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
+                // returnCheck = true
+                // editCheck = true
+                // auditCheck = true
+            }else {
+                // editCheck = true
+            }
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
+
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_ANALYZED) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
+                // editCheck = true
+                // transferCheck = true
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
+                // editCheck = true
+                // transferCheck = true
+            }else{
+
+            }
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
+                // editCheck = true
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
+                // editCheck = true
+                // returnCheck = true
+                signCheck = true
+            }else{
+                if (session.accountId === incident.info.creator) {
+                    // drawCheck = true
+                }
+                // editCheck = true
+            }
+        }else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) {
+            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
+                // transferCheck = true
+            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
+
+            }else {
+
+            }
         }
 
         let tmpTagList = []
@@ -727,17 +892,29 @@ class Incident extends Component {
                 {editCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
                 }
-                {/*{drawCheck &&*/}
-                {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>*/}
-                {/*}*/}
+                {drawCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>
+                }
                 {submitCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
                 }
                 {returnCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
                 }
+                {auditCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</Button>
+                }
+                {transferCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</Button>
+                }
+                {signCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</Button>
+                }
                 {closeCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</Button>
+                }
+                {publishCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
                 }
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
@@ -1102,8 +1279,10 @@ class Incident extends Component {
                     else if (tempData === 'action') {
                         let isShow = true
 
-                        if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
-                            isShow = false
+                        if (incident.info.status === 3 || incident.info.status === 4) {
+                            if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
+                                isShow = false
+                            }
                         }
 
                         return <div>
@@ -1475,7 +1654,13 @@ class Incident extends Component {
         incident.info.editor = session.accountId;
 
         if (activeContent === 'addIncident') {
-            incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED ;
+
+            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
+                // incident.info.status =  constants.soc.INCIDENT_STATUS_ANALYZED ;
+                incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED ;
+            }else{
+                incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED ;
+            }
         }
 
         ah.one({
@@ -2039,38 +2224,38 @@ class Incident extends Component {
                     {/*        }*/}
                     {/*    </TextField>*/}
                     {/*</div>*/}
-                    <div className='group'>
-                        <label htmlFor='isExpired'>{it('txt-expired')}</label>
-                        <TextField
-                            id='isExpired'
-                            name='isExpired'
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            value={search.isExpired}
-                            onChange={this.handleSearchMui}>
-                            {
-                                _.map([
-                                    {
-                                        value: 2,
-                                        text: it('txt-allSearch')
-                                    },
-                                    {
-                                        value: 1,
-                                        text: it('unit.txt-isDefault')
-                                    },
-                                    {
-                                        value: 0,
-                                        text: it('unit.txt-isNotDefault')
-                                    }
-                                ], el => {
-                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                })}
-                            }
-                        </TextField>
-                    </div>
+                    {/*<div className='group'>*/}
+                    {/*    <label htmlFor='isExpired'>{it('txt-expired')}</label>*/}
+                    {/*    <TextField*/}
+                    {/*        id='isExpired'*/}
+                    {/*        name='isExpired'*/}
+                    {/*        required={true}*/}
+                    {/*        variant='outlined'*/}
+                    {/*        fullWidth={true}*/}
+                    {/*        size='small'*/}
+                    {/*        select*/}
+                    {/*        value={search.isExpired}*/}
+                    {/*        onChange={this.handleSearchMui}>*/}
+                    {/*        {*/}
+                    {/*            _.map([*/}
+                    {/*                {*/}
+                    {/*                    value: 2,*/}
+                    {/*                    text: it('txt-allSearch')*/}
+                    {/*                },*/}
+                    {/*                {*/}
+                    {/*                    value: 1,*/}
+                    {/*                    text: it('unit.txt-isDefault')*/}
+                    {/*                },*/}
+                    {/*                {*/}
+                    {/*                    value: 0,*/}
+                    {/*                    text: it('unit.txt-isNotDefault')*/}
+                    {/*                }*/}
+                    {/*            ], el => {*/}
+                    {/*                return <MenuItem value={el.value}>{el.text}</MenuItem>*/}
+                    {/*            })}*/}
+                    {/*        }*/}
+                    {/*    </TextField>*/}
+                    {/*</div>*/}
                     <div className='group' style={{width: '500px'}}>
                         <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
                         <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
@@ -2113,10 +2298,10 @@ class Incident extends Component {
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
                 </div>
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
-                    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
-                </div>
+                {/*<div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>*/}
+                {/*    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>*/}
+                {/*    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>*/}
+                {/*</div>*/}
 
                 <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
@@ -2444,7 +2629,7 @@ class Incident extends Component {
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
-                // this.loadDashboard()
+                this.loadDashboard()
             }
         })
     };
@@ -3244,6 +3429,7 @@ class Incident extends Component {
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
@@ -3253,7 +3439,8 @@ class Incident extends Component {
             keyword: '',
             category: 0,
             isExpired: 2,
-            accountRoleType:search.accountRoleType,
+            accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
         }
 
 
@@ -3262,19 +3449,19 @@ class Incident extends Component {
             payload.isExpired = 1
         }
         else if (loadListType === 1) {
-            // if (payload.accountRoleType === constants.soc.SOC_Executor) {
-            //     payload.status = 2
-            //     payload.subStatus = 6
-            // }
-            // else if (payload.accountRoleType === constants.soc.SOC_Super) {
-            //     payload.status = 7
-            // }
-            // else {
-            //     payload.status = 1
-            // }
+            if (payload.accountRoleType === constants.soc.SOC_Executor) {
+                payload.status = 2
+                payload.subStatus = 6
+            }
+            else if (payload.accountRoleType === constants.soc.SOC_Super) {
+                payload.status = 7
+            }
+            else {
+                payload.status = 1
+            }
         }
         else if (loadListType === 2) {
-            // payload.status = 0
+            payload.status = 0
             payload.creator = session.accountId
         }
         else if (loadListType === 3) {
@@ -3282,7 +3469,7 @@ class Incident extends Component {
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV3`,
+            url: `${baseUrl}/api/soc/_searchV2`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
@@ -3329,9 +3516,9 @@ class Incident extends Component {
     }
 }
 
-Incident.contextType = BaseDataContext;
-Incident.propTypes = {
+IncidentManagement.contextType = BaseDataContext;
+IncidentManagement.propTypes = {
     // nodeBaseUrl: PropTypes.string.isRequired
 };
 
-export default Incident
+export default IncidentManagement

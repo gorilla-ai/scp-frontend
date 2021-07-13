@@ -6,8 +6,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import InfiniteScroll from 'react-infinite-scroll-component'
-
 import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -2104,26 +2102,41 @@ class SyslogController extends Component {
    * @method
    * @returns QueryOpenSave component
    */
-  queryDialog = () => {
-    const {activeTab, account, filterData, markData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
 
+  queryDialog = () => {
+    const {
+      activeTab,
+      account,
+      filterData,
+      markData,
+      queryData,
+      queryDataPublic,
+      queryModalType,
+      notifyEmailData
+    } = this.state;
+    const {sessionRights} = this.context;
+    let moduleWithSOC = false
+    if (sessionRights.Module_Soc) {
+      moduleWithSOC = true
+    }
     return (
-      <QueryOpenSave
-        activeTab={activeTab}
-        type={queryModalType}
-        account={account}
-        filterData={filterData}
-        markData={markData}
-        queryData={queryData}
-        queryDataPublic={queryDataPublic}
-        notifyEmailData={notifyEmailData}
-        setFilterData={this.setFilterData}
-        setMarkData={this.setMarkData}
-        setQueryData={this.setQueryData}
-        setNotifyEmailData={this.setNotifyEmailData}
-        getSavedQuery={this.getSavedQuery}
-        getPublicSavedQuery={this.getPublicSavedQuery}
-        closeDialog={this.closeDialog} />
+        <QueryOpenSave
+            activeTab={activeTab}
+            type={queryModalType}
+            moduleWithSOC={moduleWithSOC}
+            account={account}
+            filterData={filterData}
+            markData={markData}
+            queryData={queryData}
+            queryDataPublic={queryDataPublic}
+            notifyEmailData={notifyEmailData}
+            setFilterData={this.setFilterData}
+            setMarkData={this.setMarkData}
+            setQueryData={this.setQueryData}
+            setNotifyEmailData={this.setNotifyEmailData}
+            getSavedQuery={this.getSavedQuery}
+            getPublicSavedQuery={this.getPublicSavedQuery}
+            closeDialog={this.closeDialog}/>
     )
   }
   /**
@@ -2166,8 +2179,16 @@ class SyslogController extends Component {
     let tempQueryDataPublic = {...queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
-    tempQueryDataPublic.inputName = '';
-    tempQueryDataPublic.openFlag = false;
+
+    tempQueryData.soc = {
+      id: '',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription: '',
+      impact: 4,
+      category: 1,
+    }
 
     this.setState({
       queryData: tempQueryData,

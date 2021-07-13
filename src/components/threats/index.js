@@ -6,8 +6,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import InfiniteScroll from 'react-infinite-scroll-component'
-
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline'
 import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined'
 import Button from '@material-ui/core/Button'
@@ -139,9 +137,6 @@ const INCIDENT_STATUS_ANALYZED = 6
 const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
 const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
 
-const SOC_Analyzer = 1
-const SOC_Executor = 2
-const SOC_Super = 3
 
 let t = null;
 let f = null;
@@ -445,7 +440,7 @@ class ThreatsController extends Component {
       });
     }
 
-   if(_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
+   if(!_.includes(session.roles, constants.soc.SOC_Analyzer) || !_.includes(session.roles, constants.soc.SOC_Executor) ){
      this.checkAccountSocPrivType()
    }else{
      this.setState({
@@ -1239,11 +1234,7 @@ class ThreatsController extends Component {
     // add for save who edit
     incident.info.editor = session.accountId;
 
-    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor') || _.includes(session.roles, 'SOC Executor')) {
-      incident.info.status = INCIDENT_STATUS_ANALYZED;
-    } else {
-      incident.info.status = INCIDENT_STATUS_UNREVIEWED;
-    }
+    incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
     ah.one({
       url: `${baseUrl}/api/soc`,
@@ -2640,7 +2631,7 @@ class ThreatsController extends Component {
     let timeInMss = Date.now();
     sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
 
-    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss;
+    window.location.href = '/SCP/soc/incident-management?alertDataId=' + timeInMss;
   };
   /**
    * Set new datetime and reload page data
@@ -2934,24 +2925,32 @@ class ThreatsController extends Component {
    * @method
    * @returns QueryOpenSave component
    */
+
   queryDialog = () => {
     const {activeTab, account, filterData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
+    const {sessionRights} = this.context;
+    let moduleWithSOC = false
+
+    if (sessionRights.Module_Soc) {
+      moduleWithSOC = true
+    }
 
     return (
-      <QueryOpenSave
-        activeTab={activeTab}
-        type={queryModalType}
-        account={account}
-        filterData={filterData}
-        queryData={queryData}
-        queryDataPublic={queryDataPublic}
-        notifyEmailData={notifyEmailData}
-        setFilterData={this.setFilterData}
-        setQueryData={this.setQueryData}
-        setNotifyEmailData={this.setNotifyEmailData}
-        getSavedQuery={this.getSavedQuery}
-        getPublicSavedQuery={this.getPublicSavedQuery}
-        closeDialog={this.closeDialog} />
+        <QueryOpenSave
+            activeTab={activeTab}
+            type={queryModalType}
+            moduleWithSOC={moduleWithSOC}
+            account={account}
+            filterData={filterData}
+            queryData={queryData}
+            queryDataPublic={queryDataPublic}
+            notifyEmailData={notifyEmailData}
+            setFilterData={this.setFilterData}
+            setQueryData={this.setQueryData}
+            setNotifyEmailData={this.setNotifyEmailData}
+            getSavedQuery={this.getSavedQuery}
+            getPublicSavedQuery={this.getPublicSavedQuery}
+            closeDialog={this.closeDialog}/>
     )
   }
   /**
@@ -2994,8 +2993,16 @@ class ThreatsController extends Component {
     let tempQueryDataPublic = {...queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
-    tempQueryDataPublic.inputName = '';
-    tempQueryDataPublic.openFlag = false;
+
+    tempQueryData.soc = {
+      id: '',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription: '',
+      impact: 4,
+      category: 1,
+    }
 
     this.setState({
       queryData: tempQueryData,

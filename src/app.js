@@ -26,6 +26,9 @@ import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/incident'
 import IncidentISAC from './components/soc/incident-isac'
 import IncidentSOC from './components/soc/incident-soc'
+import IncidentRule from './components/soc/incident-ruleTemplate'
+import IncidentFlow from './components/soc/incident-flow'
+import IncidentSearch from "./components/soc/incident-search-list";
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
@@ -55,6 +58,7 @@ import 'react-chart/build/css/react-chart.css'
 import 'react-gis/build/css/react-gis.css'
 import 'react-la/build/css/react-la.css'
 import IncidentDeviceStep from "./components/soc/incident-device-with-step";
+import IncidentManagement from "./components/soc/incident-manager";
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
@@ -251,6 +255,31 @@ const incidentSOC = () => (
     </BaseDataContext.Provider>
 );
 
+const incidentRule = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentRule/>
+    </BaseDataContext.Provider>
+);
+
+const incidentFlow = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentFlow/>
+    </BaseDataContext.Provider>
+);
+
+const incidentSearch = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentSearch/>
+    </BaseDataContext.Provider>
+);
+
+const incidentManagement = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentManagement/>
+    </BaseDataContext.Provider>
+);
+
+
 const Main = () => (
   <main className='main'>
     <Switch>
@@ -277,12 +306,17 @@ const Main = () => (
       <Route exact path='/SCP/configuration/audit' component={Audit} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
       <Route exact path='/SCP/configuration/product-info' component={productInfo} />
-        <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
-        <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
-        <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
-        <Route exact path='/SCP/soc/incident' component={incident}/>
-        <Route exact path='/SCP/soc/incident-ISAC' component={incidentISAC}/>
-        <Route exact path='/SCP/soc/incident-SOC' component={incidentSOC}/>
+      <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
+      <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
+      <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
+      <Route exact path='/SCP/soc/incident' component={incident}/>
+      <Route exact path='/SCP/soc/incident-ISAC' component={incidentISAC}/>
+      <Route exact path='/SCP/soc/incident-SOC' component={incidentSOC}/>
+      <Route exact path='/SCP/soc/incident-RuleTemplate' component={incidentRule}/>
+      <Route exact path='/SCP/soc/incident-Flow' component={incidentFlow}/>
+      <Route exact path='/SCP/soc/incident-search' component={incidentSearch}/>
+      <Route exact path='/SCP/soc/incident-management' component={incidentManagement}/>
+
     </Switch>
   </main>
 );

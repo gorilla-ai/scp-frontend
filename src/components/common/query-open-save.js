@@ -18,12 +18,14 @@ import {BaseDataContext} from './context'
 import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
-
+import Switch from "@material-ui/core/Switch";
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import _ from "lodash";
 
 let t = null;
 let f = null;
 let et = null;
+let it = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
@@ -57,19 +59,39 @@ class QueryOpenSave extends Component {
         threshold: 1,
         severity: 'Emergency'
       },
+      soc:{
+        id:'',
+        severity: 'Emergency',
+        limitQuery: 10,
+        title: '',
+        eventDescription:'',
+        impact: 4,
+        category: 1,
+      },
       activePatternId: '',
       patternCheckbox: false,
       publicCheckbox: false,
+      socTemplateEnable:false,
+
       dialogOpenType: '',
       info: '',
       formValidation: {
         queryName: {
           valid: true,
           msg: ''
+        },
+        title: {
+          valid: true,
+          msg: ''
+        },
+        eventDescription: {
+          valid: true,
+          msg: ''
         }
       }
     };
 
+    it = global.chewbaccaI18n.getFixedT(null, "incident");
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
@@ -78,7 +100,9 @@ class QueryOpenSave extends Component {
   componentDidMount() {
     this.setQueryList();
     this.setSeverityList();
+
   }
+
   /**
    * Set query list
    * @method
@@ -106,6 +130,14 @@ class QueryOpenSave extends Component {
     this.setState({
       queryList,
       activeQuery: queryList[0]
+    },()=>{
+
+      if (this.props.type === 'open'){
+
+        if (queryList.length > 0){
+          this.getQuerySOCValue();
+        }
+      }
     });
   }
   /**
@@ -125,6 +157,59 @@ class QueryOpenSave extends Component {
       periodMinList
     });
   }
+
+  getQuerySOCValue = () => {
+    const {queryData} = this.props;
+    const {activeQuery} = this.state;
+    const {baseUrl} = this.context;
+    let tempQueryData = {...queryData}
+
+    let url = `${baseUrl}/api/soc/template?id=${activeQuery.value}`;
+    this.ah.one({
+      url,
+      type: 'GET',
+      contentType: 'text/plain'
+    }).then(data => {
+          if (data) {
+            tempQueryData.soc = {
+              id : data.id,
+              title:data.title,
+              eventDescription:data.eventDescription,
+              category:data.category,
+              impact:data.impact,
+              severity:data.severity,
+              limitQuery:data.limitQuery
+            }
+            this.props.setQueryData(tempQueryData);
+            this.setState({
+              socTemplateEnable:true,
+              soc:tempQueryData.soc
+            })
+          }else{
+            tempQueryData.soc = {
+              id:'',
+              severity: 'Emergency',
+              limitQuery: 10,
+              title: '',
+              eventDescription:'',
+              impact: 4,
+              category: 1,
+            }
+            this.props.setQueryData(tempQueryData);
+            this.setState({
+              socTemplateEnable:false,
+              soc:tempQueryData.soc
+            })
+          }
+          return null;
+        })
+        .catch(err => {
+          this.setState({
+            socTemplateEnable:false
+          })
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+  }
   /**
    * Clear error info message
    * @method
@@ -138,9 +223,10 @@ class QueryOpenSave extends Component {
    * Set and close query menu
    * @method
    */
+
   handleQueryAction = () => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, type, filterData, queryData, queryDataPublic, markData} = this.props;
+    const {activeTab, type, filterData, queryData, queryDataPublic, markData, socTemplateEnable, soc} = this.props;
 
     if (type === 'open' || type === 'publicOpen') {
       if (type === 'open') {
@@ -222,6 +308,42 @@ class QueryOpenSave extends Component {
           tempFormValidation.queryName.valid = false;
           tempFormValidation.queryName.msg = t('txt-required');
           validate = false;
+        }
+
+        if (this.state.socTemplateEnable){
+          if (soc.title) {
+            const specialCharTest = /[\[\]<>?]+/; //[]<> are not allowed
+
+            if (specialCharTest.test(soc.title)) {
+              tempFormValidation.title.valid = false;
+              tempFormValidation.title.msg = t('txt-checkRequiredFieldType');
+              validate = false;
+            } else {
+              tempFormValidation.title.valid = true;
+              tempFormValidation.title.msg = '';
+            }
+          } else {
+            tempFormValidation.title.valid = false;
+            tempFormValidation.title.msg = t('txt-required');
+            validate = false;
+          }
+
+          if (soc.eventDescription) {
+            const specialCharTest = /[\[\]<>?]+/; //[]<> are not allowed
+
+            if (specialCharTest.test(soc.eventDescription)) {
+              tempFormValidation.eventDescription.valid = false;
+              tempFormValidation.eventDescription.msg = t('txt-checkRequiredFieldType');
+              validate = false;
+            } else {
+              tempFormValidation.eventDescription.valid = true;
+              tempFormValidation.eventDescription.msg = '';
+            }
+          } else {
+            tempFormValidation.eventDescription.valid = false;
+            tempFormValidation.eventDescription.msg = t('txt-required');
+            validate = false;
+          }
         }
       }
 
@@ -364,6 +486,71 @@ class QueryOpenSave extends Component {
       })
       .then(data => {
         if (data) {
+
+           if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
+               let socRequestBody = {
+               id: data.id,
+               title: soc.title,
+               eventDescription: soc.eventDescription,
+               category:soc.category,
+               impact:soc.impact,
+               limitQuery:soc.limitQuery,
+               creator:account.id
+             }
+             if (activeTab === 'alert' ) {
+               socRequestBody.severity = soc.severity
+             }
+             if (activeTab === 'logs' ) {
+               socRequestBody.severity = pattern.severity
+             }
+
+             this.ah.one({
+               url: `${baseUrl}/api/soc/template`,
+               data: JSON.stringify(socRequestBody),
+               type: 'POST',
+               contentType: 'text/plain'
+             }).then(data => {
+               if (data) {
+                 // console.log('override soc Template result :: ', data)
+               }
+               return null;
+             }).catch(err => {
+               helper.showPopupMsg('', t('txt-error'), err.message);
+             }).finally(err => {
+               helper.showPopupMsg(t('events.connections.txt-querySaved'));
+               this.props.getSavedQuery();
+               this.setState({
+                 socTemplateEnable:false,
+                 soc:{
+                   id:'',
+                   severity: 'Emergency',
+                   limitQuery: 10,
+                   title: '',
+                   eventDescription:'',
+                   impact: 4,
+                   category: 1,
+                 }
+               })
+             })
+           }else{
+             helper.showPopupMsg(t('events.connections.txt-querySaved'));
+             this.props.getSavedQuery();
+             this.setState({
+               socTemplateEnable:false,
+               soc:{
+                 id:'',
+                 severity: 'Emergency',
+                 limitQuery: 10,
+                 title: '',
+                 eventDescription:'',
+                 impact: 4,
+                 category: 1,
+               }
+             })
+           }
+
+          this.props.setNotifyEmailData([]);
+
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
 
           if (type === 'save') {
@@ -372,6 +559,7 @@ class QueryOpenSave extends Component {
           } else if (type === 'publicSave') {
             this.props.getPublicSavedQuery();
           }
+
         }
         return null;
       })
@@ -652,6 +840,15 @@ class QueryOpenSave extends Component {
           threshold: 1,
           severity: 'Emergency'
         };
+        tempQueryData.soc = {
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription:'',
+          impact: 4,
+          category: 1,
+          id:''
+        }
         tempQueryData.emailList = [];
 
         if (comboValue && comboValue.value) {
@@ -661,6 +858,8 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
+          },()=>{
+            this.getQuerySOCValue();
           });
         }
 
@@ -782,8 +981,20 @@ class QueryOpenSave extends Component {
       this.setState({
         dialogOpenType: 'change'
       });
+
     } else if (fieldType === 'name') {
       queryName = newQueryName;
+
+      tempQueryData.soc = {
+        severity: 'Emergency',
+        limitQuery: 10,
+        title: '',
+        eventDescription:'',
+        impact: 4,
+        category: 1,
+        id:''
+
+      }
 
       if (type === 'open' || type === 'save') {
         tempQueryData.inputName = value;
@@ -797,6 +1008,7 @@ class QueryOpenSave extends Component {
     this.clearErrorInfo();
 
     this.setState({
+      soc:tempQueryData.soc,
       newQueryName: queryName
     });
   }
@@ -807,10 +1019,52 @@ class QueryOpenSave extends Component {
    */
   handleDataChange = (event) => {
     let tempPattern = {...this.state.pattern};
+    let tempSoc = {...this.state.soc};
     tempPattern[event.target.name] = event.target.value;
 
+    if (event.target.name === 'severity'){
+
+      if (event.target.value === 'Emergency'){
+        tempSoc['impact'] = 4
+      }else  if (event.target.value === 'Alert'){
+        tempSoc['impact'] = 3
+      }else  if (event.target.value === 'Notice'){
+        tempSoc['impact'] = 1
+      }else  if (event.target.value === 'Warning'){
+        tempSoc['impact'] = 2
+      }else  if (event.target.value === 'Critical'){
+        tempSoc['impact'] = 3
+      }
+
+    }
+
     this.setState({
-      pattern: tempPattern
+      pattern: tempPattern,
+      soc: tempSoc
+    });
+  }
+  handleSeverityWithSOCChange = (event) => {
+    let tempData = {...this.state.soc};
+    tempData[event.target.name] = event.target.value;
+
+    if (event.target.name === 'severity'){
+
+      if (event.target.value === 'Emergency'){
+        tempData['impact'] = 4
+      }else  if (event.target.value === 'Alert'){
+        tempData['impact'] = 3
+      }else  if (event.target.value === 'Notice'){
+        tempData['impact'] = 1
+      }else  if (event.target.value === 'Warning'){
+        tempData['impact'] = 2
+      }else  if (event.target.value === 'Critical'){
+        tempData['impact'] = 3
+      }
+
+    }
+
+    this.setState({
+      soc: tempData
     });
   }
   /**
@@ -821,6 +1075,22 @@ class QueryOpenSave extends Component {
     this.setState({
       patternCheckbox: !this.state.patternCheckbox
     });
+
+    if (!this.state.patternCheckbox){
+      this.setState({
+        soc:{
+          id:'',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription:'',
+          impact: 4,
+          category: 1,
+        },
+        socTemplateEnable:false
+      })
+    }
+
   }
   /**
    * Toggle public checkbox
@@ -830,7 +1100,33 @@ class QueryOpenSave extends Component {
     this.setState({
       publicCheckbox: !this.state.publicCheckbox
     });
+
+    if (!this.state.patternCheckbox && !this.state.publicCheckbox){
+      this.setState({
+        soc:{
+          id:'',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription:'',
+          impact: 4,
+          category: 1,
+        },
+        socTemplateEnable:false
+      })
+    }
+
   }
+  /**
+   * Toggle pattern checkbox
+   * @method
+   */
+  toggleSOCSwitch = () => {
+    this.setState({
+      socTemplateEnable: !this.state.socTemplateEnable
+    });
+  }
+
   /**
    * Handle email delete
    * @method
@@ -904,7 +1200,7 @@ class QueryOpenSave extends Component {
    * @returns HTML DOM
    */
   getQueryAlertContent = (type) => {
-    const {queryData} = this.props;
+    const {queryData, moduleWithSOC} = this.props;
     const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType} = this.state;
     let severityType = '';
     let patternCheckboxChecked = '';
@@ -998,7 +1294,7 @@ class QueryOpenSave extends Component {
           {type === 'open' && queryData.emailList.length > 0 &&
             <div>
               <label>{t('notifications.txt-notifyEmail')}</label>
-              <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>            
+              <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>
             </div>
           }
           {type === 'save' &&
@@ -1008,6 +1304,314 @@ class QueryOpenSave extends Component {
       </div>
     )
   }
+
+  getQueryWithSOC = (type) => {
+    const {queryData} = this.props;
+    const {soc, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType, socTemplateEnable, pattern, formValidation} = this.state;
+    let severityType = '';
+    let tempPattern = {...pattern};
+    let tempSocTemplateEnable = socTemplateEnable;
+    let patternCheckboxChecked = '';
+    let patternCheckboxDisabled = '';
+    let publicCheckboxChecked = '';
+    let disabledValue = '';
+
+
+
+    if (type === 'publicOpen') {
+      if (queryData.soc){
+        severityType = queryData.soc.severity;
+        patternCheckboxDisabled = true
+        if ( queryData.soc){
+          if (queryData.soc.id){
+            if (queryData.soc.id !== ''){
+              tempSocTemplateEnable = true;
+            }else{
+
+            }
+          }else{
+
+          }
+        }else{
+
+        }
+      }else{
+        severityType = soc.severity;
+        patternCheckboxDisabled = false
+      }
+
+    } else if (type === 'publicSave') {
+      severityType = soc.severity || this.state.pattern.severity;
+      patternCheckboxDisabled = false
+    } else{
+      patternCheckboxDisabled = true
+    }
+
+    return (
+        <div>
+          <FormControlLabel
+              label={t('events.connections.txt-addSOCScript')}
+              control={
+                <Switch
+                    id='patternCheckbox'
+                    className='checkbox-ui'
+                    checked={tempSocTemplateEnable}
+                    onChange={this.toggleSOCSwitch}
+                    color='primary'
+                    />
+              }
+              disabled={patternCheckboxDisabled}
+          />
+          {tempSocTemplateEnable &&
+            <div className='group severity-section'>
+              <div className='top-group'>
+                <div className='severity-level'>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}/>
+                  <TextField
+                      className='severity-dropdown'
+                      name='severity'
+                      select
+                      label={f('syslogPatternTableFields.severity')}
+                      variant='outlined'
+                      size='small'
+                      value={severityType}
+                      onChange={this.handleSeverityWithSOCChange}
+                      disabled={patternCheckboxDisabled}>
+                    {severityList}
+                  </TextField>
+                </div>
+                <TextField
+                    style={{width: '22%'}}
+                    id='impact'
+                    name='impact'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleSeverityWithSOCChange}
+                    required
+                    select
+                    label={f('incidentFields.impactAssessment')}
+                    value={soc.impact}
+                    disabled={true}>
+                  {
+                    _.map(_.range(1, 5), el => {
+                      return  <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                    })
+                  }
+                </TextField>
+              </div>
+              <div className='top-group' >
+                <TextField
+                    style={{width: '100%'}}
+                    id='category'
+                    name='category'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleSeverityWithSOCChange}
+                    required
+                    select
+                    label={f('incidentFields.category')}
+                    value={soc.category}
+                    disabled={patternCheckboxDisabled}>
+                  {_.map(_.range(1, 9), el => {
+                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                  })}
+                </TextField>
+              </div>
+              <div className='period'>
+                <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
+                <TextField
+                    style={{width: '40%'}}
+                    name='limitQuery'
+                    variant='outlined'
+                    size='small'
+                    required
+                    value={soc.limitQuery}
+                    onChange={this.handleSeverityWithSOCChange}
+                    disabled={true}>
+                </TextField>
+                <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
+              </div>
+              <div className='top-group'    style={{width: '100%'}}>
+                <TextField
+                    style={{width: '100%'}}
+                    name='title'
+                    variant='outlined'
+                    size='small'
+                    required
+                    label={f('incidentFields.title')}
+                    error={!formValidation.title.valid}
+                    helperText={formValidation.title.msg}
+                    value={soc.title}
+                    onChange={this.handleSeverityWithSOCChange}
+                    disabled={patternCheckboxDisabled}>
+                </TextField>
+              </div>
+              <div className='top-group'  style={{width: '100%'}}>
+                <TextField
+                    style={{width: '100%'}}
+                    name='eventDescription'
+                    variant='outlined'
+                    size='small'
+                    required
+                    label={f('incidentFields.rule')}
+                    value={soc.eventDescription}
+                    error={!formValidation.eventDescription.valid}
+                    helperText={formValidation.eventDescription.msg}
+                    onChange={this.handleSeverityWithSOCChange}
+                    disabled={patternCheckboxDisabled}>
+                </TextField>
+              </div>
+            </div>
+          }
+
+        </div>
+    )
+  }
+
+  getQueryWithSOCByLog = (type) => {
+    const {queryData} = this.props;
+    const {soc, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType, socTemplateEnable, pattern, formValidation} = this.state;
+    let severityType = '';
+    let tempPattern = {...pattern};
+    let tempSocTemplateEnable = socTemplateEnable;
+    let patternCheckboxChecked = '';
+    let patternCheckboxDisabled = '';
+    let publicCheckboxChecked = '';
+    let disabledValue = true;
+
+    if (type === 'open') {
+      disabledValue = true;
+      if (queryData.soc){
+        // severityType = queryData.soc.severity;
+        if ( queryData.soc){
+          if (queryData.soc.id){
+            if (queryData.soc.id !== ''){
+              tempSocTemplateEnable = true;
+            }else{
+
+            }
+          }else{
+
+          }
+        }else{
+
+        }
+      }
+    } else if (type === 'save') {
+      if(this.state.patternCheckbox && this.state.publicCheckbox){
+        disabledValue  = false
+      }
+    }
+
+    return (
+        <div>
+          <FormControlLabel
+              label={t('events.connections.txt-addSOCScript')}
+              control={
+                <Switch
+                    id='patternCheckbox'
+                    className='checkbox-ui'
+                    checked={tempSocTemplateEnable}
+                    onChange={this.toggleSOCSwitch}
+                    color='primary' />
+              }
+              disabled={disabledValue}
+          />
+          {tempSocTemplateEnable &&
+          <div className='group severity-section'>
+            <div className='top-group'>
+              <div className='severity-level'  style={{width: '63%'}}>
+                <TextField
+                    className='severity-dropdown'
+                    id='category'
+                    name='category'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleSeverityWithSOCChange}
+                    required
+                    select
+                    label={f('incidentFields.category')}
+                    value={soc.category}
+                    disabled={disabledValue}>
+                  {_.map(_.range(1, 9), el => {
+                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                  })}
+                </TextField>
+              </div>
+              <TextField
+                  style={{width: '30%'}}
+                  id='impact'
+                  name='impact'
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  onChange={this.handleSeverityWithSOCChange}
+                  required
+                  select
+                  label={f('incidentFields.impactAssessment')}
+                  value={soc.impact}
+                  disabled={true}>
+                {
+                  _.map(_.range(1, 5), el => {
+                    return  <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                  })
+                }
+              </TextField>
+            </div>
+            <div className='period'>
+              <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
+              <TextField
+                  style={{width: '40%'}}
+                  name='limitQuery'
+                  variant='outlined'
+                  size='small'
+                  required
+                  value={soc.limitQuery}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={true}>
+              </TextField>
+              <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
+            </div>
+            <div className='top-group'    style={{width: '100%'}}>
+              <TextField
+                  style={{width: '100%'}}
+                  name='title'
+                  variant='outlined'
+                  size='small'
+                  required
+                  label={f('incidentFields.title')}
+                  value={soc.title}
+                  error={!formValidation.title.valid}
+                  helperText={formValidation.title.msg}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={disabledValue}>
+              </TextField>
+            </div>
+            <div className='top-group'  style={{width: '100%'}}>
+              <TextField
+                  style={{width: '100%'}}
+                  name='eventDescription'
+                  variant='outlined'
+                  size='small'
+                  required
+                  label={f('incidentFields.rule')}
+                  value={soc.eventDescription}
+                  error={!formValidation.eventDescription.valid}
+                  helperText={formValidation.eventDescription.msg}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={disabledValue}>
+              </TextField>
+            </div>
+          </div>
+          }
+
+        </div>
+    )
+  }
+
   /**
    * Display query list
    * @method
@@ -1055,8 +1659,8 @@ class QueryOpenSave extends Component {
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {
-    const {locale} = this.context;
-    const {activeTab, queryData, queryDataPublic, filterData, markData} = this.props;
+    const {locale, sessionRights} = this.context;
+    const {activeTab, queryData, queryDataPublic, filterData, markData, moduleWithSOC} = this.props;
     const {queryList, activeQuery, formValidation} = this.state;
     let displayQueryList = [];
     let tempFilterData = [];
@@ -1115,12 +1719,21 @@ class QueryOpenSave extends Component {
           {activeTab === 'alert' && queryData.emailList.length > 0 &&
             <div className='email-list'>
               <label>{t('notifications.txt-notifyEmail')}</label>
-              <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>            
+              <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>
             </div>
           }
 
           {type === 'open' && activeTab === 'logs' && queryData.patternId &&
             this.getQueryAlertContent(type)
+          }
+
+
+          {activeTab === 'logs' && queryData.patternId && moduleWithSOC &&
+            this.getQueryWithSOCByLog(type)
+          }
+
+          {activeTab === 'alert' && moduleWithSOC && type === 'publicOpen' &&
+            this.getQueryWithSOC(type)
           }
 
           <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={this.deleteBtnDisabled()}>{t('txt-delete')}</Button>
@@ -1217,6 +1830,14 @@ class QueryOpenSave extends Component {
           {type === 'save' && activeTab === 'logs' &&
             this.getQueryAlertContent(type)
           }
+
+          {activeTab === 'logs' && moduleWithSOC &&
+            this.getQueryWithSOCByLog(type)
+          }
+
+          {activeTab === 'alert' && moduleWithSOC &&
+            this.getQueryWithSOC(type)
+          }
         </div>
       )
     }
@@ -1268,6 +1889,10 @@ class QueryOpenSave extends Component {
       </ModalDialog>
     )
   }
+
+
+
+
 }
 
 QueryOpenSave.contextType = BaseDataContext;
