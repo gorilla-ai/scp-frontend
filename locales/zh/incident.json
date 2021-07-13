@@ -45,6 +45,11 @@
 	"txt-close-success": "存參成功",
 	"txt-close-fail": "存參失敗",
 	"txt-close-msg": "是否存參",
+	"txt-closeV2": "存參",
+	"txt-closeV2-success": "存參成功",
+	"txt-closeV2-fail": "存參失敗",
+	"txt-closeV2-msg": "是否存參",
+
 	"txt-sign": "簽核",
 	"txt-sign-success": "簽核成功",
 	"txt-sign-fail": "簽核失敗",
@@ -209,6 +214,7 @@
 	"txt-searchDttmType": "查詢時間類型",
 	"txt-expired": "是否逾期",
 	"txt-allSearch": "全部查詢",
+	"txt-flow-msg-na": "無流程狀態可供確認",
 	"category": {
 		"0": "全部",
 		"1": "入侵攻擊類",

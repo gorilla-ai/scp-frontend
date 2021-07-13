@@ -49,6 +49,10 @@
 	"txt-close-success": "Close Success",
 	"txt-close-fail": "Close Fail",
 	"txt-close-msg": "Whether to Close Incident",
+	"txt-closeV2": "Close",
+	"txt-closeV2-success": "Close Success",
+	"txt-closeV2-fail": "Close Fail",
+	"txt-closeV2-msg": "Whether to Close Incident",
 	"txt-return": "Return",
 	"txt-return-success": "Return Success",
 	"txt-return-fail": "Return Fail",
@@ -208,6 +212,7 @@
 	"txt-searchDttmType": "Search Time Type",
 	"txt-expired": "Is Expired",
 	"txt-allSearch": "All Search",
+	"txt-flow-msg-na": "No process status to confirm",
 	"category": {
 		"0": "全部",
 		"1": "入侵攻擊類",
