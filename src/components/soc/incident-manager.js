@@ -202,7 +202,7 @@ class IncidentManagement extends Component {
                     this.setState({
                         accountRoleType: session.roles
                     }, () => {
-                        this.loadCondition('button', 'unhandled')
+                        this.loadCondition('button', 'mine')
                     });
                     getData = true
                 }
