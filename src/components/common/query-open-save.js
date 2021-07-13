@@ -1318,7 +1318,7 @@ class QueryOpenSave extends Component {
 
 
 
-    if (type === 'open') {
+    if (type === 'publicOpen') {
       if (queryData.soc){
         severityType = queryData.soc.severity;
         patternCheckboxDisabled = true
@@ -1340,9 +1340,11 @@ class QueryOpenSave extends Component {
         patternCheckboxDisabled = false
       }
 
-    } else if (type === 'save') {
+    } else if (type === 'publicSave') {
       severityType = soc.severity || this.state.pattern.severity;
       patternCheckboxDisabled = false
+    } else{
+      patternCheckboxDisabled = true
     }
 
     return (
@@ -1730,7 +1732,7 @@ class QueryOpenSave extends Component {
             this.getQueryWithSOCByLog(type)
           }
 
-          {activeTab === 'alert' && moduleWithSOC &&
+          {activeTab === 'alert' && moduleWithSOC && type === 'publicOpen' &&
             this.getQueryWithSOC(type)
           }
 
