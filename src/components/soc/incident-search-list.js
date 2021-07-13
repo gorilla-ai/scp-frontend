@@ -700,13 +700,8 @@ class IncidentSearch extends Component {
                 open={Boolean(contextAnchor)}
                 onClose={this.handleCloseMenu}>
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
-                <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
-                <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
-                {currentData.status === constants.soc.INCIDENT_STATUS_CLOSED &&
-                <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
-                }
-                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED &&
-                <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                {(currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) &&
+                    <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
             </Menu>
 
@@ -714,14 +709,6 @@ class IncidentSearch extends Component {
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
-                    {/*<button className={cx('', {'active': showChart})} onClick={this.toggleChart}*/}
-                    {/*        title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>*/}
-                    {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT &&*/}
-                    {/*<button className='' onClick={this.openIncidentTag.bind(this, null)}*/}
-                    {/*        title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>*/}
-                    {/*}*/}
-                    {/*<button className='' onClick={this.openIncidentComment.bind(this)}*/}
-                    {/*        title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>*/}
                 </div>
                 <SearchOptions
                     datetime={search.datetime}
@@ -749,14 +736,6 @@ class IncidentSearch extends Component {
                             <Button variant='outlined' color='primary' className='standard btn edit'
                                     onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
                             }
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>*/}
-                            {/*}*/}
                         </div>
                         <MuiTableContent
                             data={incident}

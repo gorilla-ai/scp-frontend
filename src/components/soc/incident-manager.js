@@ -202,7 +202,7 @@ class IncidentManagement extends Component {
                     this.setState({
                         accountRoleType: session.roles
                     }, () => {
-                        this.loadCondition('button', 'unhandled')
+                        this.loadCondition('button', 'mine')
                     });
                     getData = true
                 }
@@ -674,12 +674,9 @@ class IncidentManagement extends Component {
                 <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
             )}
 
-
             <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}}/>
-
             <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
 
-        }
             <Menu
                 anchorEl={contextAnchor}
                 keepMounted
@@ -687,9 +684,11 @@ class IncidentManagement extends Component {
                 onClose={this.handleCloseMenu}>
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
                 <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
-                <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
+                {!(currentData.flowData && currentData.flowData.finish) &&
+                    <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
+                }
                 {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) &&
-                <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                    <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
             </Menu>
 
