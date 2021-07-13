@@ -677,7 +677,7 @@ class IncidentManagement extends Component {
 
             <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}}/>
 
-            <IncidentReview ref={ref => { this.incidentReview=ref }} onLoad={this.getIncident.bind(this)} />
+            <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
 
         }
             <Menu

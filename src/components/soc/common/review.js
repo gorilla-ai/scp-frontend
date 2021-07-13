@@ -133,8 +133,15 @@ class IncidentReview extends Component {
 			    dataType: 'json'
 		    }).then(data => {
 			    helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
+
+			    if (this.props.loadTab === 'manager'){
+				    this.props.onLoad(incidentId, 'view')
+			    }else{
+				    this.props.onLoad('button', 'unhandled')
+			    }
+
 			    this.close()
-			    this.props.onLoad('button', 'unhandled')
+
 		    })
 			    .catch(err => {
 				    helper.showPopupMsg('', t('txt-error'), err.message)

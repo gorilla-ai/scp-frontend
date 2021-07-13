@@ -583,9 +583,8 @@ class Incident extends Component {
                 this.incidentFlowDialog = ref
             }}/>
 
-            <IncidentReview ref={ref => {
-                this.incidentReview = ref}} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
-            }
+            <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
+
 
             <Menu
                 anchorEl={contextAnchor}
