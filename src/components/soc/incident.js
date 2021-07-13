@@ -598,10 +598,6 @@ class Incident extends Component {
 
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
-                    {/*<button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}*/}
-                    {/*        title={t('txt-filter')}><i className='fg fg-filter'/></button>*/}
-                    {/*<button className={cx('', {'active': showChart})} onClick={this.toggleChart}*/}
-                    {/*        title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>*/}
                     {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
                     <button className='' onClick={this.openIncidentTag.bind(this, null)}
                             title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
@@ -672,7 +668,10 @@ class Incident extends Component {
             drawCheck = true
         }
 
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer) && this.state.accountRoleType.length === 1) {
+        // if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer) && this.state.accountRoleType.length === 1) {
+        //
+        // }
+        if (incident.info.flowData.currentEntity[incident.info.id].entityId === incident.info.flowData.firstEntityId){
             returnCheck = false
         }
 
@@ -730,11 +729,11 @@ class Incident extends Component {
                 {/*{drawCheck &&*/}
                 {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>*/}
                 {/*}*/}
-                {submitCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
-                }
                 {returnCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
+                }
+                {submitCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
                 }
                 {closeCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
@@ -2283,7 +2282,8 @@ class Incident extends Component {
                 accidentAbnormal: allValue.accidentAbnormal,
                 accidentAbnormalOther: allValue.accidentAbnormalOther,
                 severity: allValue.severity,
-                flowTemplateId:allValue.flowTemplateId
+                flowTemplateId:allValue.flowTemplateId,
+                flowData: allValue.flowData
             };
 
 
@@ -2303,8 +2303,8 @@ class Incident extends Component {
                 socType: null,
                 createDttm: null,
                 relatedList: [],
-                showFontendRelatedList:[],
-                differenceWithOptions:relatedListOptions,
+                showFontendRelatedList: [],
+                differenceWithOptions: relatedListOptions,
                 ttpList: null,
                 eventList: null,
                 notifyList: null,
@@ -2322,7 +2322,8 @@ class Incident extends Component {
                 accidentAbnormal: null,
                 accidentAbnormalOther: null,
                 severity: 'Emergency',
-                flowTemplateId:''
+                flowTemplateId: '',
+                flowData: {}
             };
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
