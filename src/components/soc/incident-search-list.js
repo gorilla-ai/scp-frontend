@@ -183,72 +183,12 @@ class IncidentSearch extends Component {
         }, () => {
             setTimeout(() => {
                 let getData = true;
-                // const {session} = this.context;
-                // if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor') || _.includes(session.roles, 'SOC Executor')) {
-                //     if (_.includes(session.roles, 'SOC Executor')) {
-                //         this.setState({
-                //             accountRoleType: constants.soc.SOC_Executor
-                //         }, () => {
-                //             this.loadCondition('button', 'unhandled')
-                //         })
-                //         getData = true;
-                //     } else {
-                //         if (this.state.accountDefault === true) {
-                //             this.setState({
-                //                 accountRoleType: constants.soc.SOC_Super
-                //             }, () => {
-                //                 this.loadCondition('button', 'unhandled')
-                //             })
-                //             getData = true;
-                //         } else {
-                //             if (this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT) {
-                //                 PopupDialog.alert({
-                //                     id: 'modalWindowSmall',
-                //                     title: t('txt-tips'),
-                //                     confirmText: t('txt-close'),
-                //                     display: <div className='content'><span>{it('txt-superAccount-not-set-unit')}</span>
-                //                     </div>,
-                //                     act: (confirmed) => {
-                //                         window.location.href = '/SCP?lng=' + locale;
-                //                     }
-                //                 });
-                //
-                //             } else {
-                //                 this.setState({
-                //                     accountRoleType: constants.soc.SOC_Super
-                //                 }, () => {
-                //                     this.loadCondition('button', 'unhandled')
-                //                 })
-                //                 getData = true;
-                //             }
-                //         }
-                //     }
-                // } else if (_.includes(session.roles, 'SOC Executor')) {
-                //     this.setState({
-                //         accountRoleType: constants.soc.SOC_Executor
-                //     }, () => {
-                //         this.loadCondition('button', 'unhandled')
-                //     })
-                //     getData = true;
-                // } else if (_.includes(session.roles, 'SOC Analyzer')) {
-                //     this.setState({
-                //         accountRoleType: constants.soc.SOC_Analyzer
-                //     }, () => {
-                //         this.loadCondition('button', 'unhandled')
-                //     })
-                //     getData = true;
-                // } else {
-                //
-                // }
-
                 this.loadData()
-
                 if (getData) {
                     this.getOptions();
-                    // this.loadDashboard();
                 }
 
-            }, 2000);
+            }, 500);
         });
     }
 
@@ -359,10 +299,6 @@ class IncidentSearch extends Component {
                                         }
                                     } else if (val === 'category') {
                                         return <span>{it(`category.${value}`)}</span>
-                                    } else if (val === 'status') {
-                                        // TODO check flowEngine
-
-                                        return <span>{it(`status.${value}`)}</span>
                                     } else if (val === 'createDttm') {
                                         return <span>{helper.getFormattedDate(value, 'local')}</span>
                                     } else if (val === 'tag') {
@@ -507,7 +443,6 @@ class IncidentSearch extends Component {
                     });
 
                     this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
-                        // this.loadDashboard()
                     })
                 }
                 return null
@@ -516,65 +451,6 @@ class IncidentSearch extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
     };
-
-    loadDashboard = () => {
-        const {baseUrl, session} = this.context
-
-        let roleType = 'analyzer';
-
-        const payload = {
-            keyword: '',
-            category: 0,
-            status: 0,
-            startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            isExpired: 2,
-            isExecutor: _.includes(session.roles, 'SOC Executor'),
-            accountRoleType: this.state.accountRoleType,
-            account: session.accountId
-        }
-
-        switch (this.state.accountRoleType) {
-            case 1:
-                roleType = 'analyzer'
-                break
-            case 2:
-                roleType = 'executor'
-                break
-            case 3:
-                roleType = 'supervisor'
-                break
-            case 4:
-                roleType = 'ciso'
-                break
-        }
-
-        ah.all([
-            {
-                url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
-                data: JSON.stringify(payload),
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json'
-            },
-            {
-                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?creator=${session.accountId}`
-            }
-        ])
-            .then(data => {
-                let dashboard = {
-                    all: data[0].rt.counts,
-                    expired: data[1].rt.rows[0].expireCount,
-                    unhandled: data[1].rt.rows[0].dealCount,
-                    mine: data[1].rt.rows[0].myCount,
-                }
-
-                this.setState({dashboard})
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    }
 
     loadCondition = (from, type) => {
         const {session} = this.context
@@ -721,7 +597,6 @@ class IncidentSearch extends Component {
                 <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
 
                 <div className='parent-content'>
-                    {/*{this.renderStatistics()}*/}
                     {this.renderFilter()}
 
                     {activeContent === 'tableList' &&
@@ -758,97 +633,7 @@ class IncidentSearch extends Component {
      * @returns HTML DOM
      */
     displayEditContent = () => {
-        const {session} = this.context
-        const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
-
-        let editCheck = false
-        let drawCheck = false
-        let submitCheck = false
-        let auditCheck = false
-        let returnCheck = false
-        let publishCheck = false
-        let transferCheck = false
-        // new
-        let signCheck = false
-        let closeCheck = false
-
-
-        if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
-            // 待送審
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-
-            } else if (this.state.accountRoleType === constants.soc.SOC_Super) {
-
-            } else {
-                editCheck = true
-                submitCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
-            // 待審核
-            if (session.accountId === incident.info.creator) {
-                drawCheck = true
-            }
-
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                editCheck = true
-                returnCheck = true
-                auditCheck = true
-                closeCheck = true
-            } else if (this.state.accountRoleType === constants.soc.SOC_Super) {
-
-            } else {
-                // editCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
-            // 結案(未發布)
-            if (session.accountId === incident.info.creator) {
-            }
-
-            if (this.state.accountRoleType === constants.soc.SOC_Super) {
-                publishCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                editCheck = true
-            } else if (this.state.accountRoleType === constants.soc.SOC_Super) {
-                returnCheck = true
-                editCheck = true
-                auditCheck = true
-            } else {
-                // editCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
-
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_ANALYZED) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                editCheck = true
-                transferCheck = true
-            } else if (this.state.accountRoleType === constants.soc.SOC_Super) {
-                editCheck = true
-                transferCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                editCheck = true
-            } else if (this.state.accountRoleType === constants.soc.SOC_Super) {
-                editCheck = true
-                returnCheck = true
-                signCheck = true
-            } else {
-                if (session.accountId === incident.info.creator) {
-                    drawCheck = true
-                }
-                // editCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                transferCheck = true
-            } else if (this.state.accountRoleType === constants.soc.SOC_Super) {
-
-            } else {
-
-            }
-        }
+        const {activeContent, incidentType, incident, displayPage} = this.state;
 
         let tmpTagList = []
 
@@ -1123,7 +908,6 @@ class IncidentSearch extends Component {
                     size='small'
                     options={incident.info.differenceWithOptions}
                     getOptionLabel={(option) => option.text}
-                    // onChange={this.handleDataChange.bind(this, 'relatedList')}
                     value={incident.info.showFontendRelatedList}
                     onChange={this.onTagsChange}
                     disabled={activeContent === 'viewIncident'}
@@ -2274,45 +2058,6 @@ class IncidentSearch extends Component {
         })
     };
 
-
-    openReviewModal = (allValue, reviewType) => {
-        PopupDialog.prompt({
-            title: it(`txt-${reviewType}`),
-            confirmText: t('txt-confirm'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it(`txt-${reviewType}-msg`)}: {allValue.id}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    this.openIncidentReview(allValue.id, reviewType)
-                }
-            }
-        })
-    }
-
-    /**
-     * Show Send Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openSendMenu = (id) => {
-        PopupDialog.prompt({
-            title: it('txt-send'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-send'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-send-msg')}: {id} ?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    this.sendIncident(id)
-                }
-            }
-        })
-    };
-
     /**
      * Handle delete Incident confirm
      * @method
@@ -2326,7 +2071,6 @@ class IncidentSearch extends Component {
         })
             .then(data => {
                 if (data.ret === 0) {
-                    // this.loadData()
                     if (this.state.loadListType === 0) {
                         this.loadCondition('other', 'expired')
                     } else if (this.state.loadListType === 1) {
@@ -2355,17 +2099,6 @@ class IncidentSearch extends Component {
         let temp = {...this.state.incident};
         temp[type] = Number(value);
         this.setState({incident: temp}, () => {
-            // this.loadData()
-            // if (this.state.loadListType === 0) {
-            //     this.loadCondition(type, 'expired')
-            // } else if (this.state.loadListType === 1) {
-            //     this.loadCondition(type, 'unhandled')
-            // } else if (this.state.loadListType === 2) {
-            //     this.loadCondition(type, 'mine')
-            // } else if (this.state.loadListType === 3) {
-            //     this.loadData(type)
-            // }
-
             this.loadData(type)
         })
     };
