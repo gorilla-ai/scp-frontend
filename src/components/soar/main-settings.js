@@ -172,21 +172,30 @@ class MainSettings extends Component {
    * @method
    * @param {string} type - data type ('soarAdapter' or 'soarAction')
    * @param {string} subType - data sub type
+   * @param {string | object} options - option for 'number' or event
    * @param {object} event - event object
    */
-  handleDataChange = (type, subType, event) => {
+  handleDataChange = (type, subType, options, event) => {
     const {soarAdapter, soarAction} = this.state;
     let tempSoarAdapter = {...soarAdapter};
     let tempSoarAction = {...soarAction};
 
     if (type === 'soarAdapter') {
-      tempSoarAdapter[subType][event.target.name] = event.target.value;
-
+      if (typeof options === 'string') {
+        tempSoarAdapter[subType][event.target.name] = Number(event.target.value);
+      } else {
+        tempSoarAdapter[subType][options.target.name] = options.target.value;
+      }
+      
       this.setState({
         soarAdapter: tempSoarAdapter
       });
     } else if (type === 'soarAction') {
-      tempSoarAction[subType][event.target.name] = event.target.value;
+      if (typeof options === 'string') {
+        tempSoarAction[subType][event.target.name] = Number(event.target.value);
+      } else {
+        tempSoarAction[subType][options.target.name] = options.target.value;
+      }
 
       this.setState({
         soarAction: tempSoarAction
@@ -536,7 +545,7 @@ class MainSettings extends Component {
                       fullWidth
                       size='small'
                       value={soarAdapter.scp.esPort}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
@@ -590,7 +599,7 @@ class MainSettings extends Component {
                       fullWidth
                       size='small'
                       value={soarAdapter.scp.start_time_gap}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
@@ -603,7 +612,7 @@ class MainSettings extends Component {
                       fullWidth
                       size='small'
                       value={soarAdapter.scp.end_time_gap}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
 
@@ -630,7 +639,7 @@ class MainSettings extends Component {
                       fullWidth
                       size='small'
                       value={soarAdapter.socket.port}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'socket')}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'socket', 'number')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
                 </div>
