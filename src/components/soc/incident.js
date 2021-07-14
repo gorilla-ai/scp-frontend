@@ -675,7 +675,7 @@ class Incident extends Component {
             returnCheck = false
         }
 
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_NORMAL_Ciso ) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) {
+        if ((_.includes(this.state.accountRoleType,constants.soc.SOC_NORMAL_Ciso ) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) && this.state.accountRoleType.length === 1) {
             editCheck = false
         }
 
@@ -874,6 +874,7 @@ class Incident extends Component {
                     fullWidth={true}
                     variant='outlined'
                     size='small'
+                    required
                     onChange={this.handleDataChangeMui}
                     value={incident.info.flowTemplateId}
                     disabled={activeContent === 'viewIncident' || activeContent === 'editIncident'}>

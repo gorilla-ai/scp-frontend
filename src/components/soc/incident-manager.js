@@ -7,7 +7,6 @@ import moment from 'moment'
 import FileInput from 'react-ui/build/src/components/file-input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TableContent from '../common/table-content'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -1615,11 +1614,11 @@ class IncidentManagement extends Component {
 
                 _.forEach(el.eventConnectionList, eventConnectItem=>{
                    if( eventConnectItem.srcPort === ''){
-                       eventConnectItem.srcPort = 0
+                       eventConnectItem.srcPort = null
                    }
 
                    if(  eventConnectItem.dstPort === ''){
-                       eventConnectItem.dstPort = 0
+                       eventConnectItem.dstPort = null
                    }
                 })
                 return {
@@ -2553,10 +2552,10 @@ class IncidentManagement extends Component {
             // make incident.info
             let eventNetworkList = [];
             let eventNetworkItem = {
-                srcIp: alertData.ipSrc || alertData.srcIp,
-                srcPort: parseInt(alertData.portSrc) || parseInt(alertData.srcPort),
-                dstIp: alertData.ipDst || alertData.dstIp,
-                dstPort: parseInt(alertData.destPort),
+                srcIp: alertData.ipSrc || alertData.srcIp || alertData.ipsrc,
+                srcPort: (parseInt(alertData.portSrc) || parseInt(alertData.srcPort) ? parseInt(alertData.portSrc) || parseInt(alertData.srcPort) : null),
+                dstIp: alertData.ipDst || alertData.dstIp || alertData.destIp || alertData.ipdst,
+                dstPort: parseInt(alertData.destPort) ? parseInt(alertData.destPort) : null,
                 srcHostname: '',
                 dstHostname: ''
             };

@@ -132,7 +132,7 @@ class QueryOpenSave extends Component {
       activeQuery: queryList[0]
     },()=>{
 
-      if (this.props.type === 'open'){
+      if (this.props.type === 'open' ||this.props.type === 'publicOpen'){
 
         if (queryList.length > 0){
           this.getQuerySOCValue();
@@ -226,7 +226,7 @@ class QueryOpenSave extends Component {
 
   handleQueryAction = () => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, type, filterData, queryData, queryDataPublic, markData, socTemplateEnable, soc} = this.props;
+    const {activeTab, type, filterData, queryData, queryDataPublic, markData} = this.props;
 
     if (type === 'open' || type === 'publicOpen') {
       if (type === 'open') {
@@ -268,7 +268,7 @@ class QueryOpenSave extends Component {
     } else if (type === 'save' || type === 'publicSave') {
       const {baseUrl} = this.context;
       const {account, queryData, queryDataPublic, notifyEmailData} = this.props;
-      const {newQueryName, formValidation} = this.state;
+      const {newQueryName, formValidation, soc} = this.state;
       let tempFormValidation = {...formValidation};
       let tempFilterData = [];
       let url = '';
@@ -311,6 +311,7 @@ class QueryOpenSave extends Component {
         }
 
         if (this.state.socTemplateEnable){
+          console.log("soc === " , soc)
           if (soc.title) {
             const specialCharTest = /[\[\]<>?]+/; //[]<> are not allowed
 

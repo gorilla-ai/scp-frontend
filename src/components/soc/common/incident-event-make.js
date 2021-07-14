@@ -30,19 +30,14 @@ let et = null;
 let it = null;
 let at = null;
 
-const INCIDENT_STATUS_ALL = 0
-const INCIDENT_STATUS_UNREVIEWED = 1
-const INCIDENT_STATUS_REVIEWED = 2
-const INCIDENT_STATUS_CLOSED = 3
-const INCIDENT_STATUS_SUBMITTED = 4
-const INCIDENT_STATUS_DELETED = 5
-const INCIDENT_STATUS_ANALYZED = 6
-const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
-const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
-
-const SOC_Analyzer = 1
-const SOC_Executor = 2
-const SOC_Super = 3
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+	Emergency: '#CC2943',
+	Alert: '#CC7B29',
+	Critical: '#29B0CC',
+	Warning: '#29CC7A',
+	Notice: '#7ACC29'
+};
 
 class IncidentEventMake extends Component {
 	constructor(props) {
@@ -80,7 +75,8 @@ class IncidentEventMake extends Component {
 			showChart: true,
 			currentIncident: {},
 			originalIncident: {},
-
+			severityList: [],
+			socFlowList: [],
 			relatedListOptions: [],
 			deviceListOptions: [],
 			incident: {
@@ -101,8 +97,6 @@ class IncidentEventMake extends Component {
 					socType: 1
 				}
 			},
-			accountRoleType: SOC_Analyzer,
-			loadListType: SOC_Analyzer,
 			attach: null,
 			contextAnchor: null,
 			currentData: {},
@@ -113,7 +107,41 @@ class IncidentEventMake extends Component {
 	}
 
 	componentDidMount() {
-		this.getOptions()
+		const {baseUrl} = this.context;
+		const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+			return <MenuItem key={i} value={val}>{val}</MenuItem>
+		});
+		let flowSourceList = []
+		ah.one({
+			url: `${baseUrl}/api/soc/flow/_search`,
+			data: JSON.stringify({}),
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json'
+		}).then(data => {
+			if (data) {
+
+				let list = _.map(data.rt.rows, val => {
+					flowSourceList.push(val);
+					return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
+				});
+
+				this.setState({
+					socFlowSourceList:flowSourceList,
+					socFlowList:list
+				});
+			}
+		}).catch(err => {
+			helper.showPopupMsg('', t('txt-error'), err.message)
+		});
+
+
+
+		this.setState({
+			severityList,
+		}, () => {
+			this.getOptions()
+		});
 	}
 
 	getOptions = () => {
@@ -232,83 +260,12 @@ class IncidentEventMake extends Component {
 		</div>
 	}
 
-	showAddSteps = (val, i) => {
-		const {locale} = this.context;
-		const {activeSteps} = this.state;
-		const index = ++i;
-		const groupClass = 'group group' + index;
-		const lineClass = 'line line' + index;
-		const stepClass = 'step step' + index;
-		const textClass = 'text';
-
-		let textAttr = {
-			className: textClass
-		};
-
-		if (index === 1) {
-			let pos = '';
-
-			if (locale === 'en') {
-				pos = '-11px';
-			} else if (locale === 'zh') {
-				pos = '0';
-			}
-			textAttr.style = {left: pos};
-		}
-
-		if (index === 2) {
-			let pos = '';
-
-			if (locale === 'en') {
-				pos = '-1px';
-			} else if (locale === 'zh') {
-				pos = '-22px';
-			}
-			textAttr.style = {left: pos};
-		}
-
-		if (index === 3) {
-			let pos = '';
-
-			if (locale === 'en') {
-				pos = '-1px';
-			} else if (locale === 'zh') {
-				pos = '-6px';
-			}
-			textAttr.style = {left: pos};
-		}
-
-		if (index === 4) {
-			let pos = '';
-
-			if (locale === 'en') {
-				pos = '5px';
-			} else if (locale === 'zh') {
-				pos = '-1px';
-			}
-			textAttr.style = {left: pos};
-		}
-
-		return (
-			<div className={groupClass} key={index}>
-				<div className={cx(lineClass, {active: activeSteps >= index})}></div>
-				<div className={cx(stepClass, {active: activeSteps >= index})}>
-					<div className='wrapper'><span className='number'>{index}</span></div>
-					<div {...textAttr}>{val}</div>
-				</div>
-			</div>
-		)
-	}
 
 	displayEditContent = () => {
 		const {session} = this.context
 		const {activeSteps} = this.state;
-
-		const stepText = [t('edge-management.txt-basicInfo'), it('txt-incident-events')];
 		return <div className='main-content basic-form'>
-			{/*<div className='steps-indicator'>*/}
-			{/*	{stepText.map(this.showAddSteps)}*/}
-			{/*</div>*/}
+
 			<div className='auto-settings' style={{width: '100vh'}}>
 				{
 					activeSteps === 1 && this.displayMainPage()
@@ -330,7 +287,7 @@ class IncidentEventMake extends Component {
 	};
 
 	displayMainPage = () => {
-		const {incidentType} = this.state;
+		const {incidentType, severityList, socFlowList} = this.state;
 		const {traceAlertData, remoteIncident} = this.props;
 		const {locale} = this.context;
 		let dateLocale = locale;
@@ -400,6 +357,24 @@ class IncidentEventMake extends Component {
 					value={remoteIncident.info.reporter}
 				/>
 			</div>
+
+			<div className='group'>
+				<label htmlFor='reporter'>{f('incidentFields.flowId')}</label>
+				<TextField
+					id='flowTemplateId'
+					name='flowTemplateId'
+					select
+					required
+					fullWidth={true}
+					variant='outlined'
+					size='small'
+					onChange={this.handleDataChangeMui}
+					value={remoteIncident.info.flowTemplateId}
+				>
+					{socFlowList}
+				</TextField>
+			</div>
+
 			<div className='group' style={{width: '25vh'}}>
 				<label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
 				<TextField
@@ -414,12 +389,30 @@ class IncidentEventMake extends Component {
 					helperText={it('txt-required')}
 					value={remoteIncident.info.impactAssessment}
 					error={!(remoteIncident.info.impactAssessment || '')}
+					disabled={true}
 					>
 					{
 						_.map(_.range(1, 5), el => {
 							return <MenuItem id={`day.${el}`} value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
 						})
 					}
+				</TextField>
+			</div>
+
+			<div className='group severity-level' style={{width: '25vh', paddingTop: '27px'}}>
+				<i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[remoteIncident.info.severity]}}/>
+				<TextField
+					id='severityLevel'
+					name='severity'
+					select
+					fullWidth={true}
+					label={f('syslogPatternTableFields.severity')}
+					variant='outlined'
+					size='small'
+					onChange={this.handleDataChangeMui}
+					value={remoteIncident.info.severity}
+					disabled={true}>
+					{severityList}
 				</TextField>
 			</div>
 

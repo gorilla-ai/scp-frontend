@@ -1021,77 +1021,138 @@ class ThreatsController extends Component {
     const {baseUrl} = this.context;
     this.handleCloseIncidentMenu();
 
-    const {
-      originalThreatsList,
-      cancelThreatsList,
-    } = this.state;
-    let selectRows = []
 
-    if (makeType === 'select') {
-      selectRows = cancelThreatsList
-    } else if (makeType === 'all') {
-      selectRows = originalThreatsList
-    }
+    ah.one({
+      url: `${baseUrl}/api/soc/flow/_search`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    }).then(data => {
+      if (data) {
+        let flowSourceList = []
 
-    let tempIncident ={}
-    tempIncident.info = {
-      title: selectRows[0].Info,
-      reporter: selectRows[0].Collector,
-      rawData:selectRows,
-      selectRowsType:makeType === 'select'? 'select': 'all'
-    };
-    if (!tempIncident.info.socType) {
-      tempIncident.info.socType = 1
-    }
+        _.forEach(data.rt.rows, val => {
+          flowSourceList.push(val);
+        });
 
-    //make incident.info
-    let eventList = [];
-    _.forEach(selectRows , eventItem => {
-      let eventNetworkList = [];
-      let eventNetworkItem = {
-        srcIp: eventItem.ipSrc || eventItem.srcIp,
-        srcPort: parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort),
-        dstIp: eventItem.ipDst || eventItem.destIp || eventItem.dstIp || eventItem.ipDest,
-        dstPort: parseInt(eventItem.destPort) || parseInt(eventItem.portDest),
-        srcHostname: '',
-        dstHostname: ''
-      };
-      eventNetworkList.push(eventNetworkItem);
-      //
+        this.setState({
+          socFlowSourceList:flowSourceList,
+        });
 
-      let eventListItem = {
-        description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
-        deviceId: '',
-        frequency: 1,
-        time: {
-          from: helper.getFormattedDate(eventItem._eventDttm_, 'local'),
-          to: helper.getFormattedDate(eventItem._eventDttm_, 'local')
-        },
-        eventConnectionList: eventNetworkList
-      };
-      if (eventItem._edgeInfo) {
-        let searchRequestData = {
-          deviceId: eventItem._edgeInfo.agentId
+        const {
+          originalThreatsList,
+          cancelThreatsList,
+        } = this.state;
+        let selectRows = []
+
+        if (makeType === 'select') {
+          selectRows = cancelThreatsList
+        } else if (makeType === 'all') {
+          selectRows = originalThreatsList
+        }
+
+        let tempIncident = {}
+        tempIncident.info = {
+          severity: selectRows[0]._severity_,
+          title: selectRows[0].Info,
+          reporter: selectRows[0].Source ? selectRows[0].Source : selectRows[0].Collector || selectRows[0].collector,
+          rawData: selectRows,
+          selectRowsType: makeType === 'select' ? 'select' : 'all'
         };
-
-        ah.one({
-          url: `${baseUrl}/api/soc/device/redirect/_search`,
-          data: JSON.stringify(searchRequestData),
-          type: 'POST',
-          contentType: 'application/json',
-          dataType: 'json'
-        }).then(data => {
-          eventListItem.deviceId = data.rt.device.id;
+        if (!tempIncident.info.socType) {
+          tempIncident.info.socType = 1
+        }
+        _.forEach(flowSourceList,val=>{
+          if (val.severity === tempIncident.info.severity){
+            tempIncident.info.flowTemplateId = val.id
+            if (val.severity === 'Emergency'){
+              tempIncident.info['impactAssessment'] = 4
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Alert'){
+              tempIncident.info['impactAssessment'] = 3
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Notice'){
+              tempIncident.info['impactAssessment'] = 1
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Warning'){
+              tempIncident.info['impactAssessment'] = 2
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Critical'){
+              tempIncident.info['impactAssessment'] = 3
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }
+          }
         })
+        //make incident.info
+        let eventList = [];
+        _.forEach(selectRows , eventItem => {
+          let eventNetworkList = [];
+          let eventNetworkItem = {
+            srcIp: eventItem.ipSrc || eventItem.srcIp || eventItem.ipsrc,
+            srcPort: (parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort) ? parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort) : null),
+            dstIp: eventItem.ipDst || eventItem.dstIp || eventItem.destIp || eventItem.ipdst,
+            dstPort: parseInt(eventItem.destPort) ? parseInt(eventItem.destPort) : null,
+            srcHostname: '',
+            dstHostname: ''
+          };
+          eventNetworkList.push(eventNetworkItem);
+          //
+
+          let eventListItem = {
+            description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
+            deviceId: '',
+            frequency: 1,
+            time: {
+              from: helper.getFormattedDate(eventItem._eventDttm_, 'local'),
+              to: helper.getFormattedDate(eventItem._eventDttm_, 'local')
+            },
+            eventConnectionList: eventNetworkList
+          };
+          if (eventItem._edgeInfo) {
+            let searchRequestData = {
+              deviceId: eventItem._edgeId ? eventItem._edgeId: eventItem._edgeInfo.agentId
+            };
+
+            ah.one({
+              url: `${baseUrl}/api/soc/device/redirect/_search`,
+              data: JSON.stringify(searchRequestData),
+              type: 'POST',
+              contentType: 'application/json',
+              dataType: 'json'
+            }).then(data => {
+              eventListItem.deviceId = data.rt.device.id;
+            })
+          }
+          if (eventItem.LoghostIp) {
+            let searchRequestData = {
+              deviceId: eventItem.LoghostIp
+            };
+
+            ah.one({
+              url: `${baseUrl}/api/soc/device/redirect/_search`,
+              data: JSON.stringify(searchRequestData),
+              type: 'POST',
+              contentType: 'application/json',
+              dataType: 'json'
+            }).then(data => {
+              eventListItem.deviceId = data.rt.device.id;
+            })
+          }
+
+          eventList.push(eventListItem);
+        })
+        tempIncident.info.eventList = eventList;
+
+        this.setState({
+          makeIncidentOpen: true,
+          incident:tempIncident
+        });
+
+
       }
-
-      eventList.push(eventListItem);
-    })
-    tempIncident.info.eventList = eventList;
-
-    this.setState({
-      makeIncidentOpen: true,
-      incident:tempIncident
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
     });
   }
   closeAddIncidentDialog = () => {
@@ -1385,8 +1446,58 @@ class ThreatsController extends Component {
     })
   }
   handleDataChangeMui = (event) => {
+    const {socFlowSourceList} = this.state;
     let temp = {...this.state.incident};
     temp.info[event.target.name] = event.target.value;
+
+    if (event.target.name === 'severity'){
+      if (event.target.value === 'Emergency'){
+        temp.info['impactAssessment'] = 4
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Alert'){
+        temp.info['impactAssessment'] = 3
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Notice'){
+        temp.info['impactAssessment'] = 1
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Warning'){
+        temp.info['impactAssessment'] = 2
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Critical'){
+        temp.info['impactAssessment'] = 3
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }
+    }
+
+    if (event.target.name === 'flowTemplateId'){
+      _.forEach(socFlowSourceList , flowVal =>{
+        if (flowVal.id === event.target.value){
+          if (flowVal.severity === 'Emergency'){
+            temp.info['severity'] = 'Emergency'
+            temp.info['impactAssessment'] = 4
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Alert'){
+            temp.info['severity'] = 'Alert'
+            temp.info['impactAssessment'] = 3
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Notice'){
+            temp.info['severity'] = 'Notice'
+            temp.info['impactAssessment'] = 1
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Warning'){
+            temp.info['severity'] = 'Warning'
+            temp.info['impactAssessment'] = 2
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Critical'){
+            temp.info['severity'] = 'Critical'
+            temp.info['impactAssessment'] = 3
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }
+        }
+      })
+    }
+
+
     if (event.target.name === 'impactAssessment') {
       temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours')
     }
@@ -2314,7 +2425,7 @@ class ThreatsController extends Component {
     tempThreatsData.totalCount = 0;
     tempThreatsData.currentPage = 1;
     tempThreatsData.oldPage = 1;
-    tempThreatsData.pageSize = 20;
+    // tempThreatsData.pageSize = 20;
 
     _.forEach(tempAlertChartsList, (val, i) => {
       tempAlertChartsList[i].chartData = null;
