@@ -268,7 +268,7 @@ class QueryOpenSave extends Component {
     } else if (type === 'save' || type === 'publicSave') {
       const {baseUrl} = this.context;
       const {account, queryData, queryDataPublic, notifyEmailData} = this.props;
-      const {newQueryName, formValidation, soc} = this.state;
+      const {newQueryName, formValidation} = this.state;
       let tempFormValidation = {...formValidation};
       let tempFilterData = [];
       let url = '';
@@ -291,6 +291,7 @@ class QueryOpenSave extends Component {
         this.props.closeDialog();
         return;
       }
+
 
       if (newQueryName) { //Form validation
         if (queryData.inputName || queryDataPublic.inputName) {
@@ -1507,18 +1508,23 @@ class QueryOpenSave extends Component {
 
     return (
         <div>
-          <FormControlLabel
+          {/*<FormControlLabel*/}
+          {/*    label={t('events.connections.txt-addSOCScript')}*/}
+          {/*    control={*/}
+
+          {/*    }*/}
+          {/*    disabled={disabledValue}*/}
+          {/*/>*/}
+          <Switch
+              id='patternCheckbox'
+              className='checkbox-ui'
               label={t('events.connections.txt-addSOCScript')}
-              control={
-                <Switch
-                    id='patternCheckbox'
-                    className='checkbox-ui'
-                    checked={tempSocTemplateEnable}
-                    onChange={this.toggleSOCSwitch}
-                    color='primary' />
-              }
+              checked={tempSocTemplateEnable}
+              onChange={this.toggleSOCSwitch}
+              color='primary'
               disabled={disabledValue}
           />
+
           {tempSocTemplateEnable &&
           <div className='group severity-section'>
             <div className='top-group'>
@@ -1709,7 +1715,7 @@ class QueryOpenSave extends Component {
               queryDataList.map(this.displayFilterQuery)
             }
           </div>
-          
+
           <div className='filter-group' style={this.getQueryColor(queryDataMark)}>
             {queryDataMark && queryDataMark.length > 0 &&
               queryDataMark.map(this.displayMarkSearch)
