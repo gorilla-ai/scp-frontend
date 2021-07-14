@@ -1361,8 +1361,6 @@ class QueryOpenSave extends Component {
               label={t('events.connections.txt-addSOCScript')}
               control={
                 <Switch
-                    id='patternCheckbox'
-                    className='checkbox-ui'
                     checked={tempSocTemplateEnable}
                     onChange={this.toggleSOCSwitch}
                     color='primary'
@@ -1515,20 +1513,16 @@ class QueryOpenSave extends Component {
 
     return (
         <div>
-          {/*<FormControlLabel*/}
-          {/*    label={t('events.connections.txt-addSOCScript')}*/}
-          {/*    control={*/}
-
-          {/*    }*/}
-          {/*    disabled={disabledValue}*/}
-          {/*/>*/}
-          <Switch
-              id='patternCheckbox'
-              className='checkbox-ui'
+          <FormControlLabel
               label={t('events.connections.txt-addSOCScript')}
-              checked={tempSocTemplateEnable}
-              onChange={this.toggleSOCSwitch}
-              color='primary'
+              control={
+                <Switch
+                    checked={tempSocTemplateEnable}
+                    onChange={this.toggleSOCSwitch}
+                    color='primary'
+
+                />
+              }
               disabled={disabledValue}
           />
 
