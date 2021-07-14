@@ -135,7 +135,7 @@ class QueryOpenSave extends Component {
       if (this.props.type === 'open' ||this.props.type === 'publicOpen'){
 
         if (queryList.length > 0){
-          this.getQuerySOCValue();
+          this.getQuerySOCValue(queryList);
         }
       }
     });
@@ -158,11 +158,17 @@ class QueryOpenSave extends Component {
     });
   }
 
-  getQuerySOCValue = () => {
-    const {queryData} = this.props;
+  getQuerySOCValue = (queryList) => {
+    const {queryData, queryDataPublic, type} = this.props;
     const {activeQuery} = this.state;
     const {baseUrl} = this.context;
-    let tempQueryData = {...queryData}
+    let tempQueryData = {}
+
+    if (type === 'open' || type === 'save') {
+      tempQueryData = {...queryData};
+    } else if (type === 'publicOpen' || type === 'publicSave' ) {
+      tempQueryData = {...queryDataPublic};
+    }
 
     let url = `${baseUrl}/api/soc/template?id=${activeQuery.value}`;
     this.ah.one({
@@ -180,6 +186,7 @@ class QueryOpenSave extends Component {
               severity:data.severity,
               limitQuery:data.limitQuery
             }
+
             this.props.setQueryData(tempQueryData);
             this.setState({
               socTemplateEnable:true,
