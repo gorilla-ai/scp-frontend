@@ -2972,6 +2972,7 @@ class ThreatsController extends Component {
           openQueryOpen: true
         });
       } else if (type === 'publicOpen') {
+
         const {queryDataPublic} = this.state;
         let tempQueryDataPublic = {...queryDataPublic};
 
@@ -3043,11 +3044,7 @@ class ThreatsController extends Component {
   queryDialog = () => {
     const {activeTab, account, filterData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
     const {sessionRights} = this.context;
-    let moduleWithSOC = false
-
-    if (sessionRights.Module_Soc) {
-      moduleWithSOC = true
-    }
+    let moduleWithSOC = !!sessionRights.Module_Soc
 
     return (
         <QueryOpenSave
@@ -3109,6 +3106,16 @@ class ThreatsController extends Component {
     tempQueryData.openFlag = false;
 
     tempQueryData.soc = {
+      id: '',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription: '',
+      impact: 4,
+      category: 1,
+    }
+
+    tempQueryDataPublic.soc = {
       id: '',
       severity: 'Emergency',
       limitQuery: 10,

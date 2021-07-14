@@ -34,6 +34,7 @@ class IncidentFlowDialog extends Component {
 	open(id) {
 		const {baseUrl, session} = this.context
 		let tempList = [];
+		let checkList = [];
 		let activeSteps = 1;
 		ah.one({
 			url: `${baseUrl}/api/soc/flowEngine/instance?id=${id}`,
@@ -42,9 +43,14 @@ class IncidentFlowDialog extends Component {
 			dataType: 'json'
 		}).then(result => {
 			Object.keys(result.rt.entities).forEach(key => {
-				tempList.push(result.rt.entities[key].entityName)
+				let tmpData = {
+					step: result.rt.entities[key].entityName,
+					updateTime: result.rt.entities[key].updateTime ? result.rt.entities[key].updateTime : ''
+				}
+				checkList.push(result.rt.entities[key].entityName)
+				tempList.push(tmpData)
 			})
-			activeSteps = tempList.indexOf(result.rt.currentEntity[id].entityName) + 1
+			activeSteps = checkList.indexOf(result.rt.currentEntity[id].entityName) + 1
 			this.setState({open: true, activeSteps: activeSteps, stepTitleList: tempList})
 		}).catch(err => {
 			helper.showPopupMsg('', t('txt-error'), it('txt-flow-msg-na'))
@@ -66,14 +72,18 @@ class IncidentFlowDialog extends Component {
 		let textAttr = {
 			className: textClass
 		};
+		let timeAttr = {
+			className: textClass
+		};
+		timeAttr.style = {left: '-44px',top:'90px'};
 
 		if (index === 1) {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '0px';
+				pos = '-14px';
 			} else if (locale === 'zh') {
-				pos = '0';
+				pos = '-14px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -82,9 +92,9 @@ class IncidentFlowDialog extends Component {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '0px';
+				pos = '-12px';
 			} else if (locale === 'zh') {
-				pos = '0px';
+				pos = '-12px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -93,9 +103,9 @@ class IncidentFlowDialog extends Component {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '-27px';
+				pos = '-28px';
 			} else if (locale === 'zh') {
-				pos = '-27px';
+				pos = '-28px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -104,9 +114,9 @@ class IncidentFlowDialog extends Component {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '-27px';
+				pos = '-38px';
 			} else if (locale === 'zh') {
-				pos = '-27px';
+				pos = '-38px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -138,14 +148,15 @@ class IncidentFlowDialog extends Component {
 				<div className={cx(lineClass, {active: activeSteps >= index})}></div>
 				<div className={cx(stepClass, {active: activeSteps >= index})}>
 					<div className='wrapper'><span className='number'>{index}</span></div>
-					<div {...textAttr}>{val}</div>
+					<div {...textAttr}>{val.step}</div>
+					<div {...timeAttr}>{helper.getFormattedDate(val.updateTime,'local')}</div>
 				</div>
 			</div>
 		)
 	}
 
 	render() {
-    	const {open, stepTitleList, id} = this.state
+    	const {open, stepTitleList} = this.state
     	const actions ={
     		cancel: {text: t('txt-close'), className:'standard', handler: this.close.bind(this)},
         }

@@ -128,7 +128,7 @@ class IncidentManagement extends Component {
                 }
             },
             accountRoleType:[],
-            loadListType:1,
+            loadListType:2,
             attach: null,
             contextAnchor: null,
             currentData: {},
@@ -518,21 +518,6 @@ class IncidentManagement extends Component {
             account: session.accountId
         }
 
-        switch (this.state.accountRoleType){
-            case 1:
-                roleType = 'analyzer'
-                break
-            case 2:
-                roleType = 'executor'
-                break
-            case 3:
-                roleType = 'supervisor'
-                break
-            case 4:
-                roleType = 'ciso'
-                break
-        }
-
         ah.all([
             {
                 url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
@@ -686,9 +671,13 @@ class IncidentManagement extends Component {
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
+                {(currentData.flowData && currentData.flowData.finish) &&
+                    <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
+                }
                 {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
+
             </Menu>
 
             <div className="sub-header">
@@ -2679,8 +2668,6 @@ class IncidentManagement extends Component {
             .then(data => {
                 if (this.state.loadListType === 0){
                     this.loadCondition('other','expired')
-                }else if (this.state.loadListType === 1){
-                    this.loadCondition('other','unhandled')
                 }else if (this.state.loadListType === 2){
                     this.loadCondition('other','mine')
                 }else if (this.state.loadListType === 3){
