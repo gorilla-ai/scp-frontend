@@ -1097,7 +1097,7 @@ class ThreatsController extends Component {
             dstHostname: ''
           };
           eventNetworkList.push(eventNetworkItem);
-          //
+
 
           let eventListItem = {
             description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
@@ -1699,11 +1699,11 @@ class ThreatsController extends Component {
       alertTableData
     } = this.state;
 
-    const page = fromPage === 'currentPage' ? threatsData.currentPage : 0;
+    const page = (fromPage === 'currentPage' || this.state.tableType === 'select') ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
 
-    if (!options || options === 'alertDetails') {
+    if (!options || options === 'alertDetails' || this.state.tableType === 'select') {
       url += threatsData.pageSize;
     } else {
       url += '0&skipHistogram=true';
@@ -2423,9 +2423,12 @@ class ThreatsController extends Component {
     tempThreatsData.dataFields = [];
     tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
-    tempThreatsData.currentPage = 1;
-    tempThreatsData.oldPage = 1;
-    // tempThreatsData.pageSize = 20;
+
+    if (this.state.tableType !== 'select') {
+      tempThreatsData.currentPage = 1;
+      tempThreatsData.oldPage = 1;
+      tempThreatsData.pageSize = 20;
+    }
 
     _.forEach(tempAlertChartsList, (val, i) => {
       tempAlertChartsList[i].chartData = null;
