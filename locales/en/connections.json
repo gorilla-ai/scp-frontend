@@ -540,12 +540,14 @@
 
   "soar": {
     "txt-ruleList": "SOAR Rules",
-    "txt-mainSettings": "SOAR General Settings",
+    "txt-soarSettings": "SOAR General Settings",
+    "txt-soarFlow": "SOAR Rule Settings",
     "txt-disableRule": "Confirm to disable rule",
     "txt-addRule": "Add Rule",
     "txt-deleteRule": "Delete Rule",
     "txt-adapter": "Adapter",
-    "txt-action": "Action"
+    "txt-action": "Action",
+    "txt-soarRuleInfo": "SOAR rule info"
   },
 
   "notifications": {

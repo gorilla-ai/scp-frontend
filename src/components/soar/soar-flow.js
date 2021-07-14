@@ -21,6 +21,7 @@ import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import Popover from '@material-ui/core/Popover';
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
@@ -50,6 +51,10 @@ class SoarFlow extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
+      soarRule: {
+        name: '',
+        aggFieldId: ''
+      },
       reactFlowInstance: null,
       flowData: [],
       selectedNode: {},
@@ -75,9 +80,7 @@ class SoarFlow extends Component {
 
     this.getFlowData();
   }
-  ryan = () => {
-
-  }
+  ryan = () => {}
   getFlowData = () => {
     const flowData = [
       {
@@ -282,74 +285,109 @@ class SoarFlow extends Component {
 
     restoreFlow();
   }
+  /**
+   * Handle input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    let tempSoarRule = {...this.state.soarRule};
+    tempSoarRule[event.target.name] = event.target.value;
+
+    this.setState({
+      soarRule: tempSoarRule
+    });
+  }
   render() {
-    const {flowData, selectedNode, contextAnchor, activeElementType} = this.state;
+    const {soarRule, flowData, selectedNode, contextAnchor, activeElementType} = this.state;
 
     return (
       <div>
         <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-          </div>
         </div>
 
-        <div className='data-content react-flow-demo'>
-          <Menu
-            anchorEl={contextAnchor.node || contextAnchor.link}
-            keepMounted
-            open={Boolean(contextAnchor.node || contextAnchor.link)}
-            onClose={this.handleCloseMenu}>
-            <MenuItem onClick={this.onElementsRemove}>Remove {activeElementType}</MenuItem>
-          </Menu>
+        <div className='data-content soar-flow'>
+          <div className='parent-content'>
+            <div className='main-content basic-form'>
+              <header className='main-header'>{t('soar.txt-soarFlow')}</header>
+              <div className='content-header-btns'>
+              </div>
+              <Menu
+                anchorEl={contextAnchor.node || contextAnchor.link}
+                keepMounted
+                open={Boolean(contextAnchor.node || contextAnchor.link)}
+                onClose={this.handleCloseMenu}>
+                <MenuItem onClick={this.onElementsRemove}>Remove {activeElementType}</MenuItem>
+              </Menu>
 
-          <ReactFlowProvider>
-            <div className='reactflow-wrapper' ref={this.reactFlowWrapper}>
-              <ReactFlow
-                elements={flowData}
-                onLoad={this.onLoad}
-                onConnect={this.onConnect}
-                onElementClick={this.onElementClick}
-                onElementsRemove={this.onElementsRemove}
-                onDragOver={this.onDragOver}
-                onDrop={this.onDrop}
-                onNodeContextMenu={this.onNodeContextMenu}
-                onEdgeContextMenu={this.onEdgeContextMenu}
-                onEdgeUpdate={this.onEdgeUpdate}
-                deleteKeyCode={46} >
-                <MiniMap
-                  className='mini-map'
-                  nodeStrokeColor={(n) => {
-                    if (n.style && n.style.background) return n.style.background;
-                    if (n.type === 'input') return '#0041d0';
-                    if (n.type === 'output') return '#ff0072';
-                    if (n.type === 'default') return '#1a192b';
-                    return '#eee';
-                  }}
-                  nodeColor={(n) => {
-                    if (n.style && n.style.background) return n.style.background;
-                    return '#fff';
-                  }}
-                  nodeBorderRadius={2} />
-                <Controls />
-                <Background color='#aaa' gap={16} />
-              </ReactFlow>
+              <div className='flow-wrapper'>
+                <ReactFlowProvider>
+                  <aside>
+                    <div className='form'>
+                      <header>{t('soar.txt-soarRuleInfo')}</header>
+                      <div className='group'>
+                        <TextField
+                          id='soarRuleInfo'
+                          name='name'
+                          label='Name'
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={soarRule.name}
+                          onChange={this.handleDataChange} />
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='soarRuleAggField'
+                          name='aggFieldId'
+                          label='Agg Field ID'
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={soarRule.aggFieldId}
+                          onChange={this.handleDataChange} />
+                      </div>
+                    </div>
+                  </aside>
+
+                  <div className='reactflow-wrapper' ref={this.reactFlowWrapper}>
+                    <div className='drag-section'>
+                      {NODE_TYPE.map(this.getNodeType)}
+                    </div>
+                    <ReactFlow
+                      elements={flowData}
+                      onLoad={this.onLoad}
+                      onConnect={this.onConnect}
+                      onElementClick={this.onElementClick}
+                      onElementsRemove={this.onElementsRemove}
+                      onDragOver={this.onDragOver}
+                      onDrop={this.onDrop}
+                      onNodeContextMenu={this.onNodeContextMenu}
+                      onEdgeContextMenu={this.onEdgeContextMenu}
+                      onEdgeUpdate={this.onEdgeUpdate}
+                      deleteKeyCode={46} >
+                      <MiniMap
+                        className='mini-map'
+                        nodeStrokeColor={(n) => {
+                          if (n.style && n.style.background) return n.style.background;
+                          if (n.type === 'input') return '#0041d0';
+                          if (n.type === 'output') return '#ff0072';
+                          if (n.type === 'default') return '#1a192b';
+                          return '#eee';
+                        }}
+                        nodeColor={(n) => {
+                          if (n.style && n.style.background) return n.style.background;
+                          return '#fff';
+                        }}
+                        nodeBorderRadius={2} />
+                      <Controls />
+                      <Background color='#aaa' gap={16} />
+                    </ReactFlow>
+                  </div>
+                </ReactFlowProvider>
+              </div>
             </div>
-
-            <aside>
-              {NODE_TYPE.map(this.getNodeType)}
-              <div className='btn-group'>
-                <Button variant='contained' color='primary' onClick={this.onSave}>Save</Button>
-                <Button variant='contained' color='primary' onClick={this.onRestore}>Restore</Button>
-              </div>
-              <div className='selected-node'>
-                <div>Selected Node:</div>
-                <JSONTree data={selectedNode} theme={helper.getJsonViewTheme()} />
-              </div>
-              <div>
-                <div>Node Data:</div>
-                <JSONTree data={flowData} theme={helper.getJsonViewTheme()} />
-              </div>
-            </aside>
-          </ReactFlowProvider>
+          </div>
         </div>
       </div>
     )

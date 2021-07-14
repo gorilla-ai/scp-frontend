@@ -19,8 +19,9 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
-import MainSettings from './main-settings'
 import MuiTableContent from '../common/mui-table-content'
+import SoarFlow from './soar-flow'
+import SoarSettings from './soar-settings'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -42,7 +43,7 @@ class SoarController extends Component {
 
     this.state = {
       activeTab: 'rule',
-      activeContent: 'table', //'table', 'settings', or 'flow'
+      activeContent: 'flow', //'table', 'settings', or 'flow'
       showFilter: false,
       soarColumns: {},
       filterList: {
@@ -598,7 +599,7 @@ class SoarController extends Component {
                   <header className='main-header'>{t('soar.txt-ruleList')}</header>
                   <div className='content-header-btns with-menu'>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'settings')}>{t('txt-settings')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleAddRuleBtn}>{t('soar.txt-addRule')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'flow')}>{t('soar.txt-addRule')}</Button>
                   </div>
 
                   {soarData.dataContent &&
@@ -613,8 +614,12 @@ class SoarController extends Component {
         }
 
         {activeContent === 'settings' &&
-          <MainSettings
+          <SoarSettings
             toggleContent={this.toggleContent} />
+        }
+
+        {activeContent === 'flow' &&
+          <SoarFlow />
         }
       </div>
     )

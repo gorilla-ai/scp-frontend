@@ -1304,12 +1304,9 @@ button.standard:hover:not([disabled]) {
         text-align: left;
       }
     }
-    &.react-flow-demo {
-      .reactflow-wrapper {
-        flex-grow: 1;
-        height: 87vh;
-        border-right: 1px solid #ccc;
-        border-bottom: 1px solid #ccc;
+    &.soar-flow {
+      .flow-wrapper {
+        display: flex;
       }
       aside {
         overflow-y: auto;
@@ -1317,23 +1314,46 @@ button.standard:hover:not([disabled]) {
         height: 87vh;
         max-width: 250px;
         width: 20%;
-        padding: 20px 10px 0 10px;
+        padding: 20px 0;
         border-right: 1px solid #eee;
         border-bottom: 1px solid #ccc;
         background: #fcfcfc;
+        .form {
+          border-bottom: 1px solid var(--primaryBorder);
+          header {
+            font-size: 1.5em;
+            padding: 0 15px;
+            color: var(--primaryContentHeader);
+          }
+          .group {
+            width: 90%;
+            margin: 15px auto;
+          }
+        }
+      }
+      .reactflow-wrapper {
+        flex-grow: 1;
+        border-right: 1px solid var(--primaryBorder);
+        border-bottom: 1px solid var(--primaryBorder);
+        .drag-section {
+          display: flex;
+          justify-content: flex-end;
+          padding: 15px;
+          border-bottom: 1px solid var(--primaryBorder);
+        }
       }
       .dndnode {
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 130px;
         height: 20px;
-        margin-bottom: 15px;
-        border: 1px solid #1a192b;
-        cursor: grab;
-        border-radius: 3px;
         font-size: 12px;
-        text-align: center;
         padding: 18px 10px;
+        margin: 0 10px;
+        cursor: grab;
+        border: 1px solid #1a192b;
+        border-radius: 3px;
         &.input {
           border-color: #0041d0;
         }

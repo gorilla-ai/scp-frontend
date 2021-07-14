@@ -27,12 +27,12 @@ let et = null;
 let c = null;
 
 /**
- * MainSettings
+ * SoarSettings
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the SOAR main settings page
  */
-class MainSettings extends Component {
+class SoarSettings extends Component {
   constructor(props) {
     super(props);
 
@@ -117,7 +117,7 @@ class MainSettings extends Component {
   }
   componentDidMount() {
     this.getDropDownList();
-    this.getMainSettingsInfo();
+    this.getSoarSettingsInfo();
   }
   ryan = () => {}
   /**
@@ -142,7 +142,7 @@ class MainSettings extends Component {
    * Get and set mail and notification data
    * @method
    */
-  getMainSettingsInfo = () => {
+  getSoarSettingsInfo = () => {
     const {baseUrl} = this.context;
 
     this.ah.one({
@@ -212,7 +212,7 @@ class MainSettings extends Component {
     let showPage = type;
 
     if (type === 'save') {
-      this.handleMainSettingsConfirm();
+      this.handleSoarSettingsConfirm();
       return;
     } else if (type === 'viewMode' || type === 'cancel') {
       showPage = 'viewMode';
@@ -248,7 +248,7 @@ class MainSettings extends Component {
    * Handle edit confirm
    * @method
    */
-  handleMainSettingsConfirm = () => {
+  handleSoarSettingsConfirm = () => {
     const {baseUrl} = this.context;
     const {soarAdapter, soarAction, formValidation} = this.state;
     const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -312,7 +312,7 @@ class MainSettings extends Component {
     })
     .then(data => {
       if (data) {
-        this.getMainSettingsInfo();
+        this.getSoarSettingsInfo();
         this.toggleContent('viewMode');
       }
       return null;
@@ -510,7 +510,7 @@ class MainSettings extends Component {
         <div className='data-content soar-settings'>
           <div className='parent-content'>
             <div className='main-content basic-form'>
-              <header className='main-header'>{t('soar.txt-mainSettings')}</header>
+              <header className='main-header'>{t('soar.txt-soarSettings')}</header>
 
               {activeContent === 'viewMode' &&
                 <div className='content-header-btns'>
@@ -973,10 +973,10 @@ class MainSettings extends Component {
   }
 }
 
-MainSettings.contextType = BaseDataContext;
+SoarSettings.contextType = BaseDataContext;
 
-MainSettings.propTypes = {
+SoarSettings.propTypes = {
   toggleContent: PropTypes.func.isRequired
 };
 
-export default MainSettings;
+export default SoarSettings;
