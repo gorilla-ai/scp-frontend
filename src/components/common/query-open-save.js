@@ -311,7 +311,6 @@ class QueryOpenSave extends Component {
         }
 
         if (this.state.socTemplateEnable){
-          console.log("soc === " , soc)
           if (soc.title) {
             const specialCharTest = /[\[\]<>?]+/; //[]<> are not allowed
 
