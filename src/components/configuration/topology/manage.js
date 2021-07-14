@@ -616,7 +616,7 @@ class Manage extends Component {
         name
       };
 
-      if (parentTreetId !== 'root') {
+      if (parentTreetId !== 'root' && parentTreetId !== treeId) {
         requestData.parentId = parentTreetId;
       }
 

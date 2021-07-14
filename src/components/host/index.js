@@ -3118,9 +3118,10 @@ class HostController extends Component {
             showSafetyTab={showSafetyTab}
             fromSafetyPage={fromSafetyPage}
             vansHmdStatusList={vansHmdStatusList}
-            getHostInfo={this.getHostInfo}
-            toggleSafetyDetails={this.toggleSafetyDetails}
             getIPdeviceInfo={this.getIPdeviceInfo}
+            getSafetyScanData={this.getSafetyScanData}
+            toggleSafetyDetails={this.toggleSafetyDetails}
+            getHostInfo={this.getHostInfo}
             getVansStatus={this.getVansStatus} />
         }
 
