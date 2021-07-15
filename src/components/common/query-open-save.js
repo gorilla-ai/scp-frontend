@@ -18,7 +18,7 @@ import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
 import Switch from "@material-ui/core/Switch";
-import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import _ from "lodash";
 
 let t = null;
