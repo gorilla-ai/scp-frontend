@@ -55,11 +55,10 @@ class SoarController extends Component {
         aggField: '',
         adapter: 'all',
         action: 'all',
-        status: 'all',
         isEnable: 'all'
       },
       soarData: {
-        dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'status', 'isEnable', '_menu'],
+        dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'isEnable', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -95,7 +94,6 @@ class SoarController extends Component {
     })
     .then(data => {
       if (data) {
-        const status = ['error', 'ready'];
         const isEnable = [
           {
             text: 'true',
@@ -112,10 +110,6 @@ class SoarController extends Component {
         });
 
         tempFilterList.action = _.map(data.action, (val, i) => {
-          return <MenuItem key={i} value={val}>{val}</MenuItem>
-        });
-
-        tempFilterList.status = _.map(status, (val, i) => {
           return <MenuItem key={i} value={val}>{val}</MenuItem>
         });
 
@@ -153,10 +147,6 @@ class SoarController extends Component {
 
     if (soarSearch.aggField) {
       requestData.aggField = soarSearch.aggField;
-    }
-
-    if (soarSearch.status && soarSearch.status !== 'all') {
-      requestData.status = soarSearch.status;
     }
 
     if (soarSearch.isEnable !== 'all') {
@@ -220,16 +210,6 @@ class SoarController extends Component {
                   return allValue.node.map(this.getListItem.bind(this, val))
                 } else if (val === 'action') {
                   return value.map(this.getListItem.bind(this, val))
-                } else if (val === 'status') {
-                  let color = '';
-
-                  if (value === 'ready') {
-                    color = '#22ac38';
-                  } else if (value === 'error') {
-                    color = '#d0021b';
-                  }
-
-                  return <span className='item' style={{backgroundColor: color, color: '#fff'}}>{value}</span>;
                 } else if (val === 'isEnable') {
                   return (
                     <FormControlLabel
@@ -308,14 +288,6 @@ class SoarController extends Component {
     const value = type === 'condition' ? val.name : val;
 
     return <span key={i} className='item'>{value}</span>
-  }
-  /**
-   * Handle Soar status toggle
-   * @method
-   * @param {string} type - status action type ('start' or 'stop')
-   */
-  handleSoarStatusChange = (type) => {
-
   }
   /**
    * Display delete SOAR content
@@ -478,21 +450,6 @@ class SoarController extends Component {
           </div>
           <div className='group'>
             <TextField
-              id='soarStatus'
-              name='status'
-              select
-              label={f('soarFields.status')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={soarSearch.status}
-              onChange={this.handleSoarSearch}>
-              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
-              {filterList.status}
-            </TextField>
-          </div>
-          <div className='group'>
-            <TextField
               id='soarIsEnable'
               name='isEnable'
               select
@@ -558,7 +515,6 @@ class SoarController extends Component {
         aggField: '',
         adapter: 'all',
         action: 'all',
-        status: 'all',
         isEnable: 'all'
       }
     });
