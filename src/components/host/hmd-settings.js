@@ -123,6 +123,10 @@ class HMDsettings extends Component {
         target_hw: '',
         other: ''
       }],
+      cpeInputTest: '',
+      cpe23Uri: '',
+      cpeConvertResult: '',
+      connectionsStatus: '',
       originalNccstSettings: '',
       nccstSettings: {
         unitOID: '',
@@ -130,10 +134,6 @@ class HMDsettings extends Component {
         apiKey: '',
         apiUrl: ''
       },
-      cpeInputTest: '',
-      cpe23Uri: '',
-      cpeConvertResult: '',
-      connectionsStatus: '',
       formValidation: {
         ip: {
           valid: true
@@ -697,11 +697,11 @@ class HMDsettings extends Component {
       ftpAccount,
       ftpPassword,
       productRegexData,
-      nccstSettings,
       cpeInputTest,
       cpe23Uri,
       cpeConvertResult,
       connectionsStatus,
+      nccstSettings,      
       formValidation
     } = this.state;
     const data = {
@@ -889,6 +889,31 @@ class HMDsettings extends Component {
             </div>
 
             <div className='form-group normal'>
+              <header>{t('network-inventory.txt-CPEconvertTest')}</header>
+              <div className='group full'>
+                <label></label>
+                <TextField
+                  name='cpeInputTest'
+                  label={t('network-inventory.txt-CPEinputTest')}
+                  className='cpe-input-test'
+                  variant='outlined'
+                  size='small'
+                  value={cpeInputTest}
+                  onChange={this.handleDataChange} />
+                <button className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</button>
+                <TextField
+                  name='cpeConvertResult'
+                  label={t('network-inventory.txt-CPEconvertResult')}
+                  className='cpe-convert-result'
+                  variant='outlined'
+                  size='small'
+                  value={cpe23Uri || ''}
+                  disabled={true} />
+                <div className='convert-result-text' style={{color: cpeConvertResult ? '#22ac38' : '#d10d25'}}>{this.showCpeResult()}</div>
+              </div>
+            </div>
+
+            <div className='form-group normal'>
               <header>{t('network-inventory.txt-reportNCCST')}</header>
               <div className='group'>
                 <TextField
@@ -937,31 +962,6 @@ class HMDsettings extends Component {
                   value={nccstSettings.apiUrl}
                   onChange={this.handleNccstDataChange}
                   disabled={activeContent === 'viewMode'} />
-              </div>
-            </div>
-
-            <div className='form-group normal'>
-              <header>{t('network-inventory.txt-CPEconvertTest')}</header>
-              <div className='group full'>
-                <label></label>
-                <TextField
-                  name='cpeInputTest'
-                  label={t('network-inventory.txt-CPEinputTest')}
-                  className='cpe-input-test'
-                  variant='outlined'
-                  size='small'
-                  value={cpeInputTest}
-                  onChange={this.handleDataChange} />
-                <button className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</button>
-                <TextField
-                  name='cpeConvertResult'
-                  label={t('network-inventory.txt-CPEconvertResult')}
-                  className='cpe-convert-result'
-                  variant='outlined'
-                  size='small'
-                  value={cpe23Uri || ''}
-                  disabled={true} />
-                <div className='convert-result-text' style={{color: cpeConvertResult ? '#22ac38' : '#d10d25'}}>{this.showCpeResult()}</div>
               </div>
             </div>
           </div>
