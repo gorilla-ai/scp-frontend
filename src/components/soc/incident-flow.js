@@ -222,8 +222,8 @@ class IncidentFlow extends Component {
                                     }
 
                                     if (val === 'status') {
-                                        return value ? <CheckCircleOutlineIcon style={{fill: '#1dda1d'}}/> :
-                                            <HighlightOffIcon style={{fill: '#e21414'}}/>
+                                        return value ? <CheckCircleOutlineIcon style={{fill: '#29CC7A'}}/> :
+                                            <HighlightOffIcon style={{fill: '#CC2943'}}/>
                                     } else if (val === '_menu') {
                                         return (
                                             <div className='table-menu menu active'>
