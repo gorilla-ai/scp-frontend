@@ -18,7 +18,7 @@ import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
 import Switch from "@material-ui/core/Switch";
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import _ from "lodash";
 
 let t = null;
@@ -388,7 +388,8 @@ class QueryOpenSave extends Component {
         queryText = {
           filter: filterData
         };
-      } else if (activeTab === 'logs') {
+      }
+      else if (activeTab === 'logs') {
         let markDataArr = [];
         url = `${baseUrl}/api/v1/account/syslog/queryText`;
 
@@ -402,7 +403,8 @@ class QueryOpenSave extends Component {
           filter: filterData,
           search: markDataArr
         };
-      } else {
+      }
+      else {
         url = `${baseUrl}/api/account/event/queryText`;
         queryText = {
           filter: filterData
@@ -417,8 +419,15 @@ class QueryOpenSave extends Component {
           accountId = 'IsPublic';
           queryName = queryDataPublic.inputName;
         } else if (type === 'save') {
-          accountId = account.id;
-          queryName = queryData.inputName;
+          if (activeTab === 'alert') {
+            if (publicCheckbox){
+              accountId = 'Default';
+              queryName = queryData.inputName;
+            }else{
+              accountId = account.id;
+              queryName = queryData.inputName;
+            }
+          }
         }
 
         requestData = {
@@ -436,6 +445,13 @@ class QueryOpenSave extends Component {
           queryId = queryDataPublic.id;
           accountId = 'IsPublic';
         } else if (type === 'save') {
+          if (activeTab === 'alert') {
+            if (publicCheckbox){
+              accountId = 'Default';
+            }else{
+              accountId = account.id;
+            }
+          }
           queryId = queryData.id;
           accountId = account.id;
         }
@@ -448,7 +464,11 @@ class QueryOpenSave extends Component {
         };
 
         if (type === 'save' && patternCheckbox) {
-          requestData.patternId = queryData.patternId;
+          if (activeTab === 'alert') {
+
+          }else{
+            requestData.patternId = queryData.patternId;
+          }
         }
 
         requestType = 'PATCH';
@@ -1135,7 +1155,8 @@ class QueryOpenSave extends Component {
    */
   toggleSOCSwitch = () => {
     this.setState({
-      socTemplateEnable: !this.state.socTemplateEnable
+      socTemplateEnable: !this.state.socTemplateEnable,
+      publicCheckbox: !this.state.publicCheckbox
     });
   }
 
@@ -1318,24 +1339,19 @@ class QueryOpenSave extends Component {
   }
 
   getQueryWithSOC = (type) => {
-    const {queryDataPublic} = this.props;
+    const {queryData} = this.props;
     const {soc, severityList, socTemplateEnable, pattern, formValidation} = this.state;
     let severityType = '';
-    let tempPattern = {...pattern};
     let tempSocTemplateEnable = socTemplateEnable;
-    let patternCheckboxChecked = '';
     let patternCheckboxDisabled = '';
-    let publicCheckboxChecked = '';
-    let disabledValue = '';
 
-
-    if (type === 'publicOpen') {
-      if (queryDataPublic.soc) {
-        severityType = queryDataPublic.soc.severity;
+    if (type === 'open') {
+      if (queryData.soc) {
+        severityType = queryData.soc.severity;
         patternCheckboxDisabled = true
-        if (queryDataPublic.soc) {
-          if (queryDataPublic.soc.id) {
-            if (queryDataPublic.soc.id !== '') {
+        if (queryData.soc) {
+          if (queryData.soc.id) {
+            if (queryData.soc.id !== '') {
               tempSocTemplateEnable = true;
             } else {
 
@@ -1351,7 +1367,7 @@ class QueryOpenSave extends Component {
         patternCheckboxDisabled = false
       }
 
-    } else if (type === 'publicSave') {
+    } else if (type === 'save') {
       severityType = soc.severity || this.state.pattern.severity;
       patternCheckboxDisabled = false
     } else{
@@ -1733,11 +1749,11 @@ class QueryOpenSave extends Component {
           }
 
 
-          {activeTab === 'logs' && queryData.patternId && moduleWithSOC &&
+          {activeTab === 'logs' && queryData.patternId && moduleWithSOC && type === 'open' &&
             this.getQueryWithSOCByLog(type)
           }
 
-          {activeTab === 'alert' && moduleWithSOC && type === 'publicOpen' &&
+          {activeTab === 'alert' && moduleWithSOC && type === 'open' &&
             this.getQueryWithSOC(type)
           }
 
@@ -1836,11 +1852,11 @@ class QueryOpenSave extends Component {
             this.getQueryAlertContent(type)
           }
 
-          {activeTab === 'logs' && moduleWithSOC &&
+          {activeTab === 'logs' && moduleWithSOC  && type === 'save' &&
             this.getQueryWithSOCByLog(type)
           }
 
-          {activeTab === 'alert' && moduleWithSOC &&
+          {activeTab === 'alert' && moduleWithSOC && type === 'save' &&
             this.getQueryWithSOC(type)
           }
         </div>
