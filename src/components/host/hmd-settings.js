@@ -123,6 +123,13 @@ class HMDsettings extends Component {
         target_hw: '',
         other: ''
       }],
+      originalNccstSettings: '',
+      nccstSettings: {
+        unitOID: '',
+        unitName: '',
+        apiKey: '',
+        apiUrl: ''
+      },
       cpeInputTest: '',
       cpe23Uri: '',
       cpeConvertResult: '',
@@ -158,7 +165,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -236,6 +243,18 @@ class HMDsettings extends Component {
             ftpAccount: data[6].value
           });
         }
+
+        const nccstSettings = {
+          unitOID: data[7].value,
+          unitName: data[8].value,
+          apiKey: data[9].value,
+          apiUrl: data[10].value
+        };
+
+        this.setState({
+          originalNccstSettings: _.cloneDeep(nccstSettings),
+          nccstSettings
+        });
       }
       return null;
     })
@@ -280,7 +299,8 @@ class HMDsettings extends Component {
       originalFtpIp,
       originalFtpUrl,
       originalFtpAccount,
-      originalProductRegex
+      originalProductRegex,
+      originalNccstSettings
     } = this.state;
     let showPage = type;
 
@@ -297,7 +317,8 @@ class HMDsettings extends Component {
         ftpIp: _.cloneDeep(originalFtpIp),
         ftpUrl: _.cloneDeep(originalFtpUrl),
         ftpAccount: _.cloneDeep(originalFtpAccount),
-        productRegexData: _.cloneDeep(originalProductRegex)
+        productRegexData: _.cloneDeep(originalProductRegex),
+        nccstSettings: _.cloneDeep(originalNccstSettings)
       });
 
       this.clearData();
@@ -364,7 +385,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, productRegexData, formValidation} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, productRegexData, nccstSettings, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -440,6 +461,22 @@ class HMDsettings extends Component {
       {
         type: 'hmd.sftp.account',
         value: ftpAccount
+      },
+      {
+        type: 'vans.oid',
+        value: nccstSettings.unitOID
+      },
+      {
+        type: 'vans.unit_name',
+        value: nccstSettings.unitName
+      },
+      {
+        type: 'vans.api_key',
+        value: nccstSettings.apiKey
+      },
+      {
+        type: 'vans.api_url',
+        value: nccstSettings.apiUrl
       }
     ];
     let apiArr = [];
@@ -536,6 +573,19 @@ class HMDsettings extends Component {
   handleDataChange = (event) => {
     this.setState({
       [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Handle input data change for NCCST
+   * @method
+   * @param {object} event - event object
+   */
+  handleNccstDataChange = (event) => {
+    let tempNccstSettings = {...this.state.nccstSettings};
+    tempNccstSettings[event.target.name] = event.target.value;
+
+    this.setState({
+      nccstSettings: tempNccstSettings
     });
   }
   /**
@@ -647,6 +697,7 @@ class HMDsettings extends Component {
       ftpAccount,
       ftpPassword,
       productRegexData,
+      nccstSettings,
       cpeInputTest,
       cpe23Uri,
       cpeConvertResult,
@@ -833,6 +884,58 @@ class HMDsettings extends Component {
                   }}
                   value={productRegexData}
                   onChange={this.setProductRegexData}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+            </div>
+
+            <div className='form-group normal'>
+              <header>{t('network-inventory.txt-reportNCCST')}</header>
+              <div className='group'>
+                <TextField
+                  id='nccstSettingsUnitOID'
+                  name='unitOID'
+                  label={t('network-inventory.txt-unitOID')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={nccstSettings.unitOID}
+                  onChange={this.handleNccstDataChange}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+              <div className='group'>
+                <TextField
+                  id='nccstSettingsUnitName'
+                  name='unitName'
+                  label={t('network-inventory.txt-unitName')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={nccstSettings.unitName}
+                  onChange={this.handleNccstDataChange}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+              <div className='group full'>
+                <TextField
+                  id='nccstSettingsApiKey'
+                  name='apiKey'
+                  label={t('network-inventory.txt-apiKey')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={nccstSettings.apiKey}
+                  onChange={this.handleNccstDataChange}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+              <div className='group full'>
+                <TextField
+                  id='nccstSettingsApiUrl'
+                  name='apiUrl'
+                  label={t('network-inventory.txt-apiUrl')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={nccstSettings.apiUrl}
+                  onChange={this.handleNccstDataChange}
                   disabled={activeContent === 'viewMode'} />
               </div>
             </div>

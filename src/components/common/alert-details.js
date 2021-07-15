@@ -1184,13 +1184,18 @@ class AlertDetails extends Component {
     let linkUrl = '';
 
     if (type === 'virustotal') {
-      let ip = value;
+      const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;      
 
-      if (value === 'srcIp' || value === 'destIp') {
-        ip = this.getIpPortData(value);
+      if (ipPattern.test(value)) { //Check IP format
+        linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + value + '/relations';
+      } else {
+        linkUrl = 'https:\//www.virustotal.com/gui/domain/' + value + '/detection';
       }
 
-      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ip + '/relations';
+      if (value === 'srcIp' || value === 'destIp') {
+        const ip = this.getIpPortData(value);
+        linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ip + '/relations';
+      }
     } else if (type === 'threats') {
       linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}&sourceIP=${alertData.blackIP}&lng=${language}`;
     } else if (type === 'syslog') {
