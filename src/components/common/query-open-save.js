@@ -1,8 +1,7 @@
-import React, { Component } from 'react'
+import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import cx from 'classnames'
 
-import { ReactMultiEmail } from 'react-multi-email'
+import {ReactMultiEmail} from 'react-multi-email'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
@@ -19,7 +18,7 @@ import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
 import Switch from "@material-ui/core/Switch";
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import _ from "lodash";
 
 let t = null;
@@ -135,7 +134,7 @@ class QueryOpenSave extends Component {
       if (this.props.type === 'open' ||this.props.type === 'publicOpen'){
 
         if (queryList.length > 0){
-          this.getQuerySOCValue(queryList);
+          this.getQuerySOCValue(queryList[0]);
         }
       }
     });
@@ -158,15 +157,15 @@ class QueryOpenSave extends Component {
     });
   }
 
-  getQuerySOCValue = (queryList) => {
+  getQuerySOCValue = (activeQuery) => {
     const {queryData, queryDataPublic, type} = this.props;
-    const {activeQuery} = this.state;
+    // const {activeQuery} = this.state;
     const {baseUrl} = this.context;
-    let tempQueryData = {}
+    let tempQueryData = []
 
     if (type === 'open' || type === 'save') {
       tempQueryData = {...queryData};
-    } else if (type === 'publicOpen' || type === 'publicSave' ) {
+    } else if (type === 'publicOpen' || type === 'publicSave') {
       tempQueryData = {...queryDataPublic};
     }
 
@@ -176,46 +175,45 @@ class QueryOpenSave extends Component {
       type: 'GET',
       contentType: 'text/plain'
     }).then(data => {
-          if (data) {
-            tempQueryData.soc = {
-              id : data.id,
-              title:data.title,
-              eventDescription:data.eventDescription,
-              category:data.category,
-              impact:data.impact,
-              severity:data.severity,
-              limitQuery:data.limitQuery
-            }
+      if (data) {
+        tempQueryData.soc = {
+          id: data.id,
+          title: data.title,
+          eventDescription: data.eventDescription,
+          category: data.category,
+          impact: data.impact,
+          severity: data.severity,
+          limitQuery: data.limitQuery
+        }
 
-            this.props.setQueryData(tempQueryData);
-            this.setState({
-              socTemplateEnable:true,
-              soc:tempQueryData.soc
-            })
-          }else{
-            tempQueryData.soc = {
-              id:'',
-              severity: 'Emergency',
-              limitQuery: 10,
-              title: '',
-              eventDescription:'',
-              impact: 4,
-              category: 1,
-            }
-            this.props.setQueryData(tempQueryData);
-            this.setState({
-              socTemplateEnable:false,
-              soc:tempQueryData.soc
-            })
-          }
-          return null;
+        this.props.setQueryData(tempQueryData);
+        this.setState({
+          socTemplateEnable: true,
+          soc: tempQueryData.soc
         })
-        .catch(err => {
+      } else {
+        tempQueryData.soc = {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+        }
+        this.props.setQueryData(tempQueryData);
+        this.setState({
+          socTemplateEnable: false,
+          soc: tempQueryData.soc
+        })
+      }
+      return null;
+    }).catch(err => {
           this.setState({
-            socTemplateEnable:false
+            socTemplateEnable: false
           })
           helper.showPopupMsg('', t('txt-error'), err.message);
-        })
+    })
   }
   /**
    * Clear error info message
@@ -496,19 +494,19 @@ class QueryOpenSave extends Component {
         if (data) {
 
            if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
-               let socRequestBody = {
+             let socRequestBody = {
                id: data.id,
                title: soc.title,
                eventDescription: soc.eventDescription,
-               category:soc.category,
-               impact:soc.impact,
-               limitQuery:soc.limitQuery,
-               creator:account.id
+               category: soc.category,
+               impact: soc.impact,
+               limitQuery: soc.limitQuery,
+               creator: account.id
              }
-             if (activeTab === 'alert' ) {
+             if (activeTab === 'alert') {
                socRequestBody.severity = soc.severity
              }
-             if (activeTab === 'logs' ) {
+             if (activeTab === 'logs') {
                socRequestBody.severity = pattern.severity
              }
 
@@ -528,13 +526,13 @@ class QueryOpenSave extends Component {
                helper.showPopupMsg(t('events.connections.txt-querySaved'));
                this.props.getSavedQuery();
                this.setState({
-                 socTemplateEnable:false,
-                 soc:{
-                   id:'',
+                 socTemplateEnable: false,
+                 soc: {
+                   id: '',
                    severity: 'Emergency',
                    limitQuery: 10,
                    title: '',
-                   eventDescription:'',
+                   eventDescription: '',
                    impact: 4,
                    category: 1,
                  }
@@ -544,13 +542,13 @@ class QueryOpenSave extends Component {
              helper.showPopupMsg(t('events.connections.txt-querySaved'));
              this.props.getSavedQuery();
              this.setState({
-               socTemplateEnable:false,
-               soc:{
-                 id:'',
+               socTemplateEnable: false,
+               soc: {
+                 id: '',
                  severity: 'Emergency',
                  limitQuery: 10,
                  title: '',
-                 eventDescription:'',
+                 eventDescription: '',
                  impact: 4,
                  category: 1,
                }
@@ -842,12 +840,6 @@ class QueryOpenSave extends Component {
           threshold: 1,
           severity: ''
         };
-        tempPattern = {
-          name: '',
-          periodMin: 10,
-          threshold: 1,
-          severity: 'Emergency'
-        };
         tempQueryData.soc = {
           severity: 'Emergency',
           limitQuery: 10,
@@ -867,7 +859,7 @@ class QueryOpenSave extends Component {
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
           },()=>{
-            this.getQuerySOCValue();
+            this.getQuerySOCValue(queryList[selectedQueryIndex]);
           });
         }
 
@@ -942,6 +934,16 @@ class QueryOpenSave extends Component {
         tempQueryDataPublic.openFlag = true;
         tempQueryDataPublic.query = {}; //Reset data to empty
 
+        tempQueryDataPublic.soc = {
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription:'',
+          impact: 4,
+          category: 1,
+          id:''
+        }
+
         if (comboValue && comboValue.value) {
           const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
           value = comboValue.value;
@@ -949,6 +951,8 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
+          },()=>{
+            this.getQuerySOCValue(queryList[selectedQueryIndex]);
           });
         }
 
@@ -1314,8 +1318,8 @@ class QueryOpenSave extends Component {
   }
 
   getQueryWithSOC = (type) => {
-    const {queryData} = this.props;
-    const {soc, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType, socTemplateEnable, pattern, formValidation} = this.state;
+    const {queryDataPublic} = this.props;
+    const {soc, severityList, socTemplateEnable, pattern, formValidation} = this.state;
     let severityType = '';
     let tempPattern = {...pattern};
     let tempSocTemplateEnable = socTemplateEnable;
@@ -1325,25 +1329,24 @@ class QueryOpenSave extends Component {
     let disabledValue = '';
 
 
-
     if (type === 'publicOpen') {
-      if (queryData.soc){
-        severityType = queryData.soc.severity;
+      if (queryDataPublic.soc) {
+        severityType = queryDataPublic.soc.severity;
         patternCheckboxDisabled = true
-        if ( queryData.soc){
-          if (queryData.soc.id){
-            if (queryData.soc.id !== ''){
+        if (queryDataPublic.soc) {
+          if (queryDataPublic.soc.id) {
+            if (queryDataPublic.soc.id !== '') {
               tempSocTemplateEnable = true;
-            }else{
+            } else {
 
             }
-          }else{
+          } else {
 
           }
-        }else{
+        } else {
 
         }
-      }else{
+      } else {
         severityType = soc.severity;
         patternCheckboxDisabled = false
       }
@@ -1478,13 +1481,9 @@ class QueryOpenSave extends Component {
 
   getQueryWithSOCByLog = (type) => {
     const {queryData} = this.props;
-    const {soc, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType, socTemplateEnable, pattern, formValidation} = this.state;
-    let severityType = '';
+    const {soc, socTemplateEnable, pattern, formValidation} = this.state;
     let tempPattern = {...pattern};
     let tempSocTemplateEnable = socTemplateEnable;
-    let patternCheckboxChecked = '';
-    let patternCheckboxDisabled = '';
-    let publicCheckboxChecked = '';
     let disabledValue = true;
 
     if (type === 'open') {
@@ -1520,7 +1519,6 @@ class QueryOpenSave extends Component {
                     checked={tempSocTemplateEnable}
                     onChange={this.toggleSOCSwitch}
                     color='primary'
-
                 />
               }
               disabled={disabledValue}
