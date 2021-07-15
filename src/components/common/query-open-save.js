@@ -273,7 +273,7 @@ class QueryOpenSave extends Component {
     } else if (type === 'save' || type === 'publicSave') {
       const {baseUrl} = this.context;
       const {account, queryData, queryDataPublic, notifyEmailData} = this.props;
-      const {newQueryName, formValidation} = this.state;
+      const {newQueryName, formValidation, soc} = this.state;
       let tempFormValidation = {...formValidation};
       let tempFilterData = [];
       let url = '';
