@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
 import cx from 'classnames'
 
 import { ReactMultiEmail } from 'react-multi-email'
@@ -119,7 +121,6 @@ class SoarSettings extends Component {
     this.getDropDownList();
     this.getSoarSettingsInfo();
   }
-  ryan = () => {}
   /**
    * Set dropdown list for HMD Action and Severity type
    * @method

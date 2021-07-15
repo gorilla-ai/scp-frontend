@@ -547,7 +547,8 @@
     "txt-deleteRule": "Delete Rule",
     "txt-adapter": "Adapter",
     "txt-action": "Action",
-    "txt-soarRuleInfo": "SOAR rule info"
+    "txt-soarRuleInfo": "SOAR rule info",
+    "txt-ruleEditSettings": "Settings"
   },
 
   "notifications": {

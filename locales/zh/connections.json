@@ -546,7 +546,8 @@
     "txt-deleteRule": "刪除規則",
     "txt-adapter": "Adapter",
     "txt-action": "Action",
-    "txt-soarRuleInfo": "SOAR rule info"
+    "txt-soarRuleInfo": "SOAR rule info",
+    "txt-ruleEditSettings": "設定"
   },
 
   "notifications": {

@@ -1,4 +1,5 @@
 import React, { Component, useRef } from 'react'
+import PropTypes from 'prop-types'
 import { withRouter } from 'react-router'
 import moment from 'moment'
 import _ from 'lodash'
@@ -27,6 +28,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import SoarSingleSettings from './soar-single-settings'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -51,6 +53,7 @@ class SoarFlow extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
+      openRuleEditDialog: false,
       soarRule: {
         name: '',
         aggFieldId: ''
@@ -62,7 +65,7 @@ class SoarFlow extends Component {
         node: null,
         link: null
       },
-      activeElementType: '',
+      activeElementType: '', //'node' or 'link'
       activeElement: {
         node: null,
         link: null
@@ -298,11 +301,61 @@ class SoarFlow extends Component {
       soarRule: tempSoarRule
     });
   }
+  /**
+   * Toggle rule settings dialog
+   * @method
+   */
+  toggleRuleEditDialog = () => {
+    this.setState({
+      openRuleEditDialog: !this.state.openRuleEditDialog
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle rule edit confirm
+   * @method
+   */
+  handleRuleEditConfirm = () => {
+    const {baseUrl} = this.context;
+    const {testEmails} = this.state;
+
+
+    this.ah.one({
+      url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close dialog
+   * @method
+   */
+  closeDialog = () => {
+    this.setState({
+      openRuleEditDialog: false
+    });
+  }
   render() {
-    const {soarRule, flowData, selectedNode, contextAnchor, activeElementType} = this.state;
+    const {openRuleEditDialog, soarRule, flowData, selectedNode, contextAnchor, activeElementType} = this.state;
 
     return (
       <div>
+        {openRuleEditDialog &&
+          <SoarSingleSettings
+            activeElementType={activeElementType}
+            handleRuleEditConfirm={this.handleRuleEditConfirm}
+            closeDialog={this.closeDialog} />
+        }     
+
         <div className='sub-header'>
         </div>
 
@@ -311,13 +364,15 @@ class SoarFlow extends Component {
             <div className='main-content basic-form'>
               <header className='main-header'>{t('soar.txt-soarFlow')}</header>
               <div className='content-header-btns'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleContent.bind(this, 'table')}>{t('txt-backToList')}</Button>
               </div>
               <Menu
                 anchorEl={contextAnchor.node || contextAnchor.link}
                 keepMounted
                 open={Boolean(contextAnchor.node || contextAnchor.link)}
                 onClose={this.handleCloseMenu}>
-                <MenuItem onClick={this.onElementsRemove}>Remove {activeElementType}</MenuItem>
+                <MenuItem onClick={this.toggleRuleEditDialog}><i className='fg fg-edit' title={t('txt-edit')}></i></MenuItem>
+                <MenuItem onClick={this.onElementsRemove}><i className='fg fg-trashcan' title={t('txt-remove')}></i></MenuItem>
               </Menu>
 
               <div className='flow-wrapper'>
@@ -397,6 +452,7 @@ class SoarFlow extends Component {
 SoarFlow.contextType = BaseDataContext;
 
 SoarFlow.propTypes = {
+  toggleContent: PropTypes.func.isRequired
 };
 
 export default SoarFlow;

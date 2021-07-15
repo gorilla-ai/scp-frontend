@@ -619,7 +619,8 @@ class SoarController extends Component {
         }
 
         {activeContent === 'flow' &&
-          <SoarFlow />
+          <SoarFlow
+            toggleContent={this.toggleContent} />
         }
       </div>
     )
