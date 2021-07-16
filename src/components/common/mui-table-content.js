@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
+import _ from 'lodash'
 
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles'
 
@@ -42,7 +43,7 @@ class MuiTableContent extends Component {
     }
   }
   render() {
-    const {tableOptions} = this.props;
+    const {data, tableOptions} = this.props;
     const {tableData} = this.state;
     const options = {
 			tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
@@ -85,11 +86,18 @@ class MuiTableContent extends Component {
     };
 
     return (
-      <MUIDataTable
-        className='mui-data-table'
-        columns={tableData.dataFields}
-        data={tableData.dataContent}
-        options={options} />
+      <div className='mui-table-content'>
+        {_.isEmpty(tableData.dataContent) &&
+          <span className='loading'><i className='fg fg-loading-2'></i></span>
+        }
+        {tableData.dataContent && tableData.dataContent.length > 0 &&
+          <MUIDataTable
+            className='mui-data-table'
+            columns={tableData.dataFields}
+            data={tableData.dataContent}
+            options={options} />
+        }
+      </div>
     )
   }
 }

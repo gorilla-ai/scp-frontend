@@ -69,7 +69,13 @@ class VansNotes extends Component {
   componentDidUpdate(prevProps) {
     const {currentData, vansDeviceStatusList} = this.props;
 
+    //For updating new vans notes status
     if (!prevProps || (prevProps && currentData.annotationObj && currentData.annotationObj.id && !prevProps.currentData.annotationObj)) {
+      this.setVansData();
+    }
+
+    //For updating existing vans notes status
+    if (prevProps && prevProps.currentData.annotationObj && prevProps.currentData.annotationObj.status !== currentData.annotationObj.status) {
       this.setVansData();
     }
 
@@ -257,7 +263,13 @@ class VansNotes extends Component {
     .then(data => {
       if (data.ret === 0) {
         helper.showPopupMsg(t('txt-saved'));
-        this.props.getIPdeviceInfo();
+
+        if (currentType === 'device') {
+          this.props.getIPdeviceInfo();
+        } else {
+          this.props.getSafetyScanData();
+        }
+
         this.props.getVansStatus();
       }
       return null;
@@ -302,6 +314,7 @@ class VansNotes extends Component {
    */
   deleteVansNotes = () => {
     const {baseUrl} = this.context;
+    const {currentType} = this.props;
     const {vansNotes} = this.state;
 
     ah.one({
@@ -319,7 +332,12 @@ class VansNotes extends Component {
           }
         });
 
-        this.props.getIPdeviceInfo();
+        if (currentType === 'device') {
+          this.props.getIPdeviceInfo();
+        } else {
+          this.props.getSafetyScanData();
+        }
+
         this.props.getVansStatus();
       }
       return null;
@@ -457,6 +475,7 @@ VansNotes.propTypes = {
   currentData: PropTypes.object.isRequired,
   currentType: PropTypes.string.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
+  getSafetyScanData: PropTypes.func.isRequired,
   vansDeviceStatusList: PropTypes.array,
   vansHmdStatusList: PropTypes.array
 };

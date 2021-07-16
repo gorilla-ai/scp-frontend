@@ -6,8 +6,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import InfiniteScroll from 'react-infinite-scroll-component'
-
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline'
 import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined'
 import Button from '@material-ui/core/Button'
@@ -124,6 +122,10 @@ const TABLE_CHARTS_LIST = [
     key: 'IP'
   },
   {
+    id: 'alertEdgeSeverityList',
+    key: 'agentName'
+  },
+  {
     id: 'alertNetTrapBlackList',
     key: 'client'
   }
@@ -139,9 +141,6 @@ const INCIDENT_STATUS_ANALYZED = 6
 const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
 const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
 
-const SOC_Analyzer = 1
-const SOC_Executor = 2
-const SOC_Super = 3
 
 let t = null;
 let f = null;
@@ -445,7 +444,7 @@ class ThreatsController extends Component {
       });
     }
 
-   if(_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
+   if(!_.includes(session.roles, constants.soc.SOC_Analyzer) || !_.includes(session.roles, constants.soc.SOC_Executor) ){
      this.checkAccountSocPrivType()
    }else{
      this.setState({
@@ -1026,77 +1025,138 @@ class ThreatsController extends Component {
     const {baseUrl} = this.context;
     this.handleCloseIncidentMenu();
 
-    const {
-      originalThreatsList,
-      cancelThreatsList,
-    } = this.state;
-    let selectRows = []
 
-    if (makeType === 'select') {
-      selectRows = cancelThreatsList
-    } else if (makeType === 'all') {
-      selectRows = originalThreatsList
-    }
+    ah.one({
+      url: `${baseUrl}/api/soc/flow/_search`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    }).then(data => {
+      if (data) {
+        let flowSourceList = []
 
-    let tempIncident ={}
-    tempIncident.info = {
-      title: selectRows[0].Info,
-      reporter: selectRows[0].Collector,
-      rawData:selectRows,
-      selectRowsType:makeType === 'select'? 'select': 'all'
-    };
-    if (!tempIncident.info.socType) {
-      tempIncident.info.socType = 1
-    }
+        _.forEach(data.rt.rows, val => {
+          flowSourceList.push(val);
+        });
 
-    //make incident.info
-    let eventList = [];
-    _.forEach(selectRows , eventItem => {
-      let eventNetworkList = [];
-      let eventNetworkItem = {
-        srcIp: eventItem.ipSrc || eventItem.srcIp,
-        srcPort: parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort),
-        dstIp: eventItem.ipDst || eventItem.destIp || eventItem.dstIp || eventItem.ipDest,
-        dstPort: parseInt(eventItem.destPort) || parseInt(eventItem.portDest),
-        srcHostname: '',
-        dstHostname: ''
-      };
-      eventNetworkList.push(eventNetworkItem);
-      //
+        this.setState({
+          socFlowSourceList:flowSourceList,
+        });
 
-      let eventListItem = {
-        description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
-        deviceId: '',
-        frequency: 1,
-        time: {
-          from: helper.getFormattedDate(eventItem._eventDttm_, 'local'),
-          to: helper.getFormattedDate(eventItem._eventDttm_, 'local')
-        },
-        eventConnectionList: eventNetworkList
-      };
-      if (eventItem._edgeInfo) {
-        let searchRequestData = {
-          deviceId: eventItem._edgeInfo.agentId
+        const {
+          originalThreatsList,
+          cancelThreatsList,
+        } = this.state;
+        let selectRows = []
+
+        if (makeType === 'select') {
+          selectRows = cancelThreatsList
+        } else if (makeType === 'all') {
+          selectRows = originalThreatsList
+        }
+
+        let tempIncident = {}
+        tempIncident.info = {
+          severity: selectRows[0]._severity_,
+          title: selectRows[0].Info,
+          reporter: selectRows[0].Source ? selectRows[0].Source : selectRows[0].Collector || selectRows[0].collector,
+          rawData: selectRows,
+          selectRowsType: makeType === 'select' ? 'select' : 'all'
         };
-
-        ah.one({
-          url: `${baseUrl}/api/soc/device/redirect/_search`,
-          data: JSON.stringify(searchRequestData),
-          type: 'POST',
-          contentType: 'application/json',
-          dataType: 'json'
-        }).then(data => {
-          eventListItem.deviceId = data.rt.device.id;
+        if (!tempIncident.info.socType) {
+          tempIncident.info.socType = 1
+        }
+        _.forEach(flowSourceList,val=>{
+          if (val.severity === tempIncident.info.severity){
+            tempIncident.info.flowTemplateId = val.id
+            if (val.severity === 'Emergency'){
+              tempIncident.info['impactAssessment'] = 4
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Alert'){
+              tempIncident.info['impactAssessment'] = 3
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Notice'){
+              tempIncident.info['impactAssessment'] = 1
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Warning'){
+              tempIncident.info['impactAssessment'] = 2
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }else  if (val.severity === 'Critical'){
+              tempIncident.info['impactAssessment'] = 3
+              tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours')
+            }
+          }
         })
+        //make incident.info
+        let eventList = [];
+        _.forEach(selectRows , eventItem => {
+          let eventNetworkList = [];
+          let eventNetworkItem = {
+            srcIp: eventItem.ipSrc || eventItem.srcIp || eventItem.ipsrc,
+            srcPort: (parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort) ? parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort) : null),
+            dstIp: eventItem.ipDst || eventItem.dstIp || eventItem.destIp || eventItem.ipdst,
+            dstPort: parseInt(eventItem.destPort) ? parseInt(eventItem.destPort) : null,
+            srcHostname: '',
+            dstHostname: ''
+          };
+          eventNetworkList.push(eventNetworkItem);
+
+
+          let eventListItem = {
+            description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
+            deviceId: '',
+            frequency: 1,
+            time: {
+              from: helper.getFormattedDate(eventItem._eventDttm_, 'local'),
+              to: helper.getFormattedDate(eventItem._eventDttm_, 'local')
+            },
+            eventConnectionList: eventNetworkList
+          };
+          if (eventItem._edgeInfo) {
+            let searchRequestData = {
+              deviceId: eventItem._edgeId ? eventItem._edgeId: eventItem._edgeInfo.agentId
+            };
+
+            ah.one({
+              url: `${baseUrl}/api/soc/device/redirect/_search`,
+              data: JSON.stringify(searchRequestData),
+              type: 'POST',
+              contentType: 'application/json',
+              dataType: 'json'
+            }).then(data => {
+              eventListItem.deviceId = data.rt.device.id;
+            })
+          }
+          if (eventItem.LoghostIp) {
+            let searchRequestData = {
+              deviceId: eventItem.LoghostIp
+            };
+
+            ah.one({
+              url: `${baseUrl}/api/soc/device/redirect/_search`,
+              data: JSON.stringify(searchRequestData),
+              type: 'POST',
+              contentType: 'application/json',
+              dataType: 'json'
+            }).then(data => {
+              eventListItem.deviceId = data.rt.device.id;
+            })
+          }
+
+          eventList.push(eventListItem);
+        })
+        tempIncident.info.eventList = eventList;
+
+        this.setState({
+          makeIncidentOpen: true,
+          incident:tempIncident
+        });
+
+
       }
-
-      eventList.push(eventListItem);
-    })
-    tempIncident.info.eventList = eventList;
-
-    this.setState({
-      makeIncidentOpen: true,
-      incident:tempIncident
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
     });
   }
   closeAddIncidentDialog = () => {
@@ -1239,11 +1299,7 @@ class ThreatsController extends Component {
     // add for save who edit
     incident.info.editor = session.accountId;
 
-    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor') || _.includes(session.roles, 'SOC Executor')) {
-      incident.info.status = INCIDENT_STATUS_ANALYZED;
-    } else {
-      incident.info.status = INCIDENT_STATUS_UNREVIEWED;
-    }
+    incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
     ah.one({
       url: `${baseUrl}/api/soc`,
@@ -1394,8 +1450,58 @@ class ThreatsController extends Component {
     })
   }
   handleDataChangeMui = (event) => {
+    const {socFlowSourceList} = this.state;
     let temp = {...this.state.incident};
     temp.info[event.target.name] = event.target.value;
+
+    if (event.target.name === 'severity'){
+      if (event.target.value === 'Emergency'){
+        temp.info['impactAssessment'] = 4
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Alert'){
+        temp.info['impactAssessment'] = 3
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Notice'){
+        temp.info['impactAssessment'] = 1
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Warning'){
+        temp.info['impactAssessment'] = 2
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }else  if (event.target.value === 'Critical'){
+        temp.info['impactAssessment'] = 3
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+      }
+    }
+
+    if (event.target.name === 'flowTemplateId'){
+      _.forEach(socFlowSourceList , flowVal =>{
+        if (flowVal.id === event.target.value){
+          if (flowVal.severity === 'Emergency'){
+            temp.info['severity'] = 'Emergency'
+            temp.info['impactAssessment'] = 4
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Alert'){
+            temp.info['severity'] = 'Alert'
+            temp.info['impactAssessment'] = 3
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Notice'){
+            temp.info['severity'] = 'Notice'
+            temp.info['impactAssessment'] = 1
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Warning'){
+            temp.info['severity'] = 'Warning'
+            temp.info['impactAssessment'] = 2
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }else  if (flowVal.severity === 'Critical'){
+            temp.info['severity'] = 'Critical'
+            temp.info['impactAssessment'] = 3
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
+          }
+        }
+      })
+    }
+
+
     if (event.target.name === 'impactAssessment') {
       temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours')
     }
@@ -1439,7 +1545,7 @@ class ThreatsController extends Component {
       this.setState({
         incident:temp
       })
-    }else{
+    } else {
       temp.info.attach = file;
       this.setState({
         incident:temp
@@ -1570,7 +1676,7 @@ class ThreatsController extends Component {
     let chartFields = {};
     alertTableData[type].chartFieldsArr.forEach(tempData => {
       chartFields[tempData] = {
-        label: tempData === 'key' ? key : tempData,
+        label: tempData === 'key' ? f('threatsField.' + key) : tempData,
         sortable: true,
         formatter: (value, allValue, i) => {
           return <span>{value}</span>
@@ -1597,11 +1703,11 @@ class ThreatsController extends Component {
       alertTableData
     } = this.state;
 
-    const page = fromPage === 'currentPage' ? threatsData.currentPage : 0;
+    const page = (fromPage === 'currentPage' || this.state.tableType === 'select') ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
 
-    if (!options || options === 'alertDetails') {
+    if (!options || options === 'alertDetails' || this.state.tableType === 'select') {
       url += threatsData.pageSize;
     } else {
       url += '0&skipHistogram=true';
@@ -1797,6 +1903,14 @@ class ThreatsController extends Component {
             tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
           })
 
+          //For alert edge severity list table
+          tempAlertTableData.alertEdgeSeverityList.chartData = _.map(data.aggregations.Edges.agg.buckets, val => {
+            return {
+              key: val.agentName,
+              ...val.severityAgg
+            }
+          });
+
           this.setState({
             alertPieData: tempAlertPieData,
             alertTableData: tempAlertTableData
@@ -1809,7 +1923,7 @@ class ThreatsController extends Component {
           let chartFields = {};
           alertTableData.alertNetTrapBlackList.chartFieldsArr.forEach(tempData => {
             chartFields[tempData] = {
-              label: t(`txt-${tempData}`),
+              label: f('threatsField.' + tempData),
               sortable: true,
               formatter: (value, allValue, i) => {
                 return <span>{value}</span>
@@ -1818,7 +1932,6 @@ class ThreatsController extends Component {
           })
 
           let queryBalackListObj = {};
-
 
           if (data.aggregations[NET_TRAP_QUERY.name]) {
             _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black list object
@@ -2321,9 +2434,12 @@ class ThreatsController extends Component {
     tempThreatsData.dataFields = [];
     tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
-    tempThreatsData.currentPage = 1;
-    tempThreatsData.oldPage = 1;
-    tempThreatsData.pageSize = 20;
+
+    if (this.state.tableType !== 'select') {
+      tempThreatsData.currentPage = 1;
+      tempThreatsData.oldPage = 1;
+      tempThreatsData.pageSize = 20;
+    }
 
     _.forEach(tempAlertChartsList, (val, i) => {
       tempAlertChartsList[i].chartData = null;
@@ -2640,7 +2756,7 @@ class ThreatsController extends Component {
     let timeInMss = Date.now();
     sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
 
-    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss;
+    window.location.href = '/SCP/soc/incident-management?alertDataId=' + timeInMss;
   };
   /**
    * Set new datetime and reload page data
@@ -2768,6 +2884,7 @@ class ThreatsController extends Component {
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
       currentTableID: this.state.currentTableID,
+      queryModalType: this.state.queryModalType,
       queryData: this.state.queryData,
       queryDataPublic: this.state.queryDataPublic,
       filterData: this.state.filterData,
@@ -2934,24 +3051,28 @@ class ThreatsController extends Component {
    * @method
    * @returns QueryOpenSave component
    */
+
   queryDialog = () => {
     const {activeTab, account, filterData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
+    const {sessionRights} = this.context;
+    let moduleWithSOC = !!sessionRights.Module_Soc
 
     return (
-      <QueryOpenSave
-        activeTab={activeTab}
-        type={queryModalType}
-        account={account}
-        filterData={filterData}
-        queryData={queryData}
-        queryDataPublic={queryDataPublic}
-        notifyEmailData={notifyEmailData}
-        setFilterData={this.setFilterData}
-        setQueryData={this.setQueryData}
-        setNotifyEmailData={this.setNotifyEmailData}
-        getSavedQuery={this.getSavedQuery}
-        getPublicSavedQuery={this.getPublicSavedQuery}
-        closeDialog={this.closeDialog} />
+        <QueryOpenSave
+            activeTab={activeTab}
+            type={queryModalType}
+            moduleWithSOC={moduleWithSOC}
+            account={account}
+            filterData={filterData}
+            queryData={queryData}
+            queryDataPublic={queryDataPublic}
+            notifyEmailData={notifyEmailData}
+            setFilterData={this.setFilterData}
+            setQueryData={this.setQueryData}
+            setNotifyEmailData={this.setNotifyEmailData}
+            getSavedQuery={this.getSavedQuery}
+            getPublicSavedQuery={this.getPublicSavedQuery}
+            closeDialog={this.closeDialog}/>
     )
   }
   /**
@@ -2994,8 +3115,26 @@ class ThreatsController extends Component {
     let tempQueryDataPublic = {...queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
-    tempQueryDataPublic.inputName = '';
-    tempQueryDataPublic.openFlag = false;
+
+    tempQueryData.soc = {
+      id: '',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription: '',
+      impact: 4,
+      category: 1,
+    }
+
+    tempQueryDataPublic.soc = {
+      id: '',
+      severity: 'Emergency',
+      limitQuery: 10,
+      title: '',
+      eventDescription: '',
+      impact: 4,
+      category: 1,
+    }
 
     this.setState({
       queryData: tempQueryData,

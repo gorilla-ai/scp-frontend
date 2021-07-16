@@ -533,6 +533,16 @@
     "txt-lastAnalyzedStatus": "Latest analyzed status",
     "txt-lastAnalyzedStatusUpdDT": "Latest analyzed status time"
   },
+  "threatsField": {
+    "Subnet": "Subnet",
+    "IP": "IP",
+    "ip": "IP",
+    "domain": "Domain",
+    "count": "Count",
+    "Country": "Country",
+    "agentName": "Agent Name",
+    "client": "Client"
+  },
   "esFields": {
     "date": "Date",
     "status": "Status",
@@ -550,8 +560,17 @@
     "serviceName": "Service Name"
   },
   "incidentFields": {
+    "severity": "Severity Label",
+    "impact": "ImpactAssessment Level",
+    "eventDescription": "Rule Info",
+    "accountQueryDTO": {
+      "module":  "Create Source",
+      "name": "Filter Name"
+    },
+    "flowId": "Flow Type",
     "isDefault": "Default Unit",
     "isGovernment":"Forward NCCST",
+    "flowName": "Flow Name",
     "id": "ID",
     "title": "Title",
     "category": "Category",

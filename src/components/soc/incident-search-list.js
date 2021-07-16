@@ -32,6 +32,7 @@ import constants from "../constant/constant-incidnet";
 import MuiTableContent from "../common/mui-table-content";
 import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
+import SearchOptions from "../common/search-options";
 import IncidentFlowDialog from "./common/flow-dialog";
 
 let t = null;
@@ -49,7 +50,7 @@ const ALERT_LEVEL_COLORS = {
     Notice: '#7ACC29'
 };
 
-class Incident extends Component {
+class IncidentSearch extends Component {
     constructor(props) {
         super(props);
 
@@ -80,13 +81,13 @@ class Incident extends Component {
             activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
             displayPage: 'main', /* main, events, ttps */
             incidentType: '',
-            toggleType:'',
+            toggleType: '',
             showFilter: false,
             showChart: true,
             currentIncident: {},
             originalIncident: {},
-            accountType:constants.soc.LIMIT_ACCOUNT,
-            accountDefault:false,
+            accountType: constants.soc.LIMIT_ACCOUNT,
+            accountDefault: false,
             severityList: [],
             socFlowList: [],
             search: {
@@ -97,7 +98,7 @@ class Incident extends Component {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
-                severity:'',
+                severity: '',
                 isExpired: 2
             },
             dashboard: {
@@ -110,7 +111,7 @@ class Incident extends Component {
             deviceListOptions: [],
             showDeviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString', 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: [],
@@ -141,16 +142,13 @@ class Incident extends Component {
         const {locale, sessionRights} = this.context;
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
-        let alertDataId = this.getQueryString('alertDataId');
-        let alertData = sessionStorage.getItem(alertDataId);
-
         this.checkAccountType();
-        this.setDefaultSearchOptions(alertData, alertDataId);
+        this.setDefaultSearchOptions();
 
     }
 
 
-    setDefaultSearchOptions = (alertData, alertDataId) => {
+    setDefaultSearchOptions = () => {
         const {baseUrl} = this.context;
         const severityList = _.map(SEVERITY_TYPE, (val, i) => {
             return <MenuItem key={i} value={val}>{val}</MenuItem>
@@ -171,8 +169,8 @@ class Incident extends Component {
                 });
 
                 this.setState({
-                    socFlowSourceList:flowSourceList,
-                    socFlowList:list
+                    socFlowSourceList: flowSourceList,
+                    socFlowList: list
                 });
             }
         }).catch(err => {
@@ -184,20 +182,13 @@ class Incident extends Component {
             severityList,
         }, () => {
             setTimeout(() => {
-                let getData = false;
-                const {session} = this.context;
-
-                this.setState({
-                    accountRoleType: session.roles
-                }, () => {
-                    this.loadCondition('button', 'unhandled')
-                });
-                getData = true
-                if (getData){
+                let getData = true;
+                this.loadData()
+                if (getData) {
                     this.getOptions();
                 }
 
-            }, 2000);
+            }, 500);
         });
     }
 
@@ -208,10 +199,10 @@ class Incident extends Component {
         return null;
     }
 
-    checkAccountType = () =>{
+    checkAccountType = () => {
         const {baseUrl, session} = this.context;
-        let requestData={
-            account:session.accountId
+        let requestData = {
+            account: session.accountId
         }
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
@@ -222,15 +213,15 @@ class Incident extends Component {
             .then(data => {
                 if (data) {
 
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
                         this.setState({
                             accountType: constants.soc.LIMIT_ACCOUNT
                         })
-                    }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                    } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
                         this.setState({
                             accountType: constants.soc.NONE_LIMIT_ACCOUNT
                         })
-                    }else {
+                    } else {
                         this.setState({
                             accountType: constants.soc.CHECK_ERROR
                         })
@@ -259,136 +250,21 @@ class Incident extends Component {
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/history/_search?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-        .then(data => {
-            if (data) {
-                let tempEdge = {...incident};
-
-                tempEdge.dataContent = data.rt.rows;
-                tempEdge.totalCount = data.rt.counts;
-                tempEdge.currentPage = page;
-
-                tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                    return {
-                        name: val === '_menu' ? '' : val,
-                        label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                        options: {
-                            filter: true,
-                            sort: val === 'severity',
-                            customBodyRenderLite: (dataIndex, options) => {
-                                const allValue = tempEdge.dataContent[dataIndex];
-                                let value = tempEdge.dataContent[dataIndex][val];
-
-                                if (options === 'getAllValue') {
-                                    return allValue;
-                                }
-
-                                if (val === '_menu') {
-                                    return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                        <MoreIcon/>
-                                    </IconButton>
-                                } else if (val === 'type') {
-                                    let tmpList = [];
-                                    tmpList = allValue.ttpList;
-                                    if (tmpList.length === 0) {
-                                        return <span>{it('txt-incident-event')}</span>
-                                    } else {
-                                        return <span>{it('txt-incident-related')}</span>
-                                    }
-                                } else if (val === 'category') {
-                                    return <span>{it(`category.${value}`)}</span>
-                                } else if (val === 'status') {
-                                    // return <span>{it(`status.${value}`)}</span>
-                                    let status = 'N/A'
-                                    if (allValue.flowData) {
-
-                                        if (allValue.flowData.finish) {
-                                            return <span>{it('status.3')}</span>
-                                        }
-
-                                        if (allValue.flowData.currentEntity) {
-                                            status = allValue.flowData.currentEntity[allValue.id].entityName
-                                        }
-                                    }
-                                    return <span>{status}</span>
-                                } else if (val === 'createDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (val === 'tag') {
-                                    const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                    return <div>
-                                        {
-                                            _.map(allValue.tagList, el => {
-                                                return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                                                    &nbsp;{el.tag.tag}
-                                                </div>
-                                            })
-                                        }
-                                    </div>
-
-                                } else if (val === 'severity') {
-                                    return <span className='severity-level'
-                                                 style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                } else if (val === 'srcIPListString' || val === 'dstIPListString'){
-                                    let formattedPatternIP = ''
-                                    if (value.length > 32) {
-                                        formattedPatternIP = value.substr(0, 32) + '...';
-                                    }else{
-                                        formattedPatternIP = value
-                                    }
-                                    return <span>{formattedPatternIP}</span>
-                                } else {
-                                    return <span>{value}</span>
-                                }
-                            }
-                        }
-                    };
-                });
-
-                this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
-            }
-            return null
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
-    };
-
-
-    /**
-     * Get and set Incident Device table data
-     * @method
-     * @param {string} fromSearch - option for the 'search'
-     */
-    loadWithoutDateTimeData = (fromSearch, searchPayload) => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {incident} = this.state;
-        const sort = incident.sort.desc ? 'desc' : 'asc';
-        const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-
-        searchPayload.account = session.accountId
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(searchPayload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
             .then(data => {
-
                 if (data) {
                     let tempEdge = {...incident};
+
                     tempEdge.dataContent = data.rt.rows;
                     tempEdge.totalCount = data.rt.counts;
                     tempEdge.currentPage = page;
@@ -409,11 +285,10 @@ class Incident extends Component {
                                     }
 
                                     if (val === '_menu') {
-                                        return <div className='table-menu active'>
-                                            <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                                <MoreIcon/>
-                                            </IconButton>
-                                        </div>
+                                        return <IconButton aria-label="more"
+                                                           onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                            <MoreIcon/>
+                                        </IconButton>
                                     } else if (val === 'type') {
                                         let tmpList = [];
                                         tmpList = allValue.ttpList;
@@ -424,19 +299,6 @@ class Incident extends Component {
                                         }
                                     } else if (val === 'category') {
                                         return <span>{it(`category.${value}`)}</span>
-                                    } else if (val === 'status') {
-                                        let status = 'N/A'
-                                        if (allValue.flowData) {
-
-                                            if (allValue.flowData.finish) {
-                                                return <span>{it('status.3')}</span>
-                                            }
-
-                                            if (allValue.flowData.currentEntity) {
-                                                status = allValue.flowData.currentEntity[allValue.id].entityName
-                                            }
-                                        }
-                                        return <span>{status}</span>
                                     } else if (val === 'createDttm') {
                                         return <span>{helper.getFormattedDate(value, 'local')}</span>
                                     } else if (val === 'tag') {
@@ -446,7 +308,8 @@ class Incident extends Component {
                                             {
                                                 _.map(allValue.tagList, el => {
                                                     return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                        <div className='incident-tag-square'
+                                                             style={{backgroundColor: el.tag.color}}></div>
                                                         &nbsp;{el.tag.tag}
                                                     </div>
                                                 })
@@ -456,11 +319,11 @@ class Incident extends Component {
                                     } else if (val === 'severity') {
                                         return <span className='severity-level'
                                                      style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                                    } else if (val === 'srcIPListString' || val === 'dstIPListString') {
                                         let formattedPatternIP = ''
                                         if (value.length > 32) {
                                             formattedPatternIP = value.substr(0, 32) + '...';
-                                        }else{
+                                        } else {
                                             formattedPatternIP = value
                                         }
                                         return <span>{formattedPatternIP}</span>
@@ -472,44 +335,14 @@ class Incident extends Component {
                         };
                     });
 
-                    this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
-                        // this.loadDashboard()
-                    })
+                    this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 3,})
                 }
                 return null
             })
             .catch(err => {
-
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
     };
-
-    loadCondition = (from,type) => {
-        const {session} = this.context
-        let fromSearch = from
-        if (from === 'button'){
-            fromSearch = 'search'
-        }
-        let search = {
-            keyword: '',
-            accountRoleType: this.state.accountRoleType,
-        }
-        if (type === 'expired') {
-            this.setState({loadListType: 0})
-            search.isExpired = 1;
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else if (type === 'unhandled') {
-            this.setState({loadListType: 1})
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else if (type === 'mine') {
-            this.setState({loadListType: 2})
-            search.creator = session.accountId
-            this.loadWithoutDateTimeData(fromSearch, search)
-        }else{
-
-        }
-        this.clearFilter()
-    }
 
     /**
      * Handle open menu
@@ -546,12 +379,20 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType} = this.state
+        const {
+            search,
+            activeContent,
+            baseUrl,
+            contextRoot,
+            showFilter,
+            showChart,
+            incident,
+            contextAnchor,
+            currentData,
+            accountType
+        } = this.state
         const {session} = this.context
         let superUserCheck = false;
-        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
-            superUserCheck = true
-        }
 
         const tableOptions = {
             onChangePage: (currentPage) => {
@@ -566,25 +407,13 @@ class Incident extends Component {
         };
 
         return <div>
-            <IncidentComment ref={ref => {
-                this.incidentComment = ref
-            }}/>
-
-            {this.state.loadListType === 1 && (
-                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
-            )}
-
-
-            {this.state.loadListType === 3 && (
-                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this)}/>
-            )}
+            <IncidentTag ref={ref => {
+                this.incidentTag = ref
+            }} onLoad={this.loadData.bind(this)}/>
 
             <IncidentFlowDialog ref={ref => {
                 this.incidentFlowDialog = ref
             }}/>
-
-            <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
-
 
             <Menu
                 anchorEl={contextAnchor}
@@ -592,47 +421,41 @@ class Incident extends Component {
                 open={Boolean(contextAnchor)}
                 onClose={this.handleCloseMenu}>
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
-                <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
-                <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
+                {(currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) &&
+                    <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                }
             </Menu>
 
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
-                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-                    <button className='' onClick={this.openIncidentTag.bind(this, null)}
-                            title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
-                    }
-                    <button className='' onClick={this.openIncidentComment.bind(this)}
-                            title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
+                    <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
+                            title={t('txt-filter')}><i className='fg fg-filter'/></button>
                 </div>
+                <SearchOptions
+                    datetime={search.datetime}
+                    enableTime={true}
+                    handleDateChange={this.handleDateChange}
+                    handleSearchSubmit={this.loadData} />
             </div>
 
             <div className='data-content'>
-                <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
+                <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
 
                 <div className='parent-content'>
-                    {/*{this.renderStatistics()}*/}
-                    {/*{this.renderFilter()}*/}
+                    {this.renderFilter()}
 
                     {activeContent === 'tableList' &&
                     <div className='main-content'>
-                        <header className='main-header'>{it('txt-incident-sign')}</header>
+                        <header className='main-header'>{it('txt-incident')}</header>
                         <div className='content-header-btns with-menu '>
                             {activeContent === 'viewIncident' &&
                             <Button variant='outlined' color='primary' className='standard btn edit'
                                     onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                             }
-                            {/*{_.size(incident.dataContent) > 0 &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>*/}
-                            {/*}*/}
+                            {_.size(incident.dataContent) > 0 &&
+                            <Button variant='outlined' color='primary' className='standard btn edit'
+                                    onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
+                            }
                         </div>
                         <MuiTableContent
                             data={incident}
@@ -655,39 +478,13 @@ class Incident extends Component {
      * @returns HTML DOM
      */
     displayEditContent = () => {
-        const {session} = this.context
-        const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
-
-        let editCheck = true
-        let drawCheck = false
-        let submitCheck = true
-        let returnCheck = true
-        let closeCheck = false
-
-        if (session.accountId === incident.info.creator) {
-            drawCheck = true
-        }
-
-        // if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer) && this.state.accountRoleType.length === 1) {
-        //
-        // }
-        if (incident.info.flowData.currentEntity[incident.info.id].entityId === incident.info.flowData.firstEntityId){
-            returnCheck = false
-        }
-
-        if ((_.includes(this.state.accountRoleType,constants.soc.SOC_NORMAL_Ciso ) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) && this.state.accountRoleType.length === 1) {
-            editCheck = false
-        }
-
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
-            closeCheck = true
-        }
+        const {activeContent, incidentType, incident, displayPage} = this.state;
 
         let tmpTagList = []
 
-        if(incident.info.tagList && incident.info.tagList.length >= 3){
-            tmpTagList = incident.info.tagList.slice(0,3);
-        }else{
+        if (incident.info.tagList && incident.info.tagList.length >= 3) {
+            tmpTagList = incident.info.tagList.slice(0, 3);
+        } else {
             tmpTagList = incident.info.tagList
         }
 
@@ -696,50 +493,37 @@ class Incident extends Component {
                 {it(`txt-${activeContent}-${incidentType}`)}
                 {
                     activeContent !== 'addIncident' &&
-                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red'}}>{incident.info.id}</span>
+                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span
+                        style={{color: 'red'}}>{incident.info.id}</span>
                         <div style={{display: 'flex', marginLeft: '10px'}}>
-                        {
-                            _.map(tmpTagList, el => {
+                            {
+                                _.map(tmpTagList, el => {
                                     let formattedWording = ''
-                                    if (el.tag.tag.length > 6){
+                                    if (el.tag.tag.length > 6) {
                                         formattedWording = el.tag.tag.substr(0, 6) + '...';
-                                    }else{
+                                    } else {
                                         formattedWording = el.tag.tag;
                                     }
-                                return (
-                                    <div style={{display: 'flex', marginRight: '5px'}}>
-                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
-                                        {formattedWording}
-                                    </div>
-                                )
-                            })
-                        }
-                        {incident.info.tagList && incident.info.tagList.length >= 3 && "..."}
+                                    return (
+                                        <div style={{display: 'flex', marginRight: '5px'}}>
+                                            <div className='incident-tag-square'
+                                                 style={{backgroundColor: el.tag.color}}/>
+                                            {formattedWording}
+                                        </div>
+                                    )
+                                })
+                            }
+                            {incident.info.tagList && incident.info.tagList.length >= 3 && "..."}
                         </div>
                     </div>
                 }
             </header>
             {activeContent === 'viewIncident' &&
             <div className='content-header-btns'>
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-
-                {editCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
-                }
-                {/*{drawCheck &&*/}
-                {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>*/}
-                {/*}*/}
-                {returnCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
-                }
-                {submitCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
-                }
-                {closeCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
-                }
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit'
+                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit'
+                        onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
             </div>
             }
 
@@ -748,39 +532,24 @@ class Incident extends Component {
                     displayPage === 'main' && this.displayMainPage()
                 }
                 {
-                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&  this.displayNoticePage()
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayNoticePage()
                 }
                 {
                     _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayAttached()
                 }
                 {
-                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&  this.displayConnectUnit()
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayConnectUnit()
                 }
                 {
-                    activeContent !== 'addIncident' &&  displayPage === 'main' && this.displayFlow()
+                    activeContent !== 'addIncident' && displayPage === 'main' && this.displayFlow()
                 }
-            {
-                displayPage === 'events' && this.displayEventsPage()
-            }
-            {
-                displayPage === 'ttps' && this.displayTtpPage()
-            }
+                {
+                    displayPage === 'events' && this.displayEventsPage()
+                }
+                {
+                    displayPage === 'ttps' && this.displayTtpPage()
+                }
             </div>
-
-            {
-                activeContent === 'editIncident' &&
-                <footer>
-                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-                    <Button variant='contained' color='primary'  onClick={this.handleSubmit}>{t('txt-save')}</Button>
-                </footer>
-            }
-            {
-                activeContent === 'addIncident' &&
-                <footer>
-                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
-                    <Button variant='contained' color='primary'onClick={this.handleSubmit}>{t('txt-save')}</Button>
-                </footer>
-            }
         </div>
     };
 
@@ -808,10 +577,10 @@ class Incident extends Component {
                 }
             </header>
 
-            <Button className='last-left' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last-left' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-            <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
             <div className='group full'>
@@ -874,7 +643,6 @@ class Incident extends Component {
                     fullWidth={true}
                     variant='outlined'
                     size='small'
-                    required
                     onChange={this.handleDataChangeMui}
                     value={incident.info.flowTemplateId}
                     disabled={activeContent === 'viewIncident' || activeContent === 'editIncident'}>
@@ -899,7 +667,7 @@ class Incident extends Component {
                     disabled={true}>
                     {
                         _.map(_.range(1, 5), el => {
-                            return  <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                            return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
                         })
                     }
                 </TextField>
@@ -935,8 +703,8 @@ class Incident extends Component {
                         required
                         helperText={it('txt-required')}
                         value={incident.info.expireDttm}
-                        readOnly={activeContent === 'viewIncident' }
-                        onChange={this.handleDataChange.bind(this, 'expireDttm')} />
+                        readOnly={activeContent === 'viewIncident'}
+                        onChange={this.handleDataChange.bind(this, 'expireDttm')}/>
                 </MuiPickersUtilsProvider>
             </div>
 
@@ -968,7 +736,6 @@ class Incident extends Component {
                     size='small'
                     options={incident.info.differenceWithOptions}
                     getOptionLabel={(option) => option.text}
-                    // onChange={this.handleDataChange.bind(this, 'relatedList')}
                     value={incident.info.showFontendRelatedList}
                     onChange={this.onTagsChange}
                     disabled={activeContent === 'viewIncident'}
@@ -988,12 +755,6 @@ class Incident extends Component {
     };
 
     onTagsChange = (event, values) => {
-
-        // let tempList = []
-        // _.forEach(values, el => {
-        //     tempList.push(el.text)
-        // })
-
         let temp = {...this.state.incident};
         // temp.info['relatedList'] = tempList;
         temp.info['showFontendRelatedList'] = values;
@@ -1004,7 +765,7 @@ class Incident extends Component {
     }
 
     formatBytes = (bytes, decimals = 2) => {
-        if (bytes === 0 || bytes === '0'){
+        if (bytes === 0 || bytes === '0') {
             return '0 Bytes';
         }
 
@@ -1019,10 +780,10 @@ class Incident extends Component {
 
     handleAttachChange = (val) => {
         let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-        if (flag.test(val.name)){
-            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+        if (flag.test(val.name)) {
+            helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'),)
             this.setState({attach: null})
-        }else{
+        } else {
             this.setState({attach: val})
         }
     }
@@ -1030,8 +791,8 @@ class Incident extends Component {
     handleAFChange(file) {
         let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
 
-        if (flag.test(file.name)){
-            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+        if (flag.test(file.name)) {
+            helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'),)
             this.setState({attach: null})
         }
     }
@@ -1049,13 +810,13 @@ class Incident extends Component {
             cancelText: t('txt-cancel'),
             display: <div className='c-form content'>
                 <div>
-                    <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}
-                               onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
+                    <FileInput id='attach' name='file' validate={{max: 20, t: this.getErrorMsg}}
+                               onChange={this.handleAFChange} btnText={t('txt-selectFile')}/>
                 </div>
                 <div>
                     <label>{it('txt-fileMemo')}</label>
                     <TextareaAutosize id='comment'
-                                      className='textarea-autosize' rows={3} />
+                                      className='textarea-autosize' rows={3}/>
                 </div>
             </div>,
             act: (confirmed, data) => {
@@ -1063,8 +824,8 @@ class Incident extends Component {
                 if (confirmed) {
                     let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
 
-                    if (flag.test(data.file.name)){
-                    }else{
+                    if (flag.test(data.file.name)) {
+                    } else {
                         this.uploadAttachmentByModal(data.file, data.comment)
                     }
                 }
@@ -1082,39 +843,40 @@ class Incident extends Component {
                 formatter: (value, allValue, i) => {
                     if (tempData === 'fileSize') {
                         return <span>{this.formatBytes(value)}</span>
-                    }
-                    else if (tempData === 'fileDttm') {
+                    } else if (tempData === 'fileDttm') {
                         return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-                    }
-                    else if (tempData === 'fileMemo') {
-                        if (incident.info.attachmentDescription){
+                    } else if (tempData === 'fileMemo') {
+                        if (incident.info.attachmentDescription) {
                             const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
 
                             let formattedWording = ''
                             if (target.fileMemo && target.fileMemo.length > 32) {
                                 formattedWording = target.fileMemo.substr(0, 32) + '...';
-                            }else{
+                            } else {
                                 formattedWording = target.fileMemo
                             }
-                            return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
+                            return <span
+                                style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
                         }
-                    }
-                    else if (tempData === 'action') {
+                    } else if (tempData === 'action') {
                         let isShow = true
 
-                        if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
-                            isShow = false
+                        if (incident.info.status === 3 || incident.info.status === 4) {
+                            if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
+                                isShow = false
+                            }
                         }
 
                         return <div>
-                            <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
+                            <i className='c-link fg fg-data-download' title={t('txt-download')}
+                               onClick={this.downloadAttachment.bind(this, allValue)}/>
                             {
                                 isShow &&
-                                <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+                                <i className='c-link fg fg-trashcan' title={t('txt-delete')}
+                                   onClick={this.deleteAttachment.bind(this, allValue)}/>
                             }
                         </div>
-                    }
-                    else {
+                    } else {
                         return <span>{value}</span>
                     }
                 }
@@ -1125,7 +887,8 @@ class Incident extends Component {
 
         return <div className='form-group normal'>
             <header>
-                <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
+                <div className='text'>{it('txt-attachedFile')}<span
+                    style={{color: 'red', 'fontSize': '0.8em'}}>{it('txt-attachedFileHint')}</span></div>
             </header>
             {
                 activeContent === 'addIncident' &&
@@ -1134,7 +897,7 @@ class Incident extends Component {
                         id='attach'
                         name='file'
                         className='file-input'
-                        validate={{ max:20 ,t: this.getErrorMsg}}
+                        validate={{max: 20, t: this.getErrorMsg}}
                         onChange={this.handleAttachChange}
                         btnText={t('txt-selectFile')}
                     />
@@ -1150,13 +913,14 @@ class Incident extends Component {
                         className='textarea-autosize'
                         onChange={this.handleDataChangeMui}
                         value={incident.info.fileMemo}
-                        rows={2} />
+                        rows={2}/>
                 </div>
             }
             {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
-                    <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+                    <Button variant='contained' color='primary' className='upload'
+                            onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
                 </div>
             }
             {
@@ -1185,21 +949,24 @@ class Incident extends Component {
                 formatter: (value, allValue, i) => {
                     if (tempData === 'reviewDttm') {
                         return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-                    }
-                    else if (tempData === 'status') {
+                    } else if (tempData === 'status') {
                         return <span>{it(`action.${value}`)}</span>
-                    }else if (tempData === 'suggestion' || tempData === 'reviewerName'){
+                    } else if (tempData === 'suggestion' || tempData === 'reviewerName') {
                         let formattedWording = ''
                         if (value && value.length > 32) {
                             formattedWording = value.substr(0, 32) + '...';
-                        }else{
+                        } else {
                             formattedWording = value
                         }
-                        return <span  style={{ whiteSpace: 'pre-wrap',
-                                         wordBreak: 'break-all'}}>{formattedWording}</span>
+                        return <span style={{
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all'
+                        }}>{formattedWording}</span>
                     } else {
-                        return <span style={{ whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-all'}}>{value}</span>
+                        return <span style={{
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all'
+                        }}>{value}</span>
                     }
                 }
             }
@@ -1223,7 +990,7 @@ class Incident extends Component {
     }
 
     displayNoticePage = () => {
-        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST, incidentType, incident} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1246,18 +1013,18 @@ class Incident extends Component {
                 </TextField>
             </div>
             {incident.info.accidentCatogory === '5' &&
-                <div className='group'>
-                    <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-                    <TextField
-                        id='accidentAbnormal'
-                        name='accidentAbnormal'
-                        variant='outlined'
-                        fullWidth={true}
-                        size='small'
-                        onChange={this.handleDataChangeMui}
-                        value={incident.info.accidentAbnormalOther}
-                        disabled={activeContent === 'viewIncident'}/>
-                </div>
+            <div className='group'>
+                <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
+                <TextField
+                    id='accidentAbnormal'
+                    name='accidentAbnormal'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
+                    value={incident.info.accidentAbnormalOther}
+                    disabled={activeContent === 'viewIncident'}/>
+            </div>
             }
             {incident.info.accidentCatogory !== '5' &&
             <div className='group'>
@@ -1320,7 +1087,7 @@ class Incident extends Component {
     };
 
     displayConnectUnit = () => {
-        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST, incidentType, incident} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1332,7 +1099,7 @@ class Incident extends Component {
                     id='incidentEvent'
                     className='incident-group'
                     base={NotifyContact}
-                    defaultItemValue={{title: '', name: '', phone:'', email:''}}
+                    defaultItemValue={{title: '', name: '', phone: '', email: ''}}
                     value={incident.info.notifyList}
                     props={{activeContent: activeContent}}
                     onChange={this.handleConnectContactChange}
@@ -1360,10 +1127,11 @@ class Incident extends Component {
                 <div className='text'>{it('txt-incident-events')}</div>
             </header>
 
-            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last-left ' style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-            <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last' disabled={incidentType !== 'ttps'}
+                    style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
 
 
@@ -1374,7 +1142,12 @@ class Incident extends Component {
                     base={Events}
                     defaultItemValue={{description: '', deviceId: '', time: {from: nowTime, to: nowTime}, frequency: 1}}
                     value={incident.info.eventList}
-                    props={{activeContent: activeContent, locale: locale, deviceListOptions: deviceListOptions , showDeviceListOptions:showDeviceListOptions}}
+                    props={{
+                        activeContent: activeContent,
+                        locale: locale,
+                        deviceListOptions: deviceListOptions,
+                        showDeviceListOptions: showDeviceListOptions
+                    }}
                     onChange={this.handleEventsChange}
                     readOnly={activeContent === 'viewIncident'}/>
 
@@ -1398,10 +1171,10 @@ class Incident extends Component {
                 </div>
             </header>
 
-            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last-left ' style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
-            <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
             <div className='group full multi'>
@@ -1417,468 +1190,7 @@ class Incident extends Component {
         </div>
     };
 
-    handleSubmit = () => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {activeContent, incidentType, attach} = this.state;
-        let incident = {...this.state.incident};
-
-        if (!this.checkRequired(incident.info)) {
-            return
-        }
-
-        if (incident.info.showFontendRelatedList) {
-            incident.info.relatedList = _.map(incident.info.showFontendRelatedList, el => {
-                return {incidentRelatedId: el.value}
-            })
-        }
-
-        if (incident.info.eventList) {
-            incident.info.eventList = _.map(incident.info.eventList, el => {
-
-                _.forEach(el.eventConnectionList, eventConnectItem=>{
-                   if( eventConnectItem.srcPort === ''){
-                       eventConnectItem.srcPort = 0
-                   }
-
-                   if(  eventConnectItem.dstPort === ''){
-                       eventConnectItem.dstPort = 0
-                   }
-                })
-                return {
-                    ...el,
-                    startDttm: Moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-                    endDttm: Moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-                }
-            })
-        }
-
-
-        if (incident.info.accidentCatogory) {
-            if (incident.info.accidentCatogory === 5) {
-                incident.info.accidentAbnormal = null
-            }
-            else {
-                incident.info.accidentAbnormalOther = null
-            }
-        }
-
-        if (incident.info.expireDttm) {
-            incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-        }
-
-
-        if (!incident.info.creator) {
-            incident.info.creator = session.accountId;
-        }
-
-        // add for save who edit
-        incident.info.editor = session.accountId;
-
-        if (activeContent === 'addIncident') {
-            incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED ;
-        }
-
-        ah.one({
-            url: `${baseUrl}/api/soc`,
-            data: JSON.stringify(incident.info),
-            type: activeContent === 'addIncident' ? 'POST' : 'PATCH',
-            contentType: 'application/json',
-            dataType: 'json'
-        }).then(data => {
-            incident.info.id = data.rt.id;
-            incident.info.updateDttm = data.rt.updateDttm;
-            incident.info.status = data.rt.status;
-
-            this.setState({
-                originalIncident: _.cloneDeep(incident)
-            }, () => {
-                if (attach) {
-                    this.uploadAttachment()
-                }
-                this.getIncident(incident.info.id);
-                this.toggleContent('cancel');
-            });
-
-            return null;
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        });
-    };
-
-    checkRequired(incident) {
-        const {incidentType} = this.state;
-
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
-            PopupDialog.alert({
-                title: t('txt-tips'),
-                display: it('txt-validBasic'),
-                confirmText: t('txt-close')
-            });
-
-            return false
-        }
-
-        // always check event list
-        if (!incident.eventList) {
-            PopupDialog.alert({
-                title: t('txt-tips'),
-                display: it('txt-validEvents'),
-                confirmText: t('txt-close')
-            });
-
-            return false
-        }
-        else {
-
-            let eventCheck = true;
-
-            if (incident.eventList.length <= 0){
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validEvents'),
-                    confirmText: t('txt-close')
-                });
-                eventCheck = false;
-            }else{
-                _.forEach(incident.eventList, event => {
-                    if(_.size(event.eventConnectionList)<= 0){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-validEvents'),
-                            confirmText: t('txt-close')
-                        });
-                        eventCheck = false
-                    }else{
-                        _.forEach(event.eventConnectionList, eventConnect => {
-
-                            if (!helper.ValidateIP_Address(eventConnect.srcIp) ){
-                                PopupDialog.alert({
-                                    title: t('txt-tips'),
-                                    display: t('network-topology.txt-ipValidationFail'),
-                                    confirmText: t('txt-close')
-                                });
-                                eventCheck = false
-                                return
-                            }
-
-                            if (!helper.ValidateIP_Address(eventConnect.dstIp)){
-                                PopupDialog.alert({
-                                    title: t('txt-tips'),
-                                    display: t('network-topology.txt-ipValidationFail'),
-                                    confirmText: t('txt-close')
-                                });
-                                eventCheck = false
-                                return
-                            }
-
-                            if (eventConnect.dstPort){
-                                if (!helper.ValidatePort(eventConnect.dstPort)){
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-portValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    eventCheck = false
-                                    return
-                                }
-                            }
-
-                            if (eventConnect.srcPort){
-                                if (!helper.ValidatePort(eventConnect.srcPort)){
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-portValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    eventCheck = false
-
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-
-
-
-            if (!eventCheck){
-                return false
-            }
-
-            let empty = _.filter(incident.eventList, function (o) {
-                return !o.description || !o.deviceId || !o.eventConnectionList  || !o.frequency
-            });
-
-            if (_.size(empty) > 0) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validEvents'),
-                    confirmText: t('txt-close')
-                });
-
-                return false
-            }
-        }
-
-        // check ttp list
-        if (incidentType === 'ttps') {
-
-            if (!incident.description) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validTechniqueInfa'),
-                    confirmText: t('txt-close')
-                });
-
-                return false
-            }
-
-
-            if (!incident.ttpList) {
-                PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: it('txt-validTTPs'),
-                    confirmText: t('txt-close')
-                });
-
-                return false
-            } else {
-                let statusCheck = true
-                let fileCheck = false
-                let urlCheck = false
-                let socketCheck = false
-                _.forEach(incident.ttpList, ttp => {
-
-                    if (_.size(ttp.obsFileList) > 0) {
-                        _.forEach(ttp.obsFileList, file => {
-                            if (file.fileName && file.fileExtension) {
-                                if (file.md5 || file.sha1 || file.sha256) {
-                                    if (helper.validateInputRuleData('fileHashMd5',file.md5)){
-                                        fileCheck = true
-                                    }else if (helper.validateInputRuleData('fileHashSha1',file.sha1)){
-                                        fileCheck = true
-                                    }else if (helper.validateInputRuleData('fileHashSha256',file.sha256)){
-                                        fileCheck = true
-                                    }else{
-                                        fileCheck = false
-                                        return
-                                    }
-                                }else {
-                                    fileCheck = false
-                                    return
-                                }
-                            }
-                        })
-                    }else{
-                        fileCheck = true
-                    }
-
-                    if (_.size(ttp.obsUriList) > 0) {
-                        _.forEach(ttp.obsUriList, uri => {
-                            if (uri.uriType && uri.uriValue) {
-                                urlCheck = true
-                            } else {
-                                urlCheck = false
-                                return
-                            }
-                        })
-                    }else{
-                        urlCheck = true
-                    }
-
-
-                    if (_.size(ttp.obsSocketList) > 0) {
-                        _.forEach(ttp.obsSocketList, socket => {
-                            if (socket.ip || socket.port) {
-                                if (socket.ip && !helper.ValidateIP_Address(socket.ip)){
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-ipValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    socketCheck = false
-                                    return
-                                }
-
-                                if (socket.port){
-                                    if (!helper.ValidatePort(socket.port)){
-                                        PopupDialog.alert({
-                                            title: t('txt-tips'),
-                                            display: t('network-topology.txt-portValidationFail'),
-                                            confirmText: t('txt-close')
-                                        });
-                                        socketCheck = false
-                                        return
-                                    }else{
-                                        if (!socket.ip){
-                                            PopupDialog.alert({
-                                                title: t('txt-tips'),
-                                                display: t('network-topology.txt-ipValidationFail'),
-                                                confirmText: t('txt-close')
-                                            });
-                                            socketCheck = false
-                                            return
-                                        }
-                                        socketCheck = true
-                                    }
-                                }
-                                socketCheck = true
-                            }else {
-                                socketCheck = false
-                                return
-                            }
-                        })
-                    }else{
-                        socketCheck = true
-                    }
-
-                    if (!fileCheck && !urlCheck && !socketCheck){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                    if (!fileCheck){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-checkFileFieldType'),
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                    if (!urlCheck){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-checkUrlFieldType'),
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-                    if (!socketCheck){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-checkIPFieldType'),
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                    if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0){
-                        PopupDialog.alert({
-                            title: t('txt-tips'),
-                            display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
-                            confirmText: t('txt-close')
-                        });
-                        statusCheck = false
-                    }
-
-                })
-
-                let empty = _.filter(incident.ttpList, function (o) {
-                    if (o.infrastructureType === undefined || o.infrastructureType === 0){
-                        o.infrastructureType = '0'
-                    }
-                    if (!o.title || !o.infrastructureType){
-                        statusCheck = false
-                    }
-                });
-
-                if (_.size(empty) > 0) {
-                    PopupDialog.alert({
-                        title: t('txt-tips'),
-                        display: it('txt-validTechniqueInfa'),
-                        confirmText: t('txt-close')
-                    });
-                    statusCheck = false
-                }
-
-                return statusCheck
-            }
-        }
-
-        return true
-    }
-
     getIncident = (id, type) => {
-        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
-        this.handleCloseMenu()
-        const {baseUrl} = this.context;
-
-        ah.one({
-            url: `${baseUrl}/api/soc?id=${id}`,
-            type: 'GET'
-        })
-        .then(data => {
-            let {incident} = this.state;
-            let temp = data.rt;
-
-            if (temp.relatedList) {
-                temp.relatedList = _.map(temp.relatedList, el => {
-                    let obj = {
-                        value :el.incidentRelatedId,
-                        text:el.incidentRelatedId
-                    }
-                    return obj
-                })
-            }
-
-
-            let result = _.map(temp.relatedList, function(obj) {
-                return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
-            });
-
-            temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
-            temp.showFontendRelatedList = result
-
-            if (temp.eventList) {
-                temp.eventList = _.map(temp.eventList, el => {
-                    return {
-                        ...el,
-                        time: {
-                            from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                            to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
-                        }
-                    }
-                })
-            }
-
-            if (temp.ttpList) {
-                temp.ttpList = _.map(temp.ttpList, el => {
-
-                    let tempTtp = el
-                    if (tempTtp.infrastructureType === 0) {
-                        tempTtp.infrastructureType = '0'
-
-                    }else if (tempTtp.infrastructureType === 1) {
-                        tempTtp.infrastructureType = '1'
-
-                    }
-
-                    return {
-                        ...tempTtp
-                    }
-                })
-            }
-
-            let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
-            let toggleType = type
-            incident.info = temp;
-
-            this.setState({incident, incidentType, toggleType}, () => {
-                this.toggleContent('viewIncident', temp)
-            })
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
-    };
-
-    refreshIncidentAttach = (id) => {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         this.handleCloseMenu()
         const {baseUrl} = this.context;
@@ -1889,24 +1201,26 @@ class Incident extends Component {
         })
             .then(data => {
                 let {incident} = this.state;
-                let tempIncident = {...incident};
                 let temp = data.rt;
+
                 if (temp.relatedList) {
                     temp.relatedList = _.map(temp.relatedList, el => {
                         let obj = {
-                            value :el.incidentRelatedId,
-                            text:el.incidentRelatedId
+                            value: el.incidentRelatedId,
+                            text: el.incidentRelatedId
                         }
                         return obj
                     })
                 }
 
 
-                let result = _.map(temp.relatedList, function(obj) {
+                let result = _.map(temp.relatedList, function (obj) {
                     return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
                 });
 
-                temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
+                temp.differenceWithOptions = _.differenceWith(relatedListOptions, temp.relatedList, function (p, o) {
+                    return p.value === o.value
+                })
                 temp.showFontendRelatedList = result
 
                 if (temp.eventList) {
@@ -1928,7 +1242,83 @@ class Incident extends Component {
                         if (tempTtp.infrastructureType === 0) {
                             tempTtp.infrastructureType = '0'
 
-                        }else if (tempTtp.infrastructureType === 1) {
+                        } else if (tempTtp.infrastructureType === 1) {
+                            tempTtp.infrastructureType = '1'
+
+                        }
+
+                        return {
+                            ...tempTtp
+                        }
+                    })
+                }
+
+                let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
+                let toggleType = type
+                incident.info = temp;
+
+                this.setState({incident, incidentType, toggleType}, () => {
+                    this.toggleContent('viewIncident', temp)
+                })
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+    };
+
+    refreshIncidentAttach = (id) => {
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        this.handleCloseMenu()
+        const {baseUrl} = this.context;
+
+        ah.one({
+            url: `${baseUrl}/api/soc?id=${id}`,
+            type: 'GET'
+        })
+            .then(data => {
+                let {incident} = this.state;
+                let tempIncident = {...incident};
+                let temp = data.rt;
+                if (temp.relatedList) {
+                    temp.relatedList = _.map(temp.relatedList, el => {
+                        let obj = {
+                            value: el.incidentRelatedId,
+                            text: el.incidentRelatedId
+                        }
+                        return obj
+                    })
+                }
+
+
+                let result = _.map(temp.relatedList, function (obj) {
+                    return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+                });
+
+                temp.differenceWithOptions = _.differenceWith(relatedListOptions, temp.relatedList, function (p, o) {
+                    return p.value === o.value
+                })
+                temp.showFontendRelatedList = result
+
+                if (temp.eventList) {
+                    temp.eventList = _.map(temp.eventList, el => {
+                        return {
+                            ...el,
+                            time: {
+                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                            }
+                        }
+                    })
+                }
+
+                if (temp.ttpList) {
+                    temp.ttpList = _.map(temp.ttpList, el => {
+
+                        let tempTtp = el
+                        if (tempTtp.infrastructureType === 0) {
+                            tempTtp.infrastructureType = '0'
+
+                        } else if (tempTtp.infrastructureType === 1) {
                             tempTtp.infrastructureType = '1'
 
                         }
@@ -1942,8 +1332,8 @@ class Incident extends Component {
                 let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
                 incident.info.attachmentDescription = temp.attachmentDescription;
                 incident.info.fileList = temp.fileList;
-                incident.info.fileMemo =  temp.fileMemo;
-                this.setState({incident,incidentType}, () => {
+                incident.info.fileMemo = temp.fileMemo;
+                this.setState({incident, incidentType}, () => {
                     this.toggleContent('refreshAttach', temp)
                 })
 
@@ -2020,113 +1410,47 @@ class Incident extends Component {
                             {severityList}
                         </TextField>
                     </div>
-                    {/*<div className='group'>*/}
-                    {/*    <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>*/}
-                    {/*    <TextField*/}
-                    {/*        id='searchStatus'*/}
-                    {/*        name='status'*/}
-                    {/*        required={true}*/}
-                    {/*        variant='outlined'*/}
-                    {/*        fullWidth={true}*/}
-                    {/*        size='small'*/}
-                    {/*        select*/}
-                    {/*        value={search.status}*/}
-                    {/*        onChange={this.handleSearchMui}>*/}
-                    {/*        {*/}
-                    {/*            _.map(_.range(0, 9), el => {*/}
-                    {/*                return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>*/}
-                    {/*            })}*/}
-                    {/*        }*/}
-                    {/*    </TextField>*/}
-                    {/*</div>*/}
-                    <div className='group'>
-                        <label htmlFor='isExpired'>{it('txt-expired')}</label>
-                        <TextField
-                            id='isExpired'
-                            name='isExpired'
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            value={search.isExpired}
-                            onChange={this.handleSearchMui}>
-                            {
-                                _.map([
-                                    {
-                                        value: 2,
-                                        text: it('txt-allSearch')
-                                    },
-                                    {
-                                        value: 1,
-                                        text: it('unit.txt-isDefault')
-                                    },
-                                    {
-                                        value: 0,
-                                        text: it('unit.txt-isNotDefault')
-                                    }
-                                ], el => {
-                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                })}
-                            }
-                        </TextField>
-                    </div>
-                    <div className='group' style={{width: '500px'}}>
-                        <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
-                        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                            <KeyboardDateTimePicker
-                                className='date-time-picker'
-                                inputVariant='outlined'
-                                variant='inline'
-                                format='YYYY-MM-DD HH:mm'
-                                ampm={false}
-                                value={search.datetime.from}
-                                onChange={this.handleSearchTime.bind(this, 'from')} />
-                            <div className='between'>~</div>
-                            <KeyboardDateTimePicker
-                                className='date-time-picker'
-                                inputVariant='outlined'
-                                variant='inline'
-                                format='YYYY-MM-DD HH:mm'
-                                ampm={false}
-                                value={search.datetime.to}
-                                onChange={this.handleSearchTime.bind(this, 'to')} />
-                        </MuiPickersUtilsProvider>
-                    </div>
                 </div>
                 <div className='button-group'>
-                    <Button variant='contained' color='primary' className='filter' onClick={this.loadData.bind(this, 'search')}>{t('txt-filter')}</Button>
-                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+                    <Button variant='contained' color='primary' className='filter'
+                            onClick={this.loadData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear'
+                            onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )
     };
 
-    renderStatistics = () => {
-        const {showChart, dashboard} = this.state
+    /* ---- Func Space ---- */
 
-        return <div className={cx('main-filter', {'active': showChart})}>
-            <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
-            <div className='incident-statistics' id='incident-statistics'>
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','expired')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
-                    <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
-                </div>
+    /**
+     * Set new datetime
+     * @method
+     * @param {string} type - date type ('from' or 'to')
+     * @param {object} newDatetime - new datetime object
+     */
+    handleDateChange = (type, newDatetime) => {
+        let tempDatetime = {...this.state.search};
+        tempDatetime.datetime[type] = newDatetime;
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
-                    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
-                </div>
-
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
-                    <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
-                </div>
-            </div>
-        </div>
+        this.setState({
+            search: tempDatetime
+        });
     }
 
-    /* ---- Func Space ---- */
+    handleSearchSubmit = () => {
+        let tempAudit = {...this.state.audit};
+        tempAudit.dataContent = [];
+        tempAudit.totalCount = 0;
+        tempAudit.currentPage = 1;
+
+        this.setState({
+            audit: tempAudit
+        }, () => {
+            this.loadData();
+        });
+    }
+
     /**
      * Show Delete Incident dialog
      * @method
@@ -2149,45 +1473,6 @@ class Incident extends Component {
         })
     };
 
-
-    openReviewModal= (allValue, reviewType) => {
-        PopupDialog.prompt({
-            title: it(`txt-${reviewType}`),
-            confirmText: t('txt-confirm'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it(`txt-${reviewType}-msg`)}: {allValue.id}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    this.openIncidentReview(allValue.id, reviewType)
-                }
-            }
-        })
-    }
-
-    /**
-     * Show Send Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openSendMenu = (id) => {
-        PopupDialog.prompt({
-            title: it('txt-send'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-send'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-send-msg')}: {id} ?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    this.sendIncident(id)
-                }
-            }
-        })
-    };
-
     /**
      * Handle delete Incident confirm
      * @method
@@ -2201,16 +1486,7 @@ class Incident extends Component {
         })
             .then(data => {
                 if (data.ret === 0) {
-                    // this.loadData()
-                    if (this.state.loadListType === 0){
-                        this.loadCondition('other','expired')
-                    }else if (this.state.loadListType === 1){
-                        this.loadCondition('other','unhandled')
-                    }else if (this.state.loadListType === 2){
-                        this.loadCondition('other','mine')
-                    }else if (this.state.loadListType === 3){
-                        this.loadData()
-                    }
+                   this.loadData()
                 }
                 return null
             })
@@ -2230,22 +1506,13 @@ class Incident extends Component {
         let temp = {...this.state.incident};
         temp[type] = Number(value);
         this.setState({incident: temp}, () => {
-            // this.loadData()
-            if (this.state.loadListType === 0){
-                this.loadCondition(type,'expired')
-            }else if (this.state.loadListType === 1){
-                this.loadCondition(type,'unhandled')
-            }else if (this.state.loadListType === 2){
-                this.loadCondition(type,'mine')
-            }else if (this.state.loadListType === 3){
-                this.loadData(type)
-            }
+            this.loadData(type)
         })
     };
 
     toggleContent = (type, allValue) => {
         const {baseUrl, contextRoot} = this.context;
-        const {originalIncident, incident,relatedListOptions} = this.state;
+        const {originalIncident, incident, relatedListOptions} = this.state;
         let tempIncident = {...incident};
         let showPage = type;
 
@@ -2262,8 +1529,8 @@ class Incident extends Component {
                 createDttm: allValue.createDttm,
                 updateDttm: allValue.updateDttm,
                 relatedList: allValue.relatedList,
-                showFontendRelatedList:allValue.showFontendRelatedList,
-                differenceWithOptions:allValue.differenceWithOptions,
+                showFontendRelatedList: allValue.showFontendRelatedList,
+                differenceWithOptions: allValue.differenceWithOptions,
                 ttpList: allValue.ttpList,
                 eventList: allValue.eventList,
                 status: allValue.status,
@@ -2283,8 +1550,7 @@ class Incident extends Component {
                 accidentAbnormal: allValue.accidentAbnormal,
                 accidentAbnormalOther: allValue.accidentAbnormalOther,
                 severity: allValue.severity,
-                flowTemplateId:allValue.flowTemplateId,
-                flowData: allValue.flowData
+                flowTemplateId: allValue.flowTemplateId
             };
 
 
@@ -2293,7 +1559,7 @@ class Incident extends Component {
             }
 
             this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
-        }  else if (type === 'addIncident') {
+        } else if (type === 'addIncident') {
             tempIncident.info = {
                 id: null,
                 title: null,
@@ -2323,8 +1589,7 @@ class Incident extends Component {
                 accidentAbnormal: null,
                 accidentAbnormalOther: null,
                 severity: 'Emergency',
-                flowTemplateId: '',
-                flowData: {}
+                flowTemplateId: ''
             };
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
@@ -2348,19 +1613,19 @@ class Incident extends Component {
             tempIncident.info = {
                 title: alertData.Info,
                 reporter: alertData.Collector,
-                rawData:alertData,
+                rawData: alertData,
                 severity: alertData._severity_,
             };
 
-            if (tempIncident.info.severity === 'Emergency'){
+            if (tempIncident.info.severity === 'Emergency') {
                 tempIncident.info['impactAssessment'] = 4
-            }else  if (tempIncident.info.severity === 'Alert'){
+            } else if (tempIncident.info.severity === 'Alert') {
                 tempIncident.info['impactAssessment'] = 3
-            }else  if (tempIncident.info.severity === 'Notice'){
+            } else if (tempIncident.info.severity === 'Notice') {
                 tempIncident.info['impactAssessment'] = 1
-            }else  if (tempIncident.info.severity === 'Warning'){
+            } else if (tempIncident.info.severity === 'Warning') {
                 tempIncident.info['impactAssessment'] = 2
-            }else  if (tempIncident.info.severity === 'Critical'){
+            } else if (tempIncident.info.severity === 'Critical') {
                 tempIncident.info['impactAssessment'] = 3
             }
 
@@ -2419,14 +1684,14 @@ class Incident extends Component {
         } else if (type === 'audit') {
         } else if (type === 'download') {
             this.getIncidentSTIXFile(allValue.id);
-        } else if(type === 'refreshAttach'){
+        } else if (type === 'refreshAttach') {
             tempIncident.info.attachmentDescription = allValue.attachmentDescription;
             tempIncident.info.fileList = allValue.fileList;
-            tempIncident.info.fileMemo =  allValue.fileMemo;
+            tempIncident.info.fileMemo = allValue.fileMemo;
             this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
-            if (this.state.activeContent === 'editIncident'){
+            if (this.state.activeContent === 'editIncident') {
                 showPage = 'editIncident'
-            }else{
+            } else {
                 showPage = 'viewIncident'
             }
         }
@@ -2437,16 +1702,7 @@ class Incident extends Component {
             incident: tempIncident
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
-                if (this.state.loadListType === 0){
-                    this.loadCondition('other','expired')
-                }else if (this.state.loadListType === 1){
-                    this.loadCondition('other','unhandled')
-                }else if (this.state.loadListType === 2){
-                    this.loadCondition('other','mine')
-                }else if (this.state.loadListType === 3){
-                    this.loadData()
-                }
-                // this.loadDashboard()
+                this.loadData()
             }
         })
     };
@@ -2467,16 +1723,15 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-        .then(data => {
-            this.afterAuditDialog(id)
-            // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
-            return null
-        })
-        .catch(err => {
-            helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
-        })
+            .then(data => {
+                this.afterAuditDialog(id)
+                // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
+                return null
+            })
+            .catch(err => {
+                helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
+            })
     };
-
 
 
     /**
@@ -2496,15 +1751,7 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (this.state.loadListType === 0){
-                    this.loadCondition('other','expired')
-                }else if (this.state.loadListType === 1){
-                    this.loadCondition('other','unhandled')
-                }else if (this.state.loadListType === 2){
-                    this.loadCondition('other','mine')
-                }else if (this.state.loadListType === 3){
-                    this.loadData()
-                }
+                this.loadData()
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
 
             })
@@ -2530,15 +1777,7 @@ class Incident extends Component {
                 if (confirmed) {
                     this.sendIncident(incidentId);
                 } else {
-                    if (this.state.loadListType === 0){
-                        this.loadCondition('expired')
-                    }else if (this.state.loadListType === 1){
-                        this.loadCondition('unhandled')
-                    }else if (this.state.loadListType === 2){
-                        this.loadCondition('mine')
-                    }else if (this.state.loadListType === 3){
-                        this.loadData()
-                    }
+                    this.loadData()
                 }
             }
         });
@@ -2647,7 +1886,7 @@ class Incident extends Component {
                 keyword: '',
                 category: 0,
                 status: 0,
-                datetime:{
+                datetime: {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
@@ -2683,45 +1922,45 @@ class Incident extends Component {
         let temp = {...this.state.incident};
         temp.info[event.target.name] = event.target.value;
 
-        if (event.target.name === 'severity'){
-            if (event.target.value === 'Emergency'){
+        if (event.target.name === 'severity') {
+            if (event.target.value === 'Emergency') {
                 temp.info['impactAssessment'] = 4
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Alert'){
+            } else if (event.target.value === 'Alert') {
                 temp.info['impactAssessment'] = 3
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Notice'){
+            } else if (event.target.value === 'Notice') {
                 temp.info['impactAssessment'] = 1
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Warning'){
+            } else if (event.target.value === 'Warning') {
                 temp.info['impactAssessment'] = 2
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Critical'){
+            } else if (event.target.value === 'Critical') {
                 temp.info['impactAssessment'] = 3
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
             }
         }
 
-        if (event.target.name === 'flowTemplateId'){
-            _.forEach(socFlowSourceList , flowVal =>{
-                if (flowVal.id === event.target.value){
-                    if (flowVal.severity === 'Emergency'){
+        if (event.target.name === 'flowTemplateId') {
+            _.forEach(socFlowSourceList, flowVal => {
+                if (flowVal.id === event.target.value) {
+                    if (flowVal.severity === 'Emergency') {
                         temp.info['severity'] = 'Emergency'
                         temp.info['impactAssessment'] = 4
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Alert'){
+                    } else if (flowVal.severity === 'Alert') {
                         temp.info['severity'] = 'Alert'
                         temp.info['impactAssessment'] = 3
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Notice'){
+                    } else if (flowVal.severity === 'Notice') {
                         temp.info['severity'] = 'Notice'
                         temp.info['impactAssessment'] = 1
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Warning'){
+                    } else if (flowVal.severity === 'Warning') {
                         temp.info['severity'] = 'Warning'
                         temp.info['impactAssessment'] = 2
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Critical'){
+                    } else if (flowVal.severity === 'Critical') {
                         temp.info['severity'] = 'Critical'
                         temp.info['impactAssessment'] = 3
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
@@ -2748,57 +1987,57 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-        .then(data => {
-            if (data) {
-                let list = _.map(data.rt.rows, val => {
-                    let ipContent = '';
+            .then(data => {
+                if (data) {
+                    let list = _.map(data.rt.rows, val => {
+                        let ipContent = '';
 
-                    if (val.eventList) {
-                        val.eventList = _.map(val.eventList, el => {
-                            if (el.eventConnectionList) {
-                                el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
-                                    ipContent += '(' + it('txt-srcIp')+ ': ' + ecl.srcIp + ')'
-                                })
-                            }
-                        })
-                    }
+                        if (val.eventList) {
+                            val.eventList = _.map(val.eventList, el => {
+                                if (el.eventConnectionList) {
+                                    el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
+                                        ipContent += '(' + it('txt-srcIp') + ': ' + ecl.srcIp + ')'
+                                    })
+                                }
+                            })
+                        }
 
-                    return {
-                        value: val.id,
-                        text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
-                    }
-                });
+                        return {
+                            value: val.id,
+                            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
+                        }
+                    });
 
-                this.setState({relatedListOptions: list})
-            }
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        });
+                    this.setState({relatedListOptions: list})
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
-            data: JSON.stringify({use:'1',account:session.accountId}),
+            data: JSON.stringify({use: '1', account: session.accountId}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-        .then(data => {
-            if (data) {
-                let list = _.map(data.rt.rows, val => {
-                    return {value: val.id, text: val.deviceName}
-                });
+            .then(data => {
+                if (data) {
+                    let list = _.map(data.rt.rows, val => {
+                        return {value: val.id, text: val.deviceName}
+                    });
 
-                this.setState({deviceListOptions: list})
-            }
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
+                    this.setState({deviceListOptions: list})
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
-            data: JSON.stringify({use:'2',account:session.accountId}),
+            data: JSON.stringify({use: '2', account: session.accountId}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -2875,15 +2114,8 @@ class Incident extends Component {
         this.setState({
             incident: tmpIncident
         }, () => {
-            if (this.state.loadListType === 0){
-                this.loadCondition('other','expired')
-            }else if (this.state.loadListType === 1){
-                this.loadCondition('other','unhandled')
-            }else if (this.state.loadListType === 2){
-                this.loadCondition('other','mine')
-            }else if (this.state.loadListType === 3){
-                this.loadData()
-            }
+            this.loadData()
+
         });
     };
 
@@ -2922,7 +2154,7 @@ class Incident extends Component {
             contentType: false
         })
             .then(data => {
-                this.setState({attach: null},()=>{
+                this.setState({attach: null}, () => {
                     this.getIncident(incident.info.id, 'view')
                 })
             })
@@ -2948,12 +2180,12 @@ class Incident extends Component {
                 processData: false,
                 contentType: false
             })
-            .then(data => {
-                this.refreshIncidentAttach(incident.info.id)
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+                .then(data => {
+                    this.refreshIncidentAttach(incident.info.id)
+                })
+                .catch(err => {
+                    helper.showPopupMsg('', t('txt-error'), err.message)
+                })
         }
     }
 
@@ -2982,20 +2214,19 @@ class Incident extends Component {
                         url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
                         type: 'DELETE'
                     })
-                    .then(data => {
-                        if (data.ret === 0) {
-                            // this.getIncident(incident.info.id, 'view')
-                            this.refreshIncidentAttach(incident.info.id)
-                        }
-                    })
-                    .catch(err => {
-                        helper.showPopupMsg('', t('txt-error'), err.message)
-                    })
+                        .then(data => {
+                            if (data.ret === 0) {
+                                // this.getIncident(incident.info.id, 'view')
+                                this.refreshIncidentAttach(incident.info.id)
+                            }
+                        })
+                        .catch(err => {
+                            helper.showPopupMsg('', t('txt-error'), err.message)
+                        })
                 }
             }
         })
     }
-
 
 
     toPdfPayload(incident) {
@@ -3017,9 +2248,12 @@ class Incident extends Component {
         payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1})
         payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1})
         payload.basic.table.push({text: incident.reporter, colSpan: 2})
-        payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
+        payload.basic.table.push({
+            text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`,
+            colSpan: 1
+        })
         payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
-       
+
         if (incidentType === 'ttps') {
             payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
             payload.basic.table.push({text: incident.description, colSpan: 4})
@@ -3068,7 +2302,10 @@ class Incident extends Component {
             _.forEach(incident.fileList, file => {
                 payload.attachment.table.push({text: file.fileName, colSpan: 1})
                 payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
-                payload.attachment.table.push({text: Moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+                payload.attachment.table.push({
+                    text: Moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'),
+                    colSpan: 1
+                })
                 const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
                 payload.attachment.table.push({text: target.fileMemo, colSpan: 1})
             })
@@ -3099,21 +2336,18 @@ class Incident extends Component {
         payload.accident.table = []
         payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
         payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
-        
+
         if (incident.accidentCatogory) {
             payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
-        }
-        else {
+        } else {
             payload.accident.table.push({text: ' ', colSpan: 2})
         }
-        
+
         if (!incident.accidentCatogory) {
             payload.accident.table.push({text: ' ', colSpan: 2})
-        }
-        else if (incident.accidentCatogory === '5') {
+        } else if (incident.accidentCatogory === '5') {
             payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2})
-        }
-        else {
+        } else {
             payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2})
         }
 
@@ -3136,18 +2370,23 @@ class Incident extends Component {
             payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
             payload.eventList.table.push({text: event.description, colSpan: 3})
             const target = _.find(showDeviceListOptions, {value: event.deviceId})
-            
+
             if (target) {
                 payload.eventList.table.push({text: target.text, colSpan: 3})
-            }
-            else {
+            } else {
                 payload.eventList.table.push({text: '', colSpan: 3})
             }
-            
+
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
-            payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
-            payload.eventList.table.push({text: Moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({
+                text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
+                colSpan: 2
+            })
+            payload.eventList.table.push({
+                text: Moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
+                colSpan: 2
+            })
             payload.eventList.table.push({text: event.frequency, colSpan: 2})
 
             _.forEach(event.eventConnectionList, conn => {
@@ -3179,7 +2418,10 @@ class Incident extends Component {
             payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2})
             payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2})
             payload.ttps.table.push({text: ttp.title, colSpan: 2})
-            payload.ttps.table.push({text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA' , colSpan: 2})
+            payload.ttps.table.push({
+                text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA',
+                colSpan: 2
+            })
 
             if (_.size(ttp.etsList) > 0) {
                 payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4})
@@ -3212,7 +2454,10 @@ class Incident extends Component {
                 _.forEach(ttp.obsUriList, obsUri => {
                     payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2})
                     payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2})
-                    payload.ttps.table.push({text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'), colSpan: 2})
+                    payload.ttps.table.push({
+                        text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'),
+                        colSpan: 2
+                    })
                     payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2})
                 })
             }
@@ -3246,6 +2491,7 @@ class Incident extends Component {
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
@@ -3255,51 +2501,47 @@ class Incident extends Component {
             keyword: '',
             category: 0,
             isExpired: 2,
-            accountRoleType:search.accountRoleType,
+            accountRoleType,
+            isExecutor: _.includes(session.roles, 'SOC Executor'),
         }
 
 
         if (loadListType === 0) {
             payload.status = 0
             payload.isExpired = 1
-        }
-        else if (loadListType === 1) {
-            // if (payload.accountRoleType === constants.soc.SOC_Executor) {
-            //     payload.status = 2
-            //     payload.subStatus = 6
-            // }
-            // else if (payload.accountRoleType === constants.soc.SOC_Super) {
-            //     payload.status = 7
-            // }
-            // else {
-            //     payload.status = 1
-            // }
-        }
-        else if (loadListType === 2) {
-            // payload.status = 0
+        } else if (loadListType === 1) {
+            if (payload.accountRoleType === constants.soc.SOC_Executor) {
+                payload.status = 2
+                payload.subStatus = 6
+            } else if (payload.accountRoleType === constants.soc.SOC_Super) {
+                payload.status = 7
+            } else {
+                payload.status = 1
+            }
+        } else if (loadListType === 2) {
+            payload.status = 0
             payload.creator = session.accountId
-        }
-        else if (loadListType === 3) {
+        } else if (loadListType === 3) {
             payload = search
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV3`,
+            url: `${baseUrl}/api/soc/_searchV2`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-        .then(data => {
-            let payload = _.map(data.rt.rows, el => {
-                return this.toPdfPayload(el)
-            })
+            .then(data => {
+                let payload = _.map(data.rt.rows, el => {
+                    return this.toPdfPayload(el)
+                })
 
-            downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
+                downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
     }
 
     notifyContact() {
@@ -3307,7 +2549,7 @@ class Incident extends Component {
         const {incident} = this.state
 
         let payload = {
-            incidentId:incident.info.id
+            incidentId: incident.info.id
         }
 
         ah.one({
@@ -3318,9 +2560,9 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (data.status.includes('success')){
-                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify')+t('notifications.txt-sendSuccess'))
-                }else{
+                if (data.status.includes('success')) {
+                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify') + t('notifications.txt-sendSuccess'))
+                } else {
                     helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
                 }
             })
@@ -3331,9 +2573,9 @@ class Incident extends Component {
     }
 }
 
-Incident.contextType = BaseDataContext;
-Incident.propTypes = {
+IncidentSearch.contextType = BaseDataContext;
+IncidentSearch.propTypes = {
     // nodeBaseUrl: PropTypes.string.isRequired
 };
 
-export default Incident
+export default IncidentSearch

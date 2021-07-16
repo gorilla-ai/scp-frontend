@@ -757,8 +757,6 @@ class Notifications extends Component {
                   </div>
                 </div>
 
-                {EMAIL_SETTINGS.map(this.getEmailsContent)}
-
                 <div className='form-group normal long'>
                   <header>{t('notifications.lineBot.txt-lineBotSettings')}</header>
 
@@ -814,6 +812,8 @@ class Notifications extends Component {
                   </div>
 
                 </div>
+                {EMAIL_SETTINGS.map(this.getEmailsContent)}
+
               </div>
 
               {activeContent === 'editMode' &&

@@ -5,18 +5,16 @@ import {BaseDataContext} from "../common/context";
 import SocConfig from "../common/soc-configuration";
 import helper from "../common/helper";
 import cx from "classnames";
-import TableContent from "../common/table-content";
-import {Link} from "react-router-dom";
-import DropDownList from "react-ui/build/src/components/dropdown";
-import DateRange from "react-ui/build/src/components/date-range";
 import Moment from "moment";
+import moment from "moment";
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from "@material-ui/core/Button";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
-import moment from "moment";
 import constants from "../constant/constant-incidnet";
+import _ from "lodash";
+import MuiTableContent from "../common/mui-table-content";
 
 let t = null;
 let f = null;
@@ -54,7 +52,7 @@ class IncidentLog extends Component {
             accountType:constants.soc.LIMIT_ACCOUNT,
             incidentLog: {
                 dataFieldsArr: ['id', 'type', 'status', 'createDttm', 'updateDttm', 'sendTime'],
-                dataFields: {},
+                dataFields: [],
                 dataContent: [],
                 sort: {
                     field: 'type',
@@ -122,10 +120,14 @@ class IncidentLog extends Component {
      * @method
      * @param {string} fromSearch - option for the 'search'
      */
-    getData = (fromSearch) => {
+    getData = (options) => {
         const {baseUrl, contextRoot, session} = this.context;
         const {logSearch, incidentLog} = this.state;
-        const url = `${baseUrl}/api/soc/log/_searchV2?page=${incidentLog.currentPage}&pageSize=${incidentLog.pageSize}`;
+
+        const sort = incidentLog.sort.desc ? 'desc' : 'asc';
+        const page = options === 'currentPage' ? incidentLog.currentPage : 0;
+        const url = `${baseUrl}/api/soc/log/_searchV2?page=${page + 1}&pageSize=${incidentLog.pageSize}&orders=${incidentLog.sort.field} ${sort}`;
+
         let requestData = {};
 
         if (logSearch.keyword) {
@@ -162,44 +164,53 @@ class IncidentLog extends Component {
                 let tempLog = {...incidentLog};
                 tempLog.dataContent = data.rows;
                 tempLog.totalCount = data.counts;
-                tempLog.currentPage = fromSearch === 'search' ? 1 : incidentLog.currentPage;
+                tempLog.currentPage = page;
 
-                let dataFields = {};
-                incidentLog.dataFieldsArr.forEach(tempData => {
-                    dataFields[tempData] = {
-                        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-                        sortable: this.checkSortable(tempData),
-                        formatter: (value, allValue, i) => {
-                            if (tempData === 'updateDttm') {
-                                return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === 'createDttm') {
-                                return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === 'sendTime') {
-                                return <span>{helper.getFormattedDate(value, 'local')}</span>
-                            } else if (tempData === 'type') {
-                                if (value === 'event') {
-                                    return <span>{it('txt-incident-event')}</span>
-                                } else if (value === 'related') {
-                                    return <span>{it('txt-incident-related')}</span>
-                                } else if (value === 'health') {
-                                    return <span>{it('txt-incident-health')}</span>
+                tempLog.dataFields = _.map(incidentLog.dataFieldsArr, val => {
+                    return {
+                        name: val === '_menu' ? '' : val,
+                        label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                        options: {
+                            filter: true,
+                            sort: this.checkSortable(val),
+                            viewColumns: val !== '_menu',
+                            customBodyRenderLite: (dataIndex, options) => {
+                                const allValue = tempLog.dataContent[dataIndex];
+                                let value = tempLog.dataContent[dataIndex][val];
+
+                                if (options === 'getAllValue') {
+                                    return allValue;
                                 }
-                            } else if (tempData === 'status') {
-                                if (value === 'success') {
-                                    return <span style={{color: '#008B02'}}>{it('txt-send-success')}</span>
-                                } else if (value === 'fail') {
-                                    return <span style={{color: '#DB3E00'}}>{it('txt-send-fail')}</span>
-                                }else if (value === 'fail-connect') {
-                                    return <span style={{color: '#DB3E00'}}>{it('txt-send-connect-fail')}</span>
+
+                                if (val === 'updateDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (val === 'createDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (val === 'sendTime') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (val === 'type') {
+                                    if (value === 'event') {
+                                        return <span>{it('txt-incident-event')}</span>
+                                    } else if (value === 'related') {
+                                        return <span>{it('txt-incident-related')}</span>
+                                    } else if (value === 'health') {
+                                        return <span>{it('txt-incident-health')}</span>
+                                    }
+                                } else if (val === 'status') {
+                                    if (value === 'success') {
+                                        return <span style={{color: '#008B02'}}>{it('txt-send-success')}</span>
+                                    } else if (value === 'fail') {
+                                        return <span style={{color: '#DB3E00'}}>{it('txt-send-fail')}</span>
+                                    } else if (value === 'fail-connect') {
+                                        return <span style={{color: '#DB3E00'}}>{it('txt-send-connect-fail')}</span>
+                                    }
+                                } else {
+                                    return <span>{value}</span>
                                 }
-                            } else {
-                                return <span>{value}</span>
                             }
                         }
                     };
                 });
-
-                tempLog.dataFields = dataFields;
 
                 this.setState({
                     incidentLog: tempLog
@@ -207,15 +218,61 @@ class IncidentLog extends Component {
             }
             return null;
         })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message);
-        })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
     };
+
+    /**
+     * Handle table pagination change
+     * @method
+     * @param {string} type - page type ('currentPage' or 'pageSize')
+     * @param {number} value - new page number
+     */
+    handlePaginationChange = (type, value) => {
+        let temp = {...this.state.incidentLog};
+        temp[type] = Number(value);
+        this.setState({
+            incidentRule: temp
+        }, () => {
+            this.getData(type);
+        });
+    }
+    /**
+     * Handle table sort
+     * @method
+     * @param {string} field - sort field
+     * @param {string} boolean - sort type ('asc' or 'desc')
+     */
+    handleTableSort = (field, sort) => {
+        let temp = {...this.state.incidentLog};
+        temp.sort.field = field;
+        temp.sort.desc = sort;
+
+        this.setState({
+            incidentRule: temp
+        }, () => {
+            this.getData();
+        });
+    }
 
     /* ------------------ View ------------------- */
     render() {
         const {activeContent, baseUrl, contextRoot, showFilter, incidentLog, accountType} = this.state;
         const {session} = this.context;
+
+        const tableOptions = {
+            onChangePage: (currentPage) => {
+                this.handlePaginationChange('currentPage', currentPage);
+            },
+            onChangeRowsPerPage: (numberOfRows) => {
+                this.handlePaginationChange('pageSize', numberOfRows);
+            },
+            onColumnSortChange: (changedColumn, direction) => {
+                this.handleTableSort(changedColumn, direction === 'desc');
+            }
+        };
+
         return (
             <div>
 
@@ -234,22 +291,10 @@ class IncidentLog extends Component {
 
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
-                            <header className='main-header'>{it('txt-incident-log')}</header>
-                            {/*<div className='content-header-btns'>*/}
-                            {/*    <Link to='/SCP/configuration/notifications'>*/}
-                            {/*        <Button variant='outlined' color='primary' className='link'>{t('notifications.txt-settings')}</Button>*/}
-                            {/*    </Link>*/}
-                            {/*</div>*/}
-                            <TableContent
-                                dataTableData={incidentLog.dataContent}
-                                dataTableFields={incidentLog.dataFields}
-                                dataTableSort={incidentLog.sort}
-                                paginationTotalCount={incidentLog.totalCount}
-                                paginationPageSize={incidentLog.pageSize}
-                                paginationCurrentPage={incidentLog.currentPage}
-                                handleTableSort={this.handleTableSort}
-                                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}/>
+                            <header className='main-header'>{it('txt-incident-log-management')}</header>
+                            <MuiTableContent
+                                data={incidentLog}
+                                tableOptions={tableOptions}/>
                         </div>
                         }
 
@@ -259,26 +304,26 @@ class IncidentLog extends Component {
         );
     }
 
-    /**
-     * Handle table pagination change
-     * @method
-     * @param {string} type - page type ('currentPage' or 'pageSize')
-     * @param {string | number} value - new page number
-     */
-    handlePaginationChange = (type, value) => {
-        let tempLog = {...this.state.incidentLog};
-        tempLog[type] = Number(value);
-
-        if (type === 'pageSize') {
-            tempLog.currentPage = 1;
-        }
-
-        this.setState({
-            incidentLog: tempLog
-        }, () => {
-            this.getData();
-        });
-    };
+    // /**
+    //  * Handle table pagination change
+    //  * @method
+    //  * @param {string} type - page type ('currentPage' or 'pageSize')
+    //  * @param {string | number} value - new page number
+    //  */
+    // handlePaginationChange = (type, value) => {
+    //     let tempLog = {...this.state.incidentLog};
+    //     tempLog[type] = Number(value);
+    //
+    //     if (type === 'pageSize') {
+    //         tempLog.currentPage = 1;
+    //     }
+    //
+    //     this.setState({
+    //         incidentLog: tempLog
+    //     }, () => {
+    //         this.getData();
+    //     });
+    // };
 
     /**
      * Display filter content
@@ -458,22 +503,22 @@ class IncidentLog extends Component {
         });
     };
 
-    /**
-     * Handle table sort
-     * @method
-     * @param {object} sort - sort data object
-     */
-    handleTableSort = (sort) => {
-        let tempLog = {...this.state.incidentLog};
-        tempLog.sort.field = sort.field;
-        tempLog.sort.desc = sort.desc;
-
-        this.setState({
-            incidentLog: tempLog
-        }, () => {
-            this.getData();
-        });
-    };
+    // /**
+    //  * Handle table sort
+    //  * @method
+    //  * @param {object} sort - sort data object
+    //  */
+    // handleTableSort = (sort) => {
+    //     let tempLog = {...this.state.incidentLog};
+    //     tempLog.sort.field = sort.field;
+    //     tempLog.sort.desc = sort.desc;
+    //
+    //     this.setState({
+    //         incidentLog: tempLog
+    //     }, () => {
+    //         this.getData();
+    //     });
+    // };
 
     /**
      * Check table sort

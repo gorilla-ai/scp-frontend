@@ -761,7 +761,7 @@ class SafetyDetails extends Component {
                   currentData={currentSafetyData}
                   currentType={safetyScanType}
                   vansHmdStatusList={vansHmdStatusList}
-                  getIPdeviceInfo={this.props.getIPdeviceInfo}
+                  getSafetyScanData={this.props.getSafetyScanData}
                   getVansStatus={this.props.getVansStatus} />
               }
             </div>
@@ -873,6 +873,7 @@ SafetyDetails.propTypes = {
   getHostInfo: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
+  getSafetyScanData: PropTypes.func.isRequired,
   getVansStatus: PropTypes.func.isRequired
 };
 
