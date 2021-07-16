@@ -1780,6 +1780,7 @@ class SyslogController extends Component {
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
       currentTableID: this.state.currentTableID,
+      queryModalType: this.state.queryModalType,
       queryData: this.state.queryData,
       queryDataPublic: this.state.queryDataPublic,
       filterData: this.state.filterData,

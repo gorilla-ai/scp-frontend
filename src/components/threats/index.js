@@ -2873,6 +2873,7 @@ class ThreatsController extends Component {
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
       currentTableID: this.state.currentTableID,
+      queryModalType: this.state.queryModalType,
       queryData: this.state.queryData,
       queryDataPublic: this.state.queryDataPublic,
       filterData: this.state.filterData,
@@ -2972,7 +2973,6 @@ class ThreatsController extends Component {
           openQueryOpen: true
         });
       } else if (type === 'publicOpen') {
-
         const {queryDataPublic} = this.state;
         let tempQueryDataPublic = {...queryDataPublic};
 
