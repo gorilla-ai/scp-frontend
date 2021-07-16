@@ -122,6 +122,10 @@ const TABLE_CHARTS_LIST = [
     key: 'IP'
   },
   {
+    id: 'alertEdgeSeverityList',
+    key: 'agentName'
+  },
+  {
     id: 'alertNetTrapBlackList',
     key: 'client'
   }
@@ -1541,7 +1545,7 @@ class ThreatsController extends Component {
       this.setState({
         incident:temp
       })
-    }else{
+    } else {
       temp.info.attach = file;
       this.setState({
         incident:temp
@@ -1672,7 +1676,7 @@ class ThreatsController extends Component {
     let chartFields = {};
     alertTableData[type].chartFieldsArr.forEach(tempData => {
       chartFields[tempData] = {
-        label: tempData === 'key' ? key : tempData,
+        label: tempData === 'key' ? f('threatsField.' + key) : tempData,
         sortable: true,
         formatter: (value, allValue, i) => {
           return <span>{value}</span>
@@ -1821,13 +1825,13 @@ class ThreatsController extends Component {
 
                       if (val === 'select'){
                         return (
-                            <Checkbox
-                                id={allValue.id}
-                                className='checkbox-ui'
-                                name='select'
-                                checked={allValue.select}
-                                onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
-                                color='primary' />
+                          <Checkbox
+                            id={allValue.id}
+                            className='checkbox-ui'
+                            name='select'
+                            checked={allValue.select}
+                            onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
+                            color='primary' />
                         )
                       }
 
@@ -1839,13 +1843,13 @@ class ThreatsController extends Component {
                         }
                         return (
                           <TableCell
-                              activeTab={activeTab}
-                              fieldValue={value}
-                              fieldName={val}
-                              allValue={allValue}
-                              alertLevelColors={ALERT_LEVEL_COLORS}
-                              handleOpenQueryMenu={this.handleOpenQueryMenu}
-                              handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                            activeTab={activeTab}
+                            fieldValue={value}
+                            fieldName={val}
+                            allValue={allValue}
+                            alertLevelColors={ALERT_LEVEL_COLORS}
+                            handleOpenQueryMenu={this.handleOpenQueryMenu}
+                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
                         )
                       }
                     }
@@ -1899,6 +1903,14 @@ class ThreatsController extends Component {
             tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
           })
 
+          //For alert edge severity list table
+          tempAlertTableData.alertEdgeSeverityList.chartData = _.map(data.aggregations.Edges.agg.buckets, val => {
+            return {
+              key: val.agentName,
+              ...val.severityAgg
+            }
+          });
+
           this.setState({
             alertPieData: tempAlertPieData,
             alertTableData: tempAlertTableData
@@ -1911,7 +1923,7 @@ class ThreatsController extends Component {
           let chartFields = {};
           alertTableData.alertNetTrapBlackList.chartFieldsArr.forEach(tempData => {
             chartFields[tempData] = {
-              label: t(`txt-${tempData}`),
+              label: f('threatsField.' + tempData),
               sortable: true,
               formatter: (value, allValue, i) => {
                 return <span>{value}</span>
@@ -1920,7 +1932,6 @@ class ThreatsController extends Component {
           })
 
           let queryBalackListObj = {};
-
 
           if (data.aggregations[NET_TRAP_QUERY.name]) {
             _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black list object

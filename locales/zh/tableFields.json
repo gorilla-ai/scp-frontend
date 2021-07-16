@@ -533,6 +533,16 @@
     "txt-lastAnalyzedStatus": "分析狀態",
     "txt-lastAnalyzedStatusUpdDT": "上次分析狀態時間"
   },
+  "threatsField": {
+    "Subnet": "Subnet",
+    "IP": "IP",
+    "ip": "IP",
+    "domain": "Domain",
+    "count": "Count",
+    "Country": "國家",
+    "agentName": "名稱",
+    "client": "Client"
+  },
   "esFields": {
     "date": "日期",
     "status": "狀態",

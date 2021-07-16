@@ -491,6 +491,7 @@
     "txt-alertThreatPrivateDest": "Internal Destination IP",
     "txt-alertThreatCountryDest": "External Destination Country",
     "txt-alertThreatPublicDest": "External Destination IP",
+    "txt-alertEdgeSeverityList": "Edge Alert Statistics",
     "txt-alertNetTrapBlackList": "NetTrap Query Black List",
     "txt-alertTrackOverrideSuccess": "Update Alert Track Success",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",

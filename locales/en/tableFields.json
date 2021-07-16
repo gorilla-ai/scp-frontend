@@ -533,6 +533,16 @@
     "txt-lastAnalyzedStatus": "Latest analyzed status",
     "txt-lastAnalyzedStatusUpdDT": "Latest analyzed status time"
   },
+  "threatsField": {
+    "Subnet": "Subnet",
+    "IP": "IP",
+    "ip": "IP",
+    "domain": "Domain",
+    "count": "Count",
+    "Country": "Country",
+    "agentName": "Agent Name",
+    "client": "Client"
+  },
   "esFields": {
     "date": "Date",
     "status": "Status",

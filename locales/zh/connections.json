@@ -490,6 +490,7 @@
     "txt-alertThreatPrivateDest": "內部威脅目的IP",
     "txt-alertThreatCountryDest": "外部威脅目的國家",
     "txt-alertThreatPublicDest": "外部威脅目的IP",
+    "txt-alertEdgeSeverityList": "Edge告警統計",
     "txt-alertNetTrapBlackList": "NetTrap黑名單查詢紀錄",
     "txt-alertTrackOverrideSuccess": "更新追蹤告警成功",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
