@@ -48,16 +48,8 @@ class FilterContent extends Component {
   }
   render() {
     const {sessionRights} = this.context;
-    const {showFilter, queryModalType, queryData, queryDataPublic} = this.props;
-    let filterTitle = t('txt-filter');
-
-    if (queryModalType === 'open' && queryData && queryData.displayName) {
-      filterTitle = queryData.displayName;
-    }
-
-    if (queryModalType === 'publicOpen' && queryDataPublic && queryDataPublic.displayName) {
-      filterTitle = queryDataPublic.displayName;
-    }
+    const {showFilter, queryData, queryDataPublic} = this.props;
+    const filterTitle = queryData.displayName || queryDataPublic.displayName || t('txt-filter');
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>

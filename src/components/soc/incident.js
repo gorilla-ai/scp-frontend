@@ -598,6 +598,8 @@ class Incident extends Component {
 
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
+                    <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
+                            title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
                     <button className='' onClick={this.openIncidentTag.bind(this, null)}
                             title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
@@ -612,7 +614,7 @@ class Incident extends Component {
 
                 <div className='parent-content'>
                     {/*{this.renderStatistics()}*/}
-                    {/*{this.renderFilter()}*/}
+                    {this.renderFilter()}
 
                     {activeContent === 'tableList' &&
                     <div className='main-content'>
@@ -2018,57 +2020,6 @@ class Incident extends Component {
                             value={search.severity}
                             onChange={this.handleSearchMui}>
                             {severityList}
-                        </TextField>
-                    </div>
-                    {/*<div className='group'>*/}
-                    {/*    <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>*/}
-                    {/*    <TextField*/}
-                    {/*        id='searchStatus'*/}
-                    {/*        name='status'*/}
-                    {/*        required={true}*/}
-                    {/*        variant='outlined'*/}
-                    {/*        fullWidth={true}*/}
-                    {/*        size='small'*/}
-                    {/*        select*/}
-                    {/*        value={search.status}*/}
-                    {/*        onChange={this.handleSearchMui}>*/}
-                    {/*        {*/}
-                    {/*            _.map(_.range(0, 9), el => {*/}
-                    {/*                return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>*/}
-                    {/*            })}*/}
-                    {/*        }*/}
-                    {/*    </TextField>*/}
-                    {/*</div>*/}
-                    <div className='group'>
-                        <label htmlFor='isExpired'>{it('txt-expired')}</label>
-                        <TextField
-                            id='isExpired'
-                            name='isExpired'
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            value={search.isExpired}
-                            onChange={this.handleSearchMui}>
-                            {
-                                _.map([
-                                    {
-                                        value: 2,
-                                        text: it('txt-allSearch')
-                                    },
-                                    {
-                                        value: 1,
-                                        text: it('unit.txt-isDefault')
-                                    },
-                                    {
-                                        value: 0,
-                                        text: it('unit.txt-isNotDefault')
-                                    }
-                                ], el => {
-                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
-                                })}
-                            }
                         </TextField>
                     </div>
                     <div className='group' style={{width: '500px'}}>
