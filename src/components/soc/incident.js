@@ -120,7 +120,7 @@ class Incident extends Component {
                     desc: true
                 },
                 totalCount: 0,
-                currentPage: 1,
+                currentPage: 0,
                 pageSize: 20,
                 info: {
                     status: 1,
@@ -190,7 +190,7 @@ class Incident extends Component {
                 this.setState({
                     accountRoleType: session.roles
                 }, () => {
-                    this.loadCondition('button', 'unhandled')
+                    this.loadData('')
                 });
                 getData = true
                 if (getData){
@@ -307,7 +307,6 @@ class Incident extends Component {
                                 } else if (val === 'category') {
                                     return <span>{it(`category.${value}`)}</span>
                                 } else if (val === 'status') {
-                                    // return <span>{it(`status.${value}`)}</span>
                                     let status = 'N/A'
                                     if (allValue.flowData) {
 
@@ -363,153 +362,6 @@ class Incident extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
     };
-
-
-    /**
-     * Get and set Incident Device table data
-     * @method
-     * @param {string} fromSearch - option for the 'search'
-     */
-    loadWithoutDateTimeData = (fromSearch, searchPayload) => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {incident} = this.state;
-        const sort = incident.sort.desc ? 'desc' : 'asc';
-        const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-
-        searchPayload.account = session.accountId
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(searchPayload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-
-                if (data) {
-                    let tempEdge = {...incident};
-                    tempEdge.dataContent = data.rt.rows;
-                    tempEdge.totalCount = data.rt.counts;
-                    tempEdge.currentPage = page;
-
-                    tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                        return {
-                            name: val === '_menu' ? '' : val,
-                            label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                            options: {
-                                filter: true,
-                                sort: val === 'severity',
-                                customBodyRenderLite: (dataIndex, options) => {
-                                    const allValue = tempEdge.dataContent[dataIndex];
-                                    let value = tempEdge.dataContent[dataIndex][val];
-
-                                    if (options === 'getAllValue') {
-                                        return allValue;
-                                    }
-
-                                    if (val === '_menu') {
-                                        return <div className='table-menu active'>
-                                            <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                                <MoreIcon/>
-                                            </IconButton>
-                                        </div>
-                                    } else if (val === 'type') {
-                                        let tmpList = [];
-                                        tmpList = allValue.ttpList;
-                                        if (tmpList.length === 0) {
-                                            return <span>{it('txt-incident-event')}</span>
-                                        } else {
-                                            return <span>{it('txt-incident-related')}</span>
-                                        }
-                                    } else if (val === 'category') {
-                                        return <span>{it(`category.${value}`)}</span>
-                                    } else if (val === 'status') {
-                                        let status = 'N/A'
-                                        if (allValue.flowData) {
-
-                                            if (allValue.flowData.finish) {
-                                                return <span>{it('status.3')}</span>
-                                            }
-
-                                            if (allValue.flowData.currentEntity) {
-                                                status = allValue.flowData.currentEntity[allValue.id].entityName
-                                            }
-                                        }
-                                        return <span>{status}</span>
-                                    } else if (val === 'createDttm') {
-                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                    } else if (val === 'tag') {
-                                        const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                        return <div>
-                                            {
-                                                _.map(allValue.tagList, el => {
-                                                    return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                                                        &nbsp;{el.tag.tag}
-                                                    </div>
-                                                })
-                                            }
-                                        </div>
-
-                                    } else if (val === 'severity') {
-                                        return <span className='severity-level'
-                                                     style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString'){
-                                        let formattedPatternIP = ''
-                                        if (value.length > 32) {
-                                            formattedPatternIP = value.substr(0, 32) + '...';
-                                        }else{
-                                            formattedPatternIP = value
-                                        }
-                                        return <span>{formattedPatternIP}</span>
-                                    } else {
-                                        return <span>{value}</span>
-                                    }
-                                }
-                            }
-                        };
-                    });
-
-                    this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
-                        // this.loadDashboard()
-                    })
-                }
-                return null
-            })
-            .catch(err => {
-
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    };
-
-    loadCondition = (from,type) => {
-        const {session} = this.context
-        let fromSearch = from
-        if (from === 'button'){
-            fromSearch = 'search'
-        }
-        let search = {
-            keyword: '',
-            accountRoleType: this.state.accountRoleType,
-        }
-        if (type === 'expired') {
-            this.setState({loadListType: 0})
-            search.isExpired = 1;
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else if (type === 'unhandled') {
-            this.setState({loadListType: 1})
-            this.loadWithoutDateTimeData(fromSearch, search)
-        } else if (type === 'mine') {
-            this.setState({loadListType: 2})
-            search.creator = session.accountId
-            this.loadWithoutDateTimeData(fromSearch, search)
-        }else{
-
-        }
-        this.clearFilter()
-    }
 
     /**
      * Handle open menu
@@ -570,20 +422,12 @@ class Incident extends Component {
                 this.incidentComment = ref
             }}/>
 
-            {this.state.loadListType === 1 && (
-                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
-            )}
-
-
-            {this.state.loadListType === 3 && (
-                <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this)}/>
-            )}
-
+            <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this,'currentPage')}/>
             <IncidentFlowDialog ref={ref => {
                 this.incidentFlowDialog = ref
             }}/>
 
-            <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadCondition.bind(this, 'button', 'unhandled')}/>
+            <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadData.bind(this,'currentPage')}/>
 
 
             <Menu
@@ -613,7 +457,6 @@ class Incident extends Component {
                 <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
 
                 <div className='parent-content'>
-                    {/*{this.renderStatistics()}*/}
                     {this.renderFilter()}
 
                     {activeContent === 'tableList' &&
@@ -624,17 +467,6 @@ class Incident extends Component {
                             <Button variant='outlined' color='primary' className='standard btn edit'
                                     onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                             }
-                            {/*{_.size(incident.dataContent) > 0 &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>*/}
-                            {/*}*/}
-                            {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT && !superUserCheck &&*/}
-                            {/*<Button variant='outlined' color='primary' className='standard btn edit'*/}
-                            {/*        onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>*/}
-                            {/*}*/}
                         </div>
                         <MuiTableContent
                             data={incident}
@@ -990,14 +822,7 @@ class Incident extends Component {
     };
 
     onTagsChange = (event, values) => {
-
-        // let tempList = []
-        // _.forEach(values, el => {
-        //     tempList.push(el.text)
-        // })
-
         let temp = {...this.state.incident};
-        // temp.info['relatedList'] = tempList;
         temp.info['showFontendRelatedList'] = values;
 
         this.setState({
@@ -2053,30 +1878,6 @@ class Incident extends Component {
         )
     };
 
-    renderStatistics = () => {
-        const {showChart, dashboard} = this.state
-
-        return <div className={cx('main-filter', {'active': showChart})}>
-            <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
-            <div className='incident-statistics' id='incident-statistics'>
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','expired')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
-                    <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
-                </div>
-
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
-                    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
-                </div>
-
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
-                    <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
-                    <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
-                </div>
-            </div>
-        </div>
-    }
-
     /* ---- Func Space ---- */
     /**
      * Show Delete Incident dialog
@@ -2153,15 +1954,7 @@ class Incident extends Component {
             .then(data => {
                 if (data.ret === 0) {
                     // this.loadData()
-                    if (this.state.loadListType === 0){
-                        this.loadCondition('other','expired')
-                    }else if (this.state.loadListType === 1){
-                        this.loadCondition('other','unhandled')
-                    }else if (this.state.loadListType === 2){
-                        this.loadCondition('other','mine')
-                    }else if (this.state.loadListType === 3){
-                        this.loadData()
-                    }
+                    this.loadData()
                 }
                 return null
             })
@@ -2182,15 +1975,7 @@ class Incident extends Component {
         temp[type] = Number(value);
         this.setState({incident: temp}, () => {
             // this.loadData()
-            if (this.state.loadListType === 0){
-                this.loadCondition(type,'expired')
-            }else if (this.state.loadListType === 1){
-                this.loadCondition(type,'unhandled')
-            }else if (this.state.loadListType === 2){
-                this.loadCondition(type,'mine')
-            }else if (this.state.loadListType === 3){
-                this.loadData(type)
-            }
+            this.loadData(type)
         })
     };
 
@@ -2388,16 +2173,7 @@ class Incident extends Component {
             incident: tempIncident
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
-                if (this.state.loadListType === 0){
-                    this.loadCondition('other','expired')
-                }else if (this.state.loadListType === 1){
-                    this.loadCondition('other','unhandled')
-                }else if (this.state.loadListType === 2){
-                    this.loadCondition('other','mine')
-                }else if (this.state.loadListType === 3){
-                    this.loadData()
-                }
-                // this.loadDashboard()
+                this.loadData('currentPage')
             }
         })
     };
@@ -2447,15 +2223,7 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (this.state.loadListType === 0){
-                    this.loadCondition('other','expired')
-                }else if (this.state.loadListType === 1){
-                    this.loadCondition('other','unhandled')
-                }else if (this.state.loadListType === 2){
-                    this.loadCondition('other','mine')
-                }else if (this.state.loadListType === 3){
-                    this.loadData()
-                }
+                this.loadData()
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
 
             })
@@ -2481,15 +2249,7 @@ class Incident extends Component {
                 if (confirmed) {
                     this.sendIncident(incidentId);
                 } else {
-                    if (this.state.loadListType === 0){
-                        this.loadCondition('expired')
-                    }else if (this.state.loadListType === 1){
-                        this.loadCondition('unhandled')
-                    }else if (this.state.loadListType === 2){
-                        this.loadCondition('mine')
-                    }else if (this.state.loadListType === 3){
-                        this.loadData()
-                    }
+                    this.loadData()
                 }
             }
         });
@@ -2826,15 +2586,7 @@ class Incident extends Component {
         this.setState({
             incident: tmpIncident
         }, () => {
-            if (this.state.loadListType === 0){
-                this.loadCondition('other','expired')
-            }else if (this.state.loadListType === 1){
-                this.loadCondition('other','unhandled')
-            }else if (this.state.loadListType === 2){
-                this.loadCondition('other','mine')
-            }else if (this.state.loadListType === 3){
-                this.loadData()
-            }
+            this.loadData('currentPage')
         });
     };
 

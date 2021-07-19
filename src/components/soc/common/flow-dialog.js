@@ -146,7 +146,7 @@ class IncidentFlowDialog extends Component {
 		return (
 			<div className={groupClass} key={index}>
 				<div className={cx(lineClass, {active: activeSteps > index})}/>
-				<div className={cx(stepClass, {active: activeSteps > index})}>
+				<div className={cx(stepClass, {active: activeSteps >= index})}>
 					<div className='wrapper'><span className='number'>{index}</span></div>
 					<div {...textAttr}>{val.step}</div>
 					<div {...timeAttr}>{helper.getFormattedDate(val.updateTime,'local')}</div>
