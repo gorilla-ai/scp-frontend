@@ -3022,7 +3022,7 @@ class ThreatsController extends Component {
    * Set query data
    * @method
    * @param {object} query - query data to be set
-   * @param {string} options - option for 'setQuery'
+   * @param {string} [options] - option for 'setQuery'
    */
   setQueryData = (query, options) => {
     const {queryData, queryDataPublic, queryModalType} = this.state;
