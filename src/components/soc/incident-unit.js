@@ -21,6 +21,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import Manage from "../configuration/topology/manage";
 import MuiTableContent from "../common/mui-table-content";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 // import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
 
@@ -534,7 +535,7 @@ class IncidentUnit extends Component {
                             <div className='content-header-btns with-menu '>
                                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
-                            <MuiTableContent
+                            <MuiTableContentWithoutLoading
                                 data={incidentUnit}
                                 tableOptions={tableOptions} />
                         </div>

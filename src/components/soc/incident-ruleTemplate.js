@@ -17,6 +17,7 @@ import {Switch} from "@material-ui/core";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 import HighlightOffIcon from "@material-ui/icons/HighlightOff";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 let t = null;
 let f = null;
@@ -565,7 +566,7 @@ class IncidentRuleTemplate extends Component {
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-soc-rule')}</header>
-                            <MuiTableContent
+                            <MuiTableContentWithoutLoading
                                 data={incidentRule}
                                 tableOptions={tableOptions}/>
                         </div>

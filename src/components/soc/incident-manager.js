@@ -33,6 +33,7 @@ import MuiTableContent from "../common/mui-table-content";
 import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import IncidentFlowDialog from "./common/flow-dialog";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 let t = null;
 let f = null;
@@ -208,7 +209,7 @@ class IncidentManagement extends Component {
 
                 if (getData){
                     this.getOptions();
-                    this.loadDashboard();
+                    // this.loadDashboard();
                 }
 
             }, 2000);
@@ -403,7 +404,8 @@ class IncidentManagement extends Component {
             .then(data => {
                 if (data) {
                     let tempEdge = {...incident};
-                     tempEdge.dataContent = data.rt.rows;
+
+                    tempEdge.dataContent = data.rt.rows;
                     tempEdge.totalCount = data.rt.counts;
                     tempEdge.currentPage = page;
 
@@ -424,7 +426,8 @@ class IncidentManagement extends Component {
 
                                     if (val === '_menu') {
                                         return <div className='table-menu active'>
-                                            <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                            <IconButton aria-label="more"
+                                                        onClick={this.handleOpenMenu.bind(this, allValue)}>
                                                 <MoreIcon/>
                                             </IconButton>
                                         </div>
@@ -440,17 +443,17 @@ class IncidentManagement extends Component {
                                         return <span>{it(`category.${value}`)}</span>
                                     } else if (val === 'status') {
                                         let status = 'N/A'
-                                        if (allValue.flowData){
+                                        if (allValue.flowData) {
 
-                                            if (allValue.flowData.finish){
-                                                if (value === constants.soc.INCIDENT_STATUS_SUBMITTED){
+                                            if (allValue.flowData.finish) {
+                                                if (value === constants.soc.INCIDENT_STATUS_SUBMITTED) {
                                                     return <span>{it('status.4')}</span>
-                                                }else{
+                                                } else {
                                                     return <span>{it('status.3')}</span>
                                                 }
                                             }
 
-                                            if (allValue.flowData.currentEntity){
+                                            if (allValue.flowData.currentEntity) {
                                                 status = allValue.flowData.currentEntity[allValue.id].entityName
                                             }
                                         }
@@ -464,7 +467,8 @@ class IncidentManagement extends Component {
                                             {
                                                 _.map(allValue.tagList, el => {
                                                     return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                        <div className='incident-tag-square'
+                                                             style={{backgroundColor: el.tag.color}}></div>
                                                         &nbsp;{el.tag.tag}
                                                     </div>
                                                 })
@@ -474,11 +478,11 @@ class IncidentManagement extends Component {
                                     } else if (val === 'severity') {
                                         return <span className='severity-level'
                                                      style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                                    } else if (val === 'srcIPListString' || val === 'dstIPListString') {
                                         let formattedPatternIP = ''
                                         if (value.length > 32) {
                                             formattedPatternIP = value.substr(0, 32) + '...';
-                                        }else{
+                                        } else {
                                             formattedPatternIP = value
                                         }
                                         return <span>{formattedPatternIP}</span>
@@ -503,39 +507,16 @@ class IncidentManagement extends Component {
 
     loadDashboard = () => {
         const {baseUrl, session} = this.context
-
-        let roleType = 'analyzer';
-
-        const payload = {
-            keyword: '',
-            category: 0,
-            status: 0,
-            startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            isExpired: 2,
-            isExecutor:_.includes(session.roles, 'SOC Executor'),
-            accountRoleType:this.state.accountRoleType,
-            account: session.accountId
-        }
-
         ah.all([
             {
-                url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
-                data: JSON.stringify(payload),
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json'
-            },
-            {
-                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?creator=${session.accountId}`
+                url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`
             }
         ])
         .then(data => {
             let dashboard = {
-                all: data[0].rt.counts,
-                expired: data[1].rt.rows[0].expireCount,
-                unhandled: data[1].rt.rows[0].dealCount,
-                mine: data[1].rt.rows[0].myCount,
+                expired: data[0].rt.rows[0].expireCount,
+                unhandled: data[0].rt.rows[0].dealCount,
+                mine: data[0].rt.rows[0].myCount,
             }
 
             this.setState({dashboard})
@@ -558,27 +539,13 @@ class IncidentManagement extends Component {
             isExpired: 2,
             accountRoleType: this.state.accountRoleType,
             isExecutor : _.includes(session.roles, 'SOC Executor'),
-
         }
         if (type === 'expired') {
             this.setState({loadListType: 0})
             search.status = 0
             search.isExpired = 1;
             this.loadWithoutDateTimeData(fromSearch,search)
-        } else if (type === 'unhandled') {
-            this.setState({loadListType: 1})
-            if (search.accountRoleType === constants.soc.SOC_Executor){
-                search.status = 2
-                search.subStatus = 6
-            }else if(search.accountRoleType === constants.soc.SOC_Super){
-                search.status = 7
-            }else if(search.accountRoleType === constants.soc.SOC_Ciso){
-                search.status = 7
-            }else{
-                search.status = 1
-            }
-            this.loadWithoutDateTimeData(fromSearch,search)
-        } else if (type === 'mine') {
+        }else if (type === 'mine') {
             this.setState({loadListType: 2})
             search.status = 0
             search.creator = session.accountId
@@ -721,7 +688,7 @@ class IncidentManagement extends Component {
                                     onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
                             }
                             </div>
-                        <MuiTableContent
+                        <MuiTableContentWithoutLoading
                             data={incident}
                             tableOptions={tableOptions} />
                     </div>
