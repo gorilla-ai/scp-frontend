@@ -509,7 +509,11 @@ class IncidentManagement extends Component {
         const {baseUrl, session} = this.context
         ah.all([
             {
-                url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`
+                url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`,
+                data: JSON.stringify(this.state.accountRoleType),
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json'
             }
         ])
         .then(data => {
