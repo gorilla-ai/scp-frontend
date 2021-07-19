@@ -507,10 +507,15 @@ class IncidentManagement extends Component {
 
     loadDashboard = () => {
         const {baseUrl, session} = this.context
+
+        let req = {
+            accountRoleType :this.state.accountRoleType
+        }
+
         ah.all([
             {
                 url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`,
-                data: JSON.stringify(this.state.accountRoleType),
+                data: JSON.stringify(req),
                 type: 'POST',
                 contentType: 'application/json',
                 dataType: 'json'
