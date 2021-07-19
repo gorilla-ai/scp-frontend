@@ -99,9 +99,7 @@ class QueryOpenSave extends Component {
   componentDidMount() {
     this.setQueryList();
     this.setSeverityList();
-
   }
-
   /**
    * Set query list
    * @method
@@ -129,11 +127,9 @@ class QueryOpenSave extends Component {
     this.setState({
       queryList,
       activeQuery: queryList[0]
-    },()=>{
-
-      if (this.props.type === 'open' ||this.props.type === 'publicOpen'){
-
-        if (queryList.length > 0){
+    }, () => {
+      if (this.props.type === 'open' ||this.props.type === 'publicOpen') {
+        if (queryList.length > 0) {
           this.getQuerySOCValue(queryList[0]);
         }
       }
@@ -184,13 +180,14 @@ class QueryOpenSave extends Component {
           impact: data.impact,
           severity: data.severity,
           limitQuery: data.limitQuery
-        }
+        };
 
         this.props.setQueryData(tempQueryData);
+
         this.setState({
           socTemplateEnable: true,
           soc: tempQueryData.soc
-        })
+        });
       } else {
         tempQueryData.soc = {
           id: '',
@@ -200,19 +197,21 @@ class QueryOpenSave extends Component {
           eventDescription: '',
           impact: 4,
           category: 1,
-        }
+        };
+
         this.props.setQueryData(tempQueryData);
+
         this.setState({
           socTemplateEnable: false,
           soc: tempQueryData.soc
-        })
+        });
       }
       return null;
     }).catch(err => {
-          this.setState({
-            socTemplateEnable: false
-          })
-          helper.showPopupMsg('', t('txt-error'), err.message);
+      this.setState({
+        socTemplateEnable: false
+      });
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -240,7 +239,7 @@ class QueryOpenSave extends Component {
         tempQueryData.displayId = queryData.id;
         tempQueryData.displayName = queryData.name;
 
-        this.props.setQueryData(tempQueryData);
+        this.props.setQueryData(tempQueryData, 'setQuery');
 
         if (queryData.query) {
           if (activeTab === 'logs') {
@@ -264,7 +263,7 @@ class QueryOpenSave extends Component {
         tempQueryDataPublic.displayId = queryDataPublic.id;
         tempQueryDataPublic.displayName = queryDataPublic.name;
 
-        this.props.setQueryData(tempQueryDataPublic);
+        this.props.setQueryData(tempQueryDataPublic, 'setQuery');
 
         if (queryDataPublic.query) {
           this.props.setFilterData(queryDataPublic.query.filter);
@@ -878,7 +877,7 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
-          },()=>{
+          }, () => {
             this.getQuerySOCValue(queryList[selectedQueryIndex]);
           });
         }
@@ -971,7 +970,7 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
-          },()=>{
+          }, () => {
             this.getQuerySOCValue(queryList[selectedQueryIndex]);
           });
         }

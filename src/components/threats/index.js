@@ -3022,15 +3022,36 @@ class ThreatsController extends Component {
    * Set query data
    * @method
    * @param {object} query - query data to be set
+   * @param {string} options - option for 'setQuery'
    */
-  setQueryData = (query) => {
-    const {queryModalType} = this.state;
+  setQueryData = (query, options) => {
+    const {queryData, queryDataPublic, queryModalType} = this.state;
 
     if (queryModalType === 'open' || queryModalType === 'save') {
+      if (options === 'setQuery') {
+        let tempQueryDataPublic = {...queryDataPublic};
+        tempQueryDataPublic.displayId = '';
+        tempQueryDataPublic.displayName = '';
+
+        this.setState({
+          queryDataPublic: tempQueryDataPublic
+        });
+      }
+
       this.setState({
         queryData: query
       });
     } else if (queryModalType === 'publicOpen' || queryModalType === 'publicSave') {
+      if (options === 'setQuery') {
+        let tempQueryData = {...queryData};
+        tempQueryData.displayId = '';
+        tempQueryData.displayName = '';
+
+        this.setState({
+          queryData: tempQueryData
+        });
+      }
+
       this.setState({
         queryDataPublic: query
       });
