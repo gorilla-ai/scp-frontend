@@ -34,6 +34,7 @@ import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import SearchOptions from "../common/search-options";
 import IncidentFlowDialog from "./common/flow-dialog";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 let t = null;
 let f = null;
@@ -457,7 +458,7 @@ class IncidentSearch extends Component {
                                     onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
                             }
                         </div>
-                        <MuiTableContent
+                        <MuiTableContentWithoutLoading
                             data={incident}
                             tableOptions={tableOptions}/>
                     </div>

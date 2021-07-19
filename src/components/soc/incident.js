@@ -29,7 +29,7 @@ import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
 import Menu from "@material-ui/core/Menu";
 import constants from "../constant/constant-incidnet";
-import MuiTableContent from "../common/mui-table-content";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import IncidentFlowDialog from "./common/flow-dialog";
@@ -273,88 +273,103 @@ class Incident extends Component {
             if (data) {
                 let tempEdge = {...incident};
 
-                tempEdge.dataContent = data.rt.rows;
-                tempEdge.totalCount = data.rt.counts;
-                tempEdge.currentPage = page;
 
-                tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                    return {
-                        name: val === '_menu' ? '' : val,
-                        label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                        options: {
-                            filter: true,
-                            sort: val === 'severity',
-                            customBodyRenderLite: (dataIndex, options) => {
-                                const allValue = tempEdge.dataContent[dataIndex];
-                                let value = tempEdge.dataContent[dataIndex][val];
+                if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
+                    tempEdge.dataFields = [];
+                    tempEdge.dataContent = [];
+                    tempEdge.totalCount = 0;
+                    tempEdge.currentPage = 1;
+                    tempEdge.pageSize = 20;
 
-                                if (options === 'getAllValue') {
-                                    return allValue;
-                                }
+                    this.setState({
+                        incident: tempEdge,
+                        activeContent: 'tableList'
+                    });
+                } else {
+                    tempEdge.dataContent = data.rt.rows;
+                    tempEdge.totalCount = data.rt.counts;
+                    tempEdge.currentPage = page;
 
-                                if (val === '_menu') {
-                                    return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                        <MoreIcon/>
-                                    </IconButton>
-                                } else if (val === 'type') {
-                                    let tmpList = [];
-                                    tmpList = allValue.ttpList;
-                                    if (tmpList.length === 0) {
-                                        return <span>{it('txt-incident-event')}</span>
+                    tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+                        return {
+                            name: val === '_menu' ? '' : val,
+                            label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                            options: {
+                                filter: true,
+                                sort: val === 'severity',
+                                customBodyRenderLite: (dataIndex, options) => {
+                                    const allValue = tempEdge.dataContent[dataIndex];
+                                    let value = tempEdge.dataContent[dataIndex][val];
+
+                                    if (options === 'getAllValue') {
+                                        return allValue;
+                                    }
+
+                                    if (val === '_menu') {
+                                        return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                            <MoreIcon/>
+                                        </IconButton>
+                                    } else if (val === 'type') {
+                                        let tmpList = [];
+                                        tmpList = allValue.ttpList;
+                                        if (tmpList.length === 0) {
+                                            return <span>{it('txt-incident-event')}</span>
+                                        } else {
+                                            return <span>{it('txt-incident-related')}</span>
+                                        }
+                                    } else if (val === 'category') {
+                                        return <span>{it(`category.${value}`)}</span>
+                                    } else if (val === 'status') {
+                                        let status = 'N/A'
+                                        if (allValue.flowData) {
+
+                                            if (allValue.flowData.finish) {
+                                                return <span>{it('status.3')}</span>
+                                            }
+
+                                            if (allValue.flowData.currentEntity) {
+                                                status = allValue.flowData.currentEntity[allValue.id].entityName
+                                            }
+                                        }
+                                        return <span>{status}</span>
+                                    } else if (val === 'createDttm') {
+                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                    } else if (val === 'tag') {
+                                        const tags = _.map(allValue.tagList, 'tag.tag')
+
+                                        return <div>
+                                            {
+                                                _.map(allValue.tagList, el => {
+                                                    return <div style={{display: 'flex', marginRight: '30px'}}>
+                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                        &nbsp;{el.tag.tag}
+                                                    </div>
+                                                })
+                                            }
+                                        </div>
+
+                                    } else if (val === 'severity') {
+                                        return <span className='severity-level'
+                                                     style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+                                    } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                                        let formattedPatternIP = ''
+                                        if (value.length > 32) {
+                                            formattedPatternIP = value.substr(0, 32) + '...';
+                                        }else{
+                                            formattedPatternIP = value
+                                        }
+                                        return <span>{formattedPatternIP}</span>
                                     } else {
-                                        return <span>{it('txt-incident-related')}</span>
+                                        return <span>{value}</span>
                                     }
-                                } else if (val === 'category') {
-                                    return <span>{it(`category.${value}`)}</span>
-                                } else if (val === 'status') {
-                                    let status = 'N/A'
-                                    if (allValue.flowData) {
-
-                                        if (allValue.flowData.finish) {
-                                            return <span>{it('status.3')}</span>
-                                        }
-
-                                        if (allValue.flowData.currentEntity) {
-                                            status = allValue.flowData.currentEntity[allValue.id].entityName
-                                        }
-                                    }
-                                    return <span>{status}</span>
-                                } else if (val === 'createDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (val === 'tag') {
-                                    const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                    return <div>
-                                        {
-                                            _.map(allValue.tagList, el => {
-                                                return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                                                    &nbsp;{el.tag.tag}
-                                                </div>
-                                            })
-                                        }
-                                    </div>
-
-                                } else if (val === 'severity') {
-                                    return <span className='severity-level'
-                                                 style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                } else if (val === 'srcIPListString' || val === 'dstIPListString'){
-                                    let formattedPatternIP = ''
-                                    if (value.length > 32) {
-                                        formattedPatternIP = value.substr(0, 32) + '...';
-                                    }else{
-                                        formattedPatternIP = value
-                                    }
-                                    return <span>{formattedPatternIP}</span>
-                                } else {
-                                    return <span>{value}</span>
                                 }
                             }
-                        }
-                    };
-                });
+                        };
+                    });
 
-                this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
+                    this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
+                }
+
             }
             return null
         })
@@ -468,7 +483,7 @@ class Incident extends Component {
                                     onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                             }
                         </div>
-                        <MuiTableContent
+                        <MuiTableContentWithoutLoading
                             data={incident}
                             tableOptions={tableOptions}/>
                     </div>
