@@ -551,6 +551,7 @@
     "txt-adapter": "Adapter",
     "txt-action": "Action",
     "txt-soarRuleInfo": "SOAR rule info",
+    "txt-soarRuleCondition": "SOAR rule Condition",
     "txt-ruleEditSettings": "設定"
   },
 

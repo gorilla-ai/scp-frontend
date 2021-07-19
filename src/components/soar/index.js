@@ -43,7 +43,7 @@ class SoarController extends Component {
 
     this.state = {
       activeTab: 'rule',
-      activeContent: 'flow', //'table', 'settings', or 'flow'
+      activeContent: 'table', //'table', 'settings', or 'flow'
       showFilter: false,
       soarColumns: {},
       filterList: {
@@ -70,6 +70,7 @@ class SoarController extends Component {
         oldPage: 1,
         pageSize: 20
       },
+      soarIndividualData: {},
       currentSoarData: {}
     };
 
@@ -79,6 +80,7 @@ class SoarController extends Component {
     this.getSoarColumn();
     this.getSoarData();
   }
+  ryan = () => {}
   /**
    * Get and set columns data and filter list
    * @method
@@ -225,7 +227,7 @@ class SoarController extends Component {
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-edit' title={t('txt-edit')}></i>
+                      <i className='fg fg-edit' title={t('txt-edit')} onClick={this.getSoarIndividualData.bind(this, allValue.flowId)}></i>
                       <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                     </div>
                   )
@@ -241,6 +243,41 @@ class SoarController extends Component {
           soarData: tempSoarData
         });
       }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set soar data
+   * @method
+   * @param {string} flowId - flow ID
+   */
+  getSoarIndividualData = (flowId) => {
+    const {baseUrl} = this.context;
+
+    if (typeof flowId !== 'string') {
+      this.setState({
+        soarIndividualData: {}
+      }, () => {
+        this.toggleContent('flow');
+      });
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/flow?flowId=${flowId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          soarIndividualData: data
+        }, () => {
+          this.toggleContent('flow');
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -389,7 +426,7 @@ class SoarController extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, filterList, soarColumns, soarSearch} = this.state;
+    const {showFilter, filterList, soarSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -524,7 +561,9 @@ class SoarController extends Component {
       activeTab,
       activeContent,
       showFilter,
-      soarData
+      soarColumns,
+      soarData,
+      soarIndividualData
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -555,7 +594,7 @@ class SoarController extends Component {
                   <header className='main-header'>{t('soar.txt-ruleList')}</header>
                   <div className='content-header-btns with-menu'>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'settings')}>{t('txt-settings')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'flow')}>{t('soar.txt-addRule')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSoarIndividualData}>{t('soar.txt-addRule')}</Button>
                   </div>
 
                   {soarData.dataContent &&
@@ -576,6 +615,8 @@ class SoarController extends Component {
 
         {activeContent === 'flow' &&
           <SoarFlow
+            soarColumns={soarColumns}
+            soarIndividualData={soarIndividualData}
             toggleContent={this.toggleContent} />
         }
       </div>

@@ -58,6 +58,10 @@ class SoarFlow extends Component {
         name: '',
         aggFieldId: ''
       },
+      soarCondition: {
+        operator: ''
+      },
+      operatorList: [],
       reactFlowInstance: null,
       flowData: [],
       selectedNode: {},
@@ -76,14 +80,38 @@ class SoarFlow extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {soarIndividualData} = this.props;
+
     localforage.config({
       name: 'react-flow-demo',
       storeName: 'flows',
     });
 
+    this.setColumnData();
     this.getFlowData();
+
+    if (!_.isEmpty(soarIndividualData)) {
+      this.setIndividualSoarData();
+    }
   }
   ryan = () => {}
+  /**
+   * Set column data list
+   * @method
+   */
+  setColumnData = () => {
+    const operatorList = _.map(this.props.soarColumns.linkOp, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    });
+
+    this.setState({
+      operatorList
+    });
+  }
+  /**
+   * Get soar flow data
+   * @method
+   */
   getFlowData = () => {
     const flowData = [
       {
@@ -128,6 +156,22 @@ class SoarFlow extends Component {
 
     this.setState({
       flowData
+    });
+  }
+  /**
+   * Set individual soar data
+   * @method
+   */
+  setIndividualSoarData = () => {
+    const {soarIndividualData} = this.props;
+    const {soarRule, soarCondition} = this.state;
+    let tempSoarRule = {...soarRule};
+    let tempSoarCondition = {...soarCondition};
+    tempSoarRule.name = soarIndividualData.flowName;
+    tempSoarRule.aggFieldId = soarIndividualData.aggField;
+
+    this.setState({
+      soarRule: tempSoarRule
     });
   }
   getNodeText = (val) => {
@@ -291,15 +335,25 @@ class SoarFlow extends Component {
   /**
    * Handle input data change
    * @method
+   * @param {string} type - data type ('soarRule' or 'soarCondition')
    * @param {object} event - event object
    */
-  handleDataChange = (event) => {
-    let tempSoarRule = {...this.state.soarRule};
-    tempSoarRule[event.target.name] = event.target.value;
+  handleDataChange = (type, event) => {
+    if (type === 'soarRule') {
+      let tempSoarRule = {...this.state.soarRule};
+      tempSoarRule[event.target.name] = event.target.value;
 
-    this.setState({
-      soarRule: tempSoarRule
-    });
+      this.setState({
+        soarRule: tempSoarRule
+      });
+    } else if (type === 'soarCondition') {
+      let tempSoarCondition = {...this.state.soarCondition};
+      tempSoarCondition[event.target.name] = event.target.value;
+
+      this.setState({
+        soarCondition: tempSoarCondition
+      });
+    }
   }
   /**
    * Toggle rule settings dialog
@@ -344,8 +398,37 @@ class SoarFlow extends Component {
       openRuleEditDialog: false
     });
   }
+  /**
+   * Clear soar data
+   * @method
+   * @param {string} options - option for redirect
+   */
+  clearSoarData = (options) => {
+    this.setState({
+      soarRule: {
+        name: '',
+        aggFieldId: ''
+      },
+      soarCondition: {
+        operator: ''
+      }
+    }, () => {
+      if (options === 'table') {
+        this.props.toggleContent(options);
+      }
+    });
+  }
   render() {
-    const {openRuleEditDialog, soarRule, flowData, selectedNode, contextAnchor, activeElementType} = this.state;
+    const {
+      openRuleEditDialog,
+      soarRule,
+      soarCondition,
+      operatorList,
+      flowData,
+      selectedNode,
+      contextAnchor,
+      activeElementType
+    } = this.state;
 
     return (
       <div>
@@ -364,7 +447,7 @@ class SoarFlow extends Component {
             <div className='main-content basic-form'>
               <header className='main-header'>{t('soar.txt-soarFlow')}</header>
               <div className='content-header-btns'>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleContent.bind(this, 'table')}>{t('txt-backToList')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.clearSoarData.bind(this, 'table')}>{t('txt-backToList')}</Button>
               </div>
               <Menu
                 anchorEl={contextAnchor.node || contextAnchor.link}
@@ -389,7 +472,7 @@ class SoarFlow extends Component {
                           fullWidth
                           size='small'
                           value={soarRule.name}
-                          onChange={this.handleDataChange} />
+                          onChange={this.handleDataChange.bind(this, 'soarRule')} />
                       </div>
                       <div className='group'>
                         <TextField
@@ -400,7 +483,24 @@ class SoarFlow extends Component {
                           fullWidth
                           size='small'
                           value={soarRule.aggFieldId}
-                          onChange={this.handleDataChange} />
+                          onChange={this.handleDataChange.bind(this, 'soarRule')} />
+                      </div>
+                      <header>{t('soar.txt-soarRuleCondition')}</header>
+                      <div className='group'>
+                        <TextField
+                          id='soarRuleCondition'
+                          className='query-name dropdown'
+                          name='operator'
+                          select
+                          label='Operator'
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          required
+                          value={soarCondition.operator}
+                          onChange={this.handleDataChange.bind(this, 'soarCondition')}>
+                          {operatorList}
+                        </TextField>
                       </div>
                     </div>
                   </aside>
@@ -454,6 +554,8 @@ class SoarFlow extends Component {
 SoarFlow.contextType = BaseDataContext;
 
 SoarFlow.propTypes = {
+  soarColumns: PropTypes.object.isRequired,
+  soarIndividualData: PropTypes.object.isRequired,
   toggleContent: PropTypes.func.isRequired
 };
 
