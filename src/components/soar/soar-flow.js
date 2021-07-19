@@ -405,39 +405,41 @@ class SoarFlow extends Component {
                     </div>
                   </aside>
 
-                  <div className='reactflow-wrapper' ref={this.reactFlowWrapper}>
+                  <div className='reactflow-wrapper'>
                     <div className='drag-section'>
                       {NODE_TYPE.map(this.getNodeType)}
                     </div>
-                    <ReactFlow
-                      elements={flowData}
-                      onLoad={this.onLoad}
-                      onConnect={this.onConnect}
-                      onElementClick={this.onElementClick}
-                      onElementsRemove={this.onElementsRemove}
-                      onDragOver={this.onDragOver}
-                      onDrop={this.onDrop}
-                      onNodeContextMenu={this.onNodeContextMenu}
-                      onEdgeContextMenu={this.onEdgeContextMenu}
-                      onEdgeUpdate={this.onEdgeUpdate}
-                      deleteKeyCode={46} >
-                      <MiniMap
-                        className='mini-map'
-                        nodeStrokeColor={(n) => {
-                          if (n.style && n.style.background) return n.style.background;
-                          if (n.type === 'input') return '#0041d0';
-                          if (n.type === 'output') return '#ff0072';
-                          if (n.type === 'default') return '#1a192b';
-                          return '#eee';
-                        }}
-                        nodeColor={(n) => {
-                          if (n.style && n.style.background) return n.style.background;
-                          return '#fff';
-                        }}
-                        nodeBorderRadius={2} />
-                      <Controls />
-                      <Background color='#aaa' gap={16} />
-                    </ReactFlow>
+                    <div ref={this.reactFlowWrapper}>
+                      <ReactFlow
+                        elements={flowData}
+                        onLoad={this.onLoad}
+                        onConnect={this.onConnect}
+                        onElementClick={this.onElementClick}
+                        onElementsRemove={this.onElementsRemove}
+                        onDragOver={this.onDragOver}
+                        onDrop={this.onDrop}
+                        onNodeContextMenu={this.onNodeContextMenu}
+                        onEdgeContextMenu={this.onEdgeContextMenu}
+                        onEdgeUpdate={this.onEdgeUpdate}
+                        deleteKeyCode={46} >
+                        <MiniMap
+                          className='mini-map'
+                          nodeStrokeColor={(n) => {
+                            if (n.style && n.style.background) return n.style.background;
+                            if (n.type === 'input') return '#0041d0';
+                            if (n.type === 'output') return '#ff0072';
+                            if (n.type === 'default') return '#1a192b';
+                            return '#eee';
+                          }}
+                          nodeColor={(n) => {
+                            if (n.style && n.style.background) return n.style.background;
+                            return '#fff';
+                          }}
+                          nodeBorderRadius={2} />
+                        <Controls />
+                        <Background color='#aaa' gap={16} />
+                      </ReactFlow>
+                    </div>
                   </div>
                 </ReactFlowProvider>
               </div>
