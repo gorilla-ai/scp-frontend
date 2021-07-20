@@ -227,7 +227,7 @@ class SoarController extends Component {
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-edit' title={t('txt-edit')} onClick={this.getSoarIndividualData.bind(this, allValue.flowId)}></i>
+                      <i className='fg fg-edit' title={t('txt-edit')} onClick={this.getSoarIndividualData.bind(this, allValue.flowId, allValue.isEnable)}></i>
                       <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                     </div>
                   )
@@ -252,8 +252,9 @@ class SoarController extends Component {
    * Get and set soar data
    * @method
    * @param {string} flowId - flow ID
+   * @param {string} isEnable - enable or not
    */
-  getSoarIndividualData = (flowId) => {
+  getSoarIndividualData = (flowId, isEnable) => {
     const {baseUrl} = this.context;
 
     if (typeof flowId !== 'string') {
@@ -271,8 +272,13 @@ class SoarController extends Component {
     })
     .then(data => {
       if (data) {
+        const soarIndividualData = {
+          ...data,
+          isEnable
+        };
+
         this.setState({
-          soarIndividualData: data
+          soarIndividualData
         }, () => {
           this.toggleContent('flow');
         });

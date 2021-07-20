@@ -28,6 +28,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import SoarForm from './soar-form'
 import SoarSingleSettings from './soar-single-settings'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -59,9 +60,10 @@ class SoarFlow extends Component {
         aggFieldId: ''
       },
       soarCondition: {
-        operator: ''
+        op: '',
+        args: {}
       },
-      operatorList: [],
+      soarFlow: [],
       reactFlowInstance: null,
       flowData: [],
       selectedNode: {},
@@ -80,34 +82,15 @@ class SoarFlow extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {soarIndividualData} = this.props;
-
     localforage.config({
       name: 'react-flow-demo',
       storeName: 'flows',
     });
 
-    this.setColumnData();
     this.getFlowData();
-
-    if (!_.isEmpty(soarIndividualData)) {
-      this.setIndividualSoarData();
-    }
+    this.setIndividualSoarData();
   }
   ryan = () => {}
-  /**
-   * Set column data list
-   * @method
-   */
-  setColumnData = () => {
-    const operatorList = _.map(this.props.soarColumns.linkOp, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
-    });
-
-    this.setState({
-      operatorList
-    });
-  }
   /**
    * Get soar flow data
    * @method
@@ -165,13 +148,22 @@ class SoarFlow extends Component {
   setIndividualSoarData = () => {
     const {soarIndividualData} = this.props;
     const {soarRule, soarCondition} = this.state;
+
+    if (_.isEmpty(soarIndividualData)) {
+      return;
+    }
+
     let tempSoarRule = {...soarRule};
     let tempSoarCondition = {...soarCondition};
     tempSoarRule.name = soarIndividualData.flowName;
     tempSoarRule.aggFieldId = soarIndividualData.aggField;
+    tempSoarCondition.op = soarIndividualData.condition.op;
+    tempSoarCondition.args = soarIndividualData.condition.args;
 
     this.setState({
-      soarRule: tempSoarRule
+      soarRule: tempSoarRule,
+      soarCondition: tempSoarCondition,
+      soarFlow: soarIndividualData.flow
     });
   }
   getNodeText = (val) => {
@@ -335,25 +327,30 @@ class SoarFlow extends Component {
   /**
    * Handle input data change
    * @method
-   * @param {string} type - data type ('soarRule' or 'soarCondition')
    * @param {object} event - event object
    */
-  handleDataChange = (type, event) => {
-    if (type === 'soarRule') {
-      let tempSoarRule = {...this.state.soarRule};
-      tempSoarRule[event.target.name] = event.target.value;
+  handleDataChange = (event) => {
+    let tempSoarRule = {...this.state.soarRule};
+    tempSoarRule[event.target.name] = event.target.value;
 
-      this.setState({
-        soarRule: tempSoarRule
-      });
-    } else if (type === 'soarCondition') {
-      let tempSoarCondition = {...this.state.soarCondition};
-      tempSoarCondition[event.target.name] = event.target.value;
+    this.setState({
+      soarRule: tempSoarRule
+    });
+  }
+  /**
+   * Set soar condition data
+   * @method
+   * @param {string} type - soar condition type
+   * @param {object} data - soar condition object
+   */
+  setSoarConditionData = (type, data) => {
+    let tempSoarCondition = {...this.state.soarCondition};
+    tempSoarCondition.op = type;
+    tempSoarCondition.args = data;
 
-      this.setState({
-        soarCondition: tempSoarCondition
-      });
-    }
+    this.setState({
+      soarCondition: tempSoarCondition
+    });
   }
   /**
    * Toggle rule settings dialog
@@ -373,7 +370,6 @@ class SoarFlow extends Component {
   handleRuleEditConfirm = () => {
     const {baseUrl} = this.context;
     const {testEmails} = this.state;
-
 
     this.ah.one({
       url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
@@ -408,9 +404,6 @@ class SoarFlow extends Component {
       soarRule: {
         name: '',
         aggFieldId: ''
-      },
-      soarCondition: {
-        operator: ''
       }
     }, () => {
       if (options === 'table') {
@@ -418,11 +411,72 @@ class SoarFlow extends Component {
       }
     });
   }
+  /**
+   * Handle soar save
+   * @method
+   */
+  handleSoarFlowSave = () => {
+    const {baseUrl} = this.context;
+    const {soarIndividualData} = this.props;
+    const {soarRule, soarCondition, soarFlow} = this.state;
+    const url = `${baseUrl}/api/soar/flow`;
+    const requestData = {
+      flowName: soarRule.name,
+      aggField: soarRule.aggFieldId,
+      isEnable: soarIndividualData.isEnable,
+      condition: soarCondition,
+      flow: soarFlow
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.props.toggleContent('table');
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check save button enable/disable
+   * @method
+   */
+  checkSaveDisable = () => {
+    const {soarRule, soarCondition} = this.state;
+    let disabled = false;
+
+    if (!soarRule.name || !soarRule.aggFieldId || !soarCondition.op) {
+      disabled = true;
+    }
+
+    if (_.isEmpty(soarCondition.args)) {
+      disabled = true;
+    } else {
+      Object.keys(soarCondition.args).map(key => {
+        const value = soarCondition.args[key];
+
+        if (!value && typeof value === 'string') {
+          disabled = true;
+          return false;
+        }
+      });
+    }
+
+    return disabled;
+  }
   render() {
+    const {soarColumns} = this.props;
     const {
       openRuleEditDialog,
       soarRule,
       soarCondition,
+      soarFlow,
       operatorList,
       flowData,
       selectedNode,
@@ -471,8 +525,11 @@ class SoarFlow extends Component {
                           variant='outlined'
                           fullWidth
                           size='small'
+                          required
+                          error={!soarRule.name}
+                          helperText={soarRule.name ? '' : t('txt-required')}
                           value={soarRule.name}
-                          onChange={this.handleDataChange.bind(this, 'soarRule')} />
+                          onChange={this.handleDataChange} />
                       </div>
                       <div className='group'>
                         <TextField
@@ -482,26 +539,19 @@ class SoarFlow extends Component {
                           variant='outlined'
                           fullWidth
                           size='small'
+                          required
+                          error={!soarRule.aggFieldId}
+                          helperText={soarRule.aggFieldId ? '' : t('txt-required')}
                           value={soarRule.aggFieldId}
-                          onChange={this.handleDataChange.bind(this, 'soarRule')} />
+                          onChange={this.handleDataChange} />
                       </div>
                       <header>{t('soar.txt-soarRuleCondition')}</header>
-                      <div className='group'>
-                        <TextField
-                          id='soarRuleCondition'
-                          className='query-name dropdown'
-                          name='operator'
-                          select
-                          label='Operator'
-                          variant='outlined'
-                          fullWidth
-                          size='small'
-                          required
-                          value={soarCondition.operator}
-                          onChange={this.handleDataChange.bind(this, 'soarCondition')}>
-                          {operatorList}
-                        </TextField>
-                      </div>
+                      <SoarForm
+                        soarColumns={soarColumns}
+                        showOperator='link'
+                        soarCondition={soarCondition}
+                        soarFlow={soarFlow}
+                        setSoarConditionData={this.setSoarConditionData} />
                     </div>
                   </aside>
 
@@ -542,6 +592,10 @@ class SoarFlow extends Component {
                     </div>
                   </div>
                 </ReactFlowProvider>
+              </div>
+              <div className='footer'>
+                <Button variant='outlined' color='primary' className='standard' onClick={this.clearSoarData.bind(this, 'table')}>{t('txt-cancel')}</Button>
+                <Button variant='contained' color='primary' onClick={this.handleSoarFlowSave} disabled={this.checkSaveDisable()}>{t('txt-save')}</Button>
               </div>
             </div>
           </div>

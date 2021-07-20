@@ -18,9 +18,6 @@ import helper from '../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
-const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
-
 let t = null;
 let et = null;
 
