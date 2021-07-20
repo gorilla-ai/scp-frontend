@@ -170,13 +170,13 @@ class SocConfig extends Component {
                         </Link>
                     </div>
 
-                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-                        <div className='subframe'>
-                            <Link to='/SCP/soc/incident-search'>
-                                <span className={`${this.getActiveFrame('incident-search')}`}>{it('txt-incident-search')}</span>
-                            </Link>
-                        </div>
-                    }
+                    {/*{accountType === constants.soc.NONE_LIMIT_ACCOUNT &&*/}
+                    {/*    <div className='subframe'>*/}
+                    {/*        <Link to='/SCP/soc/incident-search'>*/}
+                    {/*            <span className={`${this.getActiveFrame('incident-search')}`}>{it('txt-incident-search')}</span>*/}
+                    {/*        </Link>*/}
+                    {/*    </div>*/}
+                    {/*}*/}
                     <div className='subframe'>
                         <Link to='/SCP/soc/incident-log'>
                             <span className={`${this.getActiveFrame('incidentLog')}`}>{it('txt-incident-log-management')}</span>
