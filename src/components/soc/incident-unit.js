@@ -782,7 +782,7 @@ class IncidentUnit extends Component {
 
     onNameChange = (event, values) => {
         let temp = {...this.state.incidentUnit};
-        temp.info['name'] = values.text;
+        temp.info['name'] = values;
 
         const {departmentList} = this.state
         _.forEach(departmentList, value =>{
@@ -803,6 +803,9 @@ class IncidentUnit extends Component {
     handleUnitSubmit = () => {
         const {baseUrl} = this.context;
         let tmpIncidentUnit = {...this.state.incidentUnit};
+
+        console.log("tmpIncidentUnit =-== "  ,tmpIncidentUnit)
+
         if (!this.checkAddData(tmpIncidentUnit)) {
             return
         }
