@@ -77,7 +77,8 @@ class IncidentUnit extends Component {
                     isUse: false,
                     isGovernment:false,
                     abbreviation: '',
-                    relatedAccountList: []
+                    relatedAccountList: [],
+                    selectUnitObject:{}
                 }
             },
             isOrganizationDialogOpen: false,
@@ -658,8 +659,8 @@ class IncidentUnit extends Component {
                     <div className='group'>
                         <label htmlFor='name'>{it('unit.txt-name')}</label>
                         <Autocomplete
-                            id='name'
-                            name='name'
+                            id='id'
+                            name='id'
                             required
                             error={!(incidentUnit.info.name || '').trim()}
                             helperText={it('txt-required')}
@@ -667,12 +668,12 @@ class IncidentUnit extends Component {
                             value={incidentUnit.info.name}
                             disableClearable
                             disabled={activeContent === 'viewDevice' || activeContent === 'editDevice'}
-                            options={departmentList.map((option) => option.name)}
+                            options={departmentList.map((option) => option.text)}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
                                     required
-                                    error={!(incidentUnit.info.name || '').trim()}
+                                    error={!(incidentUnit.info.name ? incidentUnit.info.name.value : '' || '')}
                                     helperText={it('txt-required')}
                                     variant='outlined'
                                     fullWidth={true}
@@ -826,7 +827,7 @@ class IncidentUnit extends Component {
 
     onNameChange = (event, values) => {
         let temp = {...this.state.incidentUnit};
-        temp.info['name'] = values;
+        temp.info['name'] = values.text;
 
         const {departmentList} = this.state
         _.forEach(departmentList, value =>{
@@ -834,7 +835,6 @@ class IncidentUnit extends Component {
                 temp.info.id = value.id;
             }
         })
-
         this.setState({
             incidentUnit: temp
         })
