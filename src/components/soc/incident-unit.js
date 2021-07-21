@@ -628,7 +628,7 @@ class IncidentUnit extends Component {
                                 <TextField
                                     {...params}
                                     required
-                                    error={!(incidentUnit.info.name)}
+                                    error={!(incidentUnit.info.name || '').trim()}
                                     helperText={it('txt-required')}
                                     variant='outlined'
                                     fullWidth={true}
