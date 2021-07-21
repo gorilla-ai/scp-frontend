@@ -77,8 +77,7 @@ class IncidentUnit extends Component {
                     isUse: false,
                     isGovernment:false,
                     abbreviation: '',
-                    relatedAccountList: [],
-                    selectUnitObject:{}
+                    relatedAccountList: []
                 }
             },
             isOrganizationDialogOpen: false,
@@ -131,50 +130,6 @@ class IncidentUnit extends Component {
         .then(data => {
             if (data) {
                 let tempEdge = {...incidentUnit};
-                // tempEdge.dataContent = data.rows;
-                // tempEdge.totalCount = data.counts;
-                // tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentUnit.currentPage;
-                //
-                // let dataFields = {};
-                // incidentUnit.dataFieldsArr.forEach(tempData => {
-                //     dataFields[tempData] = {
-                //         label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
-                //         sortable: this.checkSortable(tempData),
-                //         formatter: (value, allValue, i) => {
-                //             if (tempData === 'industryType') {
-                //                 return <span>{this.mappingType(value)}</span>
-                //             } else if (tempData === 'updateDttm') {
-                //                 return <span>{helper.getFormattedDate(value, 'local')}</span>
-                //             } else if (tempData === 'isGovernment') {
-                //
-                //                 if (value){
-                //                     return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
-                //                 }else {
-                //                     return <span>{this.checkDefault(value)}</span>
-                //                 }
-                //
-                //             }
-                //             else if (tempData === '_menu') {
-                //                 return (
-                //                     <div className='table-menu menu active'>
-                //                         <i className='fg fg-edit'
-                //                            onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
-                //                            title={t('txt-view')}/>
-                //                         <i className='fg fg-trashcan'
-                //                            onClick={this.openDeleteMenu.bind(this, allValue)}
-                //                            title={t('txt-delete')}/>
-                //                     </div>
-                //                 )
-                //             } else {
-                //                 return <span>{value}</span>
-                //             }
-                //         }
-                //     };
-                // });
-                //
-                // tempEdge.dataFields = dataFields;
-
-
                 tempEdge.dataContent = data.rows;
                 tempEdge.totalCount = data.counts;
                 tempEdge.currentPage = page;
@@ -659,8 +614,8 @@ class IncidentUnit extends Component {
                     <div className='group'>
                         <label htmlFor='name'>{it('unit.txt-name')}</label>
                         <Autocomplete
-                            id='id'
-                            name='id'
+                            id='name'
+                            name='name'
                             required
                             error={!(incidentUnit.info.name || '').trim()}
                             helperText={it('txt-required')}
@@ -673,7 +628,7 @@ class IncidentUnit extends Component {
                                 <TextField
                                     {...params}
                                     required
-                                    error={!(incidentUnit.info.name ? incidentUnit.info.name.value : '' || '')}
+                                    error={!(incidentUnit.info.name)}
                                     helperText={it('txt-required')}
                                     variant='outlined'
                                     fullWidth={true}
