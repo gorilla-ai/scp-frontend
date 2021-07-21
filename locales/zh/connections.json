@@ -181,6 +181,7 @@
   "txt-description": "描述",
   "txt-reference": "參考",
   "txt-syslog": "日誌串流",
+  "txt-minutes": "分鐘",
   "txt-viewJSON": "$t(txt-view)JSON",
   "txt-exportCSV": "$t(txt-export)CSV",
   "txt-exportPDF": "$t(txt-export)PDF",

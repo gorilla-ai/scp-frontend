@@ -111,7 +111,7 @@ class SoarFlow extends Component {
       {
         id: '2_Action',
         type: 'output',
-        data: { label: 'Action' },
+        data: { label: 'Action', labelStyle: { fill: 'blue', fontWeight: 700 } },
         position: { x: 300, y: 400 }
       },
       {
@@ -166,6 +166,14 @@ class SoarFlow extends Component {
       soarFlow: soarIndividualData.flow
     });
   }
+  /**
+   * Set flow settings data
+   * @method
+   */
+  setSoarFlowData = () => {
+    const {baseUrl} = this.context;
+
+  }
   getNodeText = (val) => {
     let nodeText = '';
 
@@ -203,7 +211,7 @@ class SoarFlow extends Component {
     };
 
     this.setState({
-      flowData: addEdge(edgeParams, this.state.flowData)
+      soarFlow: addEdge(edgeParams, this.state.soarFlow)
     });
   }
   setActiveElement = (type, from, event, element) => {
@@ -228,10 +236,10 @@ class SoarFlow extends Component {
     event.preventDefault();
   }
   onElementClick = (event, element) => {
-    const {flowData} = this.state;
+    const {soarFlow} = this.state;
     const type = element.source ? 'link' : 'type';
-    const selectedFlowIndex = _.findIndex(flowData, { 'id': element.id });
-    const selectedNode = flowData[selectedFlowIndex];
+    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
+    const selectedNode = soarFlow[selectedFlowIndex];
 
     this.setState({
       selectedNode
@@ -240,10 +248,10 @@ class SoarFlow extends Component {
     });   
   }
   onElementsRemove = () => {
-    const {flowData, activeElementType, activeElement} = this.state;
+    const {soarFlow, activeElementType, activeElement} = this.state;
 
     this.setState({
-      flowData: removeElements(activeElement[activeElementType], flowData)
+      soarFlow: removeElements(activeElement[activeElementType], soarFlow)
     });
     this.handleCloseMenu();
   }
@@ -252,7 +260,7 @@ class SoarFlow extends Component {
     event.dataTransfer.dropEffect = 'move';
   }
   onDrop = (event) => {
-    const {reactFlowInstance, flowData} = this.state;
+    const {reactFlowInstance, soarFlow} = this.state;
     const reactFlowBounds = this.reactFlowWrapper.current.getBoundingClientRect();
     const type = event.dataTransfer.getData('application/reactflow');
     const position = reactFlowInstance.project({
@@ -265,11 +273,11 @@ class SoarFlow extends Component {
       position,
       data: { label: this.getNodeText(type) }
     };
-    const tempFlowData = _.cloneDeep(flowData);
+    const tempFlowData = _.cloneDeep(soarFlow);
     const newFlowData = tempFlowData.concat(newNode)
 
     this.setState({
-      flowData: newFlowData
+      soarFlow: newFlowData
     });
 
     event.preventDefault();
@@ -297,7 +305,7 @@ class SoarFlow extends Component {
     edgeParams.id = oldEdge.id;
 
     this.setState({
-      flowData: updateEdge(oldEdge, edgeParams, this.state.flowData)
+      soarFlow: updateEdge(oldEdge, edgeParams, this.state.soarFlow)
     });
   }
   getNodeType = (val, i) => {
@@ -317,7 +325,7 @@ class SoarFlow extends Component {
 
       if (flow) {
         this.setState({
-          flowData: flow.elements || []
+          soarFlow: flow.elements || []
         });
       }
     };
@@ -362,28 +370,6 @@ class SoarFlow extends Component {
     });
 
     this.handleCloseMenu();
-  }
-  /**
-   * Handle rule edit confirm
-   * @method
-   */
-  handleRuleEditConfirm = () => {
-    const {baseUrl} = this.context;
-    const {testEmails} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Close dialog
@@ -481,17 +467,20 @@ class SoarFlow extends Component {
       flowData,
       selectedNode,
       contextAnchor,
-      activeElementType
+      activeElementType,
+      activeElement
     } = this.state;
 
     return (
       <div>
         {openRuleEditDialog &&
           <SoarSingleSettings
+            soarColumns={soarColumns}
             activeElementType={activeElementType}
-            handleRuleEditConfirm={this.handleRuleEditConfirm}
+            activeElement={activeElement}
+            setSoarFlowData={this.setSoarFlowData}
             closeDialog={this.closeDialog} />
-        }     
+        }
 
         <div className='sub-header'>
         </div>
@@ -547,6 +536,7 @@ class SoarFlow extends Component {
                       </div>
                       <header>{t('soar.txt-soarRuleCondition')}</header>
                       <SoarForm
+                        from='soarCondition'
                         soarColumns={soarColumns}
                         showOperator='link'
                         soarCondition={soarCondition}
@@ -561,7 +551,7 @@ class SoarFlow extends Component {
                     </div>
                     <div ref={this.reactFlowWrapper}>
                       <ReactFlow
-                        elements={flowData}
+                        elements={soarFlow}
                         onLoad={this.onLoad}
                         onConnect={this.onConnect}
                         onElementClick={this.onElementClick}

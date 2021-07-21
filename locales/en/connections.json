@@ -182,6 +182,7 @@
   "txt-description": "Description",
   "txt-reference": "Reference",
   "txt-syslog": "Syslog",
+  "txt-minutes": "Minutes",
   "txt-viewJSON": "$t(txt-view) JSON",
   "txt-exportCSV": "$t(txt-export) CSV",
   "txt-exportPDF": "$t(txt-export) PDF",

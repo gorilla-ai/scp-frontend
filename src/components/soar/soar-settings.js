@@ -48,13 +48,7 @@ class SoarSettings extends Component {
       originalSoarAdapter: {},
       soarAdapter: {
         scp: {
-          esIp: '',
-          esPort: '',
-          https: '',
-          account: '',
-          password: '',
-          start_time_gap: '',
-          end_time_gap: ''
+          gap: ''
         },
         socket: {
           protocol: '',
@@ -526,93 +520,14 @@ class SoarSettings extends Component {
                   <div className='group-header'>SCP</div>
                   <div className='group'>
                     <TextField
-                      id='soarAdapterEsip'
-                      name='esIp'
-                      label='ES IP'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAdapter.scp.esIp}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarAdapterEsip'
-                      name='esPort'
+                      id='soarAdapterGap'
+                      name='gap'
                       type='number'
-                      label='ES Port'
+                      label={'Gap (' + t('txt-minutes') + ')'}
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAdapter.scp.esPort}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarAdapterHttps'
-                      name='https'
-                      select
-                      label='https'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAdapter.scp.https}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
-                      disabled={activeContent === 'viewMode'}>
-                      <MenuItem value={true}>True</MenuItem>
-                      <MenuItem value={false}>False</MenuItem>
-                    </TextField>
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarAdapterAccount'
-                      name='account'
-                      label='Account'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAdapter.scp.account}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarAdapterPassword'
-                      name='password'
-                      type='password'
-                      label='Password'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAdapter.scp.password}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarAdapterStartTimeGap'
-                      name='start_time_gap'
-                      type='number'
-                      label='Start Time Gap'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAdapter.scp.start_time_gap}
-                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarAdapterEndTimeGap'
-                      name='end_time_gap'
-                      type='number'
-                      label='End Time Gap'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAdapter.scp.end_time_gap}
+                      value={soarAdapter.scp.gap}
                       onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
@@ -864,30 +779,6 @@ class SoarSettings extends Component {
                       {actionTypeList}
                     </TextField>
                   </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarActionScpIp'
-                      name='scpIp'
-                      label='SCP IP'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAction.hmd.scpIp}
-                      onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarActionApiAuth'
-                      name='apiAuth'
-                      label='API Auth'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAction.hmd.apiAuth}
-                      onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
 
                   <div className='group-header'>NetProbe</div>
                   <div className='group'>
@@ -917,30 +808,6 @@ class SoarSettings extends Component {
                       <MenuItem value={true}>True</MenuItem>
                       <MenuItem value={false}>False</MenuItem>
                     </TextField>
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarActionIpPath'
-                      name='ipPath'
-                      label='IP Path'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAction.netprobe.ipPath}
-                      onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
-                      disabled={activeContent === 'viewMode'} />
-                  </div>
-                  <div className='group'>
-                    <TextField
-                      id='soarActionNetScpIp'
-                      name='scpIp'
-                      label='SCP IP'
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={soarAction.netprobe.scpIp}
-                      onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
-                      disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
                     <TextField

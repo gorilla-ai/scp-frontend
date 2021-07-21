@@ -15,6 +15,8 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import SoarForm from './soar-form'
+import SoarFormTwo from './soar-form-two'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -32,28 +34,6 @@ class SoarSingleSettings extends Component {
     super(props);
 
     this.state = {
-      adapterSettings: {
-        type: '',
-        ip: '',
-        port: ''
-      },
-      nodeSettings: {
-        type: '',
-        ip: '',
-        port: ''
-      },
-      linkSettings: {
-        type: '',
-        ip: '',
-        port: ''
-      },
-      soarRule: {
-        name: '',
-        aggFieldId: ''
-      },
-      info: '',
-      formValidation: {
-      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -64,101 +44,25 @@ class SoarSingleSettings extends Component {
   }
   ryan = () => {}
   /**
-   * Handle input data change
-   * @method
-   * @param {string} string - data input type ('node' or 'link')
-   * @param {object} event - event object
-   */
-  handleDataChange = (type, event) => {
-    if (type === 'node') {
-      let tempNodeSettings = {...this.state.nodeSettings};
-      tempNodeSettings[event.target.name] = event.target.value;
-
-      this.setState({
-        nodeSettings: tempNodeSettings
-      });
-    } else if (type === 'link') {
-      let tempLinkSettings = {...this.state.linkSettings};
-      tempLinkSettings[event.target.name] = event.target.value;
-
-      this.setState({
-        linkSettings: tempLinkSettings
-      });
-    }
-  }
-  /**
-   * Display rule edit content
+   * Display settings content
    * @method
    * @returns HTML DOM
    */
-  displayRuleEdit = () => {
-    const {activeElementType} = this.props;
-    const {adapterSettings, nodeSettings, linkSettings} = this.state;
+  displaySettings = () => {
+    const {soarColumns, activeElementType, activeElement} = this.props;
+    const activeFlowData = activeElement[activeElementType][0];
 
     if (activeElementType === 'node') {
       return (
-        <div className='form-group normal'>
-          <div className='group'>
-            <TextField
-              id='nodeSettingsType'
-              name='type'
-              label='Type'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={nodeSettings.type}
-              onChange={this.handleDataChange.bind(this, 'node')} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='nodeSettingsIp'
-              name='ip'
-              label='IP'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={nodeSettings.ip}
-              onChange={this.handleDataChange.bind(this, 'node')} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='nodeSettingsPort'
-              name='port'
-              label='Port'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={nodeSettings.port}
-              onChange={this.handleDataChange.bind(this, 'node')} />
-          </div>
-        </div>
+        <SoarForm
+          from='soarFlow'
+          soarColumns={soarColumns}
+          showOperator={activeElementType}
+          activeFlowData={activeFlowData} />
       )
     } else if (activeElementType === 'link') {
       return (
-        <div className='form-group normal'>
-          <div className='group'>
-            <TextField
-              id='linkSettingsType'
-              name='type'
-              label='Type'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={linkSettings.type}
-              onChange={this.handleDataChange.bind(this, 'link')} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='linkSettingsIp'
-              name='ip'
-              label='IP'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={linkSettings.ip}
-              onChange={this.handleDataChange.bind(this, 'link')} />
-          </div>
-        </div>
+        <span></span>
       )
     }
   }
@@ -167,7 +71,7 @@ class SoarSingleSettings extends Component {
     const titleText = activeElementType + ' ' + t('soar.txt-ruleEditSettings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-send'), handler: this.props.handleRuleEditConfirm}
+      confirm: {text: t('txt-send'), handler: this.props.setSoarFlowData}
     };
 
     return (
@@ -178,9 +82,8 @@ class SoarSingleSettings extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={this.state.info}
         closeAction='cancel'>
-        {this.displayRuleEdit()}
+        {this.displaySettings()}
       </ModalDialog>
     )
   }
@@ -189,8 +92,10 @@ class SoarSingleSettings extends Component {
 SoarSingleSettings.contextType = BaseDataContext;
 
 SoarSingleSettings.propTypes = {
+  soarColumns: PropTypes.object.isRequired,
   activeElementType: PropTypes.string.isRequired,
-  handleRuleEditConfirm: PropTypes.func.isRequired,
+  activeElement: PropTypes.object.isRequired,
+  setSoarFlowData: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };
 
