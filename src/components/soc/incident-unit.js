@@ -98,9 +98,7 @@ class IncidentUnit extends Component {
 
         this.getOptions();
 
-        // this.checkUnitOrg();
         this.getUnitList();
-        // this.checkUnitOrgFromDepartment()
     }
 
 
@@ -782,7 +780,7 @@ class IncidentUnit extends Component {
 
     onNameChange = (event, values) => {
         let temp = {...this.state.incidentUnit};
-        temp.info['name'] = values.text;
+        temp.info['name'] = values;
 
         const {departmentList} = this.state
         _.forEach(departmentList, value =>{
@@ -803,6 +801,7 @@ class IncidentUnit extends Component {
     handleUnitSubmit = () => {
         const {baseUrl} = this.context;
         let tmpIncidentUnit = {...this.state.incidentUnit};
+
         if (!this.checkAddData(tmpIncidentUnit)) {
             return
         }
@@ -1072,20 +1071,19 @@ class IncidentUnit extends Component {
 
             this.setState({
                 showFilter: false,
-                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'addDevice') {
             tempIncidentDevice.info = {
-                id: allValue.id,
-                oid: allValue.oid,
-                name: allValue.name,
-                level: allValue.level,
-                isUse: allValue.isUse,
-                isGovernment:allValue.isGovernment,
-                industryType: allValue.industryType,
-                abbreviation: allValue.abbreviation,
-                relatedAccountList: allValue.relatedAccountList
+                id: '',
+                oid: '',
+                name: '',
+                level: 'A',
+                isUse: true,
+                isGovernment: false,
+                industryType: '0',
+                abbreviation: '',
+                relatedAccountList: []
             };
 
             if (tempIncidentDevice.info.relatedAccountList) {
@@ -1110,7 +1108,6 @@ class IncidentUnit extends Component {
 
             this.setState({
                 showFilter: false,
-                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'tableList') {
