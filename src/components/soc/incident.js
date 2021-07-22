@@ -507,7 +507,7 @@ class Incident extends Component {
         const {session} = this.context
         const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
 
-        let editCheck = true
+        let editCheck = false
         let drawCheck = false
         let submitCheck = true
         let returnCheck = true
@@ -517,19 +517,18 @@ class Incident extends Component {
             drawCheck = true
         }
 
-        // if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer) && this.state.accountRoleType.length === 1) {
-        //
-        // }
+
         if (incident.info.flowData.currentEntity[incident.info.id].entityId === incident.info.flowData.firstEntityId){
             returnCheck = false
         }
 
-        if ((_.includes(this.state.accountRoleType,constants.soc.SOC_NORMAL_Ciso ) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) && this.state.accountRoleType.length === 1) {
-            editCheck = false
+        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Analyzer)) {
+            editCheck = true
         }
 
         if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
             closeCheck = true
+            editCheck = true
         }
 
         let tmpTagList = []
