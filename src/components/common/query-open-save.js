@@ -286,7 +286,7 @@ class QueryOpenSave extends Component {
         if (val.query) {
           tempFilterData.push({
             condition: val.condition,
-            query: val.query.trim()
+            query: val.query
           });
         }
       })
@@ -421,6 +421,14 @@ class QueryOpenSave extends Component {
           if (activeTab === 'alert') {
             if (publicCheckbox){
               accountId = 'Default';
+              queryName = queryData.inputName;
+            }else{
+              accountId = account.id;
+              queryName = queryData.inputName;
+            }
+          }else{
+            if (publicCheckbox){
+              accountId = 'IsPublic';
               queryName = queryData.inputName;
             }else{
               accountId = account.id;
@@ -893,7 +901,7 @@ class QueryOpenSave extends Component {
 
               formattedQueryText.push({
                 condition: formattedValue,
-                query: val.query.trim()
+                query: val.query
               });
             })
 
@@ -986,7 +994,7 @@ class QueryOpenSave extends Component {
 
               formattedQueryText.push({
                 condition: formattedValue,
-                query: val.query.trim()
+                query: val.query
               });
             })
 
@@ -1156,6 +1164,12 @@ class QueryOpenSave extends Component {
     this.setState({
       socTemplateEnable: !this.state.socTemplateEnable,
       publicCheckbox: !this.state.publicCheckbox
+    });
+  }
+
+  toggleSOCSwitchFromLog = () => {
+    this.setState({
+      socTemplateEnable: !this.state.socTemplateEnable,
     });
   }
 
@@ -1532,7 +1546,7 @@ class QueryOpenSave extends Component {
               control={
                 <Switch
                     checked={tempSocTemplateEnable}
-                    onChange={this.toggleSOCSwitch}
+                    onChange={this.toggleSOCSwitchFromLog}
                     color='primary'
                 />
               }
@@ -1766,7 +1780,7 @@ class QueryOpenSave extends Component {
         if (val.query) {
           tempFilterData.push({
             condition: val.condition,
-            query: val.query.trim()
+            query: val.query
           });
         }
       })
