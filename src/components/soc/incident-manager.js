@@ -650,6 +650,8 @@ class IncidentManagement extends Component {
                 onClose={this.handleCloseMenu}>
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
                 <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
+                <MenuItem onClick={this.exportPdfFromTable.bind(this, currentData)}>{t('txt-export')}</MenuItem>
+
 
                 {currentData.status === constants.soc.INCIDENT_STATUS_DELETED &&
                     <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'restart')}>{it('txt-restart')}</MenuItem>
@@ -3358,6 +3360,12 @@ class IncidentManagement extends Component {
         const {baseUrl, contextRoot} = this.context
         const {incident} = this.state
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
+    }
+
+    exportPdfFromTable(data) {
+        const {baseUrl, contextRoot} = this.context
+        this.handleCloseMenu()
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(data))})
     }
 
     exportAll() {
