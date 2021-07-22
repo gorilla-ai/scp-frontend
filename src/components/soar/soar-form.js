@@ -220,7 +220,7 @@ class SoarForm extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            value={textValue}
+            value={operatorValue[key]}
             onChange={this.handleDataChange.bind(this, operator)}>
             <MenuItem value={true}>True</MenuItem>
             <MenuItem value={false}>False</MenuItem>

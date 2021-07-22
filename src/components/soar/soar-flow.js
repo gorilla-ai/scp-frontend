@@ -35,7 +35,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NODE_TYPE = ['input', 'default', 'output'];
 const FLOW_KEY = 'example-flow';
-let id = 1;
+let flowCount = 0;
 
 let t = null;
 let f = null;
@@ -81,6 +81,7 @@ class SoarFlow extends Component {
       name: 'react-flow-demo',
       storeName: 'flows',
     });
+    flowCount = 0;
 
     this.setIndividualSoarData();
   }
@@ -144,6 +145,7 @@ class SoarFlow extends Component {
     tempSoarRule.aggFieldId = soarIndividualData.aggField;
     tempSoarCondition.op = soarIndividualData.condition.op;
     tempSoarCondition.args = soarIndividualData.condition.args;
+    flowCount = soarIndividualData.flow.length - 1;
 
     this.setState({
       soarRule: tempSoarRule,
@@ -174,21 +176,19 @@ class SoarFlow extends Component {
     });
   }
   onConnect = (params) => {
-    const edgeParams = {
+    const id = ++flowCount;
+    const linkParams = {
       ...params,
-      id: ++id + '_' + 'Link',
+      id: id.toString(),
       label: 'default link',
+      componentType: 'link',
       arrowHeadType: 'arrow',
-      labelStyle: {
-        fill: 'red',
-        fontWeight: 700
-      },
       animated: true,
       type: 'smoothstep'
     };
 
     this.setState({
-      soarFlow: addEdge(edgeParams, this.state.soarFlow)
+      soarFlow: addEdge(linkParams, this.state.soarFlow)
     });
   }
   setActiveElement = (type, from, event, id) => {
@@ -216,7 +216,7 @@ class SoarFlow extends Component {
     const {soarFlow, activeElement} = this.state;
 
     this.setState({
-      soarFlow: removeElements(activeElement, soarFlow)
+      soarFlow: removeElements([activeElement], soarFlow)
     });
     this.handleCloseMenu();
   }
@@ -232,9 +232,11 @@ class SoarFlow extends Component {
       x: event.clientX - reactFlowBounds.left,
       y: event.clientY - reactFlowBounds.top,
     });
+    const id = ++flowCount;
     const newNode = {
-      id: ++id + '_' + this.getNodeText(type),
+      id: id.toString(),
       type,
+      componentType: this.getNodeText(type).toLowerCase(),
       position,
       data: { label: this.getNodeText(type) }
     };
@@ -253,6 +255,16 @@ class SoarFlow extends Component {
         node: null,
         link: null
       }
+    });
+  }
+  onNodeDragStop = (event, node) => {
+    const {soarFlow} = this.state;
+    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': node.id });
+    let tempSoarFlow = _.cloneDeep(soarFlow);
+    tempSoarFlow[selectedFlowIndex].position = node.position;
+
+    this.setState({
+      soarFlow: tempSoarFlow
     });
   }
   onNodeContextMenu = (event, node) => {
@@ -541,6 +553,9 @@ class SoarFlow extends Component {
                         soarFlow={soarFlow}
                         setSoarConditionData={this.setSoarConditionData} />
                     </div>
+                    <div>
+                      <JSONTree data={soarFlow} theme={helper.getJsonViewTheme()} />
+                    </div>
                   </aside>
 
                   <div className='reactflow-wrapper'>
@@ -552,6 +567,7 @@ class SoarFlow extends Component {
                         elements={soarFlow}
                         onLoad={this.onLoad}
                         onConnect={this.onConnect}
+                        onNodeDragStop={this.onNodeDragStop}
                         onElementsRemove={this.onElementsRemove}
                         onDragOver={this.onDragOver}
                         onDrop={this.onDrop}
