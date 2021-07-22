@@ -45,6 +45,7 @@ class SoarController extends Component {
       activeTab: 'rule',
       activeContent: 'table', //'table', 'settings', or 'flow'
       showFilter: false,
+      flowActionType: '', //'add' or 'edit'
       soarColumns: {},
       filterList: {
         adapter: [],
@@ -251,14 +252,15 @@ class SoarController extends Component {
   /**
    * Get and set soar data
    * @method
-   * @param {string} flowId - flow ID
-   * @param {string} isEnable - enable or not
+   * @param {string} [flowId] - flow ID
+   * @param {string} [isEnable] - enable or not
    */
   getSoarIndividualData = (flowId, isEnable) => {
     const {baseUrl} = this.context;
 
     if (typeof flowId !== 'string') {
       this.setState({
+        flowActionType: 'add',
         soarIndividualData: {}
       }, () => {
         this.toggleContent('flow');
@@ -278,6 +280,7 @@ class SoarController extends Component {
         };
 
         this.setState({
+          flowActionType: 'edit',
           soarIndividualData
         }, () => {
           this.toggleContent('flow');
@@ -420,11 +423,16 @@ class SoarController extends Component {
    * Toggle page content
    * @method
    * @param {string} type - content type ('table', 'settings' or 'flow')
+   * @param {string} [options] - option for refresh table
    */
-  toggleContent = (type) => {
+  toggleContent = (type, options) => {
     this.setState({
       activeContent: type
     });
+
+    if (options === 'refresh') {
+      this.getSoarData();
+    }
   }
   /**
    * Display filter content
@@ -567,6 +575,7 @@ class SoarController extends Component {
       activeTab,
       activeContent,
       showFilter,
+      flowActionType,
       soarColumns,
       soarData,
       soarIndividualData
@@ -621,6 +630,7 @@ class SoarController extends Component {
 
         {activeContent === 'flow' &&
           <SoarFlow
+            flowActionType={flowActionType}
             soarColumns={soarColumns}
             soarIndividualData={soarIndividualData}
             toggleContent={this.toggleContent} />

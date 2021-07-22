@@ -54,7 +54,7 @@ class SoarFlow extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      openRuleEditDialog: false,
+      openFlowSettingsDialog: false,
       soarRule: {
         name: '',
         aggFieldId: ''
@@ -65,17 +65,12 @@ class SoarFlow extends Component {
       },
       soarFlow: [],
       reactFlowInstance: null,
-      flowData: [],
-      selectedNode: {},
       contextAnchor: {
         node: null,
         link: null
       },
       activeElementType: '', //'node' or 'link'
-      activeElement: {
-        node: null,
-        link: null
-      }
+      activeElement: {}
     };
 
     this.reactFlowWrapper = React.createRef();
@@ -87,7 +82,6 @@ class SoarFlow extends Component {
       storeName: 'flows',
     });
 
-    this.getFlowData();
     this.setIndividualSoarData();
   }
   ryan = () => {}
@@ -128,18 +122,9 @@ class SoarFlow extends Component {
 
     id = (flowData.length) - 1;
 
-    // const flowData = [
-    //   {
-    //     id: '1_Adapter',
-    //     type: 'input',
-    //     data: { label: 'Adapter' },
-    //     position: { x: 500, y: 50 }
-    //   }
-    // ];
-
-    this.setState({
-      flowData
-    });
+    // this.setState({
+    //   flowData
+    // });
   }
   /**
    * Set individual soar data
@@ -165,14 +150,6 @@ class SoarFlow extends Component {
       soarCondition: tempSoarCondition,
       soarFlow: soarIndividualData.flow
     });
-  }
-  /**
-   * Set flow settings data
-   * @method
-   */
-  setSoarFlowData = () => {
-    const {baseUrl} = this.context;
-
   }
   getNodeText = (val) => {
     let nodeText = '';
@@ -214,10 +191,10 @@ class SoarFlow extends Component {
       soarFlow: addEdge(edgeParams, this.state.soarFlow)
     });
   }
-  setActiveElement = (type, from, event, element) => {
-    const {contextAnchor, activeElement} = this.state;
-    let tempActiveElement = {...activeElement};
-    tempActiveElement[type] = [element];
+  setActiveElement = (type, from, event, id) => {
+    const {soarFlow, contextAnchor} = this.state;
+    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': id });
+    const activeElement = soarFlow[selectedFlowIndex];
 
     if (from === 'contextMenu') {
       let tempContextAnchor = {...contextAnchor};
@@ -230,28 +207,16 @@ class SoarFlow extends Component {
 
     this.setState({
       activeElementType: type,
-      activeElement: tempActiveElement
+      activeElement
     });
 
     event.preventDefault();
   }
-  onElementClick = (event, element) => {
-    const {soarFlow} = this.state;
-    const type = element.source ? 'link' : 'type';
-    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
-    const selectedNode = soarFlow[selectedFlowIndex];
-
-    this.setState({
-      selectedNode
-    }, () => {
-      this.setActiveElement(type, 'click', event, element);
-    });   
-  }
   onElementsRemove = () => {
-    const {soarFlow, activeElementType, activeElement} = this.state;
+    const {soarFlow, activeElement} = this.state;
 
     this.setState({
-      soarFlow: removeElements(activeElement[activeElementType], soarFlow)
+      soarFlow: removeElements(activeElement, soarFlow)
     });
     this.handleCloseMenu();
   }
@@ -291,10 +256,10 @@ class SoarFlow extends Component {
     });
   }
   onNodeContextMenu = (event, node) => {
-    this.setActiveElement('node', 'contextMenu', event, node);
+    this.setActiveElement('node', 'contextMenu', event, node.id);
   }
   onEdgeContextMenu = (event, link) => {
-    this.setActiveElement('link', 'contextMenu', event, link);
+    this.setActiveElement('link', 'contextMenu', event, link.id);
   }
   onDragStart = (nodeType, event) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -361,12 +326,42 @@ class SoarFlow extends Component {
     });
   }
   /**
+   * Set flow settings data
+   * @method
+   * @param {string} type - soar condition type
+   * @param {object} data - soar condition object
+   * @param {object} element - active element
+   */
+  setSoarFlowData = (type, data, element) => {
+    const {soarFlow} = this.state;
+    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
+    let tempSoarFlow = _.cloneDeep(soarFlow);
+    tempSoarFlow[selectedFlowIndex].args = data;
+
+    if (element.componentType === 'adapter') {
+      tempSoarFlow[selectedFlowIndex].adapter_type = type;
+    } else  {
+      tempSoarFlow[selectedFlowIndex].op = type;
+    }
+
+    this.setState({
+      soarFlow: tempSoarFlow
+    });
+  }
+  /**
+   * Handle soar flow settings confirm
+   * @method
+   */
+  confirmSoarFlowData = () => {
+    this.closeDialog();
+  }
+  /**
    * Toggle rule settings dialog
    * @method
    */
-  toggleRuleEditDialog = () => {
+  toggleFlowSettingsDialog = () => {
     this.setState({
-      openRuleEditDialog: !this.state.openRuleEditDialog
+      openFlowSettingsDialog: !this.state.openFlowSettingsDialog
     });
 
     this.handleCloseMenu();
@@ -377,7 +372,7 @@ class SoarFlow extends Component {
    */
   closeDialog = () => {
     this.setState({
-      openRuleEditDialog: false
+      openFlowSettingsDialog: false
     });
   }
   /**
@@ -403,16 +398,20 @@ class SoarFlow extends Component {
    */
   handleSoarFlowSave = () => {
     const {baseUrl} = this.context;
-    const {soarIndividualData} = this.props;
+    const {flowActionType, soarIndividualData} = this.props;
     const {soarRule, soarCondition, soarFlow} = this.state;
     const url = `${baseUrl}/api/soar/flow`;
-    const requestData = {
+    let requestData = {
       flowName: soarRule.name,
       aggField: soarRule.aggFieldId,
       isEnable: soarIndividualData.isEnable,
       condition: soarCondition,
       flow: soarFlow
     };
+
+    if (flowActionType === 'edit') {
+      requestData.flowId = soarIndividualData.flowId;
+    }
 
     this.ah.one({
       url,
@@ -422,7 +421,7 @@ class SoarFlow extends Component {
     })
     .then(data => {
       if (data) {
-        this.props.toggleContent('table');
+        this.props.toggleContent('table', 'refresh');
       }
     })
     .catch(err => {
@@ -459,13 +458,11 @@ class SoarFlow extends Component {
   render() {
     const {soarColumns} = this.props;
     const {
-      openRuleEditDialog,
+      openFlowSettingsDialog,
       soarRule,
       soarCondition,
       soarFlow,
       operatorList,
-      flowData,
-      selectedNode,
       contextAnchor,
       activeElementType,
       activeElement
@@ -473,12 +470,13 @@ class SoarFlow extends Component {
 
     return (
       <div>
-        {openRuleEditDialog &&
+        {openFlowSettingsDialog &&
           <SoarSingleSettings
             soarColumns={soarColumns}
             activeElementType={activeElementType}
             activeElement={activeElement}
             setSoarFlowData={this.setSoarFlowData}
+            confirmSoarFlowData={this.confirmSoarFlowData}
             closeDialog={this.closeDialog} />
         }
 
@@ -497,7 +495,7 @@ class SoarFlow extends Component {
                 keepMounted
                 open={Boolean(contextAnchor.node || contextAnchor.link)}
                 onClose={this.handleCloseMenu}>
-                <MenuItem onClick={this.toggleRuleEditDialog}><i className='fg fg-edit' title={t('txt-edit')}></i></MenuItem>
+                <MenuItem onClick={this.toggleFlowSettingsDialog}><i className='fg fg-edit' title={t('txt-edit')}></i></MenuItem>
                 <MenuItem onClick={this.onElementsRemove}><i className='fg fg-trashcan' title={t('txt-remove')}></i></MenuItem>
               </Menu>
 
@@ -538,7 +536,7 @@ class SoarFlow extends Component {
                       <SoarForm
                         from='soarCondition'
                         soarColumns={soarColumns}
-                        showOperator='link'
+                        activeElementType='link'
                         soarCondition={soarCondition}
                         soarFlow={soarFlow}
                         setSoarConditionData={this.setSoarConditionData} />
@@ -554,7 +552,6 @@ class SoarFlow extends Component {
                         elements={soarFlow}
                         onLoad={this.onLoad}
                         onConnect={this.onConnect}
-                        onElementClick={this.onElementClick}
                         onElementsRemove={this.onElementsRemove}
                         onDragOver={this.onDragOver}
                         onDrop={this.onDrop}
@@ -598,6 +595,7 @@ class SoarFlow extends Component {
 SoarFlow.contextType = BaseDataContext;
 
 SoarFlow.propTypes = {
+  flowActionType: PropTypes.string.isRequired,
   soarColumns: PropTypes.object.isRequired,
   soarIndividualData: PropTypes.object.isRequired,
   toggleContent: PropTypes.func.isRequired

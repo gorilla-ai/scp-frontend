@@ -16,7 +16,6 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import SoarForm from './soar-form'
-import SoarFormTwo from './soar-form-two'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -50,33 +49,27 @@ class SoarSingleSettings extends Component {
    */
   displaySettings = () => {
     const {soarColumns, activeElementType, activeElement} = this.props;
-    const activeFlowData = activeElement[activeElementType][0];
 
-    if (activeElementType === 'node') {
-      return (
-        <SoarForm
-          from='soarFlow'
-          soarColumns={soarColumns}
-          showOperator={activeElementType}
-          activeFlowData={activeFlowData} />
-      )
-    } else if (activeElementType === 'link') {
-      return (
-        <span></span>
-      )
-    }
+    return (
+      <SoarForm
+        from='soarFlow'
+        soarColumns={soarColumns}
+        activeElementType={activeElementType}
+        activeElement={activeElement}
+        setSoarFlowData={this.props.setSoarFlowData} />
+    )
   }
   render() {
     const {activeElementType} = this.props;
-    const titleText = activeElementType + ' ' + t('soar.txt-ruleEditSettings');
+    const titleText = t('soar.txt-' + activeElementType + 'Settings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-send'), handler: this.props.setSoarFlowData}
+      confirm: {text: t('txt-confirm'), handler: this.props.confirmSoarFlowData}
     };
 
     return (
       <ModalDialog
-        id='ruleEditDialog'
+        id='soarSettingsDialog'
         className='modal-dialog'
         title={titleText}
         draggable={true}
@@ -96,6 +89,7 @@ SoarSingleSettings.propTypes = {
   activeElementType: PropTypes.string.isRequired,
   activeElement: PropTypes.object.isRequired,
   setSoarFlowData: PropTypes.func.isRequired,
+  confirmSoarFlowData: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };
 
