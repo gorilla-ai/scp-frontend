@@ -910,25 +910,6 @@ class IncidentRuleTemplate extends Component {
                             onChange={this.handleLogInputSearchMui}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
-                        <TextField
-                            id='searchCategory'
-                            name='category'
-                            select
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            value={searchParam.category}
-                            onChange={this.handleLogInputSearchMui}>
-                            {
-                                _.map(_.range(0, 9), el => {
-                                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                                })
-                            }
-                        </TextField>
-                    </div>
-                    <div className='group'>
                         <label htmlFor='searchCategory'>{f('incidentFields.severity')}</label>
                         <TextField
                             id='searchCategory'
