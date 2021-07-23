@@ -1325,15 +1325,62 @@ button.standard:hover:not([disabled]) {
         display: flex;
         height: 72vh;
       }
+      .soar-form {
+        padding-bottom: 10px;
+        .c-multi > .group {
+          position: relative;
+          margin: 2px auto;
+          background-color: var(--primaryContentBackground);
+          border: 1px solid var(--primaryBorder);
+        }
+        .multi-operator {
+          width: 100%;
+          .header {
+            position: relative;
+            padding: 10px;
+            span {
+              position: absolute;
+              top: 12px;
+              left: 45px;
+              font-size: 15px;
+            }
+            i.fg {
+              height: 24px;
+              margin-right: 10px;
+              border: 1px solid var(--primaryBorder);
+              border-radius: 5px;
+              cursor: pointer;
+            }
+          }
+          .operator {
+              padding: 20px 10px 10px 10px;
+              background-color: var(--contentBackground);
+              border-top: 1px solid var(--primaryBorder);
+            .group {
+              width: 100%;
+            }
+          }
+        }
+        .fg-close {
+          position: absolute;
+          top: 10px;
+          right: 45px;
+        }
+        .fg-add {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+        }
+      }
       aside {
         overflow-y: auto;
         font-size: 12px;
-        max-width: 250px;
-        width: 20%;
+        max-width: 280px;
+        width: 30%;
         padding: 20px 0;
-        border-right: 1px solid #eee;
-        border-bottom: 1px solid #ccc;
-        background: #fcfcfc;
+        border-right: 1px solid var(--primaryBorder);
+        border-bottom: 1px solid var(--primaryBorder);
+        background-color: var(--primaryContentBackground);
         .form {
           border-bottom: 1px solid var(--primaryBorder);
           header {
@@ -1369,7 +1416,7 @@ button.standard:hover:not([disabled]) {
         height: 20px;
         font-size: 12px;
         padding: 18px 10px;
-        margin: 0 10px;
+        margin: 0 5px;
         cursor: grab;
         border: 1px solid #1a192b;
         border-radius: 3px;

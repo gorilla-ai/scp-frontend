@@ -1,6 +1,5 @@
 import React, { Component, useRef } from 'react'
 import { withRouter } from 'react-router'
-import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 

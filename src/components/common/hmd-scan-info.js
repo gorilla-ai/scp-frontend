@@ -1996,7 +1996,7 @@ class HMDscanInfo extends Component {
   /**
    * Set path data
    * @method
-   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {string} type - path type ('fileIntegrity' or 'procMonitor')
    * @param {string} listType - path data type ('includePath', 'excludePath' or 'processKeyword')
    * @param {array} pathData - path data to be set
    */

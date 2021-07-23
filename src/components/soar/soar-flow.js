@@ -1,7 +1,6 @@
 import React, { Component, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router'
-import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
@@ -153,7 +152,7 @@ class SoarFlow extends Component {
       soarFlow: soarIndividualData.flow
     });
   }
-  getNodeText = (val) => {
+  getNodeText = (val, options) => {
     let nodeText = '';
 
     switch (val) {
@@ -168,7 +167,11 @@ class SoarFlow extends Component {
         break;
     }
 
-    return nodeText;
+    if (options === 'lowerCase') {
+      return nodeText.toLowerCase();
+    } else {
+      return nodeText;
+    }
   }
   onLoad = (_reactFlowInstance) => {
     this.setState({
@@ -236,7 +239,7 @@ class SoarFlow extends Component {
     const newNode = {
       id: id.toString(),
       type,
-      componentType: this.getNodeText(type).toLowerCase(),
+      componentType: this.getNodeText(type, 'lowerCase'),
       position,
       data: { label: this.getNodeText(type) }
     };
@@ -325,8 +328,8 @@ class SoarFlow extends Component {
   /**
    * Set soar condition data
    * @method
-   * @param {string} type - soar condition type
-   * @param {object} data - soar condition object
+   * @param {string} type - soar operator type
+   * @param {object} data - soar data object
    */
   setSoarConditionData = (type, data) => {
     let tempSoarCondition = {...this.state.soarCondition};
@@ -338,33 +341,15 @@ class SoarFlow extends Component {
     });
   }
   /**
-   * Set flow settings data
-   * @method
-   * @param {string} type - soar condition type
-   * @param {object} data - soar condition object
-   * @param {object} element - active element
-   */
-  setSoarFlowData = (type, data, element) => {
-    const {soarFlow} = this.state;
-    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
-    let tempSoarFlow = _.cloneDeep(soarFlow);
-    tempSoarFlow[selectedFlowIndex].args = data;
-
-    if (element.componentType === 'adapter') {
-      tempSoarFlow[selectedFlowIndex].adapter_type = type;
-    } else  {
-      tempSoarFlow[selectedFlowIndex].op = type;
-    }
-
-    this.setState({
-      soarFlow: tempSoarFlow
-    });
-  }
-  /**
    * Handle soar flow settings confirm
    * @method
+   * @param {array.<object>} newSoarFlow - updated soar flow data
    */
-  confirmSoarFlowData = () => {
+  confirmSoarFlowData = (newSoarFlow) => {
+    this.setState({
+      soarFlow: newSoarFlow
+    });
+
     this.closeDialog();
   }
   /**
@@ -485,9 +470,9 @@ class SoarFlow extends Component {
         {openFlowSettingsDialog &&
           <SoarSingleSettings
             soarColumns={soarColumns}
+            soarFlow={soarFlow}
             activeElementType={activeElementType}
             activeElement={activeElement}
-            setSoarFlowData={this.setSoarFlowData}
             confirmSoarFlowData={this.confirmSoarFlowData}
             closeDialog={this.closeDialog} />
         }

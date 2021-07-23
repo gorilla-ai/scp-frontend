@@ -23,7 +23,6 @@ class FilterInput extends Component {
       data = {
         activeTab,
         logFields,queryType
-        
       };
 
       return (

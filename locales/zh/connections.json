@@ -553,8 +553,8 @@
     "txt-linkSettings": "連結$t(txt-settings)",
     "txt-adapter": "Adapter",
     "txt-action": "Action",
-    "txt-soarRuleInfo": "SOAR rule info",
-    "txt-soarRuleCondition": "SOAR rule Condition",
+    "txt-soarRuleInfo": "SOAR Rule Info",
+    "txt-soarRuleCondition": "SOAR Rule Condition",
     "txt-gap": "Gap",
     "txt-protocol": "Protocol",
     "txt-port": "Port",
@@ -581,7 +581,17 @@
     "txt-value": "Value",
     "txt-equal": "Equal",
     "txt-ignoreCase": "Ignore Case",
-    "txt-operators": "Operators"
+    "txt-operators": "Operators",
+    "txt-smtpServer": "SMTP主機",
+    "txt-smtpPort": "SMTP Port",
+    "txt-sender": "寄件者",
+    "txt-smtpConnectType": "SMTP連線種類",
+    "txt-emailAuthentication": "驗證",
+    "txt-senderAcct": "寄件者帳號",
+    "txt-senderPasswd": "寄件者密碼",
+    "txt-receiver": "收件者郵件信箱",
+    "txt-title": "主旨",
+    "txt-content": "內容"
   },
 
   "notifications": {

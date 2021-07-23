@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
@@ -33,6 +32,7 @@ class SoarSingleSettings extends Component {
     super(props);
 
     this.state = {
+      newSoarFlow: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -42,6 +42,42 @@ class SoarSingleSettings extends Component {
   componentDidMount() {
   }
   ryan = () => {}
+  /**
+   * Set flow settings data
+   * @method
+   * @param {string} type - soar operator type
+   * @param {object} data - soar object
+   * @param {object} element - active element
+   */
+  setSoarFlowData = (type, data, element) => {
+    const {soarFlow} = this.props;
+    const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
+    let tempSoarFlow = _.cloneDeep(soarFlow);
+
+    if (type === 'nodeCustomName') {
+      if (element.componentType === 'link') {
+        tempSoarFlow[selectedFlowIndex].label = data;
+      } else {
+        tempSoarFlow[selectedFlowIndex].data = {
+          label: data
+        };
+      }
+    } else if (type === 'nodeCustomGroup') {
+      tempSoarFlow[selectedFlowIndex].group = data;
+    } else {
+      tempSoarFlow[selectedFlowIndex].args = data;
+
+      if (element.componentType === 'adapter') {
+        tempSoarFlow[selectedFlowIndex].adapter_type = type;
+      } else  {
+        tempSoarFlow[selectedFlowIndex].op = type;
+      }
+    }
+
+    this.setState({
+      newSoarFlow: tempSoarFlow
+    });
+  }
   /**
    * Display settings content
    * @method
@@ -56,15 +92,16 @@ class SoarSingleSettings extends Component {
         soarColumns={soarColumns}
         activeElementType={activeElementType}
         activeElement={activeElement}
-        setSoarFlowData={this.props.setSoarFlowData} />
+        setSoarFlowData={this.setSoarFlowData} />
     )
   }
   render() {
     const {activeElementType} = this.props;
+    const {newSoarFlow} = this.state;
     const titleText = t('soar.txt-' + activeElementType + 'Settings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.props.confirmSoarFlowData}
+      confirm: {text: t('txt-confirm'), handler: this.props.confirmSoarFlowData.bind(this, newSoarFlow)}
     };
 
     return (
@@ -86,9 +123,9 @@ SoarSingleSettings.contextType = BaseDataContext;
 
 SoarSingleSettings.propTypes = {
   soarColumns: PropTypes.object.isRequired,
+  soarFlow: PropTypes.array.isRequired,
   activeElementType: PropTypes.string.isRequired,
   activeElement: PropTypes.object.isRequired,
-  setSoarFlowData: PropTypes.func.isRequired,
   confirmSoarFlowData: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };

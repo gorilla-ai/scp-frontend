@@ -1,19 +1,25 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import { ReactMultiEmail } from 'react-multi-email'
+
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import MultiOperator from './multi-operator'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const GROUP_LIST = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 let t = null;
 let et = null;
@@ -29,6 +35,9 @@ class SoarForm extends Component {
     super(props);
 
     this.state = {
+      nodeGroupList: [],
+      nodeCustomName: '',
+      nodeCustomGroup: '',
       linkOperatorList: [],
       nodeAdapterOperatorList: [],
       nodeOperatorList: [],
@@ -36,7 +45,21 @@ class SoarForm extends Component {
       soarLinkOperator: '',
       soarNodeAdapterOperator: '',
       soarNodeOperator: '',
-      soarNodeActionOperator: ''
+      soarNodeActionOperator: '',
+      multiOperator: {
+        and: {
+          operators: [{
+            op: '',
+            args: {}
+          }]
+        },
+        or: {
+          operators: [{
+            op: '',
+            args: {}
+          }]
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -53,6 +76,9 @@ class SoarForm extends Component {
    */
   setOperatorList = () => {
     const {soarColumns} = this.props;
+    const nodeGroupList = _.map(GROUP_LIST, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    });
     const linkOperatorList = _.map(soarColumns.linkOp, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
@@ -67,6 +93,7 @@ class SoarForm extends Component {
     });
 
     this.setState({
+      nodeGroupList,
       linkOperatorList,
       nodeAdapterOperatorList,
       nodeOperatorList,
@@ -103,12 +130,20 @@ class SoarForm extends Component {
 
     if (!soarCondition.op) {
       return;
-    }
+    } 
 
-    this.setState({
-      soarLinkOperator: soarCondition.op,
-      [soarCondition.op]: soarCondition.args
-    });
+    if (soarCondition.op === 'and' || soarCondition.op === 'or') {
+      this.setState({
+        soarLinkOperator: soarCondition.op,
+        [soarCondition.op]: soarCondition.args.operators
+      });
+
+    } else {
+      this.setState({
+        soarLinkOperator: soarCondition.op,
+        [soarCondition.op]: soarCondition.args
+      });
+    }
   }
   /**
    * Set soar flow data
@@ -119,6 +154,7 @@ class SoarForm extends Component {
 
     if (activeElementType === 'link') {
       this.setState({
+        nodeCustomName: activeElement.label,
         soarLinkOperator: activeElement.op,
         [activeElement.op]: activeElement.args
       });
@@ -130,16 +166,33 @@ class SoarForm extends Component {
         });
       } else if (activeElement.componentType === 'node') {
         this.setState({
+          nodeCustomName: activeElement.data.label,
+          nodeCustomGroup: activeElement.group,
           soarNodeOperator: activeElement.op,
           [activeElement.op]: activeElement.args
         });
       } else if (activeElement.componentType === 'action') {
-        // this.setState({
-        //   soarNodeOperator: activeElement.op,
-        //   [activeElement.op]: activeElement.args
-        // });
+        this.setState({
+          nodeCustomName: activeElement.data.label,
+          soarNodeOperator: activeElement.op,
+          [activeElement.op]: activeElement.args
+        });
       }
     }
+  }
+  /**
+   * Handle node name/group data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleNodeDataChange = (event) => {
+    const {activeElement} = this.props;
+
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+
+    this.props.setSoarFlowData(event.target.name, event.target.value, activeElement);
   }
   /**
    * Handle operator data change
@@ -182,6 +235,47 @@ class SoarForm extends Component {
     }
   }
   /**
+   * Set test emails list
+   * @method
+   * @param {array} newEmails - new emails list
+   */
+  handleEmailChange = (newEmails) => {
+    const {activeElement} = this.props;
+    let tempEmail = {...this.state.email};
+    tempEmail.receiver = newEmails;
+
+    this.setState({
+      email: tempEmail
+    });
+
+    //this.props.setSoarFlowData('email', tempData, activeElement);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getLabel = (email, index, removeEmail) => {
+    return (
+      <div data-tag key={index}>
+        {email}
+        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+  /**
    * Display individual form
    * @method
    * @param {string} operator - soar operator
@@ -189,30 +283,46 @@ class SoarForm extends Component {
    * @param {number} i - index of the form data
    */
   displayForm = (operator, key, i) => {
-    const value = this.props.soarColumns.spec[operator][key];
+    const {from, soarColumns, activeElementType, activeElement} = this.props;
+    const {multiOperator} = this.state;
+    const value = soarColumns.spec[operator][key];
     const label = t('soar.txt-' + key);
     const operatorValue = this.state[operator];
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
 
     if (typeof value === 'string' && operatorValue) {
-      return (
-        <div className='group' key={i}>
-          <TextField
-            name={key}
-            label={label}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!textValue}
-            helperText={textValue ? '' : t('txt-required')}
-            value={textValue}
-            onChange={this.handleDataChange.bind(this, operator)} />
-        </div>
-      )
+      if (key === 'content') { //For email content
+        return (
+          <div key={i} className='group'>
+            <label>{label}</label>
+            <TextareaAutosize
+              name={key}
+              className='textarea-autosize'
+              rows={3}
+              value={textValue}
+              onChange={this.handleDataChange.bind(this, operator)} />
+          </div>
+        )
+      } else {
+        return (
+          <div key={i} className='group'>
+            <TextField
+              name={key}
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!textValue}
+              helperText={textValue ? '' : t('txt-required')}
+              value={textValue}
+              onChange={this.handleDataChange.bind(this, operator)} />
+          </div>
+        )
+      }
     } else if (typeof value === 'boolean' && operatorValue) {
       return (
-        <div className='group' key={i}>
+        <div key={i} className='group'>
           <TextField
             name={key}
             select
@@ -229,7 +339,7 @@ class SoarForm extends Component {
       )
     } else if (typeof value === 'number' && operatorValue) {
       return (
-        <div className='group' key={i}>
+        <div key={i} className='group'>
           <TextField
             name={key}
             type='number'
@@ -244,6 +354,56 @@ class SoarForm extends Component {
             onChange={this.handleDataChange.bind(this, operator)} />
         </div>
       )
+    } else if (typeof value === 'object' && operatorValue) {
+      if (operator === 'and' || operator === 'or') {
+        const data = {
+          from,
+          soarColumns,
+          activeElementType,
+          activeElement,
+          operatorValue: operator
+        };
+
+        return (
+          <MultiInput
+            key={i}
+            base={MultiOperator}
+            value={this.state[operator].operators}
+            props={data}
+            onChange={this.setMultiOperatorData.bind(this, operator)} />
+        )
+      } else if (operator === 'email' && key === 'receiver') { //For email recipient
+        return (
+          <div key={i} className='group'>
+            <label>{label}</label>
+            <ReactMultiEmail
+              emails={textValue}
+              onChange={this.handleEmailChange}
+              getLabel={this.getLabel} />
+          </div>
+        )
+      }
+    }
+  }
+  /**
+   * Set multi operator data
+   * @method
+   * @param {string} type - operator type ('and' or 'or')
+   * @param {array} operatorData - operator data to be set
+   */
+  setMultiOperatorData = (type, operatorData) => {
+    const {from, activeElement} = this.props;
+    let tempData = {...this.state[type]};
+    tempData.operators = operatorData;
+
+    this.setState({
+      [type]: tempData
+    });
+
+    if (from === 'soarCondition') {
+      this.props.setSoarConditionData(type, operatorData);
+    } else if (from === 'soarFlow') {
+      //this.props.setSoarFlowData(type, tempData, activeElement);
     }
   }
   /**
@@ -267,7 +427,7 @@ class SoarForm extends Component {
    */
   displayDropDownSelection = (operator, operatorList) => {
     return (
-      <div className='soar-form'>
+      <React.Fragment>
         <div className='group'>
           <TextField
             id={operator}
@@ -283,21 +443,82 @@ class SoarForm extends Component {
           </TextField>
         </div>
         {this.showFormGroup(operator)}
-      </div>
+      </React.Fragment>
+    )
+  }
+  /**
+   * Display name/group form
+   * @method
+   */
+  displayNameGroupForm = () => {
+    const {activeElement} = this.props;
+    const {nodeGroupList, nodeCustomName, nodeCustomGroup} = this.state;
+
+    return (
+      <React.Fragment>
+        <div className='group'>
+          <TextField
+            id='nodeCustomName'
+            name='nodeCustomName'
+            label={t('txt-name')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={nodeCustomName}
+            onChange={this.handleNodeDataChange} />
+        </div>
+        {activeElement.componentType === 'node' &&
+          <div className='group'>
+            <TextField
+              id='nodeCustomGroup'
+              name='nodeCustomGroup'
+              select
+              label={t('txt-group')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={nodeCustomGroup}
+              onChange={this.handleNodeDataChange}>
+              {nodeGroupList}
+            </TextField>
+          </div>
+        }
+      </React.Fragment>
     )
   }
   render() {
-    const {activeElementType, activeElement} = this.props;
+    const {from, activeElementType, activeElement} = this.props;
 
     if (activeElementType === 'link') {
-      return this.displayDropDownSelection('soarLinkOperator', 'linkOperatorList');
+      return (
+        <div className='soar-form'>
+          {from === 'soarFlow' &&
+            this.displayNameGroupForm()
+          }
+          {this.displayDropDownSelection('soarLinkOperator', 'linkOperatorList')}
+        </div>
+      )
     } else if (activeElementType === 'node') {
       if (activeElement.componentType === 'adapter') {
-        return this.displayDropDownSelection('soarNodeAdapterOperator', 'nodeAdapterOperatorList');
+        return (
+          <div className='soar-form'>
+            {this.displayDropDownSelection('soarNodeAdapterOperator', 'nodeAdapterOperatorList')}
+          </div>
+        )
       } else if (activeElement.componentType === 'node') {
-        return this.displayDropDownSelection('soarNodeOperator', 'nodeOperatorList');
+        return (
+          <div className='soar-form'>
+            {this.displayNameGroupForm()}
+            {this.displayDropDownSelection('soarNodeOperator', 'nodeOperatorList')}
+          </div>
+        )
       } else if (activeElement.componentType === 'action') {
-        return this.displayDropDownSelection('soarNodeActionOperator', 'nodeActionOperatorList');
+        return (
+          <div className='soar-form'>
+            {this.displayNameGroupForm()}
+            {this.displayDropDownSelection('soarNodeActionOperator', 'nodeActionOperatorList')}
+          </div>
+        )
       }
     }
   }
@@ -310,9 +531,10 @@ SoarForm.propTypes = {
   soarColumns: PropTypes.object.isRequired,
   activeElementType: PropTypes.string.isRequired,
   soarCondition: PropTypes.object,
-  soarFlow: PropTypes.object,
+  soarFlow: PropTypes.array,
   activeElement: PropTypes.object,
-  setSoarConditionData: PropTypes.func
+  setSoarConditionData: PropTypes.func,
+  setSoarFlowData: PropTypes.func
 };
 
 export default SoarForm;
