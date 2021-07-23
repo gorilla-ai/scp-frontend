@@ -183,36 +183,31 @@ class IncidentManagement extends Component {
         this.setState({
             severityList,
         }, () => {
-            setTimeout(() => {
-                let getData = false;
-                if (alertData) {
-                    this.toggleContent('redirect', alertData);
-                    sessionStorage.removeItem(alertDataId)
-                    const {session} = this.context;
+            if (alertData) {
+                this.toggleContent('redirect', alertData);
+                sessionStorage.removeItem(alertDataId)
+                const {session} = this.context;
 
-                    this.setState({
-                        accountRoleType: session.roles
-                    });
-
-                    getData = true
-                } else {
-                    const {session} = this.context;
-
-                    this.setState({
-                        accountRoleType: session.roles
-                    }, () => {
-                        this.loadCondition('button', 'mine')
-                    });
-                    getData = true
-                }
-
-                if (getData){
+                this.setState({
+                    accountRoleType: session.roles
+                }, () =>{
                     this.getOptions();
-                    // this.loadDashboard();
-                }
+                });
 
-            }, 2000);
+
+            } else {
+                const {session} = this.context;
+
+                this.setState({
+                    accountRoleType: session.roles
+                }, () => {
+                    this.loadCondition('button', 'mine')
+                    this.getOptions();
+                });
+            }
         });
+
+
     }
 
     getQueryString(name) {

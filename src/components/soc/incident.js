@@ -183,21 +183,13 @@ class Incident extends Component {
         this.setState({
             severityList,
         }, () => {
-            setTimeout(() => {
-                let getData = false;
-                const {session} = this.context;
-
-                this.setState({
-                    accountRoleType: session.roles
-                }, () => {
-                    this.loadData('')
-                });
-                getData = true
-                if (getData){
-                    this.getOptions();
-                }
-
-            }, 2000);
+            const {session} = this.context;
+            this.setState({
+                accountRoleType: session.roles
+            }, () => {
+                this.loadData('')
+                this.getOptions();
+            });
         });
     }
 
