@@ -987,6 +987,7 @@ class IncidentManagement extends Component {
                     id='flowTemplateId'
                     name='flowTemplateId'
                     select
+                    required
                     fullWidth={true}
                     variant='outlined'
                     size='small'
@@ -1632,7 +1633,7 @@ class IncidentManagement extends Component {
     checkRequired(incident) {
         const {incidentType} = this.state;
 
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
+        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-validBasic'),

@@ -1342,7 +1342,7 @@ class Incident extends Component {
     checkRequired(incident) {
         const {incidentType} = this.state;
 
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
+        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-validBasic'),
