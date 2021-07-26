@@ -144,7 +144,7 @@ class SoarFlow extends Component {
     tempSoarRule.aggFieldId = soarIndividualData.aggField;
     tempSoarCondition.op = soarIndividualData.condition.op;
     tempSoarCondition.args = soarIndividualData.condition.args;
-    flowCount = soarIndividualData.flow.length - 1;
+    flowCount = soarIndividualData.flow.length;
 
     this.setState({
       soarRule: tempSoarRule,
@@ -334,7 +334,12 @@ class SoarFlow extends Component {
   setSoarConditionData = (type, data) => {
     let tempSoarCondition = {...this.state.soarCondition};
     tempSoarCondition.op = type;
-    tempSoarCondition.args = data;
+
+    if ((type === 'and' || type === 'or') && tempSoarCondition.args) {
+      tempSoarCondition.args.operators = data;
+    } else {
+      tempSoarCondition.args = data;
+    }
 
     this.setState({
       soarCondition: tempSoarCondition
