@@ -867,15 +867,19 @@ class QueryOpenSave extends Component {
           threshold: 1,
           severity: ''
         };
-        tempQueryData.soc = {
-          severity: 'Emergency',
-          limitQuery: 10,
-          title: '',
-          eventDescription:'',
-          impact: 4,
-          category: 1,
-          id:''
+
+        if (type === 'open'){
+          tempQueryData.soc = {
+            severity: 'Emergency',
+            limitQuery: 10,
+            title: '',
+            eventDescription:'',
+            impact: 4,
+            category: 1,
+            id:''
+          }
         }
+
         tempQueryData.emailList = [];
 
         if (comboValue && comboValue.value) {
@@ -960,17 +964,7 @@ class QueryOpenSave extends Component {
         tempQueryDataPublic.id = value;
         tempQueryDataPublic.openFlag = true;
         tempQueryDataPublic.query = {}; //Reset data to empty
-
-        tempQueryDataPublic.soc = {
-          severity: 'Emergency',
-          limitQuery: 10,
-          title: '',
-          eventDescription:'',
-          impact: 4,
-          category: 1,
-          id:''
-        }
-
+        tempQueryData.emailList = [];
         if (comboValue && comboValue.value) {
           const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
           value = comboValue.value;
@@ -1750,7 +1744,7 @@ class QueryOpenSave extends Component {
             }
           </div>
 
-          {activeTab === 'alert' && queryData.emailList.length > 0 &&
+          {activeTab === 'alert' && queryData.emailList.length > 0 && type === 'open' &&
             <div className='email-list'>
               <label>{t('notifications.txt-notifyEmail')}</label>
               <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>
