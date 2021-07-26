@@ -155,7 +155,6 @@ class QueryOpenSave extends Component {
 
   getQuerySOCValue = (activeQuery) => {
     const {queryData, queryDataPublic, type} = this.props;
-    // const {activeQuery} = this.state;
     const {baseUrl} = this.context;
     let tempQueryData = []
 
@@ -214,6 +213,63 @@ class QueryOpenSave extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+
+  getQuerySOCValueById = (id) => {
+
+    const {queryData, type} = this.props;
+    const {baseUrl} = this.context;
+    let tempQueryData = []
+
+    if (type === 'open' || type === 'save') {
+      tempQueryData = {...queryData};
+    }
+
+    let url = `${baseUrl}/api/soc/template?id=${id}`;
+    this.ah.one({
+      url,
+      type: 'GET',
+      contentType: 'text/plain'
+    }).then(data => {
+      if (data) {
+        tempQueryData.soc = {
+          id: data.id,
+          title: data.title,
+          eventDescription: data.eventDescription,
+          category: data.category,
+          impact: data.impact,
+          severity: data.severity,
+          limitQuery: data.limitQuery
+        };
+
+        this.setState({
+          socTemplateEnable: true,
+          soc: tempQueryData.soc
+        });
+      } else {
+        tempQueryData.soc = {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+        };
+
+        this.setState({
+          socTemplateEnable: false,
+          soc: tempQueryData.soc
+        });
+      }
+      return null;
+    }).catch(err => {
+      this.setState({
+        socTemplateEnable: false
+      });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+
   /**
    * Clear error info message
    * @method
@@ -868,16 +924,14 @@ class QueryOpenSave extends Component {
           severity: ''
         };
 
-        if (type === 'open'){
-          tempQueryData.soc = {
-            severity: 'Emergency',
-            limitQuery: 10,
-            title: '',
-            eventDescription:'',
-            impact: 4,
-            category: 1,
-            id:''
-          }
+        tempQueryData.soc = {
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription:'',
+          impact: 4,
+          category: 1,
+          id:''
         }
 
         tempQueryData.emailList = [];
@@ -889,10 +943,10 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
-          }, () => {
-            this.getQuerySOCValue(queryList[selectedQueryIndex]);
           });
         }
+
+        this.getQuerySOCValueById(tempQueryData.id);
 
         _.forEach(queryData.list, val => {
           if (val.id === value) {
@@ -972,8 +1026,6 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
-          }, () => {
-            this.getQuerySOCValue(queryList[selectedQueryIndex]);
           });
         }
 
@@ -1018,16 +1070,7 @@ class QueryOpenSave extends Component {
     } else if (fieldType === 'name') {
       queryName = newQueryName;
 
-      tempQueryData.soc = {
-        severity: 'Emergency',
-        limitQuery: 10,
-        title: '',
-        eventDescription:'',
-        impact: 4,
-        category: 1,
-        id:''
 
-      }
 
       if (type === 'open' || type === 'save') {
         tempQueryData.inputName = value;
