@@ -17,6 +17,7 @@ import {Switch} from "@material-ui/core";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 import HighlightOffIcon from "@material-ui/icons/HighlightOff";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 let t = null;
 let f = null;
@@ -565,13 +566,13 @@ class IncidentRuleTemplate extends Component {
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-soc-rule')}</header>
-                            <MuiTableContent
+                            <MuiTableContentWithoutLoading
                                 data={incidentRule}
                                 tableOptions={tableOptions}/>
                         </div>
                         }
                         {(activeContent === 'view' || activeContent === 'edit') &&
-                            this.displayEditContent()
+                        this.displayEditContent()
                         }
                     </div>
                 </div>
@@ -744,7 +745,7 @@ class IncidentRuleTemplate extends Component {
 
                 <div className='form-group normal'>
                     <header>
-                        <div className='text'>{t('events.connections.txt-addSOCScript')}</div>
+                        <div className='text'>{t('events.connections.txt-enableSOCScript')}</div>
                         <FormControlLabel
                             className='switch-control'
                             control={
@@ -907,25 +908,6 @@ class IncidentRuleTemplate extends Component {
                             className='search-textarea'
                             value={searchParam.keyword}
                             onChange={this.handleLogInputSearchMui}/>
-                    </div>
-                    <div className='group'>
-                        <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
-                        <TextField
-                            id='searchCategory'
-                            name='category'
-                            select
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            value={searchParam.category}
-                            onChange={this.handleLogInputSearchMui}>
-                            {
-                                _.map(_.range(0, 9), el => {
-                                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                                })
-                            }
-                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchCategory'>{f('incidentFields.severity')}</label>

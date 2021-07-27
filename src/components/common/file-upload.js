@@ -78,6 +78,13 @@ class FileUpload extends Component {
       };
     }
 
+    if (fileType === 'log') {
+      validate = {
+        extension: ['.txt', '.log', '.json'],
+        t: this.getErrorMsg
+      };
+    }
+
     return (
       <div className='content'>
         {supportText &&

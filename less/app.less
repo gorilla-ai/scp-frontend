@@ -3089,6 +3089,80 @@ button.standard:hover:not([disabled]) {
             }
           }
         }
+        .edit-soar-config {
+          //height: 70vh;
+          //overflow-y: auto;
+          .pattern-content {
+            position: relative;
+            width: 95%;
+            margin: 0 auto;
+            margin-top: 2vh;
+            margin-bottom: 2vh;
+            //border: 1px solid var(--primaryBorder);
+            & > header {
+              position: absolute;
+              top: -53px;
+              left: 0;
+              font-size: 1.2em;
+              font-weight: bold;
+              color: var(--primaryContentHeader);
+            }
+            button {
+              &.add-pattern {
+                position: absolute;
+                top: -45px;
+                right: 0;
+              }
+            }
+            .syslog-config {
+              display: flex;
+              margin-top: 43px;
+              //background-color: var(--formGroupBackground);
+              .expand-collapse {
+                border-left: 1px solid var(--primaryBorder);
+                .fg {
+                  top: 400px;
+                }
+              }
+              .filters {
+                width: 100%;
+                overflow: hidden;
+                min-height: 740px;
+                margin: 0 auto;
+                margin-top: 10px;
+                margin-bottom: 30px;
+                .pattern-format {
+                  & > header {
+                    font-size: 1.2em;
+                    font-weight: bold;
+                    color: var(--primaryContentHeader);
+                    margin: 5px 0 15px 0;
+                  }
+                  label {
+                    float: left;
+                    font-size: .9em;
+                    color: var(--primaryContentHeader);
+                  }
+                }
+                .data-result {
+                  overflow: hidden;
+                  .left-syslog {
+                    float: left;
+                    width: 45%;
+                    min-height: 330px;
+                  }
+                  .fg-forward {
+                    float: left;
+                    width: 10%;
+                    margin-top: 250px;
+                    text-align: center;
+                  }
+                }
+              }
+            }
+          }
+
+        }
         .config-syslog {
           header {
             font-size: 1.1em;

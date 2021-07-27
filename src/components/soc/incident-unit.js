@@ -21,6 +21,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import Manage from "../configuration/topology/manage";
 import MuiTableContent from "../common/mui-table-content";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 // import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
 
@@ -97,9 +98,7 @@ class IncidentUnit extends Component {
 
         this.getOptions();
 
-        // this.checkUnitOrg();
         this.getUnitList();
-        // this.checkUnitOrgFromDepartment()
     }
 
 
@@ -129,50 +128,6 @@ class IncidentUnit extends Component {
         .then(data => {
             if (data) {
                 let tempEdge = {...incidentUnit};
-                // tempEdge.dataContent = data.rows;
-                // tempEdge.totalCount = data.counts;
-                // tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentUnit.currentPage;
-                //
-                // let dataFields = {};
-                // incidentUnit.dataFieldsArr.forEach(tempData => {
-                //     dataFields[tempData] = {
-                //         label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
-                //         sortable: this.checkSortable(tempData),
-                //         formatter: (value, allValue, i) => {
-                //             if (tempData === 'industryType') {
-                //                 return <span>{this.mappingType(value)}</span>
-                //             } else if (tempData === 'updateDttm') {
-                //                 return <span>{helper.getFormattedDate(value, 'local')}</span>
-                //             } else if (tempData === 'isGovernment') {
-                //
-                //                 if (value){
-                //                     return <span style={{color:'#f13a56'}}>{this.checkDefault(value)}</span>
-                //                 }else {
-                //                     return <span>{this.checkDefault(value)}</span>
-                //                 }
-                //
-                //             }
-                //             else if (tempData === '_menu') {
-                //                 return (
-                //                     <div className='table-menu menu active'>
-                //                         <i className='fg fg-edit'
-                //                            onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
-                //                            title={t('txt-view')}/>
-                //                         <i className='fg fg-trashcan'
-                //                            onClick={this.openDeleteMenu.bind(this, allValue)}
-                //                            title={t('txt-delete')}/>
-                //                     </div>
-                //                 )
-                //             } else {
-                //                 return <span>{value}</span>
-                //             }
-                //         }
-                //     };
-                // });
-                //
-                // tempEdge.dataFields = dataFields;
-
-
                 tempEdge.dataContent = data.rows;
                 tempEdge.totalCount = data.counts;
                 tempEdge.currentPage = page;
@@ -534,7 +489,7 @@ class IncidentUnit extends Component {
                             <div className='content-header-btns with-menu '>
                                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
-                            <MuiTableContent
+                            <MuiTableContentWithoutLoading
                                 data={incidentUnit}
                                 tableOptions={tableOptions} />
                         </div>
@@ -666,7 +621,7 @@ class IncidentUnit extends Component {
                             value={incidentUnit.info.name}
                             disableClearable
                             disabled={activeContent === 'viewDevice' || activeContent === 'editDevice'}
-                            options={departmentList.map((option) => option.name)}
+                            options={departmentList.map((option) => option.text)}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -833,7 +788,6 @@ class IncidentUnit extends Component {
                 temp.info.id = value.id;
             }
         })
-
         this.setState({
             incidentUnit: temp
         })
@@ -847,6 +801,7 @@ class IncidentUnit extends Component {
     handleUnitSubmit = () => {
         const {baseUrl} = this.context;
         let tmpIncidentUnit = {...this.state.incidentUnit};
+
         if (!this.checkAddData(tmpIncidentUnit)) {
             return
         }
@@ -1116,20 +1071,19 @@ class IncidentUnit extends Component {
 
             this.setState({
                 showFilter: false,
-                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'addDevice') {
             tempIncidentDevice.info = {
-                id: allValue.id,
-                oid: allValue.oid,
-                name: allValue.name,
-                level: allValue.level,
-                isUse: allValue.isUse,
-                isGovernment:allValue.isGovernment,
-                industryType: allValue.industryType,
-                abbreviation: allValue.abbreviation,
-                relatedAccountList: allValue.relatedAccountList
+                id: '',
+                oid: '',
+                name: '',
+                level: 'A',
+                isUse: true,
+                isGovernment: false,
+                industryType: '0',
+                abbreviation: '',
+                relatedAccountList: []
             };
 
             if (tempIncidentDevice.info.relatedAccountList) {
@@ -1154,7 +1108,6 @@ class IncidentUnit extends Component {
 
             this.setState({
                 showFilter: false,
-                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'tableList') {
