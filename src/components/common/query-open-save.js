@@ -66,6 +66,7 @@ class QueryOpenSave extends Component {
         eventDescription:'',
         impact: 4,
         category: 1,
+        status: true
       },
       activePatternId: '',
       patternCheckbox: false,
@@ -179,7 +180,8 @@ class QueryOpenSave extends Component {
           category: data.category,
           impact: data.impact,
           severity: data.severity,
-          limitQuery: data.limitQuery
+          limitQuery: data.limitQuery,
+          status: data.status
         };
 
         this.props.setQueryData(tempQueryData);
@@ -197,6 +199,7 @@ class QueryOpenSave extends Component {
           eventDescription: '',
           impact: 4,
           category: 1,
+          status: true
         };
 
         this.props.setQueryData(tempQueryData);
@@ -511,68 +514,119 @@ class QueryOpenSave extends Component {
       })
       .then(data => {
         if (data) {
+          if (requestType === 'PATCH'){
+            let socRequestBody = {
+              id: requestData.id,
+              title: soc.title,
+              eventDescription: soc.eventDescription,
+              category: soc.category,
+              impact: soc.impact,
+              limitQuery: soc.limitQuery,
+              creator: account.id
+            }
+            if (activeTab === 'alert') {
+              socRequestBody.severity = soc.severity
+            }
+            if (activeTab === 'logs') {
+              socRequestBody.severity = pattern.severity
+            }
+            if(this.state.socTemplateEnable){
+              //TODO UPDATE
+              this.ah.one({
+                url: `${baseUrl}/api/soc/template`,
+                data: JSON.stringify(socRequestBody),
+                type: 'PATCH',
+                contentType: 'text/plain'
+              }).then(data => {
+                if (data) {
+                  // console.log('override soc Template result :: ', data)
+                }
+                return null;
+              }).catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+              }).finally(err => {
+                helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                this.props.getSavedQuery();
+                this.setState({
+                  socTemplateEnable: false,
+                  soc: {
+                    id: '',
+                    severity: 'Emergency',
+                    limitQuery: 10,
+                    title: '',
+                    eventDescription: '',
+                    impact: 4,
+                    category: 1,
+                  }
+                })
+              })
+            }else{
+              //TODO DELETE
 
-           if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
-             let socRequestBody = {
-               id: data.id,
-               title: soc.title,
-               eventDescription: soc.eventDescription,
-               category: soc.category,
-               impact: soc.impact,
-               limitQuery: soc.limitQuery,
-               creator: account.id
-             }
-             if (activeTab === 'alert') {
-               socRequestBody.severity = soc.severity
-             }
-             if (activeTab === 'logs') {
-               socRequestBody.severity = pattern.severity
-             }
+            }
+          }else{
+            if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
+              let socRequestBody = {
+                id: data.id,
+                title: soc.title,
+                eventDescription: soc.eventDescription,
+                category: soc.category,
+                impact: soc.impact,
+                limitQuery: soc.limitQuery,
+                creator: account.id
+              }
+              if (activeTab === 'alert') {
+                socRequestBody.severity = soc.severity
+              }
+              if (activeTab === 'logs') {
+                socRequestBody.severity = pattern.severity
+              }
 
-             this.ah.one({
-               url: `${baseUrl}/api/soc/template`,
-               data: JSON.stringify(socRequestBody),
-               type: 'POST',
-               contentType: 'text/plain'
-             }).then(data => {
-               if (data) {
-                 // console.log('override soc Template result :: ', data)
-               }
-               return null;
-             }).catch(err => {
-               helper.showPopupMsg('', t('txt-error'), err.message);
-             }).finally(err => {
-               helper.showPopupMsg(t('events.connections.txt-querySaved'));
-               this.props.getSavedQuery();
-               this.setState({
-                 socTemplateEnable: false,
-                 soc: {
-                   id: '',
-                   severity: 'Emergency',
-                   limitQuery: 10,
-                   title: '',
-                   eventDescription: '',
-                   impact: 4,
-                   category: 1,
-                 }
-               })
-             })
-           }else{
-             helper.showPopupMsg(t('events.connections.txt-querySaved'));
-             this.props.getSavedQuery();
-             this.setState({
-               socTemplateEnable: false,
-               soc: {
-                 id: '',
-                 severity: 'Emergency',
-                 limitQuery: 10,
-                 title: '',
-                 eventDescription: '',
-                 impact: 4,
-                 category: 1,
-               }
-             })
-           }
+              this.ah.one({
+                url: `${baseUrl}/api/soc/template`,
+                data: JSON.stringify(socRequestBody),
+                type: 'POST',
+                contentType: 'text/plain'
+              }).then(data => {
+                if (data) {
+                  // console.log('override soc Template result :: ', data)
+                }
+                return null;
+              }).catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+              }).finally(err => {
+                helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                this.props.getSavedQuery();
+                this.setState({
+                  socTemplateEnable: false,
+                  soc: {
+                    id: '',
+                    severity: 'Emergency',
+                    limitQuery: 10,
+                    title: '',
+                    eventDescription: '',
+                    impact: 4,
+                    category: 1,
+                  }
+                })
+              })
+            }
+          }
+
+          helper.showPopupMsg(t('events.connections.txt-querySaved'));
+          this.props.getSavedQuery();
+          this.setState({
+            socTemplateEnable: false,
+            soc: {
+              id: '',
+              severity: 'Emergency',
+              limitQuery: 10,
+              title: '',
+              eventDescription: '',
+              impact: 4,
+              category: 1,
+            }
+          })
 
           this.props.setNotifyEmailData([]);
 
@@ -1142,6 +1196,7 @@ class QueryOpenSave extends Component {
           eventDescription:'',
           impact: 4,
           category: 1,
+          status: false
         },
         socTemplateEnable:false
       })
@@ -1365,7 +1420,6 @@ class QueryOpenSave extends Component {
         severityType = soc.severity;
         patternCheckboxDisabled = false
       }
-
     } else if (type === 'save') {
       severityType = soc.severity || this.state.pattern.severity;
       patternCheckboxDisabled = false
@@ -1426,7 +1480,7 @@ class QueryOpenSave extends Component {
               </div>
               <div className='top-group' >
                 <TextField
-                    style={{width: '100%'}}
+                    style={{width: '80%'}}
                     id='category'
                     name='category'
                     variant='outlined'
@@ -1442,6 +1496,17 @@ class QueryOpenSave extends Component {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                   })}
                 </TextField>
+                <FormControlLabel
+                    style={{width: '100%'}}
+                    label={t('events.connections.txt-enableSOCScript')}
+                    control={
+                      <Switch
+                          checked={soc.status}
+                          color='primary'
+                      />
+                    }
+                    disabled={true}
+                />
               </div>
               <div className='period'>
                 <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
@@ -1595,6 +1660,17 @@ class QueryOpenSave extends Component {
               </TextField>
               <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
             </div>
+            <FormControlLabel
+                style={{width: '100%'}}
+                label={t('events.connections.txt-enableSOCScript')}
+                control={
+                  <Switch
+                      checked={soc.status}
+                      color='primary'
+                  />
+                }
+                disabled={true}
+            />
             <div className='top-group'    style={{width: '100%'}}>
               <TextField
                   style={{width: '100%'}}

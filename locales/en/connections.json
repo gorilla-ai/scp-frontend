@@ -514,6 +514,7 @@
       "txt-threasholdCount": "Threashold count must be less than 1,000 and greater than 0",
       "txt-addPatternScript": "Custom Alert Query",
       "txt-addSOCScript": "Custom SOC Incident Template",
+      "txt-enableSOCScript": "Enable SOC Incident Template",
       "txt-public": "Public",
       "txt-patternQuery1": "In",
       "txt-patternQuery2": "minutes, alert occurs more than or equal to",
@@ -592,7 +593,12 @@
     "txt-senderPasswd": "Sender Password",
     "txt-receiver": "Recipient Email",
     "txt-title": "Title",
-    "txt-content": "Content"
+    "txt-content": "Content",
+
+    "txt-upload": "Upload Logs",
+    "txt-upload-msg": "Please enter or upload event Logs.",
+    "txt-Settings": "Event Testing",
+    "txt-dryRun": "Run"
   },
 
   "notifications": {
@@ -638,6 +644,7 @@
     "txt-addMultiple": "Add Multiple",
     "txt-importTIMAP": "Import TIMAP File",
     "txt-threatsFile": "Threats File",
+    "txt-logFile": "Logs File",
     "txt-geography": "Geography",
     "txt-addThreat": "Add Threat",
     "txt-importThreat": "Import Threat",
