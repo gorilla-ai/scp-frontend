@@ -1245,6 +1245,7 @@ class QueryOpenSave extends Component {
           eventDescription:'',
           impact: 4,
           category: 1,
+          status: true
         },
         socTemplateEnable:false
       })
@@ -1270,6 +1271,7 @@ class QueryOpenSave extends Component {
           eventDescription:'',
           impact: 4,
           category: 1,
+          status: true
         },
         socTemplateEnable:false
       })
@@ -1560,7 +1562,7 @@ class QueryOpenSave extends Component {
               </div>
               <div className='top-group' >
                 <TextField
-                    style={{width: '80%'}}
+                    style={{width: '100%'}}
                     id='category'
                     name='category'
                     variant='outlined'
@@ -1576,6 +1578,8 @@ class QueryOpenSave extends Component {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                   })}
                 </TextField>
+              </div>
+              <div className='top-group' >
                 <FormControlLabel
                     style={{width: '100%'}}
                     label={t('events.connections.txt-enableSOCScript')}
@@ -1740,7 +1744,7 @@ class QueryOpenSave extends Component {
               </TextField>
               <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
             </div>
-            <div className='top-group'    style={{width: '100%'}}>
+            <div className='top-group' style={{width: '100%'}}>
               <FormControlLabel
                   style={{width: '100%'}}
                   label={t('events.connections.txt-enableSOCScript')}
