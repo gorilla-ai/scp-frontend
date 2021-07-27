@@ -580,68 +580,146 @@ class QueryOpenSave extends Component {
       })
       .then(data => {
         if (data) {
+          if (requestType === 'PATCH'){
+            let socRequestBody = {
+              id: requestData.id,
+              title: soc.title,
+              eventDescription: soc.eventDescription,
+              category: soc.category,
+              impact: soc.impact,
+              limitQuery: soc.limitQuery,
+              creator: account.id
+            }
+            if (activeTab === 'alert') {
+              socRequestBody.severity = soc.severity
+            }
+            if (activeTab === 'logs') {
+              socRequestBody.severity = pattern.severity
+            }
+            if(this.state.socTemplateEnable){
+              //TODO UPDATE
+              this.ah.one({
+                url: `${baseUrl}/api/soc/template`,
+                data: JSON.stringify(socRequestBody),
+                type: 'POST',
+                contentType: 'text/plain'
+              }).then(data => {
+                if (data) {
+                  // console.log('override soc Template result :: ', data)
+                }
+                return null;
+              }).catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+              }).finally(err => {
+                helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                this.props.getSavedQuery();
+                this.setState({
+                  socTemplateEnable: false,
+                  soc: {
+                    id: '',
+                    severity: 'Emergency',
+                    limitQuery: 10,
+                    title: '',
+                    eventDescription: '',
+                    impact: 4,
+                    category: 1,
+                    status: true
+                  }
+                })
+              })
+            }else{
+              //TODO DELETE
+              this.ah.one({
+                url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
+                type: 'DELETE',
+              }).then(data => {
+                if (data) {
+                  // console.log('override soc Template result :: ', data)
+                }
+                return null;
+              }).catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+              }).finally(err => {
+                helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                this.props.getSavedQuery();
+                this.setState({
+                  socTemplateEnable: false,
+                  soc: {
+                    id: '',
+                    severity: 'Emergency',
+                    limitQuery: 10,
+                    title: '',
+                    eventDescription: '',
+                    impact: 4,
+                    category: 1,
+                    status: true
+                  }
+                })
+              })
+            }
+          }else{
+            if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
+              let socRequestBody = {
+                id: data.id,
+                title: soc.title,
+                eventDescription: soc.eventDescription,
+                category: soc.category,
+                impact: soc.impact,
+                limitQuery: soc.limitQuery,
+                creator: account.id
+              }
+              if (activeTab === 'alert') {
+                socRequestBody.severity = soc.severity
+              }
+              if (activeTab === 'logs') {
+                socRequestBody.severity = pattern.severity
+              }
 
-           if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
-             let socRequestBody = {
-               id: data.id,
-               title: soc.title,
-               eventDescription: soc.eventDescription,
-               category: soc.category,
-               impact: soc.impact,
-               limitQuery: soc.limitQuery,
-               creator: account.id
-             }
-             if (activeTab === 'alert') {
-               socRequestBody.severity = soc.severity
-             }
-             if (activeTab === 'logs') {
-               socRequestBody.severity = pattern.severity
-             }
+              this.ah.one({
+                url: `${baseUrl}/api/soc/template`,
+                data: JSON.stringify(socRequestBody),
+                type: 'POST',
+                contentType: 'text/plain'
+              }).then(data => {
+                if (data) {
+                  // console.log('override soc Template result :: ', data)
+                }
+                return null;
+              }).catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+              }).finally(err => {
+                helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                this.props.getSavedQuery();
+                this.setState({
+                  socTemplateEnable: false,
+                  soc: {
+                    id: '',
+                    severity: 'Emergency',
+                    limitQuery: 10,
+                    title: '',
+                    eventDescription: '',
+                    impact: 4,
+                    category: 1,
+                  }
+                })
+              })
+            }
+          }
 
-             this.ah.one({
-               url: `${baseUrl}/api/soc/template`,
-               data: JSON.stringify(socRequestBody),
-               type: 'POST',
-               contentType: 'text/plain'
-             }).then(data => {
-               if (data) {
-                 // console.log('override soc Template result :: ', data)
-               }
-               return null;
-             }).catch(err => {
-               helper.showPopupMsg('', t('txt-error'), err.message);
-             }).finally(err => {
-               helper.showPopupMsg(t('events.connections.txt-querySaved'));
-               this.props.getSavedQuery();
-               this.setState({
-                 socTemplateEnable: false,
-                 soc: {
-                   id: '',
-                   severity: 'Emergency',
-                   limitQuery: 10,
-                   title: '',
-                   eventDescription: '',
-                   impact: 4,
-                   category: 1,
-                 }
-               })
-             })
-           }else{
-             helper.showPopupMsg(t('events.connections.txt-querySaved'));
-             this.props.getSavedQuery();
-             this.setState({
-               socTemplateEnable: false,
-               soc: {
-                 id: '',
-                 severity: 'Emergency',
-                 limitQuery: 10,
-                 title: '',
-                 eventDescription: '',
-                 impact: 4,
-                 category: 1,
-               }
-             })
-           }
+          helper.showPopupMsg(t('events.connections.txt-querySaved'));
+          this.props.getSavedQuery();
+          this.setState({
+            socTemplateEnable: false,
+            soc: {
+              id: '',
+              severity: 'Emergency',
+              limitQuery: 10,
+              title: '',
+              eventDescription: '',
+              impact: 4,
+              category: 1,
+            }
+          })
 
           this.props.setNotifyEmailData([]);
 
