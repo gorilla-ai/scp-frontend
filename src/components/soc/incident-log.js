@@ -15,6 +15,7 @@ import MomentUtils from "@date-io/moment";
 import constants from "../constant/constant-incidnet";
 import _ from "lodash";
 import MuiTableContent from "../common/mui-table-content";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 let t = null;
 let f = null;
@@ -292,7 +293,7 @@ class IncidentLog extends Component {
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-log-management')}</header>
-                            <MuiTableContent
+                            <MuiTableContentWithoutLoading
                                 data={incidentLog}
                                 tableOptions={tableOptions}/>
                         </div>

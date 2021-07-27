@@ -29,10 +29,10 @@ import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
 import Menu from "@material-ui/core/Menu";
 import constants from "../constant/constant-incidnet";
-import MuiTableContent from "../common/mui-table-content";
 import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import IncidentFlowDialog from "./common/flow-dialog";
+import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
 
 let t = null;
 let f = null;
@@ -183,36 +183,31 @@ class IncidentManagement extends Component {
         this.setState({
             severityList,
         }, () => {
-            setTimeout(() => {
-                let getData = false;
-                if (alertData) {
-                    this.toggleContent('redirect', alertData);
-                    sessionStorage.removeItem(alertDataId)
-                    const {session} = this.context;
+            if (alertData) {
+                this.toggleContent('redirect', alertData);
+                sessionStorage.removeItem(alertDataId)
+                const {session} = this.context;
 
-                    this.setState({
-                        accountRoleType: session.roles
-                    });
-
-                    getData = true
-                } else {
-                    const {session} = this.context;
-
-                    this.setState({
-                        accountRoleType: session.roles
-                    }, () => {
-                        this.loadCondition('button', 'mine')
-                    });
-                    getData = true
-                }
-
-                if (getData){
+                this.setState({
+                    accountRoleType: session.roles
+                }, () =>{
                     this.getOptions();
-                    this.loadDashboard();
-                }
+                });
 
-            }, 2000);
+
+            } else {
+                const {session} = this.context;
+
+                this.setState({
+                    accountRoleType: session.roles
+                }, () => {
+                    this.loadCondition('button', 'mine')
+                    this.getOptions();
+                });
+            }
         });
+
+
     }
 
     getQueryString(name) {
@@ -327,7 +322,13 @@ class IncidentManagement extends Component {
                                     if (allValue.flowData){
 
                                         if (allValue.flowData.finish){
-                                            return <span>{it('status.3')}</span>
+                                            if (value === constants.soc.INCIDENT_STATUS_SUBMITTED) {
+                                                return <span>{it('status.4')}</span>
+                                            } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
+                                                return <span>{it('status.5')}</span>
+                                            } else{
+                                                return <span>{it('status.3')}</span>
+                                            }
                                         }
 
                                         if (allValue.flowData.currentEntity){
@@ -403,7 +404,8 @@ class IncidentManagement extends Component {
             .then(data => {
                 if (data) {
                     let tempEdge = {...incident};
-                     tempEdge.dataContent = data.rt.rows;
+
+                    tempEdge.dataContent = data.rt.rows;
                     tempEdge.totalCount = data.rt.counts;
                     tempEdge.currentPage = page;
 
@@ -424,7 +426,8 @@ class IncidentManagement extends Component {
 
                                     if (val === '_menu') {
                                         return <div className='table-menu active'>
-                                            <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                            <IconButton aria-label="more"
+                                                        onClick={this.handleOpenMenu.bind(this, allValue)}>
                                                 <MoreIcon/>
                                             </IconButton>
                                         </div>
@@ -440,17 +443,19 @@ class IncidentManagement extends Component {
                                         return <span>{it(`category.${value}`)}</span>
                                     } else if (val === 'status') {
                                         let status = 'N/A'
-                                        if (allValue.flowData){
+                                        if (allValue.flowData) {
 
-                                            if (allValue.flowData.finish){
-                                                if (value === constants.soc.INCIDENT_STATUS_SUBMITTED){
+                                            if (allValue.flowData.finish) {
+                                                if (value === constants.soc.INCIDENT_STATUS_SUBMITTED) {
                                                     return <span>{it('status.4')}</span>
-                                                }else{
+                                                } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
+                                                    return <span>{it('status.5')}</span>
+                                                } else{
                                                     return <span>{it('status.3')}</span>
                                                 }
                                             }
 
-                                            if (allValue.flowData.currentEntity){
+                                            if (allValue.flowData.currentEntity) {
                                                 status = allValue.flowData.currentEntity[allValue.id].entityName
                                             }
                                         }
@@ -464,7 +469,7 @@ class IncidentManagement extends Component {
                                             {
                                                 _.map(allValue.tagList, el => {
                                                     return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
                                                         &nbsp;{el.tag.tag}
                                                     </div>
                                                 })
@@ -474,11 +479,11 @@ class IncidentManagement extends Component {
                                     } else if (val === 'severity') {
                                         return <span className='severity-level'
                                                      style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                                    } else if (val === 'srcIPListString' || val === 'dstIPListString') {
                                         let formattedPatternIP = ''
                                         if (value.length > 32) {
                                             formattedPatternIP = value.substr(0, 32) + '...';
-                                        }else{
+                                        } else {
                                             formattedPatternIP = value
                                         }
                                         return <span>{formattedPatternIP}</span>
@@ -504,38 +509,24 @@ class IncidentManagement extends Component {
     loadDashboard = () => {
         const {baseUrl, session} = this.context
 
-        let roleType = 'analyzer';
-
-        const payload = {
-            keyword: '',
-            category: 0,
-            status: 0,
-            startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            isExpired: 2,
-            isExecutor:_.includes(session.roles, 'SOC Executor'),
-            accountRoleType:this.state.accountRoleType,
-            account: session.accountId
+        let req = {
+            accountRoleType :this.state.accountRoleType
         }
 
         ah.all([
             {
-                url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
-                data: JSON.stringify(payload),
+                url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`,
+                data: JSON.stringify(req),
                 type: 'POST',
                 contentType: 'application/json',
                 dataType: 'json'
-            },
-            {
-                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?creator=${session.accountId}`
             }
         ])
         .then(data => {
             let dashboard = {
-                all: data[0].rt.counts,
-                expired: data[1].rt.rows[0].expireCount,
-                unhandled: data[1].rt.rows[0].dealCount,
-                mine: data[1].rt.rows[0].myCount,
+                expired: data[0].rt.rows[0].expireCount,
+                unhandled: data[0].rt.rows[0].dealCount,
+                mine: data[0].rt.rows[0].myCount,
             }
 
             this.setState({dashboard})
@@ -558,27 +549,13 @@ class IncidentManagement extends Component {
             isExpired: 2,
             accountRoleType: this.state.accountRoleType,
             isExecutor : _.includes(session.roles, 'SOC Executor'),
-
         }
         if (type === 'expired') {
             this.setState({loadListType: 0})
             search.status = 0
             search.isExpired = 1;
             this.loadWithoutDateTimeData(fromSearch,search)
-        } else if (type === 'unhandled') {
-            this.setState({loadListType: 1})
-            if (search.accountRoleType === constants.soc.SOC_Executor){
-                search.status = 2
-                search.subStatus = 6
-            }else if(search.accountRoleType === constants.soc.SOC_Super){
-                search.status = 7
-            }else if(search.accountRoleType === constants.soc.SOC_Ciso){
-                search.status = 7
-            }else{
-                search.status = 1
-            }
-            this.loadWithoutDateTimeData(fromSearch,search)
-        } else if (type === 'mine') {
+        }else if (type === 'mine') {
             this.setState({loadListType: 2})
             search.status = 0
             search.creator = session.accountId
@@ -668,13 +645,22 @@ class IncidentManagement extends Component {
                 onClose={this.handleCloseMenu}>
                 <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
                 <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
+                <MenuItem onClick={this.exportPdfFromTable.bind(this, currentData)}>{t('txt-export')}</MenuItem>
+
+
+                {currentData.status === constants.soc.INCIDENT_STATUS_DELETED &&
+                    <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'restart')}>{it('txt-restart')}</MenuItem>
+                }
+                {_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
+                <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'delete')}>{it('txt-delete')}</MenuItem>
+                }
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
-                {(currentData.flowData && currentData.flowData.finish) &&
+                {(currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
                     <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
                 }
-                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) &&
+                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
                     <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
 
@@ -721,7 +707,7 @@ class IncidentManagement extends Component {
                                     onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
                             }
                             </div>
-                        <MuiTableContent
+                        <MuiTableContentWithoutLoading
                             data={incident}
                             tableOptions={tableOptions} />
                     </div>
@@ -755,86 +741,45 @@ class IncidentManagement extends Component {
         // new
         let signCheck = false
         let closeCheck = false
+        let restartCheck = false
+        let deleteCheck = false
 
 
-        if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
-            // 待送審
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-
-            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
-
-            }else {
-                // editCheck = true
-                // submitCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
-            // 待審核
-            if (session.accountId === incident.info.creator) {
-                // drawCheck = true
-            }
-
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                // editCheck = true
-                // returnCheck = true
-                // auditCheck = true
-                closeCheck = true
-            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
-
-            }else {
-                // editCheck = true
-            }
-        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
-            // 結案(未發布)
-            if (session.accountId === incident.info.creator) {
-            }
-
-            if (this.state.accountRoleType === constants.soc.SOC_Super) {
+        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Super) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) {
+            if (incident.info.flowData && incident.info.flowData.finish){
                 publishCheck = true
             }
+        }
+
+        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
+            closeCheck = true
+            deleteCheck = true
+        }
+
+        if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
+
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
+
+        } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
+
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                // editCheck = true
-            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
-                // returnCheck = true
-                // editCheck = true
-                // auditCheck = true
-            }else {
-                // editCheck = true
-            }
+
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
+            if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
+                restartCheck = true
+                deleteCheck = false
+                closeCheck = false
+            }
 
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_ANALYZED) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                // editCheck = true
-                // transferCheck = true
-            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
-                // editCheck = true
-                // transferCheck = true
-            }else{
 
-            }
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                // editCheck = true
-            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
-                // editCheck = true
-                // returnCheck = true
-                signCheck = true
-            }else{
-                if (session.accountId === incident.info.creator) {
-                    // drawCheck = true
-                }
-                // editCheck = true
-            }
+
         }else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) {
-            if (this.state.accountRoleType === constants.soc.SOC_Executor) {
-                // transferCheck = true
-            }else if (this.state.accountRoleType === constants.soc.SOC_Super){
 
-            }else {
-
-            }
         }
+
+
 
         let tmpTagList = []
 
@@ -902,6 +847,12 @@ class IncidentManagement extends Component {
                 }
                 {publishCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
+                }
+                {deleteCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'delete')}>{it('txt-delete')}</Button>
+                }
+                {restartCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'restart')}>{it('txt-restart')}</Button>
                 }
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
@@ -1036,6 +987,7 @@ class IncidentManagement extends Component {
                     id='flowTemplateId'
                     name='flowTemplateId'
                     select
+                    required
                     fullWidth={true}
                     variant='outlined'
                     size='small'
@@ -1681,7 +1633,7 @@ class IncidentManagement extends Component {
     checkRequired(incident) {
         const {incidentType} = this.state;
 
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
+        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-validBasic'),
@@ -2323,6 +2275,7 @@ class IncidentManagement extends Component {
 
 
     openReviewModal= (allValue, reviewType) => {
+        this.handleCloseMenu()
         PopupDialog.prompt({
             title: it(`txt-${reviewType}`),
             confirmText: t('txt-confirm'),
@@ -3403,6 +3356,12 @@ class IncidentManagement extends Component {
         const {baseUrl, contextRoot} = this.context
         const {incident} = this.state
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
+    }
+
+    exportPdfFromTable(data) {
+        const {baseUrl, contextRoot} = this.context
+        this.handleCloseMenu()
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(data))})
     }
 
     exportAll() {

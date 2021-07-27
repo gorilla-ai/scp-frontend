@@ -103,9 +103,9 @@ class IncidentFlowDialog extends Component {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '-28px';
+				pos = '-31px';
 			} else if (locale === 'zh') {
-				pos = '-28px';
+				pos = '-31px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -125,9 +125,9 @@ class IncidentFlowDialog extends Component {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '-27px';
+				pos = '-42px';
 			} else if (locale === 'zh') {
-				pos = '-27px';
+				pos = '-42px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -136,9 +136,9 @@ class IncidentFlowDialog extends Component {
 			let pos = '';
 
 			if (locale === 'en') {
-				pos = '-27px';
+				pos = '-40px';
 			} else if (locale === 'zh') {
-				pos = '-27px';
+				pos = '-40px';
 			}
 			textAttr.style = {left: pos};
 		}
@@ -146,7 +146,7 @@ class IncidentFlowDialog extends Component {
 		return (
 			<div className={groupClass} key={index}>
 				<div className={cx(lineClass, {active: activeSteps > index})}/>
-				<div className={cx(stepClass, {active: activeSteps > index})}>
+				<div className={cx(stepClass, {active: activeSteps >= index})}>
 					<div className='wrapper'><span className='number'>{index}</span></div>
 					<div {...textAttr}>{val.step}</div>
 					<div {...timeAttr}>{helper.getFormattedDate(val.updateTime,'local')}</div>
