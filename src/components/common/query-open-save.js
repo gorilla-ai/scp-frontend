@@ -1245,6 +1245,7 @@ class QueryOpenSave extends Component {
           eventDescription:'',
           impact: 4,
           category: 1,
+          status: true
         },
         socTemplateEnable:false
       })
@@ -1270,7 +1271,7 @@ class QueryOpenSave extends Component {
           eventDescription:'',
           impact: 4,
           category: 1,
-          status: false
+          status: true
         },
         socTemplateEnable:false
       })
@@ -1588,6 +1589,19 @@ class QueryOpenSave extends Component {
                     disabled={true}
                 />
               </div>
+              <div className='top-group' >
+                <FormControlLabel
+                    style={{width: '100%'}}
+                    label={t('events.connections.txt-enableSOCScript')}
+                    control={
+                      <Switch
+                          checked={soc.status}
+                          color='primary'
+                      />
+                    }
+                    disabled={true}
+                />
+              </div>
               <div className='period'>
                 <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
                 <TextField
@@ -1740,17 +1754,19 @@ class QueryOpenSave extends Component {
               </TextField>
               <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
             </div>
-            <FormControlLabel
-                style={{width: '100%'}}
-                label={t('events.connections.txt-enableSOCScript')}
-                control={
-                  <Switch
-                      checked={soc.status}
-                      color='primary'
-                  />
-                }
-                disabled={true}
-            />
+            <div className='top-group' style={{width: '100%'}}>
+              <FormControlLabel
+                  style={{width: '100%'}}
+                  label={t('events.connections.txt-enableSOCScript')}
+                  control={
+                    <Switch
+                        checked={soc.status}
+                        color='primary'
+                    />
+                  }
+                  disabled={true}
+              />
+            </div>
             <div className='top-group'    style={{width: '100%'}}>
               <TextField
                   style={{width: '100%'}}

@@ -572,7 +572,7 @@ class IncidentRuleTemplate extends Component {
                         </div>
                         }
                         {(activeContent === 'view' || activeContent === 'edit') &&
-                            this.displayEditContent()
+                        this.displayEditContent()
                         }
                     </div>
                 </div>
