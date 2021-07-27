@@ -234,6 +234,7 @@ class QueryOpenSave extends Component {
       contentType: 'text/plain'
     }).then(data => {
       if (data) {
+
         tempQueryData.soc = {
           id: data.id,
           title: data.title,
@@ -248,6 +249,7 @@ class QueryOpenSave extends Component {
         this.setState({
           socTemplateEnable: true,
           soc: tempQueryData.soc
+        },()=>{
         });
       } else {
         tempQueryData.soc = {
@@ -291,7 +293,7 @@ class QueryOpenSave extends Component {
 
   handleQueryAction = () => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, type, filterData, queryData, queryDataPublic, markData} = this.props;
+    const {activeTab, type, filterData, queryData, queryDataPublic, markData, moduleWithSOC} = this.props;
 
     if (type === 'open' || type === 'publicOpen') {
       if (type === 'open') {
@@ -580,87 +582,11 @@ class QueryOpenSave extends Component {
       })
       .then(data => {
         if (data) {
-          if (requestType === 'PATCH'){
-            let socRequestBody = {
-              id: requestData.id,
-              title: soc.title,
-              eventDescription: soc.eventDescription,
-              category: soc.category,
-              impact: soc.impact,
-              limitQuery: soc.limitQuery,
-              creator: account.id
-            }
-            if (activeTab === 'alert') {
-              socRequestBody.severity = soc.severity
-            }
-            if (activeTab === 'logs') {
-              socRequestBody.severity = pattern.severity
-            }
-            if(this.state.socTemplateEnable){
-              //TODO UPDATE
-              this.ah.one({
-                url: `${baseUrl}/api/soc/template`,
-                data: JSON.stringify(socRequestBody),
-                type: 'POST',
-                contentType: 'text/plain'
-              }).then(data => {
-                if (data) {
-                  // console.log('override soc Template result :: ', data)
-                }
-                return null;
-              }).catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-              }).finally(err => {
-                helper.showPopupMsg(t('events.connections.txt-querySaved'));
-                this.props.getSavedQuery();
-                this.setState({
-                  socTemplateEnable: false,
-                  soc: {
-                    id: '',
-                    severity: 'Emergency',
-                    limitQuery: 10,
-                    title: '',
-                    eventDescription: '',
-                    impact: 4,
-                    category: 1,
-                    status: true
-                  }
-                })
-              })
-            }else{
-              //TODO DELETE
-              this.ah.one({
-                url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
-                type: 'DELETE',
-              }).then(data => {
-                if (data) {
-                  // console.log('override soc Template result :: ', data)
-                }
-                return null;
-              }).catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-              }).finally(err => {
-                helper.showPopupMsg(t('events.connections.txt-querySaved'));
-                this.props.getSavedQuery();
-                this.setState({
-                  socTemplateEnable: false,
-                  soc: {
-                    id: '',
-                    severity: 'Emergency',
-                    limitQuery: 10,
-                    title: '',
-                    eventDescription: '',
-                    impact: 4,
-                    category: 1,
-                    status: true
-                  }
-                })
-              })
-            }
-          }else{
-            if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
+
+          if (moduleWithSOC){
+            if (requestType === 'PATCH'){
               let socRequestBody = {
-                id: data.id,
+                id: requestData.id,
                 title: soc.title,
                 eventDescription: soc.eventDescription,
                 category: soc.category,
@@ -674,37 +600,116 @@ class QueryOpenSave extends Component {
               if (activeTab === 'logs') {
                 socRequestBody.severity = pattern.severity
               }
-
-              this.ah.one({
-                url: `${baseUrl}/api/soc/template`,
-                data: JSON.stringify(socRequestBody),
-                type: 'POST',
-                contentType: 'text/plain'
-              }).then(data => {
-                if (data) {
-                  // console.log('override soc Template result :: ', data)
-                }
-                return null;
-              }).catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-              }).finally(err => {
-                helper.showPopupMsg(t('events.connections.txt-querySaved'));
-                this.props.getSavedQuery();
-                this.setState({
-                  socTemplateEnable: false,
-                  soc: {
-                    id: '',
-                    severity: 'Emergency',
-                    limitQuery: 10,
-                    title: '',
-                    eventDescription: '',
-                    impact: 4,
-                    category: 1,
+              if(this.state.socTemplateEnable){
+                this.ah.one({
+                  url: `${baseUrl}/api/soc/template`,
+                  data: JSON.stringify(socRequestBody),
+                  type: 'POST',
+                  contentType: 'text/plain'
+                }).then(data => {
+                  if (data) {
+                    // console.log('override soc Template result :: ', data)
                   }
+                  return null;
+                }).catch(err => {
+                  helper.showPopupMsg('', t('txt-error'), err.message);
+                }).finally(err => {
+                  helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                  this.props.getSavedQuery();
+                  this.setState({
+                    socTemplateEnable: false,
+                    soc: {
+                      id: '',
+                      severity: 'Emergency',
+                      limitQuery: 10,
+                      title: '',
+                      eventDescription: '',
+                      impact: 4,
+                      category: 1,
+                      status: true
+                    }
+                  })
                 })
-              })
+              }else{
+                this.ah.one({
+                  url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
+                  type: 'DELETE',
+                }).then(data => {
+                  if (data) {
+                    // console.log('override soc Template result :: ', data)
+                  }
+                  return null;
+                }).catch(err => {
+                  helper.showPopupMsg('', t('txt-error'), err.message);
+                }).finally(err => {
+                  helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                  this.props.getSavedQuery();
+                  this.setState({
+                    socTemplateEnable: false,
+                    soc: {
+                      id: '',
+                      severity: 'Emergency',
+                      limitQuery: 10,
+                      title: '',
+                      eventDescription: '',
+                      impact: 4,
+                      category: 1,
+                      status: true
+                    }
+                  })
+                })
+              }
+            }else{
+              if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
+                let socRequestBody = {
+                  id: data.id,
+                  title: soc.title,
+                  eventDescription: soc.eventDescription,
+                  category: soc.category,
+                  impact: soc.impact,
+                  limitQuery: soc.limitQuery,
+                  creator: account.id
+                }
+                if (activeTab === 'alert') {
+                  socRequestBody.severity = soc.severity
+                }
+                if (activeTab === 'logs') {
+                  socRequestBody.severity = pattern.severity
+                }
+
+                this.ah.one({
+                  url: `${baseUrl}/api/soc/template`,
+                  data: JSON.stringify(socRequestBody),
+                  type: 'POST',
+                  contentType: 'text/plain'
+                }).then(data => {
+                  if (data) {
+                    // console.log('override soc Template result :: ', data)
+                  }
+                  return null;
+                }).catch(err => {
+                  helper.showPopupMsg('', t('txt-error'), err.message);
+                }).finally(err => {
+                  helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                  this.props.getSavedQuery();
+                  this.setState({
+                    socTemplateEnable: false,
+                    soc: {
+                      id: '',
+                      severity: 'Emergency',
+                      limitQuery: 10,
+                      title: '',
+                      eventDescription: '',
+                      impact: 4,
+                      category: 1,
+                    }
+                  })
+                })
+              }
             }
           }
+
+
 
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
           this.props.getSavedQuery();
@@ -1007,14 +1012,16 @@ class QueryOpenSave extends Component {
           severity: ''
         };
 
-        tempQueryData.soc = {
-          severity: 'Emergency',
-          limitQuery: 10,
-          title: '',
-          eventDescription:'',
-          impact: 4,
-          category: 1,
-          id:''
+        if (type === 'open'){
+          tempQueryData.soc = {
+            severity: 'Emergency',
+            limitQuery: 10,
+            title: '',
+            eventDescription:'',
+            impact: 4,
+            category: 1,
+            id:''
+          }
         }
 
         tempQueryData.emailList = [];
@@ -1026,10 +1033,12 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
+          },()=>{
+            this.getQuerySOCValueById(tempQueryData.id);
           });
         }
 
-        this.getQuerySOCValueById(tempQueryData.id);
+
 
         _.forEach(queryData.list, val => {
           if (val.id === value) {
@@ -1483,6 +1492,7 @@ class QueryOpenSave extends Component {
     if (type === 'open') {
       if (queryData.soc) {
         severityType = queryData.soc.severity;
+        // severityType = soc.severity;
         patternCheckboxDisabled = true
         if (queryData.soc) {
           if (queryData.soc.id) {
@@ -1503,7 +1513,7 @@ class QueryOpenSave extends Component {
       }
 
     } else if (type === 'save') {
-      severityType = soc.severity || this.state.pattern.severity;
+      severityType = soc.severity;
       patternCheckboxDisabled = false
     } else{
       patternCheckboxDisabled = true
