@@ -4,6 +4,7 @@ import _ from 'lodash'
 
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+import TextareaAutosize from "@material-ui/core/TextareaAutosize";
 
 /**
  * Config Inventory auto settings IP Range
@@ -11,7 +12,7 @@ import TextField from '@material-ui/core/TextField'
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the IP range form
  */
-class IpRange extends Component {
+class Log extends Component {
   constructor(props) {
     super(props);
   }
@@ -31,43 +32,31 @@ class IpRange extends Component {
 
     return (
       <div className='group-content'>
-        <TextField
-          name='type'
-          className='ip-range'
-          select
-          variant='outlined'
-          size='small'
-          required
-          value={value.type}
-          onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode'}>
-          <MenuItem value={'private'}>Private</MenuItem>
-          <MenuItem value={'public'}>Public</MenuItem>
-        </TextField>
-        <TextField
-          name='ip'
-          className='ip-range'
-          variant='outlined'
-          size='small'
-          value={value.ip}
-          onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode'} />
-        <TextField
-          name='mask'
-          className='ip-range'
-          variant='outlined'
-          size='small'
-          value={value.mask}
-          onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode'} />
+        {/*<TextField*/}
+        {/*  name='log'*/}
+        {/*  className='log'*/}
+        {/*  variant='outlined'*/}
+        {/*  size='small'*/}
+        {/*  value={value.log}*/}
+        {/*  onChange={this.handleDataChange}*/}
+        {/*  disabled={activeContent === 'viewMode'} />*/}
+        <TextareaAutosize
+            style={{width: '25rem'}}
+            name='log'
+            id='searchFilterInput'
+            aria-label="minimum height" minRows={5}
+            className='textarea-autosize filter-inputbox'
+            value={value.log}
+            onChange={this.handleDataChange}
+            disabled={activeContent === 'viewMode'} />
       </div>
     )
   }
 }
 
-IpRange.propTypes = {
+Log.propTypes = {
   activeContent: PropTypes.string.isRequired,
   value: PropTypes.object.isRequired
 };
 
-export default IpRange;
+export default Log;

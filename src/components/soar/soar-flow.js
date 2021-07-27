@@ -29,6 +29,8 @@ import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import SoarForm from './soar-form'
 import SoarSingleSettings from './soar-single-settings'
+import SoarLogTesting from './soar-log-testing'
+
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -54,6 +56,7 @@ class SoarFlow extends Component {
 
     this.state = {
       openFlowSettingsDialog: false,
+      openTestingFlowDialog: false,
       soarRule: {
         name: '',
         aggFieldId: ''
@@ -363,13 +366,21 @@ class SoarFlow extends Component {
 
     this.handleCloseMenu();
   }
+  toggleTestingDialog = () => {
+    this.setState({
+      openTestingFlowDialog: !this.state.openTestingFlowDialog
+    });
+
+    this.handleCloseMenu();
+  }
   /**
    * Close dialog
    * @method
    */
   closeDialog = () => {
     this.setState({
-      openFlowSettingsDialog: false
+      openFlowSettingsDialog: false,
+      openTestingFlowDialog: false
     });
   }
   /**
@@ -453,9 +464,10 @@ class SoarFlow extends Component {
     return disabled;
   }
   render() {
-    const {soarColumns} = this.props;
+    const {soarColumns, soarIndividualData} = this.props;
     const {
       openFlowSettingsDialog,
+      openTestingFlowDialog,
       soarRule,
       soarCondition,
       soarFlow,
@@ -471,6 +483,19 @@ class SoarFlow extends Component {
           <SoarSingleSettings
             soarColumns={soarColumns}
             soarFlow={soarFlow}
+            activeElementType={activeElementType}
+            activeElement={activeElement}
+            confirmSoarFlowData={this.confirmSoarFlowData}
+            closeDialog={this.closeDialog} />
+        }
+
+        {openTestingFlowDialog &&
+          <SoarLogTesting
+            soarColumns={soarColumns}
+            soarFlow={soarFlow}
+            soarRule={soarRule}
+            soarCondition={soarCondition}
+            soarIndividualData={soarIndividualData}
             activeElementType={activeElementType}
             activeElement={activeElement}
             confirmSoarFlowData={this.confirmSoarFlowData}
@@ -583,6 +608,7 @@ class SoarFlow extends Component {
               </div>
               <div className='footer'>
                 <Button variant='outlined' color='primary' className='standard' onClick={this.clearSoarData.bind(this, 'table')}>{t('txt-cancel')}</Button>
+                <Button variant='outlined' color='primary' className='standard' onClick={this.toggleTestingDialog}>{t('soar.txt-Settings')}</Button>
                 <Button variant='contained' color='primary' onClick={this.handleSoarFlowSave} disabled={this.checkSaveDisable()}>{t('txt-save')}</Button>
               </div>
             </div>
