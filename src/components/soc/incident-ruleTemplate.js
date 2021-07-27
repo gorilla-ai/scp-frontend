@@ -572,7 +572,7 @@ class IncidentRuleTemplate extends Component {
                         </div>
                         }
                         {(activeContent === 'view' || activeContent === 'edit') &&
-                            this.displayEditContent()
+                        this.displayEditContent()
                         }
                     </div>
                 </div>
@@ -745,7 +745,7 @@ class IncidentRuleTemplate extends Component {
 
                 <div className='form-group normal'>
                     <header>
-                        <div className='text'>{t('events.connections.txt-addSOCScript')}</div>
+                        <div className='text'>{t('events.connections.txt-enableSOCScript')}</div>
                         <FormControlLabel
                             className='switch-control'
                             control={
