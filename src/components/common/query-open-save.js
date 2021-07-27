@@ -597,7 +597,6 @@ class QueryOpenSave extends Component {
               socRequestBody.severity = pattern.severity
             }
             if(this.state.socTemplateEnable){
-              //TODO UPDATE
               this.ah.one({
                 url: `${baseUrl}/api/soc/template`,
                 data: JSON.stringify(socRequestBody),
@@ -628,7 +627,6 @@ class QueryOpenSave extends Component {
                 })
               })
             }else{
-              //TODO DELETE
               this.ah.one({
                 url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
                 type: 'DELETE',
