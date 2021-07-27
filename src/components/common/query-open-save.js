@@ -1741,6 +1741,19 @@ class QueryOpenSave extends Component {
               <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
             </div>
             <div className='top-group'    style={{width: '100%'}}>
+              <FormControlLabel
+                  style={{width: '100%'}}
+                  label={t('events.connections.txt-enableSOCScript')}
+                  control={
+                    <Switch
+                        checked={soc.status}
+                        color='primary'
+                    />
+                  }
+                  disabled={true}
+              />
+            </div>
+            <div className='top-group'    style={{width: '100%'}}>
               <TextField
                   style={{width: '100%'}}
                   name='title'
