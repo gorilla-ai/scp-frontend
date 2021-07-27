@@ -32,14 +32,6 @@ class Log extends Component {
 
     return (
       <div className='group-content'>
-        {/*<TextField*/}
-        {/*  name='log'*/}
-        {/*  className='log'*/}
-        {/*  variant='outlined'*/}
-        {/*  size='small'*/}
-        {/*  value={value.log}*/}
-        {/*  onChange={this.handleDataChange}*/}
-        {/*  disabled={activeContent === 'viewMode'} />*/}
         <TextareaAutosize
             style={{width: '25rem'}}
             name='log'

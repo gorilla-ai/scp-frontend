@@ -62,10 +62,10 @@ class SoarLogTesting extends Component {
 				{openUploadDialog &&
 					this.importDialog()
 				}
-				<div className='parent-content'>
-					<div className='main-content basic-form'>
+				<div className='parent-content' style={{backgroundColor:'transparent'}}>
+					<div className='main-content basic-form' style={{border:'none'}}>
 						<div className='edit-soar-config'>
-							<div className='pattern-content'>
+							<div className='pattern-content' style={{width:'100%'}}>
 								<div className='syslog-config'>
 									<div className='filters'>
 										<div className='data-result'>
@@ -74,7 +74,7 @@ class SoarLogTesting extends Component {
 													<header style={{top: '-53px'}}>
 														Logs
 														<Button
-															style={{marginLeft: locale === 'en' ? '21.45rem' : '21.2rem'}}
+															style={{marginLeft: locale === 'en' ? '23.25rem' : '22.95rem'}}
 															variant='outlined' color='primary' className='standard'
 															onClick={this.toggleUploadDialog}>
 															{t('soar.txt-upload')}
