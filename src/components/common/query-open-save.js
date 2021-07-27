@@ -1012,15 +1012,17 @@ class QueryOpenSave extends Component {
           severity: ''
         };
 
-        // tempQueryData.soc = {
-        //   severity: 'Emergency',
-        //   limitQuery: 10,
-        //   title: '',
-        //   eventDescription:'',
-        //   impact: 4,
-        //   category: 1,
-        //   id:''
-        // }
+        if (type === 'open'){
+          tempQueryData.soc = {
+            severity: 'Emergency',
+            limitQuery: 10,
+            title: '',
+            eventDescription:'',
+            impact: 4,
+            category: 1,
+            id:''
+          }
+        }
 
         tempQueryData.emailList = [];
 
@@ -1031,10 +1033,12 @@ class QueryOpenSave extends Component {
 
           this.setState({
             activeQuery: queryList[selectedQueryIndex]
+          },()=>{
+            this.getQuerySOCValueById(tempQueryData.id);
           });
         }
 
-        this.getQuerySOCValueById(tempQueryData.id);
+
 
         _.forEach(queryData.list, val => {
           if (val.id === value) {
@@ -1487,22 +1491,22 @@ class QueryOpenSave extends Component {
 
     if (type === 'open') {
       if (queryData.soc) {
-        // severityType = queryData.soc.severity;
-        severityType = soc.severity;
+        severityType = queryData.soc.severity;
+        // severityType = soc.severity;
         patternCheckboxDisabled = true
-        // if (queryData.soc) {
-        //   if (queryData.soc.id) {
-        //     if (queryData.soc.id !== '') {
-        //       tempSocTemplateEnable = true;
-        //     } else {
-        //
-        //     }
-        //   } else {
-        //
-        //   }
-        // } else {
-        //
-        // }
+        if (queryData.soc) {
+          if (queryData.soc.id) {
+            if (queryData.soc.id !== '') {
+              tempSocTemplateEnable = true;
+            } else {
+
+            }
+          } else {
+
+          }
+        } else {
+
+        }
       } else {
         severityType = soc.severity;
         patternCheckboxDisabled = false
