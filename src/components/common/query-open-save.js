@@ -1560,7 +1560,7 @@ class QueryOpenSave extends Component {
               </div>
               <div className='top-group' >
                 <TextField
-                    style={{width: '100%'}}
+                    style={{width: '80%'}}
                     id='category'
                     name='category'
                     variant='outlined'
@@ -1576,6 +1576,17 @@ class QueryOpenSave extends Component {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                   })}
                 </TextField>
+                <FormControlLabel
+                    style={{width: '100%'}}
+                    label={t('events.connections.txt-enableSOCScript')}
+                    control={
+                      <Switch
+                          checked={soc.status}
+                          color='primary'
+                      />
+                    }
+                    disabled={true}
+                />
               </div>
               <div className='period'>
                 <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
