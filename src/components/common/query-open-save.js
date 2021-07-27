@@ -241,7 +241,8 @@ class QueryOpenSave extends Component {
           category: data.category,
           impact: data.impact,
           severity: data.severity,
-          limitQuery: data.limitQuery
+          limitQuery: data.limitQuery,
+          status: data.status
         };
 
         this.setState({
@@ -257,6 +258,7 @@ class QueryOpenSave extends Component {
           eventDescription: '',
           impact: 4,
           category: 1,
+          status: true
         };
 
         this.setState({
@@ -599,7 +601,7 @@ class QueryOpenSave extends Component {
               this.ah.one({
                 url: `${baseUrl}/api/soc/template`,
                 data: JSON.stringify(socRequestBody),
-                type: 'PATCH',
+                type: 'POST',
                 contentType: 'text/plain'
               }).then(data => {
                 if (data) {
@@ -621,12 +623,39 @@ class QueryOpenSave extends Component {
                     eventDescription: '',
                     impact: 4,
                     category: 1,
+                    status: true
                   }
                 })
               })
             }else{
               //TODO DELETE
-
+              this.ah.one({
+                url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
+                type: 'DELETE',
+              }).then(data => {
+                if (data) {
+                  // console.log('override soc Template result :: ', data)
+                }
+                return null;
+              }).catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+              }).finally(err => {
+                helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                this.props.getSavedQuery();
+                this.setState({
+                  socTemplateEnable: false,
+                  soc: {
+                    id: '',
+                    severity: 'Emergency',
+                    limitQuery: 10,
+                    title: '',
+                    eventDescription: '',
+                    impact: 4,
+                    category: 1,
+                    status: true
+                  }
+                })
+              })
             }
           }else{
             if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
