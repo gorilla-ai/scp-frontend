@@ -24,6 +24,7 @@ import Popover from '@material-ui/core/Popover';
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -329,14 +330,15 @@ class SoarFlow extends Component {
    * Set soar condition data
    * @method
    * @param {string} type - soar operator type
-   * @param {object} data - soar data object
+   * @param {object | array} data - soar data object
    */
   setSoarConditionData = (type, data) => {
     let tempSoarCondition = {...this.state.soarCondition};
     tempSoarCondition.op = type;
+    tempSoarCondition.args = {};
 
-    if ((type === 'and' || type === 'or') && tempSoarCondition.args) {
-      tempSoarCondition.args.operators = data;
+    if (type === 'and' || type === 'or') {
+      tempSoarCondition.args.operators = data.operators ? data.operators : data;
     } else {
       tempSoarCondition.args = data;
     }
@@ -395,6 +397,52 @@ class SoarFlow extends Component {
     });
   }
   /**
+   * Display individual error
+   * @method
+   * @param {object} val - error object
+   * @param {number} i - index of the error
+   * @returns HTML DOM
+   */
+  showIndividualError = (val, i) => {
+    return (
+      <tr key={i}>
+        <td valign='top'>
+          <div>{val.name}</div>
+        </td>
+        <td>
+          <div>{t('soar.txt-error' + val.status)}</div>
+        </td>
+      </tr>
+    )
+  }
+  /**
+   * Display error info
+   * @method
+   * @param {number} mainError - main error code
+   * @param {array.<object>} errorData - error data
+   * @returns HTML DOM
+   */
+  showErrorInfo = (mainError, errorData) => {
+    const errorMsg = t('soar.txt-error' + mainError);
+
+    return (
+      <div className='soar-error-table'>
+        <div className='header'>{errorMsg}</div>
+        <table className='c-table'>
+          <thead>
+            <tr>
+              <th>{t('txt-name')}</th>
+              <th>{t('txt-error')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {errorData.map(this.showIndividualError)}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  /**
    * Handle soar save
    * @method
    */
@@ -415,15 +463,22 @@ class SoarFlow extends Component {
       requestData.flowId = soarIndividualData.flowId;
     }
 
-    this.ah.one({
+    ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         this.props.toggleContent('table', 'refresh');
+      } else {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          title: t('txt-error'),
+          confirmText: t('txt-close'),
+          display: this.showErrorInfo(data.ret, data.rt)
+        });
       }
     })
     .catch(err => {
@@ -544,7 +599,7 @@ class SoarFlow extends Component {
                         setSoarConditionData={this.setSoarConditionData} />
                     </div>
                     <div>
-                      <JSONTree data={soarFlow} theme={helper.getJsonViewTheme()} />
+                      {/*<JSONTree data={soarFlow} theme={helper.getJsonViewTheme()} />*/}
                     </div>
                   </aside>
 

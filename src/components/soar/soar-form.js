@@ -174,9 +174,11 @@ class SoarForm extends Component {
           [activeElement.op]: activeElement.args
         });
       } else if (activeElement.componentType === 'action') {
+        argsData = activeElement.args ? activeElement.args.actions : [];
+
         this.setState({
           nodeCustomName: activeElement.data.label,
-          soarNodeActionArgs: activeElement.args ? activeElement.args.actions : []
+          soarNodeActionArgs: argsData
         });
       }
     }
@@ -303,6 +305,23 @@ class SoarForm extends Component {
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>
         )
+      } else if (key === 'senderPassword') { //For email password
+        return (
+          <div key={i} className='group'>
+            <TextField
+              name={key}
+              type='password'
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!textValue}
+              helperText={textValue ? '' : t('txt-required')}
+              value={textValue}
+              onChange={this.handleDataChange.bind(this, operator)} />
+          </div>
+        )
       } else {
         return (
           <div key={i} className='group'>
@@ -371,12 +390,18 @@ class SoarForm extends Component {
           activeElementType,
           activeElement
         };
+        const value = this.state[operator].operators ? this.state[operator].operators : this.state[operator];
 
         return (
           <MultiInput
             key={i}
             base={MultiOperator}
-            value={this.state[operator]}
+            defaultItemValue={{
+                op: '',
+                args: {}
+              }
+            }
+            value={value}
             props={data}
             onChange={this.setMultiOperatorData.bind(this, operator)} />
         )
@@ -451,7 +476,7 @@ class SoarForm extends Component {
         <div className='group'>
           <TextField
             id={operator}
-            name='operator'
+            name='op'
             select
             label='Operator'
             variant='outlined'
@@ -546,6 +571,10 @@ class SoarForm extends Component {
             {this.displayNameGroupForm()}
             <MultiInput
               base={MultiOperator}
+              defaultItemValue={{
+                op: '',
+                args: {},
+              }}
               value={soarNodeActionArgs}
               props={data}
               onChange={this.setMultiOperatorData.bind(this, 'soarNodeActionArgs')} />

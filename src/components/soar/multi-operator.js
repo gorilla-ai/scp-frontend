@@ -40,6 +40,11 @@ class MultiOperator extends Component {
     this.setOperatorList();
     this.setDropDownList();
   }
+  componentDidUpdate(prevProps) {
+    if (!prevProps || (this.props.value !== prevProps.value)) {
+      this.setOperatorData();
+    }
+  }
   ryan = () => {}
   /**
    * Set link operator list
@@ -103,10 +108,12 @@ class MultiOperator extends Component {
   setOperatorData = () => {
     const {value} = this.props;
 
-    this.setState({
-      soarActiveOperator: value.op,
-      [value.op]: value.args
-    });
+    if (value.op) {
+      this.setState({
+        soarActiveOperator: value.op,
+        [value.op]: value.args
+      });
+    }
   }
   /**
    * Toggle rule section on/off
@@ -123,6 +130,12 @@ class MultiOperator extends Component {
    * @param {object} event - event object
    */
   handleOperatorDataChange = (event) => {
+    this.props.onChange({
+      ...this.props.value,
+      [event.target.name]: event.target.value,
+      args: this.state[event.target.value]
+    });
+
     this.setState({
       soarActiveOperator: event.target.value
     });
@@ -134,8 +147,19 @@ class MultiOperator extends Component {
    * @param {object} event - event object
    */
   handleDataChange = (type, event) => {
+    let tempNewValue = {...this.props.value};
     let tempData = {...this.state[type]};
+
+    if (!tempNewValue.args) {
+      tempNewValue.args = {};
+    }
+
+    tempNewValue.args[event.target.name] = event.target.value;
     tempData[event.target.name] = event.target.value;
+
+    this.props.onChange({
+      ...tempNewValue
+    });
 
     this.setState({
       [type]: tempData
@@ -206,6 +230,23 @@ class MultiOperator extends Component {
               name={key}
               className='textarea-autosize'
               rows={3}
+              value={textValue}
+              onChange={this.handleDataChange.bind(this, operator)} />
+          </div>
+        )
+      } else if (key === 'senderPassword') { //For email password
+        return (
+          <div key={i} className='group'>
+            <TextField
+              name={key}
+              type='password'
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!textValue}
+              helperText={textValue ? '' : t('txt-required')}
               value={textValue}
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>
@@ -326,7 +367,7 @@ class MultiOperator extends Component {
         {openRuleSection &&
           <div className='operator'>
             <TextField
-              name='operator'
+              name='op'
               select
               label='Operator'
               variant='outlined'

@@ -85,10 +85,13 @@ class SoarSingleSettings extends Component {
           tempSoarFlow[selectedFlowIndex].args.loopItem = _.cloneDeep(newLoopItem);
         }
       } else if (element.componentType === 'action') {
+        tempSoarFlow[selectedFlowIndex].args = {};
         tempSoarFlow[selectedFlowIndex].args.actions = data;
       } else {
+        tempSoarFlow[selectedFlowIndex].args = {};
+
         if (type === 'and' || type === 'or') {
-          tempSoarFlow[selectedFlowIndex].args.operators = data;
+          tempSoarFlow[selectedFlowIndex].args.operators = data.operators ? data.operators : data;
         } else {
           tempSoarFlow[selectedFlowIndex].args = data;
         }

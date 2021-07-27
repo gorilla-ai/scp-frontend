@@ -587,11 +587,19 @@
     "txt-sender": "寄件者",
     "txt-smtpConnectType": "SMTP連線種類",
     "txt-emailAuthentication": "驗證",
-    "txt-senderAcct": "寄件者帳號",
-    "txt-senderPasswd": "寄件者密碼",
+    "txt-senderAccount": "寄件者帳號",
+    "txt-senderPassword": "寄件者密碼",
     "txt-receiver": "收件者郵件信箱",
     "txt-title": "主旨",
-    "txt-content": "內容"
+    "txt-content": "內容",
+    "txt-error-404": "無對應SOAR流程",
+    "txt-error-432": "欄位參數錯誤",
+    "txt-error-433": "連結起訖點不存在",
+    "txt-error-451": "adapter上有多個連結",
+    "txt-error-452": "節點或連結錯誤",
+    "txt-error-453": "Adapter沒有連結節點",
+    "txt-error-460": "Adapter上的port已被使用",
+    "txt-error-500": "SOAR 主機錯誤"
   },
 
   "notifications": {

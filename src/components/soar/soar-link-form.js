@@ -209,7 +209,7 @@ class SoarLinkForm extends Component {
         <div className='group'>
           <TextField
             id='soarLinkOperator'
-            name='operator'
+            name='op'
             select
             label='Operator'
             variant='outlined'
