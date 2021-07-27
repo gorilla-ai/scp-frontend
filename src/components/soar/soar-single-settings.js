@@ -32,6 +32,7 @@ class SoarSingleSettings extends Component {
     super(props);
 
     this.state = {
+      newLoopItem: {},
       newSoarFlow: []
     };
 
@@ -51,6 +52,7 @@ class SoarSingleSettings extends Component {
    */
   setSoarFlowData = (type, data, element) => {
     const {soarFlow} = this.props;
+    const {newLoopItem, newSoarFlow} = this.state;
     const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
     let tempSoarFlow = _.cloneDeep(soarFlow);
 
@@ -64,19 +66,69 @@ class SoarSingleSettings extends Component {
       }
     } else if (type === 'nodeCustomGroup') {
       tempSoarFlow[selectedFlowIndex].group = data;
+    }  else if (type === 'loopItem') {
+      this.setState({
+        newLoopItem: data
+      });
+      return;
     } else {
-      tempSoarFlow[selectedFlowIndex].args = data;
-
       if (element.componentType === 'adapter') {
         tempSoarFlow[selectedFlowIndex].adapter_type = type;
       } else  {
         tempSoarFlow[selectedFlowIndex].op = type;
+      }
+
+      if (element.componentType === 'node') {
+        tempSoarFlow[selectedFlowIndex].args = data;
+
+        if (!_.isEmpty(newLoopItem)) {
+          tempSoarFlow[selectedFlowIndex].args.loopItem = _.cloneDeep(newLoopItem);
+        }
+      } else if (element.componentType === 'action') {
+        tempSoarFlow[selectedFlowIndex].args.actions = data;
+      } else {
+        if (type === 'and' || type === 'or') {
+          tempSoarFlow[selectedFlowIndex].args.operators = data;
+        } else {
+          tempSoarFlow[selectedFlowIndex].args = data;
+        }
       }
     }
 
     this.setState({
       newSoarFlow: tempSoarFlow
     });
+  }
+  /**
+   * Handle individual settings confirm
+   * @method
+   */
+  handleSoarSettingsConfirm = () => {
+    const {soarFlow, activeElement} = this.props;
+    const {newLoopItem, newSoarFlow} = this.state;
+
+    if (activeElement.componentType === 'node' && !_.isEmpty(newLoopItem)) {
+      let loopFlow = [];
+
+      if (_.isEmpty(newSoarFlow)) {
+        loopFlow = _.cloneDeep(soarFlow);
+      } else {
+        loopFlow = _.cloneDeep(newSoarFlow);
+      }
+
+      const selectedFlowIndex = _.findIndex(loopFlow, { 'id': activeElement.id });
+      loopFlow[selectedFlowIndex].args.loopItem = _.cloneDeep(newLoopItem);
+      //console.log(loopFlow);
+      this.props.confirmSoarFlowData(loopFlow);
+    } else {
+      if (_.isEmpty(newSoarFlow)) {
+        //console.log(soarFlow);
+        this.props.confirmSoarFlowData(soarFlow);
+      } else {
+        //console.log(newSoarFlow);
+        this.props.confirmSoarFlowData(newSoarFlow);
+      }
+    }
   }
   /**
    * Display settings content
@@ -101,7 +153,7 @@ class SoarSingleSettings extends Component {
     const titleText = t('soar.txt-' + activeElementType + 'Settings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.props.confirmSoarFlowData.bind(this, newSoarFlow)}
+      confirm: {text: t('txt-confirm'), handler: this.handleSoarSettingsConfirm}
     };
 
     return (

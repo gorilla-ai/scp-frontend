@@ -2354,6 +2354,56 @@ html[data-theme='dark'] {
   width: 350px;
   .soar-form {
     margin: 10px;
+    .c-multi > .group {
+      position: relative;
+      width: 100%;
+      margin: 2px auto;
+      background-color: var(--primaryContentBackground);
+      border: 1px solid var(--primaryBorder);
+    }
+    .link-form {
+      padding: 0 10px;
+      background-color: var(--contentBackground);
+      border: 1px solid var(--primaryBorder);
+    }
+    .multi-operator {
+      width: 100%;
+      .header {
+        position: relative;
+        padding: 10px;
+        span {
+          position: absolute;
+          top: 12px;
+          left: 45px;
+          font-size: 15px;
+        }
+        i.fg {
+          height: 24px;
+          margin-right: 10px;
+          border: 1px solid var(--primaryBorder);
+          border-radius: 5px;
+          cursor: pointer;
+        }
+      }
+      .operator {
+          padding: 20px 10px 10px 10px;
+          background-color: var(--contentBackground);
+          border-top: 1px solid var(--primaryBorder);
+        .group {
+          width: 100%;
+        }
+      }
+    }
+    .fg-close {
+      position: absolute;
+      top: 10px;
+      right: 45px;
+    }
+    .fg-add {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
   }
   .group {
     margin: 15px 0;

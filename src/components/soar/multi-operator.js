@@ -3,10 +3,15 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import { ReactMultiEmail } from 'react-multi-email'
+
 import MenuItem from '@material-ui/core/MenuItem'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 import helper from '../common/helper'
+
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 
 let t = null;
 let et = null;
@@ -33,6 +38,7 @@ class MultiOperator extends Component {
   }
   componentDidMount() {
     this.setOperatorList();
+    this.setDropDownList();
   }
   ryan = () => {}
   /**
@@ -63,49 +69,44 @@ class MultiOperator extends Component {
     });
   }
   /**
+   * Set dropdown list for severity type
+   * @method
+   */
+  setDropDownList = () => {
+    const severityTypeList = _.map(SEVERITY_TYPE, val => {
+      return <MenuItem value={'DEFINED_IOC_' + val.toUpperCase()}>{val}</MenuItem>
+    });
+
+    this.setState({
+      severityTypeList
+    });
+  }
+  /**
    * Set intialize soar data
    * @method
    */
   setInitializeState = () => {
-    const {from, soarColumns} = this.props;
+    const {soarColumns} = this.props;
 
     Object.keys(soarColumns.spec).forEach(key => {
       this.setState({
         [key]: soarColumns.spec[key]
       }, () => {
-        this.setOperator();
+        this.setOperatorData();
       });
     });
   }
   /**
-   * Set soar operator
+   * Set soar operator data
    * @method
    */
-  setOperator = () => {
-    const {operatorValue} = this.props;
+  setOperatorData = () => {
+    const {value} = this.props;
 
     this.setState({
-      soarActiveOperator: operatorValue
+      soarActiveOperator: value.op,
+      [value.op]: value.args
     });
-
-  //   if (activeElementType === 'link') {
-  //     this.setState({
-  //       soarLinkOperator: activeElement.op,
-  //       [activeElement.op]: activeElement.args
-  //     });
-  //   } else if (activeElementType === 'node') {
-  //     if (activeElement.componentType === 'adapter') {
-  //       this.setState({
-  //         soarNodeAdapterOperator: activeElement.adapter_type,
-  //         [activeElement.adapter_type]: activeElement.args
-  //       });
-  //     } else if (activeElement.componentType === 'action') {
-  //       this.setState({
-  //         soarNodeOperator: activeElement.op,
-  //         [activeElement.op]: activeElement.args
-  //       });
-  //     }
-  //   }
   }
   /**
    * Toggle rule section on/off
@@ -133,13 +134,53 @@ class MultiOperator extends Component {
    * @param {object} event - event object
    */
   handleDataChange = (type, event) => {
-    const {activeElement} = this.props;
     let tempData = {...this.state[type]};
     tempData[event.target.name] = event.target.value;
 
     this.setState({
       [type]: tempData
     });
+  }
+  /**
+   * Set test emails list
+   * @method
+   * @param {array} newEmails - new emails list
+   */
+  handleEmailChange = (newEmails) => {
+    const {activeElement} = this.props;
+    let tempEmail = {...this.state.email};
+    tempEmail.receiver = newEmails;
+
+    this.setState({
+      email: tempEmail
+    });
+
+    //this.props.setSoarFlowData('email', tempData, activeElement);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getLabel = (email, index, removeEmail) => {
+    return (
+      <div data-tag key={index}>
+        {email}
+        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
   }
   /**
    * Display individual form
@@ -149,6 +190,7 @@ class MultiOperator extends Component {
    * @param {number} i - index of the form data
    */
   displayForm = (operator, key, i) => {
+    const {severityTypeList} = this.state;
     const {soarColumns} = this.props;
     const value = soarColumns.spec[operator][key];
     const label = t('soar.txt-' + key);
@@ -167,6 +209,23 @@ class MultiOperator extends Component {
               value={textValue}
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>
+        )
+      } else if (key === 'severityType') {
+        return (
+        <div key={i} className='group'>
+          <TextField
+            id='soarActionSeverityType'
+            name='severityType'
+            select
+            label='Severity Type'
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={textValue}
+            onChange={this.handleDataChange.bind(this, operator)}>
+            {severityTypeList}
+          </TextField>
+        </div>
         )
       } else {
         return (
@@ -246,20 +305,23 @@ class MultiOperator extends Component {
     }    
   }
   render() {
-    const {activeElementType} = this.props;
+    const {activeElementType, activeElement} = this.props;
     const {openRuleSection, linkOperatorList, nodeActionOperatorList, soarActiveOperator} = this.state;
+    let multiHeader = '';
     let operatorList = '';
 
-    if (activeElementType === 'link') {
+    if (activeElementType === 'link' || activeElement.componentType === 'link') {
+      multiHeader = t('txt-rule');
       operatorList = linkOperatorList;
-    } else if (activeElementType === 'node') {
+    } else if (activeElement.componentType === 'action') {
+      multiHeader = 'Action';
       operatorList = nodeActionOperatorList;
     }
 
     return (
       <div className='multi-operator'>
         <div className='header'>
-          <i className={`c-link fg fg-arrow-${openRuleSection ? 'top' : 'bottom'}`} onClick={this.toggleRuleOpen}></i> <span>{t('txt-rule')}</span>
+          <i className={`c-link fg fg-arrow-${openRuleSection ? 'top' : 'bottom'}`} onClick={this.toggleRuleOpen}></i> <span>{multiHeader}</span>
         </div>
         {openRuleSection &&
           <div className='operator'>
