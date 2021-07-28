@@ -10,6 +10,7 @@ import MultiInput from "react-ui/build/src/components/multi-input";
 import Log from "./logs";
 import FileUpload from "../common/file-upload";
 import FastForwardIcon from '@material-ui/icons/FastForward';
+import helper from '../common/helper'
 
 let t = null;
 let et = null;
@@ -41,8 +42,6 @@ class SoarLogTesting extends Component {
 	 */
 	displaySettings = () => {
 		const {resultLogs, sourceLogs, openUploadDialog} = this.state
-		const {soarFlow} = this.props;
-
 		const {locale} = this.context;
 
 		let logsProps = {
@@ -168,47 +167,96 @@ class SoarLogTesting extends Component {
 		const {baseUrl} = this.context;
 		const {soarFlow, soarRule, soarCondition, soarIndividualData} = this.props;
 		const {sourceLogs} = this.state;
-
+		let testCheck = true
 		let requestLogList = [];
 
-		_.forEach(sourceLogs, val =>{
-			requestLogList.push(val.log)
-		})
-
-		let requestBody = {
-			flow: {
-				flowName: soarRule.name,
-				aggField: soarRule.aggFieldId,
-				isEnable: soarIndividualData.isEnable,
-				condition: soarCondition,
-				flow: soarFlow
-			},
-			logs: requestLogList
+		if (sourceLogs.length <= 0) {
+			testCheck = false
 		}
 
-		console.log("dryRunLogs flow == " ,requestBody)
+		_.forEach(sourceLogs, val => {
+			if (val.log.length <= 0) {
+				testCheck = false
+			} else {
+				requestLogList.push(val.log)
+			}
+		})
 
-		// const url = `${baseUrl}/api/soar/dryRun`;
-		// let requestData = {
-		// 	flow: soarFlow,
-		// 	logs:sourceLogs
-		// };
-		//
-		// this.ah.one({
-		// 	url,
-		// 	data: JSON.stringify(requestData),
-		// 	type: 'POST',
-		// 	contentType: 'text/plain'
-		// }).then(data => {
-		// 		console.log("data == " ,data)
-		// }).catch(err => {
-		// 		helper.showPopupMsg('', t('txt-error'), err.message);
-		// })
 
+		if (testCheck) {
+			let requestBody = {
+				flow: {
+					flowName: soarRule.name,
+					aggField: soarRule.aggFieldId,
+					isEnable: soarIndividualData.isEnable,
+					condition: soarCondition,
+					flow: soarFlow
+				},
+				logs: requestLogList
+			}
+
+			this.ah.one({
+				url:`${baseUrl}/api/soar/dryRun`,
+				data: JSON.stringify(requestBody),
+				type: 'POST',
+				contentType: 'text/plain'
+			}).then(data => {
+				if (data.status === 200) {
+					this.adjustRespToShow(data.result)
+				} else {
+					helper.showPopupMsg('', t('txt-error'), t('soar.txt-error' + data.status));
+				}
+			}).catch(err => {
+				helper.showPopupMsg('', t('txt-error'), err.message);
+			})
+
+		} else {
+			helper.showPopupMsg('', t('txt-error'), t('soar.txt-dryRunLogMissing'));
+		}
+	}
+
+	adjustRespToShow = (resp) => {
+		let resultList = [];
+		Object.keys(resp).forEach(key => {
+			let resultString = ''
+			_.forEach(resp[key], singleLog => {
+				let statusWording = 'OK'
+				let nameWording = ''
+
+				if(singleLog.status !== 200){
+					statusWording = t('soar.txt-error' + singleLog.status)
+				}
+
+				if (singleLog.name){
+					nameWording = singleLog.name
+				}
+				resultString = resultString + nameWording + '(' + statusWording  + ')' + ' -> '
+			})
+			resultString = resultString + 'END'
+
+			let logObj = {
+				log:resultString
+			}
+			resultList.push(logObj)
+		});
+
+		this.setState({
+			resultLogs:resultList
+		})
+	}
+
+	isJson(str) {
+		if (typeof str == 'string') {
+			try {
+				let obj = JSON.parse(str);
+				return !!(typeof obj == 'object' && obj);
+			} catch (e) {
+				return false;
+			}
+		}
 	}
 
 	importDialog = () => {
-
 		const actions = {
 			cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadDialog},
 			confirm: {text: t('txt-confirm'), handler: this.confirmUpload}
@@ -253,31 +301,17 @@ class SoarLogTesting extends Component {
 		let formData = new FormData();
 		formData.append('file', logFile);
 
-		// ah.one({
-		// 	url: `${baseUrl}/api/threat/upload`,
-		// 	data: formData,
-		// 	type: 'POST',
-		// 	processData: false,
-		// 	contentType: false
-		// })
-		// 	.then(data => {
-		// 		if (data.ret === 0) {
-		// 			helper.showPopupMsg(t('edge-management.txt-addSuccess'));
-		// 			this.toggleImportThreats();
-		//
-		// 			this.setState({
-		// 				indicatorsData: null
-		// 			}, () => {
-		// 				this.getChartsData();
-		// 			});
-		// 		} else if (data.ret === -1) {
-		// 			helper.showPopupMsg('', t('txt-error'), err.message);
-		// 		}
-		// 		return null;
-		// 	})
-		// 	.catch(err => {
-		// 		helper.showPopupMsg('', t('txt-error'), err.message);
-		// 	})
+		ah.one({
+			url: `${baseUrl}/api/soar/test/upload`,
+			data: formData,
+			type: 'POST',
+			processData: false,
+			contentType: false
+		}).then(data => {
+			return null;
+		}).catch(err => {
+			helper.showPopupMsg('', t('txt-error'), err.message);
+		})
 	}
 }
 
