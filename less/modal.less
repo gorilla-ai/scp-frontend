@@ -894,33 +894,26 @@ html[data-theme='dark'] {
       .settings {
         position: relative;
         overflow: hidden;
-        .btn {
-          padding: .3em .5em;
-        }
-        & > button,
-        .edit-btns {
-          position: absolute;
-          top: 15px;
-        }
-        .edit,
-        .edit-btns {
-          right: 10px;
-        }
-        .compress {
-          right: 80px;
-        }
-        .download {
-          right: 162px;
-        }
-        .edit-btns {
-          .cancel,
-          .save,
-          .restore-default {
+        .button-group {
+          .btn {
             float: right;
-          }
-          .save,
-          .restore-default {
+            padding: .3em .5em;
             margin-right: 5px;
+            min-width: 60px;
+          }
+          .refresh  {
+            position: absolute;
+          }
+          .edit-btns {
+            .cancel,
+            .save,
+            .restore-default {
+              float: right;
+            }
+            .save,
+            .restore-default {
+              margin-right: 5px;
+            }
           }
         }
         .settings-wrapper {

@@ -434,19 +434,23 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && data.length > 0) {
-        const floorPlanData = data[0];
-        const floorPlan = {
-          treeData: data,
-          currentAreaUUID: floorPlanData.areaUUID,
-          currentAreaName: floorPlanData.areaName
-        };
+      if (data) {
+        if (data.length > 0) {
+          const floorPlanData = data[0];
+          const floorPlan = {
+            treeData: data,
+            currentAreaUUID: floorPlanData.areaUUID,
+            currentAreaName: floorPlanData.areaName
+          };
 
-        this.setState({
-          floorPlan
-        }, () => {
-          this.getFloorList();
-        });
+          this.setState({
+            floorPlan
+          }, () => {
+            this.getFloorList();
+          });
+        } else {
+          this.getHostData();
+        }
       }
       return null;
     })
@@ -608,7 +612,7 @@ class HostController extends Component {
       ...this.getHostSafetyRequestData()
     };
 
-    if (activeTab === 'deviceMap') {
+    if (activeTab === 'deviceMap' && currentFloor) {
       requestData.areaUUID = currentFloor;
     }    
 
@@ -1988,7 +1992,7 @@ class HostController extends Component {
    */
   getIPdeviceInfo = (host, options, defaultOpen) => {
     const {baseUrl} = this.context;
-    const {assessmentDatetime, hostInfo, hostData} = this.state;
+    const {assessmentDatetime, hostInfo, hostData, eventInfo} = this.state;
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
 
     this.ah.all([
@@ -2046,7 +2050,16 @@ class HostController extends Component {
         }
 
         if (data[1]) {
-          this.setEventTracingData(data[1]);
+          let tempEventInfo = {...eventInfo};
+          tempEventInfo.dataContent = null;
+          tempEventInfo.scrollCount = 1;
+          tempEventInfo.hasMore = false;
+
+          this.setState({
+            eventInfo: tempEventInfo
+          }, () => {
+            this.setEventTracingData(data[1]);
+          });
         }
       }
       return null;

@@ -1808,7 +1808,7 @@ class HMDscanInfo extends Component {
       }
     } else if (type === 'event') {
       if (page === 'host') {
-        return 475;
+        return 435;
       } else if (page === 'threats') {
         return 415;
       } else if (page === 'inventory') {
@@ -1859,7 +1859,7 @@ class HMDscanInfo extends Component {
    */
   getEventTracingContent = () => {
     const {ipType, eventInfo} = this.props;
-    const dataCount = eventInfo.dataContent.length;
+    const dataCount = eventInfo.dataContent ? eventInfo.dataContent.length : 0;
 
     return (
       <div className='scan-section'>
@@ -2418,23 +2418,25 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('hmd-scan.txt-refresh')}</Button>
-              {settingsActiveContent === 'viewMode' && currentDeviceData.isUploaded &&
-                <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, 'download', '', currentDeviceData.ipDeviceUUID, 'host')}>{t(`hmd-scan.txt-downloadLogs`)}</Button>
-              }
-              {settingsActiveContent === 'viewMode' &&
-                <Button variant='contained' color='primary' className='btn compress' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
-              }
-              {settingsActiveContent === 'viewMode' &&
-                <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
-              }
-              {settingsActiveContent === 'editMode' &&
-                <div className='edit-btns'>
-                  <Button variant='outlined' color='primary' className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-                  <Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('hmd-scan.txt-saveSettings')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('hmd-scan.txt-restoreDefault')}</Button>
-                </div>
-              }
+              <div className='button-group'>
+                <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('hmd-scan.txt-refresh')}</Button>
+                {settingsActiveContent === 'viewMode' && currentDeviceData.isUploaded &&
+                  <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
+                }
+                {settingsActiveContent === 'viewMode' &&
+                  <Button variant='contained' color='primary' className='btn compress' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
+                }                
+                {settingsActiveContent === 'viewMode' &&
+                  <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, 'download', '', currentDeviceData.ipDeviceUUID, 'host')}>{t(`hmd-scan.txt-downloadLogs`)}</Button>
+                }
+                {settingsActiveContent === 'editMode' &&
+                  <div className='edit-btns'>
+                    <Button variant='outlined' color='primary' className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('hmd-scan.txt-saveSettings')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('hmd-scan.txt-restoreDefault')}</Button>
+                  </div>
+                }
+              </div>
               <div id='settingsWrapper' className='settings-wrapper'>
                 {SETTINGS_LIST.map(this.displaySettingsContent)}
               </div>

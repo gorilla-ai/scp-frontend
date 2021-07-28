@@ -333,7 +333,7 @@ class AlertDetails extends Component {
   getHMDinfo = (ipType) => {
     const {baseUrl} = this.context;
     const {alertData} = this.props;
-    const {alertInfo, ipDeviceInfo} = this.state;
+    const {alertInfo, ipDeviceInfo, eventInfo} = this.state;
     const ip = this.getIpPortData(ipType);
     const srcDestType = ipType.replace('Ip', '');
 
@@ -388,7 +388,16 @@ class AlertDetails extends Component {
         }
 
         if (data[2]) {
-          this.setEventTracingData(data[2]);
+          let tempEventInfo = {...eventInfo};
+          tempEventInfo.dataContent = [];
+          tempEventInfo.scrollCount = 1;
+          tempEventInfo.hasMore = false;
+
+          this.setState({
+            eventInfo: tempEventInfo
+          }, () => {
+            this.setEventTracingData(data[2]);
+          });
         }
       }
       return null;
