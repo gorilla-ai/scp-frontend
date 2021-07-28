@@ -45,7 +45,6 @@ class MultiOperator extends Component {
       this.setOperatorData();
     }
   }
-  ryan = () => {}
   /**
    * Set link operator list
    * @method

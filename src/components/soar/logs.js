@@ -33,14 +33,14 @@ class Log extends Component {
     return (
       <div className='group-content'>
         <TextareaAutosize
-            style={{width: '25rem'}}
-            name='log'
-            id='searchFilterInput'
-            aria-label="minimum height" minRows={5}
-            className='textarea-autosize filter-inputbox'
-            value={value.log}
-            onChange={this.handleDataChange}
-            disabled={activeContent === 'viewMode'} />
+          style={{width: '25rem'}}
+          name='log'
+          id='searchFilterInput'
+          aria-label="minimum height" minRows={5}
+          className='textarea-autosize filter-inputbox'
+          value={value.log}
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode'} />
       </div>
     )
   }

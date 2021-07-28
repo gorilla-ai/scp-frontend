@@ -58,7 +58,6 @@ class SoarLogTesting extends Component {
 
 		return (
 			<div className='data-content'>
-
 				{openUploadDialog &&
 					this.importDialog()
 				}
@@ -126,7 +125,6 @@ class SoarLogTesting extends Component {
 													</div>
 												</div>
 											</div>
-
 										</div>
 									</div>
 								</div>

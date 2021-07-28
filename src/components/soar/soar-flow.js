@@ -88,7 +88,6 @@ class SoarFlow extends Component {
 
     this.setIndividualSoarData();
   }
-  ryan = () => {}
   /**
    * Get soar flow data
    * @method
@@ -484,12 +483,17 @@ class SoarFlow extends Component {
       if (data.ret === 0) {
         this.props.toggleContent('table', 'refresh');
       } else {
-        PopupDialog.alert({
-          id: 'modalWindowSmall',
-          title: t('txt-error'),
-          confirmText: t('txt-close'),
-          display: this.showErrorInfo(data.ret, data.rt)
-        });
+        if (data.rt === 0) {
+          const errorMsg = t('soar.txt-error' + data.ret);
+          helper.showPopupMsg('', t('txt-error'), errorMsg);
+        } else {
+          PopupDialog.alert({
+            id: 'modalWindowSmall',
+            title: t('txt-error'),
+            confirmText: t('txt-close'),
+            display: this.showErrorInfo(data.ret, data.rt)
+          });
+        }
       }
     })
     .catch(err => {
