@@ -604,7 +604,7 @@
     "txt-error-452": "節點或連結錯誤",
     "txt-error-453": "Adapter沒有連結節點",
     "txt-error-460": "Adapter上的port已被使用",
-    "txt-error-500": "SOAR 主機錯誤"
+    "txt-error-500": "SOAR主機錯誤"
   },
 
   "notifications": {

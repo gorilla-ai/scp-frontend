@@ -288,9 +288,13 @@ class SoarForm extends Component {
   displayForm = (operator, key, i) => {
     const {from, soarColumns, activeElementType, activeElement} = this.props;
     const value = soarColumns.spec[operator][key];
-    const label = t('soar.txt-' + key);
     const operatorValue = this.state[operator];
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
+    let label = t('soar.txt-' + key);
+
+    if (key === 'gap') {
+      label = 'Gap (' + t('txt-minutes') + ')';
+    }
 
     if (typeof value === 'string' && operatorValue) {
       if (key === 'content') { //For email content
@@ -366,6 +370,7 @@ class SoarForm extends Component {
             variant='outlined'
             fullWidth
             size='small'
+            InputProps={{inputProps: { min: 0 }}}
             required
             error={!textValue}
             helperText={textValue ? '' : t('txt-required')}

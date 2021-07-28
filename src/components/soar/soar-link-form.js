@@ -134,9 +134,13 @@ class SoarLinkForm extends Component {
   displayForm = (operator, key, i) => {
     const {soarColumns} = this.props;
     const value = soarColumns.spec[operator][key];
-    const label = t('soar.txt-' + key);
     const operatorValue = this.state[operator];
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
+    let label = t('soar.txt-' + key);
+
+    if (key === 'gap') {
+      label = 'Gap (' + t('txt-minutes') + ')';
+    }
 
     if (typeof value === 'string' && operatorValue) {
       return (
@@ -181,6 +185,7 @@ class SoarLinkForm extends Component {
             variant='outlined'
             fullWidth
             size='small'
+            InputProps={{inputProps: { min: 0 }}}
             required
             error={!textValue}
             helperText={textValue ? '' : t('txt-required')}

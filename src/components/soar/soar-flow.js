@@ -500,29 +500,29 @@ class SoarFlow extends Component {
    * Check save button enable/disable
    * @method
    */
-  checkSaveDisable = () => {
-    const {soarRule, soarCondition} = this.state;
-    let disabled = false;
+  // checkSaveDisable = () => {
+  //   const {soarRule, soarCondition} = this.state;
+  //   let disabled = false;
 
-    if (!soarRule.name || !soarRule.aggFieldId || !soarCondition.op) {
-      disabled = true;
-    }
+  //   if (!soarRule.name || !soarRule.aggFieldId || !soarCondition.op) {
+  //     disabled = true;
+  //   }
 
-    if (_.isEmpty(soarCondition.args)) {
-      disabled = true;
-    } else {
-      Object.keys(soarCondition.args).map(key => {
-        const value = soarCondition.args[key];
+  //   if (_.isEmpty(soarCondition.args)) {
+  //     disabled = true;
+  //   } else {
+  //     Object.keys(soarCondition.args).map(key => {
+  //       const value = soarCondition.args[key];
 
-        if (!value && typeof value === 'string') {
-          disabled = true;
-          return false;
-        }
-      });
-    }
+  //       if (!value && typeof value === 'string') {
+  //         disabled = true;
+  //         return false;
+  //       }
+  //     });
+  //   }
 
-    return disabled;
-  }
+  //   return disabled;
+  // }
   render() {
     const {soarColumns, soarIndividualData} = this.props;
     const {
@@ -608,9 +608,6 @@ class SoarFlow extends Component {
                           variant='outlined'
                           fullWidth
                           size='small'
-                          required
-                          error={!soarRule.aggFieldId}
-                          helperText={soarRule.aggFieldId ? '' : t('txt-required')}
                           value={soarRule.aggFieldId}
                           onChange={this.handleDataChange} />
                       </div>
@@ -669,7 +666,7 @@ class SoarFlow extends Component {
               <div className='footer'>
                 <Button variant='outlined' color='primary' className='standard' onClick={this.clearSoarData.bind(this, 'table')}>{t('txt-cancel')}</Button>
                 <Button variant='outlined' color='primary' className='standard' onClick={this.toggleTestingDialog}>{t('soar.txt-Settings')}</Button>
-                <Button variant='contained' color='primary' onClick={this.handleSoarFlowSave} disabled={this.checkSaveDisable()}>{t('txt-save')}</Button>
+                <Button variant='contained' color='primary' onClick={this.handleSoarFlowSave}>{t('txt-save')}</Button>
               </div>
             </div>
           </div>
