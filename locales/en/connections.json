@@ -589,16 +589,23 @@
     "txt-sender": "Sender",
     "txt-smtpConnectType": "SMTP Connect Type",
     "txt-emailAuthentication": "Authentication",
-    "txt-senderAcct": "Sender Account",
-    "txt-senderPasswd": "Sender Password",
+    "txt-senderAccount": "Sender Account",
+    "txt-senderPassword": "Sender Password",
     "txt-receiver": "Recipient Email",
     "txt-title": "Title",
     "txt-content": "Content",
-
     "txt-upload": "Upload Logs",
     "txt-upload-msg": "Please enter or upload event Logs.",
     "txt-Settings": "Event Testing",
-    "txt-dryRun": "Run"
+    "txt-dryRun": "Run",
+    "txt-error-404": "SOAR flow id not found",
+    "txt-error-432": "Node parameter missing",
+    "txt-error-433": "Link start and end of link not consist",
+    "txt-error-451": "Multiple link on adapter",
+    "txt-error-452": "Node or Link has Error",
+    "txt-error-453": "No node link to adapter",
+    "txt-error-460": "Port in adapter has been used",
+    "txt-error-500": "SOAR server error"
   },
 
   "notifications": {
