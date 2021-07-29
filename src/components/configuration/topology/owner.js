@@ -723,6 +723,7 @@ class NetworkOwner extends Component {
   handleCloseManage = () => {
     this.toggleManageDialog();
     this.getTitleData();
+    this.getOwnerData();
   }
   /**
    * Toggle filter content on/off

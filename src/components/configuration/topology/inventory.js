@@ -3887,8 +3887,9 @@ class NetworkInventory extends Component {
    * @method
    */
   handleCloseManage = () => {
-    this.getTitleData();
     this.toggleManageDialog();
+    this.getTitleData();
+    this.getOwnerData();
   }
   render() {
     const {baseUrl, contextRoot, language} = this.context;
