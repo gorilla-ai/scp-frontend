@@ -62,7 +62,7 @@ class SoarLogTesting extends Component {
 					this.importDialog()
 				}
 				<div className='parent-content' style={{backgroundColor:'transparent'}}>
-					<div className='main-content basic-form' style={{border:'none'}}>
+					<div className='main-content basic-form' style={{border: 'none', marginTop: '-39px'}}>
 						<div className='edit-soar-config'>
 							<div className='pattern-content' style={{width:'100%'}}>
 								<div className='syslog-config'>
