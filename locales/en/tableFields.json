@@ -623,6 +623,7 @@
     "note": "Note",
     "reason": "Frequency Empty Reason",
     "updateDttm": "Last Edit Time",
+    "lastSendDttm": "Last Try Time",
     "abbreviation": "Unit Abbreviation",
     "type": "Incident Type",
     "select": "Send or Not",
