@@ -526,6 +526,7 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
+                      InputProps={{inputProps: { min: 0 }}}
                       value={soarAdapter.scp.gap}
                       onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
                       disabled={activeContent === 'viewMode'} />

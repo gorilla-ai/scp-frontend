@@ -32,7 +32,6 @@ class SoarSingleSettings extends Component {
     super(props);
 
     this.state = {
-      newLoopItem: {},
       newSoarFlow: []
     };
 
@@ -42,7 +41,6 @@ class SoarSingleSettings extends Component {
   }
   componentDidMount() {
   }
-  ryan = () => {}
   /**
    * Set flow settings data
    * @method
@@ -52,9 +50,15 @@ class SoarSingleSettings extends Component {
    */
   setSoarFlowData = (type, data, element) => {
     const {soarFlow} = this.props;
-    const {newLoopItem, newSoarFlow} = this.state;
+    const {newSoarFlow} = this.state;
     const selectedFlowIndex = _.findIndex(soarFlow, { 'id': element.id });
-    let tempSoarFlow = _.cloneDeep(soarFlow);
+    let tempSoarFlow = '';
+
+    if (_.isEmpty(newSoarFlow)) {
+      tempSoarFlow = _.cloneDeep(soarFlow);
+    } else {
+      tempSoarFlow = _.cloneDeep(newSoarFlow);
+    }
 
     if (type === 'nodeCustomName') {
       if (element.componentType === 'link') {
@@ -66,28 +70,27 @@ class SoarSingleSettings extends Component {
       }
     } else if (type === 'nodeCustomGroup') {
       tempSoarFlow[selectedFlowIndex].group = data;
-    }  else if (type === 'loopItem') {
-      this.setState({
-        newLoopItem: data
-      });
-      return;
     } else {
       if (element.componentType === 'adapter') {
         tempSoarFlow[selectedFlowIndex].adapter_type = type;
-      } else  {
         tempSoarFlow[selectedFlowIndex].op = type;
-      }
-
-      if (element.componentType === 'node') {
-        tempSoarFlow[selectedFlowIndex].args = data;
-
-        if (!_.isEmpty(newLoopItem)) {
-          tempSoarFlow[selectedFlowIndex].args.loopItem = _.cloneDeep(newLoopItem);
+      } else if (element.componentType === 'node') {
+        if (_.includes(this.props.soarColumns.nodeOp, type) ) {
+          tempSoarFlow[selectedFlowIndex].op = type;
+          tempSoarFlow[selectedFlowIndex].args = data;
+        } else { //Handle loop case
+          if (!tempSoarFlow[selectedFlowIndex].args.loopItem) {
+            tempSoarFlow[selectedFlowIndex].args.loopItem = {};
+          }
+          tempSoarFlow[selectedFlowIndex].args.loopItem.op = type;
+          tempSoarFlow[selectedFlowIndex].args.loopItem.args = data;
         }
       } else if (element.componentType === 'action') {
+        tempSoarFlow[selectedFlowIndex].op = type;
         tempSoarFlow[selectedFlowIndex].args = {};
         tempSoarFlow[selectedFlowIndex].args.actions = data;
-      } else {
+      } else if (element.componentType === 'link') {
+        tempSoarFlow[selectedFlowIndex].op = type;
         tempSoarFlow[selectedFlowIndex].args = {};
 
         if (type === 'and' || type === 'or') {
@@ -107,30 +110,13 @@ class SoarSingleSettings extends Component {
    * @method
    */
   handleSoarSettingsConfirm = () => {
-    const {soarFlow, activeElement} = this.props;
-    const {newLoopItem, newSoarFlow} = this.state;
+    const {soarFlow} = this.props;
+    const {newSoarFlow} = this.state;
 
-    if (activeElement.componentType === 'node' && !_.isEmpty(newLoopItem)) {
-      let loopFlow = [];
-
-      if (_.isEmpty(newSoarFlow)) {
-        loopFlow = _.cloneDeep(soarFlow);
-      } else {
-        loopFlow = _.cloneDeep(newSoarFlow);
-      }
-
-      const selectedFlowIndex = _.findIndex(loopFlow, { 'id': activeElement.id });
-      loopFlow[selectedFlowIndex].args.loopItem = _.cloneDeep(newLoopItem);
-      //console.log(loopFlow);
-      this.props.confirmSoarFlowData(loopFlow);
+    if (_.isEmpty(newSoarFlow)) {
+      this.props.confirmSoarFlowData(soarFlow);
     } else {
-      if (_.isEmpty(newSoarFlow)) {
-        //console.log(soarFlow);
-        this.props.confirmSoarFlowData(soarFlow);
-      } else {
-        //console.log(newSoarFlow);
-        this.props.confirmSoarFlowData(newSoarFlow);
-      }
+      this.props.confirmSoarFlowData(newSoarFlow);
     }
   }
   /**
