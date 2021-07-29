@@ -153,7 +153,7 @@ class MultiOperator extends Component {
       tempNewValue.args = {};
     }
 
-    if (type === 'email') { //Special case for email recipient
+    if (type === 'email' && _.isArray(event)) { //Special case for email recipient
       tempNewValue.args.receiver = event;
       tempData.receiver = event;
     } else {
