@@ -245,6 +245,31 @@ class SoarLogTesting extends Component {
 		})
 	}
 
+	adjustUploadFailToShow = (resp) => {
+		let resultList = [];
+		Object.keys(resp).forEach(key => {
+			_.forEach(resp[key], singleLog => {
+				let resultString = ''
+				_.forEach(singleLog , logSingleResult =>{
+					if(logSingleResult.status && singleLog.status !== 200){
+						resultString = t('soar.txt-error' + logSingleResult.status)
+					}
+				})
+
+				let logObj = {
+					log:resultString
+				}
+				resultList.push(logObj)
+			})
+		});
+
+		this.setState({
+			sourceLogs: resultList
+		}, () => {
+			this.closeUploadDialog()
+		})
+	}
+
 	isJson(str) {
 		if (typeof str == 'string') {
 			try {
@@ -295,6 +320,12 @@ class SoarLogTesting extends Component {
 		});
 	}
 
+	closeUploadDialog = () => {
+		this.setState({
+			openUploadDialog: false
+		});
+	}
+
 	confirmUpload = () => {
 		const {baseUrl} = this.context;
 		const {logFile} = this.state;
@@ -302,12 +333,31 @@ class SoarLogTesting extends Component {
 		formData.append('file', logFile);
 
 		ah.one({
-			url: `${baseUrl}/api/soar/test/upload`,
+			url: `${baseUrl}/api/soar/dryRun/uploadLogs`,
 			data: formData,
 			type: 'POST',
 			processData: false,
 			contentType: false
 		}).then(data => {
+			if (data) {
+				if (data.rt.logs) {
+					let resultList = [];
+					_.forEach(data.rt.logs, log => {
+						let logObj = {
+							log: log
+						}
+						resultList.push(logObj)
+					})
+					this.setState({
+						sourceLogs: resultList
+					}, () => {
+						this.closeUploadDialog()
+					})
+
+				} else {
+					this.adjustUploadFailToShow(data.rt.result)
+				}
+			}
 			return null;
 		}).catch(err => {
 			helper.showPopupMsg('', t('txt-error'), err.message);
