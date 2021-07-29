@@ -64,6 +64,8 @@
 	"txt-send": "Send",
 	"txt-send-success": "Send Success",
 	"txt-send-fail": "Send Fail",
+	"txt-send-task-success": "Send Task Success",
+	"txt-send-task-fail": "Send Task Fail",
 	"txt-send-connect-fail": "Send Fail(Connection Fail)",
 	"txt-send-other-fail": "Send Fail(Server Fail)",
 	"txt-draw": "Draw Incident",
