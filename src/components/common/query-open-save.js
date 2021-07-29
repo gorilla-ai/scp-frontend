@@ -1010,16 +1010,15 @@ class QueryOpenSave extends Component {
           severity: ''
         };
 
-        if (type === 'open'){
-          tempQueryData.soc = {
-            severity: 'Emergency',
-            limitQuery: 10,
-            title: '',
-            eventDescription:'',
-            impact: 4,
-            category: 1,
-            id:''
-          }
+        tempQueryData.soc = {
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          id: '',
+          status: true
         }
 
         tempQueryData.emailList = [];
@@ -1103,6 +1102,8 @@ class QueryOpenSave extends Component {
           pattern: tempPattern,
           patternCheckbox,
           publicCheckbox
+        },()=>{
+          this.getQuerySOCValueById(tempQueryData.id);
         });
       } else if (type === 'publicOpen' || type === 'publicSave') {
         tempQueryDataPublic.id = value;
@@ -1160,8 +1161,6 @@ class QueryOpenSave extends Component {
     } else if (fieldType === 'name') {
       queryName = newQueryName;
 
-
-
       if (type === 'open' || type === 'save') {
         tempQueryData.inputName = value;
         this.props.setQueryData(tempQueryData);
@@ -1174,7 +1173,6 @@ class QueryOpenSave extends Component {
     this.clearErrorInfo();
 
     this.setState({
-      soc:tempQueryData.soc,
       newQueryName: queryName
     });
   }
