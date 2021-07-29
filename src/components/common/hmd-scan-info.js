@@ -2420,13 +2420,13 @@ class HMDscanInfo extends Component {
             <div className='settings'>
               <div className='button-group'>
                 <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('hmd-scan.txt-refresh')}</Button>
-                {settingsActiveContent === 'viewMode' && currentDeviceData.isUploaded &&
+                {settingsActiveContent === 'viewMode' &&
                   <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
                 }
                 {settingsActiveContent === 'viewMode' &&
                   <Button variant='contained' color='primary' className='btn compress' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
                 }                
-                {settingsActiveContent === 'viewMode' &&
+                {settingsActiveContent === 'viewMode' && currentDeviceData.isUploaded &&
                   <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, 'download', '', currentDeviceData.ipDeviceUUID, 'host')}>{t(`hmd-scan.txt-downloadLogs`)}</Button>
                 }
                 {settingsActiveContent === 'editMode' &&
