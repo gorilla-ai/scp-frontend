@@ -622,6 +622,7 @@
     "reason": "異常原因",
     "frequency": "上月觸發次數",
     "updateDttm": "最後編輯時間",
+    "lastSendDttm": "上次觸發時間",
     "abbreviation": "機關英文簡稱",
     "type": "事件單類型",
     "select": "是否發布",

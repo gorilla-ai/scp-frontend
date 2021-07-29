@@ -170,7 +170,7 @@ class IncidentLog extends Component {
                 tempLog.dataFields = _.map(incidentLog.dataFieldsArr, val => {
                     return {
                         name: val === '_menu' ? '' : val,
-                        label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                        label: val === '_menu' ? '' : val === 'updateDttm' ? f(`incidentFields.lastSendDttm`):f(`incidentFields.${val}`),
                         options: {
                             filter: true,
                             sort: this.checkSortable(val),

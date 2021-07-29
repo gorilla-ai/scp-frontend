@@ -2627,11 +2627,11 @@ class IncidentManagement extends Component {
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
-                helper.showPopupMsg(it('txt-send-task-success'), it('txt-send'));
+                helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
 
             })
             .catch(err => {
-                helper.showPopupMsg(it('txt-send-task-fail'), it('txt-send'));
+                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
             })
     };
 

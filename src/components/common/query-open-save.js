@@ -205,7 +205,6 @@ class QueryOpenSave extends Component {
 
         this.setState({
           socTemplateEnable: false,
-          soc: tempQueryData.soc
         });
       }
       return null;
@@ -265,7 +264,6 @@ class QueryOpenSave extends Component {
 
         this.setState({
           socTemplateEnable: false,
-          soc: tempQueryData.soc
         });
       }
       return null;
@@ -1508,12 +1506,13 @@ class QueryOpenSave extends Component {
 
         }
       } else {
-        severityType = soc.severity;
+        severityType = 'Emergency';
         patternCheckboxDisabled = false
       }
     } else if (type === 'save') {
-      severityType = soc.severity;
+      severityType = 'Emergency';
       patternCheckboxDisabled = false
+      severityType = soc.severity;
     } else{
       patternCheckboxDisabled = true
     }
@@ -1571,7 +1570,7 @@ class QueryOpenSave extends Component {
               </div>
               <div className='top-group' >
                 <TextField
-                    style={{width: '80%'}}
+                    style={{width: '100%'}}
                     id='category'
                     name='category'
                     variant='outlined'
@@ -1587,17 +1586,6 @@ class QueryOpenSave extends Component {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                   })}
                 </TextField>
-                <FormControlLabel
-                    style={{width: '100%'}}
-                    label={t('events.connections.txt-enableSOCScript')}
-                    control={
-                      <Switch
-                          checked={soc.status}
-                          color='primary'
-                      />
-                    }
-                    disabled={true}
-                />
               </div>
               <div className='top-group' >
                 <FormControlLabel
