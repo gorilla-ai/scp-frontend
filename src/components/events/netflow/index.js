@@ -251,9 +251,9 @@ class Netflow extends Component {
         let ip = '';
 
         if (urlParams.srcIp) {
-          ip = 'ipSrc: ' + urlParams.srcIp;
+          ip = 'srcIp: ' + urlParams.srcIp;
         } else if (urlParams.destIp) {
-          ip = 'ipDst: ' + urlParams.destIp;
+          ip = 'destIp: ' + urlParams.destIp;
         }
 
         this.setState({
@@ -272,7 +272,7 @@ class Netflow extends Component {
         });
       } else if (urlParams.from && urlParams.to) {
         const page = urlParams.page;
-        let query = 'ipSrc: ' + urlParams.sourceIP;
+        let query = 'srcIp: ' + urlParams.sourceIP;
 
         if (page === 'host') {
           query = urlParams.sourceIP;
