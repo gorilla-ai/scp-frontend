@@ -66,8 +66,8 @@ class SoarSettings extends Component {
           smtpConnectType: '',
           emailAuthentication: '',
           sender: '',
-          senderAcct: '',
-          senderPasswd: '',
+          senderAccount: '',
+          senderPassword: '',
           receiver: [],
           title: '',
           content: ''
@@ -95,10 +95,10 @@ class SoarSettings extends Component {
             valid: true,
             msg: ''
           },
-          senderAcct: {
+          senderAccount: {
             valid: true
           },
-          senderPasswd: {
+          senderPassword: {
             valid: true
           }
         }
@@ -223,10 +223,10 @@ class SoarSettings extends Component {
               valid: true,
               msg: ''
             },
-            senderAcct: {
+            senderAccount: {
               valid: true
             },
-            senderPasswd: {
+            senderPassword: {
               valid: true
             }
           }
@@ -276,17 +276,17 @@ class SoarSettings extends Component {
       validate = false;
     }
 
-    if (soarAction.email.senderAcct) {
-      tempFormValidation.email.senderAcct.valid = true;
+    if (soarAction.email.senderAccount) {
+      tempFormValidation.email.senderAccount.valid = true;
     } else {
-      tempFormValidation.email.senderAcct.valid = false;
+      tempFormValidation.email.senderAccount.valid = false;
       validate = false;
     }
 
-    if (soarAction.email.senderPasswd) {
-      tempFormValidation.email.senderPasswd.valid = true;
+    if (soarAction.email.senderPassword) {
+      tempFormValidation.email.senderPassword.valid = true;
     } else {
-      tempFormValidation.email.senderPasswd.valid = false;
+      tempFormValidation.email.senderPassword.valid = false;
       validate = false;
     }
 
@@ -673,31 +673,31 @@ class SoarSettings extends Component {
                   <div className='group'>
                     <TextField
                       id='soarActionAccount'
-                      name='senderAcct'
+                      name='senderAccount'
                       label={t('notifications.txt-senderAccount')}
                       variant='outlined'
                       fullWidth
                       size='small'
                       required
-                      error={!formValidation.email.senderAcct.valid}
-                      helperText={formValidation.email.senderAcct.valid ? '' : t('txt-required')}
-                      value={soarAction.email.senderAcct}
+                      error={!formValidation.email.senderAccount.valid}
+                      helperText={formValidation.email.senderAccount.valid ? '' : t('txt-required')}
+                      value={soarAction.email.senderAccount}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
                     <TextField
                       id='soarActionSenderPassword'
-                      name='senderPasswd'
+                      name='senderPassword'
                       type='password'
                       label={t('notifications.txt-senderPassword')}
                       variant='outlined'
                       fullWidth
                       size='small'
                       required
-                      error={!formValidation.email.senderPasswd.valid}
-                      helperText={formValidation.email.senderPasswd.valid ? '' : t('txt-required')}
-                      value={soarAction.email.senderPasswd}
+                      error={!formValidation.email.senderPassword.valid}
+                      helperText={formValidation.email.senderPassword.valid ? '' : t('txt-required')}
+                      value={soarAction.email.senderPassword}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
                       disabled={activeContent === 'viewMode'} />
                   </div>

@@ -73,7 +73,7 @@ class SoarSingleSettings extends Component {
     } else {
       if (element.componentType === 'adapter') {
         tempSoarFlow[selectedFlowIndex].adapter_type = type;
-        tempSoarFlow[selectedFlowIndex].op = type;
+        tempSoarFlow[selectedFlowIndex].args = data;
       } else if (element.componentType === 'node') {
         if (_.includes(this.props.soarColumns.nodeOp, type) ) {
           tempSoarFlow[selectedFlowIndex].op = type;

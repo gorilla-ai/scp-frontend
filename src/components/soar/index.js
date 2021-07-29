@@ -188,6 +188,11 @@ class SoarController extends Component {
           data = data[0];
         }
 
+        if (data.rules.length === 0) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
+
         let tempSoarData = {...soarData};
         tempSoarData.dataContent = data.rules;
         tempSoarData.totalCount = data.count;

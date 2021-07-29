@@ -439,7 +439,7 @@ class NetworkBehavior extends Component {
       })
     } else if (type === 'connections' || type === 'dns') {
       _.forEach(data, val => {
-        _.forEach(val.portDst.buckets, val2 => {
+        _.forEach(val.destPort.buckets, val2 => {
           tempData.push({
             destIp: val.key,
             destPort: val2.key,

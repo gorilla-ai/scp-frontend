@@ -54,6 +54,8 @@ html {
   --fadedColor: #fff;
   --disabledColor: #ccc;
   --disabledCalendar: #999;
+
+  --soarFlowDefault: #1a192b;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
@@ -109,6 +111,8 @@ html[data-theme='dark'] {
   --fadedColor: #999;
   --disabledColor: #666;
   --disabledCalendar: #ccc;
+
+  --soarFlowDefault: #ff0;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -1418,13 +1422,15 @@ button.standard:hover:not([disabled]) {
         padding: 18px 10px;
         margin: 0 5px;
         cursor: grab;
-        border: 1px solid #1a192b;
         border-radius: 3px;
         &.input {
-          border-color: #0041d0;
+          border: 1px solid #0041d0;
+        }
+        &.default {
+          border: 1px solid var(--soarFlowDefault);
         }
         &.output {
-          border-color: #ff0072;
+          border: 1px solid #ff0072;
         }
       }
       .mini-map {

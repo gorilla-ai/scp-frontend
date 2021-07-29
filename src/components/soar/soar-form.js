@@ -243,47 +243,6 @@ class SoarForm extends Component {
     }
   }
   /**
-   * Set test emails list
-   * @method
-   * @param {array} newEmails - new emails list
-   */
-  handleEmailChange = (newEmails) => {
-    const {activeElement} = this.props;
-    let tempEmail = {...this.state.email};
-    tempEmail.receiver = newEmails;
-
-    this.setState({
-      email: tempEmail
-    });
-
-    //this.props.setSoarFlowData('email', tempData, activeElement);
-  }
-  /**
-   * Handle email delete
-   * @method
-   * @param {function} removeEmail - function to remove email
-   * @param {number} index - index of the emails list array
-   */
-  deleteEmail = (removeEmail, index) => {
-    removeEmail(index);
-  }
-  /**
-   * Handle email delete
-   * @method
-   * @param {string} email - individual email
-   * @param {number} index - index of the emails list array
-   * @param {function} removeEmail - function to remove email
-   * @returns HTML DOM
-   */
-  getLabel = (email, index, removeEmail) => {
-    return (
-      <div data-tag key={index}>
-        {email}
-        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
-  }
-  /**
    * Display individual form
    * @method
    * @param {string} operator - soar operator
@@ -297,57 +256,26 @@ class SoarForm extends Component {
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
     let label = t('soar.txt-' + key);
 
-    if (key === 'gap') {
+    if (key === 'gap') { //Spcieal case for scp gap
       label = 'Gap (' + t('txt-minutes') + ')';
     }
 
     if (typeof value === 'string' && operatorValue) {
-      if (key === 'content') { //For email content
-        return (
-          <div key={i} className='group'>
-            <label>{label}</label>
-            <TextareaAutosize
-              name={key}
-              className='textarea-autosize'
-              rows={3}
-              value={textValue}
-              onChange={this.handleDataChange.bind(this, operator)} />
-          </div>
-        )
-      } else if (key === 'senderPassword') { //For email password
-        return (
-          <div key={i} className='group'>
-            <TextField
-              name={key}
-              type='password'
-              label={label}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!textValue}
-              helperText={textValue ? '' : t('txt-required')}
-              value={textValue}
-              onChange={this.handleDataChange.bind(this, operator)} />
-          </div>
-        )
-      } else {
-        return (
-          <div key={i} className='group'>
-            <TextField
-              name={key}
-              label={label}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!textValue}
-              helperText={textValue ? '' : t('txt-required')}
-              value={textValue}
-              onChange={this.handleDataChange.bind(this, operator)} />
-          </div>
-        )
-      }
+      return (
+        <div key={i} className='group'>
+          <TextField
+            name={key}
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!textValue}
+            helperText={textValue ? '' : t('txt-required')}
+            value={textValue}
+            onChange={this.handleDataChange.bind(this, operator)} />
+        </div>
+      )
     } else if (typeof value === 'boolean' && operatorValue) {
       return (
         <div key={i} className='group'>
@@ -390,7 +318,7 @@ class SoarForm extends Component {
             {this.displayDropDownSelection('soarLoopOperator', 'linkOperatorListReduce')}
           </div>
         )
-      } else if (operator === 'and' || operator === 'or') {
+      } else if (operator === 'and' || operator === 'or') { //Special case for link and/or operator
         const data = {
           from,
           soarColumns,
@@ -411,16 +339,6 @@ class SoarForm extends Component {
             value={value}
             props={data}
             onChange={this.setMultiOperatorData.bind(this, operator)} />
-        )
-      } else if (operator === 'email' && key === 'receiver') { //For email recipient
-        return (
-          <div key={i} className='group'>
-            <label>{label}</label>
-            <ReactMultiEmail
-              emails={textValue}
-              onChange={this.handleEmailChange}
-              getLabel={this.getLabel} />
-          </div>
         )
       }
     }

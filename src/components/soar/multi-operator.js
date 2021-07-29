@@ -142,7 +142,7 @@ class MultiOperator extends Component {
   /**
    * Handle form data change
    * @method
-   * @param {string} type - data input type
+   * @param {string | array.<string>} type - data input type
    * @param {object} event - event object
    */
   handleDataChange = (type, event) => {
@@ -153,8 +153,13 @@ class MultiOperator extends Component {
       tempNewValue.args = {};
     }
 
-    tempNewValue.args[event.target.name] = event.target.value;
-    tempData[event.target.name] = event.target.value;
+    if (type === 'email') { //Special case for email recipient
+      tempNewValue.args.receiver = event;
+      tempData.receiver = event;
+    } else {
+      tempNewValue.args[event.target.name] = event.target.value;
+      tempData[event.target.name] = event.target.value;
+    }
 
     this.props.onChange({
       ...tempNewValue
@@ -215,14 +220,10 @@ class MultiOperator extends Component {
   displayForm = (operator, key, i) => {
     const {severityTypeList} = this.state;
     const {soarColumns} = this.props;
+    const label = t('soar.txt-' + key);
     const value = soarColumns.spec[operator][key];
     const operatorValue = this.state[operator];
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
-    let label = t('soar.txt-' + key);
-
-    if (key === 'gap') {
-      label = 'Gap (' + t('txt-minutes') + ')';
-    }
 
     if (typeof value === 'string' && operatorValue) {
       if (key === 'content') { //For email content
@@ -330,7 +331,7 @@ class MultiOperator extends Component {
             <label>{label}</label>
             <ReactMultiEmail
               emails={textValue}
-              onChange={this.handleEmailChange}
+              onChange={this.handleDataChange.bind(this, operator)}
               getLabel={this.getLabel} />
           </div>
         )

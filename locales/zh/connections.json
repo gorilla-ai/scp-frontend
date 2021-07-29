@@ -611,7 +611,7 @@
     "txt-error-462": "Operators Executed Error.",
     "txt-error-463": "Flow Condition Not Passed.",
     "txt-error-464": "Create Flow Instance Failed(Possible aggField are missing).",
-    "txt-error-500": "SOAR 主機錯誤",
+    "txt-error-500": "SOAR主機錯誤",
     "txt-error-9100": "Parse Input Json Fail",
     "txt-error-9102": "No execute due to som error"
   },

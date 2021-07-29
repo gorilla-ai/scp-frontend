@@ -417,10 +417,10 @@ class SoarFlow extends Component {
     return (
       <tr key={i}>
         <td valign='top'>
-          <div>{val.name}</div>
+          <span>{val.name}</span>
         </td>
         <td>
-          <div>{t('soar.txt-error' + val.status)}</div>
+          <span>{t('soar.txt-error' + val.status)}</span>
         </td>
       </tr>
     )
@@ -435,22 +435,24 @@ class SoarFlow extends Component {
   showErrorInfo = (mainError, errorData) => {
     const errorMsg = t('soar.txt-error' + mainError);
 
-    return (
-      <div className='soar-error-table'>
-        <div className='header'>{errorMsg}</div>
-        <table className='c-table'>
-          <thead>
-            <tr>
-              <th>{t('txt-name')}</th>
-              <th>{t('txt-error')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {errorData.map(this.showIndividualError)}
-          </tbody>
-        </table>
-      </div>
-    )
+    if (errorData.length > 0) {
+      return (
+        <div className='soar-error-table'>
+          <div className='header'>{errorMsg}</div>
+          <table className='c-table'>
+            <thead>
+              <tr>
+                <th>{t('txt-name')}</th>
+                <th>{t('txt-error')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {errorData.map(this.showIndividualError)}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
   }
   /**
    * Handle soar save
@@ -480,10 +482,10 @@ class SoarFlow extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data.ret === 0) { //Success
         this.props.toggleContent('table', 'refresh');
       } else {
-        if (data.rt === 0) {
+        if (data.rt.length === 0) {
           const errorMsg = t('soar.txt-error' + data.ret);
           helper.showPopupMsg('', t('txt-error'), errorMsg);
         } else {
