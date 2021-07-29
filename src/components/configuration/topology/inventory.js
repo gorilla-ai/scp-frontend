@@ -1964,12 +1964,12 @@ class NetworkInventory extends Component {
           ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : ''
         };
 
-        if (currentDeviceData.ownerObj.department) {
+        if (currentDeviceData.ownerObj && currentDeviceData.ownerObj.department) {
           const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': currentDeviceData.ownerObj.department });
           addIP.department = departmentList[selectedDepartmentIndex];
         }
 
-        if (currentDeviceData.ownerObj.title) {
+        if (currentDeviceData.ownerObj && currentDeviceData.ownerObj.title) {
           const selectedTitleIndex = _.findIndex(titleList, { 'value': currentDeviceData.ownerObj.title });
           addIP.title = titleList[selectedTitleIndex];
         }
@@ -2260,10 +2260,17 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   showCSVbody = (value, i) => {
+    let newValue = [];
+
+    _.forEach(value, val => {
+      const item = val === undefined ? '' : val; //Handle empty value in excel sheet
+      newValue.push(item);
+    })
+
     if (i > 0) {
       return (
         <tr key={i}>
-          {value.map(this.showCSVbodyCell.bind(this, 'body'))}
+          {newValue.map(this.showCSVbodyCell.bind(this, 'body'))}
         </tr>
       )
     }
@@ -2920,11 +2927,11 @@ class NetworkInventory extends Component {
    * Handle existing owners dropdown change
    * @method
    * @param {string | object} event - owner ID or event object
-   * @param {string} [from] - option for from page
+   * @param {string} [from] - option for from page ('batchUpdates')
    */
   getOwnerInfo = (event, from) => {
     const {baseUrl} = this.context;
-    const {departmentList} = this.state;
+    const {departmentList, titleList} = this.state;
     const value = event.target ? event.target.value : event;
 
     ah.one({
@@ -2938,11 +2945,12 @@ class NetworkInventory extends Component {
         let tempAddIP = {...this.state.addIP};
         tempAddIP.ownerUUID = data.ownerUUID;
         tempAddIP.ownerID = data.ownerID;
-        tempAddIP.title = data.titleName;
         tempAddIP.ownerPic = data.base64;
 
         const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': data.department });
-        tempAddIP.department = departmentList[selectedDepartmentIndex]
+        const selectedTitleIndex = _.findIndex(titleList, { 'value': data.title });
+        tempAddIP.department = departmentList[selectedDepartmentIndex];
+        tempAddIP.title = titleList[selectedTitleIndex];
 
         const inventoryParam = queryString.parse(location.search);
 

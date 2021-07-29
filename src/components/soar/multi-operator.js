@@ -45,7 +45,6 @@ class MultiOperator extends Component {
       this.setOperatorData();
     }
   }
-  ryan = () => {}
   /**
    * Set link operator list
    * @method
@@ -217,9 +216,13 @@ class MultiOperator extends Component {
     const {severityTypeList} = this.state;
     const {soarColumns} = this.props;
     const value = soarColumns.spec[operator][key];
-    const label = t('soar.txt-' + key);
     const operatorValue = this.state[operator];
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
+    let label = t('soar.txt-' + key);
+
+    if (key === 'gap') {
+      label = 'Gap (' + t('txt-minutes') + ')';
+    }
 
     if (typeof value === 'string' && operatorValue) {
       if (key === 'content') { //For email content
@@ -312,6 +315,7 @@ class MultiOperator extends Component {
             variant='outlined'
             fullWidth
             size='small'
+            InputProps={{inputProps: { min: 0 }}}
             required
             error={!textValue}
             helperText={textValue ? '' : t('txt-required')}

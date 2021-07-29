@@ -28,6 +28,14 @@
   "-33": "Agent (ipPort) is not Reachable!",
 
   "-100": "Call web service fail",
+  "-404": "SOAR flow id not found",
+  "-432": "Node parameter missing",
+  "-433": "Link start and end of link not consist",
+  "-451": "Multiple link on adapter",
+  "-452": "Node or Link has Error",
+  "-453": "No node link to adapter",
+  "-460": "Port in adapter has been used",
+  "-500": "SOAR server error",
 
   "-1000": "Function unexpected exception",
   "-1001": "Please fill out all the required fields",

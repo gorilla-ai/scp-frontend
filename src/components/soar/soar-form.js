@@ -15,7 +15,6 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import MultiOperator from './multi-operator'
-import SoarLinkForm from './soar-link-form'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -39,15 +38,15 @@ class SoarForm extends Component {
       nodeCustomName: '',
       nodeCustomGroup: '',
       linkOperatorList: [],
-      //linkOperatorListReduce: [],
+      linkOperatorListReduce: [],
       nodeAdapterOperatorList: [],
       nodeOperatorList: [],
       nodeActionOperatorList: [],
       soarLinkOperator: '',
+      soarLoopOperator: '',
       soarNodeAdapterOperator: '',
       soarNodeOperator: '',
       soarNodeActionArgs: []
-      //soarNodeActionOperator: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -57,19 +56,18 @@ class SoarForm extends Component {
   componentDidMount() {
     this.setOperatorList();
   }
-  ryan = () => {}
   /**
    * Set node and link operator list
    * @method
    */
   setOperatorList = () => {
     const {soarColumns} = this.props;
-    // let linkOp = _.cloneDeep(soarColumns.linkOp);
-    // let index = '';
-    // index = linkOp.indexOf('and');
-    // linkOp.splice(index, 1);
-    // index = linkOp.indexOf('or');
-    // linkOp.splice(index, 1);
+    let linkOp = _.cloneDeep(soarColumns.linkOp);
+    let index = '';
+    index = linkOp.indexOf('and');
+    linkOp.splice(index, 1);
+    index = linkOp.indexOf('or');
+    linkOp.splice(index, 1);
 
     const nodeGroupList = _.map(GROUP_LIST, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
@@ -77,9 +75,9 @@ class SoarForm extends Component {
     const linkOperatorList = _.map(soarColumns.linkOp, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
-    // const linkOperatorListReduce = _.map(linkOp, (val, i) => {
-    //   return <MenuItem key={i} value={val}>{val}</MenuItem>
-    // });
+    const linkOperatorListReduce = _.map(linkOp, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    });
     const nodeAdapterOperatorList = _.map(soarColumns.adapter, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
@@ -93,7 +91,7 @@ class SoarForm extends Component {
     this.setState({
       nodeGroupList,
       linkOperatorList,
-      //linkOperatorListReduce,
+      linkOperatorListReduce,
       nodeAdapterOperatorList,
       nodeOperatorList,
       nodeActionOperatorList
@@ -167,6 +165,13 @@ class SoarForm extends Component {
           [activeElement.adapter_type]: activeElement.args
         });
       } else if (activeElement.componentType === 'node') {
+        if (activeElement.op === 'loop') { //Special case for loop item
+          this.setState({
+            soarLoopOperator: activeElement.args.loopItem.op,
+            [activeElement.args.loopItem.op]: activeElement.args.loopItem.args
+          });
+        }
+
         this.setState({
           nodeCustomName: activeElement.data.label,
           nodeCustomGroup: activeElement.group,
@@ -288,9 +293,13 @@ class SoarForm extends Component {
   displayForm = (operator, key, i) => {
     const {from, soarColumns, activeElementType, activeElement} = this.props;
     const value = soarColumns.spec[operator][key];
-    const label = t('soar.txt-' + key);
     const operatorValue = this.state[operator];
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
+    let label = t('soar.txt-' + key);
+
+    if (key === 'gap') {
+      label = 'Gap (' + t('txt-minutes') + ')';
+    }
 
     if (typeof value === 'string' && operatorValue) {
       if (key === 'content') { //For email content
@@ -366,6 +375,7 @@ class SoarForm extends Component {
             variant='outlined'
             fullWidth
             size='small'
+            InputProps={{inputProps: { min: 0 }}}
             required
             error={!textValue}
             helperText={textValue ? '' : t('txt-required')}
@@ -374,14 +384,11 @@ class SoarForm extends Component {
         </div>
       )
     } else if (typeof value === 'object' && operatorValue) {
-      if (operator === 'loop') {
-        const loopItem = activeElement.args ? activeElement.args.loopItem : '';
-
+      if (operator === 'loop') { //Special case for node loop item
         return (
-          <SoarLinkForm
-            soarColumns={soarColumns}
-            loopItem={loopItem}
-            setLoopItemData={this.setLoopItemData} />
+          <div className='link-form'>
+            {this.displayDropDownSelection('soarLoopOperator', 'linkOperatorListReduce')}
+          </div>
         )
       } else if (operator === 'and' || operator === 'or') {
         const data = {
@@ -417,22 +424,6 @@ class SoarForm extends Component {
         )
       }
     }
-  }
-  /**
-   * Set loop item data
-   * @method
-   * @param {string} type - loop operator type
-   * @param {object} data - loop object
-   */
-  setLoopItemData = (type, data) => {
-    const {activeElement} = this.props;
-
-    const loopItemData = {
-      op: type,
-      args: data
-    };
-
-    this.props.setSoarFlowData('loopItem', loopItemData, activeElement);
   }
   /**
    * Set multi operator data

@@ -80,7 +80,6 @@ class SoarController extends Component {
     this.getSoarColumn();
     this.getSoarData();
   }
-  ryan = () => {}
   /**
    * Get and set columns data and filter list
    * @method
