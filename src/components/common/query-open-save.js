@@ -205,7 +205,6 @@ class QueryOpenSave extends Component {
 
         this.setState({
           socTemplateEnable: false,
-          soc: tempQueryData.soc
         });
       }
       return null;
@@ -265,7 +264,6 @@ class QueryOpenSave extends Component {
 
         this.setState({
           socTemplateEnable: false,
-          soc: tempQueryData.soc
         });
       }
       return null;
@@ -1508,12 +1506,13 @@ class QueryOpenSave extends Component {
 
         }
       } else {
-        severityType = soc.severity;
+        severityType = 'Emergency';
         patternCheckboxDisabled = false
       }
     } else if (type === 'save') {
-      severityType = soc.severity;
+      severityType = 'Emergency';
       patternCheckboxDisabled = false
+      severityType = soc.severity;
     } else{
       patternCheckboxDisabled = true
     }
