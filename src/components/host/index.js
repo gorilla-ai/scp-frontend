@@ -336,6 +336,7 @@ class HostController extends Component {
       },
       hostData: {},
       hostDeviceList: [],
+      hitCveList: [],
       currentDeviceData: {},
       assignedDevice: '',
       hostSort: 'ip-asc',
@@ -850,41 +851,57 @@ class HostController extends Component {
   /**
    * Get and set safety scan data
    * @method
+   * @param {string} [options] - option for 'hitCVE'
    */
-  getSafetyScanData = () => {
+  getSafetyScanData = (options) => {
     const {baseUrl} = this.context;
     const {deviceSearch, safetyScanData, safetyScanType} = this.state;
     const datetime = this.getHostDateTime();
-    const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
-    let requestData = {
-      timestamp: [datetime.from, datetime.to],
-      ...this.getHostSafetyRequestData()
-    };
+    let url = '';
+    let requestData = {};
 
-    if (safetyScanType === 'getVansCpe') {
-      requestData.hmdScanDistribution = {
-        taskName: 'getVans',
-        primaryKeyName: 'cpe23Uri'
-      };
-    } else if (safetyScanType === 'getVansCve') {
-      requestData.hmdScanDistribution = {
-        taskName: 'getVans',
-        primaryKeyName: 'cveId'
+    if (options === 'hitCVE') {
+      url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
+      requestData = {
+        timestamp: [datetime.from, datetime.to],
+        hmdScanDistribution: {
+          taskName: 'getVans',
+          primaryKeyName: 'cpe23Uri',
+          hitCVE: true
+        }
       };
     } else {
-      requestData.hmdScanDistribution = {
-        taskName: safetyScanType
+      url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
+      requestData = {
+        timestamp: [datetime.from, datetime.to],
+        ...this.getHostSafetyRequestData()
       };
-    }
 
-    if (deviceSearch.scanInfo) {
-      let scanInfo = deviceSearch.scanInfo;
-
-      if (safetyScanType === 'getFileIntegrity') {
-        scanInfo = scanInfo.replace(/\\/g, '\\\\');
+      if (safetyScanType === 'getVansCpe') {
+        requestData.hmdScanDistribution = {
+          taskName: 'getVans',
+          primaryKeyName: 'cpe23Uri'
+        };
+      } else if (safetyScanType === 'getVansCve') {
+        requestData.hmdScanDistribution = {
+          taskName: 'getVans',
+          primaryKeyName: 'cveId'
+        };
+      } else {
+        requestData.hmdScanDistribution = {
+          taskName: safetyScanType
+        };
       }
 
-      requestData.hmdScanDistribution.primaryKeyValue = scanInfo;
+      if (deviceSearch.scanInfo) {
+        let scanInfo = deviceSearch.scanInfo;
+
+        if (safetyScanType === 'getFileIntegrity') {
+          scanInfo = scanInfo.replace(/\\/g, '\\\\');
+        }
+
+        requestData.hmdScanDistribution.primaryKeyValue = scanInfo;
+      }
     }
 
     this.ah.one({
@@ -895,25 +912,33 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        let tempSafetyScanData = {...safetyScanData};
+        if (options === 'hitCVE') {
+          this.setState({
+            hitCveList: data.hmdScanDistribution
+          }, () => {
+            this.toggleReportNCCST();
+          });
+        } else {
+          let tempSafetyScanData = {...safetyScanData};
 
-        if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
-          tempSafetyScanData.dataContent = [];
-          tempSafetyScanData.totalCount = 0;
+          if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
+            tempSafetyScanData.dataContent = [];
+            tempSafetyScanData.totalCount = 0;
+
+            this.setState({
+              safetyScanData: tempSafetyScanData
+            });
+            helper.showPopupMsg(t('txt-notFound'));
+            return;
+          }
+
+          tempSafetyScanData.dataContent = data.hmdScanDistribution;
+          tempSafetyScanData.totalCount = data.count;
 
           this.setState({
             safetyScanData: tempSafetyScanData
           });
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
         }
-
-        tempSafetyScanData.dataContent = data.hmdScanDistribution;
-        tempSafetyScanData.totalCount = data.count;
-
-        this.setState({
-          safetyScanData: tempSafetyScanData
-        });
       }
       return null;
     })
@@ -1234,11 +1259,11 @@ class HostController extends Component {
     this.setState({
       nccstCheckAll: !this.state.nccstCheckAll
     }, () => {
-      const {safetyScanData, nccstCheckAll} = this.state;
+      const {hitCveList, nccstCheckAll} = this.state;
       let nccstSelectedList = [];
 
       if (nccstCheckAll) {
-        nccstSelectedList = safetyScanData.dataContent.map(val => {
+        nccstSelectedList = hitCveList.map(val => {
           return val.primaryKeyValue;
         });
       }
@@ -1265,7 +1290,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displayNCCSTlist = () => {
-    const {safetyScanData, nccstCheckAll} = this.state;
+    const {hitCveList, nccstCheckAll} = this.state;
 
     return (
       <div>
@@ -1280,7 +1305,7 @@ class HostController extends Component {
             />
           }
           label={t('txt-selectAll')} />
-        {safetyScanData.dataContent.map(this.showNccstCheckboxList)}
+        {hitCveList.map(this.showNccstCheckboxList)}
       </div>
     )
   }
@@ -1314,32 +1339,26 @@ class HostController extends Component {
    */
   confirmNCCSTlist = () => {
     const {baseUrl} = this.context;
-    const {safetyScanData, nccstSelectedList} = this.state;
-    let dataArr = [];
+    const {hitCveList, nccstSelectedList} = this.state;
+    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
+    let uncheckList = [];
 
-    if (nccstSelectedList.length === 0) {
-      this.toggleReportNCCST();
-      return;
-    }
-
-    _.forEach(nccstSelectedList, val => {
-      _.forEach(safetyScanData.dataContent, val2 => {
-        if (val === val2.primaryKeyValue) {
-          dataArr.push({
-            asset_number: val2.rawJsonObject.asset_number,
-            product_name: val2.rawJsonObject.product_name,
-            product_vendor: val2.rawJsonObject.product_vendor,
-            product_version: val2.rawJsonObject.product_version,
-            category: val2.rawJsonObject.category,
-            cpe23: val2.rawJsonObject.cpe23,
-            product_cpename: val2.rawJsonObject.product_cpename
-          });
+    _.forEach(hitCveList, val => {
+      _.forEach(nccstSelectedList, val2 => {
+        if (val.primaryKeyValue !== val2) {
+          uncheckList.push(val.primaryKeyValue);
         }
       })
     })
 
     const requestData = {
-      data: dataArr
+      timestamp: [datetime.from, datetime.to],
+      hmdScanDistribution: {
+        taskName: 'getVans',
+        primaryKeyName: 'cpe23Uri'
+      },
+      uncheckList
     };
 
     ah.one({
@@ -1349,7 +1368,7 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.toggleReportNCCST();
       }
@@ -3373,7 +3392,7 @@ class HostController extends Component {
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
                         {safetyScanData.dataContent &&
-                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
                         }
                       </div>
                     }

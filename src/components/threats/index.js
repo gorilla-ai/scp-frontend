@@ -1628,12 +1628,14 @@ class ThreatsController extends Component {
    * @param {object} event - event object
    */
   handleOpenQueryMenu = (field, value, event) => {
-    if (field === 'srcIp') {
-      value = 'sourceIP: ' +  value;
-    } else if (field === 'destIp') {
-      value = 'destinationIP: ' +  value;
-    } else if (field === 'Collector') {
-      value = 'Collector: ' +  '"' + value + '"';
+    const keyField = ['srcIp', 'srcPort', 'destIp', 'destPort']
+
+    if (_.includes(keyField, field)) {
+      value = field + ': ' +  value;
+    }
+
+    if (field === 'Collector') {
+      value = field + ': ' +  '"' + value + '"';
     }
 
     this.setState({
