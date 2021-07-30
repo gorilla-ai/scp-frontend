@@ -44,6 +44,8 @@ class SoarSettings extends Component {
       info: '',
       actionTypeList: [],
       severityTypeList: [],
+      originalSoarIP: {},
+      soarIP: '',
       originalSoarAdapter: {},
       soarAdapter: {
         scp: {
@@ -145,10 +147,13 @@ class SoarSettings extends Component {
     })
     .then(data => {
       if (data) {
+        const soarIP = data['soar.ip'];
         const soarAdapter = data['soar.adapter'];
         const soarAction = data['soar.action'];
 
         this.setState({
+          originalSoarIP: _.cloneDeep(soarIP),
+          soarIP,
           originalSoarAdapter: _.cloneDeep(soarAdapter),
           soarAdapter,
           originalSoarAction: _.cloneDeep(soarAction),
@@ -162,19 +167,45 @@ class SoarSettings extends Component {
     })
   }
   /**
+   * Check IP connections
+   * @method
+   */
+  handleTestConnections = () => {
+    const {baseUrl} = this.context;
+    const {soarIP} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/ipCheck?ip=${soarIP}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg('', '', t('soar.txt-successConnections'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle email settings input data change
    * @method
-   * @param {string} type - data type ('soarAdapter' or 'soarAction')
-   * @param {string} subType - data sub type
-   * @param {string | object} options - option for 'number' or event
+   * @param {string} type - data type ('soarIP', soarAdapter' or 'soarAction')
+   * @param {string} [subType] - data sub type
+   * @param {string | object} [options] - option for 'number' or event
    * @param {object} event - event object
    */
   handleDataChange = (type, subType, options, event) => {
     const {soarAdapter, soarAction} = this.state;
-    let tempSoarAdapter = {...soarAdapter};
-    let tempSoarAction = {...soarAction};
+    
+    if (type === 'soarIP') {
+      this.setState({
+        soarIP: event.target.value
+      });
+    } else if (type === 'soarAdapter') {
+      let tempSoarAdapter = {...soarAdapter};
 
-    if (type === 'soarAdapter') {
       if (typeof options === 'string') {
         tempSoarAdapter[subType][event.target.name] = Number(event.target.value);
       } else {
@@ -185,6 +216,8 @@ class SoarSettings extends Component {
         soarAdapter: tempSoarAdapter
       });
     } else if (type === 'soarAction') {
+      let tempSoarAction = {...soarAction};
+
       if (typeof options === 'string') {
         tempSoarAction[subType][event.target.name] = Number(event.target.value);
       } else {
@@ -202,7 +235,7 @@ class SoarSettings extends Component {
    * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalSoarAdapter, originalSoarAction} = this.state;
+    const {originalSoarIP, originalSoarAdapter, originalSoarAction} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -212,6 +245,7 @@ class SoarSettings extends Component {
       showPage = 'viewMode';
 
       this.setState({
+        soarIP: _.cloneDeep(originalSoarIP),
         soarAdapter: _.cloneDeep(originalSoarAdapter),
         soarAction: _.cloneDeep(originalSoarAction),
         formValidation: {
@@ -244,10 +278,10 @@ class SoarSettings extends Component {
    */
   handleSoarSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {soarAdapter, soarAction, formValidation} = this.state;
+    const {soarIP, soarAdapter, soarAction, formValidation} = this.state;
     const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
     const requestData = {
+      'soar.ip': soarIP,
       'soar.adapter': soarAdapter,
       'soar.action': soarAction
     };
@@ -490,7 +524,16 @@ class SoarSettings extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, openEmailDialog, actionTypeList, severityTypeList, soarAdapter, soarAction, formValidation} = this.state;
+    const {
+      activeContent,
+      openEmailDialog,
+      actionTypeList,
+      severityTypeList,
+      soarIP,
+      soarAdapter,
+      soarAction,
+      formValidation
+    } = this.state;
 
     return (
       <div>
@@ -508,12 +551,29 @@ class SoarSettings extends Component {
 
               {activeContent === 'viewMode' &&
                 <div className='content-header-btns'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleContent.bind(this, 'table')}>{t('txt-backToList')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleContent.bind(this, 'table', 'refresh')}>{t('txt-backToList')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
                 </div>
               }
 
               <div className='config-notify' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+                <div className='form-group normal short'>
+                  <header>IP</header>
+                  <div className='group'>
+                    <TextField
+                      id='soarIP'
+                      name='gap'
+                      label='IP'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarIP}
+                      onChange={this.handleDataChange.bind(this, 'soarIP', '', '')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <Button variant='contained' color='primary' className='soar-test-btn' onClick={this.handleTestConnections}>{t('soar.txt-testConnections')}</Button>
+                </div>
+
                 <div className='form-group normal short'>
                   <header>{t('soar.txt-adapter')}</header>
                   <div className='group-header'>SCP</div>
@@ -704,8 +764,8 @@ class SoarSettings extends Component {
                   <div className='group'>
                     <TextField
                       id='soarActionTitle'
-                      name='title'
-                      label='Title'
+                      name={t('soar.txt-title')}
+                      label={t('soar.txt-title')}
                       variant='outlined'
                       fullWidth
                       size='small'
@@ -726,13 +786,12 @@ class SoarSettings extends Component {
                     }
                   </div>
                   <div className='group' style={{width: '50%'}}>
-                    <label>Content</label>
                     {activeContent === 'viewMode' &&
                       <TextField
                         id='soarActionContent'
                         name='content'
                         className='text-area'
-                        label='Content'
+                        label={t('soar.txt-content')}
                         multiline
                         rows={3}
                         variant='outlined'
@@ -742,12 +801,15 @@ class SoarSettings extends Component {
                         disabled={true} />
                     }
                     {activeContent === 'editMode' &&
-                      <TextareaAutosize
-                        name='content'
-                        className='textarea-autosize'
-                        rows={3}
-                        value={soarAction.email.content}
-                        onChange={this.handleDataChange.bind(this, 'soarAction', 'email')} />
+                      <React.Fragment>
+                        <label>{t('soar.txt-content')}</label>
+                        <TextareaAutosize
+                          name='content'
+                          className='textarea-autosize'
+                          rows={3}
+                          value={soarAction.email.content}
+                          onChange={this.handleDataChange.bind(this, 'soarAction', 'email')} />
+                      </React.Fragment>
                     }
                   </div>
 

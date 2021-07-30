@@ -1323,6 +1323,11 @@ button.standard:hover:not([disabled]) {
         padding: 5px 5px 10px 5px;
         text-align: left;
       }
+      .soar-test-btn {
+        height: 35px;
+        margin-top: 13px;
+        margin-left: 10px;
+      }
     }
     &.soar-flow {
       .flow-wrapper {
@@ -1410,6 +1415,15 @@ button.standard:hover:not([disabled]) {
         }
         .react-flow {
           height: 62vh;
+          .react-flow__node-input {
+            border: 1px solid #0041d0;
+          }
+          .react-flow__node-default {
+            border: 1px solid var(--soarFlowDefault);
+          }
+          .react-flow__node-output {
+            border: 1px solid #ff0072;
+          }
         }
       }
       .dndnode {

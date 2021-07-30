@@ -11,6 +11,7 @@ import TextField from '@material-ui/core/TextField'
 
 import helper from '../common/helper'
 
+const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 
 let t = null;
@@ -28,6 +29,8 @@ class MultiOperator extends Component {
 
     this.state = {
       openRuleSection: false,
+      actionTypeList: [],
+      severityTypeList: [],
       linkOperatorList: [],
       nodeActionOperatorList: [],
       soarActiveOperator: ''
@@ -77,11 +80,16 @@ class MultiOperator extends Component {
    * @method
    */
   setDropDownList = () => {
+    const actionTypeList = _.map(ACTION_TYPE, val => {
+      return <MenuItem value={val}>{t('hmd-scan.txt-' + val)}</MenuItem>
+    });
+
     const severityTypeList = _.map(SEVERITY_TYPE, val => {
       return <MenuItem value={'DEFINED_IOC_' + val.toUpperCase()}>{val}</MenuItem>
     });
 
     this.setState({
+      actionTypeList,
       severityTypeList
     });
   }
@@ -170,22 +178,6 @@ class MultiOperator extends Component {
     });
   }
   /**
-   * Set test emails list
-   * @method
-   * @param {array} newEmails - new emails list
-   */
-  handleEmailChange = (newEmails) => {
-    const {activeElement} = this.props;
-    let tempEmail = {...this.state.email};
-    tempEmail.receiver = newEmails;
-
-    this.setState({
-      email: tempEmail
-    });
-
-    //this.props.setSoarFlowData('email', tempData, activeElement);
-  }
-  /**
    * Handle email delete
    * @method
    * @param {function} removeEmail - function to remove email
@@ -218,7 +210,7 @@ class MultiOperator extends Component {
    * @param {number} i - index of the form data
    */
   displayForm = (operator, key, i) => {
-    const {severityTypeList} = this.state;
+    const {actionTypeList, severityTypeList} = this.state;
     const {soarColumns} = this.props;
     const label = t('soar.txt-' + key);
     const value = soarColumns.spec[operator][key];
@@ -255,20 +247,27 @@ class MultiOperator extends Component {
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>
         )
-      } else if (key === 'severityType') {
+      } else if (key === 'action' || key === 'severityType') {
+        let dropDownList = '';
+
+        if (key === 'action') {
+          dropDownList = actionTypeList;
+        } else if (key === 'severityType') {
+          dropDownList = severityTypeList;
+        }
+
         return (
         <div key={i} className='group'>
           <TextField
-            id='soarActionSeverityType'
-            name='severityType'
+            name={key}
             select
-            label='Severity Type'
+            label={label}
             variant='outlined'
             fullWidth
             size='small'
             value={textValue}
             onChange={this.handleDataChange.bind(this, operator)}>
-            {severityTypeList}
+            {dropDownList}
           </TextField>
         </div>
         )

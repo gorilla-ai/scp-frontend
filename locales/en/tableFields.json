@@ -660,9 +660,9 @@
   },
   "soarFields": {
     "flowName": "Flow Name",
-    "aggField": "AGG Field",
+    "aggField": "Aggregation Field",
     "adapter": "Adapter",
-    "condition": "SOAR Condition",
+    "condition": "SOAR Flow",
     "action": "Action ",
     "status": "Status",
     "isEnable": "Enable"

@@ -913,11 +913,15 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         if (options === 'hitCVE') {
-          this.setState({
-            hitCveList: data.hmdScanDistribution
-          }, () => {
-            this.toggleReportNCCST();
-          });
+          if (data.hmdScanDistribution.length === 0) {
+            this.confirmNCCSTlist('emptyUnchecklist');
+          } else {
+            this.setState({
+              hitCveList: data.hmdScanDistribution
+            }, () => {
+              this.toggleReportNCCST();
+            });
+          }
         } else {
           let tempSafetyScanData = {...safetyScanData};
 
@@ -1336,21 +1340,24 @@ class HostController extends Component {
   /**
    * Handle NCCST list confirm
    * @method
+   * @param {string} options - option for 'emptyUnchecklist'
    */
-  confirmNCCSTlist = () => {
+  confirmNCCSTlist = (options) => {
     const {baseUrl} = this.context;
     const {hitCveList, nccstSelectedList} = this.state;
     const datetime = this.getHostDateTime();
     const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
     let uncheckList = [];
 
-    _.forEach(hitCveList, val => {
-      _.forEach(nccstSelectedList, val2 => {
-        if (val.primaryKeyValue !== val2) {
-          uncheckList.push(val.primaryKeyValue);
-        }
+    if (!options || options !== 'emptyUnchecklist') {
+      _.forEach(hitCveList, val => {
+        _.forEach(nccstSelectedList, val2 => {
+          if (val.primaryKeyValue !== val2) {
+            uncheckList.push(val.primaryKeyValue);
+          }
+        })
       })
-    })
+    }
 
     const requestData = {
       timestamp: [datetime.from, datetime.to],
@@ -1361,16 +1368,19 @@ class HostController extends Component {
       uncheckList
     };
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/hmd/vans/_report`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
-        this.toggleReportNCCST();
+
+        if (!options || options !== 'emptyUnchecklist') {
+          this.toggleReportNCCST();
+        }
       }
       return null;
     })
@@ -1951,12 +1961,11 @@ class HostController extends Component {
       if (val.name === 'mac') {
         context = <div className={`fg-bg ${val.path}`}></div>;
       } else if (val.name === 'system') {
-        const system = dataInfo[val.path].toLowerCase();
-        let os = 'windows';
+        let os = '';
 
-        if (system.indexOf('linux') > -1) {
+        if (dataInfo.osType === 'linux') {
           os = 'linux';
-        } else if (system.indexOf('windows') > -1) {
+        } else if (dataInfo.osType = 'windows') {
           os = 'windows';
         }
 

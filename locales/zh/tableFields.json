@@ -658,12 +658,12 @@
     "createDttm": "建立時間 "
   },
   "soarFields": {
-    "flowName": "Flow Name",
-    "aggField": "AGG Field",
-    "adapter": "Adapter",
-    "condition": "SOAR Condition",
-    "action": "Action ",
-    "status": "Status",
-    "isEnable": "Enable"
+    "flowName": "SOAR名稱",
+    "aggField": "事件綜整欄位",
+    "adapter": "事件來源",
+    "condition": "SOAR流程",
+    "action": "執行 ",
+    "status": "狀態",
+    "isEnable": "啟用"
   }
 }

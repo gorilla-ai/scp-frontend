@@ -45,6 +45,7 @@ class SoarController extends Component {
       activeContent: 'table', //'table', 'settings', or 'flow'
       showFilter: false,
       flowActionType: '', //'add' or 'edit'
+      ipExist: true,
       soarColumns: {},
       filterList: {
         adapter: [],
@@ -78,7 +79,7 @@ class SoarController extends Component {
   }
   componentDidMount() {
     this.getSoarColumn();
-    this.getSoarData();
+    this.validateIpExist();
   }
   /**
    * Get and set columns data and filter list
@@ -130,6 +131,32 @@ class SoarController extends Component {
     })
   }
   /**
+   * Check if IP exist
+   * @method
+   */
+  validateIpExist = () => {
+    const {baseUrl} = this.context;
+    const {soarIP} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/ipExist`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          ipExist: data.ipExists
+        }, () => {
+          this.getSoarData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get and set SOAR data
    * @method
    * @param {string} [options] - option for 'currentPage' or 'toggle'
@@ -137,7 +164,7 @@ class SoarController extends Component {
    */
   getSoarData = (options, flowId) => {
     const {baseUrl} = this.context;
-    const {soarSearch, soarData} = this.state;
+    const {ipExist, soarSearch, soarData} = this.state;
     const page = options === 'currentPage' ? soarData.currentPage : 0;
     const url = `${baseUrl}/api/soar/flowList?page=${page + 1}&pageSize=${soarData.pageSize}`;
     let requestData = {};
@@ -213,9 +240,17 @@ class SoarController extends Component {
                 if (val === 'adapter') {
                   return <span className='item'>{value}</span>;
                 } else if (val === 'condition') {
-                  return allValue.node.map(this.getListItem.bind(this, val))
+                  return (
+                    <div className='long-field'>
+                      {allValue.node.map(this.getListItem.bind(this, val))}
+                    </div>
+                  )
                 } else if (val === 'action') {
-                  return value.map(this.getListItem.bind(this, val))
+                  return (
+                    <div className='long-field'>
+                      {value.map(this.getListItem.bind(this, val))}
+                    </div>
+                  )
                 } else if (val === 'isEnable') {
                   return (
                     <FormControlLabel
@@ -226,13 +261,14 @@ class SoarController extends Component {
                           onChange={this.openSwitchConfirmModal.bind(this, allValue)}
                           color='primary' />
                       }
-                      label={t('txt-switch')} />
+                      label={t('txt-switch')}
+                      disabled={!ipExist} />
                   )
                 } else if (val === '_menu') {
                   return (
-                    <div className='table-menu menu active'>
-                      <i className='fg fg-edit' title={t('txt-edit')} onClick={this.getSoarIndividualData.bind(this, allValue.flowId, allValue.isEnable)}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
+                    <div className={cx('table-menu menu', {'active': ipExist})}>
+                      <i className='fg fg-edit' title={t('txt-edit')} onClick={this.getSoarIndividualData.bind(this, allValue.flowId, allValue.isEnable)} disabled={!ipExist}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')} disabled={!ipExist}></i>
                     </div>
                   )
                 } else {
@@ -336,7 +372,11 @@ class SoarController extends Component {
   getListItem = (type, val, i) => {
     const value = type === 'condition' ? val.name : val;
 
-    return <span key={i} className='item'>{value}</span>
+    if (i < 10) {
+      return <span key={i} className='item'>{value}</span>
+    } else {
+      return <span>...</span>
+    }
   }
   /**
    * Display delete SOAR content
@@ -434,7 +474,17 @@ class SoarController extends Component {
     });
 
     if (options === 'refresh') {
-      this.getSoarData();
+      let tempSoarData = {...this.state.soarData};
+      tempSoarData.dataFields = [];
+      tempSoarData.dataContent = null;
+      tempSoarData.totalCount = 0;
+      tempSoarData.currentPage = 1;
+
+      this.setState({
+        soarData: tempSoarData
+      }, () => {
+        this.validateIpExist();
+      });
     }
   }
   /**
@@ -579,6 +629,7 @@ class SoarController extends Component {
       activeContent,
       showFilter,
       flowActionType,
+      ipExist,
       soarColumns,
       soarData,
       soarIndividualData
@@ -612,7 +663,7 @@ class SoarController extends Component {
                   <header className='main-header'>{t('soar.txt-ruleList')}</header>
                   <div className='content-header-btns with-menu'>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'settings')}>{t('txt-settings')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSoarIndividualData}>{t('soar.txt-addRule')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSoarIndividualData} disabled={!ipExist}>{t('soar.txt-addRule')}</Button>
                   </div>
 
                   {soarData.dataContent &&

@@ -36,6 +36,7 @@
   "-453": "No node link to adapter",
   "-460": "Port in adapter has been used",
   "-500": "SOAR server error",
+  "-501": "Connect to SOAR fail",
 
   "-1000": "Function unexpected exception",
   "-1001": "Please fill out all the required fields",

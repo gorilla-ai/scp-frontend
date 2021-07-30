@@ -78,7 +78,7 @@ class SoarSingleSettings extends Component {
         if (_.includes(this.props.soarColumns.nodeOp, type) ) {
           tempSoarFlow[selectedFlowIndex].op = type;
           tempSoarFlow[selectedFlowIndex].args = data;
-        } else { //Handle loop case
+        } else { //Handle special case for Node loop
           if (!tempSoarFlow[selectedFlowIndex].args.loopItem) {
             tempSoarFlow[selectedFlowIndex].args.loopItem = {};
           }
@@ -137,9 +137,9 @@ class SoarSingleSettings extends Component {
     )
   }
   render() {
-    const {activeElementType} = this.props;
+    const {activeElement} = this.props;
     const {newSoarFlow} = this.state;
-    const titleText = t('soar.txt-' + activeElementType + 'Settings');
+    const titleText = t('soar.txt-' + activeElement.componentType + 'Settings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleSoarSettingsConfirm}

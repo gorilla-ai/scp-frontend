@@ -89,47 +89,6 @@ class SoarFlow extends Component {
     this.setIndividualSoarData();
   }
   /**
-   * Get soar flow data
-   * @method
-   */
-  getFlowData = () => {
-    const flowData = [
-      {
-        id: '0_Adapter',
-        type: 'input',
-        data: { label: 'Adapter' },
-        position: { x: 500, y: 50 }
-      },
-      {
-        id: '1_Node',
-        data: { label: 'Node' },
-        position: { x: 300, y: 200 }
-      },
-      {
-        id: '2_Action',
-        type: 'output',
-        data: { label: 'Action', labelStyle: { fill: 'blue', fontWeight: 700 } },
-        position: { x: 300, y: 400 }
-      },
-      {
-        id: '3_Link',
-        source: '1_Node',
-        target: '2_Action',
-        label: 'hello ABC',
-        labelStyle: { fill: 'red', fontWeight: 700 },
-        arrowHeadType: 'arrow',
-        animated: true,
-        type: 'smoothstep'
-      }
-    ];
-
-    id = (flowData.length) - 1;
-
-    // this.setState({
-    //   flowData
-    // });
-  }
-  /**
    * Set individual soar data
    * @method
    */
@@ -156,22 +115,22 @@ class SoarFlow extends Component {
     });
   }
   getNodeText = (val, options) => {
+    let component = '';
     let nodeText = '';
 
-    switch (val) {
-      case 'input':
-        nodeText = 'Adapter';
-        break;
-      case 'default':
-        nodeText = 'Node';
-        break;
-      case 'output':
-        nodeText = 'Action';
-        break;
+    if (val === 'input') {
+      component = 'Adapter';
+      nodeText = t('soar.txt-adapter');
+    } else if (val === 'default') {
+      component = 'Node';
+      nodeText = t('soar.txt-node');
+    } else if (val === 'output') {
+      component = 'Action';
+      nodeText = t('soar.txt-action');
     }
 
-    if (options === 'lowerCase') {
-      return nodeText.toLowerCase();
+    if (options === 'component') {
+      return component.toLowerCase();
     } else {
       return nodeText;
     }
@@ -242,7 +201,7 @@ class SoarFlow extends Component {
     const newNode = {
       id: id.toString(),
       type,
-      componentType: this.getNodeText(type, 'lowerCase'),
+      componentType: this.getNodeText(type, 'component'),
       position,
       data: { label: this.getNodeText(type) }
     };
@@ -596,7 +555,7 @@ class SoarFlow extends Component {
                         <TextField
                           id='soarRuleInfo'
                           name='name'
-                          label='Name'
+                          label={t('txt-name')}
                           variant='outlined'
                           fullWidth
                           size='small'
@@ -610,7 +569,7 @@ class SoarFlow extends Component {
                         <TextField
                           id='soarRuleAggField'
                           name='aggFieldId'
-                          label='Agg Field ID'
+                          label={t('soar.txt-aggFieldId')}
                           variant='outlined'
                           fullWidth
                           size='small'
