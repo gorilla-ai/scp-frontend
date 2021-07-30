@@ -913,15 +913,11 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         if (options === 'hitCVE') {
-          if (data.hmdScanDistribution.length === 0) {
-            this.confirmNCCSTlist('emptyUnchecklist');
-          } else {
-            this.setState({
-              hitCveList: data.hmdScanDistribution
-            }, () => {
-              this.toggleReportNCCST();
-            });
-          }
+          this.setState({
+            hitCveList: data.hmdScanDistribution
+          }, () => {
+            this.toggleReportNCCST();
+          });
         } else {
           let tempSafetyScanData = {...safetyScanData};
 
@@ -1296,22 +1292,26 @@ class HostController extends Component {
   displayNCCSTlist = () => {
     const {hitCveList, nccstCheckAll} = this.state;
 
-    return (
-      <div>
-        <FormControlLabel
-          control={
-            <Checkbox
-              className='checkbox-ui'
-              name='nccstCheckAll'
-              checked={nccstCheckAll}
-              onChange={this.toggleNCCSTcheckAll}
-              color='primary'
-            />
-          }
-          label={t('txt-selectAll')} />
-        {hitCveList.map(this.showNccstCheckboxList)}
-      </div>
-    )
+    if (hitCveList.length === 0) {
+      return <div>{t('host.txt-report-noCpe')}</div>
+    } else {
+      return (
+        <div>
+          <FormControlLabel
+            control={
+              <Checkbox
+                className='checkbox-ui'
+                name='nccstCheckAll'
+                checked={nccstCheckAll}
+                onChange={this.toggleNCCSTcheckAll}
+                color='primary'
+              />
+            }
+            label={t('txt-selectAll')} />
+          {hitCveList.map(this.showNccstCheckboxList)}
+        </div>
+      )
+    }
   }
   /**
    * Show NCCST list modal dialog
@@ -1328,7 +1328,7 @@ class HostController extends Component {
       <ModalDialog
         id='reportNCCSTdialog'
         className='modal-dialog'
-        title={t('host.txt-report-nccst')}
+        title={t('host.txt-report-withCpe')}
         draggable={true}
         global={true}
         actions={actions}
@@ -1340,24 +1340,21 @@ class HostController extends Component {
   /**
    * Handle NCCST list confirm
    * @method
-   * @param {string} options - option for 'emptyUnchecklist'
    */
-  confirmNCCSTlist = (options) => {
+  confirmNCCSTlist = () => {
     const {baseUrl} = this.context;
     const {hitCveList, nccstSelectedList} = this.state;
     const datetime = this.getHostDateTime();
     const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
     let uncheckList = [];
 
-    if (!options || options !== 'emptyUnchecklist') {
-      _.forEach(hitCveList, val => {
-        _.forEach(nccstSelectedList, val2 => {
-          if (val.primaryKeyValue !== val2) {
-            uncheckList.push(val.primaryKeyValue);
-          }
-        })
+    _.forEach(hitCveList, val => {
+      _.forEach(nccstSelectedList, val2 => {
+        if (val.primaryKeyValue !== val2) {
+          uncheckList.push(val.primaryKeyValue);
+        }
       })
-    }
+    })
 
     const requestData = {
       timestamp: [datetime.from, datetime.to],
@@ -1368,19 +1365,16 @@ class HostController extends Component {
       uncheckList
     };
 
-    this.ah.one({
+    ah.one({
       url: `${baseUrl}/api/hmd/vans/_report`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
-
-        if (!options || options !== 'emptyUnchecklist') {
-          this.toggleReportNCCST();
-        }
+        this.toggleReportNCCST();
       }
       return null;
     })
