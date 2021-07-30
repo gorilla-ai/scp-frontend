@@ -18,9 +18,13 @@ import JSONTree from 'react-json-tree'
 import localforage from 'localforage';
 
 import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import Popover from '@material-ui/core/Popover';
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -58,6 +62,8 @@ class SoarFlow extends Component {
     this.state = {
       openFlowSettingsDialog: false,
       openTestingFlowDialog: false,
+      linkAnimated: true,
+      linkShapeType: 'default', //'default', 'straight', 'step'
       soarRule: {
         name: '',
         aggFieldId: ''
@@ -95,6 +101,8 @@ class SoarFlow extends Component {
   setIndividualSoarData = () => {
     const {soarIndividualData} = this.props;
     const {soarRule, soarCondition} = this.state;
+    let linkAnimated = '';
+    let linkShapeType = '';
 
     if (_.isEmpty(soarIndividualData)) {
       return;
@@ -108,7 +116,17 @@ class SoarFlow extends Component {
     tempSoarCondition.args = soarIndividualData.condition.args;
     flowCount = soarIndividualData.flow.length;
 
+    _.forEach(soarIndividualData.flow, val => {
+      if (val.source && val.target) {
+        linkAnimated = val.animated;
+        linkShapeType = val.type;
+        return false;
+      }
+    })
+
     this.setState({
+      linkAnimated,
+      linkShapeType,
       soarRule: tempSoarRule,
       soarCondition: tempSoarCondition,
       soarFlow: soarIndividualData.flow
@@ -141,15 +159,16 @@ class SoarFlow extends Component {
     });
   }
   onConnect = (params) => {
+    const {linkAnimated, linkShapeType} = this.state;
     const id = ++flowCount;
     const linkParams = {
       ...params,
       id: id.toString(),
-      label: 'default link',
+      label: t('soar.txt-defaultLink'),
       componentType: 'link',
       arrowHeadType: 'arrow',
-      animated: true,
-      type: 'smoothstep'
+      animated: linkAnimated,
+      type: linkShapeType
     };
 
     this.setState({
@@ -462,37 +481,60 @@ class SoarFlow extends Component {
     })
   }
   /**
-   * Check save button enable/disable
+   * Handle link sahpe value change
    * @method
+   * @param {object} event - event object
    */
-  // checkSaveDisable = () => {
-  //   const {soarRule, soarCondition} = this.state;
-  //   let disabled = false;
+  handleLinkShapeChange = (event) => {
+    const tempSoarFlow = _.map(this.state.soarFlow, val => {
+      if (val.source && val.target) {
+        return {
+          ...val,
+          type: event.target.value
+        }
+      } else {
+        return {
+          ...val
+        }
+      }
+    });
 
-  //   if (!soarRule.name || !soarRule.aggFieldId || !soarCondition.op) {
-  //     disabled = true;
-  //   }
+    this.setState({
+      linkShapeType: event.target.value,
+      soarFlow: tempSoarFlow
+    });
+  }
+  /**
+   * Toggle link animated checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleLinkAnimatedCheckbox = (event) => {
+    const tempSoarFlow = _.map(this.state.soarFlow, val => {
+      if (val.source && val.target) {
+        return {
+          ...val,
+          animated: event.target.checked
+        }
+      } else {
+        return {
+          ...val
+        }
+      }
+    });
 
-  //   if (_.isEmpty(soarCondition.args)) {
-  //     disabled = true;
-  //   } else {
-  //     Object.keys(soarCondition.args).map(key => {
-  //       const value = soarCondition.args[key];
-
-  //       if (!value && typeof value === 'string') {
-  //         disabled = true;
-  //         return false;
-  //       }
-  //     });
-  //   }
-
-  //   return disabled;
-  // }
+    this.setState({
+      linkAnimated: event.target.checked,
+      soarFlow: tempSoarFlow
+    });
+  }
   render() {
     const {soarColumns, soarIndividualData} = this.props;
     const {
       openFlowSettingsDialog,
       openTestingFlowDialog,
+      linkAnimated,
+      linkShapeType,
       soarRule,
       soarCondition,
       soarFlow,
@@ -592,7 +634,56 @@ class SoarFlow extends Component {
 
                   <div className='reactflow-wrapper'>
                     <div className='drag-section'>
-                      {NODE_TYPE.map(this.getNodeType)}
+                      <div className='link-shape'>
+                        <RadioGroup
+                          id='linkShapeType'
+                          className='radio-group'
+                          name='type'
+                          value={linkShapeType}
+                          onChange={this.handleLinkShapeChange}>
+                          <FormControlLabel
+                            value='default'
+                            control={
+                              <Radio
+                                className='radio-ui'
+                                color='primary' />
+                            }
+                            label={t('soar.txt-linkTypeCurve')} />
+                          <FormControlLabel
+                            value='straight'
+                            control={
+                              <Radio
+                                className='radio-ui'
+                                color='primary' />
+                            }
+                            label={t('soar.txt-linkTypeStraight')} />
+                          <FormControlLabel
+                            value='step'
+                            control={
+                              <Radio
+                                className='radio-ui'
+                                color='primary' />
+                            }
+                            label={t('soar.txt-linkTypeStep')} />
+                        </RadioGroup>
+                      </div>
+
+                      <div className='link-animated'>
+                        <FormControlLabel
+                          label={t('soar.txt-linkAnimated')}
+                          control={
+                            <Checkbox
+                              id='linkAnimatedCheckbox'
+                              className='checkbox-ui'
+                              checked={linkAnimated}
+                              onChange={this.toggleLinkAnimatedCheckbox}
+                              color='primary' />
+                          } />
+                      </div>
+
+                      <div className='node-type'>
+                        {NODE_TYPE.map(this.getNodeType)}
+                      </div>
                     </div>
                     <div ref={this.reactFlowWrapper}>
                       <ReactFlow

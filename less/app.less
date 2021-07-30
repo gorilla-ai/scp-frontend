@@ -1408,10 +1408,28 @@ button.standard:hover:not([disabled]) {
         border-right: 1px solid var(--primaryBorder);
         border-bottom: 1px solid var(--primaryBorder);
         .drag-section {
-          display: flex;
-          justify-content: flex-end;
+          position: relative;
           padding: 15px;
           border-bottom: 1px solid var(--primaryBorder);
+          overflow: hidden;
+          .link-shape {
+            float: left;
+            padding-left: 5px;
+            margin-top: 5px;
+            margin-right: 10px;
+            .radio-group {
+              flex-direction: row;
+            }
+          }
+          .link-animated {
+            float: left;
+            margin-top: 5px;
+            margin-right: 10px;
+          }
+          .node-type {
+            float: right;
+            display: flex;
+          }
         }
         .react-flow {
           height: 62vh;
