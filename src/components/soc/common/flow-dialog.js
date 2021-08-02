@@ -43,7 +43,34 @@ class IncidentFlowDialog extends Component {
 			dataType: 'json'
 		}).then(result => {
 			Object.keys(result.rt.entities).forEach(key => {
+				let index = 0;
+				if (Object.entries(result.rt.entities).length > 4){
+					if (result.rt.entities[key].entityName.includes('SOC-1')) {
+						index = 0
+					}else if (result.rt.entities[key].entityName.includes('SOC-2')){
+						index = 1
+					}else if (result.rt.entities[key].entityName === '單位承辦人簽核'){
+						index = 2
+					}else if (result.rt.entities[key].entityName === '單位資安長簽核'){
+						index = 3
+					}else if (result.rt.entities[key].entityName.includes('主管單位承辦人簽核')){
+						index = 4
+					}else if (result.rt.entities[key].entityName.includes('主管單位資安長簽核')){
+						index = 5
+					}
+				}else{
+					if (result.rt.entities[key].entityName.includes('SOC-1')) {
+						index = 0
+					}else if (result.rt.entities[key].entityName.includes('SOC-2')){
+						index= 1
+					}else if (result.rt.entities[key].entityName === '單位承辦人簽核'){
+						index = 2
+					}else if (result.rt.entities[key].entityName === '主管單位承辦人簽核'){
+						index = 3
+					}
+				}
 				let tmpData = {
+					index: index,
 					step: result.rt.entities[key].entityName,
 					updateTime: result.rt.entities[key].updateTime ? result.rt.entities[key].updateTime : ''
 				}
@@ -60,10 +87,24 @@ class IncidentFlowDialog extends Component {
     	this.setState({open: false})
     }
 
+	compare = function (prop) {
+		return function (obj1, obj2) {
+			let val1 = obj1[prop];
+			let val2 = obj2[prop];
+			if (val1 < val2) {
+				return -1;
+			} else if (val1 > val2) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
 	showUnitStepIcon = (val, i) => {
 		const {locale} = this.context;
 		const {activeSteps} = this.state;
-		const index = ++i;
+		const index = val.index + 1;
 		const groupClass = 'group group' + index;
 		const lineClass = 'line line' + index;
 		const stepClass = 'step step' + index;
@@ -161,6 +202,8 @@ class IncidentFlowDialog extends Component {
     		cancel: {text: t('txt-close'), className:'standard', handler: this.close.bind(this)},
         }
 
+		let tempStepTitleList = stepTitleList.sort(this.compare('index'))
+
         if (!open) {
             return null
         }
@@ -170,7 +213,7 @@ class IncidentFlowDialog extends Component {
 		        <div className='parent-content'>
 			        <div className='main-content basic-form' style={{minHeight: "47vh"}}>
 				        <div className='steps-indicator' style={{marginTop: "20vh"}}>
-					        {stepTitleList.map(this.showUnitStepIcon)}
+					        {tempStepTitleList.map(this.showUnitStepIcon)}
 				        </div>
 			        </div>
 		        </div>
