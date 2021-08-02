@@ -138,7 +138,7 @@ class Syslog extends Component {
       contextAnchor: null,
       currentPattern: {
         index: '',
-        data: ''
+        data: {}
       },
       formValidation: {
         editHostsHost: {
@@ -1907,7 +1907,7 @@ class Syslog extends Component {
       contextAnchor: null,
       currentPattern: {
         index: '',
-        data: ''
+        data: {}
       }
     });
   }
@@ -1960,7 +1960,7 @@ class Syslog extends Component {
       <div className='item'>
         <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, patternName)} onMouseOver={this.handlePatternMouseOver.bind(this, patternName)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
           <span title={patternName}>{formattedPatternName || patternName}</span>
-          <i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, 'addSyslog', val, i)}></i>
+          <i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, val, i)}></i>
           <i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}></i>
         </div>
 

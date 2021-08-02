@@ -14,9 +14,6 @@ import ReactFlow, {
   Background
 } from 'react-flow-renderer';
 
-import JSONTree from 'react-json-tree'
-import localforage from 'localforage';
-
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -36,12 +33,10 @@ import SoarForm from './soar-form'
 import SoarSingleSettings from './soar-single-settings'
 import SoarLogTesting from './soar-log-testing'
 
-
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NODE_TYPE = ['input', 'default', 'output'];
-const FLOW_KEY = 'example-flow';
-let flowCount = 0;
+const EDGE_TYPE = ['default', 'straight', 'step', 'smoothstep'];
 
 let t = null;
 let f = null;
@@ -50,7 +45,7 @@ let f = null;
  * SOAR
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to handle the business logic for the threats page
+ * @summary A react component to show the SOAR flow page
  */
 class SoarFlow extends Component {
   constructor(props) {
@@ -74,6 +69,7 @@ class SoarFlow extends Component {
       },
       soarFlow: [],
       reactFlowInstance: null,
+      linkEditable: true,
       contextAnchor: {
         node: null,
         link: null
@@ -86,12 +82,6 @@ class SoarFlow extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    localforage.config({
-      name: 'react-flow-demo',
-      storeName: 'flows',
-    });
-    flowCount = 0;
-
     this.setIndividualSoarData();
   }
   /**
@@ -114,7 +104,6 @@ class SoarFlow extends Component {
     tempSoarRule.aggFieldId = soarIndividualData.aggField;
     tempSoarCondition.op = soarIndividualData.condition.op;
     tempSoarCondition.args = soarIndividualData.condition.args;
-    flowCount = soarIndividualData.flow.length;
 
     _.forEach(soarIndividualData.flow, val => {
       if (val.source && val.target) {
@@ -132,17 +121,23 @@ class SoarFlow extends Component {
       soarFlow: soarIndividualData.flow
     });
   }
-  getNodeText = (val, options) => {
+  /**
+   * Get corresponding node text
+   * @method
+   * @param {string>} type - node type
+   * @param {string} [options] - option for 'component'
+   */
+  getNodeText = (type, options) => {
     let component = '';
     let nodeText = '';
 
-    if (val === 'input') {
+    if (type === 'input') {
       component = 'Adapter';
       nodeText = t('soar.txt-adapter');
-    } else if (val === 'default') {
+    } else if (type === 'default') {
       component = 'Node';
       nodeText = t('soar.txt-node');
-    } else if (val === 'output') {
+    } else if (type === 'output') {
       component = 'Action';
       nodeText = t('soar.txt-action');
     }
@@ -153,49 +148,71 @@ class SoarFlow extends Component {
       return nodeText;
     }
   }
+  /**
+   * Called after flow is initialized
+   * @method
+   * @param {string} _reactFlowInstance - react flow instance
+   */
   onLoad = (_reactFlowInstance) => {
     this.setState({
       reactFlowInstance: _reactFlowInstance
     });
   }
+  /**
+   * Called when user connects two nodes
+   * @method
+   * @param {object} params - edge object
+   */
   onConnect = (params) => {
     const {linkAnimated, linkShapeType} = this.state;
-    const id = ++flowCount;
+    const id = helper.getRandomNumber(0, 1000) + '_link';
     const linkParams = {
-      ...params,
-      id: id.toString(),
+      id,
+      type: linkShapeType,
       label: t('soar.txt-defaultLink'),
       componentType: 'link',
       arrowHeadType: 'arrow',
+      ...params,
       animated: linkAnimated,
-      type: linkShapeType
+      labelStyle: { fontWeight: 700 }
     };
 
     this.setState({
       soarFlow: addEdge(linkParams, this.state.soarFlow)
     });
   }
-  setActiveElement = (type, from, event, id) => {
+  /**
+   * Set current active element
+   * @method
+   * @param {object} type - element type ('node' or 'link')
+   * @param {string} id - node ID
+   * @param {object} event - event object
+   */
+  setActiveElement = (type, id, event) => {
     const {soarFlow, contextAnchor} = this.state;
     const selectedFlowIndex = _.findIndex(soarFlow, { 'id': id });
     const activeElement = soarFlow[selectedFlowIndex];
+    let tempContextAnchor = {...contextAnchor};
+    tempContextAnchor[type] = event.currentTarget;
+    let linkEditable = true;
 
-    if (from === 'contextMenu') {
-      let tempContextAnchor = {...contextAnchor};
-      tempContextAnchor[type] = event.currentTarget;
-
-      this.setState({
-        contextAnchor: tempContextAnchor
-      });
+    if (activeElement.source && activeElement.source.indexOf('adapter') > -1) {
+      linkEditable = false;
     }
 
     this.setState({
       activeElementType: type,
-      activeElement
+      activeElement,
+      linkEditable,
+      contextAnchor: tempContextAnchor
     });
 
     event.preventDefault();
   }
+  /**
+   * Called when user removes node or edge
+   * @method
+   */
   onElementsRemove = () => {
     const {soarFlow, activeElement} = this.state;
 
@@ -204,10 +221,32 @@ class SoarFlow extends Component {
     });
     this.handleCloseMenu();
   }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: {
+        node: null,
+        link: null
+      }
+    });
+  }
+  /**
+   * Called when user drag element
+   * @method
+   * @param {object} event - event object
+   */
   onDragOver = (event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }
+  /**
+   * Called when user drop element
+   * @method
+   * @param {object} event - event object
+   */
   onDrop = (event) => {
     const {reactFlowInstance, soarFlow} = this.state;
     const reactFlowBounds = this.reactFlowWrapper.current.getBoundingClientRect();
@@ -216,9 +255,9 @@ class SoarFlow extends Component {
       x: event.clientX - reactFlowBounds.left,
       y: event.clientY - reactFlowBounds.top,
     });
-    const id = ++flowCount;
+    const id = helper.getRandomNumber(0, 1000) + '_' + this.getNodeText(type, 'component');
     const newNode = {
-      id: id.toString(),
+      id,
       type,
       componentType: this.getNodeText(type, 'component'),
       position,
@@ -226,6 +265,26 @@ class SoarFlow extends Component {
     };
     const tempFlowData = _.cloneDeep(soarFlow);
     const newFlowData = tempFlowData.concat(newNode)
+    let adapterCount = 0;
+    let valid = true;
+
+    if (this.getNodeText(type, 'component') === 'adapter') { //Check adapter node couont
+      _.forEach(soarFlow, val => {
+        if (val.componentType === 'adapter') {
+          adapterCount++;
+        }
+
+        if (adapterCount > 0) {
+          helper.showPopupMsg('', t('txt-error'), t('soar.txt-adapterError'));
+          valid = false;
+          return false;
+        }
+      });
+
+      if (!valid) {
+        return;
+      }
+    }
 
     this.setState({
       soarFlow: newFlowData
@@ -233,14 +292,12 @@ class SoarFlow extends Component {
 
     event.preventDefault();
   }
-  handleCloseMenu = (type) => {
-    this.setState({
-      contextAnchor: {
-        node: null,
-        link: null
-      }
-    });
-  }
+  /**
+   * Called when user stop dragging the element
+   * @method
+   * @param {object} event - event object
+   * @param {object} node - node object
+   */
   onNodeDragStop = (event, node) => {
     const {soarFlow} = this.state;
     const selectedFlowIndex = _.findIndex(soarFlow, { 'id': node.id });
@@ -251,16 +308,40 @@ class SoarFlow extends Component {
       soarFlow: tempSoarFlow
     });
   }
+  /**
+   * Node context menu
+   * @method
+   * @param {object} event - event object
+   * @param {object} node - node object
+   */
   onNodeContextMenu = (event, node) => {
-    this.setActiveElement('node', 'contextMenu', event, node.id);
+    this.setActiveElement('node', node.id, event);
   }
+  /**
+   * Called when user does a right-click on an edge
+   * @method
+   * @param {object} event - event object
+   * @param {object} link - link object
+   */
   onEdgeContextMenu = (event, link) => {
-    this.setActiveElement('link', 'contextMenu', event, link.id);
+    this.setActiveElement('link', link.id, event);
   }
+  /**
+   * Called when user starts to drag a selection
+   * @method
+   * @param {string} nodeType - node type ('input', 'default' or 'output')
+   * @param {object} event - event object
+   */
   onDragStart = (nodeType, event) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   }
+  /**
+   * Called when the end of an edge gets dragged to another source or target
+   * @method
+   * @param {object} oldEdge - old edge object
+   * @param {object} newConnection - new edge object
+   */
   onEdgeUpdate = (oldEdge, newConnection) => {
     let edgeParams = {...newConnection};
     edgeParams.id = oldEdge.id;
@@ -269,29 +350,15 @@ class SoarFlow extends Component {
       soarFlow: updateEdge(oldEdge, edgeParams, this.state.soarFlow)
     });
   }
+  /**
+   * Display node element
+   * @method
+   * @param {object} val - node type ('input', 'default' or 'output')
+   * @param {number} i - index of the node type
+   * @returns HTML DOM
+   */
   getNodeType = (val, i) => {
     return <div key={i} className={'dndnode ' + val} onDragStart={this.onDragStart.bind(this, val)} draggable>{this.getNodeText(val)}</div>
-  }
-  onSave = () => {
-    const {reactFlowInstance} = this.state;
-
-    if (reactFlowInstance) {
-      localforage.setItem(FLOW_KEY, reactFlowInstance.toObject());
-      helper.showPopupMsg(t('txt-saved', ''));
-    }
-  }
-  onRestore = () => {
-    const restoreFlow = async () => {
-      const flow = await localforage.getItem(FLOW_KEY);
-
-      if (flow) {
-        this.setState({
-          soarFlow: flow.elements || []
-        });
-      }
-    };
-
-    restoreFlow();
   }
   /**
    * Handle input data change
@@ -350,12 +417,46 @@ class SoarFlow extends Component {
 
     this.handleCloseMenu();
   }
+  /**
+   * Toggle testing dialog
+   * @method
+   */
   toggleTestingDialog = () => {
     this.setState({
       openTestingFlowDialog: !this.state.openTestingFlowDialog
     });
 
     this.handleCloseMenu();
+  }
+  /**
+   * Display delete floor content
+   * @method
+   * @returns HTML DOM
+   */
+  getBackToListContent = () => {
+    return (
+      <div className='content'>
+        <span>{t('soar.txt-backToListWarning')}</span>
+      </div>
+    )
+  }
+  /**
+   * Display warning message
+   * @method
+   */
+  handleBackToList = () => {
+    PopupDialog.prompt({
+      title: t('txt-backToList'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: this.getBackToListContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.clearSoarData('table');
+        }
+      }
+    });
   }
   /**
    * Close dialog
@@ -380,7 +481,7 @@ class SoarFlow extends Component {
       }
     }, () => {
       if (options === 'table') {
-        this.props.toggleContent(options);
+        this.props.toggleContent(options, 'refresh');
       }
     });
   }
@@ -448,9 +549,27 @@ class SoarFlow extends Component {
       condition: soarCondition,
       flow: soarFlow
     };
+    let adapter = false;
+    let valid = false;
 
     if (flowActionType === 'edit') {
       requestData.flowId = soarIndividualData.flowId;
+    }
+
+    _.forEach(soarFlow, val => {
+      if (val.componentType === 'adapter') {
+        adapter = true;
+      }
+
+      if (adapter && val.componentType === 'link' && val.source.indexOf('adapter') > -1) {
+        valid = true;
+        return false;
+      }
+    })
+
+    if (adapter && !valid) {
+      helper.showPopupMsg('', t('txt-error'), t('soar.txt-adapterErrorLink'));
+      return;
     }
 
     ah.one({
@@ -461,7 +580,8 @@ class SoarFlow extends Component {
     })
     .then(data => {
       if (data.ret === 0) { //Success
-        this.props.toggleContent('table', 'refresh');
+        helper.showPopupMsg(t('txt-saved'));
+        //this.props.toggleContent('table', 'refresh');
       } else {
         if (data.rt.length === 0) {
           const errorMsg = t('soar.txt-error' + data.ret);
@@ -479,6 +599,25 @@ class SoarFlow extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Show edge type options
+   * @method
+   * @param {string} val - edge type
+   * @param {number} i - index of the edge type
+   * @returns HTML DOM
+   */
+  showEdgeTypeOptions = (val, i) => {
+    return (
+      <FormControlLabel
+        value={val}
+        control={
+          <Radio
+            className='radio-ui'
+            color='primary' />
+        }
+        label={t('soar.txt-linkType-' + val)} />
+    )
   }
   /**
    * Handle link sahpe value change
@@ -539,6 +678,7 @@ class SoarFlow extends Component {
       soarCondition,
       soarFlow,
       operatorList,
+      linkEditable,
       contextAnchor,
       activeElementType,
       activeElement
@@ -577,14 +717,16 @@ class SoarFlow extends Component {
             <div className='main-content basic-form'>
               <header className='main-header'>{t('soar.txt-soarFlow')}</header>
               <div className='content-header-btns'>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.clearSoarData.bind(this, 'table')}>{t('txt-backToList')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleBackToList}>{t('txt-backToList')}</Button>
               </div>
               <Menu
                 anchorEl={contextAnchor.node || contextAnchor.link}
                 keepMounted
                 open={Boolean(contextAnchor.node || contextAnchor.link)}
                 onClose={this.handleCloseMenu}>
-                <MenuItem onClick={this.toggleFlowSettingsDialog}><i className='fg fg-edit' title={t('txt-edit')}></i></MenuItem>
+                {linkEditable &&
+                  <MenuItem onClick={this.toggleFlowSettingsDialog}><i className='fg fg-edit' title={t('txt-edit')}></i></MenuItem>
+                }
                 <MenuItem onClick={this.onElementsRemove}><i className='fg fg-trashcan' title={t('txt-remove')}></i></MenuItem>
               </Menu>
 
@@ -627,9 +769,6 @@ class SoarFlow extends Component {
                         soarFlow={soarFlow}
                         setSoarConditionData={this.setSoarConditionData} />
                     </div>
-                    <div>
-                      {/*<JSONTree data={soarFlow} theme={helper.getJsonViewTheme()} />*/}
-                    </div>
                   </aside>
 
                   <div className='reactflow-wrapper'>
@@ -641,30 +780,7 @@ class SoarFlow extends Component {
                           name='type'
                           value={linkShapeType}
                           onChange={this.handleLinkShapeChange}>
-                          <FormControlLabel
-                            value='default'
-                            control={
-                              <Radio
-                                className='radio-ui'
-                                color='primary' />
-                            }
-                            label={t('soar.txt-linkTypeCurve')} />
-                          <FormControlLabel
-                            value='straight'
-                            control={
-                              <Radio
-                                className='radio-ui'
-                                color='primary' />
-                            }
-                            label={t('soar.txt-linkTypeStraight')} />
-                          <FormControlLabel
-                            value='step'
-                            control={
-                              <Radio
-                                className='radio-ui'
-                                color='primary' />
-                            }
-                            label={t('soar.txt-linkTypeStep')} />
+                          {EDGE_TYPE.map(this.showEdgeTypeOptions)}
                         </RadioGroup>
                       </div>
 

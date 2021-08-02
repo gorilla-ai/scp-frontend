@@ -70,6 +70,9 @@ const helper = {
 
     //return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   },
+  getRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+  },
   setChartInterval: function(datetime) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
     const dateTime = {

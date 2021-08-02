@@ -161,6 +161,7 @@ class SoarForm extends Component {
     } else if (activeElementType === 'node') {
       if (activeElement.componentType === 'adapter') {
         this.setState({
+          nodeCustomName: activeElement.data.label,
           soarNodeAdapterOperator: activeElement.adapter_type,
           [activeElement.adapter_type]: activeElement.args
         });
@@ -419,7 +420,8 @@ class SoarForm extends Component {
             fullWidth
             size='small'
             value={nodeCustomName}
-            onChange={this.handleNodeDataChange} />
+            onChange={this.handleNodeDataChange}
+            disabled={activeElement.componentType === 'adapter'} />
         </div>
         {activeElement.componentType === 'node' &&
           <div className='group'>
@@ -457,6 +459,7 @@ class SoarForm extends Component {
       if (activeElement.componentType === 'adapter') {
         return (
           <div className='soar-form'>
+            {this.displayNameGroupForm()}
             {this.displayDropDownSelection('soarNodeAdapterOperator', 'nodeAdapterOperatorList')}
           </div>
         )

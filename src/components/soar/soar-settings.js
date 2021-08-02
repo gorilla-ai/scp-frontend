@@ -764,7 +764,7 @@ class SoarSettings extends Component {
                   <div className='group'>
                     <TextField
                       id='soarActionTitle'
-                      name={t('soar.txt-title')}
+                      name='title'
                       label={t('soar.txt-title')}
                       variant='outlined'
                       fullWidth
