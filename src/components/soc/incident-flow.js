@@ -11,7 +11,6 @@ import TextField from '@material-ui/core/TextField';
 import Button from "@material-ui/core/Button";
 import constants from "../constant/constant-incidnet";
 import _ from "lodash";
-import MuiTableContent from "../common/mui-table-content";
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline'
 import HighlightOffIcon from '@material-ui/icons/HighlightOff'
 import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
@@ -56,6 +55,7 @@ class IncidentFlow extends Component {
             severityList: [],
             flowList: [],
             stepList:[],
+            stepListObj:[],
             originalData: {},
             formValidation: {
                 name: {
@@ -162,18 +162,17 @@ class IncidentFlow extends Component {
                 this.setState({
                     flowSourceList:flowSourceList,
                     flowList:list
+                },()=>{
+                    this.setState({
+                        severityList,
+                    }, () => {
+                        this.getData();
+                    });
                 });
             }
         }).catch(err => {
              helper.showPopupMsg('', t('txt-error'), err.message)
         });
-
-        this.setState({
-            severityList,
-        }, () => {
-            this.getData();
-        });
-
     }
 
     /**
@@ -308,6 +307,7 @@ class IncidentFlow extends Component {
         let tempData = {...incidentRule};
         let showPage = type;
         let tempStepList = [];
+        let stepListObj = {}
         if (type === 'tableList') {
             tempData.info = {
                 id: '',
@@ -319,6 +319,7 @@ class IncidentFlow extends Component {
             };
             this.setState({
                 stepList:[],
+                stepListObj:stepListObj
             });
         } else if (type === 'view') {
             tempData.info = {
@@ -343,17 +344,51 @@ class IncidentFlow extends Component {
 
             if (allValue.flowId){
                 _.forEach(this.state.flowSourceList , flowVal =>{
+
                     if (flowVal.entityId === allValue.flowId){
+
+                        stepListObj = flowVal.entities
                         for (const [key, value] of Object.entries(flowVal.entities)) {
-                            tempStepList.push(value.entityName)
+                            let index = 0;
+                            if (Object.entries(flowVal.entities).length > 4){
+                                if (value.entityName.includes('SOC-1')) {
+                                    index = 0
+                                }else if (value.entityName.includes('SOC-2')){
+                                    index = 1
+                                }else if (value.entityName === '單位承辦人簽核'){
+                                    index = 2
+                                }else if (value.entityName === '單位資安長簽核'){
+                                    index = 3
+                                }else if (value.entityName.includes('主管單位承辦人簽核')){
+                                    index = 4
+                                }else if (value.entityName.includes('主管單位資安長簽核')){
+                                    index = 5
+                                }
+                            }else{
+                                if (value.entityName.includes('SOC-1')) {
+                                    index = 0
+                                }else if (value.entityName.includes('SOC-2')){
+                                    index= 1
+                                }else if (value.entityName === '單位承辦人簽核'){
+                                    index = 2
+                                }else if (value.entityName === '主管單位承辦人簽核'){
+                                    index = 3
+                                }
+                            }
+                            let obj = {
+                                index: index,
+                                entityName: value.entityName
+                            }
+                            tempStepList.push(obj)
                         }
+
                     }
                 })
             }
 
-
             this.setState({
                 stepList:tempStepList,
+                stepListObj:stepListObj,
                 originalData: _.cloneDeep(tempData)
             });
         } else if (type === 'cancel') {
@@ -362,14 +397,46 @@ class IncidentFlow extends Component {
             if (tempData.info.flowId){
                 _.forEach(this.state.flowSourceList , flowVal =>{
                     if (flowVal.entityId === tempData.info.flowId){
+                        stepListObj = flowVal.entities;
                         for (const [key, value] of Object.entries(flowVal.entities)) {
-                            tempStepList.push(value.entityName)
+                            let index = 0;
+                            if (Object.entries(flowVal.entities).length > 4){
+                                if (value.entityName.includes('SOC-1')) {
+                                    index = 0
+                                }else if (value.entityName.includes('SOC-2')){
+                                    index = 1
+                                }else if (value.entityName === '單位承辦人簽核'){
+                                    index = 2
+                                }else if (value.entityName === '單位資安長簽核'){
+                                    index = 3
+                                }else if (value.entityName.includes('主管單位承辦人簽核')){
+                                    index = 4
+                                }else if (value.entityName.includes('主管單位資安長簽核')){
+                                    index = 5
+                                }
+                            }else{
+                                if (value.entityName.includes('SOC-1')) {
+                                    index = 0
+                                }else if (value.entityName.includes('SOC-2')){
+                                    index= 1
+                                }else if (value.entityName === '單位承辦人簽核'){
+                                    index = 2
+                                }else if (value.entityName === '主管單位承辦人簽核'){
+                                    index = 3
+                                }
+                            }
+                            let obj = {
+                                index: index,
+                                entityName: value.entityName
+                            }
+                            tempStepList.push(obj)
                         }
                     }
                 })
             }
             this.setState({
                 stepList:tempStepList,
+                stepListObj:stepListObj
             });
         } else if (type === 'save') {
             showPage = 'view';
@@ -390,6 +457,7 @@ class IncidentFlow extends Component {
         const {incidentRule, flowSourceList} = this.state;
         let tempData = {...incidentRule};
         let tempStepList = [];
+        let stepListObj ={};
         tempData.info[event.target.name] = event.target.value;
 
         if (event.target.name === 'severity'){
@@ -410,15 +478,48 @@ class IncidentFlow extends Component {
         if (event.target.name === 'flowId'){
             _.forEach(flowSourceList , flowVal =>{
                 if (flowVal.entityId === event.target.value){
+                    stepListObj = flowVal.entities
                     for (const [key, value] of Object.entries(flowVal.entities)) {
-                        tempStepList.push(value.entityName)
+                        let index = 0;
+                        if (Object.entries(flowVal.entities).length > 4){
+                            if (value.entityName.includes('SOC-1')) {
+                                index = 0
+                            }else if (value.entityName.includes('SOC-2')){
+                                index = 1
+                            }else if (value.entityName === '單位承辦人簽核'){
+                                index = 2
+                            }else if (value.entityName === '單位資安長簽核'){
+                                index = 3
+                            }else if (value.entityName.includes('主管單位承辦人簽核')){
+                                index = 4
+                            }else if (value.entityName.includes('主管單位資安長簽核')){
+                                index = 5
+                            }
+                        }else{
+                            if (value.entityName.includes('SOC-1')) {
+                                index = 0
+                            }else if (value.entityName.includes('SOC-2')){
+                                index= 1
+                            }else if (value.entityName === '單位承辦人簽核'){
+                                index = 2
+                            }else if (value.entityName === '主管單位承辦人簽核'){
+                                index = 3
+                            }
+                        }
+                        let obj = {
+                            index: index,
+                            entityName: value.entityName
+                        }
+                        tempStepList.push(obj)
                     }
                 }
             })
         }
 
+
         this.setState({
             stepList:tempStepList,
+            stepListObj:stepListObj,
             incidentRule: tempData
         });
     }
@@ -519,10 +620,11 @@ class IncidentFlow extends Component {
     }
 
     displayEditContent = () => {
-        const {activeContent, severityList, flowList, incidentRule, formValidation, stepList} = this.state;
+        const {activeContent, severityList, flowList, incidentRule, formValidation, stepList, stepListObj} = this.state;
         let stepTitle =  ['SOC 1', 'SOC 2' , '設備單位承辦人', '資訊中心承辦人'];
 
         if (stepList.length > 0){
+            stepList.sort(this.compare('index'))
             stepTitle = stepList
         }
 
@@ -643,9 +745,123 @@ class IncidentFlow extends Component {
         )
     }
 
-    showUnitStepIcon = (val, i) => {
+    compare = function (prop) {
+        return function (obj1, obj2) {
+            let val1 = obj1[prop];
+            let val2 = obj2[prop];
+            if (val1 < val2) {
+                return -1;
+            } else if (val1 > val2) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    showUnitStepIcon = (val) => {
+
         const {locale} = this.context;
-        const {activeSteps} = this.state;
+        const index = val.index + 1;
+        const groupClass = 'group group' + index;
+        const lineClass = 'line line' + index;
+        const stepClass = 'step step' + index;
+        const textClass = 'text';
+
+        let textAttr = {
+            className: textClass
+        };
+
+        if (index === 1) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '0px';
+            } else if (locale === 'zh') {
+                pos = '0';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 2) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '0px';
+            } else if (locale === 'zh') {
+                pos = '0px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 3) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 4) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 5) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 6) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        return (
+            <div className={groupClass} key={index}>
+                <div className={cx(lineClass, {active: true})}/>
+                <div className={cx(stepClass, {active: true})}>
+                    <div className='wrapper'><span className='number'>{index}</span></div>
+                    <div {...textAttr}>{val.entityName}</div>
+                </div>
+            </div>
+        )
+    }
+
+    showUnitStepIcon4 = (val, i) => {
+
+        if (val.includes('SOC-1')) {
+            i = 0
+        }else if (val.includes('SOC-2')){
+            i = 1
+        }else if (val === '單位承辦人簽核'){
+            i = 2
+        }else if (val === '主管單位承辦人簽核'){
+            i = 3
+        }
+
+        const {locale} = this.context;
         const index = ++i;
         const groupClass = 'group group' + index;
         const lineClass = 'line line' + index;
@@ -733,7 +949,219 @@ class IncidentFlow extends Component {
         )
     }
 
+    showUnitStepIcon6 = (val, i) => {
 
+        if (val.includes('SOC-1')) {
+            i = 0
+        }else if (val.includes('SOC-2')){
+            i = 1
+        }else if (val === '單位承辦人簽核'){
+            i = 2
+        }else if (val === '單位資安長簽核'){
+            i = 3
+        }else if (val.includes('主管單位承辦人簽核')){
+            i = 4
+        }else if (val.includes('主管單位資安長簽核')){
+            i = 5
+        }
+
+        const {locale} = this.context;
+        const index = ++i;
+        const groupClass = 'group group' + index;
+        const lineClass = 'line line' + index;
+        const stepClass = 'step step' + index;
+        const textClass = 'text';
+
+        let textAttr = {
+            className: textClass
+        };
+
+        if (index === 1) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '0px';
+            } else if (locale === 'zh') {
+                pos = '0';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 2) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '0px';
+            } else if (locale === 'zh') {
+                pos = '0px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 3) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 4) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 5) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 6) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '-27px';
+            } else if (locale === 'zh') {
+                pos = '-27px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        return (
+            <div className={groupClass} key={index}>
+                <div className={cx(lineClass, {active: true})}/>
+                <div className={cx(stepClass, {active: true})}>
+                    <div className='wrapper'><span className='number'>{index}</span></div>
+                    <div {...textAttr}>{val}</div>
+                </div>
+            </div>
+        )
+    }
+
+    showUnitStepIconWithObj = () => {
+        const {locale} = this.context;
+        let stepListObj = this.state.stepListObj;
+        Object.keys(stepListObj).forEach(key => {
+            let i = 0;
+            let val = '';
+            if (stepListObj[key].entityName.includes('SOC-1')) {
+                i = 0
+            }else if (stepListObj[key].entityName.includes('SOC-2')){
+                i = 1
+            }else if (stepListObj[key].entityName === '單位承辦人簽核'){
+                i = 2
+            }else if (stepListObj[key].entityName === '單位資安長簽核'){
+                i = 3
+            }else if (stepListObj[key].entityName.includes('主管單位承辦人簽核')){
+                i = 4
+            }else if (stepListObj[key].entityName.includes('主管單位資安長簽核')){
+                i = 5
+            }
+
+            const index = ++i;
+            const groupClass = 'group group' + index;
+            const lineClass = 'line line' + index;
+            const stepClass = 'step step' + index;
+            const textClass = 'text';
+
+            let textAttr = {
+                className: textClass
+            };
+
+            if (index === 1) {
+                let pos = '';
+
+                if (locale === 'en') {
+                    pos = '0px';
+                } else if (locale === 'zh') {
+                    pos = '0';
+                }
+                textAttr.style = {left: pos};
+            }
+
+            if (index === 2) {
+                let pos = '';
+
+                if (locale === 'en') {
+                    pos = '0px';
+                } else if (locale === 'zh') {
+                    pos = '0px';
+                }
+                textAttr.style = {left: pos};
+            }
+
+            if (index === 3) {
+                let pos = '';
+
+                if (locale === 'en') {
+                    pos = '-27px';
+                } else if (locale === 'zh') {
+                    pos = '-27px';
+                }
+                textAttr.style = {left: pos};
+            }
+
+            if (index === 4) {
+                let pos = '';
+
+                if (locale === 'en') {
+                    pos = '-27px';
+                } else if (locale === 'zh') {
+                    pos = '-27px';
+                }
+                textAttr.style = {left: pos};
+            }
+
+            if (index === 5) {
+                let pos = '';
+
+                if (locale === 'en') {
+                    pos = '-27px';
+                } else if (locale === 'zh') {
+                    pos = '-27px';
+                }
+                textAttr.style = {left: pos};
+            }
+
+            if (index === 6) {
+                let pos = '';
+
+                if (locale === 'en') {
+                    pos = '-27px';
+                } else if (locale === 'zh') {
+                    pos = '-27px';
+                }
+                textAttr.style = {left: pos};
+            }
+
+            return (
+                <div className={groupClass} key={index}>
+                    <div className={cx(lineClass, {active: true})}/>
+                    <div className={cx(stepClass, {active: true})}>
+                        <div className='wrapper'><span className='number'>{index}</span></div>
+                        <div {...textAttr}>{stepListObj[key].entityName}</div>
+                    </div>
+                </div>
+            )
+
+        })
+
+    }
     /**
      * Display filter content
      * @method
