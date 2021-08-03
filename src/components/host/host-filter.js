@@ -21,6 +21,7 @@ class HostFilter extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  ryan = () => {}
   /**
    * Set search filter input
    * @method
@@ -33,74 +34,17 @@ class HostFilter extends Component {
     });
   }
   render() {
-    const {value} = this.props;
-    const nameList = [
-      {
-        text: t('ipFields.ip'),
-        value: 'ip'
-      },
-      {
-        text: t('ipFields.mac'),
-        value: 'mac'
-      },
-      {
-        text: t('ipFields.hostName'),
-        value: 'hostName'
-      },
-      {
-        text: t('ipFields.deviceType'),
-        value: 'deviceType'
-      },
-      {
-        text: t('ipFields.system'),
-        value: 'system'
-      },
-      {
-        text: 'MD5',
-        value: '_MD5'
-      },
-      {
-        text: 'CCE-ID',
-        value: '_CceId'
-      },
-      {
-        text: 'Filepath',
-        value: '_Filepath'
-      },
-      {
-        text: 'CPE-ID',
-        value: 'cpe23Uri'
-      },
-      {
-        text: 'CVE-ID',
-        value: 'cveId'
-      }
-    ];
-    const filterList = _.map(nameList, (val, i) => {
-      return <MenuItem id={'searchFilter' + val.value} key={i} value={val.value}>{val.text}</MenuItem>
-    });
+    const {activeFilter, value} = this.props;
 
     return (
-      <div>
-        <TextField
-          name='name'
-          id='hostFilterDropdown'
-          className='condition-select'
-          select
-          variant='outlined'
-          fullWidth
-          size='small'
-          value={value.name}
-          onChange={this.handleDataChange}>
-          {filterList}
-        </TextField>
-        <TextareaAutosize
-          name='query'
-          id='searchFilterInput'
-          className='textarea-autosize filter-inputbox'
-          value={value.query}
-          onChange={this.handleDataChange} />
-      </div>
+      <TextField
+        name='input'
+        label={t('ipFields.' + activeFilter)}
+        variant='outlined'
+        fullWidth
+        size='small'
+        value={value.input}
+        onChange={this.handleDataChange} />
     )
   }
 }

@@ -13,6 +13,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
+import PopoverMaterial from '@material-ui/core/Popover';
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
@@ -23,6 +24,7 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 import Popover from 'react-ui/build/src/components/popover'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
@@ -30,6 +32,7 @@ import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
+import HostFilter from './host-filter'
 import Pagination from '../common/pagination'
 import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
@@ -40,6 +43,7 @@ import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -276,7 +280,9 @@ class HostController extends Component {
     this.state = {
       activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
-      showFilter: false,
+      showFilter: true,
+      popOverAnchor: null,
+      activeFilter: '',
       showLeftNav: true,
       datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       assessmentDatetime: {
@@ -311,14 +317,40 @@ class HostController extends Component {
         maskedIPSelected: []
       },
       deviceSearch: {
-        ip: '',
-        mac: '',
-        hostName: '',
-        deviceType: '',
-        system: '',
-        scanInfo: '',
-        status: {},
-        annotation: ''
+        ip: [{
+          input: ''
+        }],
+        mac: [{
+          input: ''
+        }],
+        hostName: [{
+          input: ''
+        }],
+        deviceType: [{
+          input: ''
+        }],
+        system: [{
+          input: ''
+        }],
+        scanInfo: [{
+          input: ''
+        }],
+        status: [{
+          input: ''
+        }],
+        annotation: [{
+          input: ''
+        }]
+      },
+      deviceSearchList: {
+        ip: [],
+        mac: [],
+        hostName: [],
+        deviceType: [],
+        system: [],
+        scanInfo: [],
+        status: [],
+        annotation: []
       },
       hmdSearch: {
         status: {},
@@ -627,6 +659,8 @@ class HostController extends Component {
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
+
+    return;
 
     this.ah.one({
       url,
@@ -1703,84 +1737,122 @@ class HostController extends Component {
     }
   }
   /**
+   * Handle filter click
+   * @method
+   * @param {string} activeFilter - active filter type
+   * @param {object} event - event object
+   */
+  handleFilterclick = (activeFilter, event) => {
+    this.setState({
+      popOverAnchor: event.currentTarget,
+      activeFilter
+    });
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  handlePopoverClose = () => {
+    this.setState({
+      popOverAnchor: null
+    });
+  }
+  /**
+   * Set device filter data
+   * @method
+   * @param {string} filter - filter type
+   * @param {array.<string>} data - filter data
+   */
+  setDeviceSearch = (type, data) => {
+    const {deviceSearch, deviceSearchList} = this.state;
+    let tempDeviceSearch = {...deviceSearch};
+    let tempDeviceSearchList = {...deviceSearchList};
+    let list = [];
+    tempDeviceSearch[type] = data;
+
+    _.forEach(data, val => {
+      if (val.input) {
+        list.push(val.input);
+      }
+    });
+    tempDeviceSearchList[type] = list;
+
+    this.setState({
+      deviceSearch: tempDeviceSearch,
+      deviceSearchList: tempDeviceSearchList
+    });
+  }
+  /**
+   * Display filter form
+   * @method
+   * @param {string} val - filter data
+   * @param {number} i - index of the filter data
+   * @returns HTML DOM
+   */
+  showFilterForm = (val, i) => {
+    const {deviceSearchList} = this.state;
+
+    return (
+      <div key={i} className='group'>
+        <TextField
+          id='deviceSearchIP'
+          name={val}
+          label={t('ipFields.' + val)}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={deviceSearchList[val].join(', ')}
+          onClick={this.handleFilterclick.bind(this, val)}
+          InputProps={{
+            readOnly: true
+          }} />
+      </div>
+    )
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-   const {showFilter, vansDeviceStatusList, deviceSearch} = this.state;
+    const {popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch, deviceSearchList} = this.state;
+    const data = {
+      activeFilter
+    };
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
-        <div className='filter-section config'>
-          <div className='group'>
-            <TextField
-              id='deviceSearchIP'
-              name='ip'
-              label={t('ipFields.ip')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.ip}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchMac'
-              name='mac'
-              label={t('ipFields.mac')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.mac}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchHostName'
-              name='hostName'
-              label={t('ipFields.hostName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.hostName}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchDeviceType'
-              name='deviceType'
-              label={t('ipFields.deviceType')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.deviceType}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchSystem'
-              name='system'
-              label={t('ipFields.system')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.system}
-              onChange={this.handleDeviceSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='deviceSearchScanInfo'
-              name='scanInfo'
-              label={t('ipFields.scanInfo')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={deviceSearch.scanInfo}
-              onChange={this.handleDeviceSearch} />
-          </div>
+        <div className='filter-section config host'>
+          <PopoverMaterial
+            id='hostFilterPopover'
+            open={Boolean(popOverAnchor)}
+            anchorEl={popOverAnchor}
+            onClose={this.handlePopoverClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'left',
+            }}>
+            <div className='content'>
+              <MultiInput
+                base={HostFilter}
+                defaultItemValue={{
+                    input: ''
+                  }
+                }
+                value={deviceSearch[activeFilter]}
+                props={data}
+                onChange={this.setDeviceSearch.bind(this, activeFilter)} />
+            </div>
+          </PopoverMaterial>
+
+          {FILTER_LIST.map(this.showFilterForm)}
+
           <div className='group'>
             <Autocomplete
               className='combo-box'
