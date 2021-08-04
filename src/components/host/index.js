@@ -631,7 +631,7 @@ class HostController extends Component {
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, deviceSearch, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
+    const {activeTab, deviceSearchList, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
     const datetime = this.getHostDateTime();
     let url = `${baseUrl}/api/ipdevice/assessment/_search`;
@@ -644,6 +644,12 @@ class HostController extends Component {
       timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData()
     };
+
+    if (deviceSearchList.scanInfo.length > 0) {
+      requestData.hmdScanDistribution = {
+        primaryKeyValueArray: deviceSearchList.scanInfo
+      };
+    }
 
     if (activeTab === 'deviceMap' && currentFloor) {
       requestData.areaUUID = currentFloor;
@@ -818,7 +824,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
+    const {activeTab, filterNav, deviceSearchList, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -861,12 +867,6 @@ class HostController extends Component {
       requestData.systemArray = deviceSearchList.system;
     }
 
-    if (deviceSearchList.scanInfo.length > 0) {
-      requestData.hmdScanDistribution = {
-        primaryKeyValueArray: deviceSearchList.scanInfo
-      };
-    }
-
     if (deviceSearchList.status.length > 0 || deviceSearchList.annotation.length > 0) {
       requestData.annotationObj = {
         statusArray: deviceSearchList.status,
@@ -890,7 +890,7 @@ class HostController extends Component {
    */
   getSafetyScanData = (options) => {
     const {baseUrl} = this.context;
-    const {deviceSearch, safetyScanData, safetyScanType} = this.state;
+    const {deviceSearchList, safetyScanData, safetyScanType} = this.state;
     const datetime = this.getHostDateTime();
     let url = '';
     let requestData = {};
@@ -928,14 +928,16 @@ class HostController extends Component {
         };
       }
 
-      if (deviceSearch.scanInfo) {
-        let scanInfo = deviceSearch.scanInfo;
+      if (deviceSearchList.scanInfo.length > 0) {
+        let scanInfo = deviceSearchList.scanInfo;
 
         if (safetyScanType === 'getFileIntegrity') {
-          scanInfo = scanInfo.replace(/\\/g, '\\\\');
+          scanInfo = _.map(deviceSearchList.scanInfo, val => {
+            return val.replace(/\\/g, '\\\\');
+          });
         }
 
-        requestData.hmdScanDistribution.primaryKeyValue = scanInfo;
+        requestData.hmdScanDistribution.primaryKeyValueArray = scanInfo;
       }
     }
 
@@ -1667,19 +1669,6 @@ class HostController extends Component {
     });
   }
   /**
-   * Handle filter input value change
-   * @method
-   * @param {object} event - event object
-   */
-  handleDeviceSearch = (event) => {
-    let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch[event.target.name] = event.target.value.trim();
-
-    this.setState({
-      deviceSearch: tempDeviceSearch
-    });
-  }
-  /**
    * Handle HMD search value change
    * @method
    * @param {object} event - event object
@@ -1710,31 +1699,20 @@ class HostController extends Component {
   /**
    * Handle status combo box change
    * @method
-   * @param {string} type - combo type
-   * @param {object} event - select event
+   * @param {object} event - event object
    * @param {object} value - selected info
    */
-  handleComboBoxChange = (type, event, value) => {
-    const {vansDeviceStatusList, vansHmdStatusList, deviceSearch, hmdSearch} = this.state;
+  handleComboBoxChange = (event, value) => {
+    const {vansHmdStatusList, hmdSearch} = this.state;
 
     if (value && value.value) {
-      if (type === 'device') {
-        const selectedStatusIndex = _.findIndex(vansDeviceStatusList, { 'value': value.value });
-        let tempDeviceSearch = {...deviceSearch};
-        tempDeviceSearch.status = vansDeviceStatusList[selectedStatusIndex];
+      const selectedStatusIndex = _.findIndex(vansHmdStatusList, { 'value': value.value });
+      let tempHmdSearch = {...hmdSearch};
+      tempHmdSearch.status = vansHmdStatusList[selectedStatusIndex];
 
-        this.setState({
-          deviceSearch: tempDeviceSearch
-        });
-      } else {
-        const selectedStatusIndex = _.findIndex(vansHmdStatusList, { 'value': value.value });
-        let tempHmdSearch = {...hmdSearch};
-        tempHmdSearch.status = vansHmdStatusList[selectedStatusIndex];
-
-        this.setState({
-          hmdSearch: tempHmdSearch
-        });
-      }
+      this.setState({
+        hmdSearch: tempHmdSearch
+      });
     }
   }
   /**
@@ -1818,7 +1796,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch, deviceSearchList} = this.state;
+    const {popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -3465,7 +3443,7 @@ class HostController extends Component {
                       value={hmdSearch.status}
                       getOptionLabel={(option) => option.text}
                       renderInput={this.renderStatusList}
-                      onChange={this.handleComboBoxChange.bind(this, MODULE_TYPE[safetyScanType])} />
+                      onChange={this.handleComboBoxChange} />
                     <TextareaAutosize
                       className='textarea-autosize search-annotation'
                       name='annotation'
