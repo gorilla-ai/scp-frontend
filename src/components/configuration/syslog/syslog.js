@@ -255,7 +255,7 @@ class Syslog extends Component {
                   <div className='table-menu menu active'>
                     <i className='fg fg-edit' onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
                     <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}></i>
-                    <i className='fg fg-list' onClick={this.forwardSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
+                    <i className='fg fg-list' onClick={this.redirectSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
                     <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
                   </div>
                 )
@@ -854,7 +854,7 @@ class Syslog extends Component {
    * @method
    * @param {object} allValue - syslog data
    */
-  forwardSyslog = (allValue) => {
+  redirectSyslog = (allValue) => {
     const {baseUrl, contextRoot, language} = this.context;
     const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${allValue.name}&loghostIp=${allValue.loghostIp}&lng=${language}`;
     window.open(url, '_blank');

@@ -43,7 +43,7 @@ import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo'];
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -280,7 +280,7 @@ class HostController extends Component {
     this.state = {
       activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
-      showFilter: true,
+      showFilter: false,
       popOverAnchor: null,
       activeFilter: '',
       showLeftNav: true,
@@ -336,7 +336,7 @@ class HostController extends Component {
           input: ''
         }],
         status: [{
-          input: ''
+          input: {}
         }],
         annotation: [{
           input: ''
@@ -647,20 +647,12 @@ class HostController extends Component {
 
     if (activeTab === 'deviceMap' && currentFloor) {
       requestData.areaUUID = currentFloor;
-    }    
-
-    if (deviceSearch.scanInfo) {
-      requestData.hmdScanDistribution = {
-        primaryKeyValue: deviceSearch.scanInfo
-      };
     }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
-
-    return;
 
     this.ah.one({
       url,
@@ -826,7 +818,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {activeTab, filterNav, deviceSearch, hmdSearch} = this.state;
+    const {activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -849,35 +841,44 @@ class HostController extends Component {
       requestData.exactIps = filterNav.maskedIPSelected;
     }
 
-    if (deviceSearch.ip) {
-      requestData.ip = deviceSearch.ip;
+    if (deviceSearchList.ip.length > 0) {
+      requestData.ipArray = deviceSearchList.ip;
     }
 
-    if (deviceSearch.mac) {
-      requestData.mac = deviceSearch.mac;
+    if (deviceSearchList.mac.length > 0) {
+      requestData.macArray = deviceSearchList.mac;
     }
 
-    if (deviceSearch.hostName) {
-      requestData.hostName = deviceSearch.hostName;
+    if (deviceSearchList.hostName.length > 0) {
+      requestData.hostNameArray = deviceSearchList.hostName;
     }
 
-    if (deviceSearch.deviceType) {
-      requestData.deviceType = deviceSearch.deviceType;
+    if (deviceSearchList.deviceType.length > 0) {
+      requestData.deviceTypeArray = deviceSearchList.deviceType;
     }
 
-    if (deviceSearch.system) {
-      requestData.system = deviceSearch.system;
+    if (deviceSearchList.system.length > 0) {
+      requestData.systemArray = deviceSearchList.system;
     }
 
-    if (deviceSearch.status.value || deviceSearch.annotation || hmdSearch.status.value || hmdSearch.annotation) {
-      requestData.annotationObj = {};
-      requestData.annotationObj.status = deviceSearch.status.value;
-      requestData.annotationObj.annotation = deviceSearch.annotation;
+    if (deviceSearchList.scanInfo.length > 0) {
+      requestData.hmdScanDistribution = {
+        primaryKeyValueArray: deviceSearchList.scanInfo
+      };
+    }
 
-      if (activeTab === 'safetyScan') {
-        requestData.annotationObj.disStatus = hmdSearch.status.value;
-        requestData.annotationObj.disAnnotation = hmdSearch.annotation;
-      }
+    if (deviceSearchList.status.length > 0 || deviceSearchList.annotation.length > 0) {
+      requestData.annotationObj = {
+        statusArray: deviceSearchList.status,
+        annotationArraay: deviceSearchList.annotation
+      };
+    }
+
+    if (activeTab === 'safetyScan' && (hmdSearch.status.value || hmdSearch.annotation)) {
+      requestData.annotationObj = {
+        disStatus: hmdSearch.status.value,
+        disAnnotation: hmdSearch.annotation
+      };
     }
 
     return requestData;
@@ -1711,7 +1712,7 @@ class HostController extends Component {
    * @method
    * @param {string} type - combo type
    * @param {object} event - select event
-   * @param {object} value - selected department info
+   * @param {object} value - selected info
    */
   handleComboBoxChange = (type, event, value) => {
     const {vansDeviceStatusList, vansHmdStatusList, deviceSearch, hmdSearch} = this.state;
@@ -1764,18 +1765,20 @@ class HostController extends Component {
    * @param {array.<string>} data - filter data
    */
   setDeviceSearch = (type, data) => {
-    const {deviceSearch, deviceSearchList} = this.state;
+    const {vansDeviceStatusList, deviceSearch, deviceSearchList} = this.state;
     let tempDeviceSearch = {...deviceSearch};
     let tempDeviceSearchList = {...deviceSearchList};
-    let list = [];
+    let dataList = [];
     tempDeviceSearch[type] = data;
 
     _.forEach(data, val => {
-      if (val.input) {
-        list.push(val.input);
+      const value = type === 'status' ? val.input.text : val.input;
+
+      if (value) {
+        dataList.push(value);
       }
     });
-    tempDeviceSearchList[type] = list;
+    tempDeviceSearchList[type] = dataList;
 
     this.setState({
       deviceSearch: tempDeviceSearch,
@@ -1817,8 +1820,10 @@ class HostController extends Component {
   renderFilter = () => {
     const {popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch, deviceSearchList} = this.state;
     const data = {
-      activeFilter
+      activeFilter,
+      vansDeviceStatusList
     };
+    const defaultItemValue = activeFilter === 'status' ? {} : '';
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1842,7 +1847,7 @@ class HostController extends Component {
               <MultiInput
                 base={HostFilter}
                 defaultItemValue={{
-                    input: ''
+                    input: defaultItemValue
                   }
                 }
                 value={deviceSearch[activeFilter]}
@@ -1850,27 +1855,7 @@ class HostController extends Component {
                 onChange={this.setDeviceSearch.bind(this, activeFilter)} />
             </div>
           </PopoverMaterial>
-
           {FILTER_LIST.map(this.showFilterForm)}
-
-          <div className='group'>
-            <Autocomplete
-              className='combo-box'
-              options={vansDeviceStatusList}
-              value={deviceSearch.status}
-              getOptionLabel={(option) => option.text}
-              renderInput={this.renderStatusList}
-              onChange={this.handleComboBoxChange.bind(this, 'device')} />
-          </div>
-          <div className='group'>
-            <TextareaAutosize
-              id='deviceSearchNotes'
-              className='textarea-autosize search-annotation'
-              name='annotation'
-              placeholder={t('host.txt-annotation')}
-              value={deviceSearch.annotation}
-              onChange={this.handleDeviceSearch} />
-          </div>
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
@@ -1886,14 +1871,40 @@ class HostController extends Component {
   clearFilter = () => {
     this.setState({
       deviceSearch: {
-        ip: '',
-        mac: '',
-        hostName: '',
-        deviceType: '',
-        system: '',
-        scanInfo: '',
-        status: '',
-        annotation: ''
+        ip: [{
+          input: ''
+        }],
+        mac: [{
+          input: ''
+        }],
+        hostName: [{
+          input: ''
+        }],
+        deviceType: [{
+          input: ''
+        }],
+        system: [{
+          input: ''
+        }],
+        scanInfo: [{
+          input: ''
+        }],
+        status: [{
+          input: {}
+        }],
+        annotation: [{
+          input: ''
+        }]
+      },
+      deviceSearchList: {
+        ip: [],
+        mac: [],
+        hostName: [],
+        deviceType: [],
+        system: [],
+        scanInfo: [],
+        status: [],
+        annotation: []
       }
     });
   }

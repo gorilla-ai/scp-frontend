@@ -298,6 +298,7 @@ class SyslogController extends Component {
    * @method
    */
   initialLoad = () => {
+    const {searchInput} = this.state;
     const syslogParams = queryString.parse(location.search);
 
     if (syslogParams.configSource && syslogParams.loghostIp) {
@@ -314,8 +315,30 @@ class SyslogController extends Component {
         showFilter: true,
         showMark: true
       });
+    } else if (syslogParams.configSource && syslogParams.ip) {
+      let tempSearchInput = {...searchInput};
+      tempSearchInput.searchInterval = 'today';
+
+      this.setState({
+        datetime: {
+          from: helper.getSubstractDate(1, 'day'),
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        },
+        searchInput: tempSearchInput,
+        filterData: [
+          {
+            condition: 'must',
+            query: 'configSource: ' + syslogParams.configSource
+          }, {
+            condition: 'must',
+            query: '_host: ' + syslogParams.ip
+          }
+        ],
+        showFilter: true,
+        showMark: true
+      });
     } else if (syslogParams.configSource) {
-      let tempSearchInput = {...this.state.searchInput};
+      let tempSearchInput = {...searchInput};
 
       if (syslogParams.interval) {
         tempSearchInput.searchInterval = syslogParams.interval;

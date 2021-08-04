@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
@@ -21,31 +22,75 @@ class HostFilter extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  ryan = () => {}
+  /**
+   * Display status list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderStatusList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('host.txt-status')}
+        variant='outlined'
+        size='small' />
+    )
+  }
   /**
    * Set search filter input
    * @method
    * @param {object} event - event object
+   * @param {object} [value] - selected info
    */
-  handleDataChange = (event) => {
+  handleDataChange = (event, value) => {
+    const {vansDeviceStatusList} = this.props;
+    let inputValue = event.target.value;
+
+    if (value && value.value) {
+      const selectedStatusIndex = _.findIndex(vansDeviceStatusList, { 'value': value.value });
+      inputValue = vansDeviceStatusList[selectedStatusIndex];
+    }
+
     this.props.onChange({
       ...this.props.value,
-      [event.target.name]: event.target.value
+      input: inputValue
     });
   }
   render() {
-    const {activeFilter, value} = this.props;
+    const {activeFilter, vansDeviceStatusList, value} = this.props;
 
-    return (
-      <TextField
-        name='input'
-        label={t('ipFields.' + activeFilter)}
-        variant='outlined'
-        fullWidth
-        size='small'
-        value={value.input}
-        onChange={this.handleDataChange} />
-    )
+    if (activeFilter === 'status') {
+      return (
+        <Autocomplete
+          className='combo-box'
+          options={vansDeviceStatusList}
+          value={value.input}
+          getOptionLabel={(option) => option.text}
+          renderInput={this.renderStatusList}
+          onChange={this.handleDataChange} />
+      )
+    } else if (activeFilter === 'annotation') {
+      return (
+        <TextareaAutosize
+          className='textarea-autosize search-annotation'
+          name='input'
+          placeholder={t('host.txt-annotation')}
+          value={value.input}
+          onChange={this.handleDataChange} />
+      )
+    } else {
+      return (
+        <TextField
+          name='input'
+          label={t('ipFields.' + activeFilter)}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={value.input}
+          onChange={this.handleDataChange} />
+      )
+    }
   }
 }
 

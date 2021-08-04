@@ -1367,6 +1367,17 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Construct URL and redirect to events page
+   * @method
+   * @param {object} allValue - syslog data
+   */
+  redirectSyslog = (allValue) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {currentDeviceData} = this.props;
+    const url = `${baseUrl}${contextRoot}/events/syslog?configSource=hmd&ip=${currentDeviceData.ip}&lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
    * Display trigger button info for scan type
    * @method
    * @param {string} [type] - tab ('fileIntegrity' or 'procMonitor')
@@ -1390,6 +1401,9 @@ class HMDscanInfo extends Component {
       <div className='info'>
         {activeTab !== 'settings' &&
           <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('hmd-scan.txt-refresh')}</Button>
+        }
+        {activeTab === 'eventTracing' &&
+          <Button variant='contained' color='primary' className='btn' onClick={this.redirectSyslog}>{t('hmd-scan.txt-viewMore')}</Button>
         }
         {activeTab !== 'eventTracing' && activeTab !== 'edr' &&
           <div>
