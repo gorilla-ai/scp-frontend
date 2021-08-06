@@ -139,9 +139,9 @@ class NetworkBehavior extends Component {
       query = alertData.srcIp || alertData.ip;
     } else {
       if (ipType === 'srcIp') {
-        query = 'sourceIP: ' + alertData.srcIp || alertData.ip;
+        query = 'srcIp ' + alertData.srcIp || alertData.ip;
       } else if (ipType === 'destIp') {
-        query = 'sourceIP: ' + alertData.destIp || alertData.ip;
+        query = 'srcIp ' + alertData.destIp || alertData.ip;
       }
     }
 

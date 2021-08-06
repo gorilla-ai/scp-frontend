@@ -362,7 +362,7 @@ class ThreatsController extends Component {
 
       if (type === 'maskedIP') {
         const severity = alertsParam.severity;
-        query = 'sourceIP: ' + data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
+        query = 'srcIp ' + data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
 
         filterData = [{
           condition: 'must',
@@ -375,7 +375,7 @@ class ThreatsController extends Component {
         if (type === 'severity') {
           query = data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
         } else if (type === 'ip') {
-          query = 'sourceIP: ' + data;
+          query = 'srcIp ' + data;
         } else if (type === 'country') {
           query = 'srcCountry: "' + data + '"';
         }
@@ -399,7 +399,7 @@ class ThreatsController extends Component {
 
     if (alertsParam.from && alertsParam.to) {
       const page = alertsParam.page;
-      let query = 'sourceIP: ' + alertsParam.sourceIP;
+      let query = 'srcIp ' + alertsParam.sourceIP;
 
       if (page === 'host') {
         query = alertsParam.sourceIP;
@@ -2297,7 +2297,7 @@ class ThreatsController extends Component {
               tempChild.push({
                 id: val.key,
                 key: val.key,
-                label: <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
+                label: <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'srcIp')}>{t('events.connections.txt-addFilter')}</Button></span>
               });
             }
           })
@@ -2312,7 +2312,7 @@ class ThreatsController extends Component {
         treeProperty = {
           id: key,
           key,
-          label: <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
+          label: <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button id='addFilterBtn' variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'srcIp')}>{t('events.connections.txt-addFilter')}</Button></span>
         };
 
         if (tempChild.length > 0) {
