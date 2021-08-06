@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import _ from 'lodash'
 
 import {ReactMultiEmail} from 'react-multi-email'
 
@@ -19,7 +20,6 @@ import helper from './helper'
 import MarkInput from './mark-input'
 import Switch from "@material-ui/core/Switch";
 import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import _ from "lodash";
 
 let t = null;
 let f = null;
@@ -153,7 +153,6 @@ class QueryOpenSave extends Component {
       periodMinList
     });
   }
-
   getQuerySOCValue = (activeQuery) => {
     const {queryData, queryDataPublic, type} = this.props;
     const {baseUrl} = this.context;
@@ -215,9 +214,7 @@ class QueryOpenSave extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-
   getQuerySOCValueById = (id) => {
-
     const {queryData, type} = this.props;
     const {baseUrl} = this.context;
     let tempQueryData = []
@@ -233,7 +230,6 @@ class QueryOpenSave extends Component {
       contentType: 'text/plain'
     }).then(data => {
       if (data) {
-
         tempQueryData.soc = {
           id: data.id,
           title: data.title,
@@ -248,7 +244,6 @@ class QueryOpenSave extends Component {
         this.setState({
           socTemplateEnable: true,
           soc: tempQueryData.soc
-        },()=>{
         });
       } else {
         tempQueryData.soc = {
@@ -263,7 +258,7 @@ class QueryOpenSave extends Component {
         };
 
         this.setState({
-          socTemplateEnable: false,
+          socTemplateEnable: false
         });
       }
       return null;
@@ -274,7 +269,6 @@ class QueryOpenSave extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-
   /**
    * Clear error info message
    * @method
@@ -288,7 +282,6 @@ class QueryOpenSave extends Component {
    * Set and close query menu
    * @method
    */
-
   handleQueryAction = () => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
     const {activeTab, type, filterData, queryData, queryDataPublic, markData, moduleWithSOC} = this.props;
@@ -657,8 +650,8 @@ class QueryOpenSave extends Component {
                   })
                 })
               }
-            }else{
-              if(this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')){
+            } else {
+              if (this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')) {
                 let socRequestBody = {
                   id: data.id,
                   title: soc.title,
@@ -667,10 +660,12 @@ class QueryOpenSave extends Component {
                   impact: soc.impact,
                   limitQuery: soc.limitQuery,
                   creator: account.id
-                }
+                };
+
                 if (activeTab === 'alert') {
                   socRequestBody.severity = soc.severity
                 }
+
                 if (activeTab === 'logs') {
                   socRequestBody.severity = pattern.severity
                 }
@@ -682,7 +677,6 @@ class QueryOpenSave extends Component {
                   contentType: 'text/plain'
                 }).then(data => {
                   if (data) {
-                    // console.log('override soc Template result :: ', data)
                   }
                   return null;
                 }).catch(err => {
@@ -706,11 +700,9 @@ class QueryOpenSave extends Component {
               }
             }
           }
-
-
-
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
           this.props.getSavedQuery();
+
           this.setState({
             socTemplateEnable: false,
             soc: {
@@ -722,7 +714,7 @@ class QueryOpenSave extends Component {
               impact: 4,
               category: 1,
             }
-          })
+          });
 
           this.props.setNotifyEmailData([]);
 
@@ -734,7 +726,6 @@ class QueryOpenSave extends Component {
           } else if (type === 'publicSave') {
             this.props.getPublicSavedQuery();
           }
-
         }
         return null;
       })
@@ -936,7 +927,7 @@ class QueryOpenSave extends Component {
     });
   }
   /**
-   * Display all saved filter queries
+   * Display saved filter queries
    * @method
    * @param {object} value - saved query data
    * @param {number} index - index of the queryDataList array
@@ -959,7 +950,33 @@ class QueryOpenSave extends Component {
     )
   }
   /**
-   * Display all saved mark
+   * Display individual form
+   * @method
+   * @param {string} queryDataList - query data
+   * @param {string} key - key of the query data
+   * @param {number} i - index of the query data
+   * @returns HTML DOM
+   */
+  displayHostQuery = (queryDataList, key, i) => {
+    const type = key.replace('Array', '');
+
+    if (queryDataList[key].length > 0) {
+      return (
+        <div key={i} className='group'>
+          <TextField
+            name={type}
+            label={t('ipFields.' + type)}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={queryDataList[key].join(', ')}
+            disabled={true} />
+        </div>
+      )
+    }
+  }
+  /**
+   * Display saved mark
    * @method
    * @param {object} value - saved mark data
    * @param {number} index - index of the queryDataMark array
@@ -1822,7 +1839,7 @@ class QueryOpenSave extends Component {
    * @returns css display
    */
   getQueryColor = (queryDataList) => {
-    if (!queryDataList || (queryDataList && queryDataList.length === 0)) {
+    if (!queryDataList || (queryDataList && queryDataList.length === 0) || _.isEmpty(queryDataList)) {
       return { display: 'none' };
     }
   }
@@ -1867,7 +1884,11 @@ class QueryOpenSave extends Component {
           queryDataList = queryData.query.filter;
           queryDataMark = queryData.query.search;
         } else {
-          queryDataList = queryData.query.filter;
+          if (activeTab === 'hostList') {
+            queryDataList = queryData.query;
+          } else {
+            queryDataList = queryData.query.filter;
+          }
         }
       } else if (type === 'publicOpen') {
         displayQueryList = _.map(queryDataPublic.list, (val, i) => {
@@ -1893,7 +1914,10 @@ class QueryOpenSave extends Component {
             onChange={this.handleQueryChange.bind(this, 'id')} />
 
           <div className='filter-group' style={this.getQueryColor(queryDataList)}>
-            {queryDataList && queryDataList.length > 0 &&
+            {activeTab === 'hostList' && queryDataList &&
+              Object.keys(queryDataList).map(this.displayHostQuery.bind(this, queryDataList))
+            }
+            {!activeTab === 'hostList' && queryDataList && queryDataList.length > 0 &&
               queryDataList.map(this.displayFilterQuery)
             }
           </div>
@@ -1929,15 +1953,25 @@ class QueryOpenSave extends Component {
       )
     } else if (type === 'save' || type === 'publicSave') {
       let dropDownValue = 'new';
+      let hostFilterEmpty = true;
 
-      _.forEach(filterData, val => {
-        if (val.query) {
-          tempFilterData.push({
-            condition: val.condition,
-            query: val.query
-          });
-        }
-      })
+      if (activeTab === 'hostList') {
+        _.forEach(filterData, (val, key) => {
+          if (val.length > 0) {
+            hostFilterEmpty = false;
+            return false;
+          }
+        })
+      } else {
+        _.forEach(filterData, val => {
+          if (val.query) {
+            tempFilterData.push({
+              condition: val.condition,
+              query: val.query
+            });
+          }
+        })
+      }
 
       if (type === 'save') {
         displayQueryList = _.map(queryData.list, (val, i) => {
@@ -1999,7 +2033,13 @@ class QueryOpenSave extends Component {
             }
           </div>
 
-          {tempFilterData.length > 0 &&
+          {activeTab === 'hostList' && !hostFilterEmpty &&
+            <div className='filter-group'>
+              {Object.keys(filterData).map(this.displayHostQuery.bind(this, filterData))}
+            </div>
+          }
+
+          {activeTab !== 'hostList' && tempFilterData.length > 0 &&
             <div className='filter-group'>
               {tempFilterData.map(this.displayFilterQuery)}
             </div>
@@ -2031,7 +2071,7 @@ class QueryOpenSave extends Component {
     }
   }
   render() {
-    const {type, queryData, queryDataPublic, filterData} = this.props;
+    const {activeTab, type, queryData, queryDataPublic, filterData} = this.props;
     const titleText = t(`events.connections.txt-${type}Query`);
     let actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
@@ -2055,11 +2095,32 @@ class QueryOpenSave extends Component {
     }
 
     if (type === 'save' || type === 'publicSave') {
-      if (filterData.length === 0 || filterData[0].query === '') {
+      let showEmptyQeuryMsg = false;
+
+      if (activeTab === 'hostList') {
+        let filterEmpty = true;
+
+        _.forEach(filterData, (val, key) => {
+          if (val.length > 0) {
+            filterEmpty = false;
+            return false;
+          }
+        })
+
+        if (filterEmpty) {
+          showEmptyQeuryMsg = true;
+        }
+      } else {
+        if (filterData.length === 0 || filterData[0].query === '') {
+          showEmptyQeuryMsg = true;
+        }
+      }
+
+      if (showEmptyQeuryMsg) {
         actions = {
           cancel: {text: t('txt-close'), handler: this.props.closeDialog}
         };
-        displayContent = <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>;
+        displayContent = <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>;   
       }
     }
 

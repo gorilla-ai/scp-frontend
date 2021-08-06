@@ -3074,28 +3074,27 @@ class ThreatsController extends Component {
    * @method
    * @returns QueryOpenSave component
    */
-
   queryDialog = () => {
     const {activeTab, account, filterData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
     const {sessionRights} = this.context;
-    let moduleWithSOC = !!sessionRights.Module_Soc
+    const moduleWithSOC = !!sessionRights.Module_Soc;
 
     return (
-        <QueryOpenSave
-            activeTab={activeTab}
-            type={queryModalType}
-            moduleWithSOC={moduleWithSOC}
-            account={account}
-            filterData={filterData}
-            queryData={queryData}
-            queryDataPublic={queryDataPublic}
-            notifyEmailData={notifyEmailData}
-            setFilterData={this.setFilterData}
-            setQueryData={this.setQueryData}
-            setNotifyEmailData={this.setNotifyEmailData}
-            getSavedQuery={this.getSavedQuery}
-            getPublicSavedQuery={this.getPublicSavedQuery}
-            closeDialog={this.closeDialog}/>
+      <QueryOpenSave
+        activeTab={activeTab}
+        type={queryModalType}
+        moduleWithSOC={moduleWithSOC}
+        account={account}
+        filterData={filterData}
+        queryData={queryData}
+        queryDataPublic={queryDataPublic}
+        notifyEmailData={notifyEmailData}
+        setFilterData={this.setFilterData}
+        setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
+        getSavedQuery={this.getSavedQuery}
+        getPublicSavedQuery={this.getPublicSavedQuery}
+        closeDialog={this.closeDialog} />
     )
   }
   /**
