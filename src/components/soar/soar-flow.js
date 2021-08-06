@@ -58,6 +58,7 @@ class SoarFlow extends Component {
       openTestingFlowDialog: false,
       linkAnimated: true,
       linkShapeType: 'default', //'default', 'straight', 'step'
+      currentFlowID: '',
       soarRule: {
         name: '',
         aggFieldId: ''
@@ -474,6 +475,7 @@ class SoarFlow extends Component {
    */
   clearSoarData = (options) => {
     this.setState({
+      currentFlowID: '',
       soarRule: {
         name: '',
         aggFieldId: ''
@@ -539,20 +541,20 @@ class SoarFlow extends Component {
   handleSoarFlowSave = () => {
     const {baseUrl} = this.context;
     const {flowActionType, soarIndividualData} = this.props;
-    const {soarRule, soarCondition, soarFlow} = this.state;
+    const {currentFlowID, soarRule, soarCondition, soarFlow} = this.state;
     const url = `${baseUrl}/api/soar/flow`;
     let requestData = {
       flowName: soarRule.name,
       aggField: soarRule.aggFieldId,
-      isEnable: soarIndividualData.isEnable,
+      isEnable: soarIndividualData.isEnable || true,
       condition: soarCondition,
       flow: soarFlow
     };
     let adapter = false;
     let valid = false;
 
-    if (flowActionType === 'edit') {
-      requestData.flowId = soarIndividualData.flowId;
+    if (currentFlowID || flowActionType === 'edit') {
+      requestData.flowId = currentFlowID || soarIndividualData.flowId;
     }
 
     _.forEach(soarFlow, val => {
@@ -580,7 +582,10 @@ class SoarFlow extends Component {
     .then(data => {
       if (data.ret === 0) { //Success
         helper.showPopupMsg(t('txt-saved'));
-        //this.props.toggleContent('table', 'refresh');
+
+        this.setState({
+          currentFlowID: data.rt.flowId
+        });
       } else {
         if (data.rt.length === 0) {
           const errorMsg = t('soar.txt-error' + data.ret);
