@@ -1917,7 +1917,7 @@ class QueryOpenSave extends Component {
             {activeTab === 'hostList' && queryDataList &&
               Object.keys(queryDataList).map(this.displayHostQuery.bind(this, queryDataList))
             }
-            {!activeTab === 'hostList' && queryDataList && queryDataList.length > 0 &&
+            {activeTab !== 'hostList' && queryDataList && queryDataList.length > 0 &&
               queryDataList.map(this.displayFilterQuery)
             }
           </div>
