@@ -181,13 +181,13 @@ class AutoSettings extends Component {
               return {
                 ip: val2.target,
                 mask: val2.mask
-              }
+              };
             });
             networkTopology.networkTopoData.switch = _.map(val.switchInfo, val2 => {
               return {
                 ip: val2.host,
                 mask: val2.community
-              }
+              };
             });
             networkTopology.index = i;
             tempEdgeData.push(networkTopology);
@@ -451,13 +451,13 @@ class AutoSettings extends Component {
           return {
             target: val2.ip,
             mask: val2.mask
-          }
+          };
         }),
         switchInfo: _.map(val.networkTopoData.switch, val2 => {
           return {
             host: val2.ip,
             community: val2.mask
-          }
+          };
         })
       });
     })

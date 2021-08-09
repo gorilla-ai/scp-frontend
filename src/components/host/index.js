@@ -287,9 +287,10 @@ class HostController extends Component {
         fields: [],
         logsLocale: ''
       },
-      showFilter: true,
+      showFilter: false,
       openQueryOpen: false,
       saveQueryOpen: false,
+      notifyEmailData: [],
       queryModalType: '',
       queryData: {
         id: '',
@@ -645,7 +646,7 @@ class HostController extends Component {
           return {
             value: val,
             text: val
-          }
+          };
         });
 
         if (currentHostModule === 'device') {
@@ -808,13 +809,56 @@ class HostController extends Component {
     })
   }
   /**
+   * Build device search list format
+   * @method
+   * @param {object} filterData - filter data to be set
+   */
+  getDeviceSearchList = (list) => {
+    const searchList = _.map(list, val => {
+      return {
+        input: val
+      };
+    });
+
+    return searchList;
+  }
+  /**
    * Set filter data
    * @method
-   * @param {array.<object>} filterData - filter data to be set
+   * @param {object} filterData - filter data to be set
    */
   setFilterData = (filterData) => {
+    const {deviceSearch, deviceSearchList} = this.state;
+    let tempDeviceSearch = {...deviceSearch};
+    let tempDeviceSearchList = {...deviceSearchList};
+
+    Object.keys(filterData).map(val => {
+      const type = val.replace('Array', '');
+
+      if (type === 'hmdScanDistribution') {
+        if (filterData[type].primaryKeyValueArray.length > 0) {
+          tempDeviceSearch.scanInfo = this.getDeviceSearchList(filterData[type].primaryKeyValueArray);
+          tempDeviceSearchList.scanInfo = filterData[type].primaryKeyValueArray;
+        }
+      } else if (type === 'annotationObj') {
+        if (filterData[type].statusArray.length > 0) {
+          tempDeviceSearch.status = this.getDeviceSearchList(filterData[type].statusArray);
+          tempDeviceSearchList.status = filterData[type].statusArray;
+        }
+
+        if (filterData[type].annotationArray.length > 0) {
+          tempDeviceSearch.annotation = this.getDeviceSearchList(filterData[type].annotationArray);
+          tempDeviceSearchList.annotation = filterData[type].annotationArray;
+        }
+      } else {
+        tempDeviceSearch[type] = this.getDeviceSearchList(filterData[val]);
+        tempDeviceSearchList[type] = filterData[val];
+      }
+    });
+
     this.setState({
-      filterData
+      deviceSearch: tempDeviceSearch,
+      deviceSearchList: tempDeviceSearchList
     });
   }
   /**
@@ -828,13 +872,22 @@ class HostController extends Component {
     });
   }
   /**
+   * Set notify email data
+   * @method
+   * @param {object} queryData - query data to be set
+   */
+  setNotifyEmailData = (notifyEmailData) => {
+    this.setState({
+      notifyEmailData
+    });
+  }
+  /**
    * Display query menu modal dialog
    * @method
    * @returns QueryOpenSave component
    */
   queryDialog = () => {
-    const {activeTab, account, queryData, deviceSearchList, queryModalType} = this.state;
-    const {sessionRights} = this.context;
+    const {activeTab, account, queryData, deviceSearchList, queryModalType, notifyEmailData} = this.state;
 
     return (
       <QueryOpenSave
@@ -842,26 +895,23 @@ class HostController extends Component {
         type={queryModalType}
         account={account}
         queryData={queryData}
+        notifyEmailData={notifyEmailData}
         filterData={deviceSearchList}
         setFilterData={this.setFilterData}
         setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
         getSavedQuery={this.getSavedQuery}
         closeDialog={this.closeDialog} />
     )
   }
   /**
-   * Close modal dialog and reset data
+   * Close query modal dialog
    * @method
    */
   closeDialog = () => {
-    let tempQueryData = {...this.state.queryData};
-    tempQueryData.inputName = '';
-    tempQueryData.openFlag = false;
-
     this.setState({
       openQueryOpen: false,
-      saveQueryOpen: false,
-      queryData: tempQueryData
+      saveQueryOpen: false
     });
   }
   /**
@@ -1904,10 +1954,10 @@ class HostController extends Component {
    * @param {string} type - type of query menu ('open' or 'save')
    */
   openQuery = (type) => {
-    if (type === 'open') {
-      const {queryData} = this.state;
-      let tempQueryData = {...queryData};
+    const {queryData} = this.state;
+    let tempQueryData = {...queryData};
 
+    if (type === 'open') {
       if (queryData.list.length > 0) {
         tempQueryData.id = queryData.list[0].id;
         tempQueryData.name = queryData.list[0].name;
@@ -1920,8 +1970,12 @@ class HostController extends Component {
         queryData: tempQueryData
       });
     } else if (type === 'save') {
+      tempQueryData.inputName = '';
+      tempQueryData.openFlag = false;
+
       this.setState({
-        saveQueryOpen: true
+        saveQueryOpen: true,
+        queryData: tempQueryData
       });
     }
 
@@ -1992,7 +2046,13 @@ class HostController extends Component {
    * @method
    */
   clearFilter = () => {
+    let tempQueryData = {...this.state.queryData};
+    tempQueryData.displayId = '';
+    tempQueryData.displayName = '';
+    tempQueryData.openFlag = false;
+
     this.setState({
+      queryData: tempQueryData,
       deviceSearch: {
         ip: [{
           input: ''

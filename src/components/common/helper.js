@@ -97,7 +97,7 @@ const helper = {
     chartIntervalValue = chartIntervalList[0];
 
     chartIntervalList = _.map(chartIntervalList, val => {
-      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>;
+      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>
     });
 
     return {

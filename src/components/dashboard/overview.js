@@ -127,7 +127,7 @@ class DashboardOverview extends Component {
         fillColor: '#424242',
         color: '#303030',
         fillOpacity: 1
-      }
+      };
     });
 
     let countryData = {};
