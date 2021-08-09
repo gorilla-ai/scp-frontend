@@ -34,6 +34,7 @@ import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
 import HostFilter from './host-filter'
 import Pagination from '../common/pagination'
+import QueryOpenSave from '../common/query-open-save'
 import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
@@ -280,7 +281,29 @@ class HostController extends Component {
     this.state = {
       activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: ''
+      },
       showFilter: false,
+      openQueryOpen: false,
+      saveQueryOpen: false,
+      notifyEmailData: [],
+      queryModalType: '',
+      queryData: {
+        id: '',
+        name: '',
+        inputName: '',
+        displayId: '',
+        displayName: '',
+        list: [],
+        query: '',
+        formattedQuery: '',
+        emailList: [],
+        openFlag: false
+      },
       popOverAnchor: null,
       activeFilter: '',
       showLeftNav: true,
@@ -405,18 +428,47 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
-    this.setLeftNavData();
-    this.getFloorPlan();
-    this.getVansStatus();
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getSavedQuery();
+        this.setLeftNavData();
+        this.getFloorPlan();
+        this.getVansStatus();
+      });
+    }
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
       this.toggleContent('hostContent');
     }
+  }
+  /**
+   * Get and set the account saved query
+   * @method
+   */
+  getSavedQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, queryData} = this.state;
+
+    helper.getSavedQuery(baseUrl, account, queryData, 'host')
+    .then(data => {
+      if (!_.isEmpty(data)) {
+        this.setState({
+          queryData: data
+        });
+      }
+      return null;
+    });
   }
   /**
    * Set Left nav data
@@ -594,7 +646,7 @@ class HostController extends Component {
           return {
             value: val,
             text: val
-          }
+          };
         });
 
         if (currentHostModule === 'device') {
@@ -755,6 +807,112 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Build device search list format
+   * @method
+   * @param {object} filterData - filter data to be set
+   */
+  getDeviceSearchList = (list) => {
+    const searchList = _.map(list, val => {
+      return {
+        input: val
+      };
+    });
+
+    return searchList;
+  }
+  /**
+   * Set filter data
+   * @method
+   * @param {object} filterData - filter data to be set
+   */
+  setFilterData = (filterData) => {
+    const {deviceSearch, deviceSearchList} = this.state;
+    let tempDeviceSearch = {...deviceSearch};
+    let tempDeviceSearchList = {...deviceSearchList};
+
+    Object.keys(filterData).map(val => {
+      const type = val.replace('Array', '');
+
+      if (type === 'hmdScanDistribution') {
+        if (filterData[type].primaryKeyValueArray.length > 0) {
+          tempDeviceSearch.scanInfo = this.getDeviceSearchList(filterData[type].primaryKeyValueArray);
+          tempDeviceSearchList.scanInfo = filterData[type].primaryKeyValueArray;
+        }
+      } else if (type === 'annotationObj') {
+        if (filterData[type].statusArray.length > 0) {
+          tempDeviceSearch.status = this.getDeviceSearchList(filterData[type].statusArray);
+          tempDeviceSearchList.status = filterData[type].statusArray;
+        }
+
+        if (filterData[type].annotationArray.length > 0) {
+          tempDeviceSearch.annotation = this.getDeviceSearchList(filterData[type].annotationArray);
+          tempDeviceSearchList.annotation = filterData[type].annotationArray;
+        }
+      } else {
+        tempDeviceSearch[type] = this.getDeviceSearchList(filterData[val]);
+        tempDeviceSearchList[type] = filterData[val];
+      }
+    });
+
+    this.setState({
+      deviceSearch: tempDeviceSearch,
+      deviceSearchList: tempDeviceSearchList
+    });
+  }
+  /**
+   * Set query data
+   * @method
+   * @param {object} queryData - query data to be set
+   */
+  setQueryData = (queryData) => {
+    this.setState({
+      queryData
+    });
+  }
+  /**
+   * Set notify email data
+   * @method
+   * @param {object} queryData - query data to be set
+   */
+  setNotifyEmailData = (notifyEmailData) => {
+    this.setState({
+      notifyEmailData
+    });
+  }
+  /**
+   * Display query menu modal dialog
+   * @method
+   * @returns QueryOpenSave component
+   */
+  queryDialog = () => {
+    const {activeTab, account, queryData, deviceSearchList, queryModalType, notifyEmailData} = this.state;
+
+    return (
+      <QueryOpenSave
+        activeTab={activeTab}
+        type={queryModalType}
+        account={account}
+        queryData={queryData}
+        notifyEmailData={notifyEmailData}
+        filterData={deviceSearchList}
+        setFilterData={this.setFilterData}
+        setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
+        getSavedQuery={this.getSavedQuery}
+        closeDialog={this.closeDialog} />
+    )
+  }
+  /**
+   * Close query modal dialog
+   * @method
+   */
+  closeDialog = () => {
+    this.setState({
+      openQueryOpen: false,
+      saveQueryOpen: false
+    });
   }
   /**
    * Get and set vans charts data
@@ -1791,22 +1949,63 @@ class HostController extends Component {
     )
   }
   /**
+   * Toggle query menu on/off
+   * @method
+   * @param {string} type - type of query menu ('open' or 'save')
+   */
+  openQuery = (type) => {
+    const {queryData} = this.state;
+    let tempQueryData = {...queryData};
+
+    if (type === 'open') {
+      if (queryData.list.length > 0) {
+        tempQueryData.id = queryData.list[0].id;
+        tempQueryData.name = queryData.list[0].name;
+        tempQueryData.query = queryData.list[0].queryText;
+        tempQueryData.emailList = queryData.list[0].emailList;
+      }
+
+      this.setState({
+        openQueryOpen: true,
+        queryData: tempQueryData
+      });
+    } else if (type === 'save') {
+      tempQueryData.inputName = '';
+      tempQueryData.openFlag = false;
+
+      this.setState({
+        saveQueryOpen: true,
+        queryData: tempQueryData
+      });
+    }
+
+    this.setState({
+      queryModalType: type
+    });
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
+    const {openQuery, queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
     };
     const defaultItemValue = activeFilter === 'status' ? {} : '';
+    const filterTitle = queryData.displayName || t('txt-filter');
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
-        <div className='header-text'>{t('txt-filter')}</div>
+        <i id='queryCloseBtn' className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+        <div id='queryHeaderText' className='header-text'>{filterTitle}</div>
+        <div className='button-group open-query'>
+          <Button id='openQueryBtn' variant='outlined' color='primary' className='open-query' onClick={this.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</Button>
+          <Button id='saveQueryBtn' variant='outlined' color='primary' className='save-query' onClick={this.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</Button>
+        </div>
+
         <div className='filter-section config host'>
           <PopoverMaterial
             id='hostFilterPopover'
@@ -1847,7 +2046,13 @@ class HostController extends Component {
    * @method
    */
   clearFilter = () => {
+    let tempQueryData = {...this.state.queryData};
+    tempQueryData.displayId = '';
+    tempQueryData.displayName = '';
+    tempQueryData.openFlag = false;
+
     this.setState({
+      queryData: tempQueryData,
       deviceSearch: {
         ip: [{
           input: ''
@@ -3142,6 +3347,8 @@ class HostController extends Component {
       activeContent,
       showLeftNav,
       showFilter,
+      openQueryOpen,
+      saveQueryOpen,
       datetime,
       assessmentDatetime,
       yaraRuleOpen,
@@ -3185,6 +3392,14 @@ class HostController extends Component {
 
     return (
       <div>
+        {openQueryOpen &&
+          this.queryDialog()
+        }
+
+        {saveQueryOpen &&
+          this.queryDialog()
+        }
+
         {yaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}

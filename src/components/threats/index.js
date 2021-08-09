@@ -131,16 +131,15 @@ const TABLE_CHARTS_LIST = [
   }
 ];
 
-const INCIDENT_STATUS_ALL = 0
-const INCIDENT_STATUS_UNREVIEWED = 1
-const INCIDENT_STATUS_REVIEWED = 2
-const INCIDENT_STATUS_CLOSED = 3
-const INCIDENT_STATUS_SUBMITTED = 4
-const INCIDENT_STATUS_DELETED = 5
-const INCIDENT_STATUS_ANALYZED = 6
-const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
-const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
-
+const INCIDENT_STATUS_ALL = 0;
+const INCIDENT_STATUS_UNREVIEWED = 1;
+const INCIDENT_STATUS_REVIEWED = 2;
+const INCIDENT_STATUS_CLOSED = 3;
+const INCIDENT_STATUS_SUBMITTED = 4;
+const INCIDENT_STATUS_DELETED = 5;
+const INCIDENT_STATUS_ANALYZED = 6;
+const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7;
+const INCIDENT_STATUS_EXECUTOR_CLOSE = 8;
 
 let t = null;
 let f = null;
@@ -223,7 +222,7 @@ class ThreatsController extends Component {
         condition: 'must',
         query: ''
       }],
-      edgeFilterData:[],
+      edgeFilterData: [],
       edgeCheckedList: [],
       popOverAnchor: null,
       taskServiceList: {
@@ -253,14 +252,14 @@ class ThreatsController extends Component {
           field: '_eventDttm_',
           desc: true
         },
-        trackObj:{},
+        trackObj: {},
         totalCount: 0,
         currentPage: 0,
         oldPage: 1,
         pageSize: 10000
       },
-      allSelectTrack:false,
-      allSelectThreat:false,
+      allSelectTrack: false,
+      allSelectThreat: false,
       //..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
@@ -286,11 +285,11 @@ class ThreatsController extends Component {
         formattedQuery: '',
         openFlag: false
       },
-      tableType:'list',
-      threatsList:[],
-      originalThreatsList:[],
-      cancelThreatsList:[],
-      incidentAnchor:null,
+      tableType: 'list',
+      threatsList: [],
+      originalThreatsList: [],
+      cancelThreatsList: [],
+      incidentAnchor: null,
       contextAnchor: null,
       currentQueryValue: '',
       notifyEmailData: [],
@@ -314,7 +313,7 @@ class ThreatsController extends Component {
         currentLength: ''
       },
       alertData: {},
-      incident:{
+      incident: {
         info: {
           status: 1,
           socType: 1,
@@ -325,7 +324,7 @@ class ThreatsController extends Component {
       alertPieData: {},
       alertTableData: {},
       alertChartsList: [],
-      accountType:constants.soc.LIMIT_ACCOUNT
+      accountType: constants.soc.LIMIT_ACCOUNT
     };
 
     this.ah = getInstance('chewbacca');
@@ -3074,28 +3073,27 @@ class ThreatsController extends Component {
    * @method
    * @returns QueryOpenSave component
    */
-
   queryDialog = () => {
     const {activeTab, account, filterData, queryData, queryDataPublic, queryModalType, notifyEmailData} = this.state;
     const {sessionRights} = this.context;
-    let moduleWithSOC = !!sessionRights.Module_Soc
+    const moduleWithSOC = !!sessionRights.Module_Soc;
 
     return (
-        <QueryOpenSave
-            activeTab={activeTab}
-            type={queryModalType}
-            moduleWithSOC={moduleWithSOC}
-            account={account}
-            filterData={filterData}
-            queryData={queryData}
-            queryDataPublic={queryDataPublic}
-            notifyEmailData={notifyEmailData}
-            setFilterData={this.setFilterData}
-            setQueryData={this.setQueryData}
-            setNotifyEmailData={this.setNotifyEmailData}
-            getSavedQuery={this.getSavedQuery}
-            getPublicSavedQuery={this.getPublicSavedQuery}
-            closeDialog={this.closeDialog}/>
+      <QueryOpenSave
+        activeTab={activeTab}
+        type={queryModalType}
+        moduleWithSOC={moduleWithSOC}
+        account={account}
+        filterData={filterData}
+        queryData={queryData}
+        queryDataPublic={queryDataPublic}
+        notifyEmailData={notifyEmailData}
+        setFilterData={this.setFilterData}
+        setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
+        getSavedQuery={this.getSavedQuery}
+        getPublicSavedQuery={this.getPublicSavedQuery}
+        closeDialog={this.closeDialog} />
     )
   }
   /**

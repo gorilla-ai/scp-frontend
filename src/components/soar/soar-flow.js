@@ -634,11 +634,11 @@ class SoarFlow extends Component {
         return {
           ...val,
           type: event.target.value
-        }
+        };
       } else {
         return {
           ...val
-        }
+        };
       }
     });
 
@@ -658,11 +658,11 @@ class SoarFlow extends Component {
         return {
           ...val,
           animated: event.target.checked
-        }
+        };
       } else {
         return {
           ...val
-        }
+        };
       }
     });
 

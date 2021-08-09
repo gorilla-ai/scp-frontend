@@ -737,7 +737,7 @@ class Syslog extends Component {
           return {
             value: key,
             text: key
-          }
+          };
         });
 
         this.setState({
@@ -778,7 +778,7 @@ class Syslog extends Component {
             return {
               value: key,
               text: key
-            }
+            };
           });
         })
 
@@ -823,7 +823,7 @@ class Syslog extends Component {
     }
 
     chartIntervalList = _.map(chartIntervalList, val => {
-      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>;
+      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>
     });
 
     this.setState({
@@ -1003,7 +1003,7 @@ class Syslog extends Component {
         input: val.input,
         pattern: val.pattern,
         relationships: JSON.stringify(val.relationships)
-      }
+      };
     });
 
     if (syslogPatternConfig.id) { //Update existing pattern

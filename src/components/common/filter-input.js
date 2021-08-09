@@ -80,7 +80,7 @@ FilterInput.propTypes = {
   activeTab: PropTypes.string.isRequired,
   filterData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired,
-  setFilterData: PropTypes.func.isRequired
+  setFilterData: PropTypes.func
 };
 
 export default FilterInput;

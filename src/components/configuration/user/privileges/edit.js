@@ -113,7 +113,7 @@ class PrivilegeEdit extends Component {
           return {
             value: val.permitid,
             text: this.getLocaleName(val.dispname)
-          }
+          };
         });
 
         this.setState({

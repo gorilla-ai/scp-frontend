@@ -97,7 +97,7 @@ const helper = {
     chartIntervalValue = chartIntervalList[0];
 
     chartIntervalList = _.map(chartIntervalList, val => {
-      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>;
+      return <ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}</ToggleButton>
     });
 
     return {
@@ -388,15 +388,19 @@ const helper = {
             tempQueryData.name = data[0].name;
             tempQueryData.query = {};
 
-            _.forEach(data[0].queryText.filter, val => {
-              let formattedValue = val.condition.toLowerCase();
-              formattedValue = formattedValue.replace(' ', '_');
+            if (type === 'host') {
+              formattedQueryText = data[0].queryText;
+            } else {
+              _.forEach(data[0].queryText.filter, val => {
+                let formattedValue = val.condition.toLowerCase();
+                formattedValue = formattedValue.replace(' ', '_');
 
-              formattedQueryText.push({
-                condition: formattedValue,
-                query: val.query.trim()
-              });
-            })
+                formattedQueryText.push({
+                  condition: formattedValue,
+                  query: val.query.trim()
+                });
+              })
+            }
 
             tempQueryData.query.filter = formattedQueryText;
 

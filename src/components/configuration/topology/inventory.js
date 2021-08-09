@@ -2794,7 +2794,7 @@ class NetworkInventory extends Component {
             seatUUID: val.seatUUID,
             ipDeviceUUID: val.ipDeviceUUID,
             ownerUUID: ownerUUID || addIP.ownerUUID
-          }
+          };
         })
       };
     }

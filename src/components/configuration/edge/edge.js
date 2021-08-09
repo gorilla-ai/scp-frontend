@@ -668,7 +668,7 @@ class Edge extends Component {
       tempEdge.info.edgeGroupList = _.map(edge.info.edgeGroupList, val => {
         return {
           value: val
-        }
+        };
       });
 
       this.setState({
@@ -1368,7 +1368,7 @@ class Edge extends Component {
                   className='combo-box checkboxes-tags groups'
                   multiple
                   value={edge.info.edgeGroupList}
-                  options={_.map(allGroupList, (val) => { return { value: val }})}
+                  options={_.map(allGroupList, (val) => { return { value: val }; })}
                   getOptionLabel={(option) => option.value}
                   disableCloseOnSelect
                   noOptionsText={t('txt-notFound')}
@@ -1481,7 +1481,7 @@ class Edge extends Component {
               className='combo-box checkboxes-tags'
               multiple
               value={edgeSearch.groups}
-              options={_.map(allGroupList, (val) => { return { value: val }})}
+              options={_.map(allGroupList, (val) => { return { value: val }; })}
               getOptionLabel={(option) => option.value}
               disableCloseOnSelect
               noOptionsText={t('txt-notFound')}

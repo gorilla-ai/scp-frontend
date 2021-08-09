@@ -280,7 +280,7 @@ class EsManage extends Component {
         const importList = _.map(data.folderList, val => {
           return {
             value: val.replace(/\./g, '-')
-          }
+          };
         });
 
         this.setState({
