@@ -347,7 +347,7 @@ class AlertDetails extends Component {
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/v2/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
         type: 'GET'
       }
     ];
