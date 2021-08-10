@@ -102,7 +102,7 @@ class NetworkInventory extends Component {
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         ipListArr: [],
         ipDeviceUUID: '',
         sort: {
@@ -869,9 +869,9 @@ class NetworkInventory extends Component {
           return null;
         }
 
-        if (ipData.counts === 0) {
+        if (ipData.rows.length === 0) {
           tempDeviceData.dataContent = [];
-          helper.showPopupMsg(t('txt-notFound'));
+          tempDeviceData.totalCount = 0;
 
           this.setState({
             deviceData: tempDeviceData
@@ -885,7 +885,6 @@ class NetworkInventory extends Component {
             _menu: true
           };
         });
-
         tempDeviceData.totalCount = ipData.counts;
         tempDeviceData.currentPage = page;
 

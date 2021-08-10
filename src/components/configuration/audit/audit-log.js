@@ -45,7 +45,7 @@ class AuditLog extends Component {
       audit: {
         dataFieldsArr: ['createDttm', 'message'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'createDttm',
           desc: true
@@ -92,12 +92,18 @@ class AuditLog extends Component {
     })
     .then(data => {
       if (data) {
+        let tempAudit = {...audit};
+
         if (!data.rows || data.rows.length === 0) {
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
+          tempAudit.dataContent = [];
+          tempAudit.totalCount = 0;
+
+          this.setState({
+            audit: tempAudit
+          });
+          return null;
         }
 
-        let tempAudit = {...audit};
         tempAudit.totalCount = data.counts;
         tempAudit.currentPage = page;
         tempAudit.dataContent = _.map(data.rows, val => {
@@ -106,7 +112,6 @@ class AuditLog extends Component {
             message: val.content.message
           };
         });
-
         tempAudit.dataFields = _.map(audit.dataFieldsArr, val => {
           return {
             name: val,

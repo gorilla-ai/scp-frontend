@@ -38,7 +38,7 @@ class Roles extends Component {
       userPrivileges: {
         dataFieldsArr: ['_menu', 'name', 'permits'],
         dataFields: [],
-        dataContent: []
+        dataContent: null
       },
       contextAnchor: null,
       currentRolesData: {}
@@ -68,8 +68,17 @@ class Roles extends Component {
     .then(data => {
       if (data) {
         let tempUserPrivileges = {...userPrivileges};
-        tempUserPrivileges.dataContent = data;
 
+        if (data.length === 0) {
+          tempUserPrivileges.dataContent = [];
+
+          this.setState({
+            userPrivileges: tempUserPrivileges
+          });
+          return null;
+        }
+
+        tempUserPrivileges.dataContent = data;
         tempUserPrivileges.dataFields = _.map(userPrivileges.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,

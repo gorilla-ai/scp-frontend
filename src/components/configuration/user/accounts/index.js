@@ -47,7 +47,7 @@ class AccountList extends Component {
       userAccount: {
         dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'account',
           desc: false
@@ -109,10 +109,20 @@ class AccountList extends Component {
     .then(data => {
       if (data) {
         let tempUserAccount = {...userAccount};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempUserAccount.dataContent = [];
+          tempUserAccount.totalCount = 0;
+
+          this.setState({
+            userAccount: tempUserAccount
+          });
+          return null;
+        }
+
         tempUserAccount.dataContent = data.rows;
         tempUserAccount.totalCount = data.counts;
         tempUserAccount.currentPage = page;
-
         tempUserAccount.dataFields = _.map(userAccount.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,

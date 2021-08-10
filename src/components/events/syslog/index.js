@@ -724,21 +724,15 @@ class SyslogController extends Component {
         const currentLength = dataObj.rows.length < syslogData.pageSize ? dataObj.rows.length : syslogData.pageSize;
         let eventHistogram = {};
 
-        if (_.isEmpty(data[0]) || dataObj.counts === 0) {
-          helper.showPopupMsg(t('txt-notFound', ''));
-
-          tempSyslogData.dataFields = [];
+        if (_.isEmpty(data[0]) || dataObj.rows.length === 0) {
           tempSyslogData.dataContent = [];
           tempSyslogData.totalCount = 0;
-          tempSyslogData.currentPage = 1;
-          tempSyslogData.oldPage = 1;
-          tempSyslogData.pageSize = 20;
 
           this.setState({
             syslogData: tempSyslogData,
-            eventHistogram: {}
+            eventHistogram
           });
-          return;
+          return null;
         }
 
         const tempArray = dataObj.rows.map(tempData => {

@@ -80,7 +80,7 @@ class Edge extends Component {
       edge: {
         dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'agentName',
           desc: false
@@ -315,10 +315,20 @@ class Edge extends Component {
     .then(data => {
       if (data) {
         let tempEdge = {...edge};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempEdge.dataContent = [];
+          tempEdge.totalCount = 0;
+
+          this.setState({
+            edge: tempEdge
+          });
+          return null;
+        }
+
         tempEdge.dataContent = data.rows;
         tempEdge.totalCount = data.counts;
         tempEdge.currentPage = page;
-
         tempEdge.dataFields = _.map(edge.dataFieldsArr, val => {
           return {
             name: val,

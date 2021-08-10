@@ -58,7 +58,7 @@ class EsManage extends Component {
       es: {
         dataFieldsArr: ['date', 'status', 'docCount', 'storeSize', 'priStoreSize', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'date',
           desc: true
@@ -200,19 +200,23 @@ class EsManage extends Component {
         }
 
         let tempEs = {...es};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempEs.dataContent = [];
+          tempEs.totalCount = 0;
+
+          this.setState({
+            es: tempEs
+          });
+          return null;
+        }
+
         tempEs.dataContent = data.rows;
         tempEs.totalCount = data.counts;
         tempEs.currentPage = page;
-
-        if (!data.rows || data.rows.length === 0) {
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
-        }
-
         const statusList = _.map(data.statusList, (val, i) => {
           return <MenuItem key={i} value={val.toLowerCase()}>{val}</MenuItem>
         });
-
         tempEs.dataFields = _.map(es.dataFieldsArr, val => {
           return {
             name: val,

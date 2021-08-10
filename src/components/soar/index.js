@@ -214,16 +214,21 @@ class SoarController extends Component {
           data = data[0];
         }
 
-        if (data.rules.length === 0) {
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
+        let tempSoarData = {...soarData};
+
+        if (!data.rules || data.rules.length === 0) {
+          tempSoarData.dataContent = [];
+          tempSoarData.totalCount = 0;
+
+          this.setState({
+            soarData: tempSoarData
+          });
+          return null;
         }
 
-        let tempSoarData = {...soarData};
         tempSoarData.dataContent = data.rules;
         tempSoarData.totalCount = data.count;
         tempSoarData.currentPage = page;
-
         tempSoarData.dataFields = _.map(soarData.dataFieldsArr, val => {
           return {
             name: val,

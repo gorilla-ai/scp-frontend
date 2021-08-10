@@ -33,7 +33,7 @@ class Status extends Component {
       serviceStatus: {
         dataFieldsArr: ['status', 'serviceName'],
         dataFields: [],
-        dataContent: []
+        dataContent: null
       }
     };
 
@@ -71,8 +71,17 @@ class Status extends Component {
       if (data) {
         const lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
         let tempServiceStatus = {...serviceStatus};
-        tempServiceStatus.dataContent = data.monitor;
 
+        if (!data.monitor || data.monitor.length === 0) {
+          tempServiceStatus.dataContent = [];
+
+          this.setState({
+            serviceStatus: tempServiceStatus
+          });
+          return null;
+        }
+
+        tempServiceStatus.dataContent = data.monitor;
         tempServiceStatus.dataFields = _.map(serviceStatus.dataFieldsArr, val => {
           return {
             name: val,

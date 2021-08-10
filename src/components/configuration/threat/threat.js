@@ -70,7 +70,7 @@ class ThreatIntelligence extends Component {
       threats: {
         dataFieldsArr: ['threatText', 'threatType', 'dataSourceType', 'createDttm', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'threatText',
           desc: false
@@ -963,6 +963,17 @@ class ThreatIntelligence extends Component {
         }
 
         let tempThreats = {...threats};
+
+        if (data[threatsSearch.type].rows.length === 0) {
+          tempThreats.dataContent = [];
+          tempThreats.totalCount = 0;
+
+          this.setState({
+            threats: tempThreats
+          });
+          return null;
+        }
+
         tempThreats.dataContent = data[threatsSearch.type].rows;
         tempThreats.totalCount = data[threatsSearch.type].counts;
         tempThreats.currentPage = page;

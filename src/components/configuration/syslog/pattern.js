@@ -63,7 +63,7 @@ class Pattern extends Component {
       pattern: {
         dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'patternName',
           desc: false
@@ -152,15 +152,20 @@ class Pattern extends Component {
     .then(data => {
       if (data) {
         let tempPattern = {...pattern};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempPattern.dataContent = [];
+          tempPattern.totalCount = 0;
+
+          this.setState({
+            pattern: tempPattern
+          });
+          return null;
+        }
+
         tempPattern.dataContent = data.rows;
         tempPattern.totalCount = data.counts;
         tempPattern.currentPage = page;
-
-        if (data.length === 0) {
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
-        }
-
         tempPattern.dataFields = _.map(pattern.dataFieldsArr, val => {
           return {
             name: val,

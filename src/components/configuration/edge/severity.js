@@ -58,7 +58,7 @@ class Severity extends Component {
       severity: {
         dataFieldsArr: ['dataSourceType', 'severityLevel', 'nickname', 'description', 'updateDttm', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'dataSourceType',
           desc: false
@@ -128,6 +128,17 @@ class Severity extends Component {
     .then(data => {
       if (data) {
         let tempSeverity = {...severity};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempSeverity.dataContent = [];
+          tempSeverity.totalCount = 0;
+
+          this.setState({
+            severity: tempSeverity
+          });
+          return null;
+        }
+
         tempSeverity.dataContent = data.rows;
         tempSeverity.totalCount = data.counts;
         tempSeverity.currentPage = page;
