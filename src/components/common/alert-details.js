@@ -1816,6 +1816,7 @@ class AlertDetails extends Component {
 
     return (
       <PrivateDetails
+        from='alert'
         alertInfo={alertInfo[ipType]}
         topoInfo={alertInfo[ipType].topology}
         picPath={picPath}

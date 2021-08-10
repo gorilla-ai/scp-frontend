@@ -205,6 +205,7 @@
   "txt-retriggerTask": "重新發送任務",
   "txt-specialCharacterError": "檔名不容許特殊字元",
   "txt-palette": "調色盤",
+  "txt-viewEdit": "查看/編輯",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -474,7 +475,7 @@
     "txt-queryEvents": "查看詳細資料",
     "txt-queryMoreEvents": "檢查其它告警紀錄",
     "txt-queryMoreLogs": "檢查Logs紀錄",
-    "txt-searthVirustotal": "查詢 Virustotal",
+    "txt-searthVirustotal": "查詢Virustotal",
     "txt-downloadPCAP": "$t(txt-download)PCAP",
     "txt-downloadFile": "下載惡意程式",
     "txt-ipInfo": "IP資訊",

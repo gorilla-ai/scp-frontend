@@ -178,6 +178,7 @@ class HostAnalysis extends Component {
     return (
       <div className='privateIp-info srcIp-content'>
         <PrivateDetails
+          from='host'
           alertInfo={alertInfo}
           topoInfo={hostData}
           picPath={picPath}

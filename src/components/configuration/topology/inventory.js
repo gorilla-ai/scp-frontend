@@ -225,8 +225,20 @@ class NetworkInventory extends Component {
     this.getOwnerData();
     this.getTitleData();
 
-    if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
+    if (_.isEmpty(inventoryParam)) {
       this.getDeviceData();
+    } else {
+      if (inventoryParam.type === 'search') { //Take care of the redirect page
+        let tempDeviceSearch = {...this.state.deviceSearch};
+        tempDeviceSearch.ip = inventoryParam.ip
+
+        this.setState({
+          showFilter: true,
+          deviceSearch: tempDeviceSearch
+        }, () => {
+          this.getDeviceData();
+        });
+      }
     }
   }
   componentWillReceiveProps(nextProps) {
@@ -498,7 +510,6 @@ class NetworkInventory extends Component {
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
-    const {deviceSearch} = this.state;
     const mapAreaUUID = areaUUID.trim();
 
     this.ah.one({
@@ -1997,7 +2008,7 @@ class NetworkInventory extends Component {
           selectedTreeID: ''
         });
 
-        if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
+        if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && inventoryParam.type === 'search')) {
           this.getFloorPlan();
         }
 
@@ -2034,7 +2045,7 @@ class NetworkInventory extends Component {
     }, () => {
       const inventoryParam = queryString.parse(location.search);
 
-      if (!_.isEmpty(inventoryParam) && inventoryParam.ip) {
+      if (!_.isEmpty(inventoryParam) && (inventoryParam.type === 'add' || inventoryParam.type === 'edit')) {
         if (tempActiveContent === 'dataInfo') {
           this.getOwnerSeat(currentDeviceData);
         }
@@ -4202,6 +4213,7 @@ class NetworkInventory extends Component {
                   </div>
 
                   <PrivateDetails
+                    from='inventory'
                     alertInfo={ownerInfo}
                     topoInfo={currentDeviceData}
                     picPath={picPath}

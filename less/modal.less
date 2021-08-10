@@ -537,7 +537,7 @@ html[data-theme='dark'] {
 /* configuration/common/alert-details */
 /* host/index */
 #dashboardModalDialog-content,
-#hostModalDialog-content, {
+#hostModalDialog-content {
   #g-progress-container {
     .fg-loading-2 {
       display: block;
@@ -1095,6 +1095,9 @@ html[data-theme='dark'] {
       color: var(--primaryTextColor);
       width: 100%;
       background-color: var(--contentBackground);
+      button {
+        padding: .3em .5em;
+      }
       .options-buttons {
         overflow: hidden;
         margin-bottom: 10px;
@@ -1306,7 +1309,6 @@ html[data-theme='dark'] {
     }
   }
 }
-
 #dashboardModalDialog-content {
   .scan-info {
     .info-content {
@@ -1314,7 +1316,6 @@ html[data-theme='dark'] {
     }
   }
 }
-
 #hostModalDialog-content {
   .main-content {
     & > .nav ul li.header {

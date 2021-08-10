@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button'
 
 import Gis from 'react-gis/build/src/components'
 
+import {BaseDataContext} from './context'
 import helper from './helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -159,14 +160,28 @@ class PrivateDetails extends Component {
       )
     }
   }
+  /**
+   * Redirect to Config inventory page
+   * @param {string} ip - device IP
+   * @method
+   */
+  redirectInventory = (ip) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=search&lng=${language}`;
+
+    window.open(url, '_blank');
+  }
   render() {
-    const {topoInfo, picPath} = this.props;
+    const {from, topoInfo, picPath} = this.props;
     const {ip, owner, areaName, hostInfo, ownerInfo} = this.state;
 
     return (
       <div className='private'>
         <section>
           <div className='header'>{t('alert.txt-ipInfo')}</div>
+          {(from === 'host' || from === 'alert') && ip &&
+            <Button variant='contained' color='primary' className='btn trigger' onClick={this.redirectInventory.bind(this, ip.ip)}>{t('txt-viewEdit')}</Button>
+          }
           <table className='c-table main-table ip'>
             <tbody>
               {IP_INFO.map(this.displayIpInfo.bind(this, ip))}
@@ -234,7 +249,10 @@ class PrivateDetails extends Component {
   }
 }
 
+PrivateDetails.contextType = BaseDataContext;
+
 PrivateDetails.propTypes = {
+  from: PropTypes.string.isRequired,
   alertInfo: PropTypes.object.isRequired,
   topoInfo: PropTypes.object.isRequired,
   picPath: PropTypes.string.isRequired,
