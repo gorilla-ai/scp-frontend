@@ -422,7 +422,6 @@ class ThreatsController extends Component {
       let tempSearchInput = {...this.state.searchInput};
       let query = '';
 
-
       if (type === 'frmotp') {
         query = '"FRMOTP Fail"';
       } else if (type === 'intrusion') {
@@ -443,14 +442,15 @@ class ThreatsController extends Component {
       });
     }
 
-   if(!_.includes(session.roles, constants.soc.SOC_Analyzer) || !_.includes(session.roles, constants.soc.SOC_Executor) ){
-     this.checkAccountSocPrivType()
-   }else{
-     this.setState({
-       accountType: constants.soc.NONE_LIMIT_ACCOUNT
-     })
-   }
-
+    if (_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor)) {
+      this.setState({
+        accountType: constants.soc.NONE_LIMIT_ACCOUNT
+      });
+    } else {
+      this.setState({
+        accountType: constants.soc.LIMIT_ACCOUNT
+      });
+    }
   }
   checkAccountSocPrivType = () => {
     const {baseUrl, session} = this.context;
