@@ -443,11 +443,13 @@ class ThreatsController extends Component {
       });
     }
 
-   if(!_.includes(session.roles, constants.soc.SOC_Analyzer) || !_.includes(session.roles, constants.soc.SOC_Executor) ){
-     this.checkAccountSocPrivType()
-   }else{
+   if(_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor) ){
      this.setState({
        accountType: constants.soc.NONE_LIMIT_ACCOUNT
+     })
+   }else{
+     this.setState({
+       accountType: constants.soc.LIMIT_ACCOUNT
      })
    }
 
