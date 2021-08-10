@@ -719,11 +719,48 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
-        let severityList = [];
-        let hmdStatusList = [];
-        let scanStatusList = [];
-        let tempHostInfo = {...hostInfo};
+      let severityList = [];
+      let hmdStatusList = [];
+      let scanStatusList = [];
+      let tempHostInfo = {...hostInfo};
+
+      if (_.isEmpty(data)) { //Take care empty data case
+        tempHostInfo.dataContent = [];
+        tempHostInfo.totalCount = 0;
+
+        _.forEach(SEVERITY_TYPE, val => {
+          severityList.push({
+            value: val,
+            text: <span><i className={'fg fg-recode ' + val.toLowerCase()}></i>{val + ' (0)'}</span>
+          });
+        })
+
+        _.forEach(HMD_STATUS_LIST, val => {
+          hmdStatusList.push({
+            text: t('host.txt-' + val) + ' (0)',
+            value: val
+          });
+        })
+
+        _.forEach(HMD_LIST, val => {
+          scanStatusList.push({
+            text: val.name + ' (0)',
+            value: val.value
+          });
+        });
+
+        this.setState({
+          severityList,
+          hmdStatusList,
+          scanStatusList,
+          departmentList: [],
+          privateMaskedIPtree: {
+            children: []
+          },
+          hostInfo: tempHostInfo
+        });
+        helper.showPopupMsg(t('txt-notFound'));
+      } else {
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
 

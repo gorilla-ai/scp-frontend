@@ -539,18 +539,14 @@ class Notifications extends Component {
       dataParams += '&receipts=' + val;
     })
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.rt) {
+      if (data) {
         helper.showPopupMsg(t('notifications.txt-sendSuccess'));
         this.closeDialog();
-      } else {
-        this.setState({
-          info: data.message
-        });
       }
       return null;
     })

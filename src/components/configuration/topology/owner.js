@@ -54,7 +54,7 @@ class NetworkOwner extends Component {
       owner: {
         dataFieldsArr: ['ownerID', 'ownerName', 'departmentName', 'titleName', '_menu'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'ownerID',
           desc: false
@@ -229,48 +229,58 @@ class NetworkOwner extends Component {
     .then(data => {
       if (data) {
         let tempOwner = {...owner};
-        tempOwner.dataContent = data.rows;
-        tempOwner.totalCount = data.counts;
-        tempOwner.currentPage = page;
-        tempOwner.dataFields = _.map(owner.dataFieldsArr, val => {
-          return {
-            name: val,
-            label: val === '_menu' ? ' ' : t(`ownerFields.${val}`),
-            options: {
-              sort: this.checkSortable(val),
-              viewColumns: val === '_menu' ? false : true,
-              customBodyRenderLite: (dataIndex) => {
-                const allValue = tempOwner.dataContent[dataIndex];
-                const value = tempOwner.dataContent[dataIndex][val];
 
-                if (val === '_menu') {
-                  return (
-                    <div className='table-menu menu active'>
-                      <i className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}></i>
-                    </div>
-                  )
-                }
-                return value;
-              }
-            }
-          };
-        });
+        if (data.rows.length === 0) {
+          tempOwner.dataContent = [];
+          tempOwner.totalCount = data.counts;
 
-        let ownerListArr = [];
-
-        _.forEach(data.rows, val => {
-          ownerListArr.push({
-            value: val.ownerName,
-            text: val.ownerName
+          this.setState({
+            owner: tempOwner
           });
-        })
+        } else {
+          tempOwner.dataContent = data.rows;
+          tempOwner.totalCount = data.counts;
+          tempOwner.currentPage = page;
+          tempOwner.dataFields = _.map(owner.dataFieldsArr, val => {
+            return {
+              name: val,
+              label: val === '_menu' ? ' ' : t(`ownerFields.${val}`),
+              options: {
+                sort: this.checkSortable(val),
+                viewColumns: val === '_menu' ? false : true,
+                customBodyRenderLite: (dataIndex) => {
+                  const allValue = tempOwner.dataContent[dataIndex];
+                  const value = tempOwner.dataContent[dataIndex][val];
 
-        tempOwner.ownerListArr = ownerListArr;
+                  if (val === '_menu') {
+                    return (
+                      <div className='table-menu menu active'>
+                        <i className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
+                        <i className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}></i>
+                      </div>
+                    )
+                  }
+                  return value;
+                }
+              }
+            };
+          });
 
-        this.setState({
-          owner: tempOwner
-        });
+          let ownerListArr = [];
+
+          _.forEach(data.rows, val => {
+            ownerListArr.push({
+              value: val.ownerName,
+              text: val.ownerName
+            });
+          })
+
+          tempOwner.ownerListArr = ownerListArr;
+
+          this.setState({
+            owner: tempOwner
+          });
+        }
       }
       return null;
     })

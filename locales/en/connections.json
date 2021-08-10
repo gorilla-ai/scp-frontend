@@ -203,6 +203,7 @@
   "txt-downloadTask": "Downlaod",
   "txt-deleteTask": "Delete Task",
   "txt-retriggerTask": "Retrigger Task",
+  "txt-specialCharacterError": "Special character is not allowed for file name",
   "txt-palette": "Palette",
 
   "txt-dashboard": "Dashboard",

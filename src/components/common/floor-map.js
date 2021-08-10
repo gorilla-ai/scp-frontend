@@ -180,8 +180,14 @@ class FloorMap extends Component {
    * @param {string | object} value - input data to be set
    */
   handleMapChange = (value) => {
+    const specialCharacterCheck = /[!@#$%^&*+\=\[\]{};':"\\|,<>\/?~]/;
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.map = value;
+
+    if (value && specialCharacterCheck.test(value.name)) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-specialCharacterError'));
+      return;
+    }
 
     this.setState({
       previewFloorMap: value ? URL.createObjectURL(value) : '',

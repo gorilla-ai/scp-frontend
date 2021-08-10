@@ -203,6 +203,7 @@
   "txt-downloadTask": "下載",
   "txt-deleteTask": "刪除任務",
   "txt-retriggerTask": "重新發送任務",
+  "txt-specialCharacterError": "檔名不容許特殊字元",
   "txt-palette": "調色盤",
 
   "txt-dashboard": "Dashboard",
