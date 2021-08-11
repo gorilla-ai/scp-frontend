@@ -153,10 +153,18 @@ class NetworkInventory extends Component {
       addIP: {},
       addSeat: {
         selectedSeatUUID: '',
-        name: '',
+        seatName: '',
         coordX: '',
         coordY: ''
       },
+      editSeat: {
+        seatUUID: '',
+        areaUUID: '',
+        seatName: '',
+        coordX: '',
+        coordY: ''
+      },
+      addSeatType: '', //'add' or 'edit'
       ownerType: 'existing', //'existing' or 'new'
       ownerIDduplicated: false,
       previewOwnerPic: '',
@@ -559,8 +567,10 @@ class NetworkInventory extends Component {
    * Get and set seat data with or without device
    * @method
    * @param {string} areaUUID - area UUID
+   * @param {string} [options] - option for 'refreshSeat'
+   * @param {string} [seatUUID] - seat UUID
    */
-  getDeviceSeatData = (areaUUID) => {
+  getDeviceSeatData = (areaUUID, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.context;
     const {activeTab, deviceSearch, showAllSeats} = this.state;
     const area = areaUUID || this.state.floorPlan.currentAreaUUID;
@@ -640,6 +650,10 @@ class NetworkInventory extends Component {
           originalSeatData: data.rows,
           deviceSeatData,
           showLoadingIcon: false
+        }, () => {
+          if (options === 'refreshSeat') {
+            this.getDeviceData('', 'oneSeat', seatUUID);
+          }
         });
       }
       return null;
@@ -1033,6 +1047,30 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Handle edit seat name
+   * @method
+   * @param {object} seatData - current seat data
+   */
+  handleEditSeatName = (seatData) => {
+    const editSeat = _.omit(seatData, ['devices']);
+
+    this.setState({
+      addSeatOpen: true,
+      editSeat,
+      addSeatType: 'edit'
+    });
+  }
+  /**
+   * Display seat info
+   * @method
+   * @param {object} seatData - current seat data
+   */
+  renderSeatInfo = (seatData) => {
+    return (
+      <div className='seat-name'>{t('txt-seatName')}: <span>{seatData.seatName}</span> <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.handleEditSeatName.bind(this, seatData)}>{t('txt-edit')}</Button></div>
+    )
+  }
+  /**
    * Display owner seat content
    * @method
    * @returns HTML DOM
@@ -1043,6 +1081,7 @@ class NetworkInventory extends Component {
     if (!_.isEmpty(currentSeatData)) {
       return (
         <div>
+          {this.renderSeatInfo(currentSeatData)}
           <div>{t('network-inventory.txt-noDevice')}</div>
           <div className='table-menu inventory active'>
             <i className='fg fg-trashcan' onClick={this.openDeleteSeatModal} title={t('network-topology.txt-deleteSeat')}></i>
@@ -1061,6 +1100,7 @@ class NetworkInventory extends Component {
 
       return (
         <div>
+          {this.renderSeatInfo(currentDeviceData.seatObj)}
           <TextField
             id='allAssignedDevice'
             className='assigned-device'
@@ -1092,17 +1132,15 @@ class NetworkInventory extends Component {
    * @returns ModalDialog component
    */
   showSeatDialog = () => {
-    const {currentDeviceData, currentSeatData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
-    const title = currentSeatData.seatName ? currentSeatData.seatName : currentDeviceData.seatObj.seatName;
 
     return (
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
-        title={title}
+        title={t('network-inventory.txt-seatDeviceInfo')}
         draggable={true}
         global={true}
         actions={actions}
@@ -3724,7 +3762,8 @@ class NetworkInventory extends Component {
 
       this.setState({ //Add new seat
         addSeatOpen: true,
-        addSeat: tempAddSeat
+        addSeat: tempAddSeat,
+        addSeatType: 'add'
       });
       return;
     }
@@ -3745,12 +3784,23 @@ class NetworkInventory extends Component {
    * @param {object} event - event object
    */
   handleDataChange = (event) => {
-    let tempAddSeat = {...this.state.addSeat};
-    tempAddSeat[event.target.name] = event.target.value;
+    const {addSeat, editSeat, addSeatType} = this.state;
 
-    this.setState({
-      addSeat: tempAddSeat
-    });
+    if (addSeatType === 'add') {
+      let tempAddSeat = {...addSeat};
+      tempAddSeat[event.target.name] = event.target.value;
+
+      this.setState({
+        addSeat: tempAddSeat
+      });
+    } else if (addSeatType === 'edit') {
+      let tempEditSeat = {...editSeat};
+      tempEditSeat[event.target.name] = event.target.value;
+
+      this.setState({
+        editSeat: tempEditSeat
+      });
+    }
   }
   /**
    * Display add seat contnt
@@ -3758,12 +3808,19 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayAddSeat = () => {
-    const {addSeat, formValidation} = this.state;
+    const {addSeat, editSeat, addSeatType, formValidation} = this.state;
+    let value = '';
+
+    if (addSeatType === 'add') {
+      value = addSeat.seatName;
+    } else if (addSeatType === 'edit') {
+      value = editSeat.seatName;
+    }
 
     return (
       <TextField
-        id='addSeat'
-        name='name'
+        id={addSeatType + 'Seat'}
+        name='seatName'
         label={t('txt-plsEnterName')}
         variant='outlined'
         fullWidth
@@ -3771,7 +3828,7 @@ class NetworkInventory extends Component {
         required
         error={!formValidation.seatName.valid}
         helperText={formValidation.seatName.valid ? '' : t('txt-required')}
-        value={addSeat.name}
+        value={value}
         onChange={this.handleDataChange} />
     )
   }
@@ -3781,11 +3838,18 @@ class NetworkInventory extends Component {
    * @returns ModalDialog component
    */
   addSeatDialog = () => {
+    const {addSeatType} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddSeatDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
     };
-    const titleText = t('network-topology.txt-addSeat');
+    let titleText = '';
+
+    if (addSeatType === 'add') {
+      titleText = t('network-topology.txt-addSeat');
+    } else if (addSeatType === 'edit') {
+      titleText = t('network-topology.txt-editSeat');
+    }
 
     return (
       <ModalDialog
@@ -3801,6 +3865,106 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Handle add seat confirm
+   * @method
+   */
+  handleAddSeatConfirm = () => {
+    const {baseUrl} = this.context;
+    const {floorPlan, currentDeviceData, addSeat, editSeat, addSeatType, changeAreaMap, formValidation} = this.state;
+    const url = `${baseUrl}/api/seat`;
+    let currentAreaUUID = floorPlan.currentAreaUUID;
+    let tempFormValidation = {...formValidation};
+    let requestData = {};
+    let requestType = '';
+    let validate = true;
+
+    if (addSeatType === 'add') {
+      if (addSeat.seatName) {
+        tempFormValidation.seatName.valid = true;
+      } else {
+        tempFormValidation.seatName.valid = false;
+        validate = false;
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
+      }
+
+      if (!changeAreaMap && currentDeviceData.areaUUID) {
+        currentAreaUUID = currentDeviceData.areaUUID;
+      }
+
+      requestData = {
+        areaUUID: currentAreaUUID,
+        seatName: addSeat.seatName,
+        coordX: addSeat.coordX,
+        coordY: addSeat.coordY
+      };
+      requestType = 'POST';
+    } else if (addSeatType === 'edit') {
+      if (editSeat.seatName) {
+        tempFormValidation.seatName.valid = true;
+      } else {
+        tempFormValidation.seatName.valid = false;
+        validate = false;
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
+      }
+
+      currentAreaUUID = editSeat.areaUUID;
+      requestData = {...editSeat};
+      requestType = 'PATCH';
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          addSeatOpen: false,
+          addSeat: {
+            selectedSeatUUID: data,
+            seatName: '',
+            coordX: '',
+            coordY: ''
+          },
+          editSeat: {
+            seatUUID: '',
+            areaUUID: '',
+            seatName: '',
+            coordX: '',
+            coordY: ''
+          },
+          addSeatType: ''
+        }, () => {
+          if (addSeatType === 'add') {
+            this.getDeviceSeatData(currentAreaUUID);
+          } else if (addSeatType === 'edit') {
+            this.getDeviceSeatData(currentAreaUUID, 'refreshSeat', data);
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Close add seat dialog
    * @method
    */
@@ -3812,76 +3976,20 @@ class NetworkInventory extends Component {
       addSeatOpen: false,
       addSeat: {
         selectedSeatUUID: '',
-        name: '',
+        seatName: '',
         coordX: '',
         coordY: ''
       },
-      formValidation: tempFormValidation    
-    });
-  }
-  /**
-   * Handle add seat confirm
-   * @method
-   */
-  handleAddSeatConfirm = () => {
-    const {baseUrl} = this.context;
-    const {floorPlan, currentDeviceData, addSeat, changeAreaMap, formValidation} = this.state;
-    const url = `${baseUrl}/api/seat`;
-    let currentAreaUUID = floorPlan.currentAreaUUID;
-    let tempFormValidation = {...formValidation};
-    let validate = true;
-
-    if (!changeAreaMap && currentDeviceData.areaUUID) {
-      currentAreaUUID = currentDeviceData.areaUUID;
-    }
-
-    if (addSeat.name) {
-      tempFormValidation.seatName.valid = true;
-    } else {
-      tempFormValidation.seatName.valid = false;
-      validate = false;
-    }
-
-    this.setState({
+      editSeat: {
+        seatUUID: '',
+        areaUUID: '',
+        seatName: '',
+        coordX: '',
+        coordY: ''
+      },
+      addSeatType: '',
       formValidation: tempFormValidation
     });
-
-    if (!validate) {
-      return;
-    }
-
-    const requestData = {
-      areaUUID: currentAreaUUID,
-      seatName: addSeat.name,
-      coordX: addSeat.coordX,
-      coordY: addSeat.coordY
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          addSeatOpen: false,
-          addSeat: {
-            selectedSeatUUID: data,
-            name: '',
-            coordX: '',
-            coordY: ''
-          }
-        }, () => {
-          this.getDeviceSeatData(currentAreaUUID);
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Toggle manage dialog

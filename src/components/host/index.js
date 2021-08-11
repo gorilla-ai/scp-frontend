@@ -1366,6 +1366,7 @@ class HostController extends Component {
 
     return (
       <div>
+        <div className='seat-name'>{t('txt-seatName')}: <span>{hostDeviceList[0].seatObj.seatName}</span></div>
         <TextField
           id='allAssignedDevice'
           className='assigned-device'
@@ -1395,17 +1396,15 @@ class HostController extends Component {
    * @returns ModalDialog component
    */
   showHostDeviceList = () => {
-    const {hostDeviceList} = this.state;
     const actions = {
       cancel: {text: t('txt-close'), handler: this.closeHostDeviceList}
     };
-    const title = hostDeviceList[0].seatObj.seatName;
 
     return (
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
-        title={title}
+        title={t('network-inventory.txt-seatDeviceInfo')}
         draggable={true}
         global={true}
         actions={actions}

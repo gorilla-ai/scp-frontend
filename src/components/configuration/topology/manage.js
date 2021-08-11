@@ -699,7 +699,6 @@ class Manage extends Component {
         {openName &&
           this.titleNameModal()
         }
-
       </div>
     )
   }

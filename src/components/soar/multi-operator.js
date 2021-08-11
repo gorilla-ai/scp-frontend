@@ -154,7 +154,7 @@ class MultiOperator extends Component {
    * @param {object} event - event object
    */
   handleDataChange = (type, event) => {
-    let tempNewValue = {...this.props.value};
+    let tempNewValue = _.cloneDeep(this.props.value);
     let tempData = {...this.state[type]};
 
     if (!tempNewValue.args) {
