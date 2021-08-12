@@ -546,6 +546,7 @@ class ThreatsController extends Component {
     .then(data => {
       if (data) {
         data = data.aggregations;
+
         let alertTreeData = {
           default: data.default
         };

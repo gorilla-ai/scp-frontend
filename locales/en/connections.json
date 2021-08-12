@@ -486,6 +486,7 @@
     "txt-accessRecord": "Access Control Behavior",
     "txt-floorInfo": "Floor",
     "txt-safetyScan": "Safety Scan",
+    "txt-toggleOpenBtn": "Collapse / Expand",
     "txt-alertThreatLevelSrc": "Source Threats Count",
     "txt-alertThreatCountSrc": "Source Threats Level",
     "txt-alertThreatSubnetSrc": "Internal Source Masked IP",

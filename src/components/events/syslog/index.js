@@ -18,7 +18,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {arrayMove} from 'react-sortable-hoc'
-import JSONTree from 'react-json-tree'
+import ReactJson from 'react-json-view'
 
 import {BaseDataContext} from '../../common/context'
 import ExportCSV from '../../common/export-csv'
@@ -1625,14 +1625,24 @@ class SyslogController extends Component {
    */
   displayJsonData = (allValue) => {
     const {currentTableIndex, currentLength} = this.state;
+    const theme = document.documentElement.getAttribute('data-theme');
     const hiddenFields = ['id', '_tableMenu_'];
+    let reactJsonTheme = '';
     allValue = _.omit(allValue, hiddenFields);
+
+    if (theme === 'light') {
+      reactJsonTheme = 'rjv-default';
+    } else if (theme === 'dark') {
+      reactJsonTheme = 'tomorrow';
+    }
 
     return (
       <div className='json-reports'>
-        <ul className='json-data'>
-          <li><JSONTree data={allValue} theme={helper.getJsonViewTheme()} /></li>
-        </ul>
+        <div className='json-data'>
+          <ReactJson
+            src={allValue}
+            theme={reactJsonTheme} />
+        </div>
 
         <div className='pagination json'>
           <div className='buttons'>

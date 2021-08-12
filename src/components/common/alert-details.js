@@ -17,7 +17,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PieChart from 'react-chart/build/src/components/pie'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import JSONTree from 'react-json-tree'
+import ReactJson from 'react-json-view'
 
 import {BaseDataContext} from './context'
 
@@ -56,6 +56,7 @@ class AlertDetails extends Component {
 
     this.state = {
       alertType: '', //'alert', 'pot_attack' or 'syslog'
+      toggleJson: false,
       showContent: {
         rule: false,
         json: false,
@@ -1651,13 +1652,23 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
-    const {mouseX, mouseY} = this.state;
+    const {alertPayload, mouseX, mouseY} = this.state;
+    const theme = document.documentElement.getAttribute('data-theme');
+    let reactJsonTheme = '';
+
+    if (theme === 'light') {
+      reactJsonTheme = 'rjv-default';
+    } else if (theme === 'dark') {
+      reactJsonTheme = 'tomorrow';
+    }
 
     return (
-      <div className='payload'>
-        <ul>
-          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
-        </ul>
+      <div>
+        <div className='payload' onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}>
+          <ReactJson
+            src={alertPayload}
+            theme={reactJsonTheme} />
+        </div>
 
         <Menu
           keepMounted
@@ -1675,21 +1686,51 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Toggle json open/close
+   * @method
+   */
+  toggleJsonOpen = () => {
+    const {toggleJson} = this.state;
+    let collspsed = '';
+
+    if (!toggleJson) {
+      collspsed = 1;
+    } else if (toggleJson === 1) {
+      collspsed = false;
+    }
+
+    this.setState({
+      toggleJson: collspsed
+    });
+  }
+  /**
    * Display JSON content
    * @method
    * @returns HTML DOM
    */
   displayJsonData = () => {
     const {alertData} = this.props;
-    const {mouseX, mouseY} = this.state;
+    const {toggleJson, mouseX, mouseY} = this.state;
     const hiddenFields = ['id', '_tableMenu_'];
     const allData = _.omit(alertData, hiddenFields);
+    const theme = document.documentElement.getAttribute('data-theme');
+    let reactJsonTheme = '';
+
+    if (theme === 'light') {
+      reactJsonTheme = 'rjv-default';
+    } else if (theme === 'dark') {
+      reactJsonTheme = 'tomorrow';
+    }
 
     return (
       <div>
-        <ul className='json-data alert'>
-          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
-        </ul>
+        <Button variant='outlined' color='primary' className='standard btn json' onClick={this.toggleJsonOpen}>{t('alert.txt-toggleOpenBtn')}</Button>
+        <div className='json-data alert' onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}>
+          <ReactJson
+            src={allData}
+            collapsed={toggleJson}
+            theme={reactJsonTheme} />
+        </div>
 
         <Menu
           keepMounted
