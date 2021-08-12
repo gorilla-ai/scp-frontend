@@ -670,11 +670,9 @@ class SoarController extends Component {
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSoarIndividualData} disabled={!ipExist}>{t('soar.txt-addRule')}</Button>
                   </div>
 
-                  {soarData.dataContent &&
-                    <MuiTableContent
-                      data={soarData}
-                      tableOptions={tableOptions} />
-                  }
+                  <MuiTableContent
+                    data={soarData}
+                    tableOptions={tableOptions} />
                 </div>
               </div>
             </div>

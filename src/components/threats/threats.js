@@ -131,44 +131,21 @@ class Threats extends Component {
    */
   renderTableContent = () => {
     const {mainContentData} = this.props;
-    if (!mainContentData.threatsData.dataContent) {
-      return (
-        <div className='table-content'>
-          <div className='table' style={{height: '78vh'}}>
-            <span className='loading'><i className='fg fg-loading-2'></i></span>
-          </div>
-        </div>
-      )
-    }
 
-    if (mainContentData.threatsData.dataContent.length > 0) {
-      return (
-        <MuiTableContent
-          data={mainContentData.threatsData}
-          tableOptions={mainContentData.tableOptions} />
-      )
-    }
+    return (
+      <MuiTableContent
+        data={mainContentData.threatsData}
+        tableOptions={mainContentData.tableOptions} />
+    )
   }
   renderTrackTableContent = () => {
     const {mainContentData} = this.props;
 
-    if (!mainContentData.trackData.dataContent) {
-      return (
-        <div className='table-content'>
-          <div className='table' style={{height: '78vh'}}>
-            <span className='loading'><i className='fg fg-loading-2'></i></span>
-          </div>
-        </div>
-      )
-    }
-
-    if (mainContentData.trackData.dataContent.length > 0) {
-      return (
-        <MuiTableContent
-          data={mainContentData.trackData}
-          tableOptions={mainContentData.tableOptions} />
-      )
-    }
+    return (
+      <MuiTableContent
+        data={mainContentData.trackData}
+        tableOptions={mainContentData.tableOptions} />
+    )
   }
   render() {
     const {mainContentData, tabChartData} = this.props;

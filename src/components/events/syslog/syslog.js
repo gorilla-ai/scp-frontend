@@ -33,23 +33,11 @@ class Syslog extends Component {
   renderTableContent = () => {
     const {mainContentData} = this.props;
 
-    if (!mainContentData.syslogData.dataContent) {
-      return (
-        <div className='table-content'>
-          <div className='table' style={{height: '78vh'}}>
-            <span className='loading'><i className='fg fg-loading-2'></i></span>
-          </div>
-        </div>
-      )
-    }
-
-    if (mainContentData.syslogData.dataContent.length > 0) {
-      return (
-        <MuiTableContent
-          data={mainContentData.syslogData}
-          tableOptions={mainContentData.tableOptions} />
-      )
-    }
+    return (
+      <MuiTableContent
+        data={mainContentData.syslogData}
+        tableOptions={mainContentData.tableOptions} />
+    )
   }
   render() {
     const {contextRoot, language} = this.context;
