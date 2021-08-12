@@ -334,6 +334,8 @@ class IncidentManagement extends Component {
                                         if (allValue.flowData.currentEntity){
                                             status = allValue.flowData.currentEntity[allValue.id].entityName
                                         }
+                                    }else if (value === constants.soc.INCIDENT_STATUS_DELETED){
+                                        return <span>{it('status.5')}</span>
                                     }
                                     return <span>{status}</span>
                                 } else if (val === 'createDttm') {
@@ -458,6 +460,8 @@ class IncidentManagement extends Component {
                                             if (allValue.flowData.currentEntity) {
                                                 status = allValue.flowData.currentEntity[allValue.id].entityName
                                             }
+                                        } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
+                                            return <span>{it('status.5')}</span>
                                         }
                                         return <span>{status}</span>
                                     } else if (val === 'createDttm') {
