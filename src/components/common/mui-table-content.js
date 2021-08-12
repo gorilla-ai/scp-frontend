@@ -46,7 +46,7 @@ class MuiTableContent extends Component {
     const {data, tableOptions} = this.props;
     const {tableData} = this.state;
     const options = {
-			tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
+      tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
       selectableRows: 'none',
       serverSide: true,
       search: false,
@@ -82,7 +82,7 @@ class MuiTableContent extends Component {
           titleAria: t('MuiDataTable.viewColumns.titleAria')
         }
       },
-			...tableOptions
+      ...tableOptions
     };
 
     return (
