@@ -42,6 +42,7 @@ class IncidentFlowDialog extends Component {
 			contentType: 'application/json',
 			dataType: 'json'
 		}).then(result => {
+			// console.log("result.rt.entities == " , result.rt.entities)
 			Object.keys(result.rt.entities).forEach(key => {
 				let index = 0;
 				if (Object.entries(result.rt.entities).length > 4){
@@ -102,6 +103,7 @@ class IncidentFlowDialog extends Component {
 	}
 
 	showUnitStepIcon = (val, i) => {
+		// console.log("val == " , val)
 		const {locale} = this.context;
 		const {activeSteps} = this.state;
 		const index = val.index + 1;
@@ -186,8 +188,8 @@ class IncidentFlowDialog extends Component {
 
 		return (
 			<div className={groupClass} key={index}>
-				<div className={cx(lineClass, {active: activeSteps > index})}/>
-				<div className={cx(stepClass, {active: activeSteps >= index})}>
+				<div className={cx(lineClass, {active: activeSteps >= index})}/>
+				<div className={cx(stepClass, {active: activeSteps > index})}>
 					<div className='wrapper'><span className='number'>{index}</span></div>
 					<div {...textAttr}>{val.step}</div>
 					<div {...timeAttr}>{helper.getFormattedDate(val.updateTime,'local')}</div>
