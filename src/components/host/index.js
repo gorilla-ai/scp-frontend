@@ -195,10 +195,6 @@ const HOST_SORT_LIST = [
     sort: 'desc'
   },
   {
-    name: 'hostName',
-    sort: 'desc'
-  },
-  {
     name: 'theLastestTaskResponseDttm',
     sort: 'asc'
   },
