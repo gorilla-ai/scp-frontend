@@ -12,8 +12,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
-import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
-import PopoverMaterial from '@material-ui/core/Popover';
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf'
+import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'

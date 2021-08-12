@@ -56,7 +56,7 @@ class AlertDetails extends Component {
 
     this.state = {
       alertType: '', //'alert', 'pot_attack' or 'syslog'
-      toggleJson: false,
+      toggleJson: 1, //false or 1
       showContent: {
         rule: false,
         json: false,
@@ -1715,6 +1715,7 @@ class AlertDetails extends Component {
     const allData = _.omit(alertData, hiddenFields);
     const theme = document.documentElement.getAttribute('data-theme');
     let reactJsonTheme = '';
+    let btnType = '';
 
     if (theme === 'light') {
       reactJsonTheme = 'rjv-default';
@@ -1722,9 +1723,15 @@ class AlertDetails extends Component {
       reactJsonTheme = 'tomorrow';
     }
 
+    if (!toggleJson) {
+      btnType = 'Collapse';
+    } else if (toggleJson === 1) {
+      btnType = 'Expand';
+    }
+
     return (
       <div>
-        <Button variant='outlined' color='primary' className='standard btn json' onClick={this.toggleJsonOpen}>{t('alert.txt-toggleOpenBtn')}</Button>
+        <Button variant='outlined' color='primary' className='standard btn json' onClick={this.toggleJsonOpen}>{t('alert.txt-toggle' + btnType)}</Button>
         <div className='json-data alert' onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}>
           <ReactJson
             src={allData}

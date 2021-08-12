@@ -317,7 +317,7 @@ class ThreatsController extends Component {
         info: {
           status: 1,
           socType: 1,
-          attach:null
+          attach: null
         }
       },
       loadAlertData: true,
