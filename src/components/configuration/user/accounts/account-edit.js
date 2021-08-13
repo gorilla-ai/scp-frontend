@@ -268,9 +268,9 @@ class AccountEdit extends Component {
     const {showPrivileges} = this.state;
 
     if (showPrivileges) {
-      return { width: '500px' };
+      return { width: '610px', overflow: 'hidden' };
     } else {
-      return { width: '350px' };
+      return { width: '350px', overflow: 'hidden' };
     }
   }
   /**

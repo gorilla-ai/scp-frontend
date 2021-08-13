@@ -158,7 +158,7 @@ class AccountList extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**
@@ -192,9 +192,12 @@ class AccountList extends Component {
     this.editor.openAccount(id, 'fromAccount');
     this.handleCloseMenu();
   }
-
+  /**
+   * Open AD config dialog
+   * @method
+   */
   showAdDialog = () => {
-    this.config.open()
+    this.config.openADconfig();
   }
   /**
    * Display delete and unlock content
@@ -282,7 +285,7 @@ class AccountList extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**

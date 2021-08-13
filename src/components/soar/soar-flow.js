@@ -29,8 +29,8 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 import SoarForm from './soar-form'
-import SoarSingleSettings from './soar-single-settings'
 import SoarLogTesting from './soar-log-testing'
+import SoarSingleSettings from './soar-single-settings'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

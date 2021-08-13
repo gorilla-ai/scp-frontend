@@ -694,7 +694,6 @@
     "txt-vpnIP": "VPN IP",
     "txt-vpnLicenseName": "VPN License Name",
     "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
-    "txt-deleteThreatType": "$t(txt-delete)情資類型",
     "txt-serviceType": "服務類型",
     "txt-serviceMode": "服務模式",
     "txt-addGroup": "$t(txt-add)$t(txt-group)",

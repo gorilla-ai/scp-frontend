@@ -19,7 +19,8 @@ import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
 import Switch from "@material-ui/core/Switch";
-import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
@@ -555,7 +556,7 @@ class QueryOpenSave extends Component {
         requestType = 'PATCH';
       }
 
-      if (type === 'save' && (activeTab === 'hostList' || activeTab === 'alert')) {
+      if (type === 'save' && activeTab === 'alert') {
         requestData.emailList = notifyEmailData;
       }
 
@@ -1847,12 +1848,17 @@ class QueryOpenSave extends Component {
   /**
    * Get filter group background color
    * @method
+   * @param {string} type - query type ('filter' or 'mark')
    * @param {object} queryDataList - query data list
    * @returns css display
    */
-  getQueryColor = (queryDataList) => {
+  getQueryColor = (type, queryDataList) => {
     if (!queryDataList || (queryDataList && queryDataList.length === 0) || _.isEmpty(queryDataList)) {
-      return { display: 'none' };
+      if (type === 'filter') {
+        return { visibility: 'hidden' };
+      } else if (type === 'mark') {
+        return { display: 'none' };
+      }
     }
   }
   /**
@@ -1925,7 +1931,7 @@ class QueryOpenSave extends Component {
             renderInput={this.renderQueryList}
             onChange={this.handleQueryChange.bind(this, 'id')} />
 
-          <div className='filter-group' style={this.getQueryColor(queryDataList)}>
+          <div className='filter-group' style={this.getQueryColor('filter', queryDataList)}>
             {activeTab === 'hostList' && queryDataList &&
               Object.keys(queryDataList).map(this.displayHostQuery.bind(this, queryDataList))
             }
@@ -1934,13 +1940,13 @@ class QueryOpenSave extends Component {
             }
           </div>
 
-          <div className='filter-group' style={this.getQueryColor(queryDataMark)}>
+          <div className='filter-group' style={this.getQueryColor('mark', queryDataMark)}>
             {queryDataMark && queryDataMark.length > 0 &&
               queryDataMark.map(this.displayMarkSearch)
             }
           </div>
 
-          {(activeTab === 'hostList' || activeTab === 'alert') && queryData.emailList.length > 0 && type === 'open' &&
+          {activeTab === 'alert' && queryData.emailList.length > 0 && type === 'open' &&
             <div className='email-list'>
               <label>{t('notifications.txt-notifyEmail')}</label>
               <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>
@@ -2067,7 +2073,7 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {type === 'save' && (activeTab === 'hostList' || activeTab === 'alert') &&
+          {type === 'save' && activeTab === 'alert' &&
             this.displayEmailInput()
           }
 

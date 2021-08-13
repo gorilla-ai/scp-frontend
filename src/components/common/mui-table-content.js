@@ -91,7 +91,7 @@ class MuiTableContent extends Component {
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
         {tableData.dataContent && tableData.dataContent.length === 0 &&
-          helper.showPopupMsg(t('txt-notFound'))
+          <div className='no-result'>{t('txt-notFound')}</div>
         }
         {tableData.dataContent && tableData.dataContent.length > 0 &&
           <MUIDataTable

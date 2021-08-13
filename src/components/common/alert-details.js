@@ -20,7 +20,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import ReactJson from 'react-json-view'
 
 import {BaseDataContext} from './context'
-
 import EncodeDecode from './encode-decode'
 import helper from './helper'
 import HMDscanInfo from './hmd-scan-info'
