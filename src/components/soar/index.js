@@ -487,6 +487,7 @@ class SoarController extends Component {
       this.setState({
         soarData: tempSoarData
       }, () => {
+        this.getSoarColumn();
         this.validateIpExist();
       });
     }
