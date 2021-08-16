@@ -59,6 +59,7 @@ class Login extends Component {
         token: '',
         password: ''
       },
+      userEmail: '',
       forgotModalError: '',
       info: null,
       error: false,
@@ -297,6 +298,7 @@ class Login extends Component {
    * @returns ModalDialog component
    */
   forgotPasswordDialog = (type) => {
+    const {userEmail, forgotModalError} = this.state;
     let descriptionText = '';
     let confirm = '';
 
@@ -304,7 +306,7 @@ class Login extends Component {
       descriptionText = t('txt-enterAccount');
       confirm = this.handleAccountConfirm;
     } else if (type === 'token') {
-      descriptionText = t('txt-enterToken');
+      descriptionText = t('txt-enterToken') + ':';
       confirm = this.handleTokenConfirm;
     } else if (type === 'password') {
       descriptionText = t('txt-enterNewPassword');
@@ -324,10 +326,13 @@ class Login extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={this.state.forgotModalError}
+        info={forgotModalError}
         closeAction='cancel'>
         <React.Fragment>
           <div className='desc-text'>{descriptionText}</div>
+          {type === 'token' &&
+            <div>{userEmail}</div>
+          }
           <div className='login-group'>
             {this.displayForgotPasswordContent(type)}
           </div>
@@ -375,6 +380,7 @@ class Login extends Component {
         this.setState({
           openFindAccountDialog: false,
           openEnterTokenDialog: true,
+          userEmail: data.rt.email,
           forgotModalError: ''
         });
       }
@@ -502,6 +508,7 @@ class Login extends Component {
         token: '',
         password: ''
       },
+      userEmail: '',
       forgotModalError: '',
       formValidation: {
         username: {

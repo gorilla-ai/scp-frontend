@@ -51,7 +51,7 @@
   "-1010": "Error login fail",
   "-1011": "Fail to connect Email Server",
   "-1012": "Please contactyour AD System Manager for this account",
-  "-1013": "Invaid token",
+  "-1013": "Invaid one-time code",
   "-1014": "Account is not found",
 
   "-2001": "Unknown Target",

@@ -24,7 +24,7 @@
   "txt-fist-login": "First time login",
   "txt-forgotPassword": "Forgot Password",
   "txt-enterAccount": "Please enter your account",
-  "txt-enterToken": "Please check your email for the token",
+  "txt-enterToken": "Please check your email for the one-time code",
   "txt-enterNewPassword": "Please choose a new password",
   "txt-logging-in":"Logging in...",
   "txt-loading":"Loading...",
