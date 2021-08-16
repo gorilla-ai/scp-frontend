@@ -30,10 +30,11 @@ html[data-theme='dark'] {
   select {
     border: 1px solid var(--primaryBorder);
   }
-  #title, #form {
+  #loingTitle,
+  #loingForm {
     width: 400px;
   }
-  #title {
+  #loingTitle {
     color: #fff;
     margin-bottom: 5px;
     img {
@@ -49,7 +50,7 @@ html[data-theme='dark'] {
       font-size: 1.5em;
     }
   }
-  #form {
+  #loingForm {
     padding: 30px 30px 20px 30px;
     background-color: #fff;
     color: #333;
@@ -67,13 +68,19 @@ html[data-theme='dark'] {
     .login-group {
       margin-bottom: 25px;
     }
-    .first-time {
+    .login-options {
       color: #004d93;
       font-size: 15px;
       margin-top: 10px;
-      text-align: right;
-      span {
-        cursor: pointer;
+      .first-time,
+      .forgot-pass {
+        float: right;
+      }
+      .first-time {
+
+      }
+      .forgot-pass {
+        margin-right: 10px;
       }
     }
     .error-msg {

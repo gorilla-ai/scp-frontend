@@ -324,6 +324,18 @@ class QueryOpenSave extends Component {
         this.props.setQueryData(tempQueryDataPublic, 'setQuery');
 
         if (queryDataPublic.query) {
+          if (activeTab === 'logs') {
+            let formattedMarkData = [];
+
+            _.forEach(queryDataPublic.query.search, val => {
+              if (val) {
+                formattedMarkData.push({
+                  data: val
+                });
+              }
+            })
+            this.props.setMarkData(formattedMarkData);
+          }
           this.props.setFilterData(queryDataPublic.query.filter);
         }
       }
@@ -1176,6 +1188,7 @@ class QueryOpenSave extends Component {
         tempQueryDataPublic.openFlag = true;
         tempQueryDataPublic.query = {}; //Reset data to empty
         tempQueryData.emailList = [];
+
         if (comboValue && comboValue.value) {
           const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
           value = comboValue.value;
@@ -1965,7 +1978,11 @@ class QueryOpenSave extends Component {
             this.getQueryWithSOC(type)
           }
 
-          {!this.deleteBtnDisabled() &&
+          {type === 'open' && !this.deleteBtnDisabled() &&
+            <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery}>{t('txt-delete')}</Button>
+          }
+
+          {type === 'publicOpen' && sessionRights.Module_Config && !this.deleteBtnDisabled() &&
             <Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery}>{t('txt-delete')}</Button>
           }
         </div>
@@ -2014,6 +2031,14 @@ class QueryOpenSave extends Component {
         displayQueryList = _.map(queryDataPublic.list, (val, i) => {
           return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
         });
+
+        _.forEach(markData, val => {
+          if (val.data) {
+            tempMarkData.push({
+              data: val.data
+            });
+          }
+        })
 
         if (queryDataPublic.openFlag) {
           dropDownValue = queryDataPublic.id;
@@ -2067,7 +2092,7 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {type === 'save' && tempMarkData.length > 0 &&
+          {(type === 'save'|| type === 'publicSave') && tempMarkData.length > 0 &&
             <div className='filter-group'>
               {tempMarkData.map(this.displayMarkSearch)}
             </div>

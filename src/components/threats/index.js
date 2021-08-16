@@ -3131,7 +3131,8 @@ class ThreatsController extends Component {
     let tempQueryDataPublic = {...queryDataPublic};
     tempQueryData.inputName = '';
     tempQueryData.openFlag = false;
-
+    tempQueryDataPublic.inputName = '';
+    tempQueryDataPublic.openFlag = false;
     tempQueryData.soc = {
       id: '',
       severity: 'Emergency',
@@ -3140,8 +3141,7 @@ class ThreatsController extends Component {
       eventDescription: '',
       impact: 4,
       category: 1,
-    }
-
+    };
     tempQueryDataPublic.soc = {
       id: '',
       severity: 'Emergency',
@@ -3150,7 +3150,7 @@ class ThreatsController extends Component {
       eventDescription: '',
       impact: 4,
       category: 1,
-    }
+    };
 
     this.setState({
       queryData: tempQueryData,

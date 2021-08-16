@@ -1,15 +1,15 @@
 import React, { Component } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import cx from 'classnames'
 import _ from 'lodash'
+import cx from 'classnames'
 import i18n from 'i18next'
-import qs from 'query-string'
-import $ from 'jquery'
 
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import helper from './components/common/helper'
 import License from './license'
@@ -17,8 +17,9 @@ import ResetPwd from './components/configuration/user/accounts/resetPwd'
 
 import {default as ah, getInstance, createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const t = i18n.getFixedT(null, 'app');
-const et = i18n.getFixedT(null, 'errors');
+let t = null;
+let c = null;
+let et = null;
 
 createInstance(
   'login',
@@ -46,10 +47,19 @@ class Login extends Component {
 
     this.state = {
       dropDownList: [],
+      openFindAccountDialog: false,
+      openEnterTokenDialog: false,
+      openEnterPasswordDialog: false,
       login: {
         username: '',
         password: ''
       },
+      forgotPassword: {
+        account: '',
+        token: '',
+        password: ''
+      },
+      forgotModalError: '',
       info: null,
       error: false,
       license: null,
@@ -59,10 +69,22 @@ class Login extends Component {
         },
         password: {
           valid: true
+        },
+        forgotAccount: {
+          valid: true
+        },
+        forgotToken: {
+          valid: true
+        },
+        forgotPassword: {
+          valid: true
         }
       }
     };
 
+    t = global.chewbaccaI18n.getFixedT(null, 'app');
+    c = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('login');
   }
   componentDidMount() {
@@ -88,7 +110,6 @@ class Login extends Component {
    */
   checkLicense = () => {
     const {baseUrl} = this.props;
-    let licenseCheck = false;
 
     this.ah.one({
       url: `${baseUrl}/api/lms/verify`,
@@ -96,6 +117,8 @@ class Login extends Component {
     })
     .then(data => {
       if (data) {
+        let licenseCheck = false;
+
         if (data.rt.returnCode === '0') {
           licenseCheck = data.rt.isValid === '1';
         }
@@ -107,7 +130,7 @@ class Login extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**
@@ -202,6 +225,304 @@ class Login extends Component {
     this.pageResetPwd.openResetPwd(options);
   }
   /**
+   * Open forgot password dialog
+   * @method
+   */
+  handleForgotPassword = () => {
+    this.setState({
+      openFindAccountDialog: true
+    });
+  }
+  /**
+   * Display forgot password content
+   * @method
+   * @param {string} type - dialog type ('account', 'token' or 'password')
+   * @returns HTML DOM
+   */
+  displayForgotPasswordContent = (type) => {
+    const {forgotPassword, formValidation} = this.state;
+
+    if (type === 'account') {
+      return (
+        <TextField
+          name='account'
+          label={t('login.txt-account')}
+          autoFocus={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.forgotAccount.valid}
+          helperText={formValidation.forgotAccount.valid ? '' : c('txt-required')}
+          value={forgotPassword.account}
+          onChange={this.handleDataChange.bind(this, 'forgotPassword')} />
+      )
+    } else if (type === 'token') {
+      return (
+        <TextField
+          name='token'
+          label={t('login.txt-token')}
+          autoFocus={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.forgotToken.valid}
+          helperText={formValidation.forgotToken.valid ? '' : c('txt-required')}
+          value={forgotPassword.token}
+          onChange={this.handleDataChange.bind(this, 'forgotPassword')} />
+      )
+    } else if (type === 'password') {
+      return (
+        <TextField
+          name='password'
+          type='password'
+          label={t('login.txt-userPassword')}
+          autoFocus={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.forgotPassword.valid}
+          helperText={formValidation.forgotPassword.valid ? '' : c('txt-required')}
+          value={forgotPassword.password}
+          onChange={this.handleDataChange.bind(this, 'forgotPassword')} />
+      )
+    }
+  }
+  /**
+   * Display forgot password dialog content
+   * @method
+   * @param {string} type - dialog type ('account', 'token' or 'password')
+   * @returns ModalDialog component
+   */
+  forgotPasswordDialog = (type) => {
+    let descriptionText = '';
+    let confirm = '';
+
+    if (type === 'account') {
+      descriptionText = t('txt-enterAccount');
+      confirm = this.handleAccountConfirm;
+    } else if (type === 'token') {
+      descriptionText = t('txt-enterToken');
+      confirm = this.handleTokenConfirm;
+    } else if (type === 'password') {
+      descriptionText = t('txt-enterNewPassword');
+      confirm = this.handlePasswordConfirm;
+    }
+
+    const actions = {
+      cancel: {text: c('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: c('txt-confirm'), handler: confirm}
+    };
+
+    return (
+      <ModalDialog
+        id='forgotPasswordDialog'
+        className='modal-dialog'
+        title={t('txt-forgotPassword')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.forgotModalError}
+        closeAction='cancel'>
+        <React.Fragment>
+          <div className='desc-text'>{descriptionText}</div>
+          <div className='login-group'>
+            {this.displayForgotPasswordContent(type)}
+          </div>
+        </React.Fragment>
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle enter account confirm
+   * @method
+   */
+  handleAccountConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {forgotPassword, formValidation} = this.state;
+    const requestData = {
+      account: forgotPassword.account
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (forgotPassword.account) {
+      tempFormValidation.forgotAccount.valid = true;
+    } else {
+      tempFormValidation.forgotAccount.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      forgotModalError: '',
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/email`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          openFindAccountDialog: false,
+          openEnterTokenDialog: true,
+          forgotModalError: ''
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        forgotModalError: err.message
+      });
+    })
+  }
+  /**
+   * Handle enter token confirm
+   * @method
+   */
+  handleTokenConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {forgotPassword, formValidation} = this.state;
+    const requestData = {
+      account: forgotPassword.account,
+      token: forgotPassword.token
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (forgotPassword.token) {
+      tempFormValidation.forgotToken.valid = true;
+    } else {
+      tempFormValidation.forgotToken.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      forgotModalError: '',
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/verifyToken`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          openEnterTokenDialog: false,
+          openEnterPasswordDialog: true,
+          forgotModalError: ''
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        forgotModalError: err.message
+      });
+    })
+  }
+  /**
+   * Handle enter password confirm
+   * @method
+   */
+  handlePasswordConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {forgotPassword, formValidation} = this.state;
+    const requestData = {
+      account: forgotPassword.account,
+      token: forgotPassword.token,
+      newPassword: forgotPassword.password
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (forgotPassword.password) {
+      tempFormValidation.forgotPassword.valid = true;
+    } else {
+      tempFormValidation.forgotPassword.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      forgotModalError: '',
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/password/_reset/verify`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-passwordSuccess'));
+        this.closeDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        forgotModalError: err.message
+      });
+    })
+  }
+  /**
+   * Close forgot password dialog
+   * @method
+   */
+  closeDialog = () => {
+    this.setState({
+      openFindAccountDialog: false,
+      openEnterTokenDialog: false,
+      openEnterPasswordDialog: false,
+      forgotPassword: {
+        account: '',
+        token: '',
+        password: ''
+      },
+      forgotModalError: '',
+      formValidation: {
+        username: {
+          valid: true
+        },
+        password: {
+          valid: true
+        },
+        forgotAccount: {
+          valid: true
+        },
+        forgotToken: {
+          valid: true
+        },
+        forgotPassword: {
+          valid: true
+        }
+      }
+    });
+  }
+  /**
    * Handle enter key for login
    * @method
    * @param {object} e - mouseClick events
@@ -234,15 +555,27 @@ class Login extends Component {
   /**
    * Set input data change
    * @method
+   * @param {string} type - input type ('login' or 'forgotPassword')
    * @param {object} event - event object
    */
-  handleDataChange = (event) => {
-    let tempLogin = {...this.state.login};
-    tempLogin[event.target.name] = event.target.value;  
+  handleDataChange = (type, event) => {
+    const {login, forgotPassword} = this.state;
 
-    this.setState({
-      login: tempLogin
-    });
+    if (type === 'login') {
+      let tempLogin = {...login};
+      tempLogin[event.target.name] = event.target.value;  
+
+      this.setState({
+        login: tempLogin
+      });
+    } else if (type === 'forgotPassword') {
+      let tempForgotPassword = {...forgotPassword};
+      tempForgotPassword[event.target.name] = event.target.value;  
+
+      this.setState({
+        forgotPassword: tempForgotPassword
+      });
+    }
   }
   /**
    * Display login form
@@ -251,17 +584,39 @@ class Login extends Component {
    */
   renderLogin = () => {
     const {baseUrl, contextRoot, productName, locale} = this.props;
-    const {dropDownList, login, info, error, formValidation} = this.state;
+    const {
+      dropDownList,
+      openFindAccountDialog,
+      openEnterTokenDialog,
+      openEnterPasswordDialog,
+      login,
+      info,
+      error,
+      formValidation
+    } = this.state;
 
     return (
       <div id='g-login' className='c-center global c-flex fdc'>
-        <div id='title'>
+
+        {openFindAccountDialog &&
+          this.forgotPasswordDialog('account')
+        }
+
+        {openEnterTokenDialog &&
+          this.forgotPasswordDialog('token')
+        }
+
+        {openEnterPasswordDialog &&
+          this.forgotPasswordDialog('password')
+        }
+
+        <div id='loingTitle'>
           <img src='/SCP/images/nsguard-logo.png' />
           <span className='title'>{productName}</span>
           <span className='subtitle'></span>
         </div>
 
-        <div id='form' className='c-flex fdc'>
+        <div id='loingForm' className='c-flex fdc'>
           <div className='login-group'>
             <TextField
               id='login-username'
@@ -275,7 +630,7 @@ class Login extends Component {
               error={!formValidation.username.valid}
               helperText={formValidation.username.valid ? '' : t('login.txt-username')}
               value={login.username}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange.bind(this, 'login')} />
           </div>
           <div className='login-group'>
             <TextField
@@ -290,12 +645,15 @@ class Login extends Component {
               error={!formValidation.password.valid}
               helperText={formValidation.password.valid ? '' : t('login.txt-password')}
               value={login.password}
-              onChange={this.handleDataChange}
+              onChange={this.handleDataChange.bind(this, 'login')}
               onKeyDown={this.handleKeyDown} />
           </div>
           <button id='login-btn-login' onClick={this.logon}>{t('login.btn-login')}</button>
 
-          <div className='first-time'><span id='login-startResetPwd' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</span></div>
+          <div className='login-options'>
+            <div id='login-startResetPwd' className='c-link first-time' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</div>
+            <div className='c-link forgot-pass' onClick={this.handleForgotPassword}>{t('txt-forgotPassword')}?</div>
+          </div>
 
           <div className={cx('c-info error-msg', {'c-error': error})}>{info}</div>
 

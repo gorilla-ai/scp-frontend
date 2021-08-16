@@ -22,6 +22,10 @@
   "tt-details": "查看內容",
 
   "txt-fist-login": "首次登入",
+  "txt-forgotPassword": "忘記密碼",
+  "txt-enterAccount": "請輸入你的帳號",
+  "txt-enterToken": "請輸入電子郵件所收到的驗證碼",
+  "txt-enterNewPassword": "選擇新密碼",
   "txt-logging-in":"登入中...",
   "txt-loading":"讀取中...",
   "txt-saving":"儲存中...",
@@ -64,6 +68,7 @@
     "txt-resetPassword": "重設密碼",
     "txt-changePassword": "修改密碼",
     "txt-account": "帳號",
+    "txt-token": "驗證碼",
     "txt-userAccount": "帳號",
     "txt-userPassword": "密碼"
   },

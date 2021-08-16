@@ -424,12 +424,11 @@ class SoarSettings extends Component {
     )
   }
   /**
-   * Open test email dialog
+   * Display test email dialog content
    * @method
    * @returns ModalDialog component
    */
   testEmailDialog = () => {
-    const titleText = t('notifications.txt-testEmails');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
       confirm: {text: t('txt-send'), handler: this.handleTestEmailConfirm}
@@ -439,7 +438,7 @@ class SoarSettings extends Component {
       <ModalDialog
         id='testEmailDialog'
         className='modal-dialog'
-        title={titleText}
+        title={t('notifications.txt-testEmails')}
         draggable={true}
         global={true}
         actions={actions}

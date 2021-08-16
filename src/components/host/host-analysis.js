@@ -373,8 +373,16 @@ class HostAnalysis extends Component {
     };
 
     if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
       requestData.paras = {
-        _FilepathList: yaraRule.path,
+        _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
     }

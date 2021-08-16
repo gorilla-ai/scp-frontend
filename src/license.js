@@ -47,7 +47,7 @@ class License extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     lt = global.chewbaccaI18n.getFixedT(null, 'lms');
-    this.ah = getInstance('chewbacca');    
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     this.loadData();

@@ -22,6 +22,10 @@
   "tt-details": "View Details",
 
   "txt-fist-login": "First time login",
+  "txt-forgotPassword": "Forgot Password",
+  "txt-enterAccount": "Please enter your account",
+  "txt-enterToken": "Please check your email for the token",
+  "txt-enterNewPassword": "Please choose a new password",
   "txt-logging-in":"Logging in...",
   "txt-loading":"Loading...",
   "txt-saving":"Saving...",
@@ -64,6 +68,7 @@
     "txt-resetPassword": "Reset Password",
     "txt-changePassword": "Change Password",
     "txt-account": "Account",
+    "txt-token": "Token",
     "txt-userAccount": "Username",
     "txt-userPassword": "Password"
   },

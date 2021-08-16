@@ -1906,7 +1906,8 @@ html[data-theme='dark'] {
     background-color: var(--dialogFormGroup);
     clear: both;
     .group {
-      margin-bottom: 15px;
+      margin-top: 2px;
+      margin-bottom: 2px;
     }
   }
   .checkbox-ui {
@@ -1958,7 +1959,9 @@ html[data-theme='dark'] {
       clear: both;
     }
     .mark-inputbox {
-      width: 196px;
+      width: 226px;
+      margin-right: 5px;
+      margin-left: 5px;
     }
   }
   .severity-section {
@@ -2473,6 +2476,17 @@ html[data-theme='dark'] {
       button {
         float: left;
       }
+    }
+  }
+}
+#forgotPasswordDialog-dialog {
+  max-width: 350px;
+  #forgotPasswordDialog-content {
+    width: 350px;
+    padding: 20px;
+    .desc-text {
+      font-size: 15px;
+      margin-bottom: 25px;
     }
   }
 }
