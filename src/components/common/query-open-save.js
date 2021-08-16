@@ -594,7 +594,8 @@ class QueryOpenSave extends Component {
       })
       .then(data => {
         if (data) {
-          if (moduleWithSOC) {
+          if (moduleWithSOC && type === 'save') {
+
             if (requestType === 'PATCH') {
               let socRequestBody = {
                 id: requestData.id,
