@@ -23,6 +23,7 @@
 
   "txt-fist-login": "首次登入",
   "txt-forgotPassword": "忘記密碼",
+  "txt-capsLockOn": "大寫鎖定鍵已開啟",
   "txt-enterAccount": "請輸入你的帳號",
   "txt-enterToken": "請輸入電子郵件所收到的驗證碼",
   "txt-enterNewPassword": "選擇新密碼",

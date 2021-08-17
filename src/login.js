@@ -50,6 +50,7 @@ class Login extends Component {
       openFindAccountDialog: false,
       openEnterTokenDialog: false,
       openEnterPasswordDialog: false,
+      capsLockWarning: '',
       login: {
         username: '',
         password: ''
@@ -532,12 +533,16 @@ class Login extends Component {
   /**
    * Handle enter key for login
    * @method
-   * @param {object} e - mouseClick events
+   * @param {object} event - event object
    */
-  handleKeyDown = (e) => {
-    if (e.keyCode === 13) {
+  handleKeyDown = (event) => {
+    if (event.keyCode === 13) {
       this.logon();
     }
+
+    this.setState({
+      capsLockWarning: event.getModifierState('CapsLock')
+    });
   }
   /**
    * Handle language change
@@ -596,6 +601,7 @@ class Login extends Component {
       openFindAccountDialog,
       openEnterTokenDialog,
       openEnterPasswordDialog,
+      capsLockWarning,
       login,
       info,
       error,
@@ -624,7 +630,7 @@ class Login extends Component {
         </div>
 
         <div id='loingForm' className='c-flex fdc'>
-          <div className='login-group'>
+          <div className='login-group top'>
             <TextField
               id='login-username'
               name='username'
@@ -639,7 +645,7 @@ class Login extends Component {
               value={login.username}
               onChange={this.handleDataChange.bind(this, 'login')} />
           </div>
-          <div className='login-group'>
+          <div className='login-group bottom'>
             <TextField
               id='login-password'
               name='password'
@@ -655,6 +661,9 @@ class Login extends Component {
               onChange={this.handleDataChange.bind(this, 'login')}
               onKeyDown={this.handleKeyDown} />
           </div>
+          {capsLockWarning &&
+            <div className='caps-lock'>{t('txt-capsLockOn')}!</div>
+          }
           <button id='login-btn-login' onClick={this.logon}>{t('login.btn-login')}</button>
 
           <div className='login-options'>

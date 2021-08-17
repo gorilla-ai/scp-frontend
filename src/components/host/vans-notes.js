@@ -75,8 +75,10 @@ class VansNotes extends Component {
     }
 
     //For updating existing vans notes status
-    if (prevProps && prevProps.currentData.annotationObj && prevProps.currentData.annotationObj.status !== currentData.annotationObj.status) {
-      this.setVansData();
+    if (prevProps && prevProps.currentData.annotationObj && currentData.annotationObj) {
+      if (prevProps.currentData.annotationObj.status !== currentData.annotationObj.status) {
+        this.setVansData();
+      }
     }
 
     if (!prevProps || (prevProps && vansDeviceStatusList !== prevProps.vansDeviceStatusList)) {
