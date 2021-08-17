@@ -1524,6 +1524,7 @@ class HostController extends Component {
     } else {
       return (
         <div>
+          <div className='message'>{t('host.txt-report-withCpe')}</div>
           <FormControlLabel
             control={
               <Checkbox
@@ -1555,7 +1556,7 @@ class HostController extends Component {
       <ModalDialog
         id='reportNCCSTdialog'
         className='modal-dialog'
-        title={t('host.txt-report-withCpe')}
+        title={t('host.txt-report-nccst')}
         draggable={true}
         global={true}
         actions={actions}
@@ -1592,14 +1593,14 @@ class HostController extends Component {
       uncheckList
     };
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/hmd/vans/_report`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.toggleReportNCCST();
       }
@@ -2903,7 +2904,7 @@ class HostController extends Component {
     return (
       <div className='common-info'>
         {safetyData.annotationObj &&
-          <span className='divider'></span>
+          <div className={cx('divider', {'border': safetyData.annotationObj.color})}></div>
         }
         {safetyData.annotationObj &&
           <span className='vans-status scan' style={this.getVansStatusColor(safetyData.annotationObj.color)} onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</span>

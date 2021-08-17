@@ -385,7 +385,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, productRegexData, nccstSettings, formValidation} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, nccstSettings, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -509,25 +509,37 @@ class HMDsettings extends Component {
       });
     }
 
-    if (productRegexData) {
-      const requestData = {
-        productRegex: productRegexData
-      };
-
-      apiArr.push({
-        url: `${baseUrl}/api/hmd/productRegex`,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      });
-    }
-
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
         this.getSettingsInfo();
         this.clearData();
       }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.handleHmdProductRegex();
+  }
+  /**
+   * Handle HMD product regex confirm
+   * @method
+   */
+  handleHmdProductRegex = () => {
+    const {baseUrl} = this.context;
+    const requestData = {
+      productRegex: this.state.productRegexData
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/productRegex`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
       return null;
     })
     .catch(err => {
