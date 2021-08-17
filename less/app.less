@@ -56,6 +56,7 @@ html {
   --disabledCalendar: #999;
 
   --soarFlowDefault: #1a192b;
+  --soarFlowMiniMap: #fff;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
@@ -113,6 +114,7 @@ html[data-theme='dark'] {
   --disabledCalendar: #ccc;
 
   --soarFlowDefault: #ff0;
+  --soarFlowMiniMap: #4b4b4b;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -1446,6 +1448,14 @@ button.standard:hover:not([disabled]) {
           .react-flow__node-output {
             border: 1px solid #ff0072;
           }
+          .react-flow__controls {
+            button:hover {
+              background-color: #fff;
+            }
+          }
+        }
+        .react-flow__minimap {
+          background-color: var(--soarFlowMiniMap);
         }
       }
       .dndnode {

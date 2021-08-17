@@ -35,7 +35,7 @@ import SoarSingleSettings from './soar-single-settings'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NODE_TYPE = ['input', 'default', 'output'];
-const EDGE_TYPE = ['default', 'straight', 'step', 'smoothstep'];
+const EDGE_TYPE = ['default', 'straight', 'smoothstep'];
 
 let t = null;
 let f = null;
@@ -57,7 +57,8 @@ class SoarFlow extends Component {
       openFlowSettingsDialog: false,
       openTestingFlowDialog: false,
       linkAnimated: true,
-      linkShapeType: 'default', //'default', 'straight', 'step'
+      showMiniMap: true,
+      linkShapeType: 'default', //'default', 'straight', 'smoothstep'
       currentFlowID: '',
       soarRule: {
         name: '',
@@ -671,12 +672,44 @@ class SoarFlow extends Component {
       soarFlow: tempSoarFlow
     });
   }
+  /**
+   * Toggle show mini map checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleShowMiniMapCheckbox = () => {
+    this.setState({
+      showMiniMap: event.target.checked
+    });
+  }
+  /**
+   * Get stroke color for flow mini map
+   * @method
+   * @param {object} n - flow object
+   */
+  getStrokeColor = (n) => {
+    const theme = document.documentElement.getAttribute('data-theme');
+    let defaultColor = '';
+
+    if (theme === 'light') {
+      defaultColor = '#1a192b';
+    } else if (theme === 'dark') {
+      defaultColor = '#ff0';
+    }
+
+    if (n.style && n.style.background) return n.style.background;
+    if (n.type === 'input') return '#0041d0';
+    if (n.type === 'output') return '#ff0072';
+    if (n.type === 'default') return defaultColor;
+    return '#eee';
+  }
   render() {
     const {soarColumns, soarIndividualData} = this.props;
     const {
       openFlowSettingsDialog,
       openTestingFlowDialog,
       linkAnimated,
+      showMiniMap,
       linkShapeType,
       soarRule,
       soarCondition,
@@ -787,7 +820,6 @@ class SoarFlow extends Component {
                           {EDGE_TYPE.map(this.showEdgeTypeOptions)}
                         </RadioGroup>
                       </div>
-
                       <div className='link-animated'>
                         <FormControlLabel
                           label={t('soar.txt-linkAnimated')}
@@ -800,7 +832,18 @@ class SoarFlow extends Component {
                               color='primary' />
                           } />
                       </div>
-
+                      <div className='link-animated'>
+                        <FormControlLabel
+                          label={t('soar.txt-showMiniMap')}
+                          control={
+                            <Checkbox
+                              id='showMiniMapCheckbox'
+                              className='checkbox-ui'
+                              checked={showMiniMap}
+                              onChange={this.toggleShowMiniMapCheckbox}
+                              color='primary' />
+                          } />
+                      </div>
                       <div className='node-type'>
                         {NODE_TYPE.map(this.getNodeType)}
                       </div>
@@ -817,23 +860,21 @@ class SoarFlow extends Component {
                         onNodeContextMenu={this.onNodeContextMenu}
                         onEdgeContextMenu={this.onEdgeContextMenu}
                         onEdgeUpdate={this.onEdgeUpdate}
-                        deleteKeyCode={46} >
-                        <MiniMap
-                          className='mini-map'
-                          nodeStrokeColor={(n) => {
-                            if (n.style && n.style.background) return n.style.background;
-                            if (n.type === 'input') return '#0041d0';
-                            if (n.type === 'output') return '#ff0072';
-                            if (n.type === 'default') return '#1a192b';
-                            return '#eee';
-                          }}
-                          nodeColor={(n) => {
-                            if (n.style && n.style.background) return n.style.background;
-                            return '#fff';
-                          }}
-                          nodeBorderRadius={2} />
+                        deleteKeyCode={46}>
+                        {showMiniMap &&
+                          <MiniMap
+                            className='mini-map'
+                            nodeStrokeColor={(n) => {
+                              return this.getStrokeColor(n);
+                            }}
+                            nodeColor={(n) => {
+                              if (n.style && n.style.background) return n.style.background;
+                              return '#fff';
+                            }}
+                            nodeBorderRadius={2} />
+                        }
                         <Controls />
-                        <Background color='#aaa' gap={16} />
+                        <Background />
                       </ReactFlow>
                     </div>
                   </div>
