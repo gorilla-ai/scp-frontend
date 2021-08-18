@@ -207,6 +207,7 @@
   "txt-specialCharacterError": "Special character is not allowed for file name",
   "txt-palette": "Palette",
   "txt-viewEdit": "View More or Edit",
+  "txt-toggleAll": "Enable All",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -306,7 +307,7 @@
     "txt-1w": "1 week",
     "txt-today": "Today",
     "txt-week": "This week",
-    "txt-interval": "Chart Interval "
+    "txt-chart-interval": "Chart Interval"
   },
 
   "dashboard": {

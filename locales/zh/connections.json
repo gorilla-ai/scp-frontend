@@ -207,6 +207,7 @@
   "txt-specialCharacterError": "檔名不容許特殊字元",
   "txt-palette": "調色盤",
   "txt-viewEdit": "查看/編輯",
+  "txt-toggleAll": "全選",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
