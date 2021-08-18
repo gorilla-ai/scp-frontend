@@ -785,7 +785,7 @@ class ThreatIntelligence extends Component {
   displaySearchThreatsContent = () => {
     const {threatsSearch, threats} = this.state;
     const tableOptions = {
-      tableBodyHeight: '50vh',
+      tableBodyHeight: '57vh',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
       },
@@ -838,7 +838,9 @@ class ThreatIntelligence extends Component {
 
         <MuiTableContent
           data={threats}
-          tableOptions={tableOptions} />
+          tableOptions={tableOptions}
+          tableHeight='auto'
+          showLoading={false} />
       </div>
     )
   }

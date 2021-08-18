@@ -33,6 +33,11 @@ class MuiTableContent extends Component {
   componentDidUpdate(prevProps) {
     this.loadTableContent(prevProps);
   }
+  /**
+   * Get and set table data
+   * @method
+   * @returns ModalDialog component
+   */
   loadTableContent = (prevProps) => {
     const {data} = this.props;
 
@@ -42,8 +47,22 @@ class MuiTableContent extends Component {
       });
     }
   }
+  /**
+   * Get set table height to auto
+   * @method
+   * @returns css property
+   */
+  getTableHeight = () => {
+    const {tableHeight} = this.props;
+
+    if (tableHeight === 'auto') {
+      return { height: 'auto' };
+    } else {
+      return { height: '78vh' };
+    }
+  }
   render() {
-    const {data, tableOptions} = this.props;
+    const {data, tableOptions, showLoading} = this.props;
     const {tableData} = this.state;
     const options = {
       tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
@@ -84,10 +103,11 @@ class MuiTableContent extends Component {
       },
       ...tableOptions
     };
+    const loadingIcon = showLoading === false ? false : true;
 
     return (
-      <div className='mui-table-content'>
-        {!tableData.dataContent &&
+      <div className='mui-table-content' style={this.getTableHeight()}>
+        {loadingIcon && !tableData.dataContent &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
         {tableData.dataContent && tableData.dataContent.length === 0 &&
@@ -107,7 +127,9 @@ class MuiTableContent extends Component {
 
 MuiTableContent.propTypes = {
   data: PropTypes.object.isRequired,
-  tableOptions: PropTypes.object.isRequired
+  tableOptions: PropTypes.object.isRequired,
+  tableHeight: PropTypes.string,
+  showLoading: PropTypes.bool
 };
 
 export default MuiTableContent;
