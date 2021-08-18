@@ -154,29 +154,31 @@ class StatisticsUIF extends Component {
           })
         }
 
-        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.query.url`], newUrl)
+        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.query.url`], newUrl);
+        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.errorMessage`], t('txt-error'));
+        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.placeholder`], t('txt-notFound'));
 
         // set tooltip
         if (widgetName === 'AlertStatistics-bar') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'AlertStatistics-bar'))
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'AlertStatistics-bar'));
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
                 return moment(this.value, 'x').local().format('MM/DD HH:mm');
               }
             }
-          })
+          });
         }
 
         if (widgetName === 'CustomAlertStatistics') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'CustomAlertStatistics'))
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'CustomAlertStatistics'));
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
                 return moment(this.value, 'x').local().format('MM/DD HH:mm');
               }
             }
-          })
+          });
         }
 
         if (widgetName === 'MaskedIPAlertStatistics-bar') {
@@ -212,8 +214,8 @@ class StatisticsUIF extends Component {
       })
 
       this.setState({
-        appendConfig,
         uifCfg,
+        appendConfig,
         displayContent
       }, () => {
         if (oneFlag) {
@@ -403,13 +405,13 @@ class StatisticsUIF extends Component {
 
     if (oneFlag) {
       this.setState({
-        layoutConfig,
-        openEdit: true
+        openEdit: true,
+        layoutConfig
       });
     } else {
       this.setState({
-        layoutConfig,
-        oneFlag: true
+        oneFlag: true,
+        layoutConfig
       });
     }
   }
@@ -452,17 +454,28 @@ class StatisticsUIF extends Component {
     }
   }
   handleSwitchChange = (name, event) => {
-    const {layoutConfig} = this.state;
+    const {allChartsID, layoutConfig} = this.state;
     const checked = event.target.checked;
     let tempLayoutConfig = {...layoutConfig};
     tempLayoutConfig = _.set(layoutConfig, `display.${name}`, checked);
+    let toggleAll = true;
     
     let chart = document.getElementById(name);
     chart.parentNode.style.visibility = checked ? 'visible' : 'hidden';
 
+    _.forEach(allChartsID, val => {
+      let chart = document.getElementById(val);
+
+      if (chart.parentNode.style.visibility === 'hidden') {
+        toggleAll = false;
+        return false;
+      }
+    })
+
     this.setState({
-      layoutConfig: tempLayoutConfig,
-      openEdit: true
+      openEdit: true,
+      toggleAll,
+      layoutConfig: tempLayoutConfig
     });
   }
   setChartSwitch = (val, i) => {
@@ -494,12 +507,12 @@ class StatisticsUIF extends Component {
       _.forEach(allChartsID, val => {
         let chart = document.getElementById(val);
         chart.parentNode.style.visibility = visible;
-        tempLayoutConfig.display[val] = toggleAll
+        tempLayoutConfig.display[val] = toggleAll;
       })
 
       this.setState({
-        layoutConfig: tempLayoutConfig,
-        openEdit: true
+        openEdit: true,
+        layoutConfig: tempLayoutConfig
       });
     });
   }

@@ -2923,6 +2923,7 @@ class HostController extends Component {
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
     const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
     let keyValue = '';
 
     if (from === 'showAvailableHost') {
@@ -2931,9 +2932,16 @@ class HostController extends Component {
       keyValue = safetyData.primaryKeyValue || safetyData.id;
     }
 
+    const requestData = {
+      primaryKeyValue: keyValue,
+      exactStartDttm: datetime.from
+    };
+
     this.ah.one({
-      url: `${baseUrl}/api/hmd/hmdScanDistribution?primaryKeyValue=${keyValue}&exactStartDttm=${datetime.from}`,
-      type: 'GET'
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
     .then(data => {
       if (data) {

@@ -122,10 +122,10 @@ class SafetyDetails extends Component {
     } else if (safetyScanType === 'getVansCpe') {
       return (
         <tr>
-          <th>CPE ID</th>
+          <th style={{width: '500px'}}>CPE ID</th>
           <th>{t('host.txt-type')}</th>
           <th>{t('host.txt-vendor')}</th>
-          <th>{t('host.txt-product')}</th>
+          <th style={{width: '430px'}}>{t('host.txt-product')}</th>
           <th>{t('host.txt-version')}</th>
         </tr>
       )
