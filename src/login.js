@@ -50,7 +50,7 @@ class Login extends Component {
       openFindAccountDialog: false,
       openEnterTokenDialog: false,
       openEnterPasswordDialog: false,
-      capsLockWarning: '',
+      capsLockWarning: false,
       login: {
         username: '',
         password: ''
@@ -92,6 +92,16 @@ class Login extends Component {
   componentDidMount() {
     this.getLanguageList();
     this.checkLicense();
+
+    window.addEventListener('keydown', this.wasCapsLockActivated);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.wasCapsLockActivated);
+  }
+  wasCapsLockActivated = (event) => {
+    this.setState({
+      capsLockWarning: event.getModifierState('CapsLock')
+    });
   }
   /**
    * Get language list
@@ -539,10 +549,6 @@ class Login extends Component {
     if (event.keyCode === 13) {
       this.logon();
     }
-
-    this.setState({
-      capsLockWarning: event.getModifierState('CapsLock')
-    });
   }
   /**
    * Handle language change
