@@ -208,6 +208,10 @@
   "txt-palette": "Palette",
   "txt-viewEdit": "View More or Edit",
   "txt-toggleAll": "Enable All",
+  "txt-chartTypeTable": "Table",
+  "txt-chartTypePie": "Pie Chart",
+  "txt-chartTypeLine": "Line Chart",
+  "txt-chartTypeBar": "Bar Chart",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",

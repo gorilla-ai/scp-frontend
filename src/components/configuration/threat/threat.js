@@ -80,7 +80,7 @@ class ThreatIntelligence extends Component {
         pageSize: 20
       },
       info: '',
-      tempTxtData: ''
+      uploadedThreatsData: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -321,17 +321,18 @@ class ThreatIntelligence extends Component {
     const rABS = !!reader.readAsBinaryString;
 
     reader.onload = (e) => {
-      const bstr = e.target.result;
+      const bstr = btoa(e.target.result); //Encode text result
       const wb = XLSX.read(bstr, {type: rABS ? 'binary' : 'array'});
       /* Get first worksheet */
       const wsname = wb.SheetNames[0];
       const ws = wb.Sheets[wsname];
       /* Convert array of arrays */
       const data = XLSX.utils.sheet_to_json(ws, {header: 1});
-      let result = data.filter(o => Object.keys(o).length);
+      const result = data.filter(o => Object.keys(o).length);
+      const uploadedThreatsData = atob(result).split('\r\n'); //Decode text result
 
       this.setState({
-        tempTxtData: result
+        uploadedThreatsData
       });
     }
     reader.onerror = error => reject(error);
@@ -419,13 +420,14 @@ class ThreatIntelligence extends Component {
    * @method
    */
   confirmThreatUpload = () => {
-    const {addThreats, tempTxtData} = this.state;
-    let tempAddThreats = addThreats;
+    const {uploadedThreatsData} = this.state;
 
-    if (tempTxtData.length > 0) {
-      _.forEach(tempTxtData, val => {
-        tempAddThreats.push({
-          input: val[0],
+    if (uploadedThreatsData.length > 0) {
+      let addThreats = [];
+
+      _.forEach(uploadedThreatsData, val => {
+        addThreats.push({
+          input: val,
           type: '',
           severity: 'ALERT',
           validate: true
@@ -434,7 +436,7 @@ class ThreatIntelligence extends Component {
 
       this.setState({
         uplaodThreatsOpen: false,
-        addThreats: tempAddThreats
+        addThreats
       }, () => {
         this.toggleAddThreats();
       });

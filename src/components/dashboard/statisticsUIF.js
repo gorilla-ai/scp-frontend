@@ -196,9 +196,7 @@ class StatisticsUIF extends Component {
       _.forEach(uifCfg.config.widgets, (content, key) => {
         let type = _.get(content.widgetConfig, 'type');
         type = type.substring(type.indexOf('/') + 1);
-        let label = `${content.boxTitle}(${type})`;
-
-        displayContent[key] = label;
+        displayContent[key] = content.boxTitle + ' (' + t('txt-chartType' + type) + ')';
       })
       
       _.set(uifCfg, 'config.onLayoutChange', this.positionChange);

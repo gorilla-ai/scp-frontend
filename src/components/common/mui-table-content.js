@@ -77,6 +77,10 @@ class MuiTableContent extends Component {
       count: tableData.totalCount,
       rowsPerPage: tableData.pageSize,
       page: tableData.currentPage,
+      draggableColumns: {
+        enabled: true
+      },
+      resizableColumns: true,
       textLabels: {
         body: {
           noMatch: t('MuiDataTable.body.noMatch'),

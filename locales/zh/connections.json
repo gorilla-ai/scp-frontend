@@ -208,6 +208,10 @@
   "txt-palette": "調色盤",
   "txt-viewEdit": "查看/編輯",
   "txt-toggleAll": "全選",
+  "txt-chartTypeTable": "表格",
+  "txt-chartTypePie": "圓餅圖",
+  "txt-chartTypeLine": "折線圖",
+  "txt-chartTypeBar": "長條圖",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
