@@ -2095,6 +2095,11 @@ html[data-theme='dark'] {
 }
 #uploadThreatsDialog-content,
 #importThreatsDialog-content {
+  .view-example {
+    position: absolute;
+    margin-top: 10px;
+    color: var(--primaryContentHeader);
+  }
   input {
     height: 35px;
   }
@@ -2185,6 +2190,9 @@ html[data-theme='dark'] {
 #addThreatsDialog-content {
   width: 900px;
   height: 620px;
+  .auto-detect-checkbox {
+    margin: 10px 0 0 0;
+  }
   .add-threats {
     display: flex;
     width: 55em;
@@ -2225,6 +2233,7 @@ html[data-theme='dark'] {
   }
   #threatMultiInputs {
     .group {
+      padding-top: 10px;
       margin-top: 10px;
       border: 1px solid var(--primaryBorder);
       border-radius: 5px;

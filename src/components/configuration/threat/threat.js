@@ -7,6 +7,8 @@ import jschardet from 'jschardet'
 import XLSX from 'xlsx'
 
 import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
@@ -65,6 +67,7 @@ class ThreatIntelligence extends Component {
       uplaodThreatsOpen: false,
       importThreatsOpen: false,
       searchThreatsOpen: false,
+      autoDetectType: true,
       addThreats: [],
       threatsFile: {},
       threats: {
@@ -385,6 +388,41 @@ class ThreatIntelligence extends Component {
     }
   }
   /**
+   * Show file upload example
+   * @method
+   */
+  showUploadExample = () => {
+    PopupDialog.alert({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-close'),
+      display: <div style={{textAlign: 'left'}}>
+        <div>{t('edge-management.txt-exampleDesc')}</div>
+        <pre>
+          127.0.0.1<br />
+          http://www.google.com<br />
+          msn.com<br />
+          2001:0:1234::C1C0:ABCD:876<br />
+          595f44fec1e92a71d3e9e77456ba80d1
+        </pre>
+      </div>
+    });
+  }
+  /**
+   * Get see example margin
+   * @method
+   * @returns {string} - width
+
+   */
+  getMarginWidth = () => {
+    const {locale} = this.context;
+
+    if (locale === 'en') {
+      return '115px';
+    } else if (locale === 'zh') {
+      return '100px';
+    }
+  }
+  /**
    * Display threat upload modal dialog and its content
    * @method
    * @returns ModalDialog component
@@ -406,6 +444,7 @@ class ThreatIntelligence extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
+        <div className='c-link view-example' style={{marginLeft: this.getMarginWidth()}} onClick={this.showUploadExample}>({t('edge-management.txt-viewExample')})</div>
         <FileUpload
           id='uploadThreat'
           fileType='text'
@@ -428,7 +467,7 @@ class ThreatIntelligence extends Component {
       _.forEach(uploadedThreatsData, val => {
         addThreats.push({
           input: val,
-          type: '',
+          type: helper.determineInputRuleType(val),
           severity: 'ALERT',
           validate: true
         });
@@ -493,23 +532,87 @@ class ThreatIntelligence extends Component {
     this.handleCloseMenu();
   }
   /**
-   * Handle add/remove for the add threats box
+   * Handle add/remove the add threats box
    * @method
-   * @param {array} data - add threats list array
+   * @param {array.<object>} data - add threats list array
    */
   handleAddThreatsChange = (data) => {
+    const {autoDetectType} = this.state;
+
+    if (autoDetectType) { //Auto detect type is on
+      let addThreats = [];
+
+      if (data.length > 0) {
+        _.forEach(data, val => {
+          addThreats.push({
+            ...val,
+            type: helper.determineInputRuleType(val.input)
+          });
+        })
+      }
+
+      this.setState({
+        addThreats
+      });
+    } else { //Auto detect type is off
+      this.setState({
+        addThreats: data
+      });
+    }
+  }
+  /**
+   * Toggle auto detect type checkbox
+   * @method
+   */
+  toggleAutoDetectCheckbox = () => {
     this.setState({
-      addThreats: data
+      autoDetectType: !this.state.autoDetectType
+    }, () => {
+      const {autoDetectType, addThreats} = this.state;
+
+      if (autoDetectType) { //Update threats input and clear error message
+        let tempAddThreats = [];
+
+        if (addThreats.length > 0) {
+          _.forEach(addThreats, val => {
+            tempAddThreats.push({
+              ...val,
+              type: helper.determineInputRuleType(val.input),
+              validate: true
+            });
+          })
+        }
+
+        this.setState({
+          addThreats: tempAddThreats,
+          info: ''
+        });
+      }
     });
   }
   /**
    * Display add threats content
    * @method
-   * @returns HTML DOM
+   * @returns MultiInput component
    */
   displayAddThreatsContent = () => {
+    const {autoDetectType, addThreats} = this.state;
+    const data = {
+      autoDetectType
+    };
+
     return (
       <div>
+        <FormControlLabel
+          label={t('edge-management.txt-autoDetectType')}
+          className='auto-detect-checkbox'
+          control={
+            <Checkbox
+              className='checkbox-ui'
+              checked={autoDetectType}
+              onChange={this.toggleAutoDetectCheckbox}
+              color='primary' />
+          } />
         <MultiInput
           id='threatMultiInputs'
           base={AddThreats}
@@ -519,7 +622,8 @@ class ThreatIntelligence extends Component {
             severity: 'ALERT',
             validate: true
           }}
-          value={this.state.addThreats}
+          value={addThreats}
+          props={data}
           onChange={this.handleAddThreatsChange}/>
       </div>
     )

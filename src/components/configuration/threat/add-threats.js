@@ -61,7 +61,7 @@ class AddThreats extends Component {
     });
   }
   render() {
-    const {value} = this.props;
+    const {autoDetectType, value} = this.props;
     const {severityList} = this.state;
 
     return (
@@ -69,6 +69,7 @@ class AddThreats extends Component {
         <TextField
           id='addThreatsText'
           name='input'
+          label={t('alert.txt-threatsContent')}
           variant='outlined'
           fullWidth
           size='small'
@@ -81,12 +82,14 @@ class AddThreats extends Component {
           id='addThreatsType'
           name='type'
           select
+          label={t('txt-type')}
           variant='outlined'
           fullWidth
           size='small'
           required
           value={value.type}
-          onChange={this.handleDataChange}>
+          onChange={this.handleDataChange}
+          disabled={autoDetectType}>
           <MenuItem value={'ip'}>IP</MenuItem>
           <MenuItem value={'ipv6'}>IPv6</MenuItem>
           <MenuItem value={'domainName'}>DomainName</MenuItem>
@@ -106,9 +109,11 @@ class AddThreats extends Component {
           className={'severity ' + value.severity.toLowerCase()}
           name='severity'
           select
+          label={t('txt-severity')}
           variant='outlined'
           fullWidth
           size='small'
+          required
           value={value.severity}
           onChange={this.handleDataChange}>
           {severityList}
