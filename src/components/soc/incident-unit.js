@@ -426,6 +426,11 @@ class IncidentUnit extends Component {
         } = this.state;
         const {session} = this.context;
 
+        let insertCheck = true;
+        if (_.includes(session.roles, constants.soc.Default_Admin)){
+            insertCheck = false
+        }
+
         const tableOptions = {
             onChangePage: (currentPage) => {
                 this.handlePaginationChange('currentPage', currentPage);
@@ -486,9 +491,11 @@ class IncidentUnit extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-unit')}</header>
 
-                            <div className='content-header-btns with-menu '>
-                                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
-                            </div>
+                            {insertCheck &&
+                                <div className='content-header-btns with-menu '>
+                                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
+                                </div>
+                            }
                             <MuiTableContentWithoutLoading
                                 data={incidentUnit}
                                 tableOptions={tableOptions} />
