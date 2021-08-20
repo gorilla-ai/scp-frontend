@@ -2190,8 +2190,11 @@ html[data-theme='dark'] {
 #addThreatsDialog-content {
   width: 900px;
   height: 620px;
-  .auto-detect-checkbox {
-    margin: 10px 0 0 0;
+  .auto-detect {
+    margin: 10px;
+    .checkbox {
+      float: left;
+    }
   }
   .add-threats {
     display: flex;
@@ -2232,6 +2235,7 @@ html[data-theme='dark'] {
     }
   }
   #threatMultiInputs {
+    clear: both;
     .group {
       padding-top: 10px;
       margin-top: 10px;

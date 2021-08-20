@@ -603,16 +603,18 @@ class ThreatIntelligence extends Component {
 
     return (
       <div>
-        <FormControlLabel
-          label={t('edge-management.txt-autoDetectType')}
-          className='auto-detect-checkbox'
-          control={
-            <Checkbox
-              className='checkbox-ui'
-              checked={autoDetectType}
-              onChange={this.toggleAutoDetectCheckbox}
-              color='primary' />
-          } />
+        <div className='auto-detect'>
+          <FormControlLabel
+            label={t('edge-management.txt-autoDetectType')}
+            className='checkbox'
+            control={
+              <Checkbox
+                className='checkbox-ui'
+                checked={autoDetectType}
+                onChange={this.toggleAutoDetectCheckbox}
+                color='primary' />
+            } />
+        </div>
         <MultiInput
           id='threatMultiInputs'
           base={AddThreats}
