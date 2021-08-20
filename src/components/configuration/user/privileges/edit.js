@@ -270,7 +270,7 @@ class PrivilegeEdit extends Component {
     }
 
 
-    if (val.text.includes('SOC')) {
+    if (val.text.includes('SOC') || this.state.privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
       return (
         <FormControlLabel
           key={i}
