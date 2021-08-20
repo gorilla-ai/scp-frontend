@@ -584,6 +584,11 @@ class IncidentDeviceStep extends Component {
     render() {
         const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic, accountType, openManage} = this.state;
         const {session} = this.context;
+        let insertCheck = true;
+        if (_.includes(session.roles, constants.soc.Default_Admin)){
+            insertCheck = false
+        }
+
         return (
             <div>
 
@@ -608,13 +613,11 @@ class IncidentDeviceStep extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
-                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && <span>{it('txt-autoSendState')}</span>
-                                }
-
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && <span>{it('txt-autoSendState')}</span>}
                                 {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
                                 {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
-                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT &&
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && insertCheck &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</Button>
                                 }
 
@@ -626,10 +629,13 @@ class IncidentDeviceStep extends Component {
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                                 }
 
-                                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                                {accountType !== constants.soc.LIMIT_ACCOUNT && insertCheck &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
                                 }
+
+                                {insertCheck &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
+                                }
 
                                 {accountType !== constants.soc.LIMIT_ACCOUNT &&
                                     <Link to='/SCP/configuration/notifications'>
