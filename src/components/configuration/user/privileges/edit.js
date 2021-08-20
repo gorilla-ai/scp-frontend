@@ -269,9 +269,6 @@ class PrivilegeEdit extends Component {
       showCheckbox = true;
     }
 
-    // if (name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor'|| name === 'SOC CISO') {
-    //   showCheckbox = true;
-    // }
 
     if (val.text.includes('SOC')) {
       return (
@@ -328,7 +325,7 @@ class PrivilegeEdit extends Component {
           error={!formValidation.name.valid}
           helperText={formValidation.name.valid ? '' : c('txt-required')}
           value={name}
-          disabled={name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor'}
+          disabled={name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor' || name === 'SOC單位設備承辦人' || name === 'SOC單位設備資安長'|| name === 'Default Admin Privilege'}
           onChange={this.handleDataChange} />
         <div className='group'>
           <FormControl
