@@ -492,7 +492,6 @@ class EsManage extends Component {
    * @returns HTML DOM
    */
   importIndexDialog = () => {
-    const {info} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleImportIndex},
       confirm: {text: t('txt-confirm'), handler: this.confirmImportIndex}
@@ -506,7 +505,7 @@ class EsManage extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={info}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayImportIndexContent()}
       </ModalDialog>

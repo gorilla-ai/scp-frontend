@@ -1793,7 +1793,7 @@ class NetworkInventory extends Component {
    */
   triggerTask = (type, options, yaraRule) => {
     const {baseUrl} = this.context;
-    const {deviceData, currentDeviceData} = this.state;
+    const {currentDeviceData} = this.state;
     let requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       cmds: type
@@ -2362,6 +2362,7 @@ class NetworkInventory extends Component {
   displayUploadStatus = (data) => {
     const {ipUploadFields} = this.state;
     let tableFields = {};
+
     ipUploadFields.forEach(tempData => {
       tableFields[tempData] = {
         label: t(`ipFields.${tempData}`),
@@ -2396,7 +2397,7 @@ class NetworkInventory extends Component {
    */
   uploadActions = (type) => {
     const {baseUrl} = this.context;
-    const {csvData, csvColumns, csvHeader, ipUploadFields, formValidation} = this.state;
+    const {csvData, csvColumns, ipUploadFields, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
 
     if (type === 'upload') {
@@ -2798,7 +2799,7 @@ class NetworkInventory extends Component {
    */
   handleIPdeviceConfirm = (ownerUUID, from) => {
     const {baseUrl} = this.context;
-    const {formTypeEdit, currentDeviceData, batchUpdatesList, mapAreaUUID, floorPlan, addIP, addSeat} = this.state;
+    const {formTypeEdit, currentDeviceData, batchUpdatesList, mapAreaUUID, addIP, addSeat} = this.state;
     let url = `${baseUrl}/api/ipdevice`;
     let requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {

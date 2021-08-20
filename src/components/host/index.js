@@ -576,7 +576,6 @@ class HostController extends Component {
    */
   getAreaData = (event) => {
     const {baseUrl, contextRoot} = this.context;
-    const {alertDetails} = this.state;
     const floorPlan = event.target ? event.target.value : event;
 
     this.ah.one({
@@ -1934,7 +1933,7 @@ class HostController extends Component {
    * @param {array.<string>} data - filter data
    */
   setDeviceSearch = (type, data) => {
-    const {vansDeviceStatusList, deviceSearch, deviceSearchList} = this.state;
+    const {deviceSearch, deviceSearchList} = this.state;
     let tempDeviceSearch = {...deviceSearch};
     let tempDeviceSearchList = {...deviceSearchList};
     let dataList = [];
@@ -2022,7 +2021,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {openQuery, queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
+    const {queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -2987,8 +2986,6 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getSafetyList = (val, i) => {
-    const {safetyScanType} = this.state;
-
     return (
       <li key={i}>
         <div className='device-alert product-safety'>

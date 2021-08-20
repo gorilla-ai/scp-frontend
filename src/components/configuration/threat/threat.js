@@ -634,7 +634,6 @@ class ThreatIntelligence extends Component {
    * @returns HTML DOM
    */
   addThreatsDialog = () => {
-    const {info} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleAddThreats},
       confirm: {text: t('txt-confirm'), handler: this.confirmAddThreats}
@@ -649,7 +648,7 @@ class ThreatIntelligence extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={info}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayAddThreatsContent()}
       </ModalDialog>
