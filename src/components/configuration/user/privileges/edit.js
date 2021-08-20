@@ -262,9 +262,6 @@ class PrivilegeEdit extends Component {
    * @returns HTML DOM
    */
   getRoleList = (val, i) => {
-    console.log("val == " , val)
-    console.log("privilegeid == " , this.state.privilegeid)
-
     const {name} = this.state;
     let showCheckbox = false;
 
