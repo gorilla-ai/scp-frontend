@@ -613,9 +613,7 @@ class IncidentDeviceStep extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
-                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && insertCheck && <span>{it('txt-autoSendState')}</span>
-                                }
-
+                                {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && <span>{it('txt-autoSendState')}</span>}
                                 {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
                                 {activeContent === 'tableList' && accountType !== constants.soc.LIMIT_ACCOUNT && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
