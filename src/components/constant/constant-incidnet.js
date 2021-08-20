@@ -23,7 +23,7 @@ const constants = {
 		SOC_Ciso: 'SOC CISO',
 		SOC_NORMAL_Super: 'SOC單位設備承辦人',
 		SOC_NORMAL_Ciso: 'SOC單位設備資安長',
-
+		Default_Admin: 'Default Admin Privilege',
 		// incident Device
 		SEND_STATUS_SUCCESS: 1,
 		SEND_STATUS_ERROR_NOT_CONNECT_NCCST: 2,
