@@ -4118,9 +4118,9 @@ class NetworkInventory extends Component {
           <div className='secondary-btn-group right'>
             {((activeTab === 'deviceList' && activeContent === 'tableList') || activeTab === 'deviceMap' || activeTab === 'deviceLA') &&
               <div>
-                <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
+                <Button id='inventorySearchFilter' variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
                 {activeTab === 'deviceList' &&
-                  <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
+                  <Button id='inventoryExportCSV' variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
                 }
               </div>
             }
