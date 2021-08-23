@@ -611,6 +611,9 @@ button.standard:hover:not([disabled]) {
   }
 }
 .mui-table-content {
+  div[class^='MUIDataTableResize-resizer-'] {
+    border: 0.1px solid var(--primaryBorder);
+  }
   .no-result {
     text-align: center;
     margin-top: 100px;
@@ -647,6 +650,9 @@ button.standard:hover:not([disabled]) {
         background-color: var(--primaryContentHeader);
       }
     }
+  }
+  .MuiTableCell-root {
+    border-bottom: 0.1px solid var(--primaryBorder);
   }
   .MuiToolbar-root,
   .MuiTablePagination-actions {
