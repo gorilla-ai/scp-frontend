@@ -293,7 +293,7 @@ class IncidentManagement extends Component {
                         label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                         options: {
                             filter: true,
-                            sort: val === 'severity',
+                            sort: val === 'severity' || val === 'id' || val === 'createDttm',
                             customBodyRenderLite: (dataIndex, options) => {
                                 const allValue = tempEdge.dataContent[dataIndex];
                                 let value = tempEdge.dataContent[dataIndex][val];
@@ -417,7 +417,7 @@ class IncidentManagement extends Component {
                             label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                             options: {
                                 filter: true,
-                                sort: val === 'severity',
+                                sort: val === 'severity' || val === 'id' || val === 'createDttm',
                                 customBodyRenderLite: (dataIndex, options) => {
                                     const allValue = tempEdge.dataContent[dataIndex];
                                     let value = tempEdge.dataContent[dataIndex][val];
@@ -2993,10 +2993,10 @@ class IncidentManagement extends Component {
      * @method
      * @param {object} sort - sort data object
      */
-    handleTableSort = (sort) => {
+    handleTableSort = (field, sort) => {
         let tmpIncident = {...this.state.incident};
-        tmpIncident.sort.field = sort.field;
-        tmpIncident.sort.desc = sort.desc;
+        tmpIncident.sort.field = field;
+        tmpIncident.sort.desc = sort;
 
         this.setState({
             incident: tmpIncident
