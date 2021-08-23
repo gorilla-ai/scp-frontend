@@ -1003,10 +1003,10 @@ class IncidentUnit extends Component {
      * @method
      * @param {object} sort - sort data object
      */
-    handleTableSort = (sort) => {
+    handleTableSort = (field, sort) => {
         let tempDevice = {...this.state.incidentUnit};
-        tempDevice.sort.field = sort.field;
-        tempDevice.sort.desc = sort.desc;
+        tempDevice.sort.field = field;
+        tempDevice.sort.desc = sort;
 
         this.setState({
             incidentUnit: tempDevice
