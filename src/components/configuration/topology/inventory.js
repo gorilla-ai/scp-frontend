@@ -956,8 +956,8 @@ class NetworkInventory extends Component {
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                      <i id='inventoryViewDevice' className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}></i>
+                      <i id='inventoryDeleteDevice' className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                       <FormControlLabel
                         control={
                           <Checkbox
@@ -1066,7 +1066,7 @@ class NetworkInventory extends Component {
    */
   renderSeatInfo = (seatData) => {
     return (
-      <div className='seat-name'>{t('txt-seatName')}: <span>{seatData.seatName}</span> <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.handleEditSeatName.bind(this, seatData)}>{t('txt-edit')}</Button></div>
+      <div className='seat-name'>{t('txt-seatName')}: <span>{seatData.seatName}</span> <Button id='inventoryEditSeatName' variant='outlined' color='primary' className='standard btn edit' onClick={this.handleEditSeatName.bind(this, seatData)}>{t('txt-edit')}</Button></div>
     )
   }
   /**
@@ -1083,7 +1083,7 @@ class NetworkInventory extends Component {
           {this.renderSeatInfo(currentSeatData)}
           <div>{t('network-inventory.txt-noDevice')}</div>
           <div className='table-menu inventory active'>
-            <i className='fg fg-trashcan' onClick={this.openDeleteSeatModal} title={t('network-topology.txt-deleteSeat')}></i>
+            <i id='inventoryDeleteSeatModal' className='fg fg-trashcan' onClick={this.openDeleteSeatModal} title={t('network-topology.txt-deleteSeat')}></i>
           </div>
         </div>
       )
@@ -1115,8 +1115,8 @@ class NetworkInventory extends Component {
           <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
           <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
           <div className='table-menu inventory active'>
-            <i className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
-            <i className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
+            <i id='inventoryGetOwnerSeat' className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
+            <i id='inventoryDeleteDeviceModal' className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
           </div>
           <div className='main header'>{t('alert.txt-systemInfo')}</div>
           <div className='info'><span>{t('ipFields.hostName')}:</span>{deviceInfo.hostName || NOT_AVAILABLE}</div>
@@ -1266,7 +1266,7 @@ class NetworkInventory extends Component {
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+        <i id='inventoryCloseFilter' className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
@@ -1360,8 +1360,8 @@ class NetworkInventory extends Component {
           }
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.handleFilterSubmit}>{t('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+          <Button id='inventoryFilterSubmit' variant='contained' color='primary' className='filter' onClick={this.handleFilterSubmit}>{t('txt-filter')}</Button>
+          <Button id='inventoryClearFilter' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -3404,7 +3404,7 @@ class NetworkInventory extends Component {
                 }
               </RadioGroup>
               {ownerType === 'new' &&
-                <Button variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
+                <Button id='inventoryManageDepartment' variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
               }
               <div className='user-pic'>
                 {ownerType === 'new' &&
@@ -3545,7 +3545,7 @@ class NetworkInventory extends Component {
           {activeSteps === 4 && activeContent !== 'batchUpdates' &&
             <div className='form-group steps-floor'>
               <header>{t('alert.txt-floorInfo')}</header>
-              <Button variant='outlined' color='primary' className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</Button>
+              <Button id='inventoryEditFloorMapStep' variant='outlined' color='primary' className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</Button>
               <div className='floor-info'>
                 <div className='tree'>
                   {floorPlan.treeData && floorPlan.treeData.length > 0 &&
@@ -3577,15 +3577,15 @@ class NetworkInventory extends Component {
             </div>
           }
           <footer>
-            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+            <Button id='inventoryCancelSteps' variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
             {activeSteps > 1 && activeContent !== 'batchUpdates' &&
-              <Button variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
+              <Button id='inventoryPreviousStep' variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
             }
             {activeContent !== 'batchUpdates' &&
-              <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
+              <Button id='inventoryNextStep' variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
             }
             {activeContent === 'batchUpdates' &&
-              <Button variant='contained' color='primary' className='next-step' onClick={this.handleBatchUpdatesConfirm}>{t('txt-confirm')}</Button>
+              <Button id='inventoryConfirmSteps' variant='contained' color='primary' className='next-step' onClick={this.handleBatchUpdatesConfirm}>{t('txt-confirm')}</Button>
             }
           </footer>
         </div>
@@ -4142,21 +4142,21 @@ class NetworkInventory extends Component {
                   textColor='primary'
                   value={activeTab}
                   onChange={this.handleSubTabChange}>
-                  <Tab label={t('network-inventory.txt-deviceList')} value='deviceList' />
-                  <Tab label={t('network-inventory.txt-deviceMap')} value='deviceMap' />
-                  <Tab label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
+                  <Tab id='inventoryTabDeviceList' label={t('network-inventory.txt-deviceList')} value='deviceList' />
+                  <Tab id='inventoryTabDeviceMap' label={t('network-inventory.txt-deviceMap')} value='deviceMap' />
+                  <Tab id='inventoryTabDeviceLA' label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
                 </Tabs>
 
                 <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                   {activeTab !== 'deviceLA' &&
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
+                    <Button id='inventoryAddIp' variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
                   }
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
+                  <Button id='inventoryAutoSettings' variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
                   {activeTab === 'deviceList' &&
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleBatchUpdates} disabled={batchUpdatesList.length === 0}>{t('network-inventory.txt-batchUpdates')}</Button>
+                    <Button id='inventoryBatchUpdates' variant='outlined' color='primary' className='standard btn' onClick={this.handleBatchUpdates} disabled={batchUpdatesList.length === 0}>{t('network-inventory.txt-batchUpdates')}</Button>
                   }
                   {activeTab === 'deviceMap' &&
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
+                    <Button id='inventoryEditFloorMapDeviceMap' variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
                   }
                 </div>
 
@@ -4279,8 +4279,8 @@ class NetworkInventory extends Component {
                     </section>
 
                     <footer>
-                      <Button variant='outlined' color='primary' className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-                      <Button variant='contained' color='primary' className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
+                      <Button id='inventoryCancelUploadCsv' variant='outlined' color='primary' className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                      <Button id='inventoryUploadCsv' variant='contained' color='primary' className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
                     </footer>
                   </div>
                 }
@@ -4294,8 +4294,8 @@ class NetworkInventory extends Component {
                 <div className='privateIp-info'>
                   <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
                   <div className='content-header-btns'>
-                    <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</Button>
+                    <Button id='inventoryBackToList' variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</Button>
+                    <Button id='inventoryEditBasicInfo' variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</Button>
                   </div>
 
                   <PrivateDetails
