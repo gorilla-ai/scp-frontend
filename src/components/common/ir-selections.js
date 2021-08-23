@@ -8,6 +8,11 @@ import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
+import {BaseDataContext} from './context'
+import helper from './helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
 const FULL_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getBrowserData', 'getOutlookData', 'getRegistryBackup', 'getEventLogFile', 'getRecycleFile', 'getRecentFile', 'getPictureFile', 'getVideoFile', 'getMicrosoftFile', 'getKeyWordFile'];
 const QUICK_IR_LIST = ['getSystemInfoFile', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile'];
 const STANDARD_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile', 'getRecentFile'];
@@ -235,6 +240,8 @@ class IrSelections extends Component {
     )
   }
 }
+
+IrSelections.contextType = BaseDataContext;
 
 IrSelections.propTypes = {
   currentDeviceData: PropTypes.object.isRequired,
