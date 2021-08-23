@@ -30,6 +30,7 @@ import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
   Alert: '#CC7B29',
@@ -1193,9 +1194,7 @@ class AlertDetails extends Component {
     let linkUrl = '';
 
     if (type === 'virustotal') {
-      const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;      
-
-      if (ipPattern.test(value)) { //Check IP format
+      if (IP_PATTERN.test(value)) { //Check IP format
         linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + value + '/relations';
       } else {
         linkUrl = 'https:\//www.virustotal.com/gui/domain/' + value + '/detection';

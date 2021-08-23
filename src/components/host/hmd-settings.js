@@ -20,6 +20,7 @@ import ProductRegex from './product-regex'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -136,12 +137,16 @@ class HMDsettings extends Component {
       },
       formValidation: {
         ip: {
-          valid: true
+          valid: true,
+          msg: ''
         },
         url: {
           valid: true
         },
         account: {
+          valid: true
+        },
+        password: {
           valid: true
         }
       }
@@ -405,9 +410,17 @@ class HMDsettings extends Component {
     });
 
     if (ftpIp) {
-      tempFormValidation.ip.valid = true;
+      if (IP_PATTERN.test(ftpIp)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
     } else {
       tempFormValidation.ip.valid = false;
+      tempFormValidation.ip.msg = t('txt-required');
       validate = false;
     }
 
@@ -423,6 +436,10 @@ class HMDsettings extends Component {
     } else {
       tempFormValidation.account.valid = false;
       validate = false;
+    }
+
+    if (ftpPassword || !ftpPassword) {
+      tempFormValidation.password.valid = true;
     }
 
     this.setState({
@@ -497,7 +514,7 @@ class HMDsettings extends Component {
 
     if (ftpPassword) {
       const requestData = {
-        configId: 'hmd.sftp.passward',
+        configId: 'hmd.sftp.password',
         value: ftpPassword
       };
 
@@ -556,12 +573,16 @@ class HMDsettings extends Component {
       connectionsStatus: '',
       formValidation: {
         ip: {
-          valid: true
+          valid: true,
+          msg: ''
         },
         url: {
           valid: true
         },
         account: {
+          valid: true
+        },
+        password: {
           valid: true
         }
       }
@@ -606,17 +627,50 @@ class HMDsettings extends Component {
    */
   checkConnectionsStatus = () => {
     const {baseUrl} = this.context;
-    const {ftpIp, ftpAccount, ftpPassword} = this.state;
+    const {ftpIp, ftpAccount, ftpPassword, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/isSftpConnected`;
     const requestData = {
       ip: ftpIp,
       account: ftpAccount,
-      passward: ftpPassword
+      password: ftpPassword
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (!ftpAccount || !ftpPassword) {
-      helper.showPopupMsg('', t('txt-error'), t('txt-allRequired'));
+    if (ftpIp) {
+      if (IP_PATTERN.test(ftpIp)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.ip.valid = false;
+      tempFormValidation.ip.msg = t('txt-required');
+      validate = false;
+    }
 
+    if (ftpAccount) {
+      tempFormValidation.account.valid = true;
+    } else {
+      tempFormValidation.account.valid = false;
+      validate = false;
+    }
+
+    if (ftpPassword) {
+      tempFormValidation.password.valid = true;
+    } else {
+      tempFormValidation.password.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       this.setState({
         connectionsStatus: ''
       });
@@ -634,6 +688,7 @@ class HMDsettings extends Component {
         this.setState({
           connectionsStatus: data.rt
         });
+        this.clearData();
       }
       return null;
     })
@@ -798,7 +853,12 @@ class HMDsettings extends Component {
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-ftpUpload')}</header>
               <div className='group'>
-                <label>IP</label>
+                {activeContent === 'viewMode' &&
+                  <label>IP</label>
+                }
+                {activeContent === 'editMode' &&
+                  <label>IP *</label>
+                }
                 {activeContent === 'viewMode' &&
                   <div className='flex-item'><span>{ftpIp || NOT_AVAILABLE}</span></div>
                 }
@@ -810,13 +870,18 @@ class HMDsettings extends Component {
                     size='small'
                     required
                     error={!formValidation.ip.valid}
-                    helperText={formValidation.ip.valid ? '' : t('txt-required')}
+                    helperText={formValidation.ip.msg}
                     value={ftpIp}
                     onChange={this.handleDataChange} />
                 }
               </div>
               <div className='group'>
-                <label>URL</label>
+                {activeContent === 'viewMode' &&
+                  <label>URL</label>
+                }
+                {activeContent === 'editMode' &&
+                  <label>URL *</label>
+                }
                 {activeContent === 'viewMode' &&
                   <div className='flex-item'><span>{ftpUrl || NOT_AVAILABLE}</span></div>
                 }
@@ -835,7 +900,12 @@ class HMDsettings extends Component {
                 }
               </div>
               <div className='group'>
-                <label>{t('txt-account')}</label>
+                {activeContent === 'viewMode' &&
+                  <label>{t('txt-account')}</label>
+                }
+                {activeContent === 'editMode' &&
+                  <label>{t('txt-account')} *</label>
+                }
                 {activeContent === 'viewMode' &&
                   <div className='flex-item'><span>{ftpAccount || NOT_AVAILABLE}</span></div>
                 }
@@ -862,6 +932,9 @@ class HMDsettings extends Component {
                     type='password'
                     variant='outlined'
                     size='small'
+                    required
+                    error={!formValidation.password.valid}
+                    helperText={formValidation.password.valid ? '' : t('txt-required')}
                     value={ftpPassword}
                     onChange={this.handleDataChange} />
                   <button id='hmdSettingsConnectionsCheck' className='connections-check' onClick={this.checkConnectionsStatus}>{t('hmd-scan.txt-checkConnections')}</button>

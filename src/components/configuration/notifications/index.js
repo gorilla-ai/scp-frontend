@@ -18,6 +18,8 @@ import helper from '../../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
 
+const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 let t = null;
 let et = null;
 let c = null;
@@ -248,7 +250,6 @@ class Notifications extends Component {
   handleNotificationsConfirm = () => {
     const {baseUrl} = this.context;
     const {notifications, emails, lineBotSetting, formValidation} = this.state;
-    const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const mailServerRequestData = {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
@@ -306,7 +307,7 @@ class Notifications extends Component {
     }
 
     if (notifications.sender) {
-      if (emailPattern.test(notifications.sender)) { //Check email format
+      if (EMAIL_PATTERN.test(notifications.sender)) { //Check email format
         tempFormValidation.notificationsSender.valid = true;
         tempFormValidation.notificationsSender.msg = '';
       } else {

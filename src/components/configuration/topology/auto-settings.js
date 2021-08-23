@@ -28,6 +28,8 @@ import IpRange from './ip-range'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+
 let t = null;
 let et = null;
 
@@ -589,7 +591,6 @@ class AutoSettings extends Component {
     const {baseUrl} = this.context;
     const {statusEnable, ipRangeData, adData, netflowData, edgeData, formValidation} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
-    const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
     let requestData = {
       'ip.enable': statusEnable.ipRange,
       'ad.enable': statusEnable.ad_ldap,
@@ -602,7 +603,7 @@ class AutoSettings extends Component {
     let validate = true;
 
     if (adData.ip) {
-      if (ipPattern.test(adData.ip)) { //Check IP format
+      if (IP_PATTERN.test(adData.ip)) { //Check IP format
         tempFormValidation.ip.valid = true;
       } else {
         tempFormValidation.ip.valid = false;

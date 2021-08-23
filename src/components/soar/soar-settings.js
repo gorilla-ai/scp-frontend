@@ -20,6 +20,8 @@ import helper from '../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 
@@ -59,7 +61,7 @@ class SoarSettings extends Component {
       originalSoarAction: {},
       soarAction: {
         dump: {
-          path: '',
+          element: '',
           file: ''
         },
         email: {
@@ -75,20 +77,20 @@ class SoarSettings extends Component {
           content: ''
         },
         hmd: {
-          id: '',
-          action: '',
-          scpIp: '',
-          apiAuth: ''
+          hostID: '',
+          action: ''
         },
         netprobe: {
-          apiAuth: '',
+          ip: '',
           drop: '',
-          ipPath: '',
-          scpIp: '',
           severityType: ''
         }
       },
       formValidation: {
+        ip: {
+          valid: true,
+          msg: ''
+        },
         email: {
           smtpServer: {
             valid: true
@@ -172,7 +174,32 @@ class SoarSettings extends Component {
    */
   handleTestConnections = () => {
     const {baseUrl} = this.context;
-    const {soarIP} = this.state;
+    const {soarIP, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (soarIP) {
+      if (IP_PATTERN.test(soarIP)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.ip.valid = false;
+      tempFormValidation.ip.msg = t('txt-required');
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/soar/ipCheck?ip=${soarIP}`,
@@ -180,6 +207,16 @@ class SoarSettings extends Component {
     })
     .then(data => {
       if (data) {
+        let tempFormValidation = {...this.state.formValidation};
+        tempFormValidation.ip = {
+          valid: true,
+          msg: ''
+        };
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
+
         helper.showPopupMsg('', '', t('soar.txt-successConnections'));
       }
       return null;
@@ -249,6 +286,10 @@ class SoarSettings extends Component {
         soarAdapter: _.cloneDeep(originalSoarAdapter),
         soarAction: _.cloneDeep(originalSoarAction),
         formValidation: {
+          ip: {
+            valid: true,
+            msg: ''
+          },
           email: {
             smtpServer: {
               valid: true
@@ -279,7 +320,6 @@ class SoarSettings extends Component {
   handleSoarSettingsConfirm = () => {
     const {baseUrl} = this.context;
     const {soarIP, soarAdapter, soarAction, formValidation} = this.state;
-    const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const requestData = {
       'soar.ip': soarIP,
       'soar.adapter': soarAdapter,
@@ -287,6 +327,17 @@ class SoarSettings extends Component {
     };
     let tempFormValidation = {...formValidation};
     let validate = true;
+
+    if (soarIP) {
+      if (IP_PATTERN.test(soarIP)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    }
 
     if (soarAction.email.smtpServer) {
       tempFormValidation.email.smtpServer.valid = true;
@@ -296,7 +347,7 @@ class SoarSettings extends Component {
     }
 
     if (soarAction.email.sender) {
-      if (emailPattern.test(soarAction.email.sender)) { //Check email format
+      if (EMAIL_PATTERN.test(soarAction.email.sender)) { //Check email format
         tempFormValidation.email.sender.valid = true;
         tempFormValidation.email.sender.msg = '';
       } else {
@@ -566,6 +617,8 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
+                      error={!formValidation.ip.valid}
+                      helperText={formValidation.ip.msg}
                       value={soarIP}
                       onChange={this.handleDataChange.bind(this, 'soarIP', '', '')}
                       disabled={activeContent === 'viewMode'} />
@@ -626,12 +679,12 @@ class SoarSettings extends Component {
                   <div className='group'>
                     <TextField
                       id='soarActionPath'
-                      name='path'
-                      label='Path'
+                      name='element'
+                      label='Element (JSON Path)'
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.dump.path}
+                      value={soarAction.dump.element}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'dump')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
@@ -817,11 +870,11 @@ class SoarSettings extends Component {
                     <TextField
                       id='soarActionId'
                       name='id'
-                      label='ID'
+                      label='Host ID (JSON Path)'
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.hmd.id}
+                      value={soarAction.hmd.hostID}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
@@ -845,12 +898,12 @@ class SoarSettings extends Component {
                   <div className='group'>
                     <TextField
                       id='soarActionNetApiAuth'
-                      name='apiAuth'
-                      label='API Auth'
+                      name='ip'
+                      label='IP (JSON Path)'
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.netprobe.apiAuth}
+                      value={soarAction.netprobe.ip}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
                       disabled={activeContent === 'viewMode'} />
                   </div>

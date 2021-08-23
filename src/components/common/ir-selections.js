@@ -188,16 +188,37 @@ class IrSelections extends Component {
     )
   }
   /**
-   * Handle IR selection confirm
+   * Check SFTP connection before calling trigger method
    * @method
    */
-  confirmIRselection = () => {
-    this.props.triggerTask(this.state.irSelectedList);
+  checkSftpConnection = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/isSftpConnected`;
+
+    ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rt) {
+          this.props.triggerTask(this.state.irSelectedList);
+        } else {
+          helper.showPopupMsg('', t('txt-error'), t('hmd-scan.txt-checkHmdSettings'));
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleSelectionIR},
-      confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
+      confirm: {text: t('txt-confirm'), handler: this.checkSftpConnection}
     };
 
     return (

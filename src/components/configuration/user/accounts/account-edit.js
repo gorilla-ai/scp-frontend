@@ -22,6 +22,8 @@ import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 const log = require('loglevel').getLogger('accounts/account-edit')
 const t = i18n.getFixedT(null, 'accounts');
 const gt = i18n.getFixedT(null, 'app');
@@ -410,7 +412,6 @@ class AccountEdit extends Component {
   saveAccount = () => {
     const {baseUrl} = this.context;
     const {id, accountData, showPrivileges, selectedPrivileges, formValidation} = this.state;
-    const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const url = `${baseUrl}/api/account/v1`;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -430,7 +431,7 @@ class AccountEdit extends Component {
     }
 
     if (accountData.email) {
-      if (emailPattern.test(accountData.email)) { //Check email format
+      if (EMAIL_PATTERN.test(accountData.email)) { //Check email format
         tempFormValidation.email.valid = true;
         tempFormValidation.email.msg = '';
       } else {

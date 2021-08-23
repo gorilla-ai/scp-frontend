@@ -30,11 +30,6 @@ import SyslogConfig from './syslog-config'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let a = null;
-let t = null;
-let f = null;
-let et = null;
-
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const DEFAULT_INPUT = 'streaming log sample';
 const DEFAULT_PATTERN = '%{GREEDYDATA}';
@@ -57,6 +52,11 @@ const INIT_CONFIG = {
     rawOptions: []
   }]
 };
+
+let a = null;
+let t = null;
+let f = null;
+let et = null;
 
 /**
  * Syslog Management
