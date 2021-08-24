@@ -128,7 +128,8 @@ class Syslog extends Component {
       configRelationships: [],
       syslogPatternConfig: {},
       activeHost: {},
-      currentHostData: '',
+      currentHostData: {},
+      currentConfigData: {},
       activePatternIndex: '',
       activePatternName: INIT_PATTERN_NAME,
       activePatternMouse: '',
@@ -254,6 +255,7 @@ class Syslog extends Component {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-edit' onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteConfigModal.bind(this, allValue)} title={t('txt-delete')}></i>
                     <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}></i>
                     <i className='fg fg-list' onClick={this.redirectSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
                     <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
@@ -375,9 +377,9 @@ class Syslog extends Component {
           <span>{t('txt-delete-msg')}: {account}?</span>
         </div>
       ),
-      act: (confirmed) => {
+      act: (confirmed, data) => {
         if (confirmed) {
-          this.deleteSshAccount(id)
+          this.deleteSshAccount(id);
         }
       }
     });
@@ -787,6 +789,64 @@ class Syslog extends Component {
         }, () => {
           this.toggleContent('editSyslog', 'edit');
         });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete config content
+   * @method
+   * @param {object} allValue - config data
+   * @returns HTML DOM
+   */
+  getDeleteConfigContent = (allValue) => {
+    this.setState({
+      currentConfigData: allValue
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {allValue.name}?</span>
+      </div>
+    )
+  }
+  /**
+   * Display delete config modal dialog
+   * @method
+   * @param {object} allValue - config data
+   */
+  openDeleteConfigModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deleteConfig'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteConfigContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteConfig();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete config
+   * @method
+   */
+  deleteConfig = () => {
+    const {baseUrl} = this.context;
+    const {currentConfigData} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/log/netproxy/config?port=${currentConfigData.port}&hostIp=${currentConfigData.loghostIp}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSyslogData();
       }
       return null;
     })

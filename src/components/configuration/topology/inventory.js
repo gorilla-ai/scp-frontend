@@ -1486,6 +1486,31 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Display delete IP device modal dialog
+   * @method
+   * @param {object} allValue - IP device data
+   */
+  openDeleteDeviceModal = (allValue) => {
+    const {activeTab} = this.state;
+
+    PopupDialog.prompt({
+      title: t('network-inventory.txt-deleteDevice'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteDeviceContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          if (activeTab === 'deviceMap') {
+            this.deleteDevice();
+          } else if (activeTab === 'deviceList') {
+            this.getDeviceData('', 'delete');
+          }
+        }
+      }
+    });
+  }
+  /**
    * Handle delete device from device map tab
    * @method
    */
@@ -1507,31 +1532,6 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Display delete IP device modal dialog
-   * @method
-   * @param {object} allValue - IP device data
-   */
-  openDeleteDeviceModal = (allValue) => {
-    const {activeTab} = this.state;
-
-    PopupDialog.prompt({
-      title: t('network-inventory.txt-deleteDevice'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: this.getDeleteDeviceContent(allValue),
-      act: (confirmed, data) => {
-        if (confirmed) {
-          if (activeTab === 'deviceMap') {
-            this.deleteDevice();
-          } else if (activeTab === 'deviceList') {
-            this.getDeviceData('', 'delete');
-          } 
-        }
-      }
-    });
   }
   /**
    * Handle table sort

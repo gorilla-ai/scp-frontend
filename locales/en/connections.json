@@ -1125,7 +1125,8 @@
     "txt-editHosts": "Edit Hosts",
     "txt-timelineUnavailable": "Timeline data is not available",
     "txt-addHost": "Add Host",
-    "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
+    "txt-deleteHost": "$t(txt-delete) $t(txt-host)",
+    "txt-deleteConfig": "$t(txt-delete) Config"
   },
   "MuiDataTable": {
     "body": {

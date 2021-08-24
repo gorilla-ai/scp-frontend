@@ -576,7 +576,7 @@
     "txt-linkType-default": "曲線",
     "txt-linkType-straight": "直線",
     "txt-linkType-smoothstep": "階梯",
-    "txt-soarRuleInfo": "SOAR資本資訊",
+    "txt-soarRuleInfo": "SOAR基本資訊",
     "txt-soarRuleCondition": "SOAR條件",
     "txt-aggFieldId": "事件綜整ID",
     "txt-gap": "Gap",
@@ -1125,7 +1125,8 @@
     "txt-editHosts": "編輯所屬主機資訊",
     "txt-timelineUnavailable": "趨勢圖資料不存在",
     "txt-addHost": "新增所屬主機",
-    "txt-deleteHost": "$t(txt-delete)$t(txt-host)"
+    "txt-deleteHost": "$t(txt-delete)$t(txt-host)",
+    "txt-deleteConfig": "$t(txt-delete)Config"
   },
   "MuiDataTable": {
     "body": {
