@@ -330,8 +330,6 @@ class Syslog extends Component {
    */
   getSshAccountList = () => {
     const {baseUrl} = this.context;
-    const {accountSearch, userAccount} = this.state;
-    let requestData = {};
 
     this.ah.one({
       url: `${baseUrl}/api/log/netproxy/sshaccount`,

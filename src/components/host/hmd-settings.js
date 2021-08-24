@@ -607,6 +607,12 @@ class HMDsettings extends Component {
     this.setState({
       [event.target.name]: event.target.value
     });
+
+    if (event.target.name === 'ftpIp' || event.target.name === 'ftpAccount' || event.target.name === 'ftpPassword') {
+      this.setState({
+        connectionsStatus: ''
+      });
+    }
   }
   /**
    * Handle input data change for NCCST
@@ -671,9 +677,6 @@ class HMDsettings extends Component {
     });
 
     if (!validate) {
-      this.setState({
-        connectionsStatus: ''
-      });
       return;
     }
 
@@ -688,7 +691,6 @@ class HMDsettings extends Component {
         this.setState({
           connectionsStatus: data.rt
         });
-        this.clearData();
       }
       return null;
     })
