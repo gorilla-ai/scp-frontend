@@ -58,7 +58,7 @@ class SoarController extends Component {
         isEnable: 'all'
       },
       soarData: {
-        dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'isEnable', '_menu'],
+        dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'status', 'isEnable', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
