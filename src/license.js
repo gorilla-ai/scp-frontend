@@ -301,8 +301,10 @@ class License extends Component {
     let licenseDate = '';
     let error = true;
 
-    if (lms && lms.expireDate) {
-      licenseDate = moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+    if (lms) {
+      if (lms.expireDate) {
+        licenseDate = moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+      }
 
       if (lms.returnCode === '0') {
         text = lt('l-license-already');
