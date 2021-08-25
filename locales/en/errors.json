@@ -53,6 +53,7 @@
   "-1012": "Please contactyour AD System Manager for this account",
   "-1013": "Invaid one-time code",
   "-1014": "Account is not found",
+  "-1015": "Failed to deliver mail",
 
   "-2001": "Unknown Target",
   "-2002": "Expired",
