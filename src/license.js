@@ -319,7 +319,7 @@ class License extends Component {
           this.uploadOfflineFile()
         }
 
-        <div id='form' className={cx('fdc lms', {'config': from === 'config'})}>
+        <div id='loingForm' className={cx('fdc lms', {'config': from === 'config'})}>
           <section>
             <span className='msg'>{lt('l-license-status')}:</span>
             <span className={cx({'error': error})}>{text}</span>
