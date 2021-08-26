@@ -194,7 +194,7 @@ class AdConfig extends Component {
                 color='primary' />
             }
             label={c('txt-switch')} />
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleTestAD} disabled={!adConfig.enabled}>{t('txt-test-connect')}</Button>
+          <Button variant='contained' color='primary' className='btn' onClick={this.handleTestAD} disabled={!adConfig.enabled}>{t('txt-test-connect')}</Button>
         </div>
       </div>
     )

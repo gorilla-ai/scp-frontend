@@ -526,7 +526,8 @@ class ThreatIntelligence extends Component {
     }
 
     this.setState({
-      addThreatsOpen: !addThreatsOpen
+      addThreatsOpen: !addThreatsOpen,
+      autoDetectType: true
     });
 
     this.handleCloseMenu();
