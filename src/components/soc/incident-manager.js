@@ -3492,24 +3492,6 @@ class IncidentManagement extends Component {
         }
 
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_exportWord`, {payload: JSON.stringify(payload)})
-
-        // ah.one({
-        //     url: `${baseUrl}/api/soc/_exportWord`,
-        //     data: JSON.stringify(payload),
-        //     type: 'POST',
-        //     contentType: 'application/json',
-        //     dataType: 'json'
-        // })
-        //     .then(data => {
-        //         let payload = _.map(data.rt.rows, el => {
-        //             return this.toPdfPayload(el)
-        //         })
-        //
-        //         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
-        //     })
-        //     .catch(err => {
-        //         helper.showPopupMsg('', t('txt-error'), err.message)
-        //     })
     }
 
     notifyContact() {
