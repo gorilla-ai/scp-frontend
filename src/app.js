@@ -83,148 +83,148 @@ const HeaderComp = (props) => (
       themeName={props.themeName}
       setThemeName={props.setThemeName} />
   </BaseDataContext.Provider>
-)
+);
 
 const DashboardOverviewComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <DashboardOverview />
   </BaseDataContext.Provider>
-)
+);
 
 const StatisticsUIFComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <StatisticsUIF />
   </BaseDataContext.Provider>
-)
+);
 
 const DashboardStatsComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <DashboardStats />
   </BaseDataContext.Provider>
-)
+);
 
 const DashboardMapsComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <DashboardMaps />
   </BaseDataContext.Provider>
-)
+);
 
 const HostComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Host />
   </BaseDataContext.Provider>
-)
+);
 
 const ThreatsComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Threats
       searchFields={appcfg.searchFields} />
   </BaseDataContext.Provider>
-)
+);
 
 const NetflowComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Netflow
       searchFields={appcfg.searchFields} />
   </BaseDataContext.Provider>
-)
+);
 
 const SoarComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Soar />
   </BaseDataContext.Provider>
-)
+);
 
 const SyslogComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Syslog
       searchFields={appcfg.searchFields} />
   </BaseDataContext.Provider>
-)
+);
 
 const Notifications = () => (
   <BaseDataContext.Provider value={baseData}>
     <NotificationSettings />
   </BaseDataContext.Provider>
-)
+);
 
 const Edge = () => (
   <BaseDataContext.Provider value={baseData}>
     <EdgeManagement/>
   </BaseDataContext.Provider>
-)
+);
 
 const Threat = () => (
   <BaseDataContext.Provider value={baseData}>
     <ThreatIntelligence/>
   </BaseDataContext.Provider>
-)
+);
 
 const Severity = () => (
   <BaseDataContext.Provider value={baseData}>
     <SeverityTable/>
   </BaseDataContext.Provider>
-)
+);
 
 const Es = () => (
   <BaseDataContext.Provider value={baseData}>
     <EsManagement/>
   </BaseDataContext.Provider>
-)
+);
 
 const NetworkTopologyInventory = () => (
   <BaseDataContext.Provider value={baseData}>
     <NetworkInventory/>
   </BaseDataContext.Provider>
-)
+);
 
 const NetworkTopologyOwner = () => (
   <BaseDataContext.Provider value={baseData}>
     <NetworkOwner/>
   </BaseDataContext.Provider>
-)
+);
 
 const syslogConfig = () => (
   <BaseDataContext.Provider value={baseData}>
     <SyslogConfig />
   </BaseDataContext.Provider>
-)
+);
 
 const syslogPattern = () => (
   <BaseDataContext.Provider value={baseData}>
     <SyslogPattern />
   </BaseDataContext.Provider>
-)
+);
 
 const userAccounts = () => (
   <BaseDataContext.Provider value={baseData}>
     <UserAccounts />
   </BaseDataContext.Provider>
-)
+);
 
 const userPrivileges = () => (
   <BaseDataContext.Provider value={baseData}>
     <UserPrivileges />
   </BaseDataContext.Provider>
-)
+);
 
 const Audit = () => (
   <BaseDataContext.Provider value={baseData}>
     <AuditLog />
   </BaseDataContext.Provider>
-)
+);
 
 const serviceStatus = () => (
   <BaseDataContext.Provider value={baseData}>
     <ServiceStatus/>
   </BaseDataContext.Provider>
-)
+);
 
 const productInfo = () => (
   <BaseDataContext.Provider value={baseData}>
     <ProductInfo/>
   </BaseDataContext.Provider>
-)
+);
 
 const incidentDevice = () => (
   <BaseDataContext.Provider value={baseData}>
@@ -251,41 +251,40 @@ const incidentLog = () => (
 );
 
 const incidentISAC = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentISAC/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentISAC/>
+  </BaseDataContext.Provider>
 );
 
 const incidentSOC = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentSOC/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentSOC/>
+  </BaseDataContext.Provider>
 );
 
 const incidentRule = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentRule/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentRule/>
+  </BaseDataContext.Provider>
 );
 
 const incidentFlow = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentFlow/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentFlow/>
+  </BaseDataContext.Provider>
 );
 
 const incidentSearch = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentSearch/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentSearch/>
+  </BaseDataContext.Provider>
 );
 
 const incidentManagement = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentManagement/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentManagement/>
+  </BaseDataContext.Provider>
 );
-
 
 const Main = () => (
   <main className='main'>
@@ -324,7 +323,6 @@ const Main = () => (
       <Route exact path='/SCP/soc/incident-Flow' component={incidentFlow}/>
       <Route exact path='/SCP/soc/incident-search' component={incidentSearch}/>
       <Route exact path='/SCP/soc/incident-management' component={incidentManagement}/>
-
     </Switch>
   </main>
 );
@@ -373,13 +371,12 @@ function getTheme() {
   Promise.resolve($.get(url))
     .then(data => {
       if (data.rt) {
-        accountTheme = data.rt;
-
+        accountTheme = data.rt; //Set global theme variable
         document.documentElement.setAttribute('data-theme', data.rt);
       }
     })
     .catch(xhr => {
-      log.error(xhr)
+      log.error(xhr);
       return null;
     })
     .then(resources => {
@@ -388,7 +385,6 @@ function getTheme() {
 }
 
 function start() {
-  //const store = createStore(initialState)
   const baseUrl = cfg.apiPrefix;
   const contextRoot = cfg.contextRoot;
   const lng = cfg.lng || 'zh';
@@ -418,9 +414,8 @@ function start() {
   }
 
   // set uif
-  setupConfigService(baseUrl)
-  setWidgetLocales(lng)
-
+  setupConfigService(baseUrl);
+  setWidgetLocales(lng);
 
   Promise.resolve($.get(url))
     .then(data => {
@@ -431,7 +426,7 @@ function start() {
       }
     })
     .catch(xhr => {
-      log.error(xhr)
+      log.error(xhr);
       return null;
     })
     .then(resources => {
@@ -470,5 +465,3 @@ function start() {
 }
 
 getTheme();
-
-//start();

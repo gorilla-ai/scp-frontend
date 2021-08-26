@@ -7,9 +7,11 @@ const session = initialState.session;
 const mapUrl = initialState.mapUrl;
 let sessionRights = {};
 
-_.forEach(session.rights, val => {
-  sessionRights[val] = true;
-})
+if (session) {
+  _.forEach(session.rights, val => {
+    sessionRights[val] = true;
+  })
+}
 
 export const baseData = {
   baseUrl: cfg.apiPrefix,
