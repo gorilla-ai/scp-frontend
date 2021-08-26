@@ -702,6 +702,9 @@ class IncidentManagement extends Component {
                             {_.size(incident.dataContent) > 0 &&
                             <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
                             }
+                            {_.size(incident.dataContent) > 0 &&
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAllByWord.bind(this)}>{it('txt-export-all-word')}</Button>
+                            }
                             {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
                             <Button variant='outlined' color='primary' className='standard btn edit'
                                     onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>
@@ -2148,25 +2151,29 @@ class IncidentManagement extends Component {
                             {severityList}
                         </TextField>
                     </div>
-                    {/*<div className='group'>*/}
-                    {/*    <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>*/}
-                    {/*    <TextField*/}
-                    {/*        id='searchStatus'*/}
-                    {/*        name='status'*/}
-                    {/*        required={true}*/}
-                    {/*        variant='outlined'*/}
-                    {/*        fullWidth={true}*/}
-                    {/*        size='small'*/}
-                    {/*        select*/}
-                    {/*        value={search.status}*/}
-                    {/*        onChange={this.handleSearchMui}>*/}
-                    {/*        {*/}
-                    {/*            _.map(_.range(0, 9), el => {*/}
-                    {/*                return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>*/}
-                    {/*            })}*/}
-                    {/*        }*/}
-                    {/*    </TextField>*/}
-                    {/*</div>*/}
+                    <div className='group'>
+                        <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>
+                        <TextField
+                            id='searchStatus'
+                            name='status'
+                            required={true}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            value={search.status}
+                            onChange={this.handleSearchMui}>
+                            {/*{*/}
+                            {/*    _.map([1,3,4,5], el => {*/}
+                            {/*        return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>*/}
+                            {/*    })}*/}
+                            {/*}*/}
+                            <MenuItem value={1}>{it(`status.${1}`)}</MenuItem>
+                            <MenuItem value={3}>{it(`status.${3}`)}</MenuItem>
+                            <MenuItem value={4}>{it(`status.${4}`)}</MenuItem>
+                            <MenuItem value={5}>{it(`status.${5}`)}</MenuItem>
+                        </TextField>
+                    </div>
                     {/*<div className='group'>*/}
                     {/*    <label htmlFor='isExpired'>{it('txt-expired')}</label>*/}
                     {/*    <TextField*/}
@@ -3434,6 +3441,57 @@ class IncidentManagement extends Component {
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
+    }
+
+    exportAllByWord() {
+        const {baseUrl, contextRoot, session} = this.context
+        let {search, loadListType, accountRoleType} = this.state
+
+        if (search.datetime) {
+            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        }
+
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
+        search.accountRoleType = this.state.accountRoleType
+        search.account = session.accountId
+
+
+        let payload = {
+            subStatus: 0,
+            keyword: '',
+            category: 0,
+            isExpired: 2,
+            accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
+        }
+
+
+        if (loadListType === 0) {
+            payload.status = 0
+            payload.isExpired = 1
+        }
+        else if (loadListType === 1) {
+            if (payload.accountRoleType === constants.soc.SOC_Executor) {
+                payload.status = 2
+                payload.subStatus = 6
+            }
+            else if (payload.accountRoleType === constants.soc.SOC_Super) {
+                payload.status = 7
+            }
+            else {
+                payload.status = 1
+            }
+        }
+        else if (loadListType === 2) {
+            payload.status = 0
+            payload.creator = session.accountId
+        }
+        else if (loadListType === 3) {
+            payload = search
+        }
+
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_exportWord`, {payload: JSON.stringify(payload)})
     }
 
     notifyContact() {
