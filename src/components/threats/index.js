@@ -3208,7 +3208,7 @@ class ThreatsController extends Component {
           {this.state.cancelThreatsList.length !== 0 &&
             <MenuItem id='threatsCreateIncidentsMenuItemSelected' onClick={this.setupIncidentDialog.bind(this,'select')}>{it('txt-createIncidents-selected')}</MenuItem>
           }
-          <MenuItem id='threatsCreateIncidentsMenuItemAll' onClick={this.setupIncidentDialog.bind(this,'all')}>{it('txt-createIncident-tracked')}</MenuItem>
+            <MenuItem id='threatsCreateIncidentsMenuItemAll' onClick={this.setupIncidentDialog.bind(this,'all')}>{it('txt-createIncident-tracked')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
@@ -3236,7 +3236,7 @@ class ThreatsController extends Component {
             }
 
             {this.state.activeSubTab === 'trackTreats' && sessionRights.Module_Soc &&  this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-              <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+              <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.originalThreatsList.length === 0} onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
             }
           </div>
 
