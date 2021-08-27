@@ -1089,7 +1089,7 @@ class IncidentFlow extends Component {
                 if (locale === 'en') {
                     pos = '0px';
                 } else if (locale === 'zh') {
-                    pos = '0';
+                    pos = '0px';
                 }
                 textAttr.style = {left: pos};
             }
