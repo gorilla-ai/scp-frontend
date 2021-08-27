@@ -41,7 +41,6 @@ class IncidentFlowDialog extends Component {
 			contentType: 'application/json',
 			dataType: 'json'
 		}).then(result => {
-			console.log("result.rt. == " , result.rt)
 			Object.keys(result.rt.entities).forEach(key => {
 				let index = 0;
 				if (Object.entries(result.rt.entities).length > 4){
