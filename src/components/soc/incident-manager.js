@@ -319,22 +319,28 @@ class IncidentManagement extends Component {
                                 } else if (val === 'status') {
                                     // return <span>{it(`status.${value}`)}</span>
                                     let status = 'N/A'
-                                    if (allValue.flowData){
+                                    if (allValue.flowData) {
 
-                                        if (allValue.flowData.finish){
+                                        if (allValue.flowData.finish) {
                                             if (value === constants.soc.INCIDENT_STATUS_SUBMITTED) {
                                                 return <span>{it('status.4')}</span>
                                             } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
                                                 return <span>{it('status.5')}</span>
+                                            } else if (value === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE){
+                                                return <span>{it('status.8')}</span>
                                             } else{
                                                 return <span>{it('status.3')}</span>
                                             }
+                                        }else{
+                                            if (value === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE){
+                                                return <span>{it('status.8')}</span>
+                                            }else if (allValue.flowData.currentEntity) {
+                                                status = allValue.flowData.currentEntity[allValue.id].entityName
+                                            }
                                         }
 
-                                        if (allValue.flowData.currentEntity){
-                                            status = allValue.flowData.currentEntity[allValue.id].entityName
-                                        }
-                                    }else if (value === constants.soc.INCIDENT_STATUS_DELETED){
+
+                                    } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
                                         return <span>{it('status.5')}</span>
                                     }
                                     return <span>{status}</span>
@@ -452,14 +458,20 @@ class IncidentManagement extends Component {
                                                     return <span>{it('status.4')}</span>
                                                 } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
                                                     return <span>{it('status.5')}</span>
-                                                } else{
+                                                }else if (value === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE){
+                                                    return <span>{it('status.8')}</span>
+                                                }  else{
                                                     return <span>{it('status.3')}</span>
+                                                }
+                                            }else{
+                                                if (value === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE){
+                                                    return <span>{it('status.8')}</span>
+                                                }else if (allValue.flowData.currentEntity) {
+                                                    status = allValue.flowData.currentEntity[allValue.id].entityName
                                                 }
                                             }
 
-                                            if (allValue.flowData.currentEntity) {
-                                                status = allValue.flowData.currentEntity[allValue.id].entityName
-                                            }
+
                                         } else if (value === constants.soc.INCIDENT_STATUS_DELETED){
                                             return <span>{it('status.5')}</span>
                                         }
@@ -850,7 +862,7 @@ class IncidentManagement extends Component {
                 <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</Button>
                 }
                 {closeCheck &&
-                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
                 }
                 {publishCheck &&
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
@@ -2172,6 +2184,7 @@ class IncidentManagement extends Component {
                             <MenuItem value={3}>{it(`status.${3}`)}</MenuItem>
                             <MenuItem value={4}>{it(`status.${4}`)}</MenuItem>
                             <MenuItem value={5}>{it(`status.${5}`)}</MenuItem>
+                            <MenuItem value={8}>{it(`status.${8}`)}</MenuItem>
                         </TextField>
                     </div>
                     {/*<div className='group'>*/}
