@@ -1095,7 +1095,7 @@ class AlertDetails extends Component {
           <div className='content'>
             <div className='options-buttons'>
               <section>
-                {showContent.rule &&
+                {showContent.rule && alertData.blackIP &&
                   this.getQueryMoreContent('rule')
                 }
 
@@ -1247,9 +1247,7 @@ class AlertDetails extends Component {
           {alertData.pcapFlag && agentId &&
             <li id='downloadPcapBtn' onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</li>
           }
-          {alertData.blackIP &&
-            <li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}</li>
-          }
+          <li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}</li>
         </ul>
       )
     }
