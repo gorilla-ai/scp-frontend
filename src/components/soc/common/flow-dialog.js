@@ -34,7 +34,6 @@ class IncidentFlowDialog extends Component {
 	open(id) {
 		const {baseUrl, session} = this.context
 		let tempList = [];
-		let checkList = [];
 		let activeSteps = 1;
 		ah.one({
 			url: `${baseUrl}/api/soc/flowEngine/instance?id=${id}`,
@@ -42,21 +41,21 @@ class IncidentFlowDialog extends Component {
 			contentType: 'application/json',
 			dataType: 'json'
 		}).then(result => {
-			// console.log("result.rt.entities == " , result.rt.entities)
+			console.log("result.rt. == " , result.rt)
 			Object.keys(result.rt.entities).forEach(key => {
 				let index = 0;
 				if (Object.entries(result.rt.entities).length > 4){
 					if (result.rt.entities[key].entityName.includes('SOC-1')) {
 						index = 0
-					}else if (result.rt.entities[key].entityName.includes('SOC-2')){
+					} else if (result.rt.entities[key].entityName.includes('SOC-2')) {
 						index = 1
-					}else if (result.rt.entities[key].entityName === '單位承辦人簽核'){
+					} else if (result.rt.entities[key].entityName === '單位承辦人簽核') {
 						index = 2
-					}else if (result.rt.entities[key].entityName === '單位資安長簽核'){
+					} else if (result.rt.entities[key].entityName === '單位資安長簽核') {
 						index = 3
-					}else if (result.rt.entities[key].entityName.includes('主管單位承辦人簽核')){
+					} else if (result.rt.entities[key].entityName === '主管單位承辦人簽核') {
 						index = 4
-					}else if (result.rt.entities[key].entityName.includes('主管單位資安長簽核')){
+					} else if (result.rt.entities[key].entityName === '主管單位資安長簽核') {
 						index = 5
 					}
 				}else{
@@ -75,10 +74,12 @@ class IncidentFlowDialog extends Component {
 					step: result.rt.entities[key].entityName,
 					updateTime: result.rt.entities[key].updateTime ? result.rt.entities[key].updateTime : ''
 				}
-				checkList.push(result.rt.entities[key].entityName)
 				tempList.push(tmpData)
+
+				if (result.rt.currentEntity[id].entityName === result.rt.entities[key].entityName){
+					activeSteps = tmpData.index + 1
+				}
 			})
-			activeSteps = checkList.indexOf(result.rt.currentEntity[id].entityName) + 1
 			this.setState({open: true, activeSteps: activeSteps, stepTitleList: tempList})
 		}).catch(err => {
 			helper.showPopupMsg('', t('txt-error'), it('txt-flow-msg-na'))
