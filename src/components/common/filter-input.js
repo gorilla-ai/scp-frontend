@@ -22,7 +22,8 @@ class FilterInput extends Component {
     if (queryType === 'query') {
       data = {
         activeTab,
-        logFields,queryType
+        queryType,
+        logFields
       };
 
       return (

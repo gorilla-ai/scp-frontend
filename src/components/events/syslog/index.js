@@ -354,12 +354,12 @@ class SyslogController extends Component {
         showMark: true
       });
     } else if (syslogParams.srcIp || syslogParams.ipSrc) {
-      let hostData = '';
+      let srcIp = '';
 
       if (syslogParams.srcIp) {
-        hostData = syslogParams.srcIp;
+        srcIp = syslogParams.srcIp;
       } else if (syslogParams.ipSrc) {
-        hostData = syslogParams.ipSrc;
+        srcIp = syslogParams.ipSrc;
       }
 
       this.setState({
@@ -369,7 +369,7 @@ class SyslogController extends Component {
         },
         {
           condition: 'must',
-          query: '_host: ' + hostData
+          query: '_host: "' + srcIp + '"'
         }],
         showFilter: true,
         showMark: true
@@ -382,7 +382,7 @@ class SyslogController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: syslogParams.sourceIP
+          query: '"' + syslogParams.sourceIP + '"'
         }],
         showFilter: true,
         showMark: true

@@ -398,7 +398,7 @@ class ThreatsController extends Component {
 
     if (alertsParam.from && alertsParam.to) {
       const page = alertsParam.page;
-      let query = 'srcIp ' + alertsParam.sourceIP;
+      let query = 'srcIp: "' + alertsParam.sourceIP + '"';
 
       if (page === 'host') {
         query = alertsParam.sourceIP;

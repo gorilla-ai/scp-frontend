@@ -1060,7 +1060,7 @@ class HostController extends Component {
     if (deviceSearchList.status.length > 0 || deviceSearchList.annotation.length > 0) {
       requestData.annotationObj = {
         statusArray: deviceSearchList.status,
-        annotationArraay: deviceSearchList.annotation
+        annotationArray: deviceSearchList.annotation
       };
     }
 
