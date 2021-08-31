@@ -809,10 +809,10 @@ class AutoSettings extends Component {
 
           {activeContent === 'viewMode' &&
             <div className='content-header-btns'>
-              <Button variant='outlined' color='primary' className='standard btn no-padding'>
+              <Button id='autoSettingsBackToList' variant='outlined' color='primary' className='standard btn no-padding'>
                 <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
               </Button>
-              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
+              <Button id='autoSettingsEditSettings' variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
             </div>
           }
 
@@ -821,6 +821,7 @@ class AutoSettings extends Component {
               <header>{t('auto-settings.txt-ipRange')}</header>
               <div className='form-options'>
                 <FormControlLabel
+                  id='autoSettingsIpRangeSwitch'
                   className='toggle-btn'
                   control={
                     <Switch
@@ -866,6 +867,7 @@ class AutoSettings extends Component {
                   value='AD'
                   control={
                     <Radio
+                      id='autoSettingsADad'
                       className='radio-ui'
                       color='primary' />
                   }
@@ -875,6 +877,7 @@ class AutoSettings extends Component {
                   value='LDAP'
                   control={
                     <Radio
+                      id='autoSettingsADLdap'
                       className='radio-ui'
                       color='primary' />
                   }
@@ -882,8 +885,9 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </RadioGroup>
               <div className='form-options'>
-                <Button variant='contained' color='primary' onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</Button>
+                <Button id='autoSettingsHandleAdTest' variant='contained' color='primary' onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
+                  id='autoSettingsAdTestSwitch'
                   className='toggle-btn'
                   control={
                     <Switch
@@ -897,7 +901,7 @@ class AutoSettings extends Component {
               </div>
               <div className='group'>
                 <TextField
-                  id='autoSettingsIP'
+                  id='autoSettingsAdIP'
                   name='ip'
                   label='IP'
                   variant='outlined'
@@ -911,7 +915,7 @@ class AutoSettings extends Component {
               </div>
               <div className='group'>
                 <TextField
-                  id='autoSettingsPort'
+                  id='autoSettingsAdPort'
                   name='port'
                   type='number'
                   label='Port'
@@ -927,7 +931,7 @@ class AutoSettings extends Component {
               </div>
               <div className='group' style={{width: '50%'}}>
                 <TextField
-                  id='autoSettingsDomain'
+                  id='autoSettingsAdDomain'
                   name='domain'
                   label={t('txt-domain')}
                   variant='outlined'
@@ -939,7 +943,7 @@ class AutoSettings extends Component {
               </div>
               <div className='group' style={{width: '50%'}}>
                 <TextField
-                  id='autoSettingsUsername'
+                  id='autoSettingsAdUsername'
                   name='username'
                   label={t('auto-settings.txt-username')}
                   variant='outlined'
@@ -951,7 +955,7 @@ class AutoSettings extends Component {
               </div>
               <div className='group' style={{width: '50%'}}>
                 <TextField
-                  id='autoSettingsPassword'
+                  id='autoSettingsAdPassword'
                   name='password'
                   type='password'
                   label={t('auto-settings.txt-password')}
@@ -967,8 +971,9 @@ class AutoSettings extends Component {
             <div className='form-group normal' style={{display: 'none'}}>
               <header>{t('auto-settings.txt-netflow')}</header>
               <div className='form-options'>
-                <Button variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</Button>
+                <Button id='autoSettingsHandleFlowTest' variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
+                  id='autoSettingsNetFlowSwitch'
                   className='toggle-btn'
                   control={
                     <Switch
@@ -982,7 +987,7 @@ class AutoSettings extends Component {
               </div>
               <div className='group'>
                 <TextField
-                  id='autoSettingsNetflow'
+                  id='autoSettingsNetflowUpdateTime'
                   name='type'
                   label={t('txt-updateTime')}
                   select
@@ -1001,6 +1006,7 @@ class AutoSettings extends Component {
                 <header>{t('auto-settings.txt-scanner')}</header>
                 <div className='form-options'>
                   <FormControlLabel
+                    id='autoSettingScannerSwitch'
                     className='toggle-btn'
                     control={
                       <Switch
@@ -1014,7 +1020,7 @@ class AutoSettings extends Component {
                 </div>
                 <div className='group full multi'>
                   {activeContent === 'viewMode' && edgeData.length > 0 &&
-                    <Button variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')} disabled={!topoTriggerStatus}>{t('network-inventory.txt-generateTopology')}</Button>
+                    <Button id='autoSettingsGenerateTopology' variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')} disabled={!topoTriggerStatus}>{t('network-inventory.txt-generateTopology')}</Button>
                   }
                   <MultiInput
                     id='autoSettingsNetworkTopology'
@@ -1045,8 +1051,8 @@ class AutoSettings extends Component {
 
           {activeContent === 'editMode' &&
             <footer>
-              <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
-              <Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</Button>
+              <Button id='autoSettingsCancelSettings' variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+              <Button id='autoSettingsSaveSettings' variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</Button>
             </footer>
           }
         </div>

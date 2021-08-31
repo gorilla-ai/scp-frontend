@@ -228,6 +228,7 @@ class FloorMap extends Component {
     return (
       <TreeItem
         key={val.id + i}
+        id={'floorMapTree_'+ val.label}
         nodeId={val.id}
         label={val.label}
         onLabelClick={this.handleSelectTree.bind(this, val)}>
@@ -248,6 +249,7 @@ class FloorMap extends Component {
     return (
       <TreeView
         key={i}
+        id='floorMapTreeView'
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={tree.areaUUID}
@@ -255,6 +257,7 @@ class FloorMap extends Component {
         selected={this.state.floorPlan.currentAreaUUID}>
         {tree.areaUUID &&
           <TreeItem
+            id={'floorMapTree_'+ tree.areaName}
             nodeId={tree.areaUUID}
             label={tree.areaName}
             onLabelClick={this.handleSelectTree.bind(this, tree)}>
@@ -443,9 +446,9 @@ class FloorMap extends Component {
             }
             {floorPlan.currentAreaUUID && floorPlan.type === 'edit' &&
               <span>
-                <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}></i>
-                <i className='c-link fg fg-add' onClick={this.handleMapActions.bind(this, 'add')} title={t('network-topology.txt-addTree')}></i>
-                <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={t('network-topology.txt-removeTree')}></i>
+                <i id='floorMapClearTree' className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}></i>
+                <i id='floorMapAddTree' className='c-link fg fg-add' onClick={this.handleMapActions.bind(this, 'add')} title={t('network-topology.txt-addTree')}></i>
+                <i id='floorMapRemoveTree' className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={t('network-topology.txt-removeTree')}></i>
               </span>
             }
           </header>
@@ -462,7 +465,7 @@ class FloorMap extends Component {
             <div className='field'>
               <label htmlFor='areaMapUpload'>{t('txt-name')}</label>
               <TextField
-                id='areaMapName'
+                id='floorMapAreaName'
                 name='name'
                 variant='outlined'
                 fullWidth
@@ -493,10 +496,10 @@ class FloorMap extends Component {
                 onChange={this.handleMapChange} />
             </div>
 
-            <i className='c-link fg fg-save' onClick={this.handleFloorSave} title={t('network-topology.txt-saveFloor')}></i>
+            <i id='floorMapSaveFloor' className='c-link fg fg-save' onClick={this.handleFloorSave} title={t('network-topology.txt-saveFloor')}></i>
 
             {floorPlan.type !== 'add' && floorPlan.currentAreaUUID && currentMap &&
-              <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={t('network-topology.txt-deleteFloorMap')}></i>
+              <i id='floorMapDeleteFloor' className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={t('network-topology.txt-deleteFloorMap')}></i>
             }
           </header>
           <div className='map'>

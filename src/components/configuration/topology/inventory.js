@@ -3656,6 +3656,7 @@ class NetworkInventory extends Component {
     return (
       <TreeItem
         key={val.id + i}
+        id={'topologyInventoryTree_'+ val.label}
         nodeId={val.id}
         label={val.label}
         onLabelClick={this.handleSelectTree.bind(this, type, val)}>
@@ -3722,6 +3723,7 @@ class NetworkInventory extends Component {
     return (
       <TreeView
         key={i}
+        id='topologyInventoryTreeView'
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={defaultSelectedID}
@@ -3729,6 +3731,7 @@ class NetworkInventory extends Component {
         selected={defaultSelectedID}>
         {tree.areaUUID &&
           <TreeItem
+            id={'topologyInventoryTree_'+ tree.areaName}
             nodeId={tree.areaUUID}
             label={tree.areaName}
             onLabelClick={this.handleSelectTree.bind(this, type, tree)}>
@@ -4165,8 +4168,8 @@ class NetworkInventory extends Component {
                   keepMounted
                   open={menuType && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>
-                  <MenuItem onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
-                  <MenuItem onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
+                  <MenuItem id='inventoryMenuShowForm' onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
+                  <MenuItem id='inventoryMenuShowUpload' onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
                 </Menu>
 
                 {activeTab === 'deviceList' && !showCsvData &&

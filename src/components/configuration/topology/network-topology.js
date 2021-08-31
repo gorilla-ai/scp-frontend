@@ -46,6 +46,7 @@ class NetworkTopology extends Component {
           }
         </label>
         <TextField
+          id='networkTopologyIP'
           className='network-topology'
           name='ip'
           variant='outlined'
@@ -55,6 +56,7 @@ class NetworkTopology extends Component {
           disabled={activeContent === 'viewMode' || !statusEnable.networkTopology} />
         {type === 'target' &&
           <TextField
+            id='networkTopologTargetyMask'
             className='network-topology'
             name='mask'
             variant='outlined'
@@ -65,6 +67,7 @@ class NetworkTopology extends Component {
         }
         {type === 'switch' &&
           <TextField
+            id='networkTopologySiwtchMask'
             className='network-topology'
             name='mask'
             variant='outlined'

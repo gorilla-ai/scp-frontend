@@ -162,9 +162,9 @@ class Manage extends Component {
       <div className='tree-label'>
         <span>{tree.name}</span> 
         <div className='action-icons'>
-          <i className='c-link fg fg-add' title={t('txt-add')} onClick={this.handleTreeAction.bind(this, 'add', tree)} />
-          <i className='c-link fg fg-edit' title={t('txt-edit')} onClick={this.handleTreeAction.bind(this, 'edit', tree)} />
-          <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.handleTreeAction.bind(this, 'delete', tree)} />
+          <i id={'manageAdd' + tree.name} className='c-link fg fg-add' title={t('txt-add')} onClick={this.handleTreeAction.bind(this, 'add', tree)} />
+          <i id={'manageEdit' + tree.name} className='c-link fg fg-edit' title={t('txt-edit')} onClick={this.handleTreeAction.bind(this, 'edit', tree)} />
+          <i id={'manageDelete' + tree.name} className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.handleTreeAction.bind(this, 'delete', tree)} />
         </div>
       </div>
     );
@@ -194,53 +194,52 @@ class Manage extends Component {
    * @param {object} tree - department tree data
    */
   openDeleteTreeName = (tree) => {
-    // TODO asking Incident Unit
     const {baseUrl, contextRoot} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/soc/unit?uuid=${tree.id}`,
       type: 'GET',
     }).then(data => {
-          if(data.id){
-            PopupDialog.prompt({
-              title: t('txt-deleteDepartment'),
-              id: 'modalWindowSmall',
-              confirmText: t('txt-delete'),
-              cancelText: t('txt-cancel'),
-              display: (
-                  <React.Fragment>
-                    <div className='content '>
-                      <span>{t('txt-delete-msg-with-soc')}?</span>
-                    </div>
-                    <div className='content delete'>
-                      <span>{tree.name} </span>
-                    </div>
-                  </React.Fragment>
-              ),
-              act: (confirmed) => {
-                if (confirmed) {
-                  this.deleteTreeName(tree)
-                }
+        if (data.id) {
+          PopupDialog.prompt({
+            title: t('txt-deleteDepartment'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: (
+              <React.Fragment>
+                <div className='content'>
+                  <span>{t('txt-delete-msg-with-soc')}?</span>
+                </div>
+                <div className='content delete'>
+                  <span>{tree.name}</span>
+                </div>
+              </React.Fragment>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                this.deleteTreeName(tree);
               }
-            });
-          }else{
-            PopupDialog.prompt({
-              title: t('txt-deleteDepartment'),
-              id: 'modalWindowSmall',
-              confirmText: t('txt-delete'),
-              cancelText: t('txt-cancel'),
-              display: (
-                  <div className='content delete'>
-                    <span>{t('txt-delete-msg')}: {tree.name}?</span>
-                  </div>
-              ),
-              act: (confirmed) => {
-                if (confirmed) {
-                  this.deleteTreeName(tree)
-                }
+            }
+          });
+        } else {
+          PopupDialog.prompt({
+            title: t('txt-deleteDepartment'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: (
+              <div className='content delete'>
+                <span>{t('txt-delete-msg')}: {tree.name}?</span>
+              </div>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                this.deleteTreeName(tree)
               }
-            });
-          }
+            }
+          });
+        }
     }).catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
@@ -284,8 +283,8 @@ class Manage extends Component {
             if (tempData === 'option') {
               return (
                 <div>
-                  <i className='c-link fg fg-edit' onClick={this.openTitleName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
-                  <i className='c-link fg fg-trashcan' onClick={this.openDeleteTitleName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
+                  <i id='departmentTitleEdit' className='c-link fg fg-edit' onClick={this.openTitleName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
+                  <i id='departmentTitleDelete' className='c-link fg fg-trashcan' onClick={this.openDeleteTitleName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
                 </div>
               )
             } else {
@@ -299,7 +298,7 @@ class Manage extends Component {
     return (
       <div>
         <ToggleButtonGroup
-          id='manageBtn'
+          id='inventoryManageBtn'
           exclusive
           value={activeTab}
           onChange={this.handleTabChange}>
@@ -309,7 +308,7 @@ class Manage extends Component {
 
         {activeTab === 'department' &&
           <div className='tree-section'>
-            <i className='c-link fg fg-add' onClick={this.handleTreeAction.bind(this, 'add')} title={t('txt-addDepartment')}></i>
+            <i id='departmentTitleAddDepartment' className='c-link fg fg-add' onClick={this.handleTreeAction.bind(this, 'add')} title={t('txt-addDepartment')}></i>
             {departmentList && departmentList.length > 0 &&
               <TreeView
                 defaultCollapseIcon={<ExpandMoreIcon />}
@@ -322,8 +321,7 @@ class Manage extends Component {
 
         {activeTab === 'title' &&
           <div className='title-section'>
-            <i className='c-link fg fg-add' onClick={this.openTitleName.bind(this, 'add')} title={t('txt-addTitle')}></i>
-
+            <i id='departmentTitleAddTree' className='c-link fg fg-add' onClick={this.openTitleName.bind(this, 'add')} title={t('txt-addTitle')}></i>
             <div className='table-data'>
               <DataTable
                 fields={dataFields}
@@ -332,12 +330,11 @@ class Manage extends Component {
           </div>
         }
         {activeTab === 'drag' &&
-        <div className='title-section'>
-          <SortableTree
+          <div className='title-section'>
+            <SortableTree
               treeData={treeData}
-              onChange={treeData => this.setState({treeData: treeData})}
-          />
-        </div>
+              onChange={treeData => this.setState({treeData: treeData})} />
+          </div>
         }
       </div>
     )
