@@ -578,6 +578,8 @@
     "reporter": "Report Source",
     "suggestion": "Sign-off Suggestion",
     "createDttm": "Create Datetime",
+    "createDttm-start": "Create Datetime(From)",
+    "createDttm-end": "Create Datetime(To)",
     "sendTime": "Send Datetime",
     "createdDttm": "Create Datetime",
     "impactAssessment": "Impact Assessment",
