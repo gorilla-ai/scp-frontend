@@ -2827,7 +2827,8 @@ class IncidentManagement extends Component {
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 isExpired: 2
-            }
+            },
+            selectedStatus:[]
         })
     };
 
