@@ -175,12 +175,16 @@ class NetworkInventory extends Component {
       csvColumns: {
         ip: '',
         mac: '',
-        hostName: ''
+        hostName: '',
+        ownerId: '',
+        ownerName: '',
+        departmentName: '',
+        remarks: ''
       },
       selectedTreeID: '',
       floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
-      ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
+      ipUploadFields: ['ip', 'mac', 'hostName', 'ownerId', 'ownerName', 'departmentName', 'remarks', 'errCode'],
       showLoadingIcon: false,
       formValidation: {
         ip: {
@@ -200,6 +204,12 @@ class NetworkInventory extends Component {
           msg: ''
         },
         csvColumnsIp: {
+          valid: true
+        },
+        csvOwnerID: {
+          valid: true
+        },
+        csvOwnerName: {
           valid: true
         },
         seatName: {
@@ -1958,6 +1968,12 @@ class NetworkInventory extends Component {
           csvColumnsIp: {
             valid: true
           },
+          csvOwnerID: {
+            valid: true
+          },
+          csvOwnerName: {
+            valid: true
+          },
           seatName: {
             valid: true
           },
@@ -2204,7 +2220,11 @@ class NetworkInventory extends Component {
           csvColumns: {
             ip: '',
             mac: '',
-            hostName: ''
+            hostName: '',
+            ownerId: '',
+            ownerName: '',
+            departmentName: '',
+            remarks: ''
           }
         });
       } else {
@@ -2416,7 +2436,11 @@ class NetworkInventory extends Component {
           let dataObj = {
             ip: '',
             mac: '',
-            hostName: ''
+            hostName: '',
+            ownerId: '',
+            ownerName: '',
+            departmentName: '',
+            remarks: ''
           };
 
           if (i > 0) {
@@ -2446,10 +2470,34 @@ class NetworkInventory extends Component {
               return false;
             }
 
+            if (dataObj.ownerId) {
+              if (dataObj.ownerName) {
+                validate = true;
+                tempFormValidation.csvOwnerName.valid = true;
+              } else {
+                validate = false;
+                tempFormValidation.csvOwnerName.valid = false;
+              }
+            }
+
+            if (dataObj.ownerName) {
+              if (dataObj.ownerId) {
+                validate = true;
+                tempFormValidation.csvOwnerID.valid = true;
+              } else {
+                validate = false;
+                tempFormValidation.csvOwnerID.valid = false;
+              }
+            }
+
             requestData.push({
               ip: dataObj.ip,
               mac: dataObj.mac,
-              hostName: dataObj.hostName
+              hostName: dataObj.hostName,
+              ownerId: dataObj.ownerId,
+              ownerName: dataObj.ownerName,
+              departmentName: dataObj.departmentName,
+              remarks: dataObj.remarks
             });
           }
         })
@@ -2487,7 +2535,11 @@ class NetworkInventory extends Component {
                 csvColumns: {
                   ip: '',
                   mac: '',
-                  hostName: ''
+                  hostName: '',
+                  ownerId: '',
+                  ownerName: '',
+                  departmentName: '',
+                  remarks: ''
                 }
               }, () => {
                 this.getDeviceData();
@@ -2515,7 +2567,11 @@ class NetworkInventory extends Component {
         csvColumns: {
           ip: '',
           mac: '',
-          hostName: ''
+          hostName: '',
+          ownerId: '',
+          ownerName: '',
+          departmentName: '',
+          remarks: ''
         },
         formValidation: {
           ip: {
@@ -2535,6 +2591,12 @@ class NetworkInventory extends Component {
             msg: ''
           },
           csvColumnsIp: {
+            valid: true
+          },
+          csvOwnerID: {
+            valid: true
+          },
+          csvOwnerName: {
             valid: true
           },
           seatName: {
@@ -4275,6 +4337,66 @@ class NetworkInventory extends Component {
                           fullWidth
                           size='small'
                           value={csvColumns.hostName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvOwnerID'
+                          name='ownerId'
+                          label={t('ipFields.ownerId')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          error={!formValidation.csvOwnerID.valid}
+                          helperText={formValidation.csvOwnerID.valid ? '' : t('txt-required')}
+                          value={csvColumns.ownerId}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvOwnerName'
+                          name='ownerName'
+                          label={t('ipFields.ownerName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          error={!formValidation.csvOwnerName.valid}
+                          helperText={formValidation.csvOwnerName.valid ? '' : t('txt-required')}
+                          value={csvColumns.ownerName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvDepartmentName'
+                          name='hostName'
+                          label={t('ipFields.departmentName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.departmentName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvRemarks'
+                          name='hostName'
+                          label={t('ipFields.remarks')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.remarks}
                           onChange={this.handleColumnChange}>
                           {csvHeaderList}
                         </TextField>
