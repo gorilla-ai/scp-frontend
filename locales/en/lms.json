@@ -46,6 +46,7 @@
 	"l-activate": "Activate",
 	"l-activate-success": "Activate Success",
 	"l-upload-offline-file": "Upload Offline File",
+	"l-verify-online": "Verify Online",
 	"l-offline-upload-msg": "Can not connect to License Registration Service. Please download the registration file and contact authorized agents. Then you can upload the verified file for offline registration.",
 
 	"key-acivated": "License is acivated already",
