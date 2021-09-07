@@ -111,6 +111,7 @@ class License extends Component {
    */
   activateLicense = () => {
     const {baseUrl, contextRoot} = this.context;
+    const {from} = this.props;
     const {originalKey, key, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -154,77 +155,46 @@ class License extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      this.handleLmsAvtivate(data[1]);
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Handle license verify online button
-   * @method
-   */
-  verifyOnline = () => {
-    const {baseUrl} = this.context;
-    const {key} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/lms/verify/_trigger?key=${key}`,
-      type: 'GET'
-    })
-    .then(data => {
-      this.handleLmsAvtivate(data);
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Handle LMS activate/verify response data
-   * @method
-   * @param {object} data - data object
-   */
-  handleLmsAvtivate = (data) => {
-    const {from} = this.props;
-
-    if (data.returnCode !== '0') {
-      if (data.returnCode === '-3028') {
+      if (data[1].returnCode !== '0') {
+        if (data[1].returnCode === '-3028') {
+          PopupDialog.alert({
+            id: 'modalWindowSmall',
+            confirmText: t('txt-download'),
+            display: (
+              <div className='content download'><span>{lt('l-offline-upload-msg')}</span></div>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                this.downloadLicense();
+              }
+            }
+          });
+        } else {
+          helper.showPopupMsg('', t('txt-error'), lt(`${data[1].returnCode}`));
+        }
+      } else {
         PopupDialog.alert({
           id: 'modalWindowSmall',
-          confirmText: t('txt-download'),
+          confirmText: t('txt-ok'),
           display: (
-            <div className='content download'><span>{lt('l-offline-upload-msg')}</span></div>
+            <div className='content'><span>{lt('l-activate-success')}</span></div>
           ),
           act: (confirmed) => {
             if (confirmed) {
-              this.downloadLicense();
+              if (from === 'login') {
+                this.props.onPass();
+              } else if (from === 'config') {
+                this.toggleKeyInput();
+                this.loadData();
+              }
             }
           }
         });
-      } else {
-        helper.showPopupMsg('', t('txt-error'), lt(`${data.returnCode}`));
       }
-    } else {
-      PopupDialog.alert({
-        id: 'modalWindowSmall',
-        confirmText: t('txt-ok'),
-        display: (
-          <div className='content'><span>{lt('l-activate-success')}</span></div>
-        ),
-        act: (confirmed) => {
-          if (confirmed) {
-            if (from === 'login') {
-              this.props.onPass();
-            } else if (from === 'config') {
-              this.toggleKeyInput();
-              this.loadData();
-            }
-          }
-        }
-      });
-    }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle upload file dialog on/off
@@ -375,7 +345,6 @@ class License extends Component {
               <div className='license-group-btn'>
                 <button id='license-activate' onClick={this.activateLicense}>{lt('l-activate')}</button>
                 <button id='licenseUpload' onClick={this.toggleFileUpload}>{lt('l-upload-offline-file')}</button>
-                <button id='onlineActivate' onClick={this.verifyOnline}>{lt('l-verify-online')}</button>
               </div>
             </div>
           }
@@ -410,7 +379,6 @@ class License extends Component {
                 value={key}
                 onChange={this.handleInputChange} />
               <button id='license-confirm' className='multiple-btn' onClick={this.activateLicense}>{lt('l-activate')}</button>
-              <button id='onlineActivate' onClick={this.verifyOnline}>{lt('l-verify-online')}</button>
               <button id='license-cancel' className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}</button>
             </div>
           }

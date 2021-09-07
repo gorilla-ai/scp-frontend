@@ -30,7 +30,6 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
-import FileUpload from '../common/file-upload'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
 import HostFilter from './host-filter'
@@ -287,8 +286,6 @@ class HostController extends Component {
       showFilter: false,
       openQueryOpen: false,
       saveQueryOpen: false,
-      uploadFileOpen: false,
-      hmdFile: {},
       notifyEmailData: [],
       queryModalType: '',
       queryData: {
@@ -3149,94 +3146,6 @@ class HostController extends Component {
     });
   }
   /**
-   * Toggle Import Threats dialog on/off
-   * @method
-   */
-  toggleUploadFile = () => {
-    this.setState({
-      uploadFileOpen: !this.state.uploadFileOpen
-    });
-  }
-  /**
-   * Handle HMD setup file upload
-   * @method
-   * @param {object} file - file uploaded by the user
-   */
-  getHmdSetupFile = (file) => {
-    this.setState({
-      hmdFile: file
-    });
-  }
-  /**
-   * Handle upload HMD setup file
-   * @method
-   */
-  uploadFileDialog = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadFile},
-      confirm: {text: t('txt-confirm'), handler: this.confirmFileUpload}
-    };
-    const title = t('hmd-scan.txt-uploadHMDfile');
-    const fileTitle = t('hmd-scan.txt-hmdSetupFile') + '(.zip)';
-
-    return (
-      <ModalDialog
-        id='importThreatsDialog'
-        className='modal-dialog'
-        title={title}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        <FileUpload
-          id='fileUpload'
-          fileType='indicators'
-          supportText={fileTitle}
-          btnText={t('txt-upload')}
-          handleFileChange={this.getHmdSetupFile} />
-      </ModalDialog>
-    )
-  }
-  /**
-   * Handle file upload confirm
-   * @method
-   */
-  confirmFileUpload = () => {
-    const {baseUrl} = this.context;
-    const {hmdFile} = this.state;
-    let formData = new FormData();
-    formData.append('file', hmdFile);
-
-    if (!hmdFile.name) {
-      return;
-    }
-
-    ah.one({
-      url: `${baseUrl}/api/hmd/setupFile/_upload`,
-      data: formData,
-      type: 'POST',
-      processData: false,
-      contentType: false
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        helper.showPopupMsg(t('hmd-scan.txt-uplaodSuccess'));
-
-        this.setState({
-          hmdFile: {}
-        });
-
-        this.toggleUploadFile();
-      } else if (data.ret === -1) {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Toggle yara rule modal dialog on/off
    * @method
    */
@@ -3478,7 +3387,6 @@ class HostController extends Component {
       showFilter,
       openQueryOpen,
       saveQueryOpen,
-      uploadFileOpen,
       datetime,
       assessmentDatetime,
       yaraRuleOpen,
@@ -3528,10 +3436,6 @@ class HostController extends Component {
 
         {saveQueryOpen &&
           this.queryDialog()
-        }
-
-        {uploadFileOpen &&
-          this.uploadFileDialog()
         }
 
         {yaraRuleOpen &&
@@ -3692,7 +3596,6 @@ class HostController extends Component {
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleUploadFile}>{t('hmd-scan.txt-uploadHMDfile')}</Button>
                   </div>
                 }
 
