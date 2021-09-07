@@ -768,6 +768,9 @@
   "hmd-scan": {
     "txt-hmdSettings": "HMD Settings",
     "txt-hmdDownload": "HMD $t(txt-download)",
+    "txt-uploadHMDfile": "Upload HMD setup file",
+    "txt-hmdSetupFile": "HMD setup file",
+    "txt-uplaodSuccess": "HMD setup file has been uploaded successfully",
     "txt-triggerAll": "Trigger All (HMD)",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB Version",

@@ -768,6 +768,9 @@
   "hmd-scan": {
     "txt-hmdSettings": "HMD設定",
     "txt-hmdDownload": "HMD$t(txt-download)",
+    "txt-uploadHMDfile": "上傳HMD安裝檔",
+    "txt-hmdSetupFile": "HMD安裝檔",
+    "txt-uplaodSuccess": "HMD安裝檔上傳成功",
     "txt-triggerAll": "全部檢測(HMD)",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB版本",

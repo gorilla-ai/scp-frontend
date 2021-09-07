@@ -833,6 +833,10 @@ class ThreatIntelligence extends Component {
     let formData = new FormData();
     formData.append('file', threatsFile);
 
+    if (!threatsFile.name) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/threat/upload`,
       data: formData,
@@ -846,7 +850,8 @@ class ThreatIntelligence extends Component {
         this.toggleImportThreats();
 
         this.setState({
-          indicatorsData: null
+          indicatorsData: null,
+          threatsFile: {}
         }, () => {
           this.getChartsData();
         });
