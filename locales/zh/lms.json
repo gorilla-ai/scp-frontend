@@ -46,6 +46,7 @@
   "l-activate": "啟用",
   "l-activate-success": "啟用成功",
   "l-upload-offline-file": "上傳離線註冊檔",
+  "l-verify-online": "線上驗證",
   "l-offline-upload-msg": "無法連線註冊伺服器，請下載註冊檔並轉交聯絡窗口驗證，後續再由首頁以驗證檔上傳方式離線註冊",
 
   "key-acivated": "授權碼已啟用過",

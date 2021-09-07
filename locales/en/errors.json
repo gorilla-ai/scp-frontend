@@ -72,6 +72,10 @@
   "-5009": "Log Host IP does not exist",
   "-5010": "SSH account is duplicated",
   "-5011": "Invoke Restful API Fail",
+  "-5012": "Owner name does not match",
+  "-5013": "Department does not exist",
+  "-5014": "Department does not match",
+  "-5015": "Add owner fail",
 
   "-6801": "PDF service connect fail",
 

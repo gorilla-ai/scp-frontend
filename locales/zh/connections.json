@@ -768,6 +768,8 @@
   "hmd-scan": {
     "txt-hmdSettings": "HMD設定",
     "txt-hmdDownload": "HMD$t(txt-download)",
+    "txt-uploadHMDfile": "上傳HMD安裝檔",
+    "txt-hmdSetupFile": "HMD安裝檔",
     "txt-triggerAll": "全部檢測(HMD)",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB版本",
@@ -1067,6 +1069,9 @@
     "userName": "人員",
     "disks": "$t(txt-disks)",
     "shareFolders": "$t(txt-shareFolders)",
+    "ownerId": "所屬人員ID",
+    "ownerName": "所屬人員",
+    "departmentName": "部門",
     "remarks": "備註",
     "cpu": "$t(txt-cpu)",
     "ram": "$t(txt-ram)",
