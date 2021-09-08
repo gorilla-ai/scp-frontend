@@ -792,6 +792,7 @@
     "txt-downloadLogs": "下載Logs",
     "txt-compress-logs": "壓縮Logs",
     "txt-recompress-logs": "重新壓縮Logs",
+    "txt-unregister": "Unregister",
     "txt-addToFilterList": "加入過濾名單",
     "txt-suspiciousFileCount": "可疑檔案數",
     "txt-suspiciousFileName": "可疑檔案名稱",

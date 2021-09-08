@@ -792,6 +792,7 @@
     "txt-downloadLogs": "Download Logs",
     "txt-compressLogs": "Compress Logs",
     "txt-recompressLogs": "Recompress Logs",
+    "txt-unregister": "Unregister",
     "txt-addToFilterList": "Add to filter list",
     "txt-suspiciousFileCount": "Suspicious File Count",
     "txt-suspiciousFileName": "Suspicious Filename",

@@ -4132,7 +4132,9 @@ class NetworkInventory extends Component {
       }
     };
     let picPath = '';
-    let csvHeaderList = [];
+    let csvHeaderList = [
+      <MenuItem value=''><span style={{height: '20px'}}></span></MenuItem>
+    ];
 
     if (!_.isEmpty(currentDeviceData)) {
       picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png'
