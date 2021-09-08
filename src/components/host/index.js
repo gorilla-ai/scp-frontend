@@ -12,7 +12,6 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
-import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf'
 import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
@@ -677,7 +676,7 @@ class HostController extends Component {
   /**
    * Get and set host info data
    * @method
-   * @param {string} options - options for CSV and PDF export
+   * @param {string} [options] - option for CSV export
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
@@ -705,7 +704,7 @@ class HostController extends Component {
       requestData.areaUUID = currentFloor;
     }
 
-    if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
+    if (options === 'csv') { //For CSV export
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
@@ -3037,13 +3036,13 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
-   * Handle PDF export
+   * Handle security diagnostic
    * @method
    */
-  exportAllPdf = () => {
+  exportSecurityDiagnostic = () => {
     const {baseUrl, contextRoot} = this.context
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
-    const requestData = this.getHostData('pdf')
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/kbid/_export`
+    const requestData = this.getHostData('csv')
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
@@ -3581,7 +3580,7 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><PictureAsPdfIcon /></Button>
+            <Button variant='outlined' color='primary' onClick={this.exportSecurityDiagnostic} title={t('txt-exportSecurityDiagnostic')}><i className='fg fg-file-csv'></i></Button>
             <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           </div>
 
