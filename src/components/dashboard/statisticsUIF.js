@@ -160,7 +160,8 @@ class StatisticsUIF extends Component {
 
         // set tooltip
         if (widgetName === 'AlertStatistics-bar') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'AlertStatistics-bar'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'AlertStatistics-bar'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
@@ -171,7 +172,8 @@ class StatisticsUIF extends Component {
         }
 
         if (widgetName === 'CustomAlertStatistics') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'CustomAlertStatistics'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'CustomAlertStatistics'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
@@ -182,7 +184,8 @@ class StatisticsUIF extends Component {
         }
 
         if (widgetName === 'MaskedIPAlertStatistics-bar') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
         }
 
         if (widgetName === 'honeypotLoginPassword-table') {
@@ -514,7 +517,7 @@ class StatisticsUIF extends Component {
       });
     });
   }
-	render() {
+  render() {
     const {
       uifCfg,
       appendConfig,
