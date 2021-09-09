@@ -924,6 +924,7 @@
     "txt-seatDeviceInfo": "Seat/Device Info",
     "txt-noDevice": "No device is available",
     "txt-VansProductRegex": "VANS Software List",
+    "txt-cpeSoftwareList": "CPE Software List",
     "txt-reportNCCST": "Report NCCST Settings",
     "txt-unitOID": "Unit OID",
     "txt-unitName": "Unit Name",

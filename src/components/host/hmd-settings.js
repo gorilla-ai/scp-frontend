@@ -14,6 +14,7 @@ import TextField from '@material-ui/core/TextField'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context'
+import CpeHeader from './cpe-header'
 import helper from '../common/helper'
 import InputPath from '../common/input-path'
 import ProductRegex from './product-regex'
@@ -124,6 +125,14 @@ class HMDsettings extends Component {
         target_hw: '',
         other: ''
       }],
+      originalCpeData: '',
+      cpeData: [{
+        header: '',
+        list: [{
+          cpe: ''
+        }],
+        index: 0
+      }],
       cpeInputTest: '',
       cpe23Uri: '',
       cpeConvertResult: '',
@@ -170,7 +179,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -260,6 +269,26 @@ class HMDsettings extends Component {
           originalNccstSettings: _.cloneDeep(nccstSettings),
           nccstSettings
         });
+
+        const parsedCpeData = JSON.parse(data[11].value);
+        let cpeData = [];
+      
+        _.forEach(parsedCpeData, (val, index) => {
+          cpeData.push({
+            header: val.cpeHeader,
+            list: _.map(val.cpeArray, val2 => {
+              return {
+                cpe: val2
+              }
+            }),
+            index
+          });
+        })
+
+        this.setState({
+          originalCpeData: _.cloneDeep(cpeData),
+          cpeData
+        });
       }
       return null;
     })
@@ -305,6 +334,7 @@ class HMDsettings extends Component {
       originalFtpUrl,
       originalFtpAccount,
       originalProductRegex,
+      originalCpeData,
       originalNccstSettings
     } = this.state;
     let showPage = type;
@@ -323,6 +353,7 @@ class HMDsettings extends Component {
         ftpUrl: _.cloneDeep(originalFtpUrl),
         ftpAccount: _.cloneDeep(originalFtpAccount),
         productRegexData: _.cloneDeep(originalProductRegex),
+        cpeData: _.cloneDeep(originalCpeData),
         nccstSettings: _.cloneDeep(originalNccstSettings)
       });
 
@@ -390,7 +421,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, nccstSettings, formValidation} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, nccstSettings, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -521,6 +552,31 @@ class HMDsettings extends Component {
       apiArr.push({
         url,
         data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
+    }
+
+    if (cpeData.length > 0) {
+      let parsedCpeData = [];
+
+      _.forEach(cpeData, val => {
+        parsedCpeData.push({
+          cpeHeader: val.header,
+          cpeArray: _.map(val.list, val2 => {
+            return val2.cpe
+          })
+        });
+      })
+
+      const cpeRequestData = {
+        configId: 'hmd.export.kbid.items',
+        value: parsedCpeData
+      };
+
+      apiArr.push({
+        url,
+        data: JSON.stringify(cpeRequestData),
         type: 'POST',
         contentType: 'text/plain'
       });
@@ -756,6 +812,28 @@ class HMDsettings extends Component {
       return cpeConvertResult ? t('txt-pass') : t('txt-fail');
     }
   }
+  /**
+   * Set CPE data
+   * @method
+   * @param {string} type - cpe type ('header' or 'list')
+   * @param {object} data - cpe data
+   * @param {object} [cpe] - cpe data
+   */
+  setCpeData = (type, data, cpe) => {
+    let tempCpeData = this.state.cpeData;
+
+    if (type === 'header') {
+      this.setState({
+        cpeData: data
+      });
+    } else {
+      tempCpeData[data.index].list = cpe;
+
+      this.setState({
+        cpeData: tempCpeData
+      });
+    }
+  }
   render() {
     const {
       activeContent,
@@ -770,12 +848,18 @@ class HMDsettings extends Component {
       cpe23Uri,
       cpeConvertResult,
       connectionsStatus,
-      nccstSettings,      
+      nccstSettings,
+      cpeData,
       formValidation
     } = this.state;
     const data = {
       activeContent,
       PRODUCT_REGEX
+    };
+    const cpeProps = {
+      activeContent,
+      cpeData,
+      setCpeData: this.setCpeData
     };
     let msg = '';
     let color = '';
@@ -973,6 +1057,24 @@ class HMDsettings extends Component {
                   onChange={this.setProductRegexData}
                   disabled={activeContent === 'viewMode'} />
               </div>
+            </div>
+
+            <div className='form-group normal long'>
+              <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
+              <MultiInput
+                className='cpe-group'
+                base={CpeHeader}
+                props={cpeProps}
+                defaultItemValue={{
+                  header: '',
+                  list: [{
+                    cpe: ''
+                  }],
+                  index: cpeData.length
+                }}
+                value={cpeData}
+                onChange={this.setCpeData.bind(this, 'header')}
+                disabled={activeContent === 'viewMode'} />
             </div>
 
             <div className='form-group normal'>

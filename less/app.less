@@ -3724,6 +3724,35 @@ button.standard:hover:not([disabled]) {
               margin: 5px;
             }
           }
+          .cpe-group {
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            .group {
+              margin-bottom: 10px;
+            }
+            .group-content {
+              &.cpe {
+                width: 92%;
+                text-align: left;
+                padding: 5px 10px;
+                margin-right: 5px;
+                border: 1px solid var(--primaryBorder);
+              }
+              #cpeListLabel {
+                margin-top: 10px;
+              }
+              .group-content {
+                width: 100%;
+              }
+              .cpe-header-input {
+                width: 50%;
+              }
+              .cpe-list-input {
+                width: 99%;
+              }
+            }
+          }
           .cpe-input-test {
             width: 44%;
           }

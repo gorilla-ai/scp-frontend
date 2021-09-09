@@ -65,7 +65,7 @@ class Edge extends Component {
     return !valid;
   }
   render() {
-    const {activeContent, statusEnable, deviceList, edgeData, value} = this.props;
+    const {activeContent, statusEnable, deviceList, value} = this.props;
     const data = {
       activeContent,
       statusEnable,
