@@ -41,6 +41,8 @@ class CpeList extends Component {
           name='cpe'
           variant='outlined'
           size='small'
+          error={!value.validate}
+          helperText={value.validate ? '' : t('txt-checkFormat')}
           value={value.cpe}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'} />

@@ -65,7 +65,8 @@ class CpeHeader extends Component {
             ...data
           }}
           defaultItemValue={{
-            cpe: ''
+            cpe: '',
+            validate: true
           }}
           value={value.list}
           onChange={this.props.setCpeData.bind(this, 'list', value)}

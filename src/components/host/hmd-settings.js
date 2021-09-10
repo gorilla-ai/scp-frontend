@@ -130,7 +130,8 @@ class HMDsettings extends Component {
       cpeData: [{
         header: '',
         list: [{
-          cpe: ''
+          cpe: '',
+          validate: true
         }],
         index: 0
       }],
@@ -279,7 +280,8 @@ class HMDsettings extends Component {
             header: val.cpeHeader,
             list: _.map(val.cpeArray, val2 => {
               return {
-                cpe: val2
+                cpe: val2,
+                validate: true
               }
             }),
             index
@@ -580,33 +582,52 @@ class HMDsettings extends Component {
       });
     }
 
+    let tempCpeData = [];
     let cpeValid = true;
 
     if (cpeData.length > 0) {
       let parsedCpeData = [];
 
-      _.forEach(cpeData, val => {
+      _.forEach(cpeData, (val, i) => {
+        tempCpeData.push({
+          header: val.header,
+          index: i
+        });
+
+        let cpeList = [];
+
         _.forEach(val.list, val2 => {
+          let validate = true;
+
           if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+            validate = false;
             cpeValid = false;
           }
-          return false;
+
+          cpeList.push({
+            cpe: val2.cpe,
+            validate
+          })
         })
 
-        if (!cpeValid) {
-          return false;
-        }
+        tempCpeData[i].list = cpeList;
 
-        parsedCpeData.push({
-          cpeHeader: val.header,
-          cpeArray: _.map(val.list, val2 => {
-            return val2.cpe
-          })
-        });
+        if (cpeValid) {
+          parsedCpeData.push({
+            cpeHeader: val.header,
+            cpeArray: _.map(val.list, val2 => {
+              return val2.cpe
+            })
+          });
+        }
       })
 
       if (!cpeValid) {
         helper.showPopupMsg('', t('txt-error'), t('network-inventory.txt-cpeFormatError'));
+
+        this.setState({
+          cpeData: tempCpeData
+        });
         return;
       }
 
@@ -1087,7 +1108,8 @@ class HMDsettings extends Component {
                 defaultItemValue={{
                   header: '',
                   list: [{
-                    cpe: ''
+                    cpe: '',
+                    validate: true
                   }],
                   index: cpeData.length
                 }}
