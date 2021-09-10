@@ -22,6 +22,7 @@ import ProductRegex from './product-regex'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -416,6 +417,28 @@ class HMDsettings extends Component {
     )
   }
   /**
+   * Set CPE data
+   * @method
+   * @param {string} type - cpe type ('header' or 'list')
+   * @param {object} data - cpe data
+   * @param {object} [cpe] - cpe data
+   */
+  setCpeData = (type, data, cpe) => {
+    let tempCpeData = this.state.cpeData;
+
+    if (type === 'header') {
+      this.setState({
+        cpeData: data
+      });
+    } else {
+      tempCpeData[data.index].list = cpe;
+
+      this.setState({
+        cpeData: tempCpeData
+      });
+    }
+  }
+  /**
    * Handle scan files confirm
    * @method
    */
@@ -557,10 +580,23 @@ class HMDsettings extends Component {
       });
     }
 
+    let cpeValid = true;
+
     if (cpeData.length > 0) {
       let parsedCpeData = [];
 
       _.forEach(cpeData, val => {
+        _.forEach(val.list, val2 => {
+          if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+            cpeValid = false;
+          }
+          return false;
+        })
+
+        if (!cpeValid) {
+          return false;
+        }
+
         parsedCpeData.push({
           cpeHeader: val.header,
           cpeArray: _.map(val.list, val2 => {
@@ -568,6 +604,11 @@ class HMDsettings extends Component {
           })
         });
       })
+
+      if (!cpeValid) {
+        helper.showPopupMsg('', t('txt-error'), t('network-inventory.txt-cpeFormatError'));
+        return;
+      }
 
       const cpeRequestData = {
         configId: 'hmd.export.kbid.items',
@@ -810,28 +851,6 @@ class HMDsettings extends Component {
 
     if (cpeConvertResult !== '') {
       return cpeConvertResult ? t('txt-pass') : t('txt-fail');
-    }
-  }
-  /**
-   * Set CPE data
-   * @method
-   * @param {string} type - cpe type ('header' or 'list')
-   * @param {object} data - cpe data
-   * @param {object} [cpe] - cpe data
-   */
-  setCpeData = (type, data, cpe) => {
-    let tempCpeData = this.state.cpeData;
-
-    if (type === 'header') {
-      this.setState({
-        cpeData: data
-      });
-    } else {
-      tempCpeData[data.index].list = cpe;
-
-      this.setState({
-        cpeData: tempCpeData
-      });
     }
   }
   render() {
