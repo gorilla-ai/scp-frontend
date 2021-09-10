@@ -571,7 +571,7 @@ class HMDsettings extends Component {
 
       const cpeRequestData = {
         configId: 'hmd.export.kbid.items',
-        value: parsedCpeData
+        value: JSON.stringify(parsedCpeData)
       };
 
       apiArr.push({
