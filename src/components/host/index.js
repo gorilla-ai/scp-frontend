@@ -159,6 +159,18 @@ const HMD_LIST = [
   {
     name: 'Not Applied Process Monitor',
     value: 'isNotProcWhiteList'
+  },
+  {
+    name: 'is Scan Finished',
+    value: 'isScanFinished'
+  },
+  {
+    name: 'is Scan Unfinished',
+    value: 'isScanUnfinished'
+  },
+  {
+    name: 'is Scan Fail',
+    value: 'isScanFail'
   }
 ];
 const HOST_SORT_LIST = [
@@ -808,8 +820,14 @@ class HostController extends Component {
         })
 
         _.forEach(HMD_LIST, val => {
+          let text = val.name;
+
+          if (data.scanInfoAgg[val.value]) {
+            text += ' (' + data.scanInfoAgg[val.value] + ')';
+          }
+
           scanStatusList.push({
-            text: val.name + ' (' + data.scanInfoAgg[val.value] + ')',
+            text,
             value: val.value
           });
         });
