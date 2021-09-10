@@ -44,7 +44,7 @@ class CpeHeader extends Component {
     return (
       <div className='group-content cpe'>
         <label id='cpeHeaderLabel'>
-          <span>Software</span>
+          <span>{t('host.txt-software')}</span>
         </label>
         <TextField
           name='cpeHeader'
@@ -55,7 +55,7 @@ class CpeHeader extends Component {
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'} />
         <label id='cpeListLabel'>
-          <span>List</span>
+          <span>{t('txt-item')}</span>
         </label>
         <MultiInput
           id='hmdSettingsCpeList'
