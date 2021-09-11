@@ -822,7 +822,7 @@ class HostController extends Component {
         _.forEach(HMD_LIST, val => {
           let text = val.name;
 
-          if (data.scanInfoAgg[val.value]) {
+          if (_.has(data.scanInfoAgg, val.value)) {
             text += ' (' + data.scanInfoAgg[val.value] + ')';
           }
 
