@@ -2203,6 +2203,7 @@ class HostController extends Component {
     let displayCount = val.doc_count;
     let text = t('hmd-scan.txt-suspiciousFileCount');
     let title = '';
+    let status = '';
 
     if (_.includes(scanResult, val.severity_type_name)) {
       _.forEach(SCAN_RESULT, val2 => {
@@ -2240,8 +2241,16 @@ class HostController extends Component {
     title = displayTooltip + ': ' + displayCount;
 
     if (val.doc_count === 0 || val.doc_count > 0) {
-      return <span key={i} className='c-link' style={spanStyle} title={title} onClick={this.handleSeverityClick.bind(this, hmd, val, safetyScanInfo)}>{severityTypeName}: {val.doc_count}</span>
+      status = val.doc_count;
+    } else {
+      if (val.taskStatus === 'Failure') {
+        status = t('hmd-scan.txt-taskFailure');
+      } else if (val.taskStatus === 'NotSupport') {
+        status = t('hmd-scan.txt-notSupport');
+      }
     }
+
+    return <span key={i} className='c-link' style={spanStyle} title={title} onClick={this.handleSeverityClick.bind(this, hmd, val, safetyScanInfo)}>{severityTypeName}: {status}</span>
   }
   /**
    * Get vans status color

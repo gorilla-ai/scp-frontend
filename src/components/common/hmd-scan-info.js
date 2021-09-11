@@ -1409,6 +1409,9 @@ class HMDscanInfo extends Component {
           <div>
             <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
             <div className='last-update'>
+              {hmdInfo[currentTab].data && hmdInfo[currentTab].data.length > 0 && hmdInfo[currentTab].data[0].taskStatus === 'Failure' &&
+                <span className='failure'>{t('hmd-scan.txt-taskFailure')}</span>
+              }
               <span>{t('hmd-scan.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
             </div>
           </div>
