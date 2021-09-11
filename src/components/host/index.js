@@ -109,6 +109,10 @@ const HMD_TRIGGER = [
   {
     name: 'VANS',
     cmds: 'getVans'
+  },
+  {
+    name: 'KBID List',
+    cmds: 'getKbidList'
   }
 ];
 const HMD_LIST = [
@@ -3305,9 +3309,14 @@ class HostController extends Component {
    */
   triggerHmdAll = (hmdObj, yaraRule) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/retriggerAll`;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search/_retrigger`;
+    const datetime = this.getHostDateTime();
     let requestData = {
-      cmds: [hmdObj.cmds]
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData(),
+      cmdJO: {
+        cmds: [hmdObj.cmds]
+      }
     };
 
     if (hmdObj.cmds === 'compareIOC') {
