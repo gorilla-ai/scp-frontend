@@ -2305,7 +2305,13 @@ class HostController extends Component {
         return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span className='vans-status' style={this.getVansStatusColor(dataInfo[val.path].color)}>{dataInfo[val.path].status}</span></li>
       }
 
-      return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
+      let newContent = content;
+
+      if (content.length > 20) {
+        newContent = content.substr(0, 20) + '...';
+      }
+
+      return <li key={i} title={t('ipFields.' + val.name)}>{context}<span title={content}>{newContent}</span></li>
     }
   }
   /**
