@@ -12,7 +12,6 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
-import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf'
 import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
@@ -30,6 +29,7 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import FileUpload from '../common/file-upload'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
 import HostFilter from './host-filter'
@@ -109,6 +109,10 @@ const HMD_TRIGGER = [
   {
     name: 'VANS',
     cmds: 'getVans'
+  },
+  {
+    name: 'KBID List',
+    cmds: 'getKbidList'
   }
 ];
 const HMD_LIST = [
@@ -159,6 +163,18 @@ const HMD_LIST = [
   {
     name: 'Not Applied Process Monitor',
     value: 'isNotProcWhiteList'
+  },
+  {
+    name: 'is Scan Finished',
+    value: 'isScanFinished'
+  },
+  {
+    name: 'is Scan Unfinished',
+    value: 'isScanUnfinished'
+  },
+  {
+    name: 'is Scan Fail',
+    value: 'isScanFail'
   }
 ];
 const HOST_SORT_LIST = [
@@ -286,6 +302,8 @@ class HostController extends Component {
       showFilter: false,
       openQueryOpen: false,
       saveQueryOpen: false,
+      uploadFileOpen: false,
+      hmdFile: {},
       notifyEmailData: [],
       queryModalType: '',
       queryData: {
@@ -674,7 +692,7 @@ class HostController extends Component {
   /**
    * Get and set host info data
    * @method
-   * @param {string} options - options for CSV and PDF export
+   * @param {string} [options] - option for CSV export
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
@@ -702,7 +720,7 @@ class HostController extends Component {
       requestData.areaUUID = currentFloor;
     }
 
-    if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
+    if (options === 'csv') { //For CSV export
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
@@ -806,8 +824,14 @@ class HostController extends Component {
         })
 
         _.forEach(HMD_LIST, val => {
+          let text = val.name;
+
+          if (_.has(data.scanInfoAgg, val.value)) {
+            text += ' (' + data.scanInfoAgg[val.value] + ')';
+          }
+
           scanStatusList.push({
-            text: val.name + ' (' + data.scanInfoAgg[val.value] + ')',
+            text,
             value: val.value
           });
         });
@@ -2183,6 +2207,7 @@ class HostController extends Component {
     let displayCount = val.doc_count;
     let text = t('hmd-scan.txt-suspiciousFileCount');
     let title = '';
+    let status = '';
 
     if (_.includes(scanResult, val.severity_type_name)) {
       _.forEach(SCAN_RESULT, val2 => {
@@ -2220,8 +2245,16 @@ class HostController extends Component {
     title = displayTooltip + ': ' + displayCount;
 
     if (val.doc_count === 0 || val.doc_count > 0) {
-      return <span key={i} className='c-link' style={spanStyle} title={title} onClick={this.handleSeverityClick.bind(this, hmd, val, safetyScanInfo)}>{severityTypeName}: {val.doc_count}</span>
+      status = val.doc_count;
+    } else {
+      if (val.taskStatus === 'Failure') {
+        status = t('hmd-scan.txt-taskFailure');
+      } else if (val.taskStatus === 'NotSupport') {
+        status = t('hmd-scan.txt-notSupport');
+      }
     }
+
+    return <span key={i} className='c-link' style={spanStyle} title={title} onClick={this.handleSeverityClick.bind(this, hmd, val, safetyScanInfo)}>{severityTypeName}: {status}</span>
   }
   /**
    * Get vans status color
@@ -2272,7 +2305,13 @@ class HostController extends Component {
         return <li key={i} onMouseOver={this.openPopover.bind(this, dataInfo[val.path].annotation)} onMouseOut={this.closePopover}><div className={`fg fg-${val.icon}`}></div><span className='vans-status' style={this.getVansStatusColor(dataInfo[val.path].color)}>{dataInfo[val.path].status}</span></li>
       }
 
-      return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
+      let newContent = content;
+
+      if (content.length > 20) {
+        newContent = content.substr(0, 20) + '...';
+      }
+
+      return <li key={i} title={t('ipFields.' + val.name)}>{context}<span title={content}>{newContent}</span></li>
     }
   }
   /**
@@ -3034,13 +3073,13 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
-   * Handle PDF export
+   * Handle security diagnostic
    * @method
    */
-  exportAllPdf = () => {
+  exportSecurityDiagnostic = () => {
     const {baseUrl, contextRoot} = this.context
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
-    const requestData = this.getHostData('pdf')
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/kbid/_export`
+    const requestData = this.getHostData('csv')
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
@@ -3146,6 +3185,94 @@ class HostController extends Component {
     });
   }
   /**
+   * Toggle Import Threats dialog on/off
+   * @method
+   */
+  toggleUploadFile = () => {
+    this.setState({
+      uploadFileOpen: !this.state.uploadFileOpen
+    });
+  }
+  /**
+   * Handle HMD setup file upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  getHmdSetupFile = (file) => {
+    this.setState({
+      hmdFile: file
+    });
+  }
+  /**
+   * Handle upload HMD setup file
+   * @method
+   */
+  uploadFileDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadFile},
+      confirm: {text: t('txt-confirm'), handler: this.confirmFileUpload}
+    };
+    const title = t('hmd-scan.txt-uploadHMDfile');
+    const fileTitle = t('hmd-scan.txt-hmdSetupFile') + '(.zip)';
+
+    return (
+      <ModalDialog
+        id='importThreatsDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <FileUpload
+          id='fileUpload'
+          fileType='indicators'
+          supportText={fileTitle}
+          btnText={t('txt-upload')}
+          handleFileChange={this.getHmdSetupFile} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle file upload confirm
+   * @method
+   */
+  confirmFileUpload = () => {
+    const {baseUrl} = this.context;
+    const {hmdFile} = this.state;
+    let formData = new FormData();
+    formData.append('file', hmdFile);
+
+    if (!hmdFile.name) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/setupFile/_upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-uploadSuccess'));
+
+        this.setState({
+          hmdFile: {}
+        });
+
+        this.toggleUploadFile();
+      } else if (data.ret === -1) {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle yara rule modal dialog on/off
    * @method
    */
@@ -3188,9 +3315,14 @@ class HostController extends Component {
    */
   triggerHmdAll = (hmdObj, yaraRule) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/retriggerAll`;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search/_retrigger`;
+    const datetime = this.getHostDateTime();
     let requestData = {
-      cmds: [hmdObj.cmds]
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData(),
+      cmdJO: {
+        cmds: [hmdObj.cmds]
+      }
     };
 
     if (hmdObj.cmds === 'compareIOC') {
@@ -3387,6 +3519,7 @@ class HostController extends Component {
       showFilter,
       openQueryOpen,
       saveQueryOpen,
+      uploadFileOpen,
       datetime,
       assessmentDatetime,
       yaraRuleOpen,
@@ -3438,6 +3571,10 @@ class HostController extends Component {
           this.queryDialog()
         }
 
+        {uploadFileOpen &&
+          this.uploadFileDialog()
+        }
+
         {yaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}
@@ -3485,7 +3622,7 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><PictureAsPdfIcon /></Button>
+            <Button variant='outlined' color='primary' onClick={this.exportSecurityDiagnostic} title={t('txt-exportSecurityDiagnostic')}><i className='fg fg-file-csv'></i></Button>
             <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
           </div>
 
@@ -3596,6 +3733,7 @@ class HostController extends Component {
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleUploadFile}>{t('hmd-scan.txt-uploadHMDfile')}</Button>
                   </div>
                 }
 

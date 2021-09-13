@@ -3256,9 +3256,14 @@ button.standard:hover:not([disabled]) {
               padding: 10px 15px;
               border-bottom: 1px solid var(--primaryBorder);
             }
-            .title {
+            .title,
+            .name {
               float: left;
               margin-right: 30px;
+            }
+            .name .fg-edit {
+              color: var(--primaryTextColor);
+              cursor: pointer;
             }
             .status {
               display: block;
@@ -3717,6 +3722,35 @@ button.standard:hover:not([disabled]) {
             .product-regex {
               width: 31.9%;
               margin: 5px;
+            }
+          }
+          .cpe-group {
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            .group {
+              margin-bottom: 10px;
+            }
+            .group-content {
+              &.cpe {
+                width: 92%;
+                text-align: left;
+                padding: 5px 10px;
+                margin-right: 5px;
+                border: 1px solid var(--primaryBorder);
+              }
+              #cpeListLabel {
+                margin-top: 10px;
+              }
+              .group-content {
+                width: 100%;
+              }
+              .cpe-header-input {
+                width: 50%;
+              }
+              .cpe-list-input {
+                width: 99%;
+              }
             }
           }
           .cpe-input-test {

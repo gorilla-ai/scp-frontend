@@ -1409,6 +1409,9 @@ class HMDscanInfo extends Component {
           <div>
             <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
             <div className='last-update'>
+              {hmdInfo[currentTab].data && hmdInfo[currentTab].data.length > 0 && hmdInfo[currentTab].data[0].taskStatus === 'Failure' &&
+                <span className='failure'>{t('hmd-scan.txt-taskFailure')}</span>
+              }
               <span>{t('hmd-scan.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
             </div>
           </div>
@@ -1524,7 +1527,7 @@ class HMDscanInfo extends Component {
     }
   }
   /**
-   * Handle malware button action
+   * Handle malware button
    * @method
    * @param {string} type - button type ('download' or 'compress')
    * @param {object | string} dataResult - malware detection result or 'getHmdLogs'
@@ -1578,6 +1581,34 @@ class HMDscanInfo extends Component {
     if (type === 'compress' && dataResult.length === 0) {
       return true;
     }
+  }
+  /**
+   * Handle unregister button
+   * @method
+   */
+  handleUnregister = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const url = `${baseUrl}/api/hmd/unregister`;
+    const requestData = {
+      hostId: currentDeviceData.ipDeviceUUID
+    };
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display content for accordion type
@@ -2438,8 +2469,11 @@ class HMDscanInfo extends Component {
                   <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
                 }
                 {settingsActiveContent === 'viewMode' &&
-                  <Button variant='contained' color='primary' className='btn compress' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
-                }                
+                  <Button variant='contained' color='primary' className='btn' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
+                }
+                {settingsActiveContent === 'viewMode' &&
+                  <Button variant='contained' color='primary' className='btn' onClick={this.handleUnregister}>{t(`hmd-scan.txt-unregister`)}</Button>
+                }
                 {settingsActiveContent === 'viewMode' && currentDeviceData.isUploaded &&
                   <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, 'download', '', currentDeviceData.ipDeviceUUID, 'host')}>{t(`hmd-scan.txt-downloadLogs`)}</Button>
                 }

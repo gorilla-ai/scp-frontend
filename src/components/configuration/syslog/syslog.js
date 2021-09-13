@@ -74,7 +74,7 @@ class Syslog extends Component {
       dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'patternName', '_menu'],
       dataFields: {},
       syslog: {
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: 'name',
           desc: false
@@ -95,8 +95,15 @@ class Syslog extends Component {
       search: {
         name: '',
         loghostip: '',
-        port: ''
+        port: '',
+        isactive: '',
+        netproxyname: ''
       },
+      activeHostInfo: {
+        id: '',
+        ip: ''
+      },
+      newHostName: '',
       sshDataFieldArr: ['id', 'account', 'option'],
       sshData: [],
       sshAccountName: '',
@@ -108,6 +115,7 @@ class Syslog extends Component {
         name: ''
       },
       showPatternLeftNav: true,
+      openEditHostName: false,
       openTimeline: false,
       openEditHosts: false,
       openEditPatternName: false,
@@ -210,34 +218,32 @@ class Syslog extends Component {
       urlParams += `&port=${search.port}`;
     }
 
+    if (search.isactive === true || search.isactive === false) {
+      urlParams += `&isactive=${search.isactive}`;
+    }
+
+    if (search.netproxyname) {
+      urlParams += `&netproxyname=${search.netproxyname}`;
+    }
+
     this.ah.one({
-      url: `${baseUrl}/api/v2/log/config?${urlParams}`,
+      url: `${baseUrl}/api/v3/log/config?${urlParams}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
         let tempSyslog = {...syslog};
-        let formattedSyslogObj = {};
-        let formattedSyslogArr = [];
+        tempSyslog.dataContent = data.rows;
 
-        _.forEach(data.loghostList, val => {
-          formattedSyslogObj[val] = [];
+        if (!data.rows || data.rows.length === 0) {
+          tempSyslog.dataContent = [];
+          tempSyslog.totalCount = 0;
 
-          _.forEach(data.rows, val2 => {
-            if (val2.loghostIp === val) {
-              formattedSyslogObj[val].push(val2);
-            }
-          })
-        })
-
-        _.forEach(formattedSyslogObj, (val, key) => {
-          formattedSyslogArr.push({
-            ip: key,
-            data: val
-          })
-        })
-
-        tempSyslog.dataContent = formattedSyslogArr;
+          this.setState({
+            syslog: tempSyslog
+          });
+          return null;
+        }
 
         let tempFields = {};
         dataFieldsArr.forEach(tempData => {
@@ -303,8 +309,8 @@ class Syslog extends Component {
         };
 
         _.forEach(syslog.dataContent, val => {
-          status.server = data.server[val.ip];
-          status.netproxy = data.netproxy[val.ip];
+          status.server = data.server[val.netProxyIp];
+          status.netproxy = data.netproxy[val.netProxyIp];
 
           formattedSyslogArr.push({
             ...val,
@@ -657,6 +663,8 @@ class Syslog extends Component {
    */
   displayHostInfo = (val, i) => {
     const {syslog, dataFields} = this.state;
+    const fullHostName = val.netProxyHostName;
+    let hostName = val.netProxyHostName;
     let status = {
       server: {},
       netproxy: {}
@@ -684,10 +692,15 @@ class Syslog extends Component {
       status.netproxy.errorText = val.netproxy.inactive.join(', ');
     }
 
+    if (fullHostName.length > 10) {
+      hostName = fullHostName.substr(0, 9) + '...';
+    }
+
     return (
       <div className='host-info' key={i}>
         <header>
-          <div className='title'>{t('syslogFields.txt-hostIP')}: {val.ip}</div>
+          <div className='title'>{t('syslogFields.txt-hostIP')}: {val.netProxyIp}</div>
+          <div className='name'>{t('txt-name')}: <span title={fullHostName}>{hostName}</span> <i className='fg fg-edit' onClick={this.toggleHostNameEdit.bind(this, val.netProxyHostId, val.netProxyIp, val.netProxyHostName)} title={t('txt-edit')}></i></div>
           <span className='status'>Server {t('txt-status')}: <i className='fg fg-recode' style={{color: status.server.color}} title={status.server.title} /></span>
           <span className='status'>NetProxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
           <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
@@ -704,7 +717,7 @@ class Syslog extends Component {
           <DataTable
             className='main-table syslog-config'
             fields={dataFields}
-            data={val.data}
+            data={val.configs}
             defaultSort={syslog.sort} />
         </div>
       </div>
@@ -1349,6 +1362,110 @@ class Syslog extends Component {
     )
   }
   /**
+   * Toggle edit host name dialog on/off
+   * @method
+   * @param {string} [id] - host ID
+   * @param {string} [ip] - host IP
+   * @param {string} [hostName] - host name
+   */
+  toggleHostNameEdit = (id, ip, hostName) => {
+    this.setState({
+      openEditHostName: !this.state.openEditHostName
+    }, () => {
+      if (id) {
+        this.setState({
+          activeHostInfo: {
+            id,
+            ip
+          },
+          newHostName: hostName
+        });
+      }
+    });
+  }
+  /**
+   * Handle edit host name input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleEditHostNameChange = (event) => {
+    this.setState({
+      newHostName:  event.target.value
+    });
+  }
+  /**
+   * Display edit host name content
+   * @method
+   */
+  displayEditHostName = () => {
+    return (
+      <div className='group'>
+        <TextField
+          name='name'
+          label={t('syslogFields.txt-hostName')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={this.state.newHostName}
+          onChange={this.handleEditHostNameChange} />
+      </div>
+    )
+  }
+  /**
+   * Display edit host name dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showEditHostNameDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleHostNameEdit},
+      confirm: {text: t('txt-confirm'), handler: this.confirmEditHostName}
+    };
+
+    return (
+      <ModalDialog
+        id='editHostName'
+        className='modal-dialog'
+        title={t('syslogFields.txt-editHostName')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayEditHostName()}    
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle edit host name confirm
+   * @method
+   */
+  confirmEditHostName = () => {
+    const {baseUrl} = this.context;
+    const {activeHostInfo, newHostName} = this.state;
+    const url = `${baseUrl}/api/log/netproxy/updatehost`;
+    const requestData = {
+      ...activeHostInfo,
+      hostName: newHostName
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getSyslogData();
+        this.toggleHostNameEdit();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle pattern edit name dialog on/off
    * @method
    * @param {string>} [type] - edit type ('new')
@@ -1818,7 +1935,9 @@ class Syslog extends Component {
       search: {
         name: '',
         loghostip: '',
-        port: ''
+        port: '',
+        isactive: '',
+        netproxyname: ''
       }
     });
   }
@@ -1867,6 +1986,33 @@ class Syslog extends Component {
               fullWidth
               size='small'
               value={search.port}
+              onChange={this.handleSearchChange} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='syslogNetProxyStatus'
+              name='isactive'
+              select
+              label={t('syslogFields.txt-netProxyStatus')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={search.isactive}
+              onChange={this.handleSearchChange}>
+              <MenuItem value='all'>{t('txt-all')}</MenuItem>
+              <MenuItem value={true}>{t('txt-online')}</MenuItem>
+              <MenuItem value={false}>{t('txt-offline')}</MenuItem>
+            </TextField>
+          </div>
+          <div className='group'>
+            <TextField
+              id='syslogNetProxyName'
+              name='netproxyname'
+              label={t('syslogFields.txt-netProxyName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={search.netproxyname}
               onChange={this.handleSearchChange} />
           </div>
         </div>
@@ -2056,6 +2202,7 @@ class Syslog extends Component {
       hosts,
       editSyslogType,
       showPatternLeftNav,
+      openEditHostName,
       openTimeline,
       openEditHosts,
       openEditPatternName,
@@ -2068,6 +2215,10 @@ class Syslog extends Component {
 
     return (
       <div>
+        {openEditHostName &&
+          this.showEditHostNameDialog()
+        }
+
         {openTimeline &&
           this.modalTimeline()
         }
@@ -2111,8 +2262,13 @@ class Syslog extends Component {
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>
-                <div className='config-syslog'>
-                  {syslog.dataContent.map(this.displayHostInfo)}
+                <div className='config-syslog mui-table-content' style={{height: '67vh'}}>
+                  {syslog.dataContent && syslog.dataContent.length > 0 &&
+                    syslog.dataContent.map(this.displayHostInfo)
+                  }
+                  {syslog.dataContent && syslog.dataContent.length === 0 &&
+                    <div className='no-result'>{t('txt-notFound')}</div>
+                  }
                 </div>
               </div>
             </div>

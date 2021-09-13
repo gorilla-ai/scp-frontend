@@ -14,6 +14,7 @@ import TextField from '@material-ui/core/TextField'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context'
+import CpeHeader from './cpe-header'
 import helper from '../common/helper'
 import InputPath from '../common/input-path'
 import ProductRegex from './product-regex'
@@ -21,6 +22,7 @@ import ProductRegex from './product-regex'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -124,6 +126,15 @@ class HMDsettings extends Component {
         target_hw: '',
         other: ''
       }],
+      originalCpeData: '',
+      cpeData: [{
+        header: '',
+        list: [{
+          cpe: '',
+          validate: true
+        }],
+        index: 0
+      }],
       cpeInputTest: '',
       cpe23Uri: '',
       cpeConvertResult: '',
@@ -170,7 +181,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -260,6 +271,27 @@ class HMDsettings extends Component {
           originalNccstSettings: _.cloneDeep(nccstSettings),
           nccstSettings
         });
+
+        const parsedCpeData = JSON.parse(data[11].value);
+        let cpeData = [];
+      
+        _.forEach(parsedCpeData, (val, index) => {
+          cpeData.push({
+            header: val.cpeHeader,
+            list: _.map(val.cpeArray, val2 => {
+              return {
+                cpe: val2,
+                validate: true
+              }
+            }),
+            index
+          });
+        })
+
+        this.setState({
+          originalCpeData: _.cloneDeep(cpeData),
+          cpeData
+        });
       }
       return null;
     })
@@ -305,6 +337,7 @@ class HMDsettings extends Component {
       originalFtpUrl,
       originalFtpAccount,
       originalProductRegex,
+      originalCpeData,
       originalNccstSettings
     } = this.state;
     let showPage = type;
@@ -323,6 +356,7 @@ class HMDsettings extends Component {
         ftpUrl: _.cloneDeep(originalFtpUrl),
         ftpAccount: _.cloneDeep(originalFtpAccount),
         productRegexData: _.cloneDeep(originalProductRegex),
+        cpeData: _.cloneDeep(originalCpeData),
         nccstSettings: _.cloneDeep(originalNccstSettings)
       });
 
@@ -385,12 +419,34 @@ class HMDsettings extends Component {
     )
   }
   /**
+   * Set CPE data
+   * @method
+   * @param {string} type - cpe type ('header' or 'list')
+   * @param {object} data - cpe data
+   * @param {object} [cpe] - cpe data
+   */
+  setCpeData = (type, data, cpe) => {
+    let tempCpeData = this.state.cpeData;
+
+    if (type === 'header') {
+      this.setState({
+        cpeData: data
+      });
+    } else {
+      tempCpeData[data.index].list = cpe;
+
+      this.setState({
+        cpeData: tempCpeData
+      });
+    }
+  }
+  /**
    * Handle scan files confirm
    * @method
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, nccstSettings, formValidation} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, nccstSettings, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -521,6 +577,68 @@ class HMDsettings extends Component {
       apiArr.push({
         url,
         data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
+    }
+
+    let tempCpeData = [];
+    let cpeValid = true;
+
+    if (cpeData.length > 0) {
+      let parsedCpeData = [];
+
+      _.forEach(cpeData, (val, i) => {
+        tempCpeData.push({
+          header: val.header,
+          index: i
+        });
+
+        let cpeList = [];
+
+        _.forEach(val.list, val2 => {
+          let validate = true;
+
+          if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+            validate = false;
+            cpeValid = false;
+          }
+
+          cpeList.push({
+            cpe: val2.cpe,
+            validate
+          })
+        })
+
+        tempCpeData[i].list = cpeList;
+
+        if (cpeValid) {
+          parsedCpeData.push({
+            cpeHeader: val.header,
+            cpeArray: _.map(val.list, val2 => {
+              return val2.cpe
+            })
+          });
+        }
+      })
+
+      if (!cpeValid) {
+        helper.showPopupMsg('', t('txt-error'), t('network-inventory.txt-cpeFormatError'));
+
+        this.setState({
+          cpeData: tempCpeData
+        });
+        return;
+      }
+
+      const cpeRequestData = {
+        configId: 'hmd.export.kbid.items',
+        value: JSON.stringify(parsedCpeData)
+      };
+
+      apiArr.push({
+        url,
+        data: JSON.stringify(cpeRequestData),
         type: 'POST',
         contentType: 'text/plain'
       });
@@ -770,12 +888,18 @@ class HMDsettings extends Component {
       cpe23Uri,
       cpeConvertResult,
       connectionsStatus,
-      nccstSettings,      
+      nccstSettings,
+      cpeData,
       formValidation
     } = this.state;
     const data = {
       activeContent,
       PRODUCT_REGEX
+    };
+    const cpeProps = {
+      activeContent,
+      cpeData,
+      setCpeData: this.setCpeData
     };
     let msg = '';
     let color = '';
@@ -973,6 +1097,25 @@ class HMDsettings extends Component {
                   onChange={this.setProductRegexData}
                   disabled={activeContent === 'viewMode'} />
               </div>
+            </div>
+
+            <div className='form-group normal long'>
+              <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
+              <MultiInput
+                className='cpe-group'
+                base={CpeHeader}
+                props={cpeProps}
+                defaultItemValue={{
+                  header: '',
+                  list: [{
+                    cpe: '',
+                    validate: true
+                  }],
+                  index: cpeData.length
+                }}
+                value={cpeData}
+                onChange={this.setCpeData.bind(this, 'header')}
+                disabled={activeContent === 'viewMode'} />
             </div>
 
             <div className='form-group normal'>
