@@ -1122,6 +1122,8 @@
     "txt-dataResult": "資料解析結果",
     "txt-formatSettings": "格式設定",
     "txt-relationship": "關聯設定",
+    "txt-exportSyslogCharts": "匯出日誌趨勢圖",
+    "txt-exportScheduleList": "最近7天匯出排成列表",
     "txt-hostIP": "主機IP",
     "txt-hostName": "主機名稱",
     "txt-editHostName": "編輯主機名稱",

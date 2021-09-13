@@ -115,6 +115,8 @@ class Syslog extends Component {
         name: ''
       },
       showPatternLeftNav: true,
+      openExportCharts: false,
+      openExportScheduleList: false,
       openEditHostName: false,
       openTimeline: false,
       openEditHosts: false,
@@ -122,6 +124,7 @@ class Syslog extends Component {
       clickTimeline: false,
       showSshAccount: false,
       showAddSshAccount: false,
+      contextAnchorCharts: null,
       activeTimeline: '',
       activeConfigId: '',
       activeConfigName: '',
@@ -1362,6 +1365,146 @@ class Syslog extends Component {
     )
   }
   /**
+   * Toggle export charts on/off
+   * @method
+   */
+  toggleExportCharts = () => {
+    this.setState({
+      openExportCharts: !this.state.openExportCharts
+    });
+
+    this.handleCloseChartsMenu();
+  }
+  /**
+   * Display export charts content
+   * @method
+   */
+  displayExportCharts = () => {
+    const {locale} = this.context;
+    const {datetime} = this.state;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      <div>
+        <div className='calendar-section'>
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              ampm={false}
+              value={datetime.from}
+              onChange={this.handleDateChange.bind(this, 'from')} />
+            <div className='between'>~</div>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              ampm={false}
+              value={datetime.to}
+              onChange={this.handleDateChange.bind(this, 'to')} />
+          </MuiPickersUtilsProvider>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display export charts dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showExportChartsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleExportCharts},
+      confirm: {text: t('txt-export'), handler: this.confirmExportCharts}
+    };
+
+    return (
+      <ModalDialog
+        id='exprotChartsDialog'
+        className='modal-dialog'
+        title={t('syslogFields.txt-exportSyslogCharts')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayExportCharts()}    
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle export charts confirm
+   * @method
+   */
+  confirmExportCharts = () => {
+    this.toggleExportCharts();
+  }
+  /**
+   * Toggle export schedule list on/off
+   * @method
+   */
+  toggleExportScheduleList = () => {
+    this.setState({
+      openExportScheduleList: !this.state.openExportScheduleList
+    });
+
+    this.handleCloseChartsMenu();
+  }
+  /**
+   * Display export schedule list content
+   * @method
+   */
+  displayExportScheduleList = () => {
+
+    return (
+      <span>Ryan</span>
+    )
+  }
+  /**
+   * Display export schedule list dialog
+   * @method
+   */
+  showExportScheduleListDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleExportScheduleList},
+      confirm: {text: t('txt-export'), handler: this.confirmExportScheduleList}
+    };
+
+    return (
+      <ModalDialog
+        id='exprotScheduleListDialog'
+        className='modal-dialog'
+        title={t('syslogFields.txt-exportScheduleList')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayExportScheduleList()}    
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle export schedule list confirm
+   * @method
+   */
+  confirmExportScheduleList = () => {
+    this.toggleExportScheduleList();
+  }
+  /**
    * Toggle edit host name dialog on/off
    * @method
    * @param {string} [id] - host ID
@@ -2192,6 +2335,25 @@ class Syslog extends Component {
       </div>
     )
   }
+  /**
+   * Handle open charts menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenChartsMenu = (event) => {
+    this.setState({
+      contextAnchorCharts: event.currentTarget
+    });
+  }
+  /**
+   * Handle close charts menu
+   * @method
+   */
+  handleCloseChartsMenu = () => {
+    this.setState({
+      contextAnchorCharts: null
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -2202,12 +2364,15 @@ class Syslog extends Component {
       hosts,
       editSyslogType,
       showPatternLeftNav,
+      openExportCharts,
+      openExportScheduleList,
       openEditHostName,
       openTimeline,
       openEditHosts,
       openEditPatternName,
       showSshAccount,
       showAddSshAccount,
+      contextAnchorCharts,
       activeHost,
       syslogPatternConfig,
       contextAnchor
@@ -2215,6 +2380,14 @@ class Syslog extends Component {
 
     return (
       <div>
+        {openExportCharts &&
+          this.showExportChartsDialog()
+        }
+
+        {openExportScheduleList &&
+          this.showExportScheduleListDialog()
+        }
+
         {openEditHostName &&
           this.showEditHostNameDialog()
         }
@@ -2245,9 +2418,19 @@ class Syslog extends Component {
               <div>
                 <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
                 <Button variant='outlined' color='primary' onClick={this.toggleSshDialog} title={a('txt-addSshAccount')}><i className='fg fg-add'></i></Button>
-                <Button variant='outlined' color='primary' className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className={cx({'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.handleOpenChartsMenu}><i className='fg fg-data-download-2'></i></Button>
               </div>
             }
+
+            <Menu
+              anchorEl={contextAnchorCharts}
+              keepMounted
+              open={Boolean(contextAnchorCharts)}
+              onClose={this.handleCloseChartsMenu}>
+              <MenuItem onClick={this.toggleExportCharts}>{t('syslogFields.txt-exportSyslogCharts')}</MenuItem>
+              <MenuItem onClick={this.toggleExportScheduleList}>{t('syslogFields.txt-exportScheduleList')}</MenuItem>
+            </Menu>
           </div>
         </div>
 

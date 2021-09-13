@@ -1122,6 +1122,8 @@
     "txt-dataResult": "Data Result",
     "txt-formatSettings": "Format Settings",
     "txt-relationship": "Relationship",
+    "txt-exportSyslogCharts": "Export Syslog Charts",
+    "txt-exportScheduleList": "Last 7 days export schedule",
     "txt-hostIP": "Host IP",
     "txt-hostName": "Host Name",
     "txt-editHostName": "Edit Host Name",
