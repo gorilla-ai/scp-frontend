@@ -32,8 +32,9 @@ class IpRange extends Component {
     return (
       <div className='group-content'>
         <TextField
-          name='type'
+          id='autoSettingsIpRangeType'
           className='ip-range'
+          name='type'
           select
           variant='outlined'
           size='small'
@@ -45,16 +46,18 @@ class IpRange extends Component {
           <MenuItem value={'public'}>Public</MenuItem>
         </TextField>
         <TextField
-          name='ip'
+          id='autoSettingsIpRangeIP'
           className='ip-range'
+          name='ip'
           variant='outlined'
           size='small'
           value={value.ip}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'} />
         <TextField
-          name='mask'
+          id='autoSettingsIpRangeMask'
           className='ip-range'
+          name='mask'
           variant='outlined'
           size='small'
           value={value.mask}

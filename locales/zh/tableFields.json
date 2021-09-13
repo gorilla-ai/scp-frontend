@@ -578,6 +578,8 @@
     "reporter": "通報來源",
     "suggestion": "簽核意見",
     "createDttm": "建立時間",
+    "createDttm-start": "建立時間(起)",
+    "createDttm-end": "建立時間(訖)",
     "sendTime": "發布時間",
     "impactAssessment": "影響等級",
     "description": "相關手法描述",

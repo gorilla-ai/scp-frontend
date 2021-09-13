@@ -257,8 +257,8 @@ class NetworkOwner extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}></i>
+                      <i id='topologyOwnerGetOwnerInfo' className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
+                      <i id='topologyOwnerDeleteOwner' className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}></i>
                     </div>
                   )
                 }
@@ -768,12 +768,12 @@ class NetworkOwner extends Component {
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+        <i id='topologyOwnerCloseFilter' className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
             <TextField
-              id='ownerName'
+              id='topologyFilterOwnerName'
               name='name'
               label={t('ownerFields.ownerName')}
               variant='outlined'
@@ -784,6 +784,7 @@ class NetworkOwner extends Component {
           </div>
           <div className='group'>
             <Autocomplete
+              id='topologyFilterComboDepartment'
               className='combo-box'
               options={list.department}
               value={search.department}
@@ -793,6 +794,7 @@ class NetworkOwner extends Component {
           </div>
           <div className='group'>
             <Autocomplete
+              id='topologyFilterComboTitle'
               className='combo-box'
               options={list.title}
               value={search.title}
@@ -802,8 +804,8 @@ class NetworkOwner extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getOwnerData}>{t('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+          <Button id='topologyFilterBtn' variant='contained' color='primary' className='filter' onClick={this.getOwnerData}>{t('txt-filter')}</Button>
+          <Button id='topologyClearBtn' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -851,7 +853,7 @@ class NetworkOwner extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&
-              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+              <Button id='topologyTableFilterBtn' variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             }
           </div>
         </div>
@@ -869,8 +871,8 @@ class NetworkOwner extends Component {
                 <header className='main-header'>{t('txt-ownerList')}</header>
 
                 <div className='content-header-btns with-menu'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
+                  <Button id='topologyTableAddOwner' variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</Button>
+                  <Button id='topologyTableEditDepartmentTitle' variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <MuiTableContent
@@ -884,7 +886,7 @@ class NetworkOwner extends Component {
                 <header className='main-header'>{addOwnerTitle}</header>
 
                 <div className='content-header-btns'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>
+                  <Button id='topologyManageDepartmentTitle' variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <div className='form-group steps-owner'>
@@ -893,7 +895,7 @@ class NetworkOwner extends Component {
                     <div className='group'>
                       <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
                       <FileInput
-                        id='ownerPhotoUpload'
+                        id='topologyOwnerPhotoUpload'
                         className='file-input'
                         name='file'
                         btnText={t('txt-uploadPhoto')}
@@ -917,10 +919,10 @@ class NetworkOwner extends Component {
                           <img src={owner.info.base64} title={t('network-topology.txt-profileImage')} />
                           <div className='removePhoto'>
                             <FormControlLabel
+                              id='topologyRemovePhoto' 
                               label={t('network-topology.txt-removePhoto')}
                               control={
                                 <Checkbox
-                                  id='removePhoto'
                                   className='checkbox-ui'
                                   checked={owner.removePhoto}
                                   onChange={this.handleRemovePhoto}
@@ -937,7 +939,7 @@ class NetworkOwner extends Component {
                   <div className='user-info'>
                     <div className='group'>
                       <TextField
-                        id='ownerName'
+                        id='topologyOwnerName'
                         name='ownerName'
                         label={t('ownerFields.ownerName')}
                         variant='outlined'
@@ -951,7 +953,7 @@ class NetworkOwner extends Component {
                     </div>
                     <div className='group'>
                       <TextField
-                        id='ownerID'
+                        id='topologyOwnerID'
                         name='ownerID'
                         label={t('ownerFields.ownerID')}
                         variant='outlined'
@@ -965,6 +967,7 @@ class NetworkOwner extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
+                        id='topologyOwnerDepartment'
                         className='combo-box'
                         options={list.department}
                         value={owner.info.department}
@@ -974,6 +977,7 @@ class NetworkOwner extends Component {
                     </div>
                     <div className='group'>
                       <Autocomplete
+                        id='topologyOwnerTitle'
                         className='combo-box'
                         options={list.title}
                         value={owner.info.title}
@@ -984,8 +988,8 @@ class NetworkOwner extends Component {
                   </div>
                 </div>
                 <footer>
-                  <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</Button>
-                  <Button variant='contained' color='primary' className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</Button>
+                  <Button id='topologyOwnerCancel' variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</Button>
+                  <Button id='topologyOwnerSave' variant='contained' color='primary' className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</Button>
                 </footer>
               </div>
             }

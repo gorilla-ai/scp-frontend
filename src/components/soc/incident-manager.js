@@ -33,6 +33,8 @@ import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import IncidentFlowDialog from "./common/flow-dialog";
 import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
 
 let t = null;
 let f = null;
@@ -89,6 +91,7 @@ class IncidentManagement extends Component {
             accountDefault:false,
             severityList: [],
             socFlowList: [],
+            selectedStatus:[],
             search: {
                 keyword: '',
                 category: 0,
@@ -271,9 +274,10 @@ class IncidentManagement extends Component {
         search.isExecutor = _.includes(session.roles, 'SOC Executor')
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
+        search.status = this.state.selectedStatus
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_getIncidentListByStatusList?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
@@ -401,9 +405,9 @@ class IncidentManagement extends Component {
         const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
         searchPayload.account = session.accountId
-
+        searchPayload.status = this.state.selectedStatus
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_getIncidentListByStatusList?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
@@ -2113,16 +2117,19 @@ class IncidentManagement extends Component {
 
         moment.locale(dateLocale);
 
+        let statusList = ["1","3","4","5","8"]
+
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='keyword'>{f('edgeFields.keywords')}</label>
+                        {/*<label htmlFor='keyword'>{f('edgeFields.keywords')}</label>*/}
                         <TextField
                             id='keyword'
                             name='keyword'
+                            label={f('edgeFields.keywords')}
                             variant='outlined'
                             fullWidth={true}
                             size='small'
@@ -2130,11 +2137,12 @@ class IncidentManagement extends Component {
                             onChange={this.handleSearchMui}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
+                        {/*<label htmlFor='searchCategory'>{f('incidentFields.category')}</label>*/}
                         <TextField
                             id='searchCategory'
                             name='category'
                             select
+                            label={f('incidentFields.category')}
                             required={true}
                             variant='outlined'
                             fullWidth={true}
@@ -2149,11 +2157,12 @@ class IncidentManagement extends Component {
                         </TextField>
                     </div>
                     <div className='group'>
-                        <label htmlFor='searchCategory'>{f('incidentFields.severity')}</label>
+                        {/*<label htmlFor='searchCategory'>{f('incidentFields.severity')}</label>*/}
                         <TextField
                             id='searchCategory'
                             name='severity'
                             select
+                            label={f('incidentFields.severity')}
                             required={true}
                             variant='outlined'
                             fullWidth={true}
@@ -2163,71 +2172,50 @@ class IncidentManagement extends Component {
                             {severityList}
                         </TextField>
                     </div>
-                    <div className='group'>
-                        <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>
-                        <TextField
-                            id='searchStatus'
-                            name='status'
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            select
-                            value={search.status}
-                            onChange={this.handleSearchMui}>
-                            {/*{*/}
-                            {/*    _.map([1,3,4,5], el => {*/}
-                            {/*        return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>*/}
-                            {/*    })}*/}
-                            {/*}*/}
-                            <MenuItem value={1}>{it(`status.${1}`)}</MenuItem>
-                            <MenuItem value={3}>{it(`status.${3}`)}</MenuItem>
-                            <MenuItem value={4}>{it(`status.${4}`)}</MenuItem>
-                            <MenuItem value={5}>{it(`status.${5}`)}</MenuItem>
-                            <MenuItem value={8}>{it(`status.${8}`)}</MenuItem>
-                        </TextField>
-                    </div>
                     {/*<div className='group'>*/}
-                    {/*    <label htmlFor='isExpired'>{it('txt-expired')}</label>*/}
+                    {/*    <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>*/}
                     {/*    <TextField*/}
-                    {/*        id='isExpired'*/}
-                    {/*        name='isExpired'*/}
+                    {/*        id='searchStatus'*/}
+                    {/*        name='status'*/}
                     {/*        required={true}*/}
                     {/*        variant='outlined'*/}
                     {/*        fullWidth={true}*/}
                     {/*        size='small'*/}
                     {/*        select*/}
-                    {/*        value={search.isExpired}*/}
+                    {/*        value={search.status}*/}
                     {/*        onChange={this.handleSearchMui}>*/}
-                    {/*        {*/}
-                    {/*            _.map([*/}
-                    {/*                {*/}
-                    {/*                    value: 2,*/}
-                    {/*                    text: it('txt-allSearch')*/}
-                    {/*                },*/}
-                    {/*                {*/}
-                    {/*                    value: 1,*/}
-                    {/*                    text: it('unit.txt-isDefault')*/}
-                    {/*                },*/}
-                    {/*                {*/}
-                    {/*                    value: 0,*/}
-                    {/*                    text: it('unit.txt-isNotDefault')*/}
-                    {/*                }*/}
-                    {/*            ], el => {*/}
-                    {/*                return <MenuItem value={el.value}>{el.text}</MenuItem>*/}
-                    {/*            })}*/}
-                    {/*        }*/}
+                    {/*        /!*{*!/*/}
+                    {/*        /!*    _.map([1,3,4,5], el => {*!/*/}
+                    {/*        /!*        return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>*!/*/}
+                    {/*        /!*    })}*!/*/}
+                    {/*        /!*}*!/*/}
+                    {/*        <MenuItem value={1}>{it(`status.${1}`)}</MenuItem>*/}
+                    {/*        <MenuItem value={3}>{it(`status.${3}`)}</MenuItem>*/}
+                    {/*        <MenuItem value={4}>{it(`status.${4}`)}</MenuItem>*/}
+                    {/*        <MenuItem value={5}>{it(`status.${5}`)}</MenuItem>*/}
+                    {/*        <MenuItem value={8}>{it(`status.${8}`)}</MenuItem>*/}
                     {/*    </TextField>*/}
                     {/*</div>*/}
+                    <div className='severity'>
+                        <div className='group group-checkbox narrow'>
+                            <div className='group-options'>
+                                {statusList.map(this.displayStatusCheckbox)}
+                            </div>
+                        </div>
+                    </div>
                     <div className='group' style={{width: '500px'}}>
-                        <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
+                        {/*<label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>*/}
                         <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                             <KeyboardDateTimePicker
                                 className='date-time-picker'
                                 inputVariant='outlined'
                                 variant='inline'
+                                label={f('incidentFields.createDttm-start')}
                                 format='YYYY-MM-DD HH:mm'
                                 ampm={false}
+                                invalidDateMessage={t('txt-invalidDateMessage')}
+                                maxDateMessage={t('txt-maxDateMessage')}
+                                minDateMessage={t('txt-minDateMessage')}
                                 value={search.datetime.from}
                                 onChange={this.handleSearchTime.bind(this, 'from')} />
                             <div className='between'>~</div>
@@ -2235,8 +2223,12 @@ class IncidentManagement extends Component {
                                 className='date-time-picker'
                                 inputVariant='outlined'
                                 variant='inline'
+                                label={f('incidentFields.createDttm-end')}
                                 format='YYYY-MM-DD HH:mm'
                                 ampm={false}
+                                invalidDateMessage={t('txt-invalidDateMessage')}
+                                maxDateMessage={t('txt-maxDateMessage')}
+                                minDateMessage={t('txt-minDateMessage')}
                                 value={search.datetime.to}
                                 onChange={this.handleSearchTime.bind(this, 'to')} />
                         </MuiPickersUtilsProvider>
@@ -2249,6 +2241,43 @@ class IncidentManagement extends Component {
             </div>
         )
     };
+
+    displayStatusCheckbox = (val, i) => {
+        return (
+            <div className='option' key={val + i}>
+                <FormControlLabel
+                    key={i}
+                    label={it(`status.${val}`)}
+                    control={
+                        <Checkbox
+                            id={val}
+                            className='checkbox-ui'
+                            name={val}
+                            checked={this.checkSelectedItem(val)}
+                            onChange={this.toggleCheckbox}
+                            color='primary' />
+                    } />
+            </div>
+        )
+    }
+
+    checkSelectedItem = (val) => {
+        return _.includes(this.state.selectedStatus, val);
+    }
+
+    toggleCheckbox = (event) => {
+        let itemSelected = _.cloneDeep(this.state.selectedStatus);
+        if (event.target.checked) {
+            itemSelected.push(event.target.name);
+        } else {
+            const index = itemSelected.indexOf(event.target.name);
+            itemSelected.splice(index, 1);
+        }
+
+        this.setState({
+            selectedStatus:itemSelected
+        });
+    }
 
     renderStatistics = () => {
         const {showChart, dashboard} = this.state
@@ -2798,7 +2827,8 @@ class IncidentManagement extends Component {
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 isExpired: 2
-            }
+            },
+            selectedStatus:[]
         })
     };
 
@@ -3412,25 +3442,29 @@ class IncidentManagement extends Component {
             isExecutor : _.includes(session.roles, 'SOC Executor'),
         }
 
-
+        let statusList = []
         if (loadListType === 0) {
-            payload.status = 0
+            payload.status = statusList
             payload.isExpired = 1
         }
         else if (loadListType === 1) {
             if (payload.accountRoleType === constants.soc.SOC_Executor) {
-                payload.status = 2
+                // payload.status = 2
+                statusList.push(2)
+                payload.status = statusList
                 payload.subStatus = 6
             }
             else if (payload.accountRoleType === constants.soc.SOC_Super) {
-                payload.status = 7
+                statusList.push(7)
+                payload.status = statusList
             }
             else {
-                payload.status = 1
+                statusList.push(1)
+                payload.status = statusList
             }
         }
         else if (loadListType === 2) {
-            payload.status = 0
+            payload.status = statusList
             payload.creator = session.accountId
         }
         else if (loadListType === 3) {
@@ -3438,7 +3472,7 @@ class IncidentManagement extends Component {
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV2`,
+            url: `${baseUrl}/api/soc/_getIncidentListByStatusList`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',

@@ -76,12 +76,13 @@ class Edge extends Component {
     return (
       <div className='group-content edge'>
         {activeContent === 'editMode' &&
-          <Button variant='contained' color='primary' className='network-test' onClick={this.props.showMessage.bind(this, value.index)} disabled={this.checkValidData(value)}>{t('network-inventory.txt-testQuery')}</Button>
+          <Button id='autoSettingsEdgeTestQuery' variant='contained' color='primary' className='network-test' onClick={this.props.showMessage.bind(this, value.index)} disabled={this.checkValidData(value)}>{t('network-inventory.txt-testQuery')}</Button>
         }
         <label id='scannerLabel' htmlFor='autoSettingsNetworkTarget'>
           <span style={{width: this.props.getInputWidth('networkTopology')}}>Edge</span>
         </label>
         <TextField
+          id='autoSettingsEdgeEdge'
           className='scanner'
           name='edge'
           select
@@ -115,7 +116,7 @@ class Edge extends Component {
         <div className='switch'>
           <div className='header'>Switch</div>
           <MultiInput
-            id='autoSettingsNetworkTarget'
+            id='autoSettingsNetworkSwitch'
             className='scanner-group'
             base={NetworkTopology}
             props={{

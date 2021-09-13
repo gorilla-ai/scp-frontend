@@ -38,6 +38,7 @@ class Scanner extends Component {
     return (
       <div className='group-content'>
         <TextField
+          id='autoSettingsScannerEdge'
           className='scanner'
           name='edge'
           select
@@ -49,6 +50,7 @@ class Scanner extends Component {
           {deviceList}
         </TextField>
         <TextField
+          id='autoSettingsScannerIP'
           className='scanner'
           name='ip'
           variant='outlined'
@@ -57,6 +59,7 @@ class Scanner extends Component {
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
         <TextField
+          id='autoSettingsScannerMask'
           className='scanner'
           name='mask'
           variant='outlined'
@@ -64,7 +67,7 @@ class Scanner extends Component {
           value={value.mask}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <Button variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>
+        <Button id='autoSettingsScannerTestQuery' variant='contained' color='primary' onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</Button>
       </div>
     )
   }

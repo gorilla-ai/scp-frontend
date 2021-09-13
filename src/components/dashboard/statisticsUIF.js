@@ -517,7 +517,7 @@ class StatisticsUIF extends Component {
       });
     });
   }
-	render() {
+  render() {
     const {
       uifCfg,
       appendConfig,
