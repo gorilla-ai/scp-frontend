@@ -25,6 +25,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
+import ExportCharts from './export-charts'
 import helper from '../../common/helper'
 import SyslogConfig from './syslog-config'
 
@@ -134,6 +135,18 @@ class Syslog extends Component {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
+      netProxyData: {
+        list: [],
+        configs: {}
+      },
+      netProxyLookUp: {},
+      exportChartsIpList: [],
+      exportConfigList: [],
+      exportCharts: [{
+        hostIp: '',
+        hostName: '',
+        index: 0
+      }],
       eventsData: {},
       hostsData: {},
       configRelationships: [],
@@ -1369,11 +1382,120 @@ class Syslog extends Component {
    * @method
    */
   toggleExportCharts = () => {
+    const {baseUrl, session} = this.context;
+    const {openExportCharts, exportCharts} = this.state;
+
+    if (openExportCharts) {
+      this.setState({
+        openExportCharts: false
+      });
+    } else {
+      this.ah.one({
+        url: `${baseUrl}/api/log/config/exportItem`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          const netProxyData = {
+            list: data.netProxyList,
+            configs: data.configs
+          };
+          const exportChartsIpList = _.map(data.netProxyList, (val, i) => {
+            return <MenuItem key={i} value={val.netProxyIp}>{val.netProxyIp}</MenuItem>
+          });
+          let netProxyLookUp = {};
+
+          _.forEach(data.netProxyList, val => {
+            netProxyLookUp[val.netProxyIp] = val.netProxyName
+          })
+
+          // let exportConfigList = [];
+
+          // Object.keys(data.configs).map(val => {
+          //   _.forEach(data.configs[val], val2 => {
+          //     exportConfigList.push(val2.id)
+          //   })
+          // });
+
+          this.setState({
+            openExportCharts: true,
+            netProxyData,
+            netProxyLookUp,
+            exportChartsIpList,
+            //exportConfigList
+          });
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+
+      this.handleCloseChartsMenu();
+    }
+
     this.setState({
-      openExportCharts: !this.state.openExportCharts
+      exportCharts: [{
+        hostIp: '',
+        hostName: '',
+        index: 0
+      }]
+    });
+  }
+  /**
+   * Handle add/remove the export charts box
+   * @method
+   * @param {array.<object>} data - export charts list array
+   */
+  handleExportChartsChange = (data) => {
+    const exportCharts = _.map(data, val => {
+      return {
+        ...val,
+        hostName: this.state.netProxyLookUp[val.hostIp]
+      }
+    });
+    let selectedIpList = [];
+    let exportConfigList = [];
+
+    _.forEach(data, val => {
+      if (selectedIpList.indexOf(val.hostIp) < 0) {
+        selectedIpList.push(val.hostIp);
+      }
+    })
+
+
+    Object.keys(this.state.netProxyData.configs).map(val => {
+      if (selectedIpList.indexOf(val) >= 0) {
+        exportConfigList.push(val)
+      }
     });
 
-    this.handleCloseChartsMenu();
+    this.setState({
+      exportConfigList,
+      exportCharts
+    });
+  }
+  /**
+   * Toggle export charts config list checkbox on/off
+   * @method
+   * @param {object} event - event object
+   * @returns boolean true/false
+   */
+  toggleCheckbox = (event) => {
+    const checked = event.target.checked;
+    const id = event.target.name;
+    let exportConfigList = _.cloneDeep(this.state.exportConfigList);
+
+    if (checked) {
+      exportConfigList.push(id);
+    } else {
+      const index = exportConfigList.indexOf(id);
+      exportConfigList.splice(index, 1);
+    }
+
+    this.setState({
+      exportConfigList
+    });
   }
   /**
    * Display export charts content
@@ -1381,7 +1503,13 @@ class Syslog extends Component {
    */
   displayExportCharts = () => {
     const {locale} = this.context;
-    const {datetime} = this.state;
+    const {datetime, netProxyData, exportChartsIpList, exportConfigList, exportCharts} = this.state;
+    const data = {
+      netProxyData,
+      exportChartsIpList,
+      exportConfigList,
+      toggleCheckbox: this.toggleCheckbox
+    };
     let dateLocale = locale;
 
     if (locale === 'zh') {
@@ -1419,6 +1547,19 @@ class Syslog extends Component {
               onChange={this.handleDateChange.bind(this, 'to')} />
           </MuiPickersUtilsProvider>
         </div>
+        <div className='host-section'>
+          <MultiInput
+            id='exportChartsMultiInputs'
+            base={ExportCharts}
+            defaultItemValue={{
+              hostIp: '',
+              hostName: '',
+              index: exportCharts.length
+            }}
+            value={exportCharts}
+            props={data}
+            onChange={this.handleExportChartsChange} />
+        </div>
       </div>
     )
   }
@@ -1451,6 +1592,10 @@ class Syslog extends Component {
    * @method
    */
   confirmExportCharts = () => {
+    const {exportConfigList} = this.state;
+
+    alert(exportConfigList);
+
     this.toggleExportCharts();
   }
   /**
@@ -2445,7 +2590,7 @@ class Syslog extends Component {
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>
-                <div className='config-syslog mui-table-content' style={{height: '67vh'}}>
+                <div className='config-syslog mui-table-content' style={{height: '78vh', overflow: 'auto'}}>
                   {syslog.dataContent && syslog.dataContent.length > 0 &&
                     syslog.dataContent.map(this.displayHostInfo)
                   }
