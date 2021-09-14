@@ -753,37 +753,39 @@ class AlertDetails extends Component {
         let eventStatConfig = [];
         let eventStat = [];
 
-        _.forEach(data.aggregations.Top10SyslogConfigSource.agg.buckets, val => {
-          eventStatConfig.push({
-            configSource: val.key,
-            count: val.doc_count
-          });
-        })     
+        if (data.aggregations) {
+          _.forEach(data.aggregations.Top10SyslogConfigSource.agg.buckets, val => {
+            eventStatConfig.push({
+              configSource: val.key,
+              count: val.doc_count
+            });
+          })
 
-        let tempFields = {};
-        eventStatFields.forEach(tempData => {
-          tempFields[tempData] = {
-            label: t(`txt-${tempData}`),
-            sortable: false,
-            formatter: (value, allValue, i) => {
-              return <span>{value}</span>
+          let tempFields = {};
+          eventStatFields.forEach(tempData => {
+            tempFields[tempData] = {
+              label: t(`txt-${tempData}`),
+              sortable: false,
+              formatter: (value, allValue, i) => {
+                return <span>{value}</span>
+              }
             }
-          }
-        })
+          })
 
-        _.forEach(data.aggregations.Top10SyslogConfigSource.event_histogram.buckets, val => {
-          eventStat.push({
-            time: helper.getFormattedDate(val.key_as_string, 'local'),
-            count: val.doc_count
+          _.forEach(data.aggregations.Top10SyslogConfigSource.event_histogram.buckets, val => {
+            eventStat.push({
+              time: helper.getFormattedDate(val.key_as_string, 'local'),
+              count: val.doc_count
+            });
+          })
+
+          this.setState({
+            eventStatConfig,
+            eventStatFieldsData: tempFields,
+            eventStatData: eventStatConfig,
+            eventStat
           });
-        })
-
-        this.setState({
-          eventStatConfig,
-          eventStatFieldsData: tempFields,
-          eventStatData: eventStatConfig,
-          eventStat
-        });
+        }
       }
       return null;
     })
