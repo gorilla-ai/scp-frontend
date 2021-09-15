@@ -24,22 +24,44 @@ class ExportCharts extends Component {
   /**
    * Set input value change
    * @method
+   * @param {string} type - form type ('select', 'checkbox' or 'selectAll')
    * @param {object} event - event object
    */
-  handleDataChange = (event) => {
-    this.props.onChange({
-      ...this.props.value,
-      [event.target.name]: event.target.value
-    });
-  }
-  /**
-   * Check if item is already in the selected list
-   * @method
-   * @param {string} id - checked item ID
-   * @returns boolean true/false
-   */
-  checkSelectedItem = (id) => {
-    return _.includes(this.props.exportConfigList, id);
+  handleDataChange = (type, event) => {
+    const {netProxyData, value} = this.props;
+
+    if (type === 'select') {
+      let configList = {};
+
+      _.forEach(netProxyData.configs[event.target.value], val => {
+        configList[val.id] = true;
+      })
+
+      this.props.onChange({
+        ...this.props.value,
+        [event.target.name]: event.target.value,
+        configList
+      });
+    } else if (type === 'checkbox') {
+      this.props.onChange({
+        ...this.props.value,
+        configList: {
+          ...value.configList,
+          [event.target.name]: event.target.checked
+        }
+      });
+    } else if (type === 'selectAll') {
+      let configList = {};
+
+      _.forEach(netProxyData.configs[event.target.name], val => {
+        configList[val.id] = event.target.checked;
+      })
+
+      this.props.onChange({
+        ...this.props.value,
+        configList
+      });
+    }
   }
   /**
    * Display service name checkboxes
@@ -57,11 +79,29 @@ class ExportCharts extends Component {
           <Checkbox
             className='checkbox-ui'
             name={val.id}
-            checked={this.checkSelectedItem(val.id)}
-            onChange={this.props.toggleCheckbox}
+            checked={this.props.value.configList[val.id]}
+            onChange={this.handleDataChange.bind(this, 'checkbox')}
             color='primary' />
         } />
     )
+  }
+  /**
+   * Check select all checkbox
+   * @method
+   * @returns boolean true/false
+   */
+  checkSelectAll = () => {
+    const {value} = this.props;
+    let selectAll = true;
+
+    Object.keys(value.configList).map(val => {
+      if (!value.configList[val]) {
+        selectAll = false;
+        return false;
+      }
+    });
+
+    return selectAll;
   }
   render() {
     const {netProxyData, exportChartsIpList, value} = this.props;
@@ -76,7 +116,7 @@ class ExportCharts extends Component {
           variant='outlined'
           size='small'
           value={value.hostIp}
-          onChange={this.handleDataChange}>
+          onChange={this.handleDataChange.bind(this, 'select')}>
           <MenuItem value=''></MenuItem>
           {exportChartsIpList}
         </TextField>
@@ -89,6 +129,19 @@ class ExportCharts extends Component {
           value={value.hostName || ''}
           disabled={true} />
         <div className='config-section'>
+          {value.hostIp &&
+            <FormControlLabel
+              label={t('txt-selectAll')}
+              className='select-all'
+              control={
+                <Checkbox
+                  className='checkbox-ui'
+                  name={value.hostIp}
+                  checked={this.checkSelectAll()}
+                  onChange={this.handleDataChange.bind(this, 'selectAll')}
+                  color='primary' />
+              } />
+          }
           {value.hostIp &&
             netProxyData.configs[value.hostIp].map(this.displayServiceName)
           }

@@ -2349,7 +2349,7 @@ html[data-theme='dark'] {
     width: 525px;
     .header {
       font-size: 14px;
-      padding: 0 10px 10px 10px;
+      padding: 10px;
       border-bottom: 1px solid var(--primaryBorder);
       span {
         font-size: 16px;
@@ -2512,21 +2512,20 @@ html[data-theme='dark'] {
   }
 }
 #exprotChartsDialog-content {
-  width: 750px;
+  width: 800px;
   .calendar-section {
     overflow: hidden;
     margin-top: 5px;
     margin-bottom: 15px;
-  }
-  .host-section {
-
   }
   .group-content {
     width: 100%;
     max-height: 600px;
     padding: 15px 15px 0px 15px;
     margin-bottom: 10px;
-    border: 1px solid #ccc;
+    margin-right: 5px;
+    border: 1px solid var(--primaryBorder);
+    border-radius: 5px;
     .export-hostIp {   
       width: 48%;
       margin-right: 2%;
@@ -2539,6 +2538,11 @@ html[data-theme='dark'] {
       margin-left: 5px;
       label {
         display: inline-block;
+        &.select-all {
+          display: block;
+          margin-right: -5px;
+          border-bottom: 1px dotted var(--primaryBorder);
+        }
       }
     }
   }
