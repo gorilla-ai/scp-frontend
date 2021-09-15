@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import moment from 'moment'
+import momentTimezone from 'moment-timezone'
 import cx from 'classnames'
 import _ from 'lodash'
 
@@ -25,6 +26,8 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
+import ExportCharts from './export-charts'
+import ExportCSV from '../../common/export-csv'
 import helper from '../../common/helper'
 import SyslogConfig from './syslog-config'
 
@@ -115,6 +118,7 @@ class Syslog extends Component {
         name: ''
       },
       showPatternLeftNav: true,
+      openExportCharts: false,
       openEditHostName: false,
       openTimeline: false,
       openEditHosts: false,
@@ -122,6 +126,7 @@ class Syslog extends Component {
       clickTimeline: false,
       showSshAccount: false,
       showAddSshAccount: false,
+      contextAnchorCharts: null,
       activeTimeline: '',
       activeConfigId: '',
       activeConfigName: '',
@@ -130,6 +135,28 @@ class Syslog extends Component {
       datetime: {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      datetimeExport: {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      netProxyData: {
+        list: [],
+        configs: {}
+      },
+      netProxyLookUp: {},
+      exportChartsIpList: [],
+      exportCharts: [{
+        hostIp: '',
+        hostName: '',
+        configList: []
+      }],
+      popOverAnchor: null,
+      taskServiceList: {
+        data: [],
+        scrollCount: 0,
+        pageSize: 10,
+        hasMore: true
       },
       eventsData: {},
       hostsData: {},
@@ -1169,16 +1196,26 @@ class Syslog extends Component {
   /**
    * Set new datetime
    * @method
+   * @param {string} type - form type ('timeline' or 'exportCharts')
    * @param {string} type - date type ('from' or 'to')
    * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (type, newDatetime) => {
-    let tempDatetime = {...this.state.datetime};
-    tempDatetime[type] = newDatetime;
+  handleDateChange = (form, type, newDatetime) => {
+    if (form === 'timeline') {
+      let tempDatetime = {...this.state.datetime};
+      tempDatetime[type] = newDatetime;
 
-    this.setState({
-      datetime: tempDatetime
-    });
+      this.setState({
+        datetime: tempDatetime
+      });
+    } else if (form === 'exportCharts') {
+      let tempDatetimeExport = {...this.state.datetimeExport};
+      tempDatetimeExport[type] = newDatetime;
+
+      this.setState({
+        datetimeExport: tempDatetimeExport
+      });
+    }
   }
   /**
    * Handle chart interval change for Config Syslog
@@ -1286,7 +1323,7 @@ class Syslog extends Component {
               minDateMessage={t('txt-minDateMessage')}
               ampm={false}
               value={datetime.from}
-              onChange={this.handleDateChange.bind(this, 'from')} />
+              onChange={this.handleDateChange.bind(this, 'timeline', 'from')} />
             <div className='between'>~</div>
             <KeyboardDateTimePicker
               className='date-time-picker'
@@ -1298,7 +1335,7 @@ class Syslog extends Component {
               minDateMessage={t('txt-minDateMessage')}
               ampm={false}
               value={datetime.to}
-              onChange={this.handleDateChange.bind(this, 'to')} />
+              onChange={this.handleDateChange.bind(this, 'timeline', 'to')} />
           </MuiPickersUtilsProvider>
           <Button variant='contained' color='primary' onClick={this.setChartInterval}>{t('txt-search')}</Button>
           </div>
@@ -1360,6 +1397,295 @@ class Syslog extends Component {
         {this.displayEventsTimeline()}    
       </ModalDialog>
     )
+  }
+  /**
+   * Toggle export charts on/off
+   * @method
+   */
+  toggleExportCharts = () => {
+    const {baseUrl, session} = this.context;
+    const {openExportCharts, exportCharts} = this.state;
+
+    if (openExportCharts) {
+      this.setState({
+        openExportCharts: false
+      });
+    } else {
+      this.ah.one({
+        url: `${baseUrl}/api/log/config/exportItem`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          const netProxyData = {
+            list: data.netProxyList,
+            configs: data.configs
+          };
+          const exportChartsIpList = _.map(data.netProxyList, (val, i) => {
+            return <MenuItem key={i} value={val.netProxyIp}>{val.netProxyIp}</MenuItem>
+          });
+          let netProxyLookUp = {};
+
+          _.forEach(data.netProxyList, val => {
+            netProxyLookUp[val.netProxyIp] = val.netProxyName
+          })
+
+          this.setState({
+            openExportCharts: true,
+            netProxyData,
+            netProxyLookUp,
+            exportChartsIpList
+          });
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+
+      this.handleCloseChartsMenu();
+    }
+
+    this.setState({
+      exportCharts: [{
+        hostIp: '',
+        hostName: '',
+        configList: []
+      }]
+    });
+  }
+  /**
+   * Handle add/remove the export charts box
+   * @method
+   * @param {array.<object>} data - export charts list array
+   */
+  handleExportChartsChange = (data) => {
+    const exportCharts = _.map(data, val => {
+      return {
+        ...val,
+        hostName: this.state.netProxyLookUp[val.hostIp]
+      }
+    });
+
+    this.setState({
+      exportCharts
+    });
+  }
+  /**
+   * Display export charts content
+   * @method
+   */
+  displayExportCharts = () => {
+    const {locale} = this.context;
+    const {datetimeExport, netProxyData, exportChartsIpList, exportCharts} = this.state;
+    const data = {
+      netProxyData,
+      exportChartsIpList
+    };
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      <div>
+        <div className='calendar-section'>
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              ampm={false}
+              value={datetimeExport.from}
+              onChange={this.handleDateChange.bind(this, 'exportCharts', 'from')} />
+            <div className='between'>~</div>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              ampm={false}
+              value={datetimeExport.to}
+              onChange={this.handleDateChange.bind(this, 'exportCharts', 'to')} />
+          </MuiPickersUtilsProvider>
+        </div>
+        <div className='host-section'>
+          <MultiInput
+            id='exportChartsMultiInputs'
+            base={ExportCharts}
+            defaultItemValue={{
+              hostIp: '',
+              hostName: '',
+              configList: []
+            }}
+            value={exportCharts}
+            props={data}
+            onChange={this.handleExportChartsChange} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display export charts dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showExportChartsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleExportCharts},
+      confirm: {text: t('txt-export'), handler: this.confirmExportCharts}
+    };
+
+    return (
+      <ModalDialog
+        id='exprotChartsDialog'
+        className='modal-dialog'
+        title={t('syslogFields.txt-exportSyslogCharts')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayExportCharts()}    
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle export charts confirm
+   * @method
+   */
+  confirmExportCharts = () => {
+    const {baseUrl, session} = this.context;
+    const {datetimeExport, exportCharts} = this.state;
+    const startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';    
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
+    let totalConfigList = [];
+
+    _.forEach(exportCharts, val => {
+      Object.keys(val.configList).map(val2 => {
+        if (val.configList[val2] && totalConfigList.indexOf(val2) < 0) {
+          totalConfigList.push(val2);
+        }
+      });
+    })
+
+    const requestData = {
+      accountId: session.accountId,
+      type: ['exportLogTrendStatistics'],
+      timestamp: [startDttm, endDttm],
+      configIds: totalConfigList,
+      timeZone: utc_offset
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/taskService`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.toggleExportCharts();
+  }
+  /**
+   * Toggle export schedule list on/off
+   * @method
+   */
+  toggleExportScheduleList = () => {
+    this.setState({
+      popOverAnchor: {top: 83, right: 10}
+    }, () => {
+      this.getTaskService('firstLoad');
+    });
+
+    this.handleCloseChartsMenu();
+  }
+  /**
+   * Get list of task service
+   * @method
+   * @param {string} options - option for 'firstLoad'
+   */
+  getTaskService = (options) => {
+    const {taskServiceList} = this.state;
+    const {baseUrl} = this.context;
+    const datetime = {
+      from: moment(helper.getSubstractDate(7, 'day', moment().utc())).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    let fromItem = 0;
+
+    if (options !== 'firstLoad') {
+      fromItem = taskServiceList.pageSize - 1; //index starts from zero
+
+      if (taskServiceList.scrollCount > 0) {
+        fromItem = taskServiceList.scrollCount + taskServiceList.pageSize;
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/taskService/list?source=SCP&type=exportLogTrendStatistics&createStartDttm=${datetime.from}&from=${fromItem}&size=${taskServiceList.pageSize}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempTaskServiceList = {...taskServiceList};
+
+        if (options === 'firstLoad') {
+          if (data.list && data.list.length > 0) {
+            tempTaskServiceList.data = data.list;
+          }
+        } else {
+          tempTaskServiceList.scrollCount = fromItem;
+
+          if (data.list && data.list.length > 0) {
+            tempTaskServiceList.data = _.concat(taskServiceList.data, data.list);
+            tempTaskServiceList.hasMore = true;
+          } else {
+            tempTaskServiceList.hasMore = false;
+          }
+        }
+
+        this.setState({
+          taskServiceList: tempTaskServiceList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  handlePopoverClose = () => {
+    let tempTaskServiceList = {...this.state.taskServiceList};
+    tempTaskServiceList.data = [];
+    tempTaskServiceList.scrollCount = 0;
+
+    this.setState({
+      popOverAnchor: null,
+      taskServiceList: tempTaskServiceList
+    });
   }
   /**
    * Toggle edit host name dialog on/off
@@ -2192,6 +2518,25 @@ class Syslog extends Component {
       </div>
     )
   }
+  /**
+   * Handle open charts menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenChartsMenu = (event) => {
+    this.setState({
+      contextAnchorCharts: event.currentTarget
+    });
+  }
+  /**
+   * Handle close charts menu
+   * @method
+   */
+  handleCloseChartsMenu = () => {
+    this.setState({
+      contextAnchorCharts: null
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -2202,19 +2547,27 @@ class Syslog extends Component {
       hosts,
       editSyslogType,
       showPatternLeftNav,
+      openExportCharts,
       openEditHostName,
       openTimeline,
       openEditHosts,
       openEditPatternName,
       showSshAccount,
       showAddSshAccount,
+      contextAnchorCharts,
       activeHost,
+      popOverAnchor,
+      taskServiceList,
       syslogPatternConfig,
       contextAnchor
     } = this.state;
 
     return (
       <div>
+        {openExportCharts &&
+          this.showExportChartsDialog()
+        }
+
         {openEditHostName &&
           this.showEditHostNameDialog()
         }
@@ -2245,10 +2598,26 @@ class Syslog extends Component {
               <div>
                 <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
                 <Button variant='outlined' color='primary' onClick={this.toggleSshDialog} title={a('txt-addSshAccount')}><i className='fg fg-add'></i></Button>
-                <Button variant='outlined' color='primary' className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className={cx({'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.handleOpenChartsMenu}><i className='fg fg-data-download-2'></i></Button>
               </div>
             }
+
+            <Menu
+              anchorEl={contextAnchorCharts}
+              keepMounted
+              open={Boolean(contextAnchorCharts)}
+              onClose={this.handleCloseChartsMenu}>
+              <MenuItem onClick={this.toggleExportCharts}>{t('syslogFields.txt-exportSyslogCharts')}</MenuItem>
+              <MenuItem onClick={this.toggleExportScheduleList}>{t('syslogFields.txt-exportScheduleList')}</MenuItem>
+            </Menu>
           </div>
+
+          <ExportCSV
+            anchorPosition={popOverAnchor}
+            taskServiceList={taskServiceList}
+            handlePopoverClose={this.handlePopoverClose}
+            getTaskService={this.getTaskService} />
         </div>
 
         <div className='data-content'>
@@ -2262,7 +2631,7 @@ class Syslog extends Component {
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>
-                <div className='config-syslog mui-table-content' style={{height: '67vh'}}>
+                <div className='config-syslog mui-table-content' style={{height: '78vh', overflow: 'auto'}}>
                   {syslog.dataContent && syslog.dataContent.length > 0 &&
                     syslog.dataContent.map(this.displayHostInfo)
                   }

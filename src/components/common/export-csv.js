@@ -22,10 +22,10 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 
 /**
- * Filter Upload
+ * Export CSV
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the file upload
+ * @summary A react component to show the export component
  */
 class ExportCsv extends Component {
   constructor(props) {
@@ -67,7 +67,7 @@ class ExportCsv extends Component {
     })
   }
   /**
-   * Delete service task
+   * Retrigger service task
    * @method
    * @param {string} id - service data ID
    */
@@ -131,29 +131,53 @@ class ExportCsv extends Component {
     )
   }
   render() {
-  	const {popOverAnchor, taskServiceList} = this.props;
+  	const {popOverAnchor, anchorPosition, taskServiceList} = this.props;
+    let anchorInfo = {};
+    let open = '';
+
+    if (anchorPosition) {
+      anchorInfo = {
+        className: 'anchorPosition',
+        anchorPosition: anchorPosition,
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'right'
+        },
+        transformOrigin: {
+          vertical: 'top',
+          horizontal: 'right',
+        }
+      };
+      open = Boolean(anchorPosition);
+    } else if (popOverAnchor) {
+      anchorInfo = {
+        anchorEl: popOverAnchor,
+        anchorOrigin: {
+          vertical: 'bottom',
+          horizontal: 'center',
+        },
+        transformOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        }
+      };
+      open = Boolean(popOverAnchor);
+    }
 
     return (
       <Popover
+        {...anchorInfo}
         id='csvDownloadContent'
-        open={Boolean(popOverAnchor)}
-        anchorEl={popOverAnchor}
-        onClose={this.props.handlePopoverClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}>
+        open={open}
+        onClose={this.props.handlePopoverClose}>
         <div className='content'>
-          <List>
-            <ListItem button>
-              <ListItemText primary={t('txt-exportCSV')} onClick={this.props.registerDownload} />
-            </ListItem>
-          </List>
-
+          {popOverAnchor &&
+            <List>
+              <ListItem button>
+                <ListItemText primary={t('txt-exportCSV')} onClick={this.props.registerDownload} />
+              </ListItem>
+            </List>
+          }
           <div>
             {taskServiceList.data.length > 0 &&
               <div className='scheduled-list'>
@@ -184,9 +208,10 @@ ExportCsv.contextType = BaseDataContext;
 
 ExportCsv.propTypes = {
   popOverAnchor: PropTypes.object,
+  anchorPosition: PropTypes.object,
   taskServiceList: PropTypes.object.isRequired,
   handlePopoverClose: PropTypes.func.isRequired,
-  registerDownload: PropTypes.func.isRequired,
+  registerDownload: PropTypes.func,
   getTaskService: PropTypes.func.isRequired
 };
 
