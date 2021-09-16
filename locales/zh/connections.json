@@ -377,6 +377,9 @@
     "txt-isConnected": "已連線",
     "txt-isDisconnected": "未連線",
     "txt-isNotScan": "未執行掃描",
+    "txt-isScanFinished": "已完成所有項目",
+    "txt-isScanUnfinished": "尚有未完成項目",
+    "txt-isScanFail": "Fail (執行異常)",
     "txt-title-scanFile": "惡意程式資訊",
     "txt-title-gcbDetection": "GCB漏洞掃描資訊",
     "txt-title-getFileIntegrity": "檔案完整性掃描資訊",
@@ -555,7 +558,13 @@
       "txt-viewRule": "$t(txt-view)$t(txt-alert)$t(txt-rule)",
       "txt-downloadMalware": "$t(txt-download)惡意程式",
       "txt-chartExceedMaxMsg": "查詢資料超過可顯示的圖表數量，請重新選擇時間區間"
-    }
+    },
+    "txt-generateCharts": "產生統計圖",
+    "txt-statisticField": "統計欄位",
+    "txt-statisticsCount": "統計名次",
+    "txt-statisticsPieChart": "統計圓餅圖",
+    "txt-statisticsBarChart": "統計長條圖",
+    "txt-statisticsTableChart": "統計列表"
   },
 
   "soar": {
@@ -795,7 +804,7 @@
     "txt-downloadLogs": "下載Logs",
     "txt-compress-logs": "壓縮Logs",
     "txt-recompress-logs": "重新壓縮Logs",
-    "txt-unregister": "Unregister",
+    "txt-unregister": "反註冊",
     "txt-addToFilterList": "加入過濾名單",
     "txt-suspiciousFileCount": "可疑檔案數",
     "txt-suspiciousFileName": "可疑檔案名稱",

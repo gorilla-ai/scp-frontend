@@ -377,6 +377,9 @@
     "txt-isConnected": "Connected",
     "txt-isDisconnected": "Disconnected",
     "txt-isNotScan": "Not Scan",
+    "txt-isScanFinished": "All jobs completed",
+    "txt-isScanUnfinished": "Has remaining Jobs",
+    "txt-isScanFail": "Execution failure",
     "txt-title-scanFile": "Malware Information",
     "txt-title-gcbDetection": "GCB Information",
     "txt-title-getFileIntegrity": "File Information",
@@ -555,7 +558,13 @@
       "txt-viewRule": "$t(txt-view) $t(txt-alert) $t(txt-rule)",
       "txt-downloadMalware": "$t(txt-download) Malware",
       "txt-chartExceedMaxMsg": "The result exeeds the maximum number the chart can handle. Please select other time interval."
-    }
+    },
+    "txt-generateCharts": "Generate Charts",
+    "txt-statisticField": "Field",
+    "txt-statisticsCount": "Count",
+    "txt-statisticsPieChart": "Pie Chart",
+    "txt-statisticsBarChart": "Bar Chart",
+    "txt-statisticsTableChart": "Table Chart"
   },
 
   "soar": {

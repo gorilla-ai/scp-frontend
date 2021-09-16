@@ -2191,12 +2191,7 @@ button.standard:hover:not([disabled]) {
             margin: 15px 0px 10px 20px;
           }
           .filter-btn {
-            color: #fff;
-            margin: 18px 0px 10px 20px;
-            background-color: var(--buttonSelectedColor);
-            &:hover {
-              background-color: var(--buttonSelectedColor) !important;
-            }
+            margin: 18px 0px 10px 15px;
           }
           .clear-btn {
             margin: 18px 0px 10px 5px;
@@ -3001,6 +2996,28 @@ button.standard:hover:not([disabled]) {
               &.line1 {
                 display: none;
               }
+            }
+          }
+        }
+        .events-syslog-statistics {
+          height: 78vh;
+          .filter-section {
+            .input-field {
+              margin: 15px 0px 15px 20px;
+              &.count {
+                width: 100px;
+              }
+            }
+            .btn {
+              margin-top: 17px;
+              margin-left: 15px;
+            }
+          }
+          .main-statistics {
+            height: 71vh;
+            .c-chart.table {
+              height: 400px;
+              overflow-y: auto;
             }
           }
         }

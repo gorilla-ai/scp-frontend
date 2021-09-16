@@ -76,6 +76,7 @@
   "-5013": "Department does not exist",
   "-5014": "Department does not match",
   "-5015": "Add owner fail",
+  "-5016": "Update Owner Fail",
 
   "-6801": "PDF service connect fail",
 
