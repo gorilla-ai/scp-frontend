@@ -277,7 +277,7 @@ class IncidentManagement extends Component {
         search.status = this.state.selectedStatus
 
         ah.one({
-            url: `${baseUrl}/api/soc/_getIncidentListByStatusList?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
@@ -407,7 +407,7 @@ class IncidentManagement extends Component {
         searchPayload.account = session.accountId
         searchPayload.status = this.state.selectedStatus
         ah.one({
-            url: `${baseUrl}/api/soc/_getIncidentListByStatusList?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
@@ -3472,7 +3472,7 @@ class IncidentManagement extends Component {
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/_getIncidentListByStatusList`,
+            url: `${baseUrl}/api/soc/_searchV2`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
