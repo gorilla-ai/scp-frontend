@@ -13,31 +13,18 @@ import helper from '../../common/helper'
 import MarkContent from '../../common/mark-content'
 import MuiTableContent from '../../common/mui-table-content'
 import Pagination from '../../common/pagination'
+import Statistics from './statistics'
 import Tree from '../../common/tree'
 
 /**
  * Events Syslog
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the Events Syslog
+ * @summary A react component to show the Events Syslog page
  */
 class Syslog extends Component {
   constructor(props) {
     super(props);
-  }
-  /**
-   * Display loading icon or table content
-   * @method
-   * @returns HTML DOM
-   */
-  renderTableContent = () => {
-    const {mainContentData} = this.props;
-
-    return (
-      <MuiTableContent
-        data={mainContentData.syslogData}
-        tableOptions={mainContentData.tableOptions} />
-    )
   }
   render() {
     const {contextRoot, language} = this.context;
@@ -75,7 +62,9 @@ class Syslog extends Component {
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&
-              this.renderTableContent()
+              <MuiTableContent
+                data={mainContentData.syslogData}
+                tableOptions={mainContentData.tableOptions} />
             }
 
             {mainContentData.activeSubTab === 'linkAnalysis' &&
@@ -103,6 +92,11 @@ class Syslog extends Component {
                     onDropDownChange={mainContentData.handleLaPageChange.bind(this, 'pageSize')} />
                 </footer>
               </div>
+            }
+
+            {mainContentData.activeSubTab === 'statistics' &&
+              <Statistics
+                mainContentData={mainContentData} />
             }
           </div>
         </div>

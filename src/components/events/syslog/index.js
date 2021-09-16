@@ -31,6 +31,8 @@ import TableCell from '../../common/table-cell'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const UTC_TIME_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/;
+
 let t = null;
 let f = null;
 let et = null;
@@ -68,7 +70,8 @@ class SyslogController extends Component {
       //Tab Menu
       subTabMenu: {
         table: t('txt-table'),
-        linkAnalysis: t('txt-linkAnalysis')
+        linkAnalysis: t('txt-linkAnalysis'),
+        statistics: t('txt-statistics')
       },
       activeSubTab: 'table',
       //Search bar
@@ -174,7 +177,21 @@ class SyslogController extends Component {
       logActiveField: '',
       logCustomLocal: '',
       loadLogsData: true,
-      syslogRequest: {}
+      syslogRequest: {},
+      statisticsData: {
+        data: null,
+        column: '',
+        pageSize: '10'
+      },
+      statisticsTableChart: {
+        dataFieldsArr: ['key', 'doc_count'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'doc_count',
+          desc: true
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -949,18 +966,24 @@ class SyslogController extends Component {
    * @param {string} fromSearch - option for 'search'
    */
   handleSearchSubmit = (fromSearch) => {
-    const {activeTab, syslogData} = this.state;
-    let tempSyslogData = {...syslogData};
-    tempSyslogData.dataFields = [];
-    tempSyslogData.dataContent = null;
-    tempSyslogData.totalCount = 0;
-    tempSyslogData.currentPage = 1;
-    tempSyslogData.oldPage = 1;
-    tempSyslogData.pageSize = 20;
+    const {activeTab, activeSubTab, syslogData} = this.state;
 
-    this.setState({
-      syslogData: tempSyslogData
-    });
+    if (activeSubTab === 'statistics') {
+      this.getChartsData();
+      return;
+    } else {
+      let tempSyslogData = {...syslogData};
+      tempSyslogData.dataFields = [];
+      tempSyslogData.dataContent = null;
+      tempSyslogData.totalCount = 0;
+      tempSyslogData.currentPage = 1;
+      tempSyslogData.oldPage = 1;
+      tempSyslogData.pageSize = 20;
+
+      this.setState({
+        syslogData: tempSyslogData
+      });
+    }
 
     if (fromSearch) {
       this.setState({
@@ -1799,6 +1822,10 @@ class SyslogController extends Component {
       tableMouseOver,
       tableOptions,
       markData,
+      statisticsData: this.state.statisticsData,
+      statisticsTableChart: this.state.statisticsTableChart,
+      handleStatisticsDataChange: this.handleStatisticsDataChange,
+      getChartsData: this.getChartsData,
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
@@ -2266,6 +2293,103 @@ class SyslogController extends Component {
     }, () => {
       this.loadFields(activeTab);
     });
+  }
+  /**
+   * Handle input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleStatisticsDataChange = (event) => {
+    let tempStatisticsData = {...this.state.statisticsData};
+    tempStatisticsData[event.target.name] = event.target.value;
+
+    this.setState({
+      statisticsData: tempStatisticsData
+    });
+  }
+  /**
+   * Get table chart field
+   * @method
+   * @param {string} field - field name
+   */
+  getTableField = (field) => {
+    if (field === 'key') {
+      return this.state.statisticsData.column;
+    } else if (field === 'doc_count') {
+      return t('txt-count');
+    }
+  }
+  /**
+   * Generate charts content
+   * @method
+   */
+  getChartsData = () => {
+    const {baseUrl} = this.context;
+    const {statisticsData, statisticsTableChart} = this.state;
+    const url = `${baseUrl}/api/log/event/columnDistribution?pageSize=${statisticsData.pageSize}`;
+    const requestData = {
+      ...this.toQueryLanguage(),
+      column: statisticsData.column
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempStatisticsData = {...statisticsData};
+        let tempStatisticsTableChart = {...statisticsTableChart};
+
+        if (data.aggregations.topColumns.length === 0) {
+          tempStatisticsData.data = [];
+        } else {
+          const chartData = data.aggregations.topColumns;
+          let formattedChartData = [];
+
+          _.forEach(chartData, val => {
+            let key = val.key;
+
+            if (UTC_TIME_PATTERN.test(val.key)) { //Check UTC time format
+              key = helper.getFormattedDate(key, 'local');
+            }
+
+            formattedChartData.push({
+              ...val,
+              key
+            });
+          })
+
+          tempStatisticsData.data = formattedChartData;
+          tempStatisticsTableChart.dataContent = formattedChartData;
+
+          let chartFields = {};
+
+          tempStatisticsTableChart.dataFieldsArr.forEach(tempData => {
+            chartFields[tempData] = {
+              label: this.getTableField(tempData),
+              sortable: true,
+              formatter: (value, allValue, i) => {
+                return <span>{value}</span>
+              }
+            };
+          })
+
+          tempStatisticsTableChart.dataFields = chartFields;
+        }
+
+        this.setState({
+          statisticsData: tempStatisticsData,
+          statisticsTableChart: tempStatisticsTableChart
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
     const {

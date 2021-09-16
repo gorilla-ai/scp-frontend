@@ -2399,7 +2399,6 @@ class NetworkInventory extends Component {
     return (
       <div>
         <div>{t('network-inventory.txt-total')}: {data.successList.length + data.failureList.length}</div>
-        <div>{t('network-inventory.txt-success')}: {data.successList.length}</div>
         <div>{t('network-inventory.txt-fail')}: {data.failureList.length}</div>
         <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
         <div className='table-data'>
@@ -2428,7 +2427,7 @@ class NetworkInventory extends Component {
           formValidation: tempFormValidation
         });
       } else {
-        const url = `${baseUrl}/api/ipdevices`;
+        const url = `${baseUrl}/api/v2/ipdevices`;
         let requestData = [];
         let validate = true;
 
@@ -2887,7 +2886,7 @@ class NetworkInventory extends Component {
     requestData.ownerUUID = ownerUUID || addIP.ownerUUID;
 
     if (from === 'batchUpdates') {
-      url = `${baseUrl}/api/ipdevices`;
+      url = `${baseUrl}/api/v2/ipdevices`;
       requestType = 'PATCH';
       requestData = {
         devices: _.map(batchUpdatesList, val => {
@@ -4378,7 +4377,7 @@ class NetworkInventory extends Component {
                       <div className='group'>
                         <TextField
                           id='csvDepartmentName'
-                          name='hostName'
+                          name='departmentName'
                           label={t('ipFields.departmentName')}
                           select
                           variant='outlined'
@@ -4392,7 +4391,7 @@ class NetworkInventory extends Component {
                       <div className='group'>
                         <TextField
                           id='csvRemarks'
-                          name='hostName'
+                          name='remarks'
                           label={t('ipFields.remarks')}
                           select
                           variant='outlined'

@@ -111,70 +111,8 @@ const HMD_TRIGGER = [
     cmds: 'getVans'
   },
   {
-    name: 'KBID List',
+    name: 'KBID',
     cmds: 'getKbidList'
-  }
-];
-const HMD_LIST = [
-  {
-    name: 'Yara Scan',
-    value: 'isScanProc'
-  },
-  {
-    name: 'Malware',
-    value: 'isScanFile'
-  },
-  {
-    name: 'GCB',
-    value: 'isGCB'
-  },
-  {
-    name: 'IR',
-    value: 'isIR'
-  },
-  {
-    name: 'File Integrity',
-    value: 'isFileIntegrity'
-  },
-  {
-    name: 'Event Tracing',
-    value: 'isEventTracing'
-  },
-  {
-    name: 'Process Monitor',
-    value: 'isProcessMonitor'
-  },
-  {
-    name: 'VANS',
-    value: 'isVans'
-  },
-  {
-    name: 'is Applied File Integrity',
-    value: 'isSnapshot'
-  },
-  {
-    name: 'is Applied Process Monitor',
-    value: 'isProcWhiteList'
-  },
-  {
-    name: 'Not Applied File Integrity',
-    value: 'isNotSnapshot'
-  },
-  {
-    name: 'Not Applied Process Monitor',
-    value: 'isNotProcWhiteList'
-  },
-  {
-    name: 'is Scan Finished',
-    value: 'isScanFinished'
-  },
-  {
-    name: 'is Scan Unfinished',
-    value: 'isScanUnfinished'
-  },
-  {
-    name: 'is Scan Fail',
-    value: 'isScanFail'
   }
 ];
 const HOST_SORT_LIST = [
@@ -291,6 +229,7 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
+      hmd_list: [],
       activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       account: {
@@ -454,6 +393,7 @@ class HostController extends Component {
       this.setState({
         account: tempAccount
       }, () => {
+        this.getHmdlist();
         this.getSavedQuery();
         this.setLeftNavData();
         this.getFloorPlan();
@@ -465,6 +405,78 @@ class HostController extends Component {
     if (nextProps.location.state === 'hostContent') {
       this.toggleContent('hostContent');
     }
+  }
+  /**
+   * Get HMD list constant
+   * @method
+   */
+  getHmdlist = () => {
+    const hmd_list = [
+      {
+        name: 'Yara Scan',
+        value: 'isScanProc'
+      },
+      {
+        name: 'Malware',
+        value: 'isScanFile'
+      },
+      {
+        name: 'GCB',
+        value: 'isGCB'
+      },
+      {
+        name: 'IR',
+        value: 'isIR'
+      },
+      {
+        name: 'File Integrity',
+        value: 'isFileIntegrity'
+      },
+      {
+        name: 'Event Tracing',
+        value: 'isEventTracing'
+      },
+      {
+        name: 'Process Monitor',
+        value: 'isProcessMonitor'
+      },
+      {
+        name: 'VANS',
+        value: 'isVans'
+      },
+      {
+        name: 'is Applied File Integrity',
+        value: 'isSnapshot'
+      },
+      {
+        name: 'is Applied Process Monitor',
+        value: 'isProcWhiteList'
+      },
+      {
+        name: 'Not Applied File Integrity',
+        value: 'isNotSnapshot'
+      },
+      {
+        name: 'Not Applied Process Monitor',
+        value: 'isNotProcWhiteList'
+      },
+      {
+        name: t('host.txt-isScanFinished'),
+        value: 'isScanFinished'
+      },
+      {
+        name: t('host.txt-isScanUnfinished'),
+        value: 'isScanUnfinished'
+      },
+      {
+        name: t('host.txt-isScanFail'),
+        value: 'isScanFail'
+      }
+    ];
+
+    this.setState({
+      hmd_list
+    });
   }
   /**
    * Get and set the account saved query
@@ -696,7 +708,7 @@ class HostController extends Component {
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, deviceSearchList, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
+    const {hmd_list, activeTab, deviceSearchList, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
     const datetime = this.getHostDateTime();
     let url = `${baseUrl}/api/ipdevice/assessment/_search`;
@@ -755,7 +767,7 @@ class HostController extends Component {
           });
         })
 
-        _.forEach(HMD_LIST, val => {
+        _.forEach(hmd_list, val => {
           scanStatusList.push({
             text: val.name + ' (0)',
             value: val.value
@@ -823,7 +835,7 @@ class HostController extends Component {
           });
         })
 
-        _.forEach(HMD_LIST, val => {
+        _.forEach(hmd_list, val => {
           let text = val.name;
 
           if (_.has(data.scanInfoAgg, val.value)) {
@@ -2189,6 +2201,23 @@ class HostController extends Component {
     }
   }
   /**
+   * Format HMD readable name
+   * @method
+   * @param {string} name - HMD scan name
+   * @returns readable name
+   */
+  getReadableName = (name) => {
+    let formattedName = name;
+
+    if (name === 'procWhiteListResult') {
+      formattedName = 'Process Monitor';
+    } else if (name === 'kbidResult') {
+      formattedName = 'KBID';
+    }
+
+    return formattedName;
+  }
+  /**
    * Display Safety Scan list
    * @method
    * @param {object} safetyScanInfo - Safety Scan data
@@ -2200,11 +2229,11 @@ class HostController extends Component {
     const scanResult = _.map(SCAN_RESULT, val => {
       return val.result;
     });
-    let severityTypeName = val.severity_type_name;
+    let severityTypeName = this.getReadableName(val.severity_type_name);
     let hmd = false;
     let spanStyle = '';
     let displayTooltip = '';
-    let displayCount = val.doc_count;
+    let displayCount = val.doc_count >= 0 ? val.doc_count : t('txt-unknown');
     let text = t('hmd-scan.txt-suspiciousFileCount');
     let title = '';
     let status = '';
@@ -2231,7 +2260,10 @@ class HostController extends Component {
     } 
 
     if (val.severity_type_name === 'gcbResult') {
-      displayCount = helper.numberWithCommas(val.PassCnt) + '/' + helper.numberWithCommas(val.TotalCnt);
+      if (val.PassCnt >= 0 || val.TotalCnt >= 0) {
+        displayCount = helper.numberWithCommas(val.PassCnt) + '/' + helper.numberWithCommas(val.TotalCnt);
+      }
+
       text = t('hmd-scan.txt-passCount') + '/' + t('hmd-scan.txt-totalItem');
     } else if (val.severity_type_name === 'fileIntegrityResult') {
       text = t('hmd-scan.txt-modifiedFileCount');
@@ -3841,7 +3873,7 @@ class HostController extends Component {
                       placeholder={t('host.txt-annotation')}
                       value={hmdSearch.annotation}
                       onChange={this.handleHmdSearch} />
-                    <Button variant='outlined' color='primary' className='standard btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+                    <Button variant='contained' color='primary' className='btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
