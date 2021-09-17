@@ -94,7 +94,7 @@ class Incident extends Component {
                 category: 0,
                 status: 0,
                 datetime: {
-                    from: helper.getSubstractDate(1, 'month'),
+                    from: helper.getSubstractDate(6, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 severity:'',
