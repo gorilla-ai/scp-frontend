@@ -94,7 +94,7 @@ class Incident extends Component {
                 category: 0,
                 status: 0,
                 datetime: {
-                    from: helper.getSubstractDate(1, 'month'),
+                    from: helper.getSubstractDate(6, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 severity:'',
@@ -110,7 +110,7 @@ class Incident extends Component {
             deviceListOptions: [],
             showDeviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm',  'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: [],
@@ -288,7 +288,7 @@ class Incident extends Component {
                             label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                             options: {
                                 filter: true,
-                                sort: val === 'severity' || val === 'id' || val === 'createDttm',
+                                sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
                                 customBodyRenderLite: (dataIndex, options) => {
                                     const allValue = tempEdge.dataContent[dataIndex];
                                     let value = tempEdge.dataContent[dataIndex][val];
@@ -324,7 +324,7 @@ class Incident extends Component {
                                             }
                                         }
                                         return <span>{status}</span>
-                                    } else if (val === 'createDttm') {
+                                    } else if (val === 'createDttm' || val === 'updateDttm') {
                                         return <span>{helper.getFormattedDate(value, 'local')}</span>
                                     } else if (val === 'tag') {
                                         const tags = _.map(allValue.tagList, 'tag.tag')

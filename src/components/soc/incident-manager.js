@@ -92,6 +92,7 @@ class IncidentManagement extends Component {
             severityList: [],
             socFlowList: [],
             selectedStatus:[],
+            tagList:[],
             search: {
                 keyword: '',
                 category: 0,
@@ -100,6 +101,7 @@ class IncidentManagement extends Component {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
+                tagList:[],
                 severity:'',
                 isExpired: 2
             },
@@ -113,7 +115,7 @@ class IncidentManagement extends Component {
             deviceListOptions: [],
             showDeviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: [],
@@ -265,20 +267,20 @@ class IncidentManagement extends Component {
         const {search, incident} = this.state;
         const sort = incident.sort.desc ? 'desc' : 'asc';
         const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-
-        if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        let searchPayload = search
+        if (searchPayload.datetime) {
+            searchPayload.startDttm = Moment(searchPayload.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            searchPayload.endDttm = Moment(searchPayload.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
-        search.isExecutor = _.includes(session.roles, 'SOC Executor')
-        search.accountRoleType = this.state.accountRoleType
-        search.account = session.accountId
-        search.status = this.state.selectedStatus
+        searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
+        searchPayload.accountRoleType = this.state.accountRoleType
+        searchPayload.account = session.accountId
+        searchPayload.status = this.state.selectedStatus
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(search),
+            data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -297,7 +299,7 @@ class IncidentManagement extends Component {
                         label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                         options: {
                             filter: true,
-                            sort: val === 'severity' || val === 'id' || val === 'createDttm',
+                            sort: val === 'severity' || val === 'id' || val === 'createDttm' || val === 'updateDttm',
                             customBodyRenderLite: (dataIndex, options) => {
                                 const allValue = tempEdge.dataContent[dataIndex];
                                 let value = tempEdge.dataContent[dataIndex][val];
@@ -350,7 +352,9 @@ class IncidentManagement extends Component {
                                     return <span>{status}</span>
                                 } else if (val === 'createDttm') {
                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (val === 'tag') {
+                                } else if (val === 'updateDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                }  else if (val === 'tag') {
                                     const tags = _.map(allValue.tagList, 'tag.tag')
 
                                     return <div>
@@ -427,7 +431,7 @@ class IncidentManagement extends Component {
                             label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                             options: {
                                 filter: true,
-                                sort: val === 'severity' || val === 'id' || val === 'createDttm',
+                                sort: val === 'severity' || val === 'id' || val === 'createDttm' || val === 'updateDttm'  ,
                                 customBodyRenderLite: (dataIndex, options) => {
                                     const allValue = tempEdge.dataContent[dataIndex];
                                     let value = tempEdge.dataContent[dataIndex][val];
@@ -481,6 +485,8 @@ class IncidentManagement extends Component {
                                         }
                                         return <span>{status}</span>
                                     } else if (val === 'createDttm') {
+                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                    } else if (val === 'updateDttm') {
                                         return <span>{helper.getFormattedDate(value, 'local')}</span>
                                     } else if (val === 'tag') {
                                         const tags = _.map(allValue.tagList, 'tag.tag')
@@ -2124,7 +2130,7 @@ class IncidentManagement extends Component {
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
-                    <div className='group'>
+                    <div className='group'     style={{width: '60vh'}}>
                         {/*<label htmlFor='keyword'>{f('edgeFields.keywords')}</label>*/}
                         <TextField
                             id='keyword'
@@ -2133,6 +2139,9 @@ class IncidentManagement extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            rows={1}
+                            multiline
+                            rowsMax={3}
                             value={search.keyword}
                             onChange={this.handleSearchMui}/>
                     </div>
@@ -2232,6 +2241,31 @@ class IncidentManagement extends Component {
                                 value={search.datetime.to}
                                 onChange={this.handleSearchTime.bind(this, 'to')} />
                         </MuiPickersUtilsProvider>
+                    </div>
+                    <div className='group'  style={{width: '500px'}}>
+                        <Autocomplete
+                            multiple
+                            id='tagList'
+                            name='tagList'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            options={this.state.tagList}
+                            // options={_.map(this.state.tagList, (val) => { return { value: val }; })}
+                            select
+                            onChange={this.onNameChange}
+                            value={search.tagList}
+                            getOptionLabel={(option) => option.tag}
+                            renderInput={(params) =>
+                                <TextField
+                                    {...params}
+                                    label={it('txt-custom-tag')}
+                                    variant='outlined'
+                                    fullWidth={true}
+                                    size='small'
+                                    InputProps={{...params.InputProps, type: 'search'}}
+                                />}
+                        />
                     </div>
                 </div>
                 <div className='button-group'>
@@ -2800,6 +2834,15 @@ class IncidentManagement extends Component {
         });
     };
 
+    onNameChange = (event, values) => {
+        let tempSearch = {...this.state.search};
+
+        tempSearch['tagList'] = values;
+        this.setState({
+            search: tempSearch
+        });
+    }
+
     /**
      * Toggle filter content on/off
      * @method
@@ -2826,7 +2869,8 @@ class IncidentManagement extends Component {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
-                isExpired: 2
+                isExpired: 2,
+	            tagList:[]
             },
             selectedStatus:[]
         })
@@ -2915,7 +2959,7 @@ class IncidentManagement extends Component {
     }
 
     getOptions = () => {
-        const {baseUrl, contextRoot, session} = this.context;
+        const {baseUrl, contextRoot, session , tagList} = this.context;
 
         ah.one({
             url: `${baseUrl}/api/soc/_search`,
@@ -2987,6 +3031,22 @@ class IncidentManagement extends Component {
 
                     this.setState({showDeviceListOptions: list})
                 }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+
+        ah.one({
+            url: `${baseUrl}/api/soc/tag/_search`,
+            data: JSON.stringify({account: session.accountId}),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                this.setState({
+                    tagList: data.rt
+                })
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
