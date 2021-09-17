@@ -1825,6 +1825,7 @@ class SyslogController extends Component {
       statisticsData: this.state.statisticsData,
       statisticsTableChart: this.state.statisticsTableChart,
       handleStatisticsDataChange: this.handleStatisticsDataChange,
+      getStatisticsExport: this.getStatisticsExport,
       getChartsData: this.getChartsData,
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
@@ -1873,14 +1874,14 @@ class SyslogController extends Component {
    * Get request data for CSV file
    * @method
    * @param {string} url - request URL
-   * @param {string} [columns] - columns for CSV file
+   * @param {string} [options] - option for 'columns' or 'statistics'
    */
-  getCSVrequestData = (url, columns) => {
+  getCSVrequestData = (url, options) => {
     let dataOptions = {
       ...this.toQueryLanguage('csv')
     };
 
-    if (columns === 'columns') {
+    if (options === 'columns') {
       let tempColumns = [];
 
       _.forEach(this.state.account.fields, val => {
@@ -1892,6 +1893,11 @@ class SyslogController extends Component {
       })
 
       dataOptions.columns = tempColumns;
+    }
+
+    if (options === 'statistics') {
+      dataOptions.column = this.state.statisticsData.column;
+      dataOptions = _.omit(dataOptions, ['timeZone']);
     }
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
@@ -2040,6 +2046,16 @@ class SyslogController extends Component {
     const {chartIntervalValue} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u1/log/event/histogram/_export?interval=${chartIntervalValue}`;
     this.getCSVrequestData(url);
+  }
+  /**
+   * Handle statistics export
+   * @method
+   */
+  getStatisticsExport = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {statisticsData} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/log/event/columnDistribution/_export?pageSize=${statisticsData.pageSize}`;
+    this.getCSVrequestData(url, 'statistics');
   }
   /**
    * Toggle filter and mark content on/off

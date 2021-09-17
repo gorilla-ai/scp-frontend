@@ -129,9 +129,12 @@ class HMDsettings extends Component {
       originalCpeData: '',
       cpeData: [{
         header: '',
+        validate: true,
+        msg: '',
         list: [{
           cpe: '',
-          validate: true
+          validate: true,
+          msg: ''
         }],
         index: 0
       }],
@@ -278,10 +281,13 @@ class HMDsettings extends Component {
         _.forEach(parsedCpeData, (val, index) => {
           cpeData.push({
             header: val.cpeHeader,
+            validate: true,
+            msg: '',
             list: _.map(val.cpeArray, val2 => {
               return {
                 cpe: val2,
-                validate: true
+                validate: true,
+                msg: ''
               }
             }),
             index
@@ -589,25 +595,55 @@ class HMDsettings extends Component {
       let parsedCpeData = [];
 
       _.forEach(cpeData, (val, i) => {
+        let validate = true;
+        let msg = '';
+
+        if (val.header === '') {
+          validate = false;
+          cpeValid = false;
+          msg = t('txt-required');
+        }
+
         tempCpeData.push({
           header: val.header,
+          validate,
+          msg,
           index: i
         });
 
         let cpeList = [];
 
+        if (val.list.length === 0) {
+          cpeList.push({
+            cpe: '',
+            validate: false,
+            msg: t('txt-required')
+          });
+
+          cpeValid = false;
+        }
+
         _.forEach(val.list, val2 => {
           let validate = true;
+          let msg = '';
+
+          if (val2.cpe === '') {
+            validate = false;
+            cpeValid = false;
+            msg = t('txt-required');
+          }
 
           if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
             validate = false;
             cpeValid = false;
+            msg = t('txt-checkFormat');
           }
 
           cpeList.push({
             cpe: val2.cpe,
-            validate
-          })
+            validate,
+            msg
+          });
         })
 
         tempCpeData[i].list = cpeList;
@@ -1107,9 +1143,12 @@ class HMDsettings extends Component {
                 props={cpeProps}
                 defaultItemValue={{
                   header: '',
+                  validate: true,
+                  msg: '',
                   list: [{
                     cpe: '',
-                    validate: true
+                    validate: true,
+                    msg: ''
                   }],
                   index: cpeData.length
                 }}

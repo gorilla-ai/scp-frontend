@@ -2609,7 +2609,7 @@ class Syslog extends Component {
               open={Boolean(contextAnchorCharts)}
               onClose={this.handleCloseChartsMenu}>
               <MenuItem onClick={this.toggleExportCharts}>{t('syslogFields.txt-exportSyslogCharts')}</MenuItem>
-              <MenuItem onClick={this.toggleExportScheduleList}>{t('syslogFields.txt-exportScheduleList')}</MenuItem>
+              <MenuItem onClick={this.toggleExportScheduleList}>{t('txt-exportScheduledList')}</MenuItem>
             </Menu>
           </div>
 

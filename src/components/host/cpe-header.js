@@ -44,18 +44,20 @@ class CpeHeader extends Component {
     return (
       <div className='group-content cpe'>
         <label id='cpeHeaderLabel'>
-          <span>{t('network-inventory.txt-softwareName')}</span>
+          <span>{t('network-inventory.txt-softwareName')} *</span>
         </label>
         <TextField
           name='cpeHeader'
           className='cpe-header-input'
           variant='outlined'
           size='small'
+          error={!value.validate}
+          helperText={value.msg}
           value={value.header}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'} />
         <label id='cpeListLabel'>
-          <span>{t('network-inventory.txt-cpeItem')}</span>
+          <span>{t('network-inventory.txt-cpeItem')} *</span>
         </label>
         <MultiInput
           id='hmdSettingsCpeList'

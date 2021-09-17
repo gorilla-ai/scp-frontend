@@ -1215,7 +1215,7 @@ button.standard:hover:not([disabled]) {
           height: 345px;
         }
         .c-chart.table {
-          height: 345px;
+          max-height: 345px;
           overflow-y: auto;
         }
         .hmd-info,
@@ -3002,6 +3002,7 @@ button.standard:hover:not([disabled]) {
         .events-syslog-statistics {
           height: 78vh;
           .filter-section {
+            position: relative;
             .input-field {
               margin: 15px 0px 15px 20px;
               &.count {
@@ -3011,12 +3012,16 @@ button.standard:hover:not([disabled]) {
             .btn {
               margin-top: 17px;
               margin-left: 15px;
+              &.export {
+                position: absolute;
+                right: 15px;
+              }
             }
           }
           .main-statistics {
             height: 71vh;
             .c-chart.table {
-              height: 400px;
+              max-height: 400px;
               overflow-y: auto;
             }
           }

@@ -171,7 +171,7 @@ class Statistics extends Component {
         }
       </div>
     )
-  }  
+  }
   render() {
     const {mainContentData} = this.props;
     const {chartType} = this.state;
@@ -200,6 +200,7 @@ class Statistics extends Component {
             size='small'
             value={mainContentData.statisticsData.pageSize}
             onChange={mainContentData.handleStatisticsDataChange} />
+          <Button variant='contained' color='primary' className='btn' onClick={mainContentData.handleSearchSubmit.bind(this, 'statistics')}>{t('events.txt-generateCharts')}</Button>
           <TextField
             id='syslogStatisticsChartType'
             className='input-field'
@@ -212,7 +213,7 @@ class Statistics extends Component {
             <MenuItem value='pieChart'>{t('txt-chartTypePie')}</MenuItem>
             <MenuItem value='barChart'>{t('txt-chartTypeBar')}</MenuItem>
           </TextField>
-          <Button variant='contained' color='primary' className='btn' onClick={mainContentData.handleSearchSubmit.bind(this, 'statistics')}>{t('events.txt-generateCharts')}</Button>
+          <Button variant='contained' color='primary' className='btn export' onClick={mainContentData.getStatisticsExport}>{t('txt-export')}</Button>
         </div>
 
         <div className='main-statistics'>
