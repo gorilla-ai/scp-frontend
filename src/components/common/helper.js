@@ -590,8 +590,6 @@ const helper = {
     const url = `${baseUrl}/api/logout`;
     let time = '';
 
-    return;
-
     document.onload = resetTimer;
     document.onmousemove = resetTimer;
     document.onmousedown = resetTimer; // touchscreen presses
