@@ -612,7 +612,7 @@ const helper = {
 
     function resetTimer() {
       clearTimeout(time);
-      time = setTimeout(logout, 900000); //15 min.
+      time = setTimeout(logout, 1500000); //25 min.
     }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {
