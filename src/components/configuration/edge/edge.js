@@ -115,6 +115,7 @@ class Edge extends Component {
     const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.getGroupList();
     this.getEdgeServiceType();

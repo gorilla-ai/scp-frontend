@@ -171,9 +171,10 @@ class HMDsettings extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
 
-    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.getSettingsInfo();
     this.getProductRegexInfo();

@@ -233,10 +233,11 @@ class NetworkInventory extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
     const inventoryParam = queryString.parse(location.search);
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.getLAconfig();
     this.getOwnerData();

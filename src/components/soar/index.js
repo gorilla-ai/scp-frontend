@@ -77,6 +77,10 @@ class SoarController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.inactivityTime(baseUrl, locale);
+
     this.getSoarColumn();
     this.validateIpExist();
   }

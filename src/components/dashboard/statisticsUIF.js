@@ -83,6 +83,10 @@ class StatisticsUIF extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.inactivityTime(baseUrl, locale);
+
     const datetime = {
       from: helper.getSubstractDate(1, 'days', moment().local()),
       to: moment().local().format('YYYY-MM-DDTHH:mm:ss')

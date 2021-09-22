@@ -90,9 +90,10 @@ class IncidentUnit extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
 
         this.checkAccountType();
 

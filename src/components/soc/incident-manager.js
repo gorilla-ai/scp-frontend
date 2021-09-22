@@ -143,8 +143,10 @@ class IncidentManagement extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
+
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
 
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);

@@ -381,10 +381,11 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.context;
+    const {baseUrl, locale, session, sessionRights} = this.context;
     let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
