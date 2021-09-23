@@ -853,6 +853,8 @@ class NetworkInventory extends Component {
       });
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.series(apiArr)
     .then(data => {
       let ipRt = '';
@@ -1197,6 +1199,8 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {currentSeatData, floorPlan} = this.state;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/seat?uuid=${currentSeatData.seatUUID}`,
       type: 'DELETE'
@@ -1528,6 +1532,8 @@ class NetworkInventory extends Component {
   deleteDevice = () => {
     const {baseUrl} = this.context;
     const {currentDeviceData, floorPlan} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
@@ -2903,6 +2909,8 @@ class NetworkInventory extends Component {
       };
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -3037,6 +3045,8 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {departmentList, titleList} = this.state;
     const value = event.target ? event.target.value : event;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${value}`,

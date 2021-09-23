@@ -1669,6 +1669,8 @@ class Netflow extends Component {
     }
     url = `${baseUrl}/api/account/flow/fields?module=${module}&accountId=${account.id}${fieldString}`;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       type: 'POST'
@@ -2486,6 +2488,8 @@ class Netflow extends Component {
     if (!value) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/network/html/reLinkFile?path=${value}`,

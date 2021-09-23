@@ -460,6 +460,8 @@ class HostAnalysis extends Component {
       hasHandled: true
     }];
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/hmd/malwareList`,
       data: JSON.stringify(requestData),

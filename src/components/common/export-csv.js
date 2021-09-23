@@ -52,6 +52,8 @@ class ExportCsv extends Component {
   deleteServiceTask = (id) => {
     const {baseUrl} = this.context;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/taskService/${id}`,
       type: 'DELETE'
@@ -77,6 +79,8 @@ class ExportCsv extends Component {
     const requestData = {
       id: [id]
     };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url,

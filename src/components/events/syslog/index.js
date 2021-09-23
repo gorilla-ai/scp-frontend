@@ -1246,6 +1246,8 @@ class SyslogController extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/account/log/fields?accountId=${account.id}${fieldString}`,
       type: 'POST'

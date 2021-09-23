@@ -56,6 +56,8 @@ class AdConfig extends Component {
   openADconfig = () => {
     const {baseUrl} = this.context;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/common/config?configId=config.ad`
     })
@@ -211,6 +213,8 @@ class AdConfig extends Component {
       value: JSON.stringify(adConfig)
     };
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/common/config`,
         data: JSON.stringify(payload),
@@ -239,6 +243,8 @@ class AdConfig extends Component {
   handleTestAD = () => {
     const {baseUrl} = this.context;
     const {adConfig} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/ad/_test`,

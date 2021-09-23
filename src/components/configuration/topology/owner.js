@@ -367,6 +367,8 @@ class NetworkOwner extends Component {
     const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
     let tempOwner = {...owner};
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
@@ -709,6 +711,8 @@ class NetworkOwner extends Component {
     if (!currentOwnerData.ownerUUID) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/owner?uuid=${currentOwnerData.ownerUUID}`,

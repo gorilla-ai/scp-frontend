@@ -35,6 +35,9 @@ class IncidentFlowDialog extends Component {
 		const {baseUrl, session} = this.context
 		let tempList = [];
 		let activeSteps = 1;
+
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
 			url: `${baseUrl}/api/soc/flowEngine/instance?id=${id}`,
 			type: 'GET',

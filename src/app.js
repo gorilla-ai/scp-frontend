@@ -439,7 +439,12 @@ function start() {
           'chewbacca',
           {
             parseSuccess: resp => {
-              if (resp) return resp.rt;
+              if (resp) {
+                clearTimeout(global.apiTimer);
+                global.apiTimer = setTimeout(getVersion, 1500000); //25 min.
+
+                return resp.rt;
+              }
             },
             parseFail: resp => ({
               code: _.get(resp, 'ret', -100),
@@ -461,6 +466,24 @@ function start() {
           </BrowserRouter>
         ), document.getElementById('app-container'))
       })
+    })
+}
+
+function getVersion() {
+  const url = `${cfg.apiPrefix}${cfg.contextRoot}/api/version`;
+
+  clearTimeout(global.apiTimer);
+  global.apiTimer = setTimeout(getVersion, 1500000); //25 min.
+
+  Promise.resolve($.get(url))
+    .then(data => {
+      return null;
+    })
+    .catch(xhr => {
+      return null;
+    })
+    .then(resources => {
+      return null;
     })
 }
 

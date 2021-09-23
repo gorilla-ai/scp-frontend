@@ -45,6 +45,8 @@ class IncidentComment extends Component {
 	open() {
         const {baseUrl} = this.context
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/command/_search`
         })
@@ -58,6 +60,8 @@ class IncidentComment extends Component {
 
     refresh() {
         const {baseUrl} = this.context
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/command/_search`
@@ -150,6 +154,8 @@ class IncidentComment extends Component {
             command: comment.command
         }
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/command`,
             data: JSON.stringify(payload),
@@ -200,6 +206,8 @@ class IncidentComment extends Component {
             display: <span>{it('txt-edit-msg')}</span>,
             act: (confirmed, data) => {
                 if (confirmed) {
+                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                     ah.one({
                         url: `${baseUrl}/api/soc/command`,
                         data: JSON.stringify(payload),
@@ -231,6 +239,8 @@ class IncidentComment extends Component {
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
+                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                     ah.one({
                         url: `${baseUrl}/api/soc/command?id=${selected}`,
                         type: 'DELETE'

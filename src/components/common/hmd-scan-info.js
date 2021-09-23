@@ -1594,6 +1594,8 @@ class HMDscanInfo extends Component {
       hostId: currentDeviceData.ipDeviceUUID
     };
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -2193,6 +2195,8 @@ class HMDscanInfo extends Component {
     if (!requestData.hmdSetting[0]._Parameters._IncludePathList) { //Invalid path data
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url,

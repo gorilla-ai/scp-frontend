@@ -166,6 +166,8 @@ class Roles extends Component {
       display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
         if (confirmed && id) {
+          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
           ah.one({
             url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
             type: 'DELETE',

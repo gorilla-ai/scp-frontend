@@ -434,6 +434,8 @@ class SoarController extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/soar/flow?flowId=${currentSoarData.flowId}`,
       type: 'DELETE'

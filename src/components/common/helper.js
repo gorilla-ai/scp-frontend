@@ -598,6 +598,11 @@ const helper = {
     document.onkeydown = resetTimer;   // onkeypress is deprectaed
     document.addEventListener('scroll', resetTimer, true);
 
+    function resetTimer() {
+      clearTimeout(time);
+      time = setTimeout(logout, 1500000); //25 min.
+    }
+
     function logout() {
       Progress.startSpin();
 
@@ -607,10 +612,24 @@ const helper = {
           window.location.href = '/SCP?lng=' + locale;
         })
     }
+  },
+  getVersion: function(baseUrl) {
+    clearTimeout(global.apiTimer);
+    global.apiTimer = setTimeout(getVersionNumber, 1500000); //25 min.
 
-    function resetTimer() {
-      clearTimeout(time);
-      time = setTimeout(logout, 1500000); //25 min.
+    function getVersionNumber() {
+      const url = `${baseUrl}/api/version`;
+
+      Promise.resolve($.get(url))
+        .then(data => {
+          return null;
+        })
+        .catch(xhr => {
+          return null;
+        })
+        .then(resources => {
+          return null;
+        })
     }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {

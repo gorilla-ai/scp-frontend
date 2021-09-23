@@ -48,6 +48,8 @@ class IncidentTag extends Component {
 	open(id) {
 		const {baseUrl, session} = this.context
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
             url: `${baseUrl}/api/soc/tag/_search`,
             data: JSON.stringify({account: session.accountId}),
@@ -57,6 +59,8 @@ class IncidentTag extends Component {
         })
         .then(data => {
             if (id) {
+                helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                 ah.one({
                     url: `${baseUrl}/api/soc/tag/mapping/_search`,
                     data: JSON.stringify({incidentId: id}),
@@ -148,6 +152,8 @@ class IncidentTag extends Component {
 			apis.push(api)
 		})
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.all(apis)
         .then(result => {
             this.close()
@@ -191,6 +197,8 @@ class IncidentTag extends Component {
                 data:JSON.stringify({incidentId: id, tagId: el})
             })
         })
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.all(apis)
         .then(result => {

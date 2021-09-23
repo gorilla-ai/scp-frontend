@@ -256,6 +256,8 @@ class VansNotes extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -318,6 +320,8 @@ class VansNotes extends Component {
     const {baseUrl} = this.context;
     const {currentType} = this.props;
     const {vansNotes} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/annotation?id=${vansNotes.id}`,

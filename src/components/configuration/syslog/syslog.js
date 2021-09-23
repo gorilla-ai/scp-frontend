@@ -586,6 +586,8 @@ class Syslog extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/log/netproxy/sshaccount?account=${sshAccountName}`,
       data: JSON.stringify({}),
@@ -878,6 +880,8 @@ class Syslog extends Component {
   deleteConfig = () => {
     const {baseUrl} = this.context;
     const {currentConfigData} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/log/netproxy/config?port=${currentConfigData.port}&hostIp=${currentConfigData.loghostIp}`,

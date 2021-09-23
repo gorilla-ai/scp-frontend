@@ -463,6 +463,8 @@ class Pattern extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/alert/pattern?patternId=${currentPatternData.patternId}`,
       type: 'DELETE'

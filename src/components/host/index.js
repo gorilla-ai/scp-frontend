@@ -3280,6 +3280,8 @@ class HostController extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/hmd/setupFile/_upload`,
       data: formData,
@@ -3372,6 +3374,8 @@ class HostController extends Component {
         _RuleString: yaraRule.rule
       };
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url,

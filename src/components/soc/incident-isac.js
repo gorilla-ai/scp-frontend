@@ -74,6 +74,9 @@ class IncidentIsac extends Component {
 		let requestData={
 			account:session.accountId
 		}
+
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
 			url: `${baseUrl}/api/soc/unit/limit/_check`,
 			data: JSON.stringify(requestData),

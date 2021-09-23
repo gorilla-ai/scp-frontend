@@ -491,6 +491,8 @@ class AlertDetails extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
@@ -2154,6 +2156,8 @@ class AlertDetails extends Component {
       fileMD5,
       hasHandled: true
     }];
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/hmd/malwareList`,
