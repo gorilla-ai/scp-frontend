@@ -148,8 +148,9 @@ class EsManage extends Component {
         confirmText: t('txt-ok'),
         cancelText: t('txt-cancel'),
         display: (
-          <div className='content delete'>
-            <span>{t('es-management.txt-turnOffMsg')}?</span>
+          <div className='content'>
+            <div style={{marginBottom: '10px'}}>{t('es-management.txt-turnOffMsg')}?</div>
+            <div>({t('es-management.txt-turnOffMsg-more')})</div>
           </div>
         ),
         act: (confirmed) => {

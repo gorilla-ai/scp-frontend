@@ -757,7 +757,8 @@
 
   "es-management": {
     "txt-exportMsg": "匯出後索引將會刪除。請確認是否匯出",
-    "txt-turnOffMsg": "請確認是否關閉索引"
+    "txt-turnOffMsg": "請確認是否關閉索引",
+    "txt-turnOffMsg-more": "關閉index會導致該index隔日資料無法查詢"
   },
 
   "threat-severity-mapping": {
