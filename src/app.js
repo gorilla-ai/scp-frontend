@@ -150,37 +150,37 @@ const Notifications = () => (
 
 const Edge = () => (
   <BaseDataContext.Provider value={baseData}>
-    <EdgeManagement/>
+    <EdgeManagement />
   </BaseDataContext.Provider>
 );
 
 const Threat = () => (
   <BaseDataContext.Provider value={baseData}>
-    <ThreatIntelligence/>
+    <ThreatIntelligence />
   </BaseDataContext.Provider>
 );
 
 const Severity = () => (
   <BaseDataContext.Provider value={baseData}>
-    <SeverityTable/>
+    <SeverityTable />
   </BaseDataContext.Provider>
 );
 
 const Es = () => (
   <BaseDataContext.Provider value={baseData}>
-    <EsManagement/>
+    <EsManagement />
   </BaseDataContext.Provider>
 );
 
 const NetworkTopologyInventory = () => (
   <BaseDataContext.Provider value={baseData}>
-    <NetworkInventory/>
+    <NetworkInventory />
   </BaseDataContext.Provider>
 );
 
 const NetworkTopologyOwner = () => (
   <BaseDataContext.Provider value={baseData}>
-    <NetworkOwner/>
+    <NetworkOwner />
   </BaseDataContext.Provider>
 );
 
@@ -216,73 +216,73 @@ const Audit = () => (
 
 const serviceStatus = () => (
   <BaseDataContext.Provider value={baseData}>
-    <ServiceStatus/>
+    <ServiceStatus />
   </BaseDataContext.Provider>
 );
 
 const productInfo = () => (
   <BaseDataContext.Provider value={baseData}>
-    <ProductInfo/>
+    <ProductInfo />
   </BaseDataContext.Provider>
 );
 
 const incidentDevice = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentDeviceStep/>
+    <IncidentDeviceStep />
   </BaseDataContext.Provider>
 );
 
 const incident = () => (
   <BaseDataContext.Provider value={baseData}>
-    <Incident/>
+    <Incident />
   </BaseDataContext.Provider>
 );
 
 const incidentUnit = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentUnit/>
+    <IncidentUnit />
   </BaseDataContext.Provider>
 );
 
 const incidentLog = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentLog/>
+    <IncidentLog />
   </BaseDataContext.Provider>
 );
 
 const incidentISAC = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentISAC/>
+    <IncidentISAC />
   </BaseDataContext.Provider>
 );
 
 const incidentSOC = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentSOC/>
+    <IncidentSOC />
   </BaseDataContext.Provider>
 );
 
 const incidentRule = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentRule/>
+    <IncidentRule />
   </BaseDataContext.Provider>
 );
 
 const incidentFlow = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentFlow/>
+    <IncidentFlow />
   </BaseDataContext.Provider>
 );
 
 const incidentSearch = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentSearch/>
+    <IncidentSearch />
   </BaseDataContext.Provider>
 );
 
 const incidentManagement = () => (
   <BaseDataContext.Provider value={baseData}>
-    <IncidentManagement/>
+    <IncidentManagement />
   </BaseDataContext.Provider>
 );
 
