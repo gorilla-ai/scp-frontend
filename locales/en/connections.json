@@ -746,7 +746,8 @@
 
   "es-management": {
     "txt-exportMsg": "Index will be deleted after the export is done. Are you sure you want to proceed?",
-    "txt-turnOffMsg": "Are you sure you want to turn the index off"
+    "txt-turnOffMsg": "Are you sure you want to turn the index off",
+    "txt-turnOffMsg-more": "Closing the index will cause the data of next day cannot be access."
   },
 
   "threat-severity-mapping": {
