@@ -618,13 +618,13 @@ class NetworkOwner extends Component {
     formData.append('ownerID', owner.info.ownerID);
     formData.append('ownerName', owner.info.ownerName);
 
-    if (owner.info.department.value) {
+    if (owner.info.department && owner.info.department.value) {
       formData.append('department', owner.info.department.value);
     } else {
       formData.append('department', '');
     }
 
-    if (owner.info.title.value) {
+    if (owner.info.title && owner.info.title.value) {
       formData.append('title', owner.info.title.value);
     } else {
       formData.append('title', '');
