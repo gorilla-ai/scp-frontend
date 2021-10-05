@@ -76,6 +76,7 @@
   "-5013": "Department does not exist",
   "-5014": "Department does not match",
   "-5015": "Add owner fail",
+  "-5016": "Update owner fail",
 
   "-6801": "PDF service connect fail",
 
@@ -107,6 +108,10 @@
 
   "-9100": "Parse Json Fail",
   "-9101": "Parse File Fail",
+  "-9103": "Format error: Invalid TIMAP format",
+  "-9104": "Format error: Invalid HMD installer",
+  "-9105": "Not allow to upload older HMD installer",
+  "-9106": "Import failure",
 
   "-10222": "Device ID is already exist",
   "-10322": "Unit OID is already exist",

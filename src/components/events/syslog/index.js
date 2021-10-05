@@ -1601,8 +1601,7 @@ class SyslogController extends Component {
   tableDialog = () => {
     const title = t('txt-syslog-en') + ' ' + t('events.connections.txt-fieldsSettings');
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.resetDataTable.bind(this, 'setFields')}
+      confirm: {text: t('txt-close'), handler: this.resetDataTable.bind(this, 'setFields')}
     };
 
     return (
@@ -1613,7 +1612,7 @@ class SyslogController extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='confirm'>
         {this.displayTableData()}
       </ModalDialog>
     )
