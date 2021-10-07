@@ -840,7 +840,7 @@ class ThreatIntelligence extends Component {
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/threat/upload`,
       data: formData,
       type: 'POST',
@@ -848,7 +848,7 @@ class ThreatIntelligence extends Component {
       contentType: false
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         helper.showPopupMsg(t('edge-management.txt-addSuccess'));
         this.toggleImportThreats();
 
@@ -858,8 +858,6 @@ class ThreatIntelligence extends Component {
         }, () => {
           this.getChartsData();
         });
-      } else if (data.ret === -1) {
-        helper.showPopupMsg('', t('txt-error'), err.message);
       }
       return null;
     })

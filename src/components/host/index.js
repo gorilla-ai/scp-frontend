@@ -3282,7 +3282,7 @@ class HostController extends Component {
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/hmd/setupFile/_upload`,
       data: formData,
       type: 'POST',
@@ -3290,7 +3290,7 @@ class HostController extends Component {
       contentType: false
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         helper.showPopupMsg(t('txt-uploadSuccess'));
 
         this.setState({
@@ -3298,8 +3298,6 @@ class HostController extends Component {
         });
 
         this.toggleUploadFile();
-      } else if (data.ret === -1) {
-        helper.showPopupMsg('', t('txt-error'), err.message);
       }
       return null;
     })
