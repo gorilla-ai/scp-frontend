@@ -24,6 +24,7 @@
   "txt-all": "All",
   "txt-view": "View",
   "txt-close": "Close",
+  "txt-closeRefresh": "Close and refresh content",
   "txt-show": "Show",
   "txt-tips": "Tips",
   "txt-layout-setting": "Layout Setting",
