@@ -588,14 +588,14 @@ class Syslog extends Component {
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/log/netproxy/sshaccount?account=${sshAccountName}`,
       data: JSON.stringify({}),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         this.setState({
           sshAccountName: '',
           showAddSshAccount: false
