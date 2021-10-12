@@ -829,6 +829,7 @@
     "txt-netcutResume": "恢復",
     "txt-confirmTo": "確認要",
     "txt-checkHmdSettings": "請檢查HMD設定",
+    "txt-notYetAssessed": "未評估",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",

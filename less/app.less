@@ -612,7 +612,10 @@ button.standard:hover:not([disabled]) {
 }
 .mui-table-content {
   div[class^='MUIDataTableResize-resizer-'] {
-    border: 0.1px dotted var(--primaryBorder);
+    border: none;
+    border-right: 0.1px solid var(--primaryBorder);
+    border-left: 0.1px solid var(--primaryBorder);
+    width: 3px;
   }
   .no-result {
     text-align: center;

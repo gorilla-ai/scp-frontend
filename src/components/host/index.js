@@ -3448,6 +3448,7 @@ class HostController extends Component {
           <HostAnalysis
             activeTab={activeTab}
             assessmentDatetime={assessmentDatetime}
+            hostCreateTime={hostCreateTime}
             hostData={hostData}
             eventInfo={eventInfo}
             openHmdType={openHmdType}

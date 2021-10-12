@@ -835,6 +835,10 @@ html[data-theme='dark'] {
             margin-bottom: 10px;
             & > span {
               margin-right: 15px;
+              &.assessment-info {
+                float: left;
+                margin-right: 5px;
+              }
             }
             .download {
               position: absolute;
@@ -869,13 +873,19 @@ html[data-theme='dark'] {
               .execute {
                 span {
                   color: var(--formEmailGroup);
+                  &.assessment-info {
+                    float: left;
+                    margin-right: 2px;
+                    color: inherit;
+                  }
                 }
               }
             }
             .display-time {
               margin-top: -2px;
             }
-            i.fg {
+            i.fg-arrow-top,
+            i.fg-arrow-bottom {
               position: absolute;
               top: 15px;
               right: 15px;

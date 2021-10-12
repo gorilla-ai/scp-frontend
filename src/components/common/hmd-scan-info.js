@@ -1587,14 +1587,16 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayAccordionContent = (val, i) => {
+    const {assessmentDatetime, hostCreateTime} = this.props;
     const {activeTab} = this.state;
     const fileIntegrityArr = ['_NewCreateFile', '_MissingFile', '_ModifyFile'];
     const malwareBtnType = val.isUploaded ? 'download' : 'compress';
+    const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
     let dataResult = [];
     let scanPath = '';
     let filePathList = [];
     let yaraRuleList = [];
-    let header = t('hmd-scan.txt-suspiciousFilePath');    
+    let header = t('hmd-scan.txt-suspiciousFilePath');
 
     if (!val.taskResponseDttm) {
       return;
@@ -1623,6 +1625,9 @@ class HMDscanInfo extends Component {
     return (
       <div key={i} className='scan-section'>
         <div className='scan-header'>
+          {assessmentInfo &&
+            <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
+          }
           <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
@@ -1745,7 +1750,9 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayTableContent = (val, i) => {
+    const {hostCreateTime} = this.props;
     const {activeTab} = this.state;
+    const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
 
     if (!val.taskResponseDttm) {
       return;
@@ -1755,6 +1762,9 @@ class HMDscanInfo extends Component {
       <div key={i} className='scan-section'>
         <div className='table'>
           <div className='scan-header'>
+            {assessmentInfo &&
+              <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
+            }
             <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
             <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
             {val.taskStatus && val.taskStatus === 'Failure' &&
@@ -1780,6 +1790,9 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIrContent = (val, i) => {
+    const {hostCreateTime} = this.props;
+    const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
+
     if (!val.taskResponseDttm) {
       return;
     }
@@ -1787,6 +1800,9 @@ class HMDscanInfo extends Component {
     return (
       <div key={i} className='scan-section'>
         <div className='scan-header'>
+          {assessmentInfo &&
+            <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
+          }
           <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
@@ -2301,12 +2317,24 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayMoreEdrInfo = (val, i) => {
+    const {hostCreateTime} = this.props;
+    let assessmentInfo = '';
+
+    if (val.taskResponseDttm && moment(val.taskResponseDttm).isAfter(hostCreateTime)) {
+      assessmentInfo = t('hmd-scan.txt-notYetAssessed');
+    }
+
     if (i === 0) return;
 
     return (
       <div key={i} className='btns'>
         <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(val.latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
-        <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+        <div className='execute'>
+          {assessmentInfo &&
+            <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
+          }
+          <span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}
+        </div>
       </div>
     )
   }
@@ -2318,8 +2346,13 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getEdrButtonList = (val, i) => {
-    const {currentDeviceData} = this.props;
+    const {hostCreateTime, currentDeviceData} = this.props;
     const {edrMoreInfo} = this.state;
+    let assessmentInfo = '';
+
+    if (val.taskResponseDttm && moment(val.taskResponseDttm).isAfter(hostCreateTime)) {
+      assessmentInfo = t('hmd-scan.txt-notYetAssessed');
+    }
 
     return (
       <div key={i} className='btn-group'>
@@ -2329,7 +2362,12 @@ class HMDscanInfo extends Component {
             <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
           }
           {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
-            <div className='execute'><span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].taskResponseDttm, 'local') || NOT_AVAILABLE}</div>
+            <div className='execute'>
+              {assessmentInfo &&
+                <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
+              }
+              <span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].taskResponseDttm, 'local') || NOT_AVAILABLE}
+            </div>
           }
         </div>
         {currentDeviceData.safetyScanInfo[val + 'Result'].length > 1 &&
