@@ -471,7 +471,9 @@ class Header extends Component {
                 {sessionRights.Module_Soc &&
                   <Link id='header-link-soc' to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
                 }
-                <Link id='header-link-soar' to='/SCP/soar' className={cx('item', {'active': this.getActiveTab('soar')})}>SOAR</Link>
+                {sessionRights.Module_Config &&
+                  <Link id='header-link-soar' to='/SCP/soar' className={cx('item', {'active': this.getActiveTab('soar')})}>SOAR</Link>
+                }
                 {sessionRights.Module_Config &&
                   <Link id='header-link-config' to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
