@@ -841,6 +841,7 @@
     "txt-netcutResume": "Resume",
     "txt-confirmTo": "Confirm to ",
     "txt-checkHmdSettings": "Please check HMD settings",
+    "txt-notYetAssessed": "Not assessed",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
