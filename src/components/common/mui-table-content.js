@@ -91,7 +91,7 @@ class MuiTableContent extends Component {
           previous: t('MuiDataTable.pagination.previous'),
           rowsPerPage: t('MuiDataTable.pagination.rowsPerPage'),
           displayRows: t('MuiDataTable.pagination.displayRows'),
-          jumpToPage: t('MuiDataTable.pagination.jumpToPage'),
+          jumpToPage: t('MuiDataTable.pagination.jumpToPage')
         },
         toolbar: {
           search: t('MuiDataTable.toolbar.search'),
