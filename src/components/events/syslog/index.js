@@ -705,7 +705,7 @@ class SyslogController extends Component {
       if (data) {
         let tempSyslogData = {...syslogData};
 
-        if (syslogData.currentPage > 1 && !data[0].data) {
+        if (syslogData.currentPage > 1 && data[0].data.counts === 0) { //Exceed 10,000 data count
           helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           tempSyslogData.currentPage = syslogData.oldPage;
@@ -724,7 +724,7 @@ class SyslogController extends Component {
         const currentLength = dataObj.rows.length < syslogData.pageSize ? dataObj.rows.length : syslogData.pageSize;
         let eventHistogram = {};
 
-        if (_.isEmpty(data[0]) || dataObj.rows.length === 0) {
+        if (dataObj.counts === 0) { //No data found
           tempSyslogData.dataContent = [];
           tempSyslogData.totalCount = 0;
 

@@ -1709,7 +1709,7 @@ class ThreatsController extends Component {
         if (!options || options === 'alertDetails') {
           let tempThreatsData = {...threatsData};
 
-          if (threatsData.currentPage > 1 && data.data.rows.length === 0) {
+          if (threatsData.currentPage > 1 && data.data.counts === 0) { //Exceed 10,000 data count
             helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
             tempThreatsData.currentPage = threatsData.oldPage;
@@ -1718,129 +1718,129 @@ class ThreatsController extends Component {
               threatsData: tempThreatsData
             });
             return;
-          } else {
-            let alertHistogram = {
-              Emergency: {},
-              Alert: {},
-              Critical: {},
-              Warning: {},
-              Notice: {}
-            };
-            let tableData = data.data;
-            let tempArray = [];
+          }
 
-            if (_.isEmpty(tableData) || (tableData && tableData.rows.length === 0)) {
-              tempThreatsData.dataContent = [];
-              tempThreatsData.totalCount = 0;
+          let alertHistogram = {
+            Emergency: {},
+            Alert: {},
+            Critical: {},
+            Warning: {},
+            Notice: {}
+          };
+          let tableData = data.data;
+          let tempArray = [];
 
-              this.setState({
-                threatsData: tempThreatsData,
-                alertHistogram: {}
-              });
-              return null;
-            }
+          if (tableData.counts === 0) { //No data found
+            tempThreatsData.dataContent = []; 
+            tempThreatsData.totalCount = 0;
 
-            tableData = tableData.rows;
-            tempArray = _.map(tableData, val => { //Re-construct the Alert data
-              val._source.id = val._id;
-              val._source.index = val._index;
-
-              let selectCheck = false;
-              _.forEach(this.state.threatsList, data => {
-                if (val.id === data.id) {
-                  selectCheck = true;
-                }
-              })
-              val._source.select = selectCheck;
-              return val._source;
+            this.setState({
+              threatsData: tempThreatsData,
+              alertHistogram: {}
             });
+            return null;
+          }
 
-            let tempAlertDetails = {...alertDetails};
-            tempAlertDetails.currentIndex = 0;
-            tempAlertDetails.currentLength = tableData.length < threatsData.pageSize ? tableData.length : threatsData.pageSize;
-            tempAlertDetails.all = tempArray;
-            _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-              if (data.event_histogram[val]) {
-                _.forEach(data.event_histogram[val].buckets, val2 => {
-                  if (val2.doc_count > 0) {
-                    alertHistogram[val][val2.key_as_string] = val2.doc_count;
-                  }
-                })
+          tableData = tableData.rows;
+          tempArray = _.map(tableData, val => { //Re-construct the Alert data
+            val._source.id = val._id;
+            val._source.index = val._index;
+
+            let selectCheck = false;
+            _.forEach(this.state.threatsList, data => {
+              if (val.id === data.id) {
+                selectCheck = true;
               }
             })
+            val._source.select = selectCheck;
+            return val._source;
+          });
 
-            this.setState({
-              alertHistogram,
-              alertDetails: tempAlertDetails
-            }, () => {
-              if (options === 'alertDetails') {
-                this.openDetailInfo('', '', type);
-              }
-            });
-
-            tempThreatsData.dataContent = tempArray;
-            tempThreatsData.totalCount = data.data.counts;
-            tempThreatsData.currentPage = page;
-            let dataFieldsArr = [];
-
-            if (this.state.tableType === 'select') {
-              dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
-            } else {
-              dataFieldsArr =  [ '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
+          let tempAlertDetails = {...alertDetails};
+          tempAlertDetails.currentIndex = 0;
+          tempAlertDetails.currentLength = tableData.length < threatsData.pageSize ? tableData.length : threatsData.pageSize;
+          tempAlertDetails.all = tempArray;
+          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+            if (data.event_histogram[val]) {
+              _.forEach(data.event_histogram[val].buckets, val2 => {
+                if (val2.doc_count > 0) {
+                  alertHistogram[val][val2.key_as_string] = val2.doc_count;
+                }
+              })
             }
+          })
 
-            tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
-              return {
-                name: val === 'select' ? '' : val,
-                label: f(`alertFields.${val}`),
-                options: {
-                  sort: val === '_eventDttm_',
-                  customBodyRenderLite: (dataIndex, options) => {
-                    const allValue = tempThreatsData.dataContent[dataIndex];
-                    let value = tempThreatsData.dataContent[dataIndex][val];
+          this.setState({
+            alertHistogram,
+            alertDetails: tempAlertDetails
+          }, () => {
+            if (options === 'alertDetails') {
+              this.openDetailInfo('', '', type);
+            }
+          });
 
-                    if (options === 'getAllValue') {
-                      return allValue;
+          tempThreatsData.dataContent = tempArray;
+          tempThreatsData.totalCount = data.data.counts;
+          tempThreatsData.currentPage = page;
+          let dataFieldsArr = [];
+
+          if (this.state.tableType === 'select') {
+            dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
+          } else {
+            dataFieldsArr =  [ '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
+          }
+
+          tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
+            return {
+              name: val === 'select' ? '' : val,
+              label: f(`alertFields.${val}`),
+              options: {
+                sort: val === '_eventDttm_',
+                customBodyRenderLite: (dataIndex, options) => {
+                  const allValue = tempThreatsData.dataContent[dataIndex];
+                  let value = tempThreatsData.dataContent[dataIndex][val];
+
+                  if (options === 'getAllValue') {
+                    return allValue;
+                  }
+
+                  if (val === 'select') {
+                    return (
+                      <Checkbox
+                        id={allValue.id}
+                        className='checkbox-ui'
+                        name='select'
+                        checked={allValue.select}
+                        onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
+                        color='primary' />
+                    )
+                  }
+
+                  if (val === 'Info' || val === 'Source') {
+                    return <span onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
+                  } else {
+                    if (val === '_eventDttm_') {
+                      value = helper.getFormattedDate(value, 'local');
                     }
-
-                    if (val === 'select') {
-                      return (
-                        <Checkbox
-                          id={allValue.id}
-                          className='checkbox-ui'
-                          name='select'
-                          checked={allValue.select}
-                          onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
-                          color='primary' />
-                      )
-                    }
-
-                    if (val === 'Info' || val === 'Source') {
-                      return <span onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
-                    } else {
-                      if (val === '_eventDttm_') {
-                        value = helper.getFormattedDate(value, 'local');
-                      }
-                      return (
-                        <TableCell
-                          activeTab={activeTab}
-                          fieldValue={value}
-                          fieldName={val}
-                          allValue={allValue}
-                          alertLevelColors={ALERT_LEVEL_COLORS}
-                          handleOpenQueryMenu={this.handleOpenQueryMenu}
-                          handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
-                      )
-                    }
+                    return (
+                      <TableCell
+                        activeTab={activeTab}
+                        fieldValue={value}
+                        fieldName={val}
+                        allValue={allValue}
+                        alertLevelColors={ALERT_LEVEL_COLORS}
+                        handleOpenQueryMenu={this.handleOpenQueryMenu}
+                        handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                    )
                   }
                 }
-              };
-            });
+              }
+            };
+          });
 
-            this.setState({
-              threatsData: tempThreatsData
-            });
-          }
+          this.setState({
+            threatsData: tempThreatsData
+          });
         }
 
         if (options === 'statistics') {
