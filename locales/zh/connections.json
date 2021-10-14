@@ -621,7 +621,6 @@
     "txt-Settings": "事件測試",
     "txt-adapterError": "只容許一個事件來源節點",
     "txt-adapterErrorLink": "事件來源節點沒有連結",
-    "txt-backToListWarning": "未儲存的資料將會遺失，請確認要繼續",
     "txt-dryRun": "執行測試",
     "txt-dryRunLogMissing": "測試Log不得為空值",
     "txt-error-400": "Bad Request",

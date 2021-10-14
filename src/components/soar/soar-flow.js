@@ -430,36 +430,6 @@ class SoarFlow extends Component {
     this.handleCloseMenu();
   }
   /**
-   * Display delete floor content
-   * @method
-   * @returns HTML DOM
-   */
-  getBackToListContent = () => {
-    return (
-      <div className='content'>
-        <span>{t('soar.txt-backToListWarning')}</span>
-      </div>
-    )
-  }
-  /**
-   * Display warning message
-   * @method
-   */
-  handleBackToList = () => {
-    PopupDialog.prompt({
-      title: t('txt-backToList'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-confirm'),
-      cancelText: t('txt-cancel'),
-      display: this.getBackToListContent(),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.clearSoarData('table');
-        }
-      }
-    });
-  }
-  /**
    * Close dialog
    * @method
    */
@@ -582,11 +552,7 @@ class SoarFlow extends Component {
     })
     .then(data => {
       if (data.ret === 0) { //Success
-        helper.showPopupMsg(t('txt-saved'));
-
-        this.setState({
-          currentFlowID: data.rt.flowId
-        });
+        this.clearSoarData('table');
       } else {
         if (data.rt.length === 0) {
           const errorMsg = t('soar.txt-error' + data.ret);
@@ -754,7 +720,6 @@ class SoarFlow extends Component {
             <div className='main-content basic-form'>
               <header className='main-header'>{t('soar.txt-soarFlow')}</header>
               <div className='content-header-btns'>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleBackToList}>{t('txt-backToList')}</Button>
               </div>
               <Menu
                 anchorEl={contextAnchor.node || contextAnchor.link}
