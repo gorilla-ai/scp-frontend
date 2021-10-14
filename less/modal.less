@@ -854,6 +854,8 @@ html[data-theme='dark'] {
       }
       .edr {
         .edr-btn-group {
+          display: flex;
+          flex-wrap: wrap;
           overflow-y: auto;
           max-height: 425px;
           margin: 20px 0;
@@ -862,9 +864,11 @@ html[data-theme='dark'] {
           }
           .btn-group {
             position: relative;
+            width: 48%;
             overflow: hidden;
             padding: 20px 15px;
             margin: 15px 0;
+            margin-right: 2%;
             border: 1px solid var(--primaryBorder);
             border-radius: 10px;
             button {

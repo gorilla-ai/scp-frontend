@@ -81,7 +81,7 @@ const SETTINGS = {
   snapshot: 'getSnapshot',
   procWhiteList: 'setProcessWhiteList'
 };
-const EDR_BUTTON_LIST = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
+const EDR_BUTTON_LIST = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd'];
 let scrollCount = 1;
 
 let t = null;
@@ -2387,6 +2387,10 @@ class HMDscanInfo extends Component {
 
     if (val.taskResponseDttm && moment(val.taskResponseDttm).isAfter(hostCreateTime)) {
       assessmentInfo = t('hmd-scan.txt-notYetAssessed');
+    }
+
+    if (!currentDeviceData.safetyScanInfo[val + 'Result']) {
+      return;
     }
 
     return (
