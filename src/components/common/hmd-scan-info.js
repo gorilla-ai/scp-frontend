@@ -1950,7 +1950,7 @@ class HMDscanInfo extends Component {
   /**
    * Handle button click for EDR
    * @method
-   * @param {string} type - btn type ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume')
+   * @param {string} type - btn type ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd')
    */
   handleEdrBtn = (type) => {
     const {baseUrl} = this.context;
@@ -2376,7 +2376,7 @@ class HMDscanInfo extends Component {
   /**
    * Display view/edit settings content
    * @method
-   * @param {object} val - individual EDR ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume')
+   * @param {object} val - individual EDR ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd')
    * @param {number} i - index of the EDR list
    * @returns HTML DOM
    */
