@@ -632,7 +632,6 @@
     "txt-Settings": "Event Testing",
     "txt-adapterError": "Only one adapter is allowed",
     "txt-adapterErrorLink": "Adapter needs to have an associate link",
-    "txt-backToListWarning": "Unsaved data will be lost, please confirm to proceed",
     "txt-dryRun": "Run",
     "txt-dryRunLogMissing": "Testing Log could not empty",
     "txt-error-400": "Bad Request",
