@@ -544,6 +544,41 @@ class SoarFlow extends Component {
       return;
     }
 
+    // let allLinks = [];
+    // let sameSourceLink = [];
+
+    // _.forEach(soarFlow, val => {
+    //   if (val.componentType === 'link') {
+    //     if (_.includes(allLinks, val.from)) {
+    //       sameSourceLink.push(val.from);
+    //     } else {
+    //       allLinks.push(val.from);
+    //     }
+    //   }
+    // })
+
+    // let newSoarFlow = [];
+    // let count = 0;
+
+    // _.forEach(soarFlow, (val, i) => {
+    //   if (val.componentType === 'link') {
+    //     if (_.includes(sameSourceLink, val.from)) {
+    //       count++;
+
+    //       newSoarFlow.push({
+    //         ...val,
+    //         label: val.label + ' (' + count + ')'
+    //       });
+    //     } else {
+    //       newSoarFlow.push(val);
+    //     }
+    //   } else {
+    //     newSoarFlow.push(val);
+    //   }
+    // })
+
+    // requestData.flow = newSoarFlow;
+
     ah.one({
       url,
       data: JSON.stringify(requestData),
