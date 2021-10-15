@@ -103,6 +103,7 @@ class AlertDetails extends Component {
         scrollCount: 1,
         hasMore: false
       },
+      pcapDownloadLink: '',
       showRedirectMenu: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
@@ -915,6 +916,35 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Check PCAP download availability
+   * @method
+   */
+  checkPcapAvailability = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {alertData} = this.props;
+    const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const agentId = alertData._edgeInfo ? alertData._edgeInfo.agentId : '';
+
+    this.ah.one({
+      url: `${baseUrl}/api/alert/pcap/check?agentId=${agentId}&startDttm=${startDttm}&endDttm=${endDttm}&srcIp=${alertData.srcIp}&dstIp=${alertData.destIp}&srcPort=${alertData.srcPort}&dstPort=${alertData.destPort}&infoType=${alertData['alertInformation.type']}`,
+      type: 'GET'
+    })
+    .then(data => {
+      const pcapDownloadLink = data ? `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp}&infoType=${alertData['alertInformation.type']}` : '';
+
+      this.setState({
+        pcapDownloadLink
+      }, () => {
+        this.toggleRedirectMenu();
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display Query More menu
    * @method
    * @param {string} options - options for 'rule'
@@ -933,7 +963,7 @@ class AlertDetails extends Component {
     if ((ip && ip !== NOT_AVAILABLE) || options === 'rule') {
       return (
         <div className='multi-items'>
-          <span id='queryMoreBtn' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</span>
+          <span id='queryMoreBtn' onClick={this.checkPcapAvailability}>{t('alert.txt-queryMore')}</span>
         </div>
       )
     }
@@ -1231,6 +1261,7 @@ class AlertDetails extends Component {
   displayRedirectMenu = (options) => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
+    const {pcapDownloadLink} = this.state;
 
     if (options === 'srcIp' || options === 'destIp') {
       return (
@@ -1239,15 +1270,10 @@ class AlertDetails extends Component {
         </ul>
       )
     } else if (options === 'rule') {
-      const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      const agentId = alertData._edgeInfo ? alertData._edgeInfo.agentId : '';
-      const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
-
       return (
         <ul className='redirect-menu' ref={this.setWrapperRef}>
-          {alertData.pcapFlag && agentId &&
-            <li id='downloadPcapBtn' onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</li>
+          {alertData.pcapFlag && pcapDownloadLink &&
+            <li id='downloadPcapBtn' onClick={this.pcapDownload.bind(this, pcapDownloadLink)}>{t('alert.txt-downloadPCAP')}</li>
           }
           <li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}</li>
         </ul>
