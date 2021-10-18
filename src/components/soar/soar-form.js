@@ -161,6 +161,7 @@ class SoarForm extends Component {
 
       this.setState({
         nodeCustomName: activeElement.label,
+        linkPriority: activeElement.priority,
         soarLinkOperator: activeElement.op,
         [activeElement.op]: argsData
       });
