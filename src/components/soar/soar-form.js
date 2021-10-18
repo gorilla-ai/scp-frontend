@@ -71,12 +71,20 @@ class SoarForm extends Component {
     index = linkOp.indexOf('or');
     linkOp.splice(index, 1);
 
-    const nodeGroupList = _.map(COUNT_LIST, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    let nodeGroupList = [];
+    nodeGroupList.push(<MenuItem value='' style={{height: '30px'}}></MenuItem>);
+
+     _.map(COUNT_LIST, (val, i) => {
+      nodeGroupList.push(<MenuItem key={i} value={val}>{val}</MenuItem>);
     });
-    const linkPriorityList = _.map(COUNT_LIST, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+
+    let linkPriorityList = [];
+    linkPriorityList.push(<MenuItem value='' style={{height: '30px'}}></MenuItem>);
+
+     _.map(COUNT_LIST, (val, i) => {
+      linkPriorityList.push(<MenuItem key={i} value={val}>{val}</MenuItem>);
     });
+
     const linkOperatorList = _.map(soarColumns.linkOp, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
