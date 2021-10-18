@@ -18,7 +18,7 @@ import MultiOperator from './multi-operator'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const GROUP_LIST = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+const COUNT_LIST = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 let t = null;
 let et = null;
@@ -37,6 +37,8 @@ class SoarForm extends Component {
       nodeGroupList: [],
       nodeCustomName: '',
       nodeCustomGroup: '',
+      linkPriorityList: [],
+      linkPriority: '',
       linkOperatorList: [],
       linkOperatorListReduce: [],
       nodeAdapterOperatorList: [],
@@ -69,9 +71,20 @@ class SoarForm extends Component {
     index = linkOp.indexOf('or');
     linkOp.splice(index, 1);
 
-    const nodeGroupList = _.map(GROUP_LIST, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    let nodeGroupList = [];
+    nodeGroupList.push(<MenuItem value='' style={{height: '30px'}}></MenuItem>);
+
+     _.map(COUNT_LIST, (val, i) => {
+      nodeGroupList.push(<MenuItem key={i} value={val}>{val}</MenuItem>);
     });
+
+    let linkPriorityList = [];
+    linkPriorityList.push(<MenuItem value='' style={{height: '30px'}}></MenuItem>);
+
+     _.map(COUNT_LIST, (val, i) => {
+      linkPriorityList.push(<MenuItem key={i} value={val}>{val}</MenuItem>);
+    });
+
     const linkOperatorList = _.map(soarColumns.linkOp, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
@@ -90,6 +103,7 @@ class SoarForm extends Component {
 
     this.setState({
       nodeGroupList,
+      linkPriorityList,
       linkOperatorList,
       linkOperatorListReduce,
       nodeAdapterOperatorList,
@@ -155,6 +169,7 @@ class SoarForm extends Component {
 
       this.setState({
         nodeCustomName: activeElement.label,
+        linkPriority: activeElement.priority,
         soarLinkOperator: activeElement.op,
         [activeElement.op]: argsData
       });
@@ -407,7 +422,7 @@ class SoarForm extends Component {
    */
   displayNameGroupForm = () => {
     const {activeElement} = this.props;
-    const {nodeGroupList, nodeCustomName, nodeCustomGroup} = this.state;
+    const {linkPriorityList, linkPriority, nodeGroupList, nodeCustomName, nodeCustomGroup} = this.state;
 
     return (
       <React.Fragment>
@@ -423,6 +438,22 @@ class SoarForm extends Component {
             onChange={this.handleNodeDataChange}
             disabled={activeElement.componentType === 'adapter'} />
         </div>
+        {activeElement.componentType === 'link' &&
+          <div className='group'>
+            <TextField
+              id='linkPriority'
+              name='linkPriority'
+              select
+              label={t('txt-priority')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={linkPriority}
+              onChange={this.handleNodeDataChange}>
+              {linkPriorityList}
+            </TextField>
+          </div>
+        }
         {activeElement.componentType === 'node' &&
           <div className='group'>
             <TextField

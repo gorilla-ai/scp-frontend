@@ -68,6 +68,8 @@ class SoarSingleSettings extends Component {
           label: data
         };
       }
+    } else if (type === 'linkPriority') {
+      tempSoarFlow[selectedFlowIndex].priority = data;
     } else if (type === 'nodeCustomGroup') {
       tempSoarFlow[selectedFlowIndex].group = data;
     } else {
