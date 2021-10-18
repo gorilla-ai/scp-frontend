@@ -351,6 +351,8 @@ class StatisticsUIF extends Component {
       };
     });
 
+    const that = this;
+
     _.forEach(uifCfg.config.widgets, (value, chart) => {
       htmlToImage.toPng(document.getElementById(chart))
       .then(function(dataUrl) {
@@ -370,7 +372,7 @@ class StatisticsUIF extends Component {
         formData.append('config_string', JSON.stringify(cfg));
         formData.append('size', _.size(cfg.data));
 
-        this.ah.one({
+        that.ah.one({
           url: `${baseUrl}/api/pdf/_relay2`,
           data: formData,
           type: 'POST',
