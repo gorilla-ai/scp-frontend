@@ -59,6 +59,11 @@ class AuditLog extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
     this.getAuditData();
   }
   /**

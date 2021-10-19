@@ -74,9 +74,11 @@ class IncidentLog extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
+
         this.checkAccountType();
         this.getData();
     }
@@ -86,6 +88,9 @@ class IncidentLog extends Component {
         let requestData={
             account:session.accountId
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),

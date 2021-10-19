@@ -103,6 +103,8 @@ class PrivilegeEdit extends Component {
   loadPermits = () => {
     const {baseUrl} = this.context;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/account/permits`,
       type: 'GET'
@@ -198,6 +200,8 @@ class PrivilegeEdit extends Component {
     _.forEach(permitsSelected, val => {
       permitIds += '&permitIds=' + val;
     })
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/account/privilege/permits/v1?privilegeId=${privilegeid}&${permitIds}`,

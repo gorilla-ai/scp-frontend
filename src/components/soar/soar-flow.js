@@ -544,6 +544,8 @@ class SoarFlow extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       data: JSON.stringify(requestData),

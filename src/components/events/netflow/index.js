@@ -236,12 +236,13 @@ class Netflow extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.context;
+    const {baseUrl, locale, session, sessionRights} = this.context;
     const {datetime, filterData, account} = this.state;
     let urlParams = queryString.parse(location.search);
     let tempAccount = {...account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
@@ -1668,6 +1669,8 @@ class Netflow extends Component {
     }
     url = `${baseUrl}/api/account/flow/fields?module=${module}&accountId=${account.id}${fieldString}`;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       type: 'POST'
@@ -2485,6 +2488,8 @@ class Netflow extends Component {
     if (!value) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/network/html/reLinkFile?path=${value}`,

@@ -112,9 +112,10 @@ class Edge extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.getGroupList();
     this.getEdgeServiceType();
@@ -512,6 +513,8 @@ class Edge extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`,
       type: 'GET'
@@ -840,6 +843,8 @@ class Edge extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
       type: 'DELETE'
@@ -952,6 +957,8 @@ class Edge extends Component {
       })
     };
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.series([
       {
         url: `${baseUrl}/api/agent`,
@@ -1052,6 +1059,8 @@ class Edge extends Component {
     if (!edge.info.id) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/edge/nettrap/_upgrade?id=${edge.info.id}`,

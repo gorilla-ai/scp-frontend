@@ -330,11 +330,12 @@ class ThreatsController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.context;
+    const {baseUrl, locale, session, sessionRights} = this.context;
     const alertsParam = queryString.parse(location.search);
     let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
@@ -457,6 +458,8 @@ class ThreatsController extends Component {
     const requestData = {
       account:session.accountId
     };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/soc/unit/limit/_check`,
@@ -1004,6 +1007,8 @@ class ThreatsController extends Component {
 
     this.handleCloseIncidentMenu();
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/soc/flow/_search`,
       data: JSON.stringify({}),
@@ -1098,6 +1103,8 @@ class ThreatsController extends Component {
               deviceId: eventItem._edgeId ? eventItem._edgeId : eventItem._edgeInfo.agentId
             };
 
+            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
             ah.one({
               url: `${baseUrl}/api/soc/device/redirect/_search`,
               data: JSON.stringify(searchRequestData),
@@ -1114,6 +1121,8 @@ class ThreatsController extends Component {
             const searchRequestData = {
               deviceId: eventItem.LoghostIp
             };
+
+            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
             ah.one({
               url: `${baseUrl}/api/soc/device/redirect/_search`,
@@ -1279,6 +1288,8 @@ class ThreatsController extends Component {
 
     incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/soc`,
       data: JSON.stringify(incident.info),
@@ -1394,6 +1405,8 @@ class ThreatsController extends Component {
       formData.append('id', incidentId);
       formData.append('file', incident.info.attach);
       formData.append('fileMemo', incident.info.fileMemo);
+
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
       ah.one({
         url: `${baseUrl}/api/soc/attachment/_upload`,

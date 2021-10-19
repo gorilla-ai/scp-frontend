@@ -565,6 +565,8 @@ class Manage extends Component {
     const {treeData} = this.state;
     const {baseUrl} = this.context;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/department/_tree`,
       data: JSON.stringify(treeData),
@@ -637,6 +639,8 @@ class Manage extends Component {
         requestData.nameUUID = nameUUID;
       }
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url,

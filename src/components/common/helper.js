@@ -2,12 +2,15 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import moment from 'moment'
 import cx from 'classnames'
+import Promise from 'bluebird'
+import $ from 'jquery'
 
 import ToggleButton from '@material-ui/lab/ToggleButton'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import Progress from 'react-ui/build/src/components/progress'
 
 const helper = {
   getDate: function(datetime) {
@@ -581,6 +584,52 @@ const helper = {
       window.location.href = '/SCP?lng=' + locale;
     } else if (privilege === 'soc' && !sessionRights.Module_Soc)  {
       window.location.href = '/SCP?lng=' + locale;
+    }
+  },
+  inactivityTime: function(baseUrl, locale) {
+    const url = `${baseUrl}/api/logout`;
+    let time = '';
+
+    document.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onmousedown = resetTimer; // touchscreen presses
+    document.ontouchstart = resetTimer;
+    document.onclick = resetTimer;     // touchpad clicks
+    document.onkeydown = resetTimer;   // onkeypress is deprectaed
+    document.addEventListener('scroll', resetTimer, true);
+
+    function resetTimer() {
+      clearTimeout(time);
+      time = setTimeout(logout, 1500000); //25 min.
+    }
+
+    function logout() {
+      Progress.startSpin();
+
+      Promise.resolve($.post(url))
+        .finally(() => {
+          Progress.done();
+          window.location.href = '/SCP?lng=' + locale;
+        })
+    }
+  },
+  getVersion: function(baseUrl) {
+    clearTimeout(global.apiTimer);
+    global.apiTimer = setTimeout(getVersionNumber, 1500000); //25 min.
+
+    function getVersionNumber() {
+      const url = `${baseUrl}/api/version`;
+
+      Promise.resolve($.get(url))
+        .then(data => {
+          return null;
+        })
+        .catch(xhr => {
+          return null;
+        })
+        .then(resources => {
+          return null;
+        })
     }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {

@@ -31,6 +31,8 @@ import TableCell from '../../common/table-cell'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const UTC_TIME_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/;
+
 let t = null;
 let f = null;
 let et = null;
@@ -68,7 +70,8 @@ class SyslogController extends Component {
       //Tab Menu
       subTabMenu: {
         table: t('txt-table'),
-        linkAnalysis: t('txt-linkAnalysis')
+        linkAnalysis: t('txt-linkAnalysis'),
+        statistics: t('txt-statistics')
       },
       activeSubTab: 'table',
       //Search bar
@@ -174,16 +177,31 @@ class SyslogController extends Component {
       logActiveField: '',
       logCustomLocal: '',
       loadLogsData: true,
-      syslogRequest: {}
+      syslogRequest: {},
+      statisticsData: {
+        data: null,
+        column: '',
+        pageSize: '10'
+      },
+      statisticsTableChart: {
+        dataFieldsArr: ['key', 'doc_count'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'doc_count',
+          desc: true
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.context;
+    const {baseUrl, locale, session, sessionRights} = this.context;
     let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
@@ -949,18 +967,24 @@ class SyslogController extends Component {
    * @param {string} fromSearch - option for 'search'
    */
   handleSearchSubmit = (fromSearch) => {
-    const {activeTab, syslogData} = this.state;
-    let tempSyslogData = {...syslogData};
-    tempSyslogData.dataFields = [];
-    tempSyslogData.dataContent = null;
-    tempSyslogData.totalCount = 0;
-    tempSyslogData.currentPage = 1;
-    tempSyslogData.oldPage = 1;
-    tempSyslogData.pageSize = 20;
+    const {activeTab, activeSubTab, syslogData} = this.state;
 
-    this.setState({
-      syslogData: tempSyslogData
-    });
+    if (activeSubTab === 'statistics') {
+      this.getChartsData();
+      return;
+    } else {
+      let tempSyslogData = {...syslogData};
+      tempSyslogData.dataFields = [];
+      tempSyslogData.dataContent = null;
+      tempSyslogData.totalCount = 0;
+      tempSyslogData.currentPage = 1;
+      tempSyslogData.oldPage = 1;
+      tempSyslogData.pageSize = 20;
+
+      this.setState({
+        syslogData: tempSyslogData
+      });
+    }
 
     if (fromSearch) {
       this.setState({
@@ -1221,6 +1245,8 @@ class SyslogController extends Component {
     if (!account.id) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/account/log/fields?accountId=${account.id}${fieldString}`,
@@ -1799,6 +1825,11 @@ class SyslogController extends Component {
       tableMouseOver,
       tableOptions,
       markData,
+      statisticsData: this.state.statisticsData,
+      statisticsTableChart: this.state.statisticsTableChart,
+      handleStatisticsDataChange: this.handleStatisticsDataChange,
+      getStatisticsExport: this.getStatisticsExport,
+      getChartsData: this.getChartsData,
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
@@ -1846,14 +1877,14 @@ class SyslogController extends Component {
    * Get request data for CSV file
    * @method
    * @param {string} url - request URL
-   * @param {string} [columns] - columns for CSV file
+   * @param {string} [options] - option for 'columns' or 'statistics'
    */
-  getCSVrequestData = (url, columns) => {
+  getCSVrequestData = (url, options) => {
     let dataOptions = {
       ...this.toQueryLanguage('csv')
     };
 
-    if (columns === 'columns') {
+    if (options === 'columns') {
       let tempColumns = [];
 
       _.forEach(this.state.account.fields, val => {
@@ -1865,6 +1896,11 @@ class SyslogController extends Component {
       })
 
       dataOptions.columns = tempColumns;
+    }
+
+    if (options === 'statistics') {
+      dataOptions.column = this.state.statisticsData.column;
+      dataOptions = _.omit(dataOptions, ['timeZone']);
     }
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
@@ -2013,6 +2049,16 @@ class SyslogController extends Component {
     const {chartIntervalValue} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u1/log/event/histogram/_export?interval=${chartIntervalValue}`;
     this.getCSVrequestData(url);
+  }
+  /**
+   * Handle statistics export
+   * @method
+   */
+  getStatisticsExport = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {statisticsData} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/log/event/columnDistribution/_export?pageSize=${statisticsData.pageSize}`;
+    this.getCSVrequestData(url, 'statistics');
   }
   /**
    * Toggle filter and mark content on/off
@@ -2266,6 +2312,103 @@ class SyslogController extends Component {
     }, () => {
       this.loadFields(activeTab);
     });
+  }
+  /**
+   * Handle input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleStatisticsDataChange = (event) => {
+    let tempStatisticsData = {...this.state.statisticsData};
+    tempStatisticsData[event.target.name] = event.target.value;
+
+    this.setState({
+      statisticsData: tempStatisticsData
+    });
+  }
+  /**
+   * Get table chart field
+   * @method
+   * @param {string} field - field name
+   */
+  getTableField = (field) => {
+    if (field === 'key') {
+      return this.state.statisticsData.column;
+    } else if (field === 'doc_count') {
+      return t('txt-count');
+    }
+  }
+  /**
+   * Generate charts content
+   * @method
+   */
+  getChartsData = () => {
+    const {baseUrl} = this.context;
+    const {statisticsData, statisticsTableChart} = this.state;
+    const url = `${baseUrl}/api/log/event/columnDistribution?pageSize=${statisticsData.pageSize}`;
+    const requestData = {
+      ...this.toQueryLanguage(),
+      column: statisticsData.column
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempStatisticsData = {...statisticsData};
+        let tempStatisticsTableChart = {...statisticsTableChart};
+
+        if (data.aggregations.topColumns.length === 0) {
+          tempStatisticsData.data = [];
+        } else {
+          const chartData = data.aggregations.topColumns;
+          let formattedChartData = [];
+
+          _.forEach(chartData, val => {
+            let key = val.key;
+
+            if (UTC_TIME_PATTERN.test(val.key)) { //Check UTC time format
+              key = helper.getFormattedDate(key, 'local');
+            }
+
+            formattedChartData.push({
+              ...val,
+              key
+            });
+          })
+
+          tempStatisticsData.data = formattedChartData;
+          tempStatisticsTableChart.dataContent = formattedChartData;
+
+          let chartFields = {};
+
+          tempStatisticsTableChart.dataFieldsArr.forEach(tempData => {
+            chartFields[tempData] = {
+              label: this.getTableField(tempData),
+              sortable: true,
+              formatter: (value, allValue, i) => {
+                return <span>{value}</span>
+              }
+            };
+          })
+
+          tempStatisticsTableChart.dataFields = chartFields;
+        }
+
+        this.setState({
+          statisticsData: tempStatisticsData,
+          statisticsTableChart: tempStatisticsTableChart
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
     const {

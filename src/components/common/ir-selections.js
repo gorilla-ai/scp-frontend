@@ -200,6 +200,8 @@ class IrSelections extends Component {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/hmd/isSftpConnected`;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url,
       data: JSON.stringify({}),
