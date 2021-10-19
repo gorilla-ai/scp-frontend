@@ -789,6 +789,7 @@ class IncidentManagement extends Component {
         let deleteCheck = false
 
 
+
         if (_.includes(this.state.accountRoleType,constants.soc.SOC_Super) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) {
             if (incident.info.flowData && incident.info.flowData.finish){
                 publishCheck = true
@@ -801,7 +802,12 @@ class IncidentManagement extends Component {
         }
 
         if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
-
+            if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
+                editCheck = true
+            }
+            if (session.accountId === incident.info.creator){
+                editCheck = true
+            }
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
 
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {

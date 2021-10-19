@@ -592,7 +592,7 @@ class IncidentDeviceStep extends Component {
         const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic, accountType, openManage} = this.state;
         const {session} = this.context;
         let insertCheck = true;
-        if (_.includes(session.roles, constants.soc.Default_Admin)){
+        if (_.includes(session.roles, constants.soc.Default_Admin) && session.roles.length === 1){
             insertCheck = false
         }
 
