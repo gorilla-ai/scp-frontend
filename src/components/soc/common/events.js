@@ -14,6 +14,7 @@ import Button from '@material-ui/core/Button';
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 
 let t = null
 let et = null
@@ -57,8 +58,13 @@ class Events extends Component {
 		onChange({...curValue, [event.target.name]: event.target.value})
 	}
 
+	onUnitChange = (event, values) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, ['deviceId']: values.value, ['deviceObj']: values})
+	}
+
 	render() {
-		let {activeContent, locale, deviceListOptions, showDeviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
+		let {activeContent, locale, deviceListOptions, showDeviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList, deviceObj}} = this.props
 		let dateLocale = locale;
 
 		if (locale === 'zh') {
@@ -71,6 +77,10 @@ class Events extends Component {
 		_.forEach(deviceListOptions, deviceItem=>{
 			if(deviceItem.value === deviceId){
 				deviceNameCheck = true
+				deviceObj = {
+					value:deviceItem.value,
+					text:deviceItem.text
+				}
 			}
 		})
 
@@ -127,30 +137,57 @@ class Events extends Component {
 							})
 						}
 					</TextField>
+
 				</div>
 				}
 				{activeContent !== 'viewIncident' &&
 				<div className='group'>
 					<label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
-					<TextField style={{paddingRight: '2em'}}
-					           id='deviceId'
-					           name='deviceId'
-					           variant='outlined'
-					           fullWidth={true}
-					           size='small'
-					           select
-					           onChange={this.handleDataChangeMui}
-					           value={deviceId}
-					           required
-					           helperText={it('txt-required')}
-					           error={!(deviceId || '').trim()}
-					           disabled={activeContent === 'viewIncident'}>
-						{
-							_.map(furtherDeviceList,el=>{
-								return <MenuItem value={el.value}>{el.text}</MenuItem>
-							})
-						}
-					</TextField>
+					{/*<TextField style={{paddingRight: '2em'}}*/}
+					{/*           id='deviceId'*/}
+					{/*           name='deviceId'*/}
+					{/*           variant='outlined'*/}
+					{/*           fullWidth={true}*/}
+					{/*           size='small'*/}
+					{/*           select*/}
+					{/*           onChange={this.handleDataChangeMui}*/}
+					{/*           value={deviceId}*/}
+					{/*           required*/}
+					{/*           helperText={it('txt-required')}*/}
+					{/*           error={!(deviceId || '').trim()}*/}
+					{/*           disabled={activeContent === 'viewIncident'}>*/}
+					{/*	{*/}
+					{/*		_.map(furtherDeviceList,el=>{*/}
+					{/*			return <MenuItem value={el.value}>{el.text}</MenuItem>*/}
+					{/*		})*/}
+					{/*	}*/}
+					{/*</TextField>*/}
+					<Autocomplete style={{paddingRight: '2em'}}
+						id='deviceId'
+						name='deviceId'
+						required
+						helperText={it('txt-required')}
+						variant='outlined'
+						fullWidth={true}
+						size='small'
+						options={furtherDeviceList}
+						select
+						onChange={this.onUnitChange}
+						value={deviceObj}
+						getOptionLabel={(option) => option.text}
+						disabled={activeContent === 'viewIncident'}
+						renderInput={(params) =>
+							<TextField
+								{...params}
+								required
+								error={!(deviceId || '').trim()}
+								helperText={it('txt-required')}
+								variant='outlined'
+								fullWidth={true}
+								size='small'
+								InputProps={{...params.InputProps, type: 'search'}}
+							/>}
+					/>
 				</div>
 				}
 	        </div>
