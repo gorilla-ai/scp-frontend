@@ -427,7 +427,7 @@ class IncidentUnit extends Component {
         const {session} = this.context;
 
         let insertCheck = true;
-        if (_.includes(session.roles, constants.soc.Default_Admin)){
+        if (_.includes(session.roles, constants.soc.Default_Admin) && session.roles.length === 1){
             insertCheck = false
         }
 
