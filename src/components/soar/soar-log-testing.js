@@ -330,6 +330,8 @@ class SoarLogTesting extends Component {
 		let formData = new FormData();
 		formData.append('file', logFile);
 
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
 			url: `${baseUrl}/api/soar/dryRun/uploadLogs`,
 			data: formData,

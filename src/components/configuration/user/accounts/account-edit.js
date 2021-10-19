@@ -95,6 +95,8 @@ class AccountEdit extends Component {
   loadAccount = (id) => {
     const {baseUrl} = this.context;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.all([
       {
         url: `${baseUrl}/api/account/v1?accountid=${id}`,

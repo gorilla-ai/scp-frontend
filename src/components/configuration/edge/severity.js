@@ -78,9 +78,10 @@ class Severity extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.setDefaultSearchOptions();
   }
@@ -361,6 +362,8 @@ class Severity extends Component {
       nickname: severity.info.nickname,
       description: severity.info.description
     };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/severityMapping`,

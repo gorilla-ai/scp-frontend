@@ -97,9 +97,10 @@ class Pattern extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.setDefaultSearchOptions();
   }
@@ -461,6 +462,8 @@ class Pattern extends Component {
     if (!currentPatternData.patternId) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/alert/pattern?patternId=${currentPatternData.patternId}`,

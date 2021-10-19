@@ -90,9 +90,10 @@ class IncidentUnit extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
 
         this.checkAccountType();
 
@@ -288,6 +289,9 @@ class IncidentUnit extends Component {
         let requestData = {
             account: session.accountId
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
@@ -542,6 +546,8 @@ class IncidentUnit extends Component {
     handleUnitTreeConfirm = () =>{
         const {treeData} = this.state;
         const {baseUrl} = this.context;
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/department/_tree`,
@@ -827,6 +833,8 @@ class IncidentUnit extends Component {
             apiType = 'PATCH'
         }
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit`,
             data: JSON.stringify(tmpIncidentUnit.info),
@@ -974,6 +982,8 @@ class IncidentUnit extends Component {
         if (!currentIncidentDeviceData.id) {
             return;
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/unit?id=${currentIncidentDeviceData.id}`,

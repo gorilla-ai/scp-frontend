@@ -47,9 +47,10 @@ class Roles extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.getPrivilegesData();
   }
@@ -165,6 +166,8 @@ class Roles extends Component {
       display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
         if (confirmed && id) {
+          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
           ah.one({
             url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
             type: 'DELETE',

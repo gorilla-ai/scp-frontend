@@ -45,6 +45,8 @@ class IncidentReview extends Component {
 	open(incidentId, reviewType) {
 		const {baseUrl} = this.context
 
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
             url: `${baseUrl}/api/soc/command/_search`
         })
@@ -118,12 +120,14 @@ class IncidentReview extends Component {
 			    userId: session.accountId
 		    }
 
-            let url = `${baseUrl}/api/soc/_${reviewType}`
+        let url = `${baseUrl}/api/soc/_${reviewType}`
 
-            if (reviewType === 'draw') {
-                // url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
-	            url =  `${baseUrl}/api/soc/analyzer/_draw`
-            }
+        if (reviewType === 'draw') {
+            // url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
+          url =  `${baseUrl}/api/soc/analyzer/_draw`
+        }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session    
 
 		    ah.one({
 			    url: url,

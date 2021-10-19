@@ -48,16 +48,18 @@ class IncidentIsac extends Component {
 		};
 
 		t = global.chewbaccaI18n.getFixedT(null, 'connections');
-        it = global.chewbaccaI18n.getFixedT(null, 'incident');
+		it = global.chewbaccaI18n.getFixedT(null, 'incident');
 		et = global.chewbaccaI18n.getFixedT(null, 'errors');
 		this.ah = getInstance('chewbacca');
 	}
 
 	componentDidMount() {
-		const {locale, sessionRights} = this.context;
-        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+		const {baseUrl, locale, sessionRights} = this.context;
 
-        this.checkAccountType();
+		helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+		helper.inactivityTime(baseUrl, locale);
+
+		this.checkAccountType();
 		this.getSettingInfo();
 	}
 
@@ -72,6 +74,9 @@ class IncidentIsac extends Component {
 		let requestData={
 			account:session.accountId
 		}
+
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
 			url: `${baseUrl}/api/soc/unit/limit/_check`,
 			data: JSON.stringify(requestData),

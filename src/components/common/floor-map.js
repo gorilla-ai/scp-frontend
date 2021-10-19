@@ -311,6 +311,8 @@ class FloorMap extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
       type: 'DELETE'
@@ -571,6 +573,8 @@ class FloorMap extends Component {
         formData.append('updatePic', true);
       }
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/area`,
