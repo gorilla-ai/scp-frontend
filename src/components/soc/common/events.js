@@ -60,7 +60,14 @@ class Events extends Component {
 
 	onUnitChange = (event, values) => {
 		let {onChange, value: curValue} = this.props
-		onChange({...curValue, ['deviceId']: values.value, ['deviceObj']: values})
+
+		if (values && values.value){
+			onChange({...curValue, ['deviceId']: values.value, ['deviceObj']: values})
+		}else{
+			onChange({...curValue, ['deviceId']: '', ['deviceObj']: {}})
+		}
+
+
 	}
 
 	render() {
