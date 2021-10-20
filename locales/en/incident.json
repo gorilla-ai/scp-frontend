@@ -86,6 +86,7 @@
 	"txt-send-type": "Send Incident Type",
 	"txt-download": "Download",
 	"txt-required": "Empty Required Fields",
+	"txt-required-sign": "Empty Required Fields / Only - and _ could use",
 	"txt-incident-event": "Security Monitoring",
 	"txt-incident-related": "Correlation Analysis",
 	"txt-incident-health": "Health Status Statistic",
@@ -159,6 +160,7 @@
 	"txt-new": "Add",
 	"txt-update": "Edit",
 	"txt-delete": "Delete",
+	"txt-validAbbreviationType": "Please check abbreviation has entered special characters, Only _ and - are supported",
 
 	"txt-soc-filter": "Filter Basic Info",
 	"txt-soc-filter-input": "Filter",
