@@ -162,26 +162,6 @@ class License extends Component {
     })
   }
   /**
-   * Handle license verify online button
-   * @method
-   */
-  verifyOnline = () => {
-    const {baseUrl} = this.context;
-    const {key} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/lms/verify/_trigger?key=${key}`,
-      type: 'GET'
-    })
-    .then(data => {
-      this.handleLmsAvtivate(data);
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Handle LMS activate/verify response data
    * @method
    * @param {object} data - data object
@@ -375,7 +355,6 @@ class License extends Component {
               <div className='license-group-btn'>
                 <button id='license-activate' onClick={this.activateLicense}>{lt('l-activate')}</button>
                 <button id='licenseUpload' onClick={this.toggleFileUpload}>{lt('l-upload-offline-file')}</button>
-                <button id='onlineActivate' onClick={this.verifyOnline}>{lt('l-verify-online')}</button>
               </div>
             </div>
           }
@@ -410,7 +389,6 @@ class License extends Component {
                 value={key}
                 onChange={this.handleInputChange} />
               <button id='license-confirm' className='multiple-btn' onClick={this.activateLicense}>{lt('l-activate')}</button>
-              <button id='onlineActivate' onClick={this.verifyOnline}>{lt('l-verify-online')}</button>
               <button id='license-cancel' className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}</button>
             </div>
           }
