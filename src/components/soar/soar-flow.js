@@ -69,6 +69,7 @@ class SoarFlow extends Component {
         args: {}
       },
       soarFlow: [],
+      formattedSoarFlow: [],
       reactFlowInstance: null,
       linkEditable: true,
       contextAnchor: {
@@ -119,13 +120,38 @@ class SoarFlow extends Component {
       linkShapeType,
       soarRule: tempSoarRule,
       soarCondition: tempSoarCondition,
-      soarFlow: soarIndividualData.flow
+      soarFlow: soarIndividualData.flow,
+      formattedSoarFlow: this.getFormattedSoarFlow(soarIndividualData.flow)
     });
+  }
+  /**
+   * Get formatted Soar Flow data
+   * @method
+   * @param {array.<object>} flow - flow data
+   * @returns formatted flow array
+   */
+  getFormattedSoarFlow = (flow) => {
+    let formattedSoarFlow = [];
+
+    _.forEach(flow, val => {
+      if (val.componentType === 'link' && val.priority) {
+        formattedSoarFlow.push({
+          ...val,
+          label: val.label + ' (' + val.priority + ')'
+        });
+      } else {
+        formattedSoarFlow.push({
+          ...val
+        });
+      }
+    })
+
+    return formattedSoarFlow;
   }
   /**
    * Get corresponding node text
    * @method
-   * @param {string>} type - node type
+   * @param {string} type - node type
    * @param {string} [options] - option for 'component'
    */
   getNodeText = (type, options) => {
@@ -402,7 +428,8 @@ class SoarFlow extends Component {
    */
   confirmSoarFlowData = (newSoarFlow) => {
     this.setState({
-      soarFlow: newSoarFlow
+      soarFlow: newSoarFlow,
+      formattedSoarFlow: this.getFormattedSoarFlow(newSoarFlow)
     });
 
     this.closeDialog();
@@ -680,6 +707,7 @@ class SoarFlow extends Component {
       soarRule,
       soarCondition,
       soarFlow,
+      formattedSoarFlow,
       operatorList,
       linkEditable,
       contextAnchor,
@@ -815,7 +843,7 @@ class SoarFlow extends Component {
                     </div>
                     <div ref={this.reactFlowWrapper}>
                       <ReactFlow
-                        elements={soarFlow}
+                        elements={formattedSoarFlow}
                         onLoad={this.onLoad}
                         onConnect={this.onConnect}
                         onNodeDragStop={this.onNodeDragStop}
