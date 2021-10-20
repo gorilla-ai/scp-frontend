@@ -87,6 +87,7 @@
 	"txt-send-type": "事件單類型",
 	"txt-download": "下載",
 	"txt-required": "必填欄位為空",
+	"txt-required-sign": "必填欄位為空/只能存在-及_特殊符號",
 	"txt-incident-event": "資安監控",
 	"txt-incident-related": "關聯分析",
 	"txt-incident-health": "健康狀態統計",
@@ -160,6 +161,7 @@
 	"txt-new": "新增",
 	"txt-update": "更新",
 	"txt-delete": "刪除",
+	"txt-validAbbreviationType": "請檢查英文縮寫是否輸入特殊字元，目前字元只支援 _ 及 - ",
 
 	"txt-soc-filter": "查詢條件基本資料",
 	"txt-soc-filter-input": "查詢條件",

@@ -850,7 +850,7 @@ class IncidentUnit extends Component {
     };
 
     checkAddData = (incidentUnit) => {
-
+        let flag = new RegExp("[.`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）—|{}【】‘；：”“'。，、？]")
         if (!incidentUnit.info.oid ||
             !incidentUnit.info.name||
             !incidentUnit.info.abbreviation) {
@@ -859,14 +859,21 @@ class IncidentUnit extends Component {
             return false;
         }
 
+        if (flag.test(incidentUnit.info.abbreviation)){
+            helper.showPopupMsg('', t('txt-error'), it('txt-validAbbreviationType'));
+            return false;
+        }
+
         if (!incidentUnit.info.level){
             // helper.showPopupMsg('', t('txt-error'), '[Unit Level] is required');
             helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
+            return false;
         }
 
         if (incidentUnit.info.industryType.toString() === ''){
             // helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
             helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
+            return false;
         }
 
 
