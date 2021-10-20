@@ -203,9 +203,11 @@ class SoarFlow extends Component {
       animated: linkAnimated,
       labelStyle: { fontWeight: 700 }
     };
+    const soarFlow = addEdge(linkParams, this.state.soarFlow);
 
     this.setState({
-      soarFlow: addEdge(linkParams, this.state.soarFlow)
+      soarFlow,
+      formattedSoarFlow: soarFlow
     });
   }
   /**
@@ -242,9 +244,11 @@ class SoarFlow extends Component {
    */
   onElementsRemove = () => {
     const {soarFlow, activeElement} = this.state;
+    const tempSoarFlow = removeElements([activeElement], soarFlow);
 
     this.setState({
-      soarFlow: removeElements([activeElement], soarFlow)
+      soarFlow: tempSoarFlow,
+      formattedSoarFlow: tempSoarFlow
     });
     this.handleCloseMenu();
   }
@@ -314,7 +318,8 @@ class SoarFlow extends Component {
     }
 
     this.setState({
-      soarFlow: newFlowData
+      soarFlow: newFlowData,
+      formattedSoarFlow: newFlowData
     });
 
     event.preventDefault();
@@ -332,7 +337,8 @@ class SoarFlow extends Component {
     tempSoarFlow[selectedFlowIndex].position = node.position;
 
     this.setState({
-      soarFlow: tempSoarFlow
+      soarFlow: tempSoarFlow,
+      formattedSoarFlow: tempSoarFlow
     });
   }
   /**
@@ -373,8 +379,11 @@ class SoarFlow extends Component {
     let edgeParams = {...newConnection};
     edgeParams.id = oldEdge.id;
 
+    const soarFlow = updateEdge(oldEdge, edgeParams, this.state.soarFlow);
+
     this.setState({
-      soarFlow: updateEdge(oldEdge, edgeParams, this.state.soarFlow)
+      soarFlow,
+      formattedSoarFlow: soarFlow
     });
   }
   /**
@@ -640,7 +649,8 @@ class SoarFlow extends Component {
 
     this.setState({
       linkShapeType: event.target.value,
-      soarFlow: tempSoarFlow
+      soarFlow: tempSoarFlow,
+      formattedSoarFlow: tempSoarFlow
     });
   }
   /**
@@ -664,7 +674,8 @@ class SoarFlow extends Component {
 
     this.setState({
       linkAnimated: event.target.checked,
-      soarFlow: tempSoarFlow
+      soarFlow: tempSoarFlow,
+      formattedSoarFlow: tempSoarFlow
     });
   }
   /**
