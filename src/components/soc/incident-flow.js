@@ -97,9 +97,11 @@ class IncidentFlow extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
+
         this.checkAccountType();
         this.setDefaultSearchOptions();
     }
@@ -109,6 +111,9 @@ class IncidentFlow extends Component {
         let requestData = {
             account: session.accountId
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
@@ -146,6 +151,9 @@ class IncidentFlow extends Component {
             return <MenuItem key={i} value={val}>{val}</MenuItem>
         });
         let flowSourceList = [];
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/flowEngine/_search`,
             data: JSON.stringify({}),

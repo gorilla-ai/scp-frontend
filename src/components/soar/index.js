@@ -77,6 +77,10 @@ class SoarController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.inactivityTime(baseUrl, locale);
+
     this.getSoarColumn();
     this.validateIpExist();
   }
@@ -429,6 +433,8 @@ class SoarController extends Component {
     if (!currentSoarData.flowId) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/soar/flow?flowId=${currentSoarData.flowId}`,

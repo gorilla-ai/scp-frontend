@@ -175,9 +175,10 @@ class IncidentDeviceStep extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
 
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
 
         this.checkAccountType();
         this.getUnitList();
@@ -235,9 +236,12 @@ class IncidentDeviceStep extends Component {
 
     checkAccountType = () =>{
         const {baseUrl, session} = this.context;
-        let requestData={
+        let requestData = {
             account:session.accountId
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
@@ -280,6 +284,9 @@ class IncidentDeviceStep extends Component {
     getSendCheck() {
         const {baseUrl, contextRoot} = this.context;
         let tempSendCheck = {...this.state.sendCheck};
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/device/_status`,
             type: 'GET'
@@ -1773,6 +1780,8 @@ class IncidentDeviceStep extends Component {
 
         let apiType = 'POST';
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit`,
             data: JSON.stringify(tmpIncidentUnit),
@@ -1992,6 +2001,8 @@ class IncidentDeviceStep extends Component {
         if (!currentIncidentDeviceData.id) {
             return;
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/device?id=${currentIncidentDeviceData.id}`,
@@ -2235,6 +2246,8 @@ class IncidentDeviceStep extends Component {
             }
             sendList.push(tmp)
         })
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_sendV2?`,
@@ -2614,6 +2627,8 @@ class IncidentDeviceStep extends Component {
 
         tempSendCheck.sendStatus = value;
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/device/_override`,
             data: JSON.stringify(tempSendCheck),
@@ -2638,6 +2653,8 @@ class IncidentDeviceStep extends Component {
     getOptions = () => {
         const {baseUrl, contextRoot} = this.context;
         let usedDeviceIdList = {...this.state.usedDeviceIdList}
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/edge/_search`,
@@ -2684,7 +2701,9 @@ class IncidentDeviceStep extends Component {
         const {baseUrl, contextRoot,} = this.context;
         const {edgeList} = this.state;
         let usedDeviceIdList = {...this.state.usedDeviceIdList}
-        let tempEdgeList =edgeList
+        let tempEdgeList = edgeList
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/v2/log/config`,

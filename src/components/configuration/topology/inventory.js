@@ -175,12 +175,16 @@ class NetworkInventory extends Component {
       csvColumns: {
         ip: '',
         mac: '',
-        hostName: ''
+        hostName: '',
+        ownerId: '',
+        ownerName: '',
+        departmentName: '',
+        remarks: ''
       },
       selectedTreeID: '',
       floorMapType: '', //'fromFloorMap' or 'selected'
       csvHeader: true,
-      ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
+      ipUploadFields: ['ip', 'mac', 'hostName', 'ownerId', 'ownerName', 'departmentName', 'remarks', 'errCode'],
       showLoadingIcon: false,
       formValidation: {
         ip: {
@@ -200,6 +204,12 @@ class NetworkInventory extends Component {
           msg: ''
         },
         csvColumnsIp: {
+          valid: true
+        },
+        csvOwnerID: {
+          valid: true
+        },
+        csvOwnerName: {
           valid: true
         },
         seatName: {
@@ -223,10 +233,11 @@ class NetworkInventory extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
     const inventoryParam = queryString.parse(location.search);
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
     this.getLAconfig();
     this.getOwnerData();
@@ -842,6 +853,8 @@ class NetworkInventory extends Component {
       });
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.series(apiArr)
     .then(data => {
       let ipRt = '';
@@ -1186,6 +1199,8 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {currentSeatData, floorPlan} = this.state;
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/seat?uuid=${currentSeatData.seatUUID}`,
       type: 'DELETE'
@@ -1517,6 +1532,8 @@ class NetworkInventory extends Component {
   deleteDevice = () => {
     const {baseUrl} = this.context;
     const {currentDeviceData, floorPlan} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
@@ -1958,6 +1975,12 @@ class NetworkInventory extends Component {
           csvColumnsIp: {
             valid: true
           },
+          csvOwnerID: {
+            valid: true
+          },
+          csvOwnerName: {
+            valid: true
+          },
           seatName: {
             valid: true
           },
@@ -2204,7 +2227,11 @@ class NetworkInventory extends Component {
           csvColumns: {
             ip: '',
             mac: '',
-            hostName: ''
+            hostName: '',
+            ownerId: '',
+            ownerName: '',
+            departmentName: '',
+            remarks: ''
           }
         });
       } else {
@@ -2379,7 +2406,6 @@ class NetworkInventory extends Component {
     return (
       <div>
         <div>{t('network-inventory.txt-total')}: {data.successList.length + data.failureList.length}</div>
-        <div>{t('network-inventory.txt-success')}: {data.successList.length}</div>
         <div>{t('network-inventory.txt-fail')}: {data.failureList.length}</div>
         <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
         <div className='table-data'>
@@ -2408,7 +2434,7 @@ class NetworkInventory extends Component {
           formValidation: tempFormValidation
         });
       } else {
-        const url = `${baseUrl}/api/ipdevices`;
+        const url = `${baseUrl}/api/v2/ipdevices`;
         let requestData = [];
         let validate = true;
 
@@ -2416,7 +2442,11 @@ class NetworkInventory extends Component {
           let dataObj = {
             ip: '',
             mac: '',
-            hostName: ''
+            hostName: '',
+            ownerId: '',
+            ownerName: '',
+            departmentName: '',
+            remarks: ''
           };
 
           if (i > 0) {
@@ -2446,10 +2476,34 @@ class NetworkInventory extends Component {
               return false;
             }
 
+            if (dataObj.ownerId) {
+              if (dataObj.ownerName) {
+                validate = true;
+                tempFormValidation.csvOwnerName.valid = true;
+              } else {
+                validate = false;
+                tempFormValidation.csvOwnerName.valid = false;
+              }
+            }
+
+            if (dataObj.ownerName) {
+              if (dataObj.ownerId) {
+                validate = true;
+                tempFormValidation.csvOwnerID.valid = true;
+              } else {
+                validate = false;
+                tempFormValidation.csvOwnerID.valid = false;
+              }
+            }
+
             requestData.push({
               ip: dataObj.ip,
               mac: dataObj.mac,
-              hostName: dataObj.hostName
+              hostName: dataObj.hostName,
+              ownerId: dataObj.ownerId,
+              ownerName: dataObj.ownerName,
+              departmentName: dataObj.departmentName,
+              remarks: dataObj.remarks
             });
           }
         })
@@ -2487,7 +2541,11 @@ class NetworkInventory extends Component {
                 csvColumns: {
                   ip: '',
                   mac: '',
-                  hostName: ''
+                  hostName: '',
+                  ownerId: '',
+                  ownerName: '',
+                  departmentName: '',
+                  remarks: ''
                 }
               }, () => {
                 this.getDeviceData();
@@ -2515,7 +2573,11 @@ class NetworkInventory extends Component {
         csvColumns: {
           ip: '',
           mac: '',
-          hostName: ''
+          hostName: '',
+          ownerId: '',
+          ownerName: '',
+          departmentName: '',
+          remarks: ''
         },
         formValidation: {
           ip: {
@@ -2535,6 +2597,12 @@ class NetworkInventory extends Component {
             msg: ''
           },
           csvColumnsIp: {
+            valid: true
+          },
+          csvOwnerID: {
+            valid: true
+          },
+          csvOwnerName: {
             valid: true
           },
           seatName: {
@@ -2825,7 +2893,7 @@ class NetworkInventory extends Component {
     requestData.ownerUUID = ownerUUID || addIP.ownerUUID;
 
     if (from === 'batchUpdates') {
-      url = `${baseUrl}/api/ipdevices`;
+      url = `${baseUrl}/api/v2/ipdevices`;
       requestType = 'PATCH';
       requestData = {
         devices: _.map(batchUpdatesList, val => {
@@ -2840,6 +2908,8 @@ class NetworkInventory extends Component {
         })
       };
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url,
@@ -2975,6 +3045,8 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {departmentList, titleList} = this.state;
     const value = event.target ? event.target.value : event;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${value}`,
@@ -3656,6 +3728,7 @@ class NetworkInventory extends Component {
     return (
       <TreeItem
         key={val.id + i}
+        id={'topologyInventoryTree_'+ val.label}
         nodeId={val.id}
         label={val.label}
         onLabelClick={this.handleSelectTree.bind(this, type, val)}>
@@ -3722,6 +3795,7 @@ class NetworkInventory extends Component {
     return (
       <TreeView
         key={i}
+        id='topologyInventoryTreeView'
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         defaultSelected={defaultSelectedID}
@@ -3729,6 +3803,7 @@ class NetworkInventory extends Component {
         selected={defaultSelectedID}>
         {tree.areaUUID &&
           <TreeItem
+            id={'topologyInventoryTree_'+ tree.areaName}
             nodeId={tree.areaUUID}
             label={tree.areaName}
             onLabelClick={this.handleSelectTree.bind(this, type, tree)}>
@@ -4067,7 +4142,9 @@ class NetworkInventory extends Component {
       }
     };
     let picPath = '';
-    let csvHeaderList = [];
+    let csvHeaderList = [
+      <MenuItem value=''><span style={{height: '20px'}}></span></MenuItem>
+    ];
 
     if (!_.isEmpty(currentDeviceData)) {
       picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png'
@@ -4165,8 +4242,8 @@ class NetworkInventory extends Component {
                   keepMounted
                   open={menuType && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>
-                  <MenuItem onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
-                  <MenuItem onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
+                  <MenuItem id='inventoryMenuShowForm' onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
+                  <MenuItem id='inventoryMenuShowUpload' onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
                 </Menu>
 
                 {activeTab === 'deviceList' && !showCsvData &&
@@ -4272,6 +4349,66 @@ class NetworkInventory extends Component {
                           fullWidth
                           size='small'
                           value={csvColumns.hostName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvOwnerID'
+                          name='ownerId'
+                          label={t('ipFields.ownerId')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          error={!formValidation.csvOwnerID.valid}
+                          helperText={formValidation.csvOwnerID.valid ? '' : t('txt-required')}
+                          value={csvColumns.ownerId}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvOwnerName'
+                          name='ownerName'
+                          label={t('ipFields.ownerName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          error={!formValidation.csvOwnerName.valid}
+                          helperText={formValidation.csvOwnerName.valid ? '' : t('txt-required')}
+                          value={csvColumns.ownerName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvDepartmentName'
+                          name='departmentName'
+                          label={t('ipFields.departmentName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.departmentName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </TextField>
+                      </div>
+                      <div className='group'>
+                        <TextField
+                          id='csvRemarks'
+                          name='remarks'
+                          label={t('ipFields.remarks')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.remarks}
                           onChange={this.handleColumnChange}>
                           {csvHeaderList}
                         </TextField>

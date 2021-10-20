@@ -127,6 +127,8 @@ class PrivilegeAdd extends Component {
       return;
     }
 
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
     ah.one({
       url: `${baseUrl}/api/account/privilege`,
       data: JSON.stringify(reqArg),

@@ -140,8 +140,10 @@ class IncidentSearch extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
+
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
 
         this.checkAccountType();
         this.setDefaultSearchOptions();
@@ -155,6 +157,9 @@ class IncidentSearch extends Component {
             return <MenuItem key={i} value={val}>{val}</MenuItem>
         });
         let flowSourceList = []
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/flow/_search`,
             data: JSON.stringify({}),
@@ -205,6 +210,9 @@ class IncidentSearch extends Component {
         let requestData = {
             account: session.accountId
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
@@ -254,6 +262,8 @@ class IncidentSearch extends Component {
         search.isExecutor = _.includes(session.roles, 'SOC Executor')
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/history/_search?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
@@ -1196,6 +1206,8 @@ class IncidentSearch extends Component {
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
@@ -1271,6 +1283,8 @@ class IncidentSearch extends Component {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         this.handleCloseMenu()
         const {baseUrl} = this.context;
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
@@ -1481,6 +1495,8 @@ class IncidentSearch extends Component {
     deleteIncident = (id) => {
         const {baseUrl} = this.context;
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'DELETE'
@@ -1662,6 +1678,8 @@ class IncidentSearch extends Component {
                     deviceId: alertData._edgeInfo.agentId || alertData._edgeId
                 };
 
+                helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                 ah.one({
                     url: `${baseUrl}/api/soc/device/redirect/_search`,
                     data: JSON.stringify(searchRequestData),
@@ -1717,6 +1735,9 @@ class IncidentSearch extends Component {
         let tmp = {
             id: id
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_audit`,
             data: JSON.stringify(tmp),
@@ -1744,6 +1765,9 @@ class IncidentSearch extends Component {
         let tmp = {
             id: id
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_send`,
             data: JSON.stringify(tmp),
@@ -1981,6 +2005,8 @@ class IncidentSearch extends Component {
     getOptions = () => {
         const {baseUrl, contextRoot, session} = this.context;
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_search`,
             data: JSON.stringify({}),
@@ -2016,6 +2042,8 @@ class IncidentSearch extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             });
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use: '1', account: session.accountId}),
@@ -2035,6 +2063,8 @@ class IncidentSearch extends Component {
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
@@ -2147,6 +2177,8 @@ class IncidentSearch extends Component {
         formData.append('file', attach)
         formData.append('fileMemo', incident.info.fileMemo)
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/attachment/_upload`,
             data: formData,
@@ -2173,6 +2205,8 @@ class IncidentSearch extends Component {
             formData.append('id', incident.info.id)
             formData.append('file', file)
             formData.append('fileMemo', fileMemo)
+
+            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
             ah.one({
                 url: `${baseUrl}/api/soc/attachment/_upload`,
@@ -2211,6 +2245,8 @@ class IncidentSearch extends Component {
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
+                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                     ah.one({
                         url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
                         type: 'DELETE'
@@ -2526,6 +2562,8 @@ class IncidentSearch extends Component {
             payload = search
         }
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2`,
             data: JSON.stringify(payload),
@@ -2552,6 +2590,8 @@ class IncidentSearch extends Component {
         let payload = {
             incidentId: incident.info.id
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/_notify`,

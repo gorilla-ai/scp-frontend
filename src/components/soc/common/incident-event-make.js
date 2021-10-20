@@ -112,6 +112,9 @@ class IncidentEventMake extends Component {
 			return <MenuItem key={i} value={val}>{val}</MenuItem>
 		});
 		let flowSourceList = []
+
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
 			url: `${baseUrl}/api/soc/flow/_search`,
 			data: JSON.stringify({}),
@@ -147,6 +150,8 @@ class IncidentEventMake extends Component {
 	getOptions = () => {
 		const {baseUrl, contextRoot} = this.context;
 
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
 		ah.one({
 			url: `${baseUrl}/api/soc/_search`,
 			data: JSON.stringify({}),
@@ -181,6 +186,8 @@ class IncidentEventMake extends Component {
 			.catch(err => {
 				helper.showPopupMsg('', t('txt-error'), err.message)
 			});
+
+		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session	
 
 		ah.one({
 			url: `${baseUrl}/api/soc/device/_search`,

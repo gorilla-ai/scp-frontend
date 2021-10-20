@@ -83,9 +83,10 @@ class NetworkOwner extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
+    const {baseUrl, locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
 
    this.getTitleData();
    this.getOwnerData();
@@ -365,6 +366,8 @@ class NetworkOwner extends Component {
     const {list, currentOwnerData, owner} = this.state;
     const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
     let tempOwner = {...owner};
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
@@ -708,6 +711,8 @@ class NetworkOwner extends Component {
     if (!currentOwnerData.ownerUUID) {
       return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/owner?uuid=${currentOwnerData.ownerUUID}`,

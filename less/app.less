@@ -164,6 +164,22 @@ button {
 button.standard:hover:not([disabled]) {
   background-color: var(--formBackground) !important;
 }
+.anchorPosition {
+  .MuiPopover-paper {
+    top: 83px !important;
+    right: 10px !important;
+  }
+}
+.c-multi .fg-add,
+.c-multi .fg-close {
+  border: 1px solid var(--primaryBorder);
+}
+.c-multi > .group {
+  button.fg-add {
+    color: #fff;
+    background-color: var(--formCheckRadioColor) !important;
+  }
+}
 .MuiButton-contained {
   box-shadow: none !important;
 }
@@ -1202,7 +1218,7 @@ button.standard:hover:not([disabled]) {
           height: 345px;
         }
         .c-chart.table {
-          height: 345px;
+          max-height: 345px;
           overflow-y: auto;
         }
         .hmd-info,
@@ -2178,12 +2194,7 @@ button.standard:hover:not([disabled]) {
             margin: 15px 0px 10px 20px;
           }
           .filter-btn {
-            color: #fff;
-            margin: 18px 0px 10px 20px;
-            background-color: var(--buttonSelectedColor);
-            &:hover {
-              background-color: var(--buttonSelectedColor) !important;
-            }
+            margin: 18px 0px 10px 15px;
           }
           .clear-btn {
             margin: 18px 0px 10px 5px;
@@ -2991,6 +3002,33 @@ button.standard:hover:not([disabled]) {
             }
           }
         }
+        .events-syslog-statistics {
+          height: 78vh;
+          .filter-section {
+            position: relative;
+            .input-field {
+              margin: 15px 0px 15px 20px;
+              &.count {
+                width: 100px;
+              }
+            }
+            .btn {
+              margin-top: 17px;
+              margin-left: 15px;
+              &.export {
+                position: absolute;
+                right: 15px;
+              }
+            }
+          }
+          .main-statistics {
+            height: 71vh;
+            .c-chart.table {
+              max-height: 400px;
+              overflow-y: auto;
+            }
+          }
+        }
         .vans-status {
           padding: 0 5px;
           margin: 0 5px;
@@ -3259,9 +3297,14 @@ button.standard:hover:not([disabled]) {
               padding: 10px 15px;
               border-bottom: 1px solid var(--primaryBorder);
             }
-            .title {
+            .title,
+            .name {
               float: left;
               margin-right: 30px;
+            }
+            .name .fg-edit {
+              color: var(--primaryTextColor);
+              cursor: pointer;
             }
             .status {
               display: block;
@@ -3720,6 +3763,35 @@ button.standard:hover:not([disabled]) {
             .product-regex {
               width: 31.9%;
               margin: 5px;
+            }
+          }
+          .cpe-group {
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            .group {
+              margin-bottom: 10px;
+            }
+            .group-content {
+              &.cpe {
+                width: 92%;
+                text-align: left;
+                padding: 5px 10px;
+                margin-right: 5px;
+                border: 1px solid var(--primaryBorder);
+              }
+              #cpeListLabel {
+                margin-top: 10px;
+              }
+              .group-content {
+                width: 100%;
+              }
+              .cpe-header-input {
+                width: 50%;
+              }
+              .cpe-list-input {
+                width: 99%;
+              }
             }
           }
           .cpe-input-test {

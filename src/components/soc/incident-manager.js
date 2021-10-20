@@ -92,6 +92,7 @@ class IncidentManagement extends Component {
             severityList: [],
             socFlowList: [],
             selectedStatus:[],
+            tagList:[],
             search: {
                 keyword: '',
                 category: 0,
@@ -100,6 +101,7 @@ class IncidentManagement extends Component {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
+                tagList:[],
                 severity:'',
                 isExpired: 2
             },
@@ -113,7 +115,7 @@ class IncidentManagement extends Component {
             deviceListOptions: [],
             showDeviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: [],
@@ -141,8 +143,10 @@ class IncidentManagement extends Component {
     }
 
     componentDidMount() {
-        const {locale, sessionRights} = this.context;
+        const {baseUrl, locale, sessionRights} = this.context;
+
         helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+        helper.inactivityTime(baseUrl, locale);
 
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
@@ -159,6 +163,9 @@ class IncidentManagement extends Component {
             return <MenuItem key={i} value={val}>{val}</MenuItem>
         });
         let flowSourceList = []
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/flow/_search`,
             data: JSON.stringify({}),
@@ -225,6 +232,9 @@ class IncidentManagement extends Component {
         let requestData={
             account:session.accountId
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
@@ -265,20 +275,22 @@ class IncidentManagement extends Component {
         const {search, incident} = this.state;
         const sort = incident.sort.desc ? 'desc' : 'asc';
         const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-
-        if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        let searchPayload = search
+        if (searchPayload.datetime) {
+            searchPayload.startDttm = Moment(searchPayload.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            searchPayload.endDttm = Moment(searchPayload.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
-        search.isExecutor = _.includes(session.roles, 'SOC Executor')
-        search.accountRoleType = this.state.accountRoleType
-        search.account = session.accountId
-        search.status = this.state.selectedStatus
+        searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
+        searchPayload.accountRoleType = this.state.accountRoleType
+        searchPayload.account = session.accountId
+        searchPayload.status = this.state.selectedStatus
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(search),
+            data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -297,7 +309,7 @@ class IncidentManagement extends Component {
                         label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                         options: {
                             filter: true,
-                            sort: val === 'severity' || val === 'id' || val === 'createDttm',
+                            sort: val === 'severity' || val === 'id' || val === 'createDttm' || val === 'updateDttm',
                             customBodyRenderLite: (dataIndex, options) => {
                                 const allValue = tempEdge.dataContent[dataIndex];
                                 let value = tempEdge.dataContent[dataIndex][val];
@@ -350,7 +362,9 @@ class IncidentManagement extends Component {
                                     return <span>{status}</span>
                                 } else if (val === 'createDttm') {
                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (val === 'tag') {
+                                } else if (val === 'updateDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                }  else if (val === 'tag') {
                                     const tags = _.map(allValue.tagList, 'tag.tag')
 
                                     return <div>
@@ -406,6 +420,9 @@ class IncidentManagement extends Component {
 
         searchPayload.account = session.accountId
         searchPayload.status = this.state.selectedStatus
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(searchPayload),
@@ -427,7 +444,7 @@ class IncidentManagement extends Component {
                             label: val === '_menu' ? '' : f(`incidentFields.${val}`),
                             options: {
                                 filter: true,
-                                sort: val === 'severity' || val === 'id' || val === 'createDttm',
+                                sort: val === 'severity' || val === 'id' || val === 'createDttm' || val === 'updateDttm'  ,
                                 customBodyRenderLite: (dataIndex, options) => {
                                     const allValue = tempEdge.dataContent[dataIndex];
                                     let value = tempEdge.dataContent[dataIndex][val];
@@ -482,6 +499,8 @@ class IncidentManagement extends Component {
                                         return <span>{status}</span>
                                     } else if (val === 'createDttm') {
                                         return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                    } else if (val === 'updateDttm') {
+                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
                                     } else if (val === 'tag') {
                                         const tags = _.map(allValue.tagList, 'tag.tag')
 
@@ -532,6 +551,8 @@ class IncidentManagement extends Component {
         let req = {
             accountRoleType :this.state.accountRoleType
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.all([
             {
@@ -1631,6 +1652,8 @@ class IncidentManagement extends Component {
             }
         }
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc`,
             data: JSON.stringify(incident.info),
@@ -1962,6 +1985,8 @@ class IncidentManagement extends Component {
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
@@ -2035,6 +2060,8 @@ class IncidentManagement extends Component {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         this.handleCloseMenu()
         const {baseUrl} = this.context;
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
@@ -2130,7 +2157,7 @@ class IncidentManagement extends Component {
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
-                    <div className='group'>
+                    <div className='group'     style={{width: '60vh'}}>
                         {/*<label htmlFor='keyword'>{f('edgeFields.keywords')}</label>*/}
                         <TextField
                             id='keyword'
@@ -2139,6 +2166,9 @@ class IncidentManagement extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            rows={1}
+                            multiline
+                            rowsMax={3}
                             value={search.keyword}
                             onChange={this.handleSearchMui}/>
                     </div>
@@ -2238,6 +2268,31 @@ class IncidentManagement extends Component {
                                 value={search.datetime.to}
                                 onChange={this.handleSearchTime.bind(this, 'to')} />
                         </MuiPickersUtilsProvider>
+                    </div>
+                    <div className='group'  style={{width: '500px'}}>
+                        <Autocomplete
+                            multiple
+                            id='tagList'
+                            name='tagList'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            options={this.state.tagList}
+                            // options={_.map(this.state.tagList, (val) => { return { value: val }; })}
+                            select
+                            onChange={this.onNameChange}
+                            value={search.tagList}
+                            getOptionLabel={(option) => option.tag}
+                            renderInput={(params) =>
+                                <TextField
+                                    {...params}
+                                    label={it('txt-custom-tag')}
+                                    variant='outlined'
+                                    fullWidth={true}
+                                    size='small'
+                                    InputProps={{...params.InputProps, type: 'search'}}
+                                />}
+                        />
                     </div>
                 </div>
                 <div className='button-group'>
@@ -2378,6 +2433,8 @@ class IncidentManagement extends Component {
      */
     deleteIncident = (id) => {
         const {baseUrl} = this.context;
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
@@ -2578,6 +2635,8 @@ class IncidentManagement extends Component {
                     deviceId: alertData._edgeInfo.agentId || alertData._edgeId
                 };
 
+                helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                 ah.one({
                     url: `${baseUrl}/api/soc/device/redirect/_search`,
                     data: JSON.stringify(searchRequestData),
@@ -2642,6 +2701,9 @@ class IncidentManagement extends Component {
         let tmp = {
             id: id
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_audit`,
             data: JSON.stringify(tmp),
@@ -2671,6 +2733,9 @@ class IncidentManagement extends Component {
         let tmp = {
             id: id
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_send`,
             data: JSON.stringify(tmp),
@@ -2806,6 +2871,15 @@ class IncidentManagement extends Component {
         });
     };
 
+    onNameChange = (event, values) => {
+        let tempSearch = {...this.state.search};
+
+        tempSearch['tagList'] = values;
+        this.setState({
+            search: tempSearch
+        });
+    }
+
     /**
      * Toggle filter content on/off
      * @method
@@ -2832,7 +2906,8 @@ class IncidentManagement extends Component {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
-                isExpired: 2
+                isExpired: 2,
+	            tagList:[]
             },
             selectedStatus:[]
         })
@@ -2921,7 +2996,9 @@ class IncidentManagement extends Component {
     }
 
     getOptions = () => {
-        const {baseUrl, contextRoot, session} = this.context;
+        const {baseUrl, contextRoot, session , tagList} = this.context;
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/_search`,
@@ -2958,6 +3035,8 @@ class IncidentManagement extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         });
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use:'1',account:session.accountId}),
@@ -2978,6 +3057,8 @@ class IncidentManagement extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use:'2',account:session.accountId}),
@@ -2993,6 +3074,24 @@ class IncidentManagement extends Component {
 
                     this.setState({showDeviceListOptions: list})
                 }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+        ah.one({
+            url: `${baseUrl}/api/soc/tag/_search`,
+            data: JSON.stringify({account: session.accountId}),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                this.setState({
+                    tagList: data.rt
+                })
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
@@ -3096,6 +3195,8 @@ class IncidentManagement extends Component {
         formData.append('file', attach)
         formData.append('fileMemo', incident.info.fileMemo)
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/attachment/_upload`,
             data: formData,
@@ -3122,6 +3223,8 @@ class IncidentManagement extends Component {
             formData.append('id', incident.info.id)
             formData.append('file', file)
             formData.append('fileMemo', fileMemo)
+
+            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
             ah.one({
                 url: `${baseUrl}/api/soc/attachment/_upload`,
@@ -3160,6 +3263,8 @@ class IncidentManagement extends Component {
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
+                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
                     ah.one({
                         url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
                         type: 'DELETE'
@@ -3477,6 +3582,8 @@ class IncidentManagement extends Component {
             payload = search
         }
 
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2`,
             data: JSON.stringify(payload),
@@ -3554,6 +3661,8 @@ class IncidentManagement extends Component {
         let payload = {
             incidentId:incident.info.id
         }
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
             url: `${baseUrl}/api/soc/_notify`,

@@ -99,12 +99,10 @@ html[data-theme='dark'] {
   }
   .license-group-btn {
     display: flex;
-    justify-content: space-between;
-    #license-activate {
-      width: 36%;
-    }
-    #licenseUpload {
-      width: 60%;
+    flex-direction: column;
+    margin-top: -15px;
+    button {
+      width: 100%;
     }
   }
   #g-footer {
@@ -128,7 +126,7 @@ html[data-theme='dark'] {
       }
     }
     .key-field {
-      margin-bottom: 25px;
+      margin-bottom: 5px;
     }
     #newKey {
       float: left;
