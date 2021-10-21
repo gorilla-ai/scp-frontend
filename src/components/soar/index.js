@@ -23,6 +23,8 @@ import SoarSettings from './soar-settings'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const NEW_SOAR_RULE = ['new', 'template1', 'template2', 'template3'];
+
 let t = null;
 let f = null;
 
@@ -57,6 +59,7 @@ class SoarController extends Component {
         action: 'all',
         isEnable: 'all'
       },
+      contextAnchor: null,
       soarData: {
         dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'status', 'isEnable', '_menu'],
         dataFields: [],
@@ -291,6 +294,80 @@ class SoarController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (event) => {
+    this.setState({
+      contextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
+  }
+  /**
+   * Get add SOAR menu
+   * @method
+   * @param {string} val - individual Soar name
+   * @param {number} i - index of the Soar name
+   */
+  getAddSoarMenu = (val, i) => {
+    return <MenuItem key={i} onClick={this.handleAddSoarMenu.bind(this, val)}>{t('soar.txt-' + val)}</MenuItem>
+  }
+  /**
+   * Handle add Soar menu
+   * @method
+   * @param {styring} type - soar menu type
+   */
+  handleAddSoarMenu = (type) => {
+    const {baseUrl} = this.context;
+    let url = `${baseUrl}/api/hmd/retriggerAll`;
+
+    if (type === 'new') {
+      this.getSoarIndividualData();
+      return;
+    } else if (type === 'template1') {
+      url = '';
+    } else if (type === 'template2') {
+      url = '';
+    } else if (type === 'template3') {
+      url = '';
+    }
+
+    const soarIndividualData = {"flowId":"bfa10284-0a0c-11ec-97d0-005056a781c4","flowName":"iptest","aggField":"","status":"ready","isEnable":true,"condition":{"op":"containWithField","args":{"field":"ip"}},"flow":[{"adapter_type":"socket","args":{"port":"33333","protocol":"tcp"},"componentType":"adapter","data":{"label":"事件來源"},"id":"324.58103186274866_adapter","isWritable":true,"position":{"x":935.8888854980469,"y":247.13888549804688},"type":"input"},{"data":{"label":"執行"},"op":"action","args":{"actions":[{"args":{"content":"This ip is: {ip}.","emailAuthentication":false,"receiver":["albert.chen@ns-guard.com","shenghung.lin@ns-guard.com"],"sender":"gorilla_rdtest@gorilla-cloud.com","senderAccount":"gorilla_rdtest","senderPassword":"Gorill@RDTEST","smtpConnectType":"tls","smtpPort":25,"smtpServer":"m1.gorilla-cloud.com","title":"test mail"},"op":"email"}]},"componentType":"action","id":"705.291614466562_action","isWritable":true,"position":{"x":792.8888854980469,"y":696.1388854980469},"type":"output"},{"data":{"label":"節點"},"op":"tip","args":{"field":"a","returnField":"c","tipHost":"b"},"componentType":"node","id":"389.2395491860525_node","isWritable":true,"position":{"x":791.1050376256958,"y":373.52606121528333},"type":"default"},{"data":{"label":"節點1"},"op":"tip","args":{"field":"a","returnField":"c","tipHost":"b"},"componentType":"node","group":"1","id":"486.06187532900356_node","isWritable":true,"position":{"x":676.0470363766219,"y":527.1433038298844},"type":"default"},{"data":{"label":"節點2"},"op":"tip","args":{"field":"c","returnField":"e","tipHost":"d"},"componentType":"node","id":"132.63238045915116_node","isWritable":true,"position":{"x":970.0960502796391,"y":533.206170095926},"type":"default"},{"label":"連結","op":"containWithField","args":{"field":"ip"},"animated":true,"arrowHeadType":"arrow","componentType":"link","from":"324.58103186274866_adapter","id":"816.8036688453892_link","isWritable":false,"labelStyle":{"fontWeight":700},"name":"連結","priority":"1","source":"324.58103186274866_adapter","sourceHandle":null,"target":"389.2395491860525_node","targetHandle":null,"to":"389.2395491860525_node","type":"default"},{"label":"連結1","op":"lt","args":{"equal":false,"field":"a","value":"b"},"animated":true,"arrowHeadType":"arrow","componentType":"link","from":"389.2395491860525_node","id":"626.5212288001308_link","isWritable":true,"labelStyle":{"fontWeight":700},"name":"連結1","priority":"1","source":"389.2395491860525_node","sourceHandle":null,"target":"486.06187532900356_node","targetHandle":null,"to":"486.06187532900356_node","type":"default"},{"label":"連結","op":"lt","args":{"equal":false,"field":"c","value":"d"},"animated":true,"arrowHeadType":"arrow","componentType":"link","from":"486.06187532900356_node","id":"581.1183551921825_link","isWritable":true,"labelStyle":{"fontWeight":700},"name":"連結","priority":"9","source":"486.06187532900356_node","sourceHandle":null,"target":"705.291614466562_action","targetHandle":null,"to":"705.291614466562_action","type":"default"},{"label":"連結2","op":"lt","args":{"equal":false,"field":"a","value":"b"},"animated":true,"arrowHeadType":"arrow","componentType":"link","from":"389.2395491860525_node","id":"367.8648967977796_link","isWritable":true,"labelStyle":{"fontWeight":700},"name":"連結2","priority":"3","source":"389.2395491860525_node","sourceHandle":null,"target":"132.63238045915116_node","targetHandle":null,"to":"132.63238045915116_node","type":"default"},{"label":"連結","op":"lt","args":{"equal":false,"field":"c","value":"d"},"animated":true,"arrowHeadType":"arrow","componentType":"link","from":"132.63238045915116_node","id":"875.5384882886672_link","isWritable":true,"labelStyle":{"fontWeight":700},"name":"連結","priority":"7","source":"132.63238045915116_node","sourceHandle":null,"target":"705.291614466562_action","targetHandle":null,"to":"705.291614466562_action","type":"default"}]};
+
+    let requestData = {};
+
+    this.setState({
+      flowActionType: 'edit',
+      soarIndividualData
+    }, () => {
+      this.toggleContent('flow');
+    });
+
+    // this.ah.one({
+    //   url,
+    //   data: JSON.stringify(requestData),
+    //   type: 'POST',
+    //   contentType: 'text/plain'
+    // }, {showProgress: false})
+    // .then(data => {
+    //   return null;
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // })
+
+    this.handleCloseMenu();
   }
   /**
    * Get and set soar data
@@ -636,6 +713,7 @@ class SoarController extends Component {
       flowActionType,
       ipExist,
       soarColumns,
+      contextAnchor,
       soarData,
       soarIndividualData
     } = this.state;
@@ -661,6 +739,14 @@ class SoarController extends Component {
               </div>
             </div>
 
+            <Menu
+              anchorEl={contextAnchor}
+              keepMounted
+              open={Boolean(contextAnchor)}
+              onClose={this.handleCloseMenu}>
+              {NEW_SOAR_RULE.map(this.getAddSoarMenu)}
+            </Menu>
+
             <div className='data-content soar-index'>
               <div className='parent-content'>
                 {this.renderFilter()}
@@ -668,7 +754,7 @@ class SoarController extends Component {
                   <header className='main-header'>{t('soar.txt-ruleList')}</header>
                   <div className='content-header-btns with-menu'>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'settings')}>{t('txt-settings')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSoarIndividualData} disabled={!ipExist}>{t('soar.txt-addRule')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu} disabled={!ipExist}>{t('soar.txt-addRule')}</Button>
                   </div>
 
                   <MuiTableContent
