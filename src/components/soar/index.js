@@ -23,6 +23,8 @@ import SoarSettings from './soar-settings'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const NEW_SOAR_RULE = ['new', 'internalInventory', 'windowsLoginFail', 'fortigateLog'];
+
 let t = null;
 let f = null;
 
@@ -57,6 +59,12 @@ class SoarController extends Component {
         action: 'all',
         isEnable: 'all'
       },
+      contextAnchor: null,
+      soarTemplate: {
+        internalInventory: {},
+        windowsLoginFail: {},
+        fortigateLog: {}
+      },
       soarData: {
         dataFieldsArr: ['flowName', 'aggField', 'adapter', 'condition', 'action', 'status', 'isEnable', '_menu'],
         dataFields: [],
@@ -82,6 +90,7 @@ class SoarController extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getSoarColumn();
+    this.getSoarTemplateData();
     this.validateIpExist();
   }
   /**
@@ -295,6 +304,82 @@ class SoarController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Get SOAR template data
+   * @method
+   */
+  getSoarTemplateData = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/templates`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          soarTemplate: {
+            internalInventory: data.internalInventory,
+            windowsLoginFail: data.windowsLoginFail,
+            fortigateLog: data.fortigateLog
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (event) => {
+    this.setState({
+      contextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
+  }
+  /**
+   * Get add SOAR menu
+   * @method
+   * @param {string} val - individual Soar name
+   * @param {number} i - index of the Soar name
+   */
+  getAddSoarMenu = (val, i) => {
+    return <MenuItem key={i} onClick={this.handleAddSoarMenu.bind(this, val)}>{t('soar.txt-' + val)}</MenuItem>
+  }
+  /**
+   * Handle add Soar menu
+   * @method
+   * @param {styring} type - soar menu type
+   */
+  handleAddSoarMenu = (type) => {
+    if (type === 'new') {
+      this.getSoarIndividualData();
+      this.handleCloseMenu();
+      return;
+    } else {
+      this.setState({
+        flowActionType: 'edit',
+        soarIndividualData: this.state.soarTemplate[type]
+      }, () => {
+        this.toggleContent('flow');
+      });
+
+      this.handleCloseMenu();
+    }
   }
   /**
    * Get and set soar data
@@ -642,6 +727,7 @@ class SoarController extends Component {
       flowActionType,
       ipExist,
       soarColumns,
+      contextAnchor,
       soarData,
       soarIndividualData
     } = this.state;
@@ -667,6 +753,14 @@ class SoarController extends Component {
               </div>
             </div>
 
+            <Menu
+              anchorEl={contextAnchor}
+              keepMounted
+              open={Boolean(contextAnchor)}
+              onClose={this.handleCloseMenu}>
+              {NEW_SOAR_RULE.map(this.getAddSoarMenu)}
+            </Menu>
+
             <div className='data-content soar-index'>
               <div className='parent-content'>
                 {this.renderFilter()}
@@ -674,7 +768,7 @@ class SoarController extends Component {
                   <header className='main-header'>{t('soar.txt-ruleList')}</header>
                   <div className='content-header-btns with-menu'>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'settings')}>{t('txt-settings')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSoarIndividualData} disabled={!ipExist}>{t('soar.txt-addRule')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu} disabled={!ipExist}>{t('soar.txt-addRule')}</Button>
                   </div>
 
                   <MuiTableContent
