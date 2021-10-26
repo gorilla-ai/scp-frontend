@@ -41,7 +41,9 @@ const SERVICE_TYPE_LIST = {
   'NETFLOW-IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'lastStatus', 'agentMode', 'TCPDUMP'],
   'IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
   'NETTRAP-DN': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'attackCnt'],
-  'IDS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt']
+  'IDS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'IDS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'IPS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt']
 };
 
 let t = null;
