@@ -1138,28 +1138,6 @@ class HMDsettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal long'>
-              <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
-              <MultiInput
-                className='cpe-group'
-                base={CpeHeader}
-                props={cpeProps}
-                defaultItemValue={{
-                  header: '',
-                  validate: true,
-                  msg: '',
-                  list: [{
-                    cpe: '',
-                    validate: true,
-                    msg: ''
-                  }],
-                  index: cpeData.length
-                }}
-                value={cpeData}
-                onChange={this.setCpeData.bind(this, 'header')}
-                disabled={activeContent === 'viewMode'} />
-            </div>
-
             <div className='form-group normal'>
               <header>{t('network-inventory.txt-CPEconvertTest')}</header>
               <div className='group full'>
@@ -1235,6 +1213,28 @@ class HMDsettings extends Component {
                   onChange={this.handleNccstDataChange}
                   disabled={activeContent === 'viewMode'} />
               </div>
+            </div>
+
+            <div className='form-group normal long'>
+              <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
+              <MultiInput
+                className='cpe-group'
+                base={CpeHeader}
+                props={cpeProps}
+                defaultItemValue={{
+                  header: '',
+                  validate: true,
+                  msg: '',
+                  list: [{
+                    cpe: '',
+                    validate: true,
+                    msg: ''
+                  }],
+                  index: cpeData.length
+                }}
+                value={cpeData}
+                onChange={this.setCpeData.bind(this, 'header')}
+                disabled={activeContent === 'viewMode'} />
             </div>
           </div>
 
