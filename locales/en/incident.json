@@ -302,6 +302,7 @@
 	},
 	"txt-device-comment": "Device Comment",
 	"txt-unit-select": "Device Unit Management",
+	"txt-defense-range": "Device Defense Range",
 	"required": {
 		"oid": "Unit OID must be required",
 		"deviceId": "Device must be required",

@@ -307,6 +307,7 @@
 	},
 	"txt-device-comment": "設備備註",
 	"txt-unit-select": "設備單位管理",
+	"txt-defense-range": "防禦範圍",
 	"required": {
 		"oid": "機關單位OID為必填欄位",
 		"deviceId": "設備代號為必填欄位",

@@ -30,6 +30,8 @@ import queryString from "query-string";
 import Manage from "../configuration/topology/manage";
 import Switch from "@material-ui/core/Switch";
 
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 
 let t = null;
 let f = null;
@@ -168,6 +170,10 @@ class IncidentDeviceStep extends Component {
                 isGovernment:false,
                 abbreviation: '',
                 relatedAccountList: []
+            },
+            defenseRange: {
+                list: [],
+                value: []
             }
         };
 
@@ -702,11 +708,19 @@ class IncidentDeviceStep extends Component {
         );
     }
 
+  handleComboBoxChange = (event, value) => {
+    let tempDefenseRange = {...this.state.defenseRange};
+    tempDefenseRange.value = value;
+
+    this.setState({
+      defenseRange: tempDefenseRange
+    });
+  }
 
     displayEditDeviceContentWithStep = () => {
-        const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType} = this.state;
+        const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType, defenseRange} = this.state;
 
-        const stepTitle = [t('edge-management.txt-basicInfo'), it('txt-protect-type') ,it('txt-unit-select'), it('txt-device-comment')];
+        const stepTitle = [t('edge-management.txt-basicInfo'), it('txt-protect-type') ,it('txt-unit-select'), it('txt-defense-range'), it('txt-device-comment')];
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-device')}</header>
@@ -1168,6 +1182,46 @@ class IncidentDeviceStep extends Component {
                     }
                     {activeSteps === 4 &&
                     <div className='form-group steps-host'>
+                        <header>{it('txt-defense-range')}</header>
+                        <div className='group full'>
+                            <Autocomplete
+                              className='combo-box checkboxes-tags groups'
+                              multiple
+                              value={defenseRange.value}
+                              options={_.map(defenseRange.list, (val) => {
+                                return {
+                                    text: val.deviceName + ' - ' + val.incidentUnitDTO.name,
+                                    value: val.id
+                                }
+                              })}
+                              getOptionLabel={(option) => option.text}
+                              disableCloseOnSelect
+                              noOptionsText={t('txt-notFound')}
+                              openText={t('txt-on')}
+                              closeText={t('txt-off')}
+                              clearText={t('txt-clear')}
+                              renderOption={(option, { selected }) => (
+                                <React.Fragment>
+                                  <Checkbox
+                                    color='primary'
+                                    icon={<CheckBoxOutlineBlankIcon />}
+                                    checkedIcon={<CheckBoxIcon />}
+                                    checked={selected} />
+                                  {option.text}
+                                </React.Fragment>
+                              )}
+                              renderInput={(params) => (
+                                <TextField {...params} variant='outlined' size='small' />
+                              )}
+                              getOptionSelected={(option, value) => (
+                                option.value === value.value
+                              )}
+                              onChange={this.handleComboBoxChange} />
+                        </div>
+                    </div>
+                    }
+                    {activeSteps === 5 &&
+                    <div className='form-group steps-host'>
                         <header>{it('txt-note')} ({t('txt-memoMaxLength')})</header>
                         <div className='group full'>
                             <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
@@ -1570,12 +1624,23 @@ class IncidentDeviceStep extends Component {
             if (locale === 'en') {
                 pos = '-1px';
             } else if (locale === 'zh') {
-                pos = '-6px';
+                pos = '-20px';
             }
             textAttr.style = {left: pos};
         }
 
         if (index === 4) {
+            let pos = '';
+
+            if (locale === 'en') {
+                pos = '5px';
+            } else if (locale === 'zh') {
+                pos = '-6px';
+            }
+            textAttr.style = {left: pos};
+        }
+
+        if (index === 5) {
             let pos = '';
 
             if (locale === 'en') {
@@ -1715,6 +1780,14 @@ class IncidentDeviceStep extends Component {
                 }
 
                 if (activeSteps === 4) {
+                    let validate = true;
+
+                    if (!validate) {
+                        return;
+                    }
+                }
+
+                if (activeSteps === 5) {
                     if (ownerType === 'new') {
                         let validate = true;
                         if (!this.handleUnitSubmit()){
@@ -1747,7 +1820,7 @@ class IncidentDeviceStep extends Component {
         });
     }
     getBtnText = () => {
-        return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
+        return this.state.activeSteps === 5 ? t('txt-confirm') : t('txt-nextStep');
     }
 
     getOwnerType = () => {
@@ -2736,13 +2809,41 @@ class IncidentDeviceStep extends Component {
                 this.setState({
                     edgeList: children,
                 },()=>{
-                    // console.log("new edgeList ", this.state.edgeList )
+                    this.getDeviceUsableList()
                 });
             }
         }).catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         });
 
+    }
+    getDeviceUsableList = () => {
+        const {baseUrl, contextRoot, session} = this.context;
+        const {defenseRange} = this.state;
+        const requestData = {
+            accountId: session.accountId
+        };
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+        ah.one({
+            url: `${baseUrl}/api/soc/deviceSlave/usable`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).then(data => {
+                if (data) {
+                    let tempDefenseRange = {...defenseRange};
+                    tempDefenseRange.list = data.rt.rows;
+                    
+                    this.setState({
+                        defenseRange: tempDefenseRange
+                    });
+                }
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
     }
 }
 
