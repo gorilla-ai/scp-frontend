@@ -171,10 +171,12 @@ class IncidentDeviceStep extends Component {
                 abbreviation: '',
                 relatedAccountList: []
             },
+            originalDefenseRangeData: {},
             defenseRange: {
                 list: [],
                 value: []
-            }
+            },
+            slaveList: []
         };
 
         this.ah = getInstance("chewbacca");
@@ -309,7 +311,77 @@ class IncidentDeviceStep extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             });
     }
+    getDeviceUsableList = (type, allValue) => {
+        const {baseUrl, contextRoot, session} = this.context;
+        const {defenseRange} = this.state;
+        const requestData = {
+            accountId: session.accountId
+        };
 
+        this.ah.one({
+            url: `${baseUrl}/api/soc/deviceSlave/usable`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).then(data => {
+                if (data) {
+                    let tempDefenseRange = {...defenseRange};
+                    tempDefenseRange.list = data.rows;
+                    
+                    this.setState({
+                        defenseRange: tempDefenseRange
+                    }, () => {
+                        if (type === 'add') {
+                            this.toggleContent('addDevice');
+                        } else if (type === 'edit') {
+                            this.getDeviceSlave(allValue, 'load');
+                        }
+                    });
+                }
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+    }
+    getDeviceSlave = (allValue, type) => {
+        const {baseUrl, contextRoot,} = this.context;
+        const {defenseRange} = this.state;
+
+        this.ah.one({
+            url: `${baseUrl}/api/soc/deviceSlave?masterId=${allValue.id}`,
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).then(data => {
+            if (data) {
+                let tempDefenseRange = {...defenseRange};
+
+                if (type === 'load') {
+                    tempDefenseRange.list = _.concat(data.rows, defenseRange.list);
+                }
+                
+                tempDefenseRange.value = _.map(data.rows, val => {
+                    return {
+                        text: val.deviceName + ' - ' + val.incidentUnitDTO.name,
+                        value: val.id
+                    }
+                });
+                
+                this.setState({
+                    originalDefenseRangeData: _.cloneDeep(tempDefenseRange),
+                    defenseRange: tempDefenseRange
+                }, () => {
+                    if (type === 'load') {
+                        this.toggleContent('viewDevice', allValue);
+                    } else if (type === 'submit') {
+                        this.toggleContent('cancel');
+                    }
+                });
+            }
+        }).catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+    }
     /**
      * Get and set Incident Device table data
      * @method
@@ -363,7 +435,7 @@ class IncidentDeviceStep extends Component {
                                  return (
                                      <div className='table-menu menu active'>
                                          <i className='fg fg-edit'
-                                            onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                                            onClick={this.getDeviceUsableList.bind(this, 'edit', allValue)}
                                             title={t('txt-view')}/>
                                          <i className='fg fg-trashcan'
                                             onClick={this.openDeleteMenu.bind(this, allValue)}
@@ -406,7 +478,7 @@ class IncidentDeviceStep extends Component {
      */
     setupHealthStatisticData = (fromSearch) => {
         const {baseUrl, contextRoot, session} = this.context;
-        const {deviceSearch, healthStatistic} = this.state;
+        const {deviceSearch, healthStatistic, slaveList} = this.state;
         const url = `${baseUrl}/api/soc/device/_search?page=${healthStatistic.currentPage}&pageSize=${healthStatistic.pageSize}`;
         let requestData = {};
 
@@ -491,7 +563,8 @@ class IncidentDeviceStep extends Component {
                                         name='select'
                                         checked={value}
                                         onChange={this.handleSendDataChangeMui.bind(this, allValue.deviceId)}
-                                        color='primary' />
+                                        color='primary'
+                                        disabled={_.includes(slaveList, allValue.id)} />
                                 )
                             }
 
@@ -504,7 +577,7 @@ class IncidentDeviceStep extends Component {
                                         name='frequency'
                                         onChange={this.handleSendDataChangeMui.bind(this, allValue.deviceId)}
                                         value={value}
-                                        disabled={!allValue.select}/>
+                                        disabled={!allValue.select || _.includes(slaveList, allValue.id)}/>
                                 )
                             } else if (tempData === 'reason') {
 
@@ -635,7 +708,7 @@ class IncidentDeviceStep extends Component {
                                 }
 
                                 {activeContent === 'tableList' &&
-                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openDownloadMenu.bind()}>{it('txt-exportHealthCsv')}</Button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.getSlaveList}>{it('txt-exportHealthCsv')}</Button>
                                 }
 
                                 {activeContent === 'viewDevice' &&
@@ -647,7 +720,7 @@ class IncidentDeviceStep extends Component {
                                 }
 
                                 {insertCheck &&
-                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.getDeviceUsableList.bind(this, 'add')}>{t('txt-add')}</Button>
                                 }
 
                                 {accountType !== constants.soc.LIMIT_ACCOUNT &&
@@ -707,16 +780,17 @@ class IncidentDeviceStep extends Component {
             </div>
         );
     }
+    handleComboBoxChange = (event, value) => {
+        let tempDefenseRange = {...this.state.defenseRange};
+        tempDefenseRange.value = value;
 
-  handleComboBoxChange = (event, value) => {
-    let tempDefenseRange = {...this.state.defenseRange};
-    tempDefenseRange.value = value;
-
-    this.setState({
-      defenseRange: tempDefenseRange
-    });
-  }
-
+        this.setState({
+          defenseRange: tempDefenseRange
+        });
+    }
+    displayDefenseList = (val) => {
+        return <span>{val.text}</span>
+    }
     displayEditDeviceContentWithStep = () => {
         const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType, defenseRange} = this.state;
 
@@ -885,6 +959,14 @@ class IncidentDeviceStep extends Component {
                                 />
                             </div>
                         </div>
+
+                        <div className='form-group steps-owner'>
+                            <header>{it('txt-defense-range')}</header>
+                                <div className='group'>
+                                    <div className='flex-item'>{defenseRange.value.map(this.displayDefenseList)}</div>
+                                </div>
+                        </div>
+
                         <div className='form-group steps-host'>
                             <header>{it('txt-note')} ({t('txt-memoMaxLength')})</header>
                             <div className='group full'>
@@ -1527,6 +1609,47 @@ class IncidentDeviceStep extends Component {
 
                     {activeSteps === 4 &&
                     <div className='form-group steps-host'>
+                        <header>{it('txt-defense-range')}</header>
+                        <div className='group full'>
+                            <Autocomplete
+                              className='combo-box checkboxes-tags groups'
+                              multiple
+                              value={defenseRange.value}
+                              options={_.map(defenseRange.list, (val) => {
+                                return {
+                                    text: val.deviceName + ' - ' + val.incidentUnitDTO.name,
+                                    value: val.id
+                                }
+                              })}
+                              getOptionLabel={(option) => option.text}
+                              disableCloseOnSelect
+                              noOptionsText={t('txt-notFound')}
+                              openText={t('txt-on')}
+                              closeText={t('txt-off')}
+                              clearText={t('txt-clear')}
+                              renderOption={(option, { selected }) => (
+                                <React.Fragment>
+                                  <Checkbox
+                                    color='primary'
+                                    icon={<CheckBoxOutlineBlankIcon />}
+                                    checkedIcon={<CheckBoxIcon />}
+                                    checked={selected} />
+                                  {option.text}
+                                </React.Fragment>
+                              )}
+                              renderInput={(params) => (
+                                <TextField {...params} variant='outlined' size='small' />
+                              )}
+                              getOptionSelected={(option, value) => (
+                                option.value === value.value
+                              )}
+                              onChange={this.handleComboBoxChange} />
+                        </div>
+                    </div>
+                    }
+
+                    {activeSteps === 5 &&
+                    <div className='form-group steps-host'>
                         <header>{it('txt-note')} ({t('txt-memoMaxLength')})</header>
                         <div className='group full'>
                             <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
@@ -1600,7 +1723,7 @@ class IncidentDeviceStep extends Component {
             let pos = '';
 
             if (locale === 'en') {
-                pos = '-11px';
+                pos = '7px';
             } else if (locale === 'zh') {
                 pos = '0';
             }
@@ -1611,7 +1734,7 @@ class IncidentDeviceStep extends Component {
             let pos = '';
 
             if (locale === 'en') {
-                pos = '-1px';
+                pos = '-15px';
             } else if (locale === 'zh') {
                 pos = '-22px';
             }
@@ -1622,7 +1745,7 @@ class IncidentDeviceStep extends Component {
             let pos = '';
 
             if (locale === 'en') {
-                pos = '-1px';
+                pos = '-55px';
             } else if (locale === 'zh') {
                 pos = '-20px';
             }
@@ -1633,9 +1756,9 @@ class IncidentDeviceStep extends Component {
             let pos = '';
 
             if (locale === 'en') {
-                pos = '5px';
+                pos = '-42px';
             } else if (locale === 'zh') {
-                pos = '-6px';
+                pos = '-20px';
             }
             textAttr.style = {left: pos};
         }
@@ -1644,7 +1767,7 @@ class IncidentDeviceStep extends Component {
             let pos = '';
 
             if (locale === 'en') {
-                pos = '5px';
+                pos = '-25px';
             } else if (locale === 'zh') {
                 pos = '-1px';
             }
@@ -1904,7 +2027,7 @@ class IncidentDeviceStep extends Component {
      */
     handleDeviceSubmit = () => {
         const {baseUrl, session} = this.context;
-        const {incidentDevice, ownerType} = this.state;
+        const {incidentDevice, defenseRange} = this.state;
         let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         if (!this.checkAddData(incidentDevice)) {
             return
@@ -1920,9 +2043,19 @@ class IncidentDeviceStep extends Component {
             apiType = 'PATCH'
         }
 
+        let slaveDeviceIdList = [];
+        slaveDeviceIdList = _.map(defenseRange.value, val => {
+            return val.value;
+        });
+
+        const requestData = {
+            ...incidentDevice.info,
+            slaveDeviceIdList
+        };
+
         this.ah.one({
             url: `${baseUrl}/api/soc/device`,
-            data: JSON.stringify(incidentDevice.info),
+            data: JSON.stringify(requestData),
             type: apiType,
             contentType: 'text/plain'
         })
@@ -1946,7 +2079,7 @@ class IncidentDeviceStep extends Component {
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(incidentDevice)
                 }, () => {
-                    this.toggleContent('cancel');
+                    this.getDeviceSlave(incidentDevice.info, 'submit');
                 });
 
                 return null;
@@ -2193,9 +2326,10 @@ class IncidentDeviceStep extends Component {
      */
     toggleContent = (type, allValue) => {
         const {baseUrl} = this.context;
-        const {originalIncidentDeviceData, incidentDevice, unit,edgeList} = this.state;
+        const {originalIncidentDeviceData, incidentDevice, unit, edgeList, originalDefenseRangeData, defenseRange} = this.state;
         let tempIncidentDevice = {...incidentDevice};
         let tempUnit = {...unit}
+        let tempDefenseRange = {...defenseRange};
         let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         let showPage = type;
         this.getOptions()
@@ -2245,22 +2379,26 @@ class IncidentDeviceStep extends Component {
                     tempIncidentDevice.edgeItem = allValue.deviceId
                 }
             })
-            tempIncidentDevice.info = {
-                id: allValue.id,
-                deviceId: allValue.deviceId,
-                deviceName: allValue.deviceName,
-                deviceCompany: allValue.deviceCompany,
-                unitId: allValue.unitId,
-                frequency: allValue.frequency,
-                protectType: allValue.protectType,
-                protectTypeInfo: allValue.protectTypeInfo,
-                note: allValue.note,
-                updateDttm: allValue.updateDttm,
-                selectUnitObject:{
-                    text: '',
-                    value:''
-                }
-            };
+
+            if (allValue) {
+                tempIncidentDevice.info = {
+                    id: allValue.id,
+                    deviceId: allValue.deviceId,
+                    deviceName: allValue.deviceName,
+                    deviceCompany: allValue.deviceCompany,
+                    unitId: allValue.unitId,
+                    frequency: allValue.frequency,
+                    protectType: allValue.protectType,
+                    protectTypeInfo: allValue.protectTypeInfo,
+                    note: allValue.note,
+                    updateDttm: allValue.updateDttm,
+                    selectUnitObject:{
+                        text: '',
+                        value:''
+                    }
+                };
+            }
+
             this.setState({
                 showFilter: false,
                 unit: {
@@ -2283,16 +2421,19 @@ class IncidentDeviceStep extends Component {
             showPage = 'tableList';
             dataFromEdgeDevice = false;
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+            tempDefenseRange = _.cloneDeep(originalDefenseRangeData);
         } else if (type === 'cancel') {
             showPage = 'viewDevice';
             dataFromEdgeDevice = false;
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+            tempDefenseRange = _.cloneDeep(originalDefenseRangeData);
         }
 
         this.setState({
             activeContent: showPage,
             incidentDevice: tempIncidentDevice,
             dataFromEdgeDevice: dataFromEdgeDevice,
+            defenseRange: tempDefenseRange,
             activeSteps:1,
         }, () => {
             if (type === 'tableList') {
@@ -2379,13 +2520,39 @@ class IncidentDeviceStep extends Component {
 
     };
 
+    getSlaveList = () => {
+        const {baseUrl, session} = this.context;
+        const requestData = {
+            accountId: session.accountId
+        };
+
+        this.ah.one({
+            url: `${baseUrl}/api/soc/deviceSlave/slaveList`,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+        .then(data => {
+            if (data) {
+                this.setState({
+                    slaveList: data.rows
+                }, () => {
+                    this.openDownloadMenu();
+                });
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+    }
+
     openDownloadMenu = () => {
         this.setState({
             setType: 'download',
         },()=>{
             this.setupHealthStatisticData();
         })
-
     };
 
     /**
@@ -2808,42 +2975,12 @@ class IncidentDeviceStep extends Component {
                 let children = tempEdgeList.concat(netProxyList);
                 this.setState({
                     edgeList: children,
-                },()=>{
-                    this.getDeviceUsableList()
                 });
             }
         }).catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         });
 
-    }
-    getDeviceUsableList = () => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {defenseRange} = this.state;
-        const requestData = {
-            accountId: session.accountId
-        };
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/deviceSlave/usable`,
-            data: JSON.stringify(requestData),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        }).then(data => {
-                if (data) {
-                    let tempDefenseRange = {...defenseRange};
-                    tempDefenseRange.list = data.rt.rows;
-                    
-                    this.setState({
-                        defenseRange: tempDefenseRange
-                    });
-                }
-        }).catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        });
     }
 }
 
