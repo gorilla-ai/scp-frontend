@@ -583,10 +583,15 @@ class IncidentDeviceStep extends Component {
     /* ------------------ View ------------------- */
     render() {
         const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic, accountType, openManage} = this.state;
-        const {session} = this.context;
+        const {session, sessionRights} = this.context;
         let insertCheck = true;
+        let privCheck = false;
         if (_.includes(session.roles, constants.soc.Default_Admin) && session.roles.length === 1){
             insertCheck = false
+        }
+
+        if (_.includes(sessionRights, sessionRights.Module_Config)){
+            privCheck = false
         }
 
         return (
@@ -637,7 +642,7 @@ class IncidentDeviceStep extends Component {
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                                 }
 
-                                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                                {accountType !== constants.soc.LIMIT_ACCOUNT && privCheck &&
                                     <Link to='/SCP/configuration/notifications'>
                                         <Button variant='outlined' color='primary' className='standard btn edit' >{t('notifications.txt-settings')}</Button>
                                     </Link>
