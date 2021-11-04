@@ -1614,17 +1614,20 @@ class IncidentDeviceStep extends Component {
                 } else {
                     helper.showPopupMsg('', t('txt-error'), it('required.deviceId'));
                     validate = false;
+                    return;
                 }
 
                 if (incidentDevice.info.deviceName) {
                 } else {
                     helper.showPopupMsg('', t('txt-error'), it('required.deviceName'));
                     validate = false;
+                    return;
                 }
                 if (incidentDevice.info.deviceCompany) {
                 } else {
                     helper.showPopupMsg('', t('txt-error'), it('required.deviceCompany'));
                     validate = false;
+                    return;
                 }
 
                 if (!validate) {
@@ -1656,6 +1659,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.oid'));
                         validate = false;
+                        return
                     }
 
                     if (unit.abbreviation) {
@@ -1663,6 +1667,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.abbreviation'));
                         validate = false;
+                        return
                     }
 
                     if (unit.level) {
@@ -1670,6 +1675,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.level'));
                         validate = false;
+                        return
                     }
 
                     if (unit.industryType) {
@@ -1677,6 +1683,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.industryType'));
                         validate = false;
+                        return
                     }
 
                     if (incidentDevice.info.selectUnitObject.value) {
@@ -1684,6 +1691,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.unit'));
                         validate = false;
+                        return
                     }
 
                     if (!validate) {
@@ -1699,6 +1707,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.unit'));
                         validate = false;
+                        return
                     }
 
 
