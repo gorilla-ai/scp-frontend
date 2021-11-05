@@ -77,7 +77,7 @@ class SoarSettings extends Component {
           content: ''
         },
         hmd: {
-          hostID: '',
+          id: '',
           action: ''
         },
         netprobe: {
@@ -870,7 +870,7 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.hmd.hostID}
+                      value={soarAction.hmd.id || ''}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
@@ -883,7 +883,7 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.hmd.action}
+                      value={soarAction.hmd.action || ''}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
                       disabled={activeContent === 'viewMode'}>
                       {actionTypeList}
@@ -899,7 +899,7 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.netprobe.ip}
+                      value={soarAction.netprobe.ip || ''}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
                       disabled={activeContent === 'viewMode'} />
                   </div>
@@ -912,7 +912,7 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.netprobe.drop}
+                      value={soarAction.netprobe.drop || ''}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
                       disabled={activeContent === 'viewMode'}>
                       <MenuItem value={true}>True</MenuItem>
@@ -928,7 +928,7 @@ class SoarSettings extends Component {
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={soarAction.netprobe.severityType}
+                      value={soarAction.netprobe.severityType || ''}
                       onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
                       disabled={activeContent === 'viewMode'}>
                       {severityTypeList}

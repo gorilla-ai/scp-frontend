@@ -669,10 +669,15 @@ class IncidentDeviceStep extends Component {
     /* ------------------ View ------------------- */
     render() {
         const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic, accountType, openManage} = this.state;
-        const {session} = this.context;
+        const {session, sessionRights} = this.context;
         let insertCheck = true;
+        let privCheck = false;
         if (_.includes(session.roles, constants.soc.Default_Admin) && session.roles.length === 1){
             insertCheck = false
+        }
+
+        if (_.includes(sessionRights, sessionRights.Module_Config)){
+            privCheck = false
         }
 
         return (
@@ -723,7 +728,7 @@ class IncidentDeviceStep extends Component {
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.getDeviceUsableList.bind(this, 'add')}>{t('txt-add')}</Button>
                                 }
 
-                                {accountType !== constants.soc.LIMIT_ACCOUNT &&
+                                {accountType !== constants.soc.LIMIT_ACCOUNT && privCheck &&
                                     <Link to='/SCP/configuration/notifications'>
                                         <Button variant='outlined' color='primary' className='standard btn edit' >{t('notifications.txt-settings')}</Button>
                                     </Link>
@@ -1809,17 +1814,20 @@ class IncidentDeviceStep extends Component {
                 } else {
                     helper.showPopupMsg('', t('txt-error'), it('required.deviceId'));
                     validate = false;
+                    return;
                 }
 
                 if (incidentDevice.info.deviceName) {
                 } else {
                     helper.showPopupMsg('', t('txt-error'), it('required.deviceName'));
                     validate = false;
+                    return;
                 }
                 if (incidentDevice.info.deviceCompany) {
                 } else {
                     helper.showPopupMsg('', t('txt-error'), it('required.deviceCompany'));
                     validate = false;
+                    return;
                 }
 
                 if (!validate) {
@@ -1851,6 +1859,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.oid'));
                         validate = false;
+                        return
                     }
 
                     if (unit.abbreviation) {
@@ -1858,6 +1867,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.abbreviation'));
                         validate = false;
+                        return
                     }
 
                     if (unit.level) {
@@ -1865,6 +1875,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.level'));
                         validate = false;
+                        return
                     }
 
                     if (unit.industryType) {
@@ -1872,6 +1883,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.industryType'));
                         validate = false;
+                        return
                     }
 
                     if (incidentDevice.info.selectUnitObject.value) {
@@ -1879,6 +1891,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.unit'));
                         validate = false;
+                        return
                     }
 
                     if (!validate) {
@@ -1894,6 +1907,7 @@ class IncidentDeviceStep extends Component {
                     } else {
                         helper.showPopupMsg('', t('txt-error'), it('required.unit'));
                         validate = false;
+                        return
                     }
 
 

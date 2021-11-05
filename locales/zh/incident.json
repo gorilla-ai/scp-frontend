@@ -312,7 +312,7 @@
 		"oid": "機關單位OID為必填欄位",
 		"deviceId": "設備代號為必填欄位",
 		"deviceName" : "設備名稱為必填欄位",
-		"deviceCompany": "設備所屬公司為必填欄位",
+		"deviceCompany": "設備廠商為必填欄位",
 		"unit": "機關單位為必選欄位",
 		"protectType": "設備類型為必填欄位",
 		"abbreviation": "機關單位英文縮寫為必填欄位",
