@@ -1784,7 +1784,6 @@ class AlertDetails extends Component {
    * Get Alert details list width
    * @method
    * @returns {string} - list width
-
    */
   getListWidth = () => {
     const {locale} = this.context;
