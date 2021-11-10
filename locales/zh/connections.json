@@ -690,6 +690,12 @@
       "txt-qrcode": "加入會員 QR-Code 圖片連結",
       "txt-href-description": "點擊QR-Code連到Line-Developer官網",
       "txt-accountId": "Line通知服務 加入會員ID: "
+    },
+    "sms": {
+      "txt-smsNotification": "SMS通知設定",
+      "txt-textMsg": "簡訊",
+      "txt-recipients": "收件者手機門號",
+      "txt-SMS-mitake": "三竹簡訊"
     }
   },
 

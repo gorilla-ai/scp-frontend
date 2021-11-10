@@ -690,7 +690,13 @@
       "txt-qrcode": "Invite QR Code Image Link",
       "txt-href-description": "Click QR-Code connect to Line-Developer Office",
       "txt-accountId": "Invite Notification Line-ID: "
-    }
+    },
+    "sms": {
+      "txt-smsNotification": "SMS Notifications",
+      "txt-textMsg": "Text Message",
+      "txt-recipients": "Recipient phone number",
+      "txt-SMS-mitake": "三竹簡訊"
+    }   
   },
 
   "edge-management": {

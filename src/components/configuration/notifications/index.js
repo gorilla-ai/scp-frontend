@@ -1,13 +1,18 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
 
+import ChipInput from 'material-ui-chip-input'
 import { ReactMultiEmail } from 'react-multi-email'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
@@ -39,6 +44,10 @@ class Notifications extends Component {
       openEmailDialog: false,
       testEmails: [],
       info: '',
+      smsProvider: {
+        list: [],
+        value: []
+      },
       originalNotifications: {},
       notifications: {
         server: '',
@@ -102,6 +111,7 @@ class Notifications extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getMailServerInfo();
+    this.getSmsProvider();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'viewMode') {
@@ -184,6 +194,33 @@ class Notifications extends Component {
     })
   }
   /**
+   * Get and set SMS provider list
+   * @method
+   */
+  getSmsProvider = () => {
+    const {baseUrl} = this.context;
+    const {smsProvider} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/notification/smsProvider`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempSmsProvider = {...smsProvider};
+        tempSmsProvider.list = data.rows;
+
+        this.setState({
+          smsProvider: tempSmsProvider
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle email settings input data change
    * @method
    * @param {object} event - event object
@@ -250,7 +287,11 @@ class Notifications extends Component {
    */
   handleNotificationsConfirm = () => {
     const {baseUrl} = this.context;
-    const {notifications, emails, lineBotSetting, formValidation} = this.state;
+    const {smsProvider, notifications, emails, lineBotSetting, formValidation} = this.state;
+
+    console.log(smsProvider);
+    return;
+
     const mailServerRequestData = {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
@@ -460,6 +501,110 @@ class Notifications extends Component {
     )
   }
   /**
+   * Handle SMS input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleSmsDataChange = (i, event) => {
+    let tempSmsProvider = {...this.state.smsProvider};
+    tempSmsProvider.value[i][event.target.name] = event.target.value;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {function} removePhone - function to remove phone
+   * @param {number} index - index of the phone list array
+   */
+  deletePhone = (removePhone, index) => {
+    removePhone(index);
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {string} phone - individual phone
+   * @param {number} index - index of the emails list array
+   * @param {function} removePhone - function to remove phone
+   * @returns HTML DOM
+   */
+  getPhoneLabel = (phone, index, removePhone) => {
+    return (
+      <div data-tag key={index}>
+        {phone}
+        <span data-tag-handle onClick={this.deletePhone.bind(this, removePhone, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+  /**
+   * Handle SMS phone change
+   * @method
+   * @param {object} i - index of the SMS provider list
+   * @param {array} newPhones - new phone list
+   */
+  handleSmsPhoneChange = (i, newPhones) => {
+    let tempSmsProvider = {...this.state.smsProvider};
+    tempSmsProvider.value[i].recipientNumberList = newPhones;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
+  /**
+   * Display SMS provider content
+   * @method
+   * @param {object} val - SMS provider data object
+   * @param {number} i - index of the SMS provider list
+   * @returns HTML DOM
+   */
+  getSmsProviderContent = (val, i) => {
+    const {activeContent, smsProvider} = this.state;
+
+    return (
+      <div className='form-group normal' style={{width: '100%'}} key={val.configureId}>
+        <header>{t('notifications.sms.txt-' + val.ServiceProviderName)}</header>
+        <div className='group'>
+          <div className='group'>
+            <TextField
+              id='smsNotificationAccount'
+              name='account'
+              label={t('txt-account')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={smsProvider.value[i].account}
+              onChange={this.handleSmsDataChange.bind(this, i)}
+              disabled={activeContent === 'viewMode'} />
+          </div>
+        </div>
+        <div className='group'>
+          <div className='group'>
+            <TextField
+              id='smsNotificationPassword'
+              name='password'
+              type='password'
+              label={t('txt-password')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={smsProvider.value[i].password}
+              onChange={this.handleSmsDataChange.bind(this, i)}
+              disabled={activeContent === 'viewMode'} />
+          </div>
+        </div>
+
+        <ChipInput
+          className='phone-chip-input'
+          defaultValue={smsProvider.value[i].recipientNumberList}
+          onChange={this.handleSmsPhoneChange.bind(this, i)}
+          disableUnderline={true}
+          fullWidth={true} />
+      </div>
+    )
+  }
+  /**
    * Set test email dialog
    * @method
    */
@@ -567,9 +712,24 @@ class Notifications extends Component {
       info: ''
     });
   }
+  /**
+   * Handle combo box change
+   * @method
+   * @param {object} event - event object
+   * @param {array.<object>} value - selected input value
+   */
+  handleComboBoxChange = (event, value) => {
+    const {smsProvider} = this.state;
+    let tempSmsProvider = {...smsProvider};
+    tempSmsProvider.value = value;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, openEmailDialog, notifications, emails, lineBotSetting, formValidation} = this.state;
+    const {activeContent, openEmailDialog, smsProvider, notifications, emails, lineBotSetting, formValidation} = this.state;
     const EMAIL_SETTINGS = [
       {
         type: 'service',
@@ -759,15 +919,15 @@ class Notifications extends Component {
                   <header>{t('notifications.lineBot.txt-lineBotSettings')}</header>
 
                   {activeContent === 'viewMode' && lineBotSetting.qrcodeLink &&
-                  <div className='group' >
-                    <label>{t('notifications.lineBot.txt-qrcode')}</label>
-                    <img style={{width: '150px', height: '150px'}} width='100%' height='100%' src={lineBotSetting.qrcodeLink} border="0"  title={t('notifications.lineBot.txt-accountId')+accountName}/>
-                  </div>
+                    <div className='group'>
+                      <label>{t('notifications.lineBot.txt-qrcode')}</label>
+                      <img style={{width: '150px', height: '150px'}} width='100%' height='100%' src={lineBotSetting.qrcodeLink} border="0"  title={t('notifications.lineBot.txt-accountId')+accountName}/>
+                    </div>
                   }
 
                   {activeContent !== 'viewMode' &&
-                  <div className='group' >
-                    <TextField
+                    <div className='group'>
+                      <TextField
                         id='lineBotSetting.qrcodeLink'
                         name='qrcodeLink'
                         label={t('notifications.lineBot.txt-qrcode')}
@@ -775,41 +935,85 @@ class Notifications extends Component {
                         fullWidth
                         size='small'
                         value={lineBotSetting.qrcodeLink}
-                        onChange={this.handleLineBotChange}
-                    />
-                  </div>
+                        onChange={this.handleLineBotChange} />
+                    </div>
                   }
 
                   <div className='group'>
                     <TextField
-                        id='lineBotSetting.channelAccessToken'
-                        name='channelAccessToken'
-                        label={t('notifications.lineBot.txt-channelAccessToken')}
-                        variant='outlined'
-                        fullWidth
-                        rows={4}
-                        rowsMax={5}
-                        multiline
-                        size='small'
-                        value={lineBotSetting.channelAccessToken}
-                        onChange={this.handleLineBotChange}
-                        disabled={activeContent === 'viewMode'} />
+                      id='lineBotSetting.channelAccessToken'
+                      name='channelAccessToken'
+                      label={t('notifications.lineBot.txt-channelAccessToken')}
+                      variant='outlined'
+                      fullWidth
+                      rows={4}
+                      rowsMax={5}
+                      multiline
+                      size='small'
+                      value={lineBotSetting.channelAccessToken}
+                      onChange={this.handleLineBotChange}
+                      disabled={activeContent === 'viewMode'} />
                   </div>
 
                   <div className='group'>
                     <TextField
-                        id='lineBotSetting.channelSecret'
-                        name='channelSecret'
-                        label={t('notifications.lineBot.txt-channelSecret')}
-                        variant='outlined'
-                        fullWidth
-                        size='small'
-                        value={lineBotSetting.channelSecret}
-                        onChange={this.handleLineBotChange}
-                        disabled={activeContent === 'viewMode'} />
+                      id='lineBotSetting.channelSecret'
+                      name='channelSecret'
+                      label={t('notifications.lineBot.txt-channelSecret')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={lineBotSetting.channelSecret}
+                      onChange={this.handleLineBotChange}
+                      disabled={activeContent === 'viewMode'} />
                   </div>
-
                 </div>
+
+                <div className='form-group normal long'>
+                  <header>{t('notifications.sms.txt-smsNotification')}</header>
+
+                  <Autocomplete
+                    className='combo-box groups sms-provider'
+                    multiple
+                    value={smsProvider.value}
+                    options={_.map(smsProvider.list, (val) => {
+                      return {
+                        text: t('notifications.sms.txt-' + val.ServiceProviderName),
+                        value: val.configureId,
+                        ServiceProviderName: val.ServiceProviderName,
+                        configureId: val.configureId,
+                        account: '',
+                        password: '',
+                        recipientNumberList: []
+                      }
+                    })}
+                    getOptionLabel={(option) => t('notifications.sms.txt-' + option.ServiceProviderName)}
+                    disableCloseOnSelect
+                    noOptionsText={t('txt-notFound')}
+                    openText={t('txt-on')}
+                    closeText={t('txt-off')}
+                    clearText={t('txt-clear')}
+                    renderOption={(option, { selected }) => (
+                      <React.Fragment>
+                        <Checkbox
+                          color='primary'
+                          icon={<CheckBoxOutlineBlankIcon />}
+                          checkedIcon={<CheckBoxIcon />}
+                          checked={selected} />
+                        {option.text}
+                      </React.Fragment>
+                    )}
+                    renderInput={(params) => (
+                      <TextField {...params} variant='outlined' size='small' />
+                    )}
+                    getOptionSelected={(option, value) => (
+                      option.value === value.value
+                    )}
+                    onChange={this.handleComboBoxChange} />
+
+                    {smsProvider.value.map(this.getSmsProviderContent)}
+                </div>
+
                 {EMAIL_SETTINGS.map(this.getEmailsContent)}
 
               </div>
