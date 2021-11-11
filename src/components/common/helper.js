@@ -600,13 +600,10 @@ const helper = {
 
     function resetTimer() {
       clearTimeout(time);
-      time = setTimeout(logout, 5000); //25 min.
+      time = setTimeout(logout, 1500000); //25 min.
     }
 
     function logout() {
-      //alert('Timeout!');
-      //return;
-
       Progress.startSpin();
 
       Promise.resolve($.post(url))
@@ -618,7 +615,7 @@ const helper = {
   },
   getVersion: function(baseUrl) {
     clearTimeout(global.apiTimer);
-    global.apiTimer = setTimeout(getVersionNumber, 5000); //25 min.
+    global.apiTimer = setTimeout(getVersionNumber, 1500000); //25 min.
 
     function getVersionNumber() {
       const url = `${baseUrl}/api/version`;

@@ -157,7 +157,7 @@ class IncidentDeviceStep extends Component {
                     note: '',
                     reason:'',
                     updateDttm: '',
-                    selectUnitObject :{},
+                    selectUnitObject: {},
                 }
             },
             unit: {
@@ -176,7 +176,8 @@ class IncidentDeviceStep extends Component {
                 list: [],
                 value: []
             },
-            slaveList: []
+            slaveList: [],
+            isSlave: ''
         };
 
         this.ah = getInstance("chewbacca");
@@ -796,8 +797,30 @@ class IncidentDeviceStep extends Component {
     displayDefenseList = (val) => {
         return <span>{val.text}</span>
     }
+    checkDeviceSlave = (id) => {
+        const {baseUrl} = this.context;
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+        ah.one({
+            url: `${baseUrl}/api/soc/deviceSlave/isSlave?id=${id}`,
+            type: 'GET'
+        })
+        .then(data => {
+            if (data.ret === 0) {
+                this.setState({
+                    isSlave: data.rt
+                }, () => {
+                    this.toggleContent('editDevice');
+                });
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
+    }
     displayEditDeviceContentWithStep = () => {
-        const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType, defenseRange} = this.state;
+        const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType, defenseRange, isSlave} = this.state;
 
         const stepTitle = [t('edge-management.txt-basicInfo'), it('txt-protect-type') ,it('txt-unit-select'), it('txt-defense-range'), it('txt-device-comment')];
         return (
@@ -808,7 +831,7 @@ class IncidentDeviceStep extends Component {
                         <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                     }
                     {activeContent === 'viewDevice' &&
-                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
+                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkDeviceSlave.bind(this, incidentDevice.info.id)}>{t('txt-edit')}</Button>
                     }
                 </div>
 
@@ -1270,41 +1293,47 @@ class IncidentDeviceStep extends Component {
                     {activeSteps === 4 &&
                     <div className='form-group steps-host'>
                         <header>{it('txt-defense-range')}</header>
-                        <div className='group full'>
-                            <Autocomplete
-                              className='combo-box checkboxes-tags groups'
-                              multiple
-                              value={defenseRange.value}
-                              options={_.map(defenseRange.list, (val) => {
-                                return {
-                                    text: val.deviceName + ' - ' + val.incidentUnitDTO.name,
-                                    value: val.id
-                                }
-                              })}
-                              getOptionLabel={(option) => option.text}
-                              disableCloseOnSelect
-                              noOptionsText={t('txt-notFound')}
-                              openText={t('txt-on')}
-                              closeText={t('txt-off')}
-                              clearText={t('txt-clear')}
-                              renderOption={(option, { selected }) => (
-                                <React.Fragment>
-                                  <Checkbox
-                                    color='primary'
-                                    icon={<CheckBoxOutlineBlankIcon />}
-                                    checkedIcon={<CheckBoxIcon />}
-                                    checked={selected} />
-                                  {option.text}
-                                </React.Fragment>
-                              )}
-                              renderInput={(params) => (
-                                <TextField {...params} variant='outlined' size='small' />
-                              )}
-                              getOptionSelected={(option, value) => (
-                                option.value === value.value
-                              )}
-                              onChange={this.handleComboBoxChange} />
-                        </div>
+                        {isSlave &&
+                            <span>{it('txt-is-slave')}</span>
+                        }
+                        {!isSlave &&
+                            <div className='group full'>
+                                <Autocomplete
+                                  className='combo-box checkboxes-tags groups'
+                                  multiple
+                                  value={defenseRange.value}
+                                  options={_.map(defenseRange.list, (val) => {
+                                    return {
+                                        text: val.deviceName + ' - ' + val.incidentUnitDTO.name,
+                                        value: val.id
+                                    }
+                                  })}
+                                  getOptionLabel={(option) => option.text}
+                                  disableCloseOnSelect
+                                  noOptionsText={t('txt-notFound')}
+                                  openText={t('txt-on')}
+                                  closeText={t('txt-off')}
+                                  clearText={t('txt-clear')}
+                                  renderOption={(option, { selected }) => (
+                                    <React.Fragment>
+                                      <Checkbox
+                                        color='primary'
+                                        icon={<CheckBoxOutlineBlankIcon />}
+                                        checkedIcon={<CheckBoxIcon />}
+                                        checked={selected} />
+                                      {option.text}
+                                    </React.Fragment>
+                                  )}
+                                  renderInput={(params) => (
+                                    <TextField {...params} variant='outlined' size='small' />
+                                  )}
+                                  getOptionSelected={(option, value) => (
+                                    option.value === value.value
+                                  )}
+                                  onChange={this.handleComboBoxChange}
+                                  disabled={isSlave} />
+                            </div>
+                        }
                     </div>
                     }
                     {activeSteps === 5 &&
@@ -2093,7 +2122,7 @@ class IncidentDeviceStep extends Component {
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(incidentDevice)
                 }, () => {
-                    this.getDeviceSlave(incidentDevice.info, 'submit');
+                    this.getDeviceSlave(data, 'submit');
                 });
 
                 return null;
@@ -2388,13 +2417,15 @@ class IncidentDeviceStep extends Component {
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'addDevice') {
-            _.forEach(edgeList, val => {
-                if (val.agentId === allValue.deviceId) {
-                    tempIncidentDevice.edgeItem = allValue.deviceId
-                }
-            })
+            tempDefenseRange.value = [];
 
             if (allValue) {
+                _.forEach(edgeList, val => {
+                    if (val.agentId === allValue.deviceId) {
+                        tempIncidentDevice.edgeItem = allValue.deviceId
+                    }
+                })
+
                 tempIncidentDevice.info = {
                     id: allValue.id,
                     deviceId: allValue.deviceId,
@@ -2409,6 +2440,27 @@ class IncidentDeviceStep extends Component {
                     selectUnitObject:{
                         text: '',
                         value:''
+                    }
+                };
+            } else {
+                tempIncidentDevice.info = {
+                    id: '',
+                    unitId: '',
+                    deviceId: '',
+                    deviceName: '',
+                    deviceCompany: '',
+                    unitOid: '',
+                    unitName: '',
+                    unitLevel: 'A',
+                    frequency: null,
+                    protectType: '0',
+                    protectTypeInfo: '',
+                    note: '',
+                    reason:'',
+                    updateDttm: '',
+                    selectUnitObject: {
+                        text: '',
+                        value: ''
                     }
                 };
             }
