@@ -44,10 +44,6 @@ class Notifications extends Component {
       openEmailDialog: false,
       testEmails: [],
       info: '',
-      smsProvider: {
-        list: [],
-        value: []
-      },
       originalNotifications: {},
       notifications: {
         server: '',
@@ -57,6 +53,11 @@ class Notifications extends Component {
         authentication: true,
         senderAccount: '',
         senderPassword: ''
+      },
+      originalSmsValue: {},
+      smsProvider: {
+        list: [],
+        value: []
       },
       originalEmails: {},
       emails: {
@@ -111,7 +112,6 @@ class Notifications extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getMailServerInfo();
-    this.getSmsProvider();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'viewMode') {
@@ -124,7 +124,7 @@ class Notifications extends Component {
    */
   getMailServerInfo = () => {
     const {baseUrl} = this.context;
-    const {notifications, emails, lineBotSetting} = this.state;
+    const {notifications, smsProvider, emails, lineBotSetting} = this.state;
 
     this.ah.all([
       {
@@ -134,12 +134,17 @@ class Notifications extends Component {
       {
         url: `${baseUrl}/api/notification`,
         type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/notification/smsProvider`,
+        type: 'GET'
       }
     ])
     .then(data => {
       if (data) {
         const data1 = data[0];
         const data2 = data[1];
+        const data3 = data[2];
         const notifications = {
           server: data1.smtpServer,
           port: data1.smtpPort,
@@ -149,6 +154,10 @@ class Notifications extends Component {
           senderAccount: data1.senderAcct,
           senderPassword: data1.senderPasswd
         };
+
+        let tempSmsProvider = {...smsProvider};
+        tempSmsProvider.list = data3.rows;
+        tempSmsProvider.value = data2['notify.sms.server.id'];
 
         let tempEmails = {...emails};
         let tempLineBotSetting = {...lineBotSetting}
@@ -182,36 +191,11 @@ class Notifications extends Component {
         this.setState({
           originalNotifications: _.cloneDeep(notifications),
           notifications,
+          originalSmsValue: _.cloneDeep(tempSmsProvider.value),
+          smsProvider: tempSmsProvider,
           originalEmails: _.cloneDeep(tempEmails),
           emails: tempEmails,
           lineBotSetting:tempLineBotSetting
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set SMS provider list
-   * @method
-   */
-  getSmsProvider = () => {
-    const {baseUrl} = this.context;
-    const {smsProvider} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/notification/smsProvider`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let tempSmsProvider = {...smsProvider};
-        tempSmsProvider.list = data.rows;
-
-        this.setState({
-          smsProvider: tempSmsProvider
         });
       }
       return null;
@@ -247,7 +231,7 @@ class Notifications extends Component {
    * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalNotifications, originalEmails} = this.state;
+    const {originalNotifications, originalSmsValue, smsProvider, originalEmails} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -256,8 +240,12 @@ class Notifications extends Component {
     } else if (type === 'viewMode' || type === 'cancel') {
       showPage = 'viewMode';
 
+      let tempSmsProvider = {...smsProvider};
+      tempSmsProvider.value = _.cloneDeep(originalSmsValue);
+
       this.setState({
         notifications: _.cloneDeep(originalNotifications),
+        smsProvider: tempSmsProvider,
         emails: _.cloneDeep(originalEmails),
         formValidation: {
           notificationsServer: {
@@ -287,11 +275,7 @@ class Notifications extends Component {
    */
   handleNotificationsConfirm = () => {
     const {baseUrl} = this.context;
-    const {smsProvider, notifications, emails, lineBotSetting, formValidation} = this.state;
-
-    console.log(smsProvider);
-    return;
-
+    const {notifications, smsProvider, emails, lineBotSetting, formValidation} = this.state;
     const mailServerRequestData = {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
@@ -300,6 +284,9 @@ class Notifications extends Component {
       sender: notifications.sender,
       senderAcct: notifications.senderAccount,
       senderPasswd: notifications.senderPassword
+    };
+    const smsSettings = {
+      'notify.sms.server.id': smsProvider.value
     };
     const emailsSettings = {
       'notify.service.failure.id': {
@@ -324,6 +311,10 @@ class Notifications extends Component {
         qrcodeLink: lineBotSetting.qrcodeLink
       }
     };
+    const requestData = {
+      ...smsSettings,
+      ...emailsSettings
+    };
     const apiArr = [
       {
         url: `${baseUrl}/api/notification/mailServer`,
@@ -333,7 +324,7 @@ class Notifications extends Component {
       },
       {
         url: `${baseUrl}/api/notification`,
-        data: JSON.stringify(emailsSettings),
+        data: JSON.stringify(requestData),
         type: 'POST',
         contentType: 'text/plain'
       }
@@ -398,13 +389,13 @@ class Notifications extends Component {
     })
   }
   /**
-   * Display individual email
+   * Display list item
    * @method
-   * @param {string} val - email value
-   * @param {string} i - index of the emails array
+   * @param {string} val - individual value
+   * @param {string} i - index of the list array
    * @returns HTML DOM
    */
-  displayEmail = (val, i) => {
+  displayListItem = (val, i) => {
     return <span key={i}>{val}</span>
   }
   /**
@@ -475,7 +466,7 @@ class Notifications extends Component {
         <div className='group'>
           <label>{t('notifications.txt-recipientEmail')}</label>
           {activeContent === 'viewMode' && emails[val.type].emails.length > 0 &&
-            <div className='flex-item'>{emails[val.type].emails.map(this.displayEmail)}</div>
+            <div className='flex-item'>{emails[val.type].emails.map(this.displayListItem)}</div>
           }
           {activeContent === 'editMode' &&
             <ReactMultiEmail
@@ -563,44 +554,74 @@ class Notifications extends Component {
     const {activeContent, smsProvider} = this.state;
 
     return (
-      <div className='form-group normal' style={{width: '100%'}} key={val.configureId}>
+      <div className='form-group normal sms-provider' key={val.ServiceProviderName}>
         <header>{t('notifications.sms.txt-' + val.ServiceProviderName)}</header>
         <div className='group'>
-          <div className='group'>
-            <TextField
-              id='smsNotificationAccount'
-              name='account'
-              label={t('txt-account')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={smsProvider.value[i].account}
-              onChange={this.handleSmsDataChange.bind(this, i)}
-              disabled={activeContent === 'viewMode'} />
-          </div>
+          <TextField
+            id='smsNotificationAccount'
+            name='account'
+            label={t('txt-account')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.value[i].account}
+            onChange={this.handleSmsDataChange.bind(this, i)}
+            disabled={activeContent === 'viewMode'} />
         </div>
         <div className='group'>
-          <div className='group'>
-            <TextField
-              id='smsNotificationPassword'
-              name='password'
-              type='password'
-              label={t('txt-password')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={smsProvider.value[i].password}
-              onChange={this.handleSmsDataChange.bind(this, i)}
-              disabled={activeContent === 'viewMode'} />
-          </div>
+          <TextField
+            id='smsNotificationPassword'
+            name='password'
+            type='password'
+            label={t('txt-password')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.value[i].password}
+            onChange={this.handleSmsDataChange.bind(this, i)}
+            disabled={activeContent === 'viewMode'} />
         </div>
 
-        <ChipInput
-          className='phone-chip-input'
-          defaultValue={smsProvider.value[i].recipientNumberList}
-          onChange={this.handleSmsPhoneChange.bind(this, i)}
-          disableUnderline={true}
-          fullWidth={true} />
+        <div className='group full'>
+          <label style={{fontSize: '14px', margin: '5px 2px'}}>{t('notifications.sms.txt-recipients')}</label>
+          {activeContent === 'viewMode' &&
+            <div className='flex-item'>{smsProvider.value[i].recipientNumberList.map(this.displayListItem)}</div>
+          }
+          {activeContent === 'editMode' &&
+            <ChipInput
+              className='phone-chip-input'
+              defaultValue={smsProvider.value[i].recipientNumberList}
+              onChange={this.handleSmsPhoneChange.bind(this, i)}
+              disableUnderline={true}
+              fullWidth={true} />
+          }
+        </div>
+
+        <div className='group'>
+          <TextField
+            id='smsNotificationPointUrl'
+            name='apiPointCheckUrl'
+            label={t('notifications.sms.txt-pointCheckUrl')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.value[i].apiPointCheckUrl}
+            onChange={this.handleSmsDataChange.bind(this, i)}
+            disabled={activeContent === 'viewMode'} />
+        </div>
+
+        <div className='group'>
+          <TextField
+            id='smsNotificationMultipleUrl'
+            name='apiMultipleSendUrl'
+            label={t('notifications.sms.txt-multipleSendUrl')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.value[i].apiMultipleSendUrl}
+            onChange={this.handleSmsDataChange.bind(this, i)}
+            disabled={activeContent === 'viewMode'} />
+        </div>
       </div>
     )
   }
@@ -719,8 +740,7 @@ class Notifications extends Component {
    * @param {array.<object>} value - selected input value
    */
   handleComboBoxChange = (event, value) => {
-    const {smsProvider} = this.state;
-    let tempSmsProvider = {...smsProvider};
+    let tempSmsProvider = {...this.state.smsProvider};
     tempSmsProvider.value = value;
 
     this.setState({
@@ -729,7 +749,7 @@ class Notifications extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, openEmailDialog, smsProvider, notifications, emails, lineBotSetting, formValidation} = this.state;
+    const {activeContent, openEmailDialog, notifications, smsProvider, emails, lineBotSetting, formValidation} = this.state;
     const EMAIL_SETTINGS = [
       {
         type: 'service',
@@ -972,46 +992,54 @@ class Notifications extends Component {
                 <div className='form-group normal long'>
                   <header>{t('notifications.sms.txt-smsNotification')}</header>
 
-                  <Autocomplete
-                    className='combo-box groups sms-provider'
-                    multiple
-                    value={smsProvider.value}
-                    options={_.map(smsProvider.list, (val) => {
-                      return {
-                        text: t('notifications.sms.txt-' + val.ServiceProviderName),
-                        value: val.configureId,
-                        ServiceProviderName: val.ServiceProviderName,
-                        configureId: val.configureId,
-                        account: '',
-                        password: '',
-                        recipientNumberList: []
-                      }
-                    })}
-                    getOptionLabel={(option) => t('notifications.sms.txt-' + option.ServiceProviderName)}
-                    disableCloseOnSelect
-                    noOptionsText={t('txt-notFound')}
-                    openText={t('txt-on')}
-                    closeText={t('txt-off')}
-                    clearText={t('txt-clear')}
-                    renderOption={(option, { selected }) => (
-                      <React.Fragment>
-                        <Checkbox
-                          color='primary'
-                          icon={<CheckBoxOutlineBlankIcon />}
-                          checkedIcon={<CheckBoxIcon />}
-                          checked={selected} />
-                        {option.text}
-                      </React.Fragment>
-                    )}
-                    renderInput={(params) => (
-                      <TextField {...params} variant='outlined' size='small' />
-                    )}
-                    getOptionSelected={(option, value) => (
-                      option.value === value.value
-                    )}
-                    onChange={this.handleComboBoxChange} />
+                  {activeContent === 'editMode' &&
+                    <React.Fragment>
+                      <label style={{fontSize: '14px', margin: '5px 2px'}}>{t('notifications.sms.txt-addNewService')}</label>
+                      <Autocomplete
+                        className='combo-box groups sms-provider'
+                        multiple
+                        value={smsProvider.value}
+                        options={_.map(smsProvider.list, (val) => {
+                          return {
+                            text: t('notifications.sms.txt-' + val.ServiceProviderName),
+                            value: val.ServiceProviderName,
+                            ServiceProviderName: val.ServiceProviderName,
+                            account: val.account,
+                            password: val.password,
+                            recipientNumberList: val.recipientNumberList,
+                            apiPointCheckUrl: val.apiPointCheckUrl,
+                            apiMultipleSendUrl: val.apiMultipleSendUrl
+                          }
+                        })}
+                        getOptionLabel={(option) => t('notifications.sms.txt-' + option.ServiceProviderName)}
+                        disableCloseOnSelect
+                        noOptionsText={t('txt-notFound')}
+                        openText={t('txt-on')}
+                        closeText={t('txt-off')}
+                        clearText={t('txt-clear')}
+                        renderOption={(option, { selected }) => (
+                          <React.Fragment>
+                            <Checkbox
+                              color='primary'
+                              icon={<CheckBoxOutlineBlankIcon />}
+                              checkedIcon={<CheckBoxIcon />}
+                              checked={selected} />
+                            {option.text}
+                          </React.Fragment>
+                        )}
+                        renderInput={(params) => (
+                          <TextField {...params} variant='outlined' size='small' />
+                        )}
+                        getOptionSelected={(option, value) => (
+                          option.value === value.ServiceProviderName
+                        )}
+                        onChange={this.handleComboBoxChange} />
+                    </React.Fragment>
+                  }
 
+                  <div className='sms-list' style={{maxHeight: '400px', overflowY: 'auto', marginTop: '15px'}}>
                     {smsProvider.value.map(this.getSmsProviderContent)}
+                  </div>
                 </div>
 
                 {EMAIL_SETTINGS.map(this.getEmailsContent)}

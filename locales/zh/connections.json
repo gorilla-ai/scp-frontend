@@ -693,9 +693,13 @@
     },
     "sms": {
       "txt-smsNotification": "SMS通知設定",
+      "txt-addNewService": "新增通訊服務",
       "txt-textMsg": "簡訊",
       "txt-recipients": "收件者手機門號",
-      "txt-SMS-mitake": "三竹簡訊"
+      "txt-pointCheckUrl": "剩餘點數查詢URL",
+      "txt-multipleSendUrl": "發送簡訊URL",
+      "txt-SMS-mitake": "三竹簡訊",
+      "txt-SMS-CHT": "CHT"
     }
   },
 
