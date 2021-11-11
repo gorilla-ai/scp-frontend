@@ -677,7 +677,7 @@ class IncidentManagement extends Component {
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
-                {(currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
+                {(currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED || currentData.status !== constants.soc.INCIDENT_STATUS_CLOSED) &&
                     <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
                 }
                 {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
@@ -790,7 +790,7 @@ class IncidentManagement extends Component {
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_REVIEWED) {
 
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
-
+            closeCheck = false
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
 
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
