@@ -696,6 +696,7 @@
       "txt-testSMSconnections": "連線測試",
       "txt-testSMSsend": "發送簡訊測試",
       "txt-connectionsSuccess": "連線測試成功, 剩餘點數",
+      "txt-sendSuccess": "簡訊發送成功",
       "txt-addNewService": "新增通訊服務",
       "txt-textMsg": "簡訊",
       "txt-recipients": "收件者手機門號",

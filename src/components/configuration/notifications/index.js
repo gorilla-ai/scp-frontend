@@ -773,7 +773,7 @@ class Notifications extends Component {
     })
     .then(data => {
       if (data) {
-        helper.showPopupMsg(t('txt-success'));
+        helper.showPopupMsg(t('notifications.sms.txt-sendSuccess'));
       }
       return null;
     })
