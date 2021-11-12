@@ -736,7 +736,7 @@ class Notifications extends Component {
     })
   }
   /**
-   * Handle test SMS button
+   * Handle test SMS connections
    * @method
    */
   testSMSconnections = () => {
@@ -750,6 +750,30 @@ class Notifications extends Component {
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('notifications.sms.txt-connectionsSuccess') + ': ' + data.point);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle test SMS sending message
+   * @method
+   */
+  testSMSsend = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/notification/sms/send/_test`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-success'));
       }
       return null;
     })
@@ -1012,7 +1036,11 @@ class Notifications extends Component {
 
                 <div className='form-group normal long'>
                   <header>{t('notifications.sms.txt-smsNotification')}</header>
-                  <Button variant='contained' color='primary' className='last' onClick={this.testSMSconnections} disabled={activeContent === 'editMode'}>{t('notifications.sms.txt-testSMS')}</Button>
+                  <div className='sms-button-group' style={{position: 'absolute', top: '-45px', right: 0}}>
+                    <Button variant='contained' color='primary' style={{marginRight: '5px'}} onClick={this.testSMSconnections} disabled={activeContent === 'editMode'}>{t('notifications.sms.txt-testSMSconnections')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.testSMSsend} disabled={activeContent === 'editMode'}>{t('notifications.sms.txt-testSMSsend')}</Button>
+                  </div>
+
                   <div className='group'>
                     <TextField
                       id='notificationsSMS'

@@ -632,7 +632,7 @@
     "txt-title": "Title",
     "txt-content": "Content",
     "txt-testConnections": "Test Connections",
-    "txt-successConnections": "Test connections success",
+    "txt-successConnections": "Test connections successful",
     "txt-upload": "Upload Logs",
     "txt-upload-msg": "Please enter or upload event Logs.",
     "txt-Settings": "Event Testing",
@@ -693,7 +693,8 @@
     },
     "sms": {
       "txt-smsNotification": "SMS Notifications",
-      "txt-testSMS": "Test Connections",
+      "txt-testSMSconnections": "Test Connections",
+      "txt-testSMSsend": "Test Sending Message",
       "txt-connectionsSuccess": "Test connections success, remaining point",
       "txt-addNewService": "Add New Service",
       "txt-textMsg": "Text Message",
