@@ -108,6 +108,9 @@ class Notifications extends Component {
       this.toggleContent('viewMode');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set mail and notification data
    * @method

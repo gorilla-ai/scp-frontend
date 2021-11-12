@@ -99,6 +99,9 @@ class ThreatIntelligence extends Component {
 
     this.getChartsData(activeDateType);
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Format the object data into array type
    * @method
