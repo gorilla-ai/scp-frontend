@@ -690,6 +690,20 @@
       "txt-qrcode": "加入會員 QR-Code 圖片連結",
       "txt-href-description": "點擊QR-Code連到Line-Developer官網",
       "txt-accountId": "Line通知服務 加入會員ID: "
+    },
+    "sms": {
+      "txt-smsNotification": "SMS通知設定",
+      "txt-testSMSconnections": "連線測試",
+      "txt-testSMSsend": "發送簡訊測試",
+      "txt-connectionsSuccess": "連線測試成功, 剩餘點數",
+      "txt-sendSuccess": "簡訊發送成功",
+      "txt-addNewService": "新增通訊服務",
+      "txt-textMsg": "簡訊",
+      "txt-recipients": "收件者手機門號",
+      "txt-pointCheckUrl": "剩餘點數查詢URL",
+      "txt-multipleSendUrl": "發送簡訊URL",
+      "txt-SMS-mitake": "三竹簡訊",
+      "txt-SMS-CHT": "CHT"
     }
   },
 

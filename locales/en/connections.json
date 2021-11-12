@@ -690,7 +690,21 @@
       "txt-qrcode": "Invite QR Code Image Link",
       "txt-href-description": "Click QR-Code connect to Line-Developer Office",
       "txt-accountId": "Invite Notification Line-ID: "
-    }
+    },
+    "sms": {
+      "txt-smsNotification": "SMS Notifications",
+      "txt-testSMSconnections": "Test Connections",
+      "txt-testSMSsend": "Test Sending Message",
+      "txt-connectionsSuccess": "Connections test successfully, remaining point",
+      "txt-sendSuccess": "Message sent successfully",
+      "txt-addNewService": "Add New Service",
+      "txt-textMsg": "Text Message",
+      "txt-recipients": "Recipient phone number",
+      "txt-pointCheckUrl": "Point Check URL",
+      "txt-multipleSendUrl": "Multiple Send URL",
+      "txt-SMS-mitake": "三竹簡訊",
+      "txt-SMS-CHT": "CHT"
+    }   
   },
 
   "edge-management": {
