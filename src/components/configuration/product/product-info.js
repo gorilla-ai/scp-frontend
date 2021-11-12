@@ -40,6 +40,9 @@ class ProductInfo extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
     helper.inactivityTime(baseUrl, locale);
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
 

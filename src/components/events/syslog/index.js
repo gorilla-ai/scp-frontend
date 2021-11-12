@@ -219,6 +219,9 @@ class SyslogController extends Component {
       });
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set the Link Analysis config
    * @method

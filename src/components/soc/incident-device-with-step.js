@@ -194,6 +194,9 @@ class IncidentDeviceStep extends Component {
 
         this.getSendCheck();
     }
+    componentWillUnmount() {
+        helper.clearTimer();
+    }
 
     comparer(otherArray){
         return function(current){

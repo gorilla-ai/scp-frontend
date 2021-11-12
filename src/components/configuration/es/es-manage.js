@@ -80,6 +80,9 @@ class EsManage extends Component {
 
     this.getEsData();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Show the export confirm modal dialog
    * @method

@@ -147,9 +147,11 @@ class IncidentSearch extends Component {
 
         this.checkAccountType();
         this.setDefaultSearchOptions();
-
     }
 
+    componentWillUnmount() {
+        helper.clearTimer();
+    }
 
     setDefaultSearchOptions = () => {
         const {baseUrl} = this.context;

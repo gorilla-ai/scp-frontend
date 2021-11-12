@@ -453,6 +453,9 @@ class ThreatsController extends Component {
       });
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   checkAccountSocPrivType = () => {
     const {baseUrl, session} = this.context;
     const requestData = {

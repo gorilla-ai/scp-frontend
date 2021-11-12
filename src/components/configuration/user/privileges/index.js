@@ -54,6 +54,9 @@ class Roles extends Component {
 
     this.getPrivilegesData();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set privileges list
    * @method

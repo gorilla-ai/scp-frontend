@@ -179,6 +179,9 @@ class HMDsettings extends Component {
     this.getSettingsInfo();
     this.getProductRegexInfo();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set HMD settings data
    * @method

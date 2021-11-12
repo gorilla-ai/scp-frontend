@@ -264,6 +264,9 @@ class NetworkInventory extends Component {
       this.toggleContent('showList');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set the Link Analysis config
    * @method

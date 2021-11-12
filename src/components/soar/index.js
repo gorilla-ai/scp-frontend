@@ -93,6 +93,9 @@ class SoarController extends Component {
     this.getSoarTemplateData();
     this.validateIpExist();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set columns data and filter list
    * @method

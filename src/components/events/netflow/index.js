@@ -306,6 +306,9 @@ class Netflow extends Component {
       }
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Initial load for the page
    * @method

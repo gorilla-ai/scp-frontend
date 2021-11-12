@@ -96,6 +96,9 @@ class NetworkOwner extends Component {
       this.toggleContent('tableList');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set title data
    * @method

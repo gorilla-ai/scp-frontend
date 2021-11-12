@@ -128,6 +128,9 @@ class Edge extends Component {
       this.toggleContent('tableList');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set group list
    * @method

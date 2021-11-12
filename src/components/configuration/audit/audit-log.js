@@ -66,6 +66,9 @@ class AuditLog extends Component {
 
     this.getAuditData();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set ES table data
    * @method

@@ -202,6 +202,9 @@ class Syslog extends Component {
     this.getSyslogData();
     this.getSshAccountList();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set the relationships data
    * @method

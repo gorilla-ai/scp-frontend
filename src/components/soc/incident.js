@@ -148,9 +148,11 @@ class Incident extends Component {
 
         this.checkAccountType();
         this.setDefaultSearchOptions(alertData, alertDataId);
-
     }
 
+    componentWillUnmount() {
+        helper.clearTimer();
+    }
 
     setDefaultSearchOptions = (alertData, alertDataId) => {
         const {baseUrl} = this.context;

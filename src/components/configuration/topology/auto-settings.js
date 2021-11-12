@@ -114,6 +114,9 @@ class AutoSettings extends Component {
 
     this.getSettingsInfo();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set auto settings data
    * @method

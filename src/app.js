@@ -470,7 +470,7 @@ function start() {
 }
 
 function getVersion() {
-  const url = `${cfg.apiPrefix}${cfg.contextRoot}/api/version`;
+  const url = `${cfg.apiPrefix}/api/version`;
 
   clearTimeout(global.apiTimer);
   global.apiTimer = setTimeout(getVersion, 1500000); //25 min.

@@ -102,6 +102,9 @@ class IncidentUnit extends Component {
         this.getUnitList();
     }
 
+    componentWillUnmount() {
+        helper.clearTimer();
+    }
 
     getData = (options) => {
         const {baseUrl, contextRoot} = this.context;

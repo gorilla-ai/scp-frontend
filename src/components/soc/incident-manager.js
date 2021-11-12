@@ -156,6 +156,9 @@ class IncidentManagement extends Component {
 
     }
 
+    componentWillUnmount() {
+        helper.clearTimer();
+    }
 
     setDefaultSearchOptions = (alertData, alertDataId) => {
         const {baseUrl} = this.context;

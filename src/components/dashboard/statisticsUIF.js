@@ -98,6 +98,9 @@ class StatisticsUIF extends Component {
       this.loadLayoutCfg();
     });
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   loadLayoutCfg = () => {
     const {baseUrl, session} = this.context;
 

@@ -50,6 +50,9 @@ class Status extends Component {
 
     this.getServiceStatus();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set service status data
    * @method

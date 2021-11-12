@@ -80,6 +80,9 @@ class AccountList extends Component {
 
     this.getAccountsData();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set account list data
    * @method

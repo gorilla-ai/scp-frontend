@@ -407,6 +407,9 @@ class HostController extends Component {
       this.toggleContent('hostContent');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get HMD list constant
    * @method

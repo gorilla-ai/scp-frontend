@@ -85,6 +85,9 @@ class Severity extends Component {
 
     this.setDefaultSearchOptions();
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Set Severity checkbox filter and dropdown list
    * @method

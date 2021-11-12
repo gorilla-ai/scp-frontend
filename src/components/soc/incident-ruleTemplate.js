@@ -113,6 +113,10 @@ class IncidentRuleTemplate extends Component {
         this.setDefaultSearchOptions();
     }
 
+    componentWillUnmount() {
+        helper.clearTimer();
+    }
+
     checkAccountType = () => {
         const {baseUrl, session} = this.context;
         let requestData = {

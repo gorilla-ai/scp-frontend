@@ -72,6 +72,10 @@ class IncidentSoc extends Component {
 		}
 	}
 
+	componentWillUnmount() {
+		helper.clearTimer();
+	}
+
 	checkAccountType = () =>{
 		const {baseUrl, session} = this.context;
 		let requestData={
