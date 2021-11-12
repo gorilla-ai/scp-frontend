@@ -588,7 +588,7 @@ const helper = {
   },
   inactivityTime: function(baseUrl, locale) {
     const url = `${baseUrl}/api/logout`;
-    global.activityTimer = '';
+    let time = '';
 
     document.onload = resetTimer;
     document.onmousemove = resetTimer;
@@ -599,8 +599,8 @@ const helper = {
     document.addEventListener('scroll', resetTimer, true);
 
     function resetTimer() {
-      clearTimeout(global.activityTimer);
-      global.activityTimer = setTimeout(logout, 10000); //25 min.
+      clearTimeout(time);
+      time = setTimeout(logout, 1500000); //25 min.
     }
 
     function logout() {
@@ -618,7 +618,7 @@ const helper = {
   },
   getVersion: function(baseUrl) {
     clearTimeout(global.apiTimer);
-    global.apiTimer = setTimeout(getVersionNumber, 10000); //25 min.
+    global.apiTimer = setTimeout(getVersionNumber, 1500000); //25 min.
 
     function getVersionNumber() {
       const url = `${baseUrl}/api/version`;

@@ -441,7 +441,7 @@ function start() {
             parseSuccess: resp => {
               if (resp) {
                 clearTimeout(global.apiTimer);
-                global.apiTimer = setTimeout(getVersion, 10000); //25 min.
+                global.apiTimer = setTimeout(getVersion, 1500000); //25 min.
 
                 return resp.rt;
               }
@@ -470,10 +470,10 @@ function start() {
 }
 
 function getVersion() {
-  const url = `${cfg.apiPrefix}/api/version`;
+  const url = `${cfg.apiPrefix}${cfg.contextRoot}/api/version`;
 
   clearTimeout(global.apiTimer);
-  global.apiTimer = setTimeout(getVersion, 10000); //25 min.
+  global.apiTimer = setTimeout(getVersion, 1500000); //25 min.
 
   Promise.resolve($.get(url))
     .then(data => {
