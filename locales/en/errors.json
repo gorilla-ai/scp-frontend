@@ -112,6 +112,7 @@
   "-9104": "Format error: Invalid HMD installer",
   "-9105": "Not allow to upload older HMD installer",
   "-9106": "Import failure",
+  "-9107": "SMS connections fail",
 
   "-10222": "Device ID is already exist",
   "-10322": "Unit OID is already exist",

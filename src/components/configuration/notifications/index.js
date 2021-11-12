@@ -54,10 +54,11 @@ class Notifications extends Component {
         senderAccount: '',
         senderPassword: ''
       },
-      originalSmsValue: {},
+      originalSmsProvider: {},
       smsProvider: {
         list: [],
-        value: []
+        value: '',
+        data: {}
       },
       originalEmails: {},
       emails: {
@@ -156,8 +157,11 @@ class Notifications extends Component {
         };
 
         let tempSmsProvider = {...smsProvider};
-        tempSmsProvider.list = data3.rows;
-        tempSmsProvider.value = data2['notify.sms.server.id'];
+        tempSmsProvider.list = _.map(data3.rows, val => {
+          return <MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
+        });
+        tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
+        tempSmsProvider.data = data2['notify.sms.server.id'][0];
 
         let tempEmails = {...emails};
         let tempLineBotSetting = {...lineBotSetting}
@@ -191,7 +195,7 @@ class Notifications extends Component {
         this.setState({
           originalNotifications: _.cloneDeep(notifications),
           notifications,
-          originalSmsValue: _.cloneDeep(tempSmsProvider.value),
+          originalSmsProvider: _.cloneDeep(tempSmsProvider),
           smsProvider: tempSmsProvider,
           originalEmails: _.cloneDeep(tempEmails),
           emails: tempEmails,
@@ -217,6 +221,19 @@ class Notifications extends Component {
       notifications: tempNotifications
     });
   }
+  /**
+   * Handle SMS dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleSMSchange = (event) => {
+    let tempSmsProvider = {...this.state.smsProvider};
+    tempSmsProvider.value = event.target.value;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
   handleLineBotChange = (event) => {
     let tempLineBotSetting = {...this.state.lineBotSetting};
     tempLineBotSetting[event.target.name] = event.target.value;
@@ -231,7 +248,7 @@ class Notifications extends Component {
    * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalNotifications, originalSmsValue, smsProvider, originalEmails} = this.state;
+    const {originalNotifications, originalSmsProvider, originalEmails} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -240,12 +257,9 @@ class Notifications extends Component {
     } else if (type === 'viewMode' || type === 'cancel') {
       showPage = 'viewMode';
 
-      let tempSmsProvider = {...smsProvider};
-      tempSmsProvider.value = _.cloneDeep(originalSmsValue);
-
       this.setState({
         notifications: _.cloneDeep(originalNotifications),
-        smsProvider: tempSmsProvider,
+        smsProvider: _.cloneDeep(originalSmsProvider),
         emails: _.cloneDeep(originalEmails),
         formValidation: {
           notificationsServer: {
@@ -286,7 +300,10 @@ class Notifications extends Component {
       senderPasswd: notifications.senderPassword
     };
     const smsSettings = {
-      'notify.sms.server.id': smsProvider.value
+      'notify.sms.server.id': [{
+        ...smsProvider.data,
+        ServiceProviderName: smsProvider.value
+      }]
     };
     const emailsSettings = {
       'notify.service.failure.id': {
@@ -496,9 +513,9 @@ class Notifications extends Component {
    * @method
    * @param {object} event - event object
    */
-  handleSmsDataChange = (i, event) => {
+  handleSmsDataChange = (event) => {
     let tempSmsProvider = {...this.state.smsProvider};
-    tempSmsProvider.value[i][event.target.name] = event.target.value;
+    tempSmsProvider.data[event.target.name] = event.target.value;
 
     this.setState({
       smsProvider: tempSmsProvider
@@ -532,12 +549,11 @@ class Notifications extends Component {
   /**
    * Handle SMS phone change
    * @method
-   * @param {object} i - index of the SMS provider list
    * @param {array} newPhones - new phone list
    */
-  handleSmsPhoneChange = (i, newPhones) => {
+  handleSmsPhoneChange = (newPhones) => {
     let tempSmsProvider = {...this.state.smsProvider};
-    tempSmsProvider.value[i].recipientNumberList = newPhones;
+    tempSmsProvider.data.recipientNumberList = newPhones;
 
     this.setState({
       smsProvider: tempSmsProvider
@@ -546,16 +562,13 @@ class Notifications extends Component {
   /**
    * Display SMS provider content
    * @method
-   * @param {object} val - SMS provider data object
-   * @param {number} i - index of the SMS provider list
    * @returns HTML DOM
    */
-  getSmsProviderContent = (val, i) => {
+  getSmsProviderContent = () => {
     const {activeContent, smsProvider} = this.state;
 
     return (
-      <div className='form-group normal sms-provider' key={val.ServiceProviderName}>
-        <header>{t('notifications.sms.txt-' + val.ServiceProviderName)}</header>
+      <div className='form-group normal sms-provider'>
         <div className='group'>
           <TextField
             id='smsNotificationAccount'
@@ -564,8 +577,8 @@ class Notifications extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            value={smsProvider.value[i].account}
-            onChange={this.handleSmsDataChange.bind(this, i)}
+            value={smsProvider.data.account || ''}
+            onChange={this.handleSmsDataChange}
             disabled={activeContent === 'viewMode'} />
         </div>
         <div className='group'>
@@ -577,21 +590,21 @@ class Notifications extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            value={smsProvider.value[i].password}
-            onChange={this.handleSmsDataChange.bind(this, i)}
+            value={smsProvider.data.password || ''}
+            onChange={this.handleSmsDataChange}
             disabled={activeContent === 'viewMode'} />
         </div>
 
         <div className='group full'>
-          <label style={{fontSize: '14px', margin: '5px 2px'}}>{t('notifications.sms.txt-recipients')}</label>
+          <label style={{fontSize: '14px'}}>{t('notifications.sms.txt-recipients')}</label>
           {activeContent === 'viewMode' &&
-            <div className='flex-item'>{smsProvider.value[i].recipientNumberList.map(this.displayListItem)}</div>
+            <div className='flex-item'>{smsProvider.data.recipientNumberList.map(this.displayListItem)}</div>
           }
           {activeContent === 'editMode' &&
             <ChipInput
               className='phone-chip-input'
-              defaultValue={smsProvider.value[i].recipientNumberList}
-              onChange={this.handleSmsPhoneChange.bind(this, i)}
+              defaultValue={smsProvider.data.recipientNumberList}
+              onChange={this.handleSmsPhoneChange}
               disableUnderline={true}
               fullWidth={true} />
           }
@@ -605,8 +618,8 @@ class Notifications extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            value={smsProvider.value[i].apiPointCheckUrl}
-            onChange={this.handleSmsDataChange.bind(this, i)}
+            value={smsProvider.data.apiPointCheckUrl || ''}
+            onChange={this.handleSmsDataChange}
             disabled={activeContent === 'viewMode'} />
         </div>
 
@@ -618,8 +631,8 @@ class Notifications extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            value={smsProvider.value[i].apiMultipleSendUrl}
-            onChange={this.handleSmsDataChange.bind(this, i)}
+            value={smsProvider.data.apiMultipleSendUrl || ''}
+            onChange={this.handleSmsDataChange}
             disabled={activeContent === 'viewMode'} />
         </div>
       </div>
@@ -723,6 +736,28 @@ class Notifications extends Component {
     })
   }
   /**
+   * Handle test SMS button
+   * @method
+   */
+  testSMSconnections = () => {
+    const {baseUrl} = this.context;
+    const {smsProvider} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/notification/sms/_test?ServiceProviderName=${smsProvider.value}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('notifications.sms.txt-connectionsSuccess') + ': ' + data.point);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Close test email dialog
    * @method
    */
@@ -731,20 +766,6 @@ class Notifications extends Component {
       openEmailDialog: false,
       testEmails: [],
       info: ''
-    });
-  }
-  /**
-   * Handle combo box change
-   * @method
-   * @param {object} event - event object
-   * @param {array.<object>} value - selected input value
-   */
-  handleComboBoxChange = (event, value) => {
-    let tempSmsProvider = {...this.state.smsProvider};
-    tempSmsProvider.value = value;
-
-    this.setState({
-      smsProvider: tempSmsProvider
     });
   }
   render() {
@@ -991,59 +1012,30 @@ class Notifications extends Component {
 
                 <div className='form-group normal long'>
                   <header>{t('notifications.sms.txt-smsNotification')}</header>
+                  <Button variant='contained' color='primary' className='last' onClick={this.testSMSconnections} disabled={activeContent === 'editMode'}>{t('notifications.sms.txt-testSMS')}</Button>
+                  <div className='group'>
+                    <TextField
+                      id='notificationsSMS'
+                      select
+                      label={t('notifications.sms.txt-addNewService')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={smsProvider.value}
+                      onChange={this.handleSMSchange}
+                      disabled={activeContent === 'viewMode'}>
+                      {smsProvider.list}
+                    </TextField>
+                  </div>
 
-                  {activeContent === 'editMode' &&
-                    <React.Fragment>
-                      <label style={{fontSize: '14px', margin: '5px 2px'}}>{t('notifications.sms.txt-addNewService')}</label>
-                      <Autocomplete
-                        className='combo-box groups sms-provider'
-                        multiple
-                        value={smsProvider.value}
-                        options={_.map(smsProvider.list, (val) => {
-                          return {
-                            text: t('notifications.sms.txt-' + val.ServiceProviderName),
-                            value: val.ServiceProviderName,
-                            ServiceProviderName: val.ServiceProviderName,
-                            account: val.account,
-                            password: val.password,
-                            recipientNumberList: val.recipientNumberList,
-                            apiPointCheckUrl: val.apiPointCheckUrl,
-                            apiMultipleSendUrl: val.apiMultipleSendUrl
-                          }
-                        })}
-                        getOptionLabel={(option) => t('notifications.sms.txt-' + option.ServiceProviderName)}
-                        disableCloseOnSelect
-                        noOptionsText={t('txt-notFound')}
-                        openText={t('txt-on')}
-                        closeText={t('txt-off')}
-                        clearText={t('txt-clear')}
-                        renderOption={(option, { selected }) => (
-                          <React.Fragment>
-                            <Checkbox
-                              color='primary'
-                              icon={<CheckBoxOutlineBlankIcon />}
-                              checkedIcon={<CheckBoxIcon />}
-                              checked={selected} />
-                            {option.text}
-                          </React.Fragment>
-                        )}
-                        renderInput={(params) => (
-                          <TextField {...params} variant='outlined' size='small' />
-                        )}
-                        getOptionSelected={(option, value) => (
-                          option.value === value.ServiceProviderName
-                        )}
-                        onChange={this.handleComboBoxChange} />
-                    </React.Fragment>
-                  }
-
-                  <div className='sms-list' style={{maxHeight: '400px', overflowY: 'auto', marginTop: '15px'}}>
-                    {smsProvider.value.map(this.getSmsProviderContent)}
+                  <div className='sms-content'>
+                    {smsProvider.value &&
+                      this.getSmsProviderContent()
+                    }
                   </div>
                 </div>
 
                 {EMAIL_SETTINGS.map(this.getEmailsContent)}
-
               </div>
 
               {activeContent === 'editMode' &&

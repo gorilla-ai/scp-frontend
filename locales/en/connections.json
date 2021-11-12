@@ -693,6 +693,8 @@
     },
     "sms": {
       "txt-smsNotification": "SMS Notifications",
+      "txt-testSMS": "Test Connections",
+      "txt-connectionsSuccess": "Test connections success, remaining point",
       "txt-addNewService": "Add New Service",
       "txt-textMsg": "Text Message",
       "txt-recipients": "Recipient phone number",

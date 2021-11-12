@@ -693,6 +693,8 @@
     },
     "sms": {
       "txt-smsNotification": "SMS通知設定",
+      "txt-testSMS": "連線測試",
+      "txt-connectionsSuccess": "連線測試成功, 剩餘點數",
       "txt-addNewService": "新增通訊服務",
       "txt-textMsg": "簡訊",
       "txt-recipients": "收件者手機門號",
