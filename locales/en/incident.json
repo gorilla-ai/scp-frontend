@@ -254,7 +254,8 @@
 		"4": "Close",
 		"5": "Add",
 		"6": "Edit",
-		"7": "To Analyzer"
+		"7": "To Analyzer",
+		"10": "Finished"
 	},
 	"protectType": {
 		"0": "防毒軟體",
