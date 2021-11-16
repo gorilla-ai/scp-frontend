@@ -303,7 +303,7 @@
 	"txt-device-comment": "Device Comment",
 	"txt-unit-select": "Device Unit Management",
 	"txt-defense-range": "Device Defense Range",
-	"txt-is-slave": "Device is slave",
+	"txt-is-slave": "Settings for this device is not allowed",
 	"required": {
 		"oid": "Unit OID must be required",
 		"deviceId": "Device must be required",

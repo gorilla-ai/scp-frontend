@@ -824,8 +824,24 @@ class IncidentDeviceStep extends Component {
     }
     displayEditDeviceContentWithStep = () => {
         const {activeContent, dataFromEdgeDevice, incidentDevice, departmentList, unitList, unit,edgeList, accountType, activeSteps, ownerType, defenseRange, isSlave} = this.state;
-
         const stepTitle = [t('edge-management.txt-basicInfo'), it('txt-protect-type') ,it('txt-unit-select'), it('txt-defense-range'), it('txt-device-comment')];
+        let tempDefenseRangeList = _.cloneDeep(defenseRange.list);
+
+        if (activeContent === 'editDevice') {
+            let index = '';
+
+            _.forEach(defenseRange.list, (val, i) => {
+                if (val.id === incidentDevice.info.id) {
+                    index = i;
+                    return;
+                }
+            })
+
+            if (index > -1) {
+                tempDefenseRangeList.splice(index, 1);
+            }
+        }
+
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-device')}</header>
@@ -1305,7 +1321,7 @@ class IncidentDeviceStep extends Component {
                                   className='combo-box checkboxes-tags groups'
                                   multiple
                                   value={defenseRange.value}
-                                  options={_.map(defenseRange.list, (val) => {
+                                  options={_.map(tempDefenseRangeList, (val) => {
                                     return {
                                         text: val.deviceName + ' - ' + val.incidentUnitDTO.name,
                                         value: val.id
