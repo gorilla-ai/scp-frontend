@@ -271,7 +271,14 @@ class IncidentTag extends Component {
             }
             {
                 !id &&
-                <MultiInput base={TagArray} defaultItemValue={{color: RAINBOW[0]}} value={tags} onChange={this.handleChange.bind(this, 'tags')} />
+                <MultiInput
+                    base={TagArray}
+                    defaultItemValue={{
+                        color: RAINBOW[0],
+                        tag: ''
+                    }}
+                    value={tags}
+                    onChange={this.handleChange.bind(this, 'tags')} />
             }
         </ModalDialog>
 	}
@@ -320,18 +327,20 @@ class TagArray extends React.Component {
 
 
         return <div className='tagArray'>
-            <Select className='tagColor'
-                    options={options}
-                    onChange={this.handleChange.bind(this, 'color')}
-                    value={target} />
-            <TextField id='tag'
-                       name='tag'
-                       variant='outlined'
-                       fullWidth={true}
-                       size='small'
-                       className='tagName'
-                       onChange={this.handleChangeMui}
-                       value={tag} />
+            <Select
+                className='tagColor'
+                options={options}
+                onChange={this.handleChange.bind(this, 'color')}
+                value={target} />
+            <TextField
+                id='tag'
+                name='tag'
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                className='tagName'
+                onChange={this.handleChangeMui}
+                value={tag} />
         </div>
     }
 }

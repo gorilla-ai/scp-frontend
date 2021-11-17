@@ -888,7 +888,7 @@ class IncidentManagement extends Component {
             </div>
             }
 
-            <div className='auto-settings'>
+            <div className='auto-settings' style={{height: '70vh'}}>
                 {
                     displayPage === 'main' && this.displayMainPage()
                 }
