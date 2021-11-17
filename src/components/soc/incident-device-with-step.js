@@ -2468,6 +2468,7 @@ class IncidentDeviceStep extends Component {
                     tempUnit.isGovernment = data.isGovernment
 
                     this.setState({
+                        ownerType: 'existing',
                         incidentDevice: tempDevice,
                         unit:tempUnit
                     });
@@ -2481,7 +2482,7 @@ class IncidentDeviceStep extends Component {
                     tempUnit.isGovernment = ''
 
                     this.setState({
-                        ownerType:'new',
+                        ownerType: 'new',
                         incidentDevice: tempDevice,
                         unit:tempUnit
                     });

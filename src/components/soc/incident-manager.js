@@ -100,9 +100,9 @@ class IncidentManagement extends Component {
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
-                severity:'',
                 isExpired: 2
             },
+            severitySelected: [],
             dashboard: {
                 all: 0,
                 expired: 0,
@@ -262,7 +262,7 @@ class IncidentManagement extends Component {
      */
     loadData = (fromSearch) => {
         const {baseUrl, contextRoot, session} = this.context;
-        const {search, incident} = this.state;
+        const {search, severitySelected, incident} = this.state;
         const sort = incident.sort.desc ? 'desc' : 'asc';
         const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
@@ -276,9 +276,14 @@ class IncidentManagement extends Component {
         search.account = session.accountId
         search.status = this.state.selectedStatus
 
+        const requestData = {
+            ...search,
+            severity: severitySelected
+        };
+
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(search),
+            url: `${baseUrl}/api/soc/_searchV4?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -2105,6 +2110,59 @@ class IncidentManagement extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
     };
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSeveritySelectedItem = (val) => {
+    return _.includes(this.state.severitySelected, val);
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleSeverityCheckbox = (event) => {
+    let severitySelected = _.cloneDeep(this.state.severitySelected);
+
+    if (event.target.checked) {
+      severitySelected.push(event.target.name);
+    } else {
+      const index = severitySelected.indexOf(event.target.name);
+      severitySelected.splice(index, 1);
+    }
+
+    this.setState({
+      severitySelected
+    });
+  }
+  /**
+   * Display Severity checkbox group
+   * @method
+   * @param {string} val - severity level
+   * @param {number} i - index of the severity level list
+   * @returns HTML DOM
+   */
+  displaySeverityCheckbox = (val, i) => {
+    return (
+      <div className='option' key={val + i}>
+        <FormControlLabel
+          key={i}
+          label={val}
+          control={
+            <Checkbox
+              id={val}
+              className='checkbox-ui'
+              name={val}
+              checked={this.checkSeveritySelectedItem(val)}
+              onChange={this.toggleSeverityCheckbox}
+              color='primary' />
+          } />
+      </div>
+    )
+  }
 
     /**
      * Display filter content
@@ -2162,21 +2220,13 @@ class IncidentManagement extends Component {
                             }
                         </TextField>
                     </div>
-                    <div className='group'>
-                        {/*<label htmlFor='searchCategory'>{f('incidentFields.severity')}</label>*/}
-                        <TextField
-                            id='searchCategory'
-                            name='severity'
-                            select
-                            label={f('incidentFields.severity')}
-                            required={true}
-                            variant='outlined'
-                            fullWidth={true}
-                            size='small'
-                            value={search.severity}
-                            onChange={this.handleSearchMui}>
-                            {severityList}
-                        </TextField>
+
+                    <div className='severity'>
+                        <div className='group group-checkbox narrow'>
+                            <div className='group-options'>
+                                {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}
+                            </div>
+                        </div>
                     </div>
                     {/*<div className='group'>*/}
                     {/*    <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>*/}
@@ -2209,7 +2259,7 @@ class IncidentManagement extends Component {
                             </div>
                         </div>
                     </div>
-                    <div className='group' style={{width: '500px'}}>
+                    <div className='group' style={{width: '500px', marginTop: '20px'}}>
                         {/*<label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>*/}
                         <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                             <KeyboardDateTimePicker
