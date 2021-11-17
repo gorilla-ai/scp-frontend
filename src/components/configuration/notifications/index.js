@@ -163,8 +163,11 @@ class Notifications extends Component {
         tempSmsProvider.list = _.map(data3.rows, val => {
           return <MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
         });
-        tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
-        tempSmsProvider.data = data2['notify.sms.server.id'][0];
+
+        if (data2['notify.sms.server.id']) {
+          tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
+          tempSmsProvider.data = data2['notify.sms.server.id'][0];
+        }
 
         let tempEmails = {...emails};
         let tempLineBotSetting = {...lineBotSetting}
