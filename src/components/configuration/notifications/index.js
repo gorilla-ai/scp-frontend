@@ -164,7 +164,7 @@ class Notifications extends Component {
           return <MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
         });
 
-        if (data2['notify.sms.server.id']) {
+        if (data2['notify.sms.server.id'] && data2['notify.sms.server.id'].length > 0) {
           tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
           tempSmsProvider.data = data2['notify.sms.server.id'][0];
         }
