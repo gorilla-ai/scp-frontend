@@ -22,10 +22,11 @@ import Tabs from '@material-ui/core/Tabs'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import Popover from 'react-ui/build/src/components/popover'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -39,6 +40,7 @@ import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
 import VansDevice from './vans-device'
+import VansPatch from './vans-patch'
 import VansPieChart from './vans-pie-chart'
 import YaraRule from '../common/yara-rule'
 
@@ -113,6 +115,10 @@ const HMD_TRIGGER = [
   {
     name: 'KBID',
     cmds: 'getKbidList'
+  },
+  {
+    name: 'vansPatch',
+    cmds: 'vansPatch'
   }
 ];
 const HOST_SORT_LIST = [
@@ -265,6 +271,7 @@ class HostController extends Component {
         from: '',
         to: ''
       },
+      vansPatchOpen: false,
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
@@ -3320,13 +3327,66 @@ class HostController extends Component {
     this.handleCloseMenu();
   }
   /**
+   * Toggle vans patch modal dialog on/off
+   * @method
+   */
+  toggleVansPatch = () => {
+    this.setState({
+      vansPatchOpen: !this.state.vansPatchOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle Vans patch dialog confirm
+   * @method
+   * @param {object} patch - Vans patch data object
+   */
+  confirmVansPatch = (patch) => {
+    const {baseUrl} = this.context;
+    const datetime = this.getHostDateTime();
+    const retriggerBody = {
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData(),
+      cmdJO: {
+        cmds: ['vansPathch']
+      }
+    };
+
+    let formData = new FormData();
+    formData.append('scriptFile', patch.scriptFile);
+    formData.append('executableFile', patch.executableFile);
+    formData.append('actionModel', patch.actionType);
+    formData.append('memo', patch.memo);
+    formData.append('retriggerBody', JSON.stringify(retriggerBody));
+
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      console.log('data');
+      console.log('success');
+      this.toggleVansPatch();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get HMD test menu
    * @method
    * @param {string} val - individual HMD data
    * @param {number} i - index of the HMD data
    */
   getHMDmenu = (val, i) => {
-    if (val.cmds === 'compareIOC') {
+    if (val.cmds === 'vansPatch') {
+      return <MenuItem key={i} onClick={this.toggleVansPatch}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
+    } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
       return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, val)}>{val.name}</MenuItem>
@@ -3560,6 +3620,7 @@ class HostController extends Component {
       uploadFileOpen,
       datetime,
       assessmentDatetime,
+      vansPatchOpen,
       yaraRuleOpen,
       hostAnalysisOpen,
       safetyDetailsOpen,
@@ -3611,6 +3672,12 @@ class HostController extends Component {
 
         {uploadFileOpen &&
           this.uploadFileDialog()
+        }
+
+        {vansPatchOpen &&
+          <VansPatch
+            toggleVansPatch={this.toggleVansPatch}
+            confirmVansPatch={this.confirmVansPatch} />
         }
 
         {yaraRuleOpen &&

@@ -73,7 +73,7 @@ class FileUpload extends Component {
 
     if (fileType === 'attached') {
       validate = {
-        extension: ['.txt', '.zip', '.xls','.csv','.xlsx','.doc','.docx'],
+        extension: ['.txt', '.zip', '.xls', '.csv', '.xlsx', '.doc', '.docx'],
         t: this.getErrorMsg
       };
     }
