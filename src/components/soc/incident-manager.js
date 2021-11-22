@@ -267,6 +267,31 @@ class IncidentManagement extends Component {
             });
     }
 
+    /**
+     * Get request data payload
+     * @method
+     */
+    getIncidentRequestData = () => {
+        const {session} = this.context;
+        const {search, severitySelected, selectedStatus, accountRoleType} = this.state;
+
+        if (search.datetime) {
+            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        }
+
+        search.isExecutor = _.includes(session.roles, 'SOC Executor');
+        search.accountRoleType = accountRoleType;
+        search.account = session.accountId;
+        search.status = selectedStatus;
+
+        const requestData = {
+            ...search,
+            severity: severitySelected
+        };
+
+        return requestData;
+    }
 
     /**
      * Get and set Incident Device table data
@@ -274,27 +299,13 @@ class IncidentManagement extends Component {
      * @param {string} fromSearch - option for the 'search'
      */
     loadData = (fromSearch) => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {search, severitySelected, incident} = this.state;
+        const {baseUrl, contextRoot} = this.context;
+        const {incident} = this.state;
         const sort = incident.sort.desc ? 'desc' : 'asc';
         const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-        let searchPayload = search
-        if (searchPayload.datetime) {
-            searchPayload.startDttm = Moment(searchPayload.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            searchPayload.endDttm = Moment(searchPayload.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-        }
-
-        searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
-        searchPayload.accountRoleType = this.state.accountRoleType
-        searchPayload.account = session.accountId
-        searchPayload.status = this.state.selectedStatus
+        const requestData = this.getIncidentRequestData();
 
         helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        const requestData = {
-            ...searchPayload,
-            severity: severitySelected
-        };
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV4?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
@@ -432,7 +443,7 @@ class IncidentManagement extends Component {
         helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV2?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+            url: `${baseUrl}/api/soc/_searchV4?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(searchPayload),
             type: 'POST',
             contentType: 'application/json',
@@ -3584,62 +3595,14 @@ class IncidentManagement extends Component {
     }
 
     exportAll() {
-        const {baseUrl, contextRoot, session} = this.context
-        let {search, incident, loadListType, accountRoleType} = this.state
-
-        if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-        }
-
-        search.isExecutor = _.includes(session.roles, 'SOC Executor')
-        search.accountRoleType = this.state.accountRoleType
-        search.account = session.accountId
-
-
-        let payload = {
-            subStatus: 0,
-            keyword: '',
-            category: 0,
-            isExpired: 2,
-            accountRoleType,
-            isExecutor : _.includes(session.roles, 'SOC Executor'),
-        }
-
-        let statusList = []
-        if (loadListType === 0) {
-            payload.status = statusList
-            payload.isExpired = 1
-        }
-        else if (loadListType === 1) {
-            if (payload.accountRoleType === constants.soc.SOC_Executor) {
-                // payload.status = 2
-                statusList.push(2)
-                payload.status = statusList
-                payload.subStatus = 6
-            }
-            else if (payload.accountRoleType === constants.soc.SOC_Super) {
-                statusList.push(7)
-                payload.status = statusList
-            }
-            else {
-                statusList.push(1)
-                payload.status = statusList
-            }
-        }
-        else if (loadListType === 2) {
-            payload.status = statusList
-            payload.creator = session.accountId
-        }
-        else if (loadListType === 3) {
-            payload = search
-        }
+        const {baseUrl, contextRoot} = this.context
+        const requestData = this.getIncidentRequestData();
 
         helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
         ah.one({
-            url: `${baseUrl}/api/soc/_searchV2`,
-            data: JSON.stringify(payload),
+            url: `${baseUrl}/api/soc/_searchV4`,
+            data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -3657,54 +3620,9 @@ class IncidentManagement extends Component {
     }
 
     exportAllByWord() {
-        const {baseUrl, contextRoot, session} = this.context
-        let {search, loadListType, accountRoleType} = this.state
-
-        if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-        }
-
-        search.isExecutor = _.includes(session.roles, 'SOC Executor')
-        search.accountRoleType = this.state.accountRoleType
-        search.account = session.accountId
-
-
-        let payload = {
-            subStatus: 0,
-            keyword: '',
-            category: 0,
-            isExpired: 2,
-            accountRoleType,
-            isExecutor : _.includes(session.roles, 'SOC Executor'),
-        }
-
-
-        if (loadListType === 0) {
-            payload.status = 0
-            payload.isExpired = 1
-        }
-        else if (loadListType === 1) {
-            if (payload.accountRoleType === constants.soc.SOC_Executor) {
-                payload.status = 2
-                payload.subStatus = 6
-            }
-            else if (payload.accountRoleType === constants.soc.SOC_Super) {
-                payload.status = 7
-            }
-            else {
-                payload.status = 1
-            }
-        }
-        else if (loadListType === 2) {
-            payload.status = 0
-            payload.creator = session.accountId
-        }
-        else if (loadListType === 3) {
-            payload = search
-        }
-
-        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_exportWord`, {payload: JSON.stringify(payload)})
+        const {baseUrl, contextRoot} = this.context;
+        const payload = this.getIncidentRequestData();
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_exportWord`, {payload: JSON.stringify(payload)});
     }
 
     notifyContact() {
