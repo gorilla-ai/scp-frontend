@@ -435,7 +435,7 @@ class IncidentLog extends Component {
                         <label htmlFor='searchDttmType'>{it('txt-searchDttmType')}</label>
                         <TextField
                             id='searchDttmType'
-                            name='searchDttmType'
+                            name='dttmType'
                             variant='outlined'
                             fullWidth={true}
                             size='small'
