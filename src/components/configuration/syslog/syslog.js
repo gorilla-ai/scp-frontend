@@ -12,8 +12,11 @@ import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
 import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
@@ -136,6 +139,7 @@ class Syslog extends Component {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
+      chartExportType: 'securityLog', //'securityLog' or 'syslog'
       datetimeExport: {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
@@ -1226,6 +1230,32 @@ class Syslog extends Component {
     }
   }
   /**
+   * Handle chart export type change
+   * @method
+   * @param {object} event - event object
+   */
+  handleChartExportTypeChange = (event) => {
+    const chartExportType = event.target.value;
+    let datetimeExport = {};
+
+    if (chartExportType === 'securityLog') {
+      datetimeExport = {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      };
+    } else if (chartExportType === 'syslog') {
+      datetimeExport = {
+        from: moment().local().startOf('day').format('YYYY-MM-DD'),
+        to: moment().local().format('YYYY-MM-DD')
+      };
+    }
+
+    this.setState({
+      chartExportType,
+      datetimeExport
+    });
+  }
+  /**
    * Handle chart interval change for Config Syslog
    * @method
    * @param {object} event - event object
@@ -1416,7 +1446,12 @@ class Syslog extends Component {
 
     if (openExportCharts) {
       this.setState({
-        openExportCharts: false
+        openExportCharts: false,
+        chartExportType: 'securityLog',
+        datetimeExport: {
+          from: helper.getStartDate('day'),
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        }
       });
     } else {
       this.ah.one({
@@ -1485,7 +1520,7 @@ class Syslog extends Component {
    */
   displayExportCharts = () => {
     const {locale} = this.context;
-    const {datetimeExport, netProxyData, exportChartsIpList, exportCharts} = this.state;
+    const {chartExportType, datetimeExport, netProxyData, exportChartsIpList, exportCharts} = this.state;
     const data = {
       netProxyData,
       exportChartsIpList
@@ -1500,32 +1535,85 @@ class Syslog extends Component {
 
     return (
       <div>
+        <div className='form-group normal'>
+          <RadioGroup
+            id='chartExportType'
+            className='radio-group'
+            value={chartExportType}
+            onChange={this.handleChartExportTypeChange}>
+            <FormControlLabel
+              value='securityLog'
+              control={
+                <Radio
+                  id='chartExportSecurityLog'
+                  className='radio-ui'
+                  color='primary' />
+              }
+              label={t('syslogFields.txt-securityLog')} />
+            <FormControlLabel
+              value='syslog'
+              control={
+                <Radio
+                  id='chartExportSyslog'
+                  className='radio-ui'
+                  color='primary' />
+              }
+              label={t('syslogFields.txt-syslog')} />
+          </RadioGroup>
+        </div>  
         <div className='calendar-section'>
-          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-            <KeyboardDateTimePicker
-              className='date-time-picker'
-              inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD HH:mm'
-              invalidDateMessage={t('txt-invalidDateMessage')}
-              maxDateMessage={t('txt-maxDateMessage')}
-              minDateMessage={t('txt-minDateMessage')}
-              ampm={false}
-              value={datetimeExport.from}
-              onChange={this.handleDateChange.bind(this, 'exportCharts', 'from')} />
-            <div className='between'>~</div>
-            <KeyboardDateTimePicker
-              className='date-time-picker'
-              inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD HH:mm'
-              invalidDateMessage={t('txt-invalidDateMessage')}
-              maxDateMessage={t('txt-maxDateMessage')}
-              minDateMessage={t('txt-minDateMessage')}
-              ampm={false}
-              value={datetimeExport.to}
-              onChange={this.handleDateChange.bind(this, 'exportCharts', 'to')} />
-          </MuiPickersUtilsProvider>
+          {chartExportType === 'securityLog' &&
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                ampm={false}
+                value={datetimeExport.from}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'from')} />
+              <div className='between'>~</div>
+              <KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                ampm={false}
+                value={datetimeExport.to}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'to')} />
+            </MuiPickersUtilsProvider>
+          }
+          {chartExportType === 'syslog' &&
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDatePicker
+                className='date-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={datetimeExport.from}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'from')} />
+              <div className='between'>~</div>
+              <KeyboardDatePicker
+                className='date-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={datetimeExport.to}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'to')} />
+            </MuiPickersUtilsProvider>
+          }
         </div>
         <div className='host-section'>
           <MultiInput
@@ -1573,11 +1661,11 @@ class Syslog extends Component {
    */
   confirmExportCharts = () => {
     const {baseUrl, session} = this.context;
-    const {datetimeExport, exportCharts} = this.state;
-    const startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';    
+    const {chartExportType, datetimeExport, exportCharts} = this.state;
     const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
     const utc_offset = timezone._offset / 60; //Convert minute to hour
+    let startDttm = '';
+    let endDttm = '';
     let totalConfigList = [];
 
     _.forEach(exportCharts, val => {
@@ -1588,13 +1676,23 @@ class Syslog extends Component {
       });
     })
 
-    const requestData = {
+    let requestData = {
       accountId: session.accountId,
-      type: ['exportLogTrendStatistics'],
-      timestamp: [startDttm, endDttm],
-      configIds: totalConfigList,
-      timeZone: utc_offset
+      configIds: totalConfigList
     };
+
+    if (chartExportType === 'securityLog') {
+      startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.type = ['exportLogTrendStatistics'];
+      requestData.timeZone = utc_offset;
+    } else if (chartExportType === 'syslog') {
+      startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.type = ['exportRawDateStatistics'];
+    }
+
+    requestData.timestamp = [startDttm, endDttm];
 
     this.ah.one({
       url: `${baseUrl}/api/taskService`,

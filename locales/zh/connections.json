@@ -1175,6 +1175,8 @@
     "txt-editHosts": "編輯所屬主機資訊",
     "txt-timelineUnavailable": "趨勢圖資料不存在",
     "txt-addHost": "新增所屬主機",
+    "txt-securityLog": "資安日誌",
+    "txt-syslog": "原始日誌",
     "txt-deleteHost": "$t(txt-delete)$t(txt-host)",
     "txt-deleteConfig": "$t(txt-delete)Config"
   },

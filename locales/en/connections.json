@@ -1175,6 +1175,8 @@
     "txt-editHosts": "Edit Hosts",
     "txt-timelineUnavailable": "Timeline data is not available",
     "txt-addHost": "Add Host",
+    "txt-securityLog": "Security Log",
+    "txt-syslog": "Syslog",
     "txt-deleteHost": "$t(txt-delete) $t(txt-host)",
     "txt-deleteConfig": "$t(txt-delete) Config"
   },
