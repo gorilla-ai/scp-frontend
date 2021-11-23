@@ -689,15 +689,15 @@ class IncidentManagement extends Component {
                     <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'restart')}>{it('txt-restart')}</MenuItem>
                 }
                 {_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
-                <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'delete')}>{it('txt-delete')}</MenuItem>
+                    <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'delete')}>{it('txt-delete')}</MenuItem>
                 }
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
-                {(currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED || currentData.status !== constants.soc.INCIDENT_STATUS_CLOSED) &&
+                {(currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED || currentData.status !== constants.soc.INCIDENT_STATUS_CLOSED || currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) &&
                     <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
                 }
-                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
+                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED || currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) &&
                     <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
 
@@ -822,7 +822,7 @@ class IncidentManagement extends Component {
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
 
         }else if (incident.info.status === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) {
-
+            closeCheck = false
         }
 
 
@@ -3272,7 +3272,7 @@ class IncidentManagement extends Component {
         payload.basic.table.push({text: incident.reporter, colSpan: 2})
         payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
         payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
-       
+
         if (incidentType === 'ttps') {
             payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
             payload.basic.table.push({text: incident.description, colSpan: 4})
@@ -3352,14 +3352,14 @@ class IncidentManagement extends Component {
         payload.accident.table = []
         payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
         payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
-        
+
         if (incident.accidentCatogory) {
             payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
         }
         else {
             payload.accident.table.push({text: ' ', colSpan: 2})
         }
-        
+
         if (!incident.accidentCatogory) {
             payload.accident.table.push({text: ' ', colSpan: 2})
         }
@@ -3389,14 +3389,14 @@ class IncidentManagement extends Component {
             payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
             payload.eventList.table.push({text: event.description, colSpan: 3})
             const target = _.find(showDeviceListOptions, {value: event.deviceId})
-            
+
             if (target) {
                 payload.eventList.table.push({text: target.text, colSpan: 3})
             }
             else {
                 payload.eventList.table.push({text: '', colSpan: 3})
             }
-            
+
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
             payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
