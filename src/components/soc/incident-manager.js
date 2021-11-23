@@ -1234,6 +1234,14 @@ class IncidentManagement extends Component {
         })
     }
 
+    handleDownloadAll = () => {
+        const {baseUrl, contextRoot} = this.context;
+        const {incident} = this.state;
+        const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download/all?id=${incident.info.id}`
+
+        downloadLink(url);
+    }
+
     displayAttached = () => {
         const {activeContent, incidentType, incident, attach} = this.state;
         let dataFields = {};
@@ -1300,8 +1308,7 @@ class IncidentManagement extends Component {
                         className='file-input'
                         validate={{ max:20 ,t: this.getErrorMsg}}
                         onChange={this.handleAttachChange}
-                        btnText={t('txt-selectFile')}
-                    />
+                        btnText={t('txt-selectFile')} />
                 </div>
             }
             {
@@ -1320,7 +1327,10 @@ class IncidentManagement extends Component {
             {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
-                    <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+                    <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+                    {incident.info.attachmentDescription &&
+                        <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-download')}</Button>
+                    }
                 </div>
             }
             {
@@ -1328,10 +1338,9 @@ class IncidentManagement extends Component {
                 <div className='group full'>
                     <DataTable
                         style={{width: '100%'}}
-                        className='main-table full '
+                        className='main-table full'
                         fields={incident.fileFields}
-                        data={incident.info.fileList}
-                    />
+                        data={incident.info.fileList} />
                 </div>
             }
         </div>
