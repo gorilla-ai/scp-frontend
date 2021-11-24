@@ -2258,7 +2258,7 @@ class IncidentDeviceStep extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (data && data.ret === constants.soc.SEND_STATUS_SUCCESS){
+                if ((data && data.ret === constants.soc.SEND_STATUS_SUCCESS) || (data && data.ret === constants.soc.SEND_STATUS_DEFAULT_SUCCESS)){
                     helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
                 }else if (data && data.ret === constants.soc.SEND_STATUS_ERROR_NOT_CONNECT_NCCST){
                     helper.showPopupMsg(it('txt-send-connect-fail'), it('txt-send'));
