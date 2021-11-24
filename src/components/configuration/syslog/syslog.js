@@ -1695,6 +1695,13 @@ class Syslog extends Component {
 
     requestData.timestamp = [startDttm, endDttm];
 
+    if (startDttm && endDttm) {
+      if (moment(endDttm).isBefore(moment(startDttm))) {
+        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+        return;
+      }
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/taskService`,
       data: JSON.stringify(requestData),
