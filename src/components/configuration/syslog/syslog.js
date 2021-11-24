@@ -155,9 +155,10 @@ class Syslog extends Component {
         hostName: '',
         configList: []
       }],
+      exportType: '',
       popOverAnchor: null,
       taskServiceList: {
-        data: [],
+        data: null,
         scrollCount: 0,
         pageSize: 10,
         hasMore: true
@@ -1715,9 +1716,11 @@ class Syslog extends Component {
   /**
    * Toggle export schedule list on/off
    * @method
+   * @param {string} type - export type ('securityLog' or 'syslog')
    */
-  toggleExportScheduleList = () => {
+  toggleExportScheduleList = (type) => {
     this.setState({
+      exportType: type,
       popOverAnchor: {top: 83, right: 10}
     }, () => {
       this.getTaskService('firstLoad');
@@ -1731,11 +1734,12 @@ class Syslog extends Component {
    * @param {string} options - option for 'firstLoad'
    */
   getTaskService = (options) => {
-    const {taskServiceList} = this.state;
+    const {exportType, taskServiceList} = this.state;
     const {baseUrl} = this.context;
     const datetime = {
       from: moment(helper.getSubstractDate(7, 'day', moment().utc())).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
+    let type = '';
     let fromItem = 0;
 
     if (options !== 'firstLoad') {
@@ -1746,13 +1750,20 @@ class Syslog extends Component {
       }
     }
 
+    if (exportType === 'securityLog') {
+      type = 'exportLogTrendStatistics';
+    } else if (exportType === 'syslog') {
+      type = 'exportRawDataStatistics';
+    }
+
     this.ah.one({
-      url: `${baseUrl}/api/taskService/list?source=SCP&type=exportLogTrendStatistics&createStartDttm=${datetime.from}&from=${fromItem}&size=${taskServiceList.pageSize}`,
+      url: `${baseUrl}/api/taskService/list?source=SCP&type=${type}&createStartDttm=${datetime.from}&from=${fromItem}&size=${taskServiceList.pageSize}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
         let tempTaskServiceList = {...taskServiceList};
+        tempTaskServiceList.data = [];
 
         if (options === 'firstLoad') {
           if (data.list && data.list.length > 0) {
@@ -1785,7 +1796,7 @@ class Syslog extends Component {
    */
   handlePopoverClose = () => {
     let tempTaskServiceList = {...this.state.taskServiceList};
-    tempTaskServiceList.data = [];
+    tempTaskServiceList.data = null;
     tempTaskServiceList.scrollCount = 0;
 
     this.setState({
@@ -2662,11 +2673,19 @@ class Syslog extends Component {
       showAddSshAccount,
       contextAnchorCharts,
       activeHost,
+      exportType,
       popOverAnchor,
       taskServiceList,
       syslogPatternConfig,
       contextAnchor
     } = this.state;
+    let exportTitle = '';
+
+    if (exportType === 'securityLog') {
+      exportTitle = t('txt-exportSecurityLog');
+    } else if (exportType === 'syslog') {
+      exportTitle = t('txt-exportSyslog');
+    }
 
     return (
       <div>
@@ -2715,11 +2734,13 @@ class Syslog extends Component {
               open={Boolean(contextAnchorCharts)}
               onClose={this.handleCloseChartsMenu}>
               <MenuItem onClick={this.toggleExportCharts}>{t('syslogFields.txt-exportSyslogCharts')}</MenuItem>
-              <MenuItem onClick={this.toggleExportScheduleList}>{t('txt-exportScheduledList')}</MenuItem>
+              <MenuItem onClick={this.toggleExportScheduleList.bind(this, 'securityLog')}>{t('txt-exportSecurityLog')}</MenuItem>
+              <MenuItem onClick={this.toggleExportScheduleList.bind(this, 'syslog')}>{t('txt-exportSyslog')}</MenuItem>
             </Menu>
           </div>
 
           <ExportCSV
+            title={exportTitle}
             anchorPosition={popOverAnchor}
             taskServiceList={taskServiceList}
             handlePopoverClose={this.handlePopoverClose}

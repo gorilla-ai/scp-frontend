@@ -226,7 +226,7 @@ class ThreatsController extends Component {
       edgeCheckedList: [],
       popOverAnchor: null,
       taskServiceList: {
-        data: [],
+        data: null,
         scrollCount: 0,
         pageSize: 10,
         hasMore: true
@@ -625,6 +625,7 @@ class ThreatsController extends Component {
     .then(data => {
       if (data) {
         let tempTaskServiceList = {...taskServiceList};
+        tempTaskServiceList.data = [];
 
         if (options === 'firstLoad') {
           if (data.list && data.list.length > 0) {
@@ -657,7 +658,7 @@ class ThreatsController extends Component {
    */
   handlePopoverClose = () => {
     let tempTaskServiceList = {...this.state.taskServiceList};
-    tempTaskServiceList.data = [];
+    tempTaskServiceList.data = null;
     tempTaskServiceList.scrollCount = 0;
 
     this.setState({

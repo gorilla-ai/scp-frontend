@@ -204,6 +204,8 @@
   "txt-minDateMessage": "Date should not be before minimal date",
   "txt-maxDateMessage": "Date should not be after maximal date",
   "txt-exportScheduledList": "Export Schedule List",
+  "txt-exportSecurityLog": "Export Security Log",
+  "txt-exportSyslog": "Export Syslog",
   "txt-past7days": "Past 7 Days",
   "txt-scheduledTask": "Scheduled Task",
   "txt-downloadTask": "Downlaod",

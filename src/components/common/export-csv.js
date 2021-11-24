@@ -135,7 +135,8 @@ class ExportCsv extends Component {
     )
   }
   render() {
-  	const {popOverAnchor, anchorPosition, taskServiceList} = this.props;
+  	const {title, popOverAnchor, anchorPosition, taskServiceList} = this.props;
+    const listTitle = title || t('txt-exportScheduledList');
     let anchorInfo = {};
     let open = '';
 
@@ -183,9 +184,12 @@ class ExportCsv extends Component {
             </List>
           }
           <div>
-            {taskServiceList.data.length > 0 &&
+            {taskServiceList.data && taskServiceList.data.length === 0 &&
+              <span className='empty'>{t('txt-notFound')}</span>
+            }
+            {taskServiceList.data && taskServiceList.data.length > 0 &&
               <div className='scheduled-list'>
-                <div className='header'><span>{t('txt-exportScheduledList')}</span> {t('txt-past7days')}</div>
+                <div className='header'><span>{listTitle}</span> {t('txt-past7days')}</div>
                 <List className='service-list'>
                   <InfiniteScroll
                     dataLength={taskServiceList.data.length}
@@ -211,6 +215,7 @@ class ExportCsv extends Component {
 ExportCsv.contextType = BaseDataContext;
 
 ExportCsv.propTypes = {
+  title: PropTypes.string,
   popOverAnchor: PropTypes.object,
   anchorPosition: PropTypes.object,
   taskServiceList: PropTypes.object.isRequired,

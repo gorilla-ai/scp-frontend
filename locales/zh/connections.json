@@ -204,6 +204,8 @@
   "txt-minDateMessage": "時間不得在最小容許時間之前",
   "txt-maxDateMessage": "時間不得在最大容許時間之後",
   "txt-exportScheduledList": "匯出排程列表",
+  "txt-exportSecurityLog": "匯出資安排成",
+  "txt-exportSyslog": "匯出日誌排成",
   "txt-past7days": "最近7天",
   "txt-scheduledTask": "任務已排入",
   "txt-downloadTask": "下載",
