@@ -1129,6 +1129,7 @@ class HostController extends Component {
       url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
       requestData = {
         timestamp: [datetime.from, datetime.to],
+        ...this.getHostSafetyRequestData(),
         hmdScanDistribution: {
           taskName: 'getVans',
           primaryKeyName: 'cpe23Uri',
@@ -3541,6 +3542,7 @@ class HostController extends Component {
     const datetime = this.getHostDateTime();
     const dataOptions = {
       timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData(),
       hmdScanDistribution: {
         taskName: 'getVans',
         primaryKeyName: 'cpe23Uri'

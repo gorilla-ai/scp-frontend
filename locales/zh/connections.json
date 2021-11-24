@@ -40,6 +40,7 @@
   "txt-packets": "封包",
   "txt-databytes": "數據",
   "txt-download": "下載",
+  "txt-downloadAll": "全部下載",
   "txt-alert": "告警",
   "txt-rule": "規則",
   "txt-update": "更新",
