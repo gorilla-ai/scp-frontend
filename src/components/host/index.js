@@ -1573,7 +1573,7 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {hitCveList, nccstSelectedList} = this.state;
     const datetime = this.getHostDateTime();
-    const url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
+    const url = `${baseUrl}/api/hmd/vans/_report`;
     let uncheckList = [];
 
     _.forEach(hitCveList, val => {
@@ -1586,6 +1586,7 @@ class HostController extends Component {
 
     const requestData = {
       timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData(),
       hmdScanDistribution: {
         taskName: 'getVans',
         primaryKeyName: 'cpe23Uri'
@@ -1594,7 +1595,7 @@ class HostController extends Component {
     };
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/vans/_report`,
+      url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
