@@ -694,11 +694,16 @@ class IncidentManagement extends Component {
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
-                {(currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED || currentData.status !== constants.soc.INCIDENT_STATUS_CLOSED || currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) &&
-                    <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
+                {((currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED)
+                || ((currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_CLOSED)
+                || ((currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE)
+                && <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
                 }
-                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED || (currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED || currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) &&
-                    <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED
+                || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED
+                || ((currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_DELETED))
+                // || ((currentData.flowData && currentData.flowData.finish) && (currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE))
+                && <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
                 }
 
             </Menu>
