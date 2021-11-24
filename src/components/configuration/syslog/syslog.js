@@ -1689,7 +1689,7 @@ class Syslog extends Component {
     } else if (chartExportType === 'syslog') {
       startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      requestData.type = ['exportRawDateStatistics'];
+      requestData.type = ['exportRawDataStatistics'];
     }
 
     requestData.timestamp = [startDttm, endDttm];
