@@ -1334,7 +1334,7 @@ class IncidentManagement extends Component {
                 <div className='group'>
                     <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
                     {incident.info.attachmentDescription &&
-                        <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-download')}</Button>
+                        <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
                     }
                 </div>
             }
