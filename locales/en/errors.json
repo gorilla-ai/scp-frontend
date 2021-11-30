@@ -114,7 +114,6 @@
   "-9106": "Import failure",
   "-9107": "SMS testing failure",
   "-9108": "SMS insufficient balance failure",
-
   "-9110": "FR-MOTP connect test failure",
 
   "-10222": "Device ID is already exist",
