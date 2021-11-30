@@ -974,6 +974,7 @@
     "txt-CPEinputTest": "Input CPE",
     "txt-CPEconvertResult": "CPE Convert Result",
     "txt-convertTest": "Convert Test",
+    "txt-frMotpTest": "FR-MOTP Verification",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view) $t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view) $t(alert.txt-safetyScanInfo)",

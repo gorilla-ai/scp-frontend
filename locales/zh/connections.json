@@ -974,6 +974,7 @@
     "txt-CPEinputTest": "輸入CPE測試",
     "txt-CPEconvertResult": "轉換結果CPE",
     "txt-convertTest": "轉換測試",
+    "txt-frMotpTest": "FR-MOTP驗證",
     "txt-editFloorMap": "$t(txt-edit)$t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view)$t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view)$t(alert.txt-safetyScanInfo)",

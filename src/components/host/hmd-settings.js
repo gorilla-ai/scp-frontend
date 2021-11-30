@@ -6,6 +6,7 @@ import cx from 'classnames'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
@@ -142,6 +143,12 @@ class HMDsettings extends Component {
       cpe23Uri: '',
       cpeConvertResult: '',
       connectionsStatus: '',
+      originaFrMotpSettings: '',
+      frMotp: {
+        enable: true,
+        ip: '',
+        apiKey: ''
+      },
       originalNccstSettings: '',
       nccstSettings: {
         unitOID: '',
@@ -188,7 +195,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -302,6 +309,18 @@ class HMDsettings extends Component {
           originalCpeData: _.cloneDeep(cpeData),
           cpeData
         });
+
+        const parsedFrMotpData = JSON.parse(data[12].value);
+        const frMotp = {
+          ip: parsedFrMotpData.ip,
+          apiKey: parsedFrMotpData.apiKey,
+          enable: parsedFrMotpData.enable
+        };
+
+        this.setState({
+          originaFrMotpSettings: _.cloneDeep(frMotp),
+          frMotp
+        });
       }
       return null;
     })
@@ -348,6 +367,7 @@ class HMDsettings extends Component {
       originalFtpAccount,
       originalProductRegex,
       originalCpeData,
+      originaFrMotpSettings,
       originalNccstSettings
     } = this.state;
     let showPage = type;
@@ -367,6 +387,7 @@ class HMDsettings extends Component {
         ftpAccount: _.cloneDeep(originalFtpAccount),
         productRegexData: _.cloneDeep(originalProductRegex),
         cpeData: _.cloneDeep(originalCpeData),
+        frMotp: _.cloneDeep(originaFrMotpSettings),
         nccstSettings: _.cloneDeep(originalNccstSettings)
       });
 
@@ -456,7 +477,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, nccstSettings, formValidation} = this.state;
+    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -560,6 +581,10 @@ class HMDsettings extends Component {
       {
         type: 'vans.api_url',
         value: nccstSettings.apiUrl
+      },
+      {
+        type: 'hmd.frmotp',
+        value: JSON.stringify(frMotp)
       }
     ];
     let apiArr = [];
@@ -916,6 +941,31 @@ class HMDsettings extends Component {
       return cpeConvertResult ? t('txt-pass') : t('txt-fail');
     }
   }
+  /**
+   * Handle FR-MOTP data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleFrMotpChange = (event) => {
+    let tempFrMotp = {...this.state.frMotp};
+
+    if (event.target.name === 'enable') {
+      tempFrMotp[event.target.name] = event.target.checked;
+    } else {
+      tempFrMotp[event.target.name] = event.target.value;
+    }
+
+    this.setState({
+      frMotp: tempFrMotp
+    });
+  }
+  /**
+   * Handle FR-MOTP connections test
+   * @method
+   */
+  handleConnectionsTest = () => {
+
+  }
   render() {
     const {
       activeContent,
@@ -930,6 +980,7 @@ class HMDsettings extends Component {
       cpe23Uri,
       cpeConvertResult,
       connectionsStatus,
+      frMotp,
       nccstSettings,
       cpeData,
       formValidation
@@ -1105,7 +1156,7 @@ class HMDsettings extends Component {
                     helperText={formValidation.password.valid ? '' : t('txt-required')}
                     value={ftpPassword}
                     onChange={this.handleDataChange} />
-                  <button id='hmdSettingsConnectionsCheck' className='connections-check' onClick={this.checkConnectionsStatus}>{t('hmd-scan.txt-checkConnections')}</button>
+                  <Button id='hmdSettingsConnectionsCheck' variant='contained' color='primary' className='connections-check' onClick={this.checkConnectionsStatus}>{t('hmd-scan.txt-checkConnections')}</Button>
                   {msg &&
                     <span style={{color}}>{msg}</span>
                   }
@@ -1142,6 +1193,46 @@ class HMDsettings extends Component {
             </div>
 
             <div className='form-group normal'>
+              <header>FR-MOTP</header>
+              <Button variant='contained' color='primary' className='connections-test' onClick={this.handleConnectionsTest}>{t('soar.txt-testConnections')}</Button>
+              <div className='group full'>
+                <FormControlLabel
+                  label={t('network-inventory.txt-frMotpTest')}
+                  control={
+                    <Checkbox
+                      className='checkbox-ui'
+                      name='enable'
+                      checked={frMotp.enable}
+                      onChange={this.handleFrMotpChange}
+                      color='primary' />
+                  }
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+              <div className='group'>
+                <TextField
+                  name='ip'
+                  label='IP'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={frMotp.ip}
+                  onChange={this.handleFrMotpChange}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+              <div className='group'>
+                <TextField
+                  name='apiKey'
+                  label='API Key'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={frMotp.apiKey}
+                  onChange={this.handleFrMotpChange}
+                  disabled={activeContent === 'viewMode'} />
+              </div>
+            </div>
+
+            <div className='form-group normal'>
               <header>{t('network-inventory.txt-CPEconvertTest')}</header>
               <div className='group full'>
                 <label></label>
@@ -1152,8 +1243,9 @@ class HMDsettings extends Component {
                   variant='outlined'
                   size='small'
                   value={cpeInputTest}
-                  onChange={this.handleDataChange} />
-                <button className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</button>
+                  onChange={this.handleDataChange}
+                  disabled={activeContent === 'viewMode'} />
+                <Button variant='contained' color='primary' className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</Button>
                 <TextField
                   name='cpeConvertResult'
                   label={t('network-inventory.txt-CPEconvertResult')}
