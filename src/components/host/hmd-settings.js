@@ -947,13 +947,9 @@ class HMDsettings extends Component {
    * @param {object} event - event object
    */
   handleFrMotpChange = (event) => {
+    const type = event.target.name === 'enable' ? 'checked' : 'value';
     let tempFrMotp = {...this.state.frMotp};
-
-    if (event.target.name === 'enable') {
-      tempFrMotp[event.target.name] = event.target.checked;
-    } else {
-      tempFrMotp[event.target.name] = event.target.value;
-    }
+    tempFrMotp[event.target.name] = event.target[type];
 
     this.setState({
       frMotp: tempFrMotp
@@ -964,7 +960,25 @@ class HMDsettings extends Component {
    * @method
    */
   handleConnectionsTest = () => {
+    const {baseUrl} = this.context;
 
+    this.ah.one({
+      url: `${baseUrl}/api/common/fr-motp/connect/_test`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-connectionsSuccess'));
+      } else {
+        helper.showPopupMsg(t('txt-connectionsFail'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
     const {
@@ -1194,7 +1208,7 @@ class HMDsettings extends Component {
 
             <div className='form-group normal'>
               <header>FR-MOTP</header>
-              <Button variant='contained' color='primary' className='connections-test' onClick={this.handleConnectionsTest}>{t('soar.txt-testConnections')}</Button>
+              <Button variant='contained' color='primary' className='connections-test' onClick={this.handleConnectionsTest} disabled={activeContent === 'editMode'}>{t('soar.txt-testConnections')}</Button>
               <div className='group full'>
                 <FormControlLabel
                   label={t('network-inventory.txt-frMotpTest')}
@@ -1245,7 +1259,7 @@ class HMDsettings extends Component {
                   value={cpeInputTest}
                   onChange={this.handleDataChange}
                   disabled={activeContent === 'viewMode'} />
-                <Button variant='contained' color='primary' className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</Button>
+                <Button variant='contained' color='primary' className='convert-test' onClick={this.handleCPEconvertTest} disabled={activeContent === 'editMode'}>{t('network-inventory.txt-CPEconvertTest')}</Button>
                 <TextField
                   name='cpeConvertResult'
                   label={t('network-inventory.txt-CPEconvertResult')}

@@ -220,6 +220,8 @@
   "txt-chartTypePie": "圓餅圖",
   "txt-chartTypeLine": "折線圖",
   "txt-chartTypeBar": "長條圖",
+  "txt-connectionsSuccess": "連線成功",
+  "txt-connectionsFail": "連線失敗",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",

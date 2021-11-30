@@ -220,6 +220,8 @@
   "txt-chartTypePie": "Pie Chart",
   "txt-chartTypeLine": "Line Chart",
   "txt-chartTypeBar": "Bar Chart",
+  "txt-connectionsSuccess": "Connections test successfully",
+  "txt-connectionsFail": "Connections test fail",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
