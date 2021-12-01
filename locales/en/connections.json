@@ -269,6 +269,7 @@
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
   "txt-timeRangeError": "Please check your time range",
+  "txt-verificationCode": "Verification Code",
 
   "txt-listText": "List",
   "txt-uploadPhoto": "Upload Photo",
@@ -442,7 +443,9 @@
     "txt-deviceName": "Device Name",
     "txt-deviceIP": "Device IP",
     "txt-mark": "Mark",
-    "txt-parentDept": "Parent Department"
+    "txt-parentDept": "Parent Department",
+    "txt-frMotpMsg": "Please enter FR-MOTP code",
+    "txt-patchSuccess": "Patch Success"
   },
 
   "alert": {

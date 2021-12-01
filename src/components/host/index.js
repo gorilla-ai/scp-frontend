@@ -271,6 +271,7 @@ class HostController extends Component {
         from: '',
         to: ''
       },
+      frMotpOpen: false,
       vansPatchOpen: false,
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
@@ -374,6 +375,8 @@ class HostController extends Component {
         scrollCount: 1,
         hasMore: false
       },
+      frMotp: '',
+      vansPatch: {},
       openHmdType: '',
       vansChartsData: {},
       vansData: {},
@@ -3327,12 +3330,44 @@ class HostController extends Component {
     this.handleCloseMenu();
   }
   /**
+   * Toggle FR-MOTP modal dialog on/off
+   * @method
+   * @param {object} patch - Vans patch data object
+   */
+  toggleFrMotp = (patch) => {
+    this.setState({
+      frMotpOpen: !this.state.frMotpOpen,
+      frMotp: ''
+    }, () => {
+      const {frMotpOpen} = this.state;
+
+      if (frMotpOpen) {
+        this.setState({
+          vansPatchOpen: false,
+          vansPatch: patch
+        });
+      } else {
+        this.setState({
+          vansPatchOpen: true
+        });
+      }
+    });
+  }
+  /**
    * Toggle vans patch modal dialog on/off
    * @method
    */
   toggleVansPatch = () => {
     this.setState({
       vansPatchOpen: !this.state.vansPatchOpen
+    }, () => {
+      const {vansPatchOpen} = this.state;
+
+      if (!vansPatchOpen) {
+        this.setState({
+          vansPatch: {}
+        });
+      }
     });
 
     this.handleCloseMenu();
@@ -3349,7 +3384,7 @@ class HostController extends Component {
       timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData(),
       cmdJO: {
-        cmds: ['vansPathch']
+        cmds: ['vansPatch']
       }
     };
 
@@ -3368,8 +3403,7 @@ class HostController extends Component {
       contentType: false
     })
     .then(data => {
-      console.log('data');
-      console.log('success');
+      helper.showPopupMsg(t('host.txt-patchSuccess'));
       this.toggleVansPatch();
       return null;
     })
@@ -3609,6 +3643,89 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+  /**
+   * Set input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Display FR-MOTP dialog content
+   * @method
+   * @returns HTML DOM
+   */
+  displayfrMotpContent = () => {
+    return (
+      <div>
+        <div className='desc-text' style={{marginBottom: '20px'}}>{t('host.txt-frMotpMsg')}</div>
+        <TextField
+          name='frMotp'
+          label={t('txt-verificationCode')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          value={this.state.frMotp}
+          onChange={this.handleDataChange} />
+      </div>
+    )
+  }
+  /**
+   * Display FR-MOTP dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  frMotpDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFrMotp},
+      confirm: {text: t('txt-confirm'), handler: this.confirmFrMotp}
+    };
+
+    return (
+      <ModalDialog
+        id='forgotPasswordDialog'
+        className='modal-dialog'
+        title='FR-MOTP'
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayfrMotpContent()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Confirm FR-MOTP
+   * @method
+   */
+  confirmFrMotp = () => {
+    const {baseUrl, session} = this.context;
+    const {frMotp, vansPatch} = this.state;
+    const url = `${baseUrl}/api/frmotp/_verify`;
+    const requestData = {
+      otp: frMotp,
+      accountId: session.accountId,
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.confirmVansPatch(vansPatch);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {
       activeTab,
@@ -3620,6 +3737,7 @@ class HostController extends Component {
       uploadFileOpen,
       datetime,
       assessmentDatetime,
+      frMotpOpen,
       vansPatchOpen,
       yaraRuleOpen,
       hostAnalysisOpen,
@@ -3674,8 +3792,13 @@ class HostController extends Component {
           this.uploadFileDialog()
         }
 
+        {frMotpOpen &&
+          this.frMotpDialog()
+        }
+
         {vansPatchOpen &&
           <VansPatch
+            toggleFrMotp={this.toggleFrMotp}
             toggleVansPatch={this.toggleVansPatch}
             confirmVansPatch={this.confirmVansPatch} />
         }
