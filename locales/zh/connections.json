@@ -274,6 +274,7 @@
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
   "txt-timeRangeError": "請檢查時間區間",
+  "txt-verificationCode": "驗證碼",
 
   "txt-listText": "列表",
   "txt-uploadPhoto": "上傳照片",
@@ -447,7 +448,9 @@
     "txt-deviceName": "主機名稱",
     "txt-deviceIP": "主機IP",
     "txt-mark": "標記",
-    "txt-parentDept": "直屬設備"
+    "txt-parentDept": "直屬設備",
+    "txt-frMotpMsg": "請輸入FR-MOTP所示驗證碼",
+    "txt-patchSuccess": "派送成功"
   },
 
   "alert": {
@@ -809,6 +812,13 @@
     "txt-hmdSetupFile": "HMD安裝檔",
     "txt-uplaodSuccess": "HMD安裝檔上傳成功",
     "txt-triggerAll": "全部檢測(HMD)",
+    "txt-vansPatch": "指令派送",
+    "txt-vansType": "指令類型",
+    "txt-vansInstall": "安裝指令",
+    "txt-vansUninstall": "移除指令",
+    "txt-scriptFile": "執行腳本",
+    "txt-executableFile": "執行程式",
+    "txt-readyPatch": "開始派送",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB版本",
     "txt-eventsLogCount": "事件日誌數量",

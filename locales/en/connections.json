@@ -274,6 +274,7 @@
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
   "txt-timeRangeError": "Please check your time range",
+  "txt-verificationCode": "Verification Code",
 
   "txt-listText": "List",
   "txt-uploadPhoto": "Upload Photo",
@@ -447,7 +448,9 @@
     "txt-deviceName": "Device Name",
     "txt-deviceIP": "Device IP",
     "txt-mark": "Mark",
-    "txt-parentDept": "Parent Department"
+    "txt-parentDept": "Parent Department",
+    "txt-frMotpMsg": "Please enter FR-MOTP code",
+    "txt-patchSuccess": "Patch Success"
   },
 
   "alert": {
@@ -809,6 +812,13 @@
     "txt-hmdSetupFile": "HMD setup file",
     "txt-uplaodSuccess": "HMD setup file has been uploaded successfully",
     "txt-triggerAll": "Trigger All (HMD)",
+    "txt-vansPatch": "Vans Patch",
+    "txt-vansType": "Vans Type",
+    "txt-vansInstall": "Install Vans",
+    "txt-vansUninstall": "Uninstall Vans",
+    "txt-scriptFile": "Script File",
+    "txt-executableFile": "Executable File",
+    "txt-readyPatch": "Ready to Patch",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB Version",
     "txt-eventsLogCount": "Events Log Count",

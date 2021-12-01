@@ -22,10 +22,11 @@ import Tabs from '@material-ui/core/Tabs'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import Popover from 'react-ui/build/src/components/popover'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -39,6 +40,7 @@ import SafetyDetails from './safety-details'
 import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
 import VansDevice from './vans-device'
+import VansPatch from './vans-patch'
 import VansPieChart from './vans-pie-chart'
 import YaraRule from '../common/yara-rule'
 
@@ -113,6 +115,10 @@ const HMD_TRIGGER = [
   {
     name: 'KBID',
     cmds: 'getKbidList'
+  },
+  {
+    name: 'vansPatch',
+    cmds: 'vansPatch'
   }
 ];
 const HOST_SORT_LIST = [
@@ -265,6 +271,8 @@ class HostController extends Component {
         from: '',
         to: ''
       },
+      frMotpOpen: false,
+      vansPatchOpen: false,
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
@@ -367,6 +375,8 @@ class HostController extends Component {
         scrollCount: 1,
         hasMore: false
       },
+      frMotp: '',
+      vansPatch: {},
       openHmdType: '',
       vansChartsData: {},
       vansData: {},
@@ -3322,13 +3332,97 @@ class HostController extends Component {
     this.handleCloseMenu();
   }
   /**
+   * Toggle FR-MOTP modal dialog on/off
+   * @method
+   * @param {object} patch - Vans patch data object
+   */
+  toggleFrMotp = (patch) => {
+    this.setState({
+      frMotpOpen: !this.state.frMotpOpen,
+      frMotp: ''
+    }, () => {
+      const {frMotpOpen} = this.state;
+
+      if (frMotpOpen) {
+        this.setState({
+          vansPatchOpen: false,
+          vansPatch: patch
+        });
+      } else {
+        this.setState({
+          vansPatchOpen: true
+        });
+      }
+    });
+  }
+  /**
+   * Toggle vans patch modal dialog on/off
+   * @method
+   */
+  toggleVansPatch = () => {
+    this.setState({
+      vansPatchOpen: !this.state.vansPatchOpen
+    }, () => {
+      const {vansPatchOpen} = this.state;
+
+      if (!vansPatchOpen) {
+        this.setState({
+          vansPatch: {}
+        });
+      }
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle Vans patch dialog confirm
+   * @method
+   * @param {object} patch - Vans patch data object
+   */
+  confirmVansPatch = (patch) => {
+    const {baseUrl} = this.context;
+    const datetime = this.getHostDateTime();
+    const retriggerBody = {
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData(),
+      cmdJO: {
+        cmds: ['vansPatch']
+      }
+    };
+
+    let formData = new FormData();
+    formData.append('scriptFile', patch.scriptFile);
+    formData.append('executableFile', patch.executableFile);
+    formData.append('actionModel', patch.actionType);
+    formData.append('memo', patch.memo);
+    formData.append('retriggerBody', JSON.stringify(retriggerBody));
+
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      helper.showPopupMsg(t('host.txt-patchSuccess'));
+      this.toggleVansPatch();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get HMD test menu
    * @method
    * @param {string} val - individual HMD data
    * @param {number} i - index of the HMD data
    */
   getHMDmenu = (val, i) => {
-    if (val.cmds === 'compareIOC') {
+    if (val.cmds === 'vansPatch') {
+      return <MenuItem key={i} onClick={this.toggleVansPatch}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
+    } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
       return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, val)}>{val.name}</MenuItem>
@@ -3552,6 +3646,89 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+  /**
+   * Set input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Display FR-MOTP dialog content
+   * @method
+   * @returns HTML DOM
+   */
+  displayfrMotpContent = () => {
+    return (
+      <div>
+        <div className='desc-text' style={{marginBottom: '20px'}}>{t('host.txt-frMotpMsg')}</div>
+        <TextField
+          name='frMotp'
+          label={t('txt-verificationCode')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          value={this.state.frMotp}
+          onChange={this.handleDataChange} />
+      </div>
+    )
+  }
+  /**
+   * Display FR-MOTP dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  frMotpDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFrMotp},
+      confirm: {text: t('txt-confirm'), handler: this.confirmFrMotp}
+    };
+
+    return (
+      <ModalDialog
+        id='forgotPasswordDialog'
+        className='modal-dialog'
+        title='FR-MOTP'
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayfrMotpContent()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Confirm FR-MOTP
+   * @method
+   */
+  confirmFrMotp = () => {
+    const {baseUrl, session} = this.context;
+    const {frMotp, vansPatch} = this.state;
+    const url = `${baseUrl}/api/frmotp/_verify`;
+    const requestData = {
+      otp: frMotp,
+      accountId: session.accountId,
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.confirmVansPatch(vansPatch);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {
       activeTab,
@@ -3563,6 +3740,8 @@ class HostController extends Component {
       uploadFileOpen,
       datetime,
       assessmentDatetime,
+      frMotpOpen,
+      vansPatchOpen,
       yaraRuleOpen,
       hostAnalysisOpen,
       safetyDetailsOpen,
@@ -3614,6 +3793,17 @@ class HostController extends Component {
 
         {uploadFileOpen &&
           this.uploadFileDialog()
+        }
+
+        {frMotpOpen &&
+          this.frMotpDialog()
+        }
+
+        {vansPatchOpen &&
+          <VansPatch
+            toggleFrMotp={this.toggleFrMotp}
+            toggleVansPatch={this.toggleVansPatch}
+            confirmVansPatch={this.confirmVansPatch} />
         }
 
         {yaraRuleOpen &&
