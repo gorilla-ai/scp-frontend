@@ -375,6 +375,7 @@ class HostController extends Component {
         scrollCount: 1,
         hasMore: false
       },
+      frMotpEnable: '',
       frMotp: '',
       vansPatch: {},
       openHmdType: '',
@@ -3332,28 +3333,47 @@ class HostController extends Component {
     this.handleCloseMenu();
   }
   /**
+   * Check FR-MOTP
+   * @method
+   */
+  checkFrMotp = () => {
+    const {patch} = this.state;
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/frmotp/_enable`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.setState({
+        frMotpEnable: data
+      }, () => {
+        this.toggleVansPatch();
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle FR-MOTP modal dialog on/off
    * @method
    * @param {object} patch - Vans patch data object
    */
   toggleFrMotp = (patch) => {
-    this.setState({
-      frMotpOpen: !this.state.frMotpOpen,
-      frMotp: ''
-    }, () => {
-      const {frMotpOpen} = this.state;
-
-      if (frMotpOpen) {
-        this.setState({
-          vansPatchOpen: false,
-          vansPatch: patch
-        });
-      } else {
-        this.setState({
-          vansPatchOpen: true
-        });
-      }
-    });
+    if (this.state.frMotpEnable) {
+      this.setState({
+        frMotpOpen: true,
+        frMotp: '',
+        vansPatch: patch
+      });
+    } else {
+      this.confirmVansPatch(patch);
+    }
   }
   /**
    * Toggle vans patch modal dialog on/off
@@ -3362,14 +3382,6 @@ class HostController extends Component {
   toggleVansPatch = () => {
     this.setState({
       vansPatchOpen: !this.state.vansPatchOpen
-    }, () => {
-      const {vansPatchOpen} = this.state;
-
-      if (!vansPatchOpen) {
-        this.setState({
-          vansPatch: {}
-        });
-      }
     });
 
     this.handleCloseMenu();
@@ -3406,6 +3418,12 @@ class HostController extends Component {
     })
     .then(data => {
       helper.showPopupMsg(t('host.txt-patchSuccess'));
+
+      this.setState({
+        frMotpOpen: false,
+        vansPatch: {}
+      });
+
       this.toggleVansPatch();
       return null;
     })
@@ -3421,7 +3439,7 @@ class HostController extends Component {
    */
   getHMDmenu = (val, i) => {
     if (val.cmds === 'vansPatch') {
-      return <MenuItem key={i} onClick={this.toggleVansPatch}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
+      return <MenuItem key={i} onClick={this.checkFrMotp}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
@@ -3664,7 +3682,7 @@ class HostController extends Component {
   displayfrMotpContent = () => {
     return (
       <div>
-        <div className='desc-text' style={{marginBottom: '20px'}}>{t('host.txt-frMotpMsg')}</div>
+        <div className='desc-text' style={{marginBottom: '15px'}}>{t('host.txt-frMotpMsg')}</div>
         <TextField
           name='frMotp'
           label={t('txt-verificationCode')}
@@ -3795,15 +3813,14 @@ class HostController extends Component {
           this.uploadFileDialog()
         }
 
-        {frMotpOpen &&
-          this.frMotpDialog()
-        }
-
         {vansPatchOpen &&
           <VansPatch
-            toggleFrMotp={this.toggleFrMotp}
             toggleVansPatch={this.toggleVansPatch}
-            confirmVansPatch={this.confirmVansPatch} />
+            toggleFrMotp={this.toggleFrMotp} />
+        }
+
+        {frMotpOpen &&
+          this.frMotpDialog()
         }
 
         {yaraRuleOpen &&

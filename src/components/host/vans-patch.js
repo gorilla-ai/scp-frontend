@@ -88,33 +88,6 @@ class VansPatch extends Component {
     )
   }
   /**
-   * Check FR-MOTP
-   * @method
-   */
-  checkFrMotp = () => {
-    const {patch} = this.state;
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/frmotp/_enable`;
-
-    this.ah.one({
-      url,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.props.toggleFrMotp();
-      } else {
-        this.props.confirmVansPatch(patch);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Display vans patch content
    * @method
    * @returns HTML DOM
@@ -168,7 +141,7 @@ class VansPatch extends Component {
   render() {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleVansPatch},
-      confirm: {text: t('hmd-scan.txt-readyPatch'), handler: this.checkFrMotp}
+      confirm: {text: t('hmd-scan.txt-readyPatch'), handler: this.props.toggleFrMotp.bind(this, this.state.patch)}
     };
 
     return (
@@ -189,9 +162,8 @@ class VansPatch extends Component {
 VansPatch.contextType = BaseDataContext;
 
 VansPatch.propTypes = {
-  toggleFrMotp: PropTypes.func.isRequired,
   toggleVansPatch: PropTypes.func.isRequired,
-  confirmVansPatch: PropTypes.func.isRequired
+  toggleFrMotp: PropTypes.func.isRequired
 };
 
 export default VansPatch;

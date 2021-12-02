@@ -449,7 +449,7 @@
     "txt-deviceIP": "主機IP",
     "txt-mark": "標記",
     "txt-parentDept": "直屬設備",
-    "txt-frMotpMsg": "請輸入FR-MOTP所示驗證碼",
+    "txt-frMotpMsg": "請輸入FR-MOTP所顯示的驗證碼",
     "txt-patchSuccess": "派送成功"
   },
 
@@ -812,7 +812,7 @@
     "txt-hmdSetupFile": "HMD安裝檔",
     "txt-uplaodSuccess": "HMD安裝檔上傳成功",
     "txt-triggerAll": "全部檢測(HMD)",
-    "txt-vansPatch": "指令派送",
+    "txt-vansPatch": "VANS Patch",
     "txt-vansType": "指令類型",
     "txt-vansInstall": "安裝指令",
     "txt-vansUninstall": "移除指令",
