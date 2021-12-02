@@ -717,9 +717,9 @@ class IncidentManagement extends Component {
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
-                {((currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED)
-                || ((currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_CLOSED)
-                || ((currentData.flowData && currentData.flowData.finish) && currentData.status !== constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE)
+                {(_.includes(this.state.accountRoleType,constants.soc.SOC_Super) && (currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || (currentData.flowData && currentData.flowData.finish))
+                || (_.includes(this.state.accountRoleType,constants.soc.SOC_Ciso) && (currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || (currentData.flowData && currentData.flowData.finish))
+                || (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && (currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || (currentData.flowData && currentData.flowData.finish))
                 && <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
                 }
                 {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED
@@ -813,9 +813,10 @@ class IncidentManagement extends Component {
         let deleteCheck = false
 
 
-
-        if (_.includes(this.state.accountRoleType,constants.soc.SOC_Super) || _.includes(this.state.accountRoleType,constants.soc.SOC_Ciso)) {
-            if (incident.info.flowData && incident.info.flowData.finish){
+        if (_.includes(this.state.accountRoleType, constants.soc.SOC_Super)
+            || _.includes(this.state.accountRoleType, constants.soc.SOC_Ciso)
+            || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) {
+            if (incident.info.flowData && incident.info.flowData.finish) {
                 publishCheck = true
             }
         }
@@ -837,7 +838,7 @@ class IncidentManagement extends Component {
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
             closeCheck = false
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
-
+            closeCheck = false
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
             if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
                 restartCheck = true
