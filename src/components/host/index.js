@@ -3363,8 +3363,17 @@ class HostController extends Component {
    * Toggle FR-MOTP modal dialog on/off
    * @method
    * @param {object} patch - Vans patch data object
+   * @param {string} [options] - option for 'close'
    */
-  toggleFrMotp = (patch) => {
+  toggleFrMotp = (patch, options) => {
+    if (options === 'close') {
+      this.setState({
+        frMotpOpen: false,
+        vansPatch: {}
+      });
+      return;
+    }
+
     if (this.state.frMotpEnable) {
       this.setState({
         frMotpOpen: true,
@@ -3418,12 +3427,7 @@ class HostController extends Component {
     })
     .then(data => {
       helper.showPopupMsg(t('host.txt-patchSuccess'));
-
-      this.setState({
-        frMotpOpen: false,
-        vansPatch: {}
-      });
-
+      this.toggleFrMotp('', 'close');
       this.toggleVansPatch();
       return null;
     })
@@ -3701,7 +3705,7 @@ class HostController extends Component {
    */
   frMotpDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFrMotp},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFrMotp.bind(this, '', 'close')},
       confirm: {text: t('txt-confirm'), handler: this.confirmFrMotp}
     };
 
