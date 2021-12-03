@@ -664,8 +664,15 @@ class IncidentManagement extends Component {
         const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType} = this.state
         const {session} = this.context
         let insertCheck = false;
+        let sendCheck = false;
         if (_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor)){
             insertCheck = true
+        }
+
+        if ((_.includes(this.state.accountRoleType,constants.soc.SOC_Super) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))
+            || (_.includes(this.state.accountRoleType,constants.soc.SOC_Ciso) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))
+            || (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))){
+            sendCheck = true
         }
 
         const tableOptions = {
@@ -717,9 +724,7 @@ class IncidentManagement extends Component {
                 {!(currentData.flowData && currentData.flowData.finish) &&
                     <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
                 }
-                {(_.includes(this.state.accountRoleType,constants.soc.SOC_Super) && (currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || (currentData.flowData && currentData.flowData.finish))
-                || (_.includes(this.state.accountRoleType,constants.soc.SOC_Ciso) && (currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || (currentData.flowData && currentData.flowData.finish))
-                || (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && (currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || (currentData.flowData && currentData.flowData.finish))
+                {sendCheck
                 && <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
                 }
                 {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED
@@ -813,13 +818,7 @@ class IncidentManagement extends Component {
         let deleteCheck = false
 
 
-        if (_.includes(this.state.accountRoleType, constants.soc.SOC_Super)
-            || _.includes(this.state.accountRoleType, constants.soc.SOC_Ciso)
-            || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) {
-            if (incident.info.flowData && incident.info.flowData.finish) {
-                publishCheck = true
-            }
-        }
+
 
         if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
             closeCheck = true
@@ -837,6 +836,13 @@ class IncidentManagement extends Component {
 
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_CLOSED) {
             closeCheck = false
+
+            if ((_.includes(this.state.accountRoleType,constants.soc.SOC_Super) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED)))
+                || (_.includes(this.state.accountRoleType,constants.soc.SOC_Ciso) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED)))
+                || (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED)))){
+                publishCheck = true
+            }
+
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
             closeCheck = false
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
