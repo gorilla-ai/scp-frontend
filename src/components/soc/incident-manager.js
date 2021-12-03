@@ -788,7 +788,7 @@ class IncidentManagement extends Component {
 
                     {
                         (activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
-                        this.displayEditContent(currentData)
+                        this.displayEditContent()
                     }
                 </div>
             </div>
@@ -800,7 +800,7 @@ class IncidentManagement extends Component {
      * @method
      * @returns HTML DOM
      */
-    displayEditContent = (currentData) => {
+    displayEditContent = () => {
         const {session} = this.context
         const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
 
