@@ -118,7 +118,7 @@ const HMD_TRIGGER = [
   },
   {
     name: 'vansPatch',
-    cmds: 'vansPatch'
+    cmds: 'excutePatch'
   }
 ];
 const HOST_SORT_LIST = [
@@ -3407,7 +3407,7 @@ class HostController extends Component {
       timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData(),
       cmdJO: {
-        cmds: ['vansPatch']
+        cmds: ['excutePatch']
       }
     };
 
@@ -3442,7 +3442,7 @@ class HostController extends Component {
    * @param {number} i - index of the HMD data
    */
   getHMDmenu = (val, i) => {
-    if (val.cmds === 'vansPatch') {
+    if (val.cmds === 'excutePatch') {
       return <MenuItem key={i} onClick={this.checkFrMotp}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>

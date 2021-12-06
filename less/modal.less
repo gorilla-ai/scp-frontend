@@ -219,7 +219,6 @@ html[data-theme='dark'] {
     label {
       display: block;
       text-align: left;
-      font-size: .9em;
       color: var(--primaryContentHeader);
       margin-bottom: 3px;
     }
@@ -2572,12 +2571,11 @@ html[data-theme='dark'] {
 }
 #vansPatchDialog-content {
   .vans-patch {
-    padding: 10px;
-    input {
-      height: 35px;
-    }
     .group .content {
-      padding: 10px 0;
+      padding: 0;
+    }
+    .file-input input {
+      height: 35px;
     }
     .radio-group {
       flex-direction: row;
@@ -2585,7 +2583,7 @@ html[data-theme='dark'] {
       margin-left: 2px;
     }
     .memo {
-      margin-top: 5px;
+      margin-top: 10px;
     }
   }
 }

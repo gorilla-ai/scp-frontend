@@ -7,6 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
@@ -35,7 +36,21 @@ class VansPatch extends Component {
         actionType: 'install', //'install' or 'delete'
         scriptFile: {},
         executableFile: {},
+        product: '',
+        vendor: '',
+        version: '',
         memo: ''
+      },
+      formValidation: {
+        product: {
+          valid: true
+        },
+        vendor: {
+          valid: true
+        },
+        version: {
+          valid: true
+        }
       }
     };
 
@@ -88,15 +103,55 @@ class VansPatch extends Component {
     )
   }
   /**
+   * Check form validation
+   * @method
+   */
+  checkFormValidation = () => {
+    const {patch, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (patch.product) {
+      tempFormValidation.product.valid = true;
+    } else {
+      tempFormValidation.product.valid = false;
+      validate = false;
+    }
+
+    if (patch.vendor) {
+      tempFormValidation.vendor.valid = true;
+    } else {
+      tempFormValidation.vendor.valid = false;
+      validate = false;
+    }
+
+    if (patch.version) {
+      tempFormValidation.version.valid = true;
+    } else {
+      tempFormValidation.version.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.props.toggleFrMotp(patch);
+  }
+  /**
    * Display vans patch content
    * @method
    * @returns HTML DOM
    */
   displayVansPatchContent = () => {
-    const {patch} = this.state;
+    const {patch, formValidation} = this.state;
 
     return (
-      <div className='vans-patch'>
+      <div className='form-group vans-patch'>
         <div className='group'>
           <label>{t('hmd-scan.txt-vansType')}</label>
           <RadioGroup
@@ -126,6 +181,45 @@ class VansPatch extends Component {
           </RadioGroup>
         </div>
         {VANS_FILES.map(this.displayFileUpload)}
+        <div className='group full'>
+          <label>{t('hmd-scan.txt-patchProduct')}</label>
+          <TextField
+            name='product'
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.product.valid}
+            helperText={formValidation.product.valid ? '' : t('txt-required')}
+            value={patch.product}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='group full'>
+          <label>{t('hmd-scan.txt-patchVendor')}</label>
+          <TextField
+            name='vendor'
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.vendor.valid}
+            helperText={formValidation.vendor.valid ? '' : t('txt-required')}
+            value={patch.vendor}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='group full'>
+          <label>{t('hmd-scan.txt-patchVersion')}</label>
+          <TextField
+            name='version'
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.version.valid}
+            helperText={formValidation.version.valid ? '' : t('txt-required')}
+            value={patch.version}
+            onChange={this.handleDataChange} />
+        </div>
         <div className='group memo'>
           <TextareaAutosize
             name='memo'
@@ -141,7 +235,7 @@ class VansPatch extends Component {
   render() {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleVansPatch},
-      confirm: {text: t('hmd-scan.txt-readyPatch'), handler: this.props.toggleFrMotp.bind(this, this.state.patch)}
+      confirm: {text: t('hmd-scan.txt-readyPatch'), handler: this.checkFormValidation}
     };
 
     return (
