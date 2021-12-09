@@ -3341,7 +3341,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.hostID}
+                  value={addIP.hostID || ''}
                   disabled />
               </div>
               <div className='group'>
@@ -3354,7 +3354,7 @@ class NetworkInventory extends Component {
                   size='small'
                   error={!formValidation.system.valid}
                   helperText={formValidation.system.valid ? '' : t('network-topology.txt-maxCharError')}
-                  value={addIP.system}
+                  value={addIP.system || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3368,7 +3368,7 @@ class NetworkInventory extends Component {
                   size='small'
                   error={!formValidation.deviceType.valid}
                   helperText={formValidation.deviceType.valid ? '' : t('network-topology.txt-maxCharError')}
-                  value={addIP.deviceType}
+                  value={addIP.deviceType || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3380,7 +3380,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.userName}
+                  value={addIP.userName || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3392,7 +3392,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.cpu}
+                  value={addIP.cpu || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3404,7 +3404,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.ram}
+                  value={addIP.ram || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3418,7 +3418,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.disks}
+                  value={addIP.disks || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3432,7 +3432,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.shareFolders}
+                  value={addIP.shareFolders || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3446,7 +3446,7 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
-                  value={addIP.remarks}
+                  value={addIP.remarks || ''}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3531,7 +3531,7 @@ class NetworkInventory extends Component {
                         required
                         error={!formValidation.newOwnerName.valid}
                         helperText={formValidation.newOwnerName.msg}
-                        value={addIP.newOwnerName}
+                        value={addIP.newOwnerName || ''}
                         onChange={this.handleAddIpChange} />
                     </div>
                     <div className='group'>
@@ -3552,7 +3552,7 @@ class NetworkInventory extends Component {
                       <Autocomplete
                         className='combo-box'
                         options={departmentList}
-                        value={addIP.newDepartment}
+                        value={addIP.newDepartment || ''}
                         getOptionLabel={(option) => option.text}
                         renderInput={this.renderDepartmentList}
                         onChange={this.handleComboBoxChange.bind(this, 'department')} />
@@ -3561,7 +3561,7 @@ class NetworkInventory extends Component {
                       <Autocomplete
                         className='combo-box'
                         options={titleList}
-                        value={addIP.newTitle}
+                        value={addIP.newTitle || ''}
                         getOptionLabel={(option) => option.text}
                         renderInput={this.renderTitleList}
                         onChange={this.handleComboBoxChange.bind(this, 'title')} />
@@ -3578,7 +3578,7 @@ class NetworkInventory extends Component {
                         variant='outlined'
                         fullWidth
                         size='small'
-                        value={addIP.ownerUUID}
+                        value={addIP.ownerUUID || ''}
                         onChange={this.getOwnerInfo}>
                         {ownerListDropDown}
                       </TextField>
@@ -3591,14 +3591,14 @@ class NetworkInventory extends Component {
                         variant='outlined'
                         fullWidth
                         size='small'
-                        value={addIP.ownerID}
+                        value={addIP.ownerID || ''}
                         disabled />
                     </div>
                     <div className='group'>
                       <Autocomplete
                         className='combo-box'
                         options={departmentList}
-                        value={addIP.department}
+                        value={addIP.department || ''}
                         getOptionLabel={(option) => option.text}
                         renderInput={this.renderDepartmentList}
                         disabled />
@@ -3607,7 +3607,7 @@ class NetworkInventory extends Component {
                       <Autocomplete
                         className='combo-box'
                         options={titleList}
-                        value={addIP.title}
+                        value={addIP.title || ''}
                         getOptionLabel={(option) => option.text}
                         renderInput={this.renderTitleList}
                         disabled />
