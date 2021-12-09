@@ -33,6 +33,7 @@ import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutlo
 import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import IncidentFlowDialog from "./common/flow-dialog";
+import MuiTableContent from "../common/mui-table-content";
 
 let t = null;
 let f = null;
@@ -251,135 +252,140 @@ class Incident extends Component {
      * @param {string} fromSearch - option for the 'search'
      */
     loadData = (fromSearch) => {
-        const {baseUrl, contextRoot, session} = this.context;
-        const {search, incident} = this.state;
-        const sort = incident.sort.desc ? 'desc' : 'asc';
-        const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
-        if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-        }
+        this.setState({
+            activeContent: 'tableList'
+        },()=>{
+            const {baseUrl, contextRoot, session} = this.context;
+            const {search, incident} = this.state;
+            const sort = incident.sort.desc ? 'desc' : 'asc';
+            const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
-        search.accountRoleType = this.state.accountRoleType
-        search.account = session.accountId
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-            data: JSON.stringify(search),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-        .then(data => {
-            if (data) {
-                let tempEdge = {...incident};
-
-
-                if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
-                    tempEdge.dataFields = [];
-                    tempEdge.dataContent = [];
-                    tempEdge.totalCount = 0;
-                    tempEdge.currentPage = 1;
-                    tempEdge.pageSize = 20;
-
-                    this.setState({
-                        incident: tempEdge,
-                        activeContent: 'tableList'
-                    });
-                } else {
-                    tempEdge.dataContent = data.rt.rows;
-                    tempEdge.totalCount = data.rt.counts;
-                    tempEdge.currentPage = page;
-
-                    tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                        return {
-                            name: val === '_menu' ? '' : val,
-                            label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                            options: {
-                                filter: true,
-                                sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
-                                customBodyRenderLite: (dataIndex, options) => {
-                                    const allValue = tempEdge.dataContent[dataIndex];
-                                    let value = tempEdge.dataContent[dataIndex][val];
-
-                                    if (options === 'getAllValue') {
-                                        return allValue;
-                                    }
-
-                                    if (val === '_menu') {
-                                        return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                            <MoreIcon/>
-                                        </IconButton>
-                                    } else if (val === 'type') {
-                                        let tmpList = [];
-                                        tmpList = allValue.ttpList;
-                                        if (tmpList.length === 0) {
-                                            return <span>{it('txt-incident-event')}</span>
-                                        } else {
-                                            return <span>{it('txt-incident-related')}</span>
-                                        }
-                                    } else if (val === 'category') {
-                                        return <span>{it(`category.${value}`)}</span>
-                                    } else if (val === 'status') {
-                                        let status = 'N/A'
-                                        if (allValue.flowData) {
-
-                                            if (allValue.flowData.finish) {
-                                                return <span>{it('status.3')}</span>
-                                            }
-
-                                            if (allValue.flowData.currentEntity) {
-                                                status = allValue.flowData.currentEntity[allValue.id].entityName
-                                            }
-                                        }
-                                        return <span>{status}</span>
-                                    } else if (val === 'createDttm' || val === 'updateDttm') {
-                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                    } else if (val === 'tag') {
-                                        const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                        return <div>
-                                            {
-                                                _.map(allValue.tagList, el => {
-                                                    return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                                                        &nbsp;{el.tag.tag}
-                                                    </div>
-                                                })
-                                            }
-                                        </div>
-
-                                    } else if (val === 'severity') {
-                                        return <span className='severity-level'
-                                                     style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString'){
-                                        let formattedPatternIP = ''
-                                        if (value.length > 32) {
-                                            formattedPatternIP = value.substr(0, 32) + '...';
-                                        }else{
-                                            formattedPatternIP = value
-                                        }
-                                        return <span>{formattedPatternIP}</span>
-                                    } else {
-                                        return <span>{value}</span>
-                                    }
-                                }
-                            }
-                        };
-                    });
-
-                    this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
-                }
-
+            if (search.datetime) {
+                search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+                search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             }
-            return null
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
+
+            search.accountRoleType = this.state.accountRoleType
+            search.account = session.accountId
+
+            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+            ah.one({
+                url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+                data: JSON.stringify(search),
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json'
+            })
+                .then(data => {
+                    if (data) {
+                        let tempEdge = {...incident};
+
+
+                        if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
+                            tempEdge.dataFields = [];
+                            tempEdge.dataContent = [];
+                            tempEdge.totalCount = 0;
+                            tempEdge.currentPage = 1;
+                            tempEdge.pageSize = 20;
+
+                            this.setState({
+                                incident: tempEdge,
+                                activeContent: 'tableList'
+                            });
+                        } else {
+                            tempEdge.dataContent = data.rt.rows;
+                            tempEdge.totalCount = data.rt.counts;
+                            tempEdge.currentPage = page;
+
+                            tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+                                return {
+                                    name: val === '_menu' ? '' : val,
+                                    label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                                    options: {
+                                        filter: true,
+                                        sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
+                                        customBodyRenderLite: (dataIndex, options) => {
+                                            const allValue = tempEdge.dataContent[dataIndex];
+                                            let value = tempEdge.dataContent[dataIndex][val];
+
+                                            if (options === 'getAllValue') {
+                                                return allValue;
+                                            }
+
+                                            if (val === '_menu') {
+                                                return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                                    <MoreIcon/>
+                                                </IconButton>
+                                            } else if (val === 'type') {
+                                                let tmpList = [];
+                                                tmpList = allValue.ttpList;
+                                                if (tmpList.length === 0) {
+                                                    return <span>{it('txt-incident-event')}</span>
+                                                } else {
+                                                    return <span>{it('txt-incident-related')}</span>
+                                                }
+                                            } else if (val === 'category') {
+                                                return <span>{it(`category.${value}`)}</span>
+                                            } else if (val === 'status') {
+                                                let status = 'N/A'
+                                                if (allValue.flowData) {
+
+                                                    if (allValue.flowData.finish) {
+                                                        return <span>{it('status.3')}</span>
+                                                    }
+
+                                                    if (allValue.flowData.currentEntity) {
+                                                        status = allValue.flowData.currentEntity[allValue.id].entityName
+                                                    }
+                                                }
+                                                return <span>{status}</span>
+                                            } else if (val === 'createDttm' || val === 'updateDttm') {
+                                                return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                            } else if (val === 'tag') {
+                                                const tags = _.map(allValue.tagList, 'tag.tag')
+
+                                                return <div>
+                                                    {
+                                                        _.map(allValue.tagList, el => {
+                                                            return <div style={{display: 'flex', marginRight: '30px'}}>
+                                                                <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                                &nbsp;{el.tag.tag}
+                                                            </div>
+                                                        })
+                                                    }
+                                                </div>
+
+                                            } else if (val === 'severity') {
+                                                return <span className='severity-level'
+                                                             style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+                                            } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                                                let formattedPatternIP = ''
+                                                if (value.length > 32) {
+                                                    formattedPatternIP = value.substr(0, 32) + '...';
+                                                }else{
+                                                    formattedPatternIP = value
+                                                }
+                                                return <span>{formattedPatternIP}</span>
+                                            } else {
+                                                return <span>{value}</span>
+                                            }
+                                        }
+                                    }
+                                };
+                            });
+
+                            this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
+                        }
+
+                    }
+                    return null
+                })
+                .catch(err => {
+                    helper.showPopupMsg('', t('txt-error'), err.message)
+                })
+        });
     };
 
     /**
@@ -487,9 +493,11 @@ class Incident extends Component {
                                     onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                             }
                         </div>
-                        <MuiTableContentWithoutLoading
+                        <MuiTableContent
                             data={incident}
-                            tableOptions={tableOptions}/>
+                            tableOptions={tableOptions}
+                            showLoading={true}
+                        />
                     </div>
                     }
 
@@ -2766,7 +2774,7 @@ class Incident extends Component {
         payload.basic.table.push({text: incident.reporter, colSpan: 2})
         payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
         payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
-       
+
         if (incidentType === 'ttps') {
             payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
             payload.basic.table.push({text: incident.description, colSpan: 4})
@@ -2846,14 +2854,14 @@ class Incident extends Component {
         payload.accident.table = []
         payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
         payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
-        
+
         if (incident.accidentCatogory) {
             payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
         }
         else {
             payload.accident.table.push({text: ' ', colSpan: 2})
         }
-        
+
         if (!incident.accidentCatogory) {
             payload.accident.table.push({text: ' ', colSpan: 2})
         }
@@ -2883,14 +2891,14 @@ class Incident extends Component {
             payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
             payload.eventList.table.push({text: event.description, colSpan: 3})
             const target = _.find(showDeviceListOptions, {value: event.deviceId})
-            
+
             if (target) {
                 payload.eventList.table.push({text: target.text, colSpan: 3})
             }
             else {
                 payload.eventList.table.push({text: '', colSpan: 3})
             }
-            
+
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
             payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
