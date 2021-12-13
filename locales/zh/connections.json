@@ -1055,6 +1055,13 @@
     "txt-removeDevice": "從座位中$t(txt-delete)此裝置"
   },
 
+  "vansOwner": {
+    "ip": "IP網段",
+    "domainAccount": "網域帳號",
+    "unitCode": "機關代碼",
+    "unitCodeRegex": "機關代碼Regex"
+  },
+
   "attacksFields" : {
     "timestamp": "日期",
     "sensor": "Sensor",

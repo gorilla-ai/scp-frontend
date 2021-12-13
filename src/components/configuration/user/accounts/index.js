@@ -58,6 +58,7 @@ class AccountList extends Component {
       },
       accountID: '',
       accountName: '',
+      ownerList: [],
       contextAnchor: null,
       currentAccountData: {},
       showNewPassword: false,
@@ -79,6 +80,7 @@ class AccountList extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getAccountsData();
+    this.getOwnerData();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -166,6 +168,47 @@ class AccountList extends Component {
     })
   }
   /**
+   * Get and set owner data
+   * @method
+   */
+  getOwnerData = () => {
+    const {baseUrl} = this.context;
+    const requestData = {
+      sort: 'ownerID',
+      order: 'asc'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          let ownerList = [];
+
+          _.forEach(sortedOwnerList, val => {
+            ownerList.push({
+              value: val.ownerUUID,
+              text: val.ownerName
+            });
+          })
+
+          this.setState({
+            ownerList
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle open menu
    * @method
    * @param {object} account - active account data
@@ -183,8 +226,7 @@ class AccountList extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      contextAnchor: null,
-      currentAccountData: {}
+      contextAnchor: null
     });
   }
   /**
@@ -568,7 +610,7 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const {showFilter, userAccount, ownerList, contextAnchor, currentAccountData, showNewPassword} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -627,6 +669,8 @@ class AccountList extends Component {
 
         <AccountEdit
           ref={ref => { this.editor = ref }}
+          currentAccountData={currentAccountData}
+          ownerList={ownerList}
           onDone={this.getAccountsData} />
 
         <AdConfig ref={ref => { this.config = ref }} />
