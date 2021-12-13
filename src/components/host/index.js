@@ -3412,9 +3412,12 @@ class HostController extends Component {
     };
 
     let formData = new FormData();
+    formData.append('actionModel', patch.actionType);
     formData.append('scriptFile', patch.scriptFile);
     formData.append('executableFile', patch.executableFile);
-    formData.append('actionModel', patch.actionType);
+    formData.append('patchProduct', patch.product);
+    formData.append('patchVendor', patch.vendor);
+    formData.append('patchVersion', patch.version);
     formData.append('memo', patch.memo);
     formData.append('retriggerBody', JSON.stringify(retriggerBody));
 
