@@ -89,7 +89,6 @@ class AccountEdit extends Component {
 
     this.ah = getInstance('chewbacca');
   }
-  ryan = () => {}
   /**
    * Open account add/edit modal dialog
    * @method
@@ -454,7 +453,7 @@ class AccountEdit extends Component {
    */
   saveAccount = () => {
     const {baseUrl} = this.context;
-    const {id, accountData, showPrivileges, selectedPrivileges, formValidation} = this.state;
+    const {id, accountData, showPrivileges, selectedPrivileges, selectedOwner, formValidation} = this.state;
     const url = `${baseUrl}/api/account/v1`;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -519,10 +518,6 @@ class AccountEdit extends Component {
       }
     }
 
-    // if (id) {
-    //   ownerId: selectedOwner.value
-    // }
-
     this.setState({
       formValidation: tempFormValidation
     });
@@ -531,9 +526,19 @@ class AccountEdit extends Component {
       return;
     }
 
+    const formattedAccountData = _.omit(accountData, 'selected');
+
+    let requestData = {
+      ...formattedAccountData
+    };
+
+    if (id) {
+      requestData.ownerId = selectedOwner.value;
+    }
+
     this.ah.one({
       url,
-      data: JSON.stringify(_.omit(accountData, 'selected')),
+      data: JSON.stringify(requestData),
       type: id ? 'PATCH' : 'POST',
       contentType: 'application/json',
       dataType: 'json'

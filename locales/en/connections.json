@@ -1119,7 +1119,8 @@
     "department": "Department",
     "title": "Title",
     "departmentName": "Department",
-    "titleName": "Title"
+    "titleName": "Title",
+    "email": "Email"
   },
   "ipFields": {
     "timestamp": "Date",

@@ -1119,7 +1119,8 @@
     "department": "部門",
     "title": "職稱",
     "departmentName": "部門",
-    "titleName": "職稱"
+    "titleName": "職稱",
+    "email": "Email"
   },
   "ipFields": {
     "timestamp": "日期",

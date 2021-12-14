@@ -633,6 +633,12 @@ class NetworkOwner extends Component {
       formData.append('title', '');
     }
 
+    if (owner.info.email) {
+      formData.append('email', owner.info.email);
+    } else {
+      formData.append('email', '');
+    }
+
     if (owner.info.file) {
       updatePic = true;
       formData.append('file', owner.info.file);
@@ -992,6 +998,17 @@ class NetworkOwner extends Component {
                         getOptionLabel={(option) => option.text}
                         renderInput={this.renderTitleList}
                         onChange={this.handleComboBoxChange.bind(this, 'title', 'owner')} />
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='topologyOwnerEmail'
+                        name='email'
+                        label={t('ownerFields.email')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={owner.info.email}
+                        onChange={this.handleDataChange} />
                     </div>
                   </div>
                 </div>
