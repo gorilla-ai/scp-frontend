@@ -1055,6 +1055,13 @@
     "txt-removeDevice": "$t(txt-remove) this device from seat"
   },
 
+  "vansOwner": {
+    "ip": "IP",
+    "domainAccount": "Domain Account",
+    "unitCode": "Unit Code",
+    "unitCodeRegex": "Unit Code Regex"
+  },
+
   "attacksFields" : {
     "timestamp": "Date",
     "sensor": "Sensor",
@@ -1112,7 +1119,8 @@
     "department": "Department",
     "title": "Title",
     "departmentName": "Department",
-    "titleName": "Title"
+    "titleName": "Title",
+    "email": "Email"
   },
   "ipFields": {
     "timestamp": "Date",

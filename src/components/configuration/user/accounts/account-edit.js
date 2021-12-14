@@ -5,6 +5,7 @@ import i18n from 'i18next'
 import PropTypes from 'prop-types'
 import queryString from 'query-string'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormLabel from '@material-ui/core/FormLabel'
 import FormControl from '@material-ui/core/FormControl'
@@ -47,6 +48,7 @@ const INITIAL_STATE = {
   privileges: [],
   showPrivileges: true,
   selectedPrivileges: [],
+  selectedOwner: {},
   formValidation: {
     account: {
       valid: true
@@ -86,6 +88,59 @@ class AccountEdit extends Component {
     this.state = _.cloneDeep(INITIAL_STATE);
 
     this.ah = getInstance('chewbacca');
+  }
+  /**
+   * Open account add/edit modal dialog
+   * @method
+   * @param {string} id - selected account ID
+   * @param {string} options - option for 'fromHeader' or 'fromAccount'
+   */
+  openAccount = (id, options) => {
+    let showPrivileges = true;
+
+    if (options === 'fromHeader') {
+      showPrivileges = false;
+    }
+
+    this.setState({
+      open: true,
+      id,
+      showPrivileges,
+      selectedPrivileges: []
+    }, () => {
+      this.loadPrivileges();
+      
+      if (id) {
+       this.loadAccount(id);
+       this.setOwnerInfo();
+      }
+    });
+  }
+  /**
+   * Get and set account privileges
+   * @method
+   */
+  loadPrivileges = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/privileges`
+    })
+    .then(data => {
+      if (data) {
+        const privileges = _.map(data, el => {
+          return {
+            value: el.privilegeid,
+            text: el.name
+          };
+        })
+
+        this.setState({
+          privileges
+        });
+      }
+      return null;
+    })
   }
   /**
    * Get and set account data
@@ -133,55 +188,15 @@ class AccountEdit extends Component {
     })
   }
   /**
-   * Get and set account privileges
+   * Set owner info
    * @method
    */
-  loadPrivileges = () => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/account/privileges`
-    })
-    .then(data => {
-      if (data) {
-        const privileges = _.map(data, el => {
-          return {
-            value: el.privilegeid,
-            text: el.name
-          };
-        })
-
-        this.setState({
-          privileges
-        });
-      }
-      return null;
-    })
-  }
-  /**
-   * Open account add/edit modal dialog
-   * @method
-   * @param {string} id - selected account ID
-   * @param {string} options - option for 'fromHeader' or 'fromAccount'
-   */
-  openAccount = (id, options) => {
-    let showPrivileges = true;
-
-    if (options === 'fromHeader') {
-      showPrivileges = false;
-    }
+  setOwnerInfo = () => {
+    const {currentAccountData, ownerList} = this.props;
+    const selectedOwnerIndex = _.findIndex(ownerList, { 'value': currentAccountData.ownerId });
 
     this.setState({
-      open: true,
-      id,
-      showPrivileges,
-      selectedPrivileges: []
-    }, () => {
-      this.loadPrivileges();
-      
-      if (id) {
-       this.loadAccount(id);
-      }
+      selectedOwner: ownerList[selectedOwnerIndex]
     });
   }
   /**
@@ -264,6 +279,23 @@ class AccountEdit extends Component {
     });
   }
   /**
+   * Handle owner combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected owner info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {ownerList} = this.props;
+
+    if (value && value.value) {
+      const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
+
+      this.setState({
+        selectedOwner: ownerList[selectedTitleIndex]
+      });
+    }
+  }
+  /**
    * Set content width
    * @method
    * @returns content width
@@ -283,13 +315,8 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {
-    const {
-      id,
-      accountData,
-      privileges,
-      showPrivileges,
-      formValidation
-    } = this.state;
+    const {ownerList} = this.props;
+    const {id, accountData, privileges, showPrivileges, selectedOwner, formValidation} = this.state;
 
     return (
       <div className='account-form' style={this.getContentWidth()}>
@@ -379,6 +406,19 @@ class AccountEdit extends Component {
               value={accountData.phone}
               onChange={this.handleDataChange} />
           </div>
+          {id &&
+            <div className='group'>
+              <Autocomplete
+                className='combo-box'
+                options={ownerList}
+                value={selectedOwner}
+                getOptionLabel={(option) => option.text}
+                renderInput={(params) => (
+                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
+                )}
+                onChange={this.handleComboBoxChange} />
+            </div>
+          }
           {!id &&
             <FormControlLabel
               className='switch-control'
@@ -413,7 +453,7 @@ class AccountEdit extends Component {
    */
   saveAccount = () => {
     const {baseUrl} = this.context;
-    const {id, accountData, showPrivileges, selectedPrivileges, formValidation} = this.state;
+    const {id, accountData, showPrivileges, selectedPrivileges, selectedOwner, formValidation} = this.state;
     const url = `${baseUrl}/api/account/v1`;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -486,9 +526,19 @@ class AccountEdit extends Component {
       return;
     }
 
+    const formattedAccountData = _.omit(accountData, 'selected');
+
+    let requestData = {
+      ...formattedAccountData
+    };
+
+    if (id) {
+      requestData.ownerId = selectedOwner.value;
+    }
+
     this.ah.one({
       url,
-      data: JSON.stringify(_.omit(accountData, 'selected')),
+      data: JSON.stringify(requestData),
       type: id ? 'PATCH' : 'POST',
       contentType: 'application/json',
       dataType: 'json'
@@ -597,6 +647,8 @@ class AccountEdit extends Component {
 AccountEdit.contextType = BaseDataContext;
 
 AccountEdit.propTypes = {
+  currentAccountData: PropTypes.array.isRequired,
+  ownerList: PropTypes.array.isRequired,
   onDone: PropTypes.func.isRequired
 };
 

@@ -3,9 +3,11 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
@@ -41,7 +43,16 @@ class Manage extends Component {
       openName: false,
       openDrag: false,
       name: '',
+      dialogType: '', //'add' or 'edit'
       header: '',
+      owner: {
+        ip: '',
+        domainAccount: '',
+        unitCode: '',
+        unitCodeRegex: ''
+      },
+      ownerList: [],
+      selectedOwner: {},
       departmentList: [],
       titleNameList: [],
       treeData:[],
@@ -113,6 +124,58 @@ class Manage extends Component {
     });
   }
   /**
+   * Get and set owner data
+   * @method
+   * @param {object} tree - department tree data
+   * @param {object} event - click event
+   */
+  getOwnerData = (tree, event) => {
+    const {baseUrl} = this.context;
+    const {owner, search} = this.state;
+    const requestData = {
+      sort: 'ownerID',
+      order: 'asc',
+      name: tree.name
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          let ownerList = [];
+
+          _.forEach(sortedOwnerList, val => {
+            ownerList.push({
+              value: val.ownerUUID,
+              text: val.ownerName
+            });
+          })
+
+          const selectedOwnerIndex = _.findIndex(ownerList, { 'value': tree.ownerId });
+
+          this.setState({
+            ownerList,
+            selectedOwner: ownerList[selectedOwnerIndex]
+          }, () => {
+            this.handleTreeAction('edit', tree, event);
+          });
+        } else {
+          this.handleTreeAction('edit', tree, event);
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle tree action
    * @method
    * @param {string} type - action type ('add, 'edit' or 'delete')
@@ -123,6 +186,12 @@ class Manage extends Component {
   handleTreeAction = (type, tree, event) => {
     let header = '';
     let name = '';
+    let owner = {
+      ip: '',
+      domainAccount: '',
+      unitCode: '',
+      unitCodeRegex: ''
+    };
     let parentTreetId = '';
     let treeId = '';
 
@@ -136,6 +205,12 @@ class Manage extends Component {
     } else if (type === 'edit') {
       header = t('txt-updateDepartment');
       name = tree.name;
+      owner = {
+        ip: tree.ip,
+        domainAccount: tree.domainAccount,
+        unitCode: tree.unitCode,
+        unitCodeRegex: tree.unitCodeRegex
+      };
       parentTreetId = tree.parentId || tree.rootId;
       treeId = tree.id;
     } else if (type === 'delete') {
@@ -145,8 +220,10 @@ class Manage extends Component {
 
     this.setState({
       openName: true,
+      dialogType: type,
       header,
       name,
+      owner,
       parentTreetId,
       treeId
     });
@@ -163,7 +240,7 @@ class Manage extends Component {
         <span>{tree.name}</span> 
         <div className='action-icons'>
           <i id={'manageAdd' + tree.name} className='c-link fg fg-add' title={t('txt-add')} onClick={this.handleTreeAction.bind(this, 'add', tree)} />
-          <i id={'manageEdit' + tree.name} className='c-link fg fg-edit' title={t('txt-edit')} onClick={this.handleTreeAction.bind(this, 'edit', tree)} />
+          <i id={'manageEdit' + tree.name} className='c-link fg fg-edit' title={t('txt-edit')} onClick={this.getOwnerData.bind(this, tree)} />
           <i id={'manageDelete' + tree.name} className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.handleTreeAction.bind(this, 'delete', tree)} />
         </div>
       </div>
@@ -372,8 +449,8 @@ class Manage extends Component {
    * Handle add/edit title name action
    * @method
    * @param {string} type - action type ('add' or 'edit')
-   * @param {string} nameUUID - name UUID
-   * @param {string} name - selected name value
+   * @param {string} [nameUUID] - name UUID
+   * @param {string} [name] - selected name value
    */
   openTitleName = (type, nameUUID, name) => {
     const {activeTab} = this.state;
@@ -389,6 +466,7 @@ class Manage extends Component {
 
     this.setState({
       openName: true,
+      dialogType: type,
       header,
       name,
       nameUUID
@@ -483,25 +561,107 @@ class Manage extends Component {
     });
   }
   /**
+   * Handle owner input value change
+   * @method
+   * @param {string} event - event object
+   */
+  handleOwnerDataChange = (event) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner[event.target.name] = event.target.value;
+
+    this.setState({
+      owner: tempOwner
+    });
+  }
+  /**
+   * Handle owner combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected owner info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {ownerList} = this.state;
+
+    if (value && value.value) {
+      const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
+
+      this.setState({
+        selectedOwner: ownerList[selectedTitleIndex]
+      });
+    }
+  }
+  /**
    * Display title name content
    * @method
    * @returns HTML DOM
    */
   displayTitleName = () => {
-    const {name, formValidation} = this.state;
+    const {activeTab, name, dialogType, owner, ownerList, selectedOwner, formValidation} = this.state;
 
     return (
-      <TextField
-        name='name'
-        label={t('txt-plsEnterName')}
-        variant='outlined'
-        fullWidth
-        size='small'
-        required
-        error={!formValidation.name.valid}
-        helperText={formValidation.name.valid ? '' : t('txt-required')}
-        value={name}
-        onChange={this.handleDataChange} />
+      <React.Fragment>
+        <TextField
+          name='name'
+          style={{margin: '10px 0'}}
+          label={t('txt-plsEnterName')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          required
+          error={!formValidation.name.valid}
+          helperText={formValidation.name.valid ? '' : t('txt-required')}
+          value={name}
+          onChange={this.handleDataChange} />
+
+        {activeTab === 'department' &&
+          <React.Fragment>
+            <label>{t('vansOwner.ip')}</label>
+            <TextareaAutosize
+              name='ip'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.ip') + '(' + t('txt-commaSeparated') + ')'}
+              rows={1}
+              value={owner.ip}
+              onChange={this.handleOwnerDataChange} />
+            <label>{t('vansOwner.domainAccount')}</label>
+            <TextareaAutosize
+              name='domainAccount'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.domainAccount') + '(' + t('txt-commaSeparated') + ')'}
+              rows={1}
+              value={owner.domainAccount}
+              onChange={this.handleOwnerDataChange} />
+            <label>{t('vansOwner.unitCode')}</label>
+            <TextareaAutosize
+              name='unitCode'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.unitCode') + '(' + t('txt-commaSeparated') + ')'}
+              rows={1}
+              value={owner.unitCode}
+              onChange={this.handleOwnerDataChange} />
+            <label>{t('vansOwner.unitCodeRegex')}</label>
+            <TextareaAutosize
+              name='unitCodeRegex'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.unitCodeRegex')}
+              rows={1}
+              value={owner.unitCodeRegex}
+              onChange={this.handleOwnerDataChange} />
+          </React.Fragment>
+        }
+
+        {activeTab === 'department' && dialogType === 'edit' &&
+          <Autocomplete
+            className='combo-box'
+            options={ownerList}
+            value={selectedOwner}
+            getOptionLabel={(option) => option.text}
+            renderInput={(params) => (
+              <TextField {...params} label={t('ownerFields.ownerName')} variant='outlined' size='small' />
+            )}
+            onChange={this.handleComboBoxChange} />
+        }
+      </React.Fragment>
     )
   }
   /**
@@ -587,7 +747,7 @@ class Manage extends Component {
    */
   handleConfirmName = () => {
     const {baseUrl} = this.context;
-    const {activeTab, name, parentTreetId, treeId, nameUUID, formValidation} = this.state;
+    const {activeTab, name, owner, selectedOwner, parentTreetId, treeId, nameUUID, formValidation} = this.state;
     let url = '';
     let tempFormValidation = {...formValidation};
     let requestType = 'POST';
@@ -612,7 +772,12 @@ class Manage extends Component {
     if (activeTab === 'department') {
       url = `${baseUrl}/api/department`;
       requestData = {
-        name
+        name,
+        ip: owner.ip,
+        domainAccount: owner.domainAccount,
+        unitCode: owner.unitCode,
+        unitCodeRegex: owner.unitCodeRegex,
+        ownerId: selectedOwner.value
       };
 
       if (parentTreetId !== 'root' && parentTreetId !== treeId) {

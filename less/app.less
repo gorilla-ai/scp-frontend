@@ -695,7 +695,8 @@ button.standard:hover:not([disabled]) {
     border: 1px solid var(--formInputBorderColor);
     background-color: var(--formBackground);
     border-radius: 4px;
-    width: 100%;
+    border-color: rgba(0, 0, 0, 0.23);
+    width: 100% !important;
   }
   .checkbox-ui,
   .radio-ui {
@@ -737,6 +738,7 @@ button.standard:hover:not([disabled]) {
     margin-right: 10px;
   }
   .file-input {
+    height: 35px;
     input[type=text] {
       padding-left: 10px;
       background-color: var(--formBackground);
