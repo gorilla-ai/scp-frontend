@@ -41,6 +41,7 @@ import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
 import VansDevice from './vans-device'
 import VansPatch from './vans-patch'
+import VansPatchRecord from './vans-patch-record'
 import VansPieChart from './vans-pie-chart'
 import YaraRule from '../common/yara-rule'
 
@@ -119,6 +120,10 @@ const HMD_TRIGGER = [
   {
     name: 'vansPatch',
     cmds: 'executePatch'
+  },
+  {
+    name: 'vansPatchRecord',
+    cmds: 'executePatchRecord'
   }
 ];
 const HOST_SORT_LIST = [
@@ -273,6 +278,7 @@ class HostController extends Component {
       },
       frMotpOpen: false,
       vansPatchOpen: false,
+      vansPatchRecordOpen: false,
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
@@ -3439,6 +3445,17 @@ class HostController extends Component {
     })
   }
   /**
+   * Toggle vans patch Record modal dialog on/off
+   * @method
+   */
+  toggleVansPatchRecord = () => {
+    this.setState({
+      vansPatchRecordOpen: !this.state.vansPatchRecordOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
    * Get HMD test menu
    * @method
    * @param {string} val - individual HMD data
@@ -3447,6 +3464,8 @@ class HostController extends Component {
   getHMDmenu = (val, i) => {
     if (val.cmds === 'executePatch') {
       return <MenuItem key={i} onClick={this.checkFrMotp}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
+    } else if (val.cmds === 'executePatchRecord') {
+      return <MenuItem key={i} onClick={this.toggleVansPatchRecord}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
@@ -3767,6 +3786,7 @@ class HostController extends Component {
       assessmentDatetime,
       frMotpOpen,
       vansPatchOpen,
+      vansPatchRecordOpen,
       yaraRuleOpen,
       hostAnalysisOpen,
       safetyDetailsOpen,
@@ -3824,6 +3844,11 @@ class HostController extends Component {
           <VansPatch
             toggleVansPatch={this.toggleVansPatch}
             toggleFrMotp={this.toggleFrMotp} />
+        }
+
+        {vansPatchRecordOpen &&
+          <VansPatchRecord
+            toggleVansPatchRecord={this.toggleVansPatchRecord} />
         }
 
         {frMotpOpen &&

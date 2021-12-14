@@ -2133,7 +2133,8 @@ html[data-theme='dark'] {
 #addThreatsDialog-content {
   width: 350px;
 }
-#searchThreatsDialog-dialog {
+#searchThreatsDialog-dialog,
+#vansPatchRecordDialog-dialog {
   width: 1280px;
   height: 85vh;
   .filter-wrapper {
@@ -2141,7 +2142,6 @@ html[data-theme='dark'] {
     margin: 10px 0;
     .filter-section {
       float: left;
-      width: 600px;
       margin-right: 10px;
       margin-top: 10px;
       .search-type {
@@ -2151,7 +2151,6 @@ html[data-theme='dark'] {
       }
       .search-keyword {
         float: left;
-        width: 67%;
       }
     }
     .button-group {
@@ -2180,6 +2179,30 @@ html[data-theme='dark'] {
       select {
         width: auto;
       }
+    }
+  }
+}
+#searchThreatsDialog-dialog {
+  .filter-wrapper {
+    .filter-section {
+      width: 600px;
+      .search-keyword {
+        width: 67%;
+      }
+    }
+  }
+}
+#vansPatchRecordDialog-dialog {
+  .filter-wrapper {
+    .filter-section {
+      width: 300px;
+      .search-keyword {
+        width: 100%;
+      }
+    }
+    .date-picker {
+      margin-top: 13px;
+      margin-right: 0;
     }
   }
 }

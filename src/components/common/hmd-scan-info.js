@@ -67,6 +67,10 @@ const SAFETY_SCAN_LIST = [
   {
     type: 'procWhiteList',
     path: 'procWhiteListResult'
+  },
+  {
+    type: '_ExecutePatch',
+    path: '_ExecutePatchResult'
   }
 ];
 const TRIGGER_NAME = {
@@ -98,7 +102,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'gcb', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr' or 'settings'
+      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'gcb', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -118,6 +122,7 @@ class HMDscanInfo extends Component {
         }
       },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
+      _ExecutePatchFieldsArr: ['actionModel', 'scriptFileName', 'executableFileName', 'memo', 'patchProduct', 'patchVendor', 'patchVersion', 'taskCreateDttm', 'taskResponseDttm', 'taskStatus', 'executeStatus'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true,
@@ -328,7 +333,7 @@ class HMDscanInfo extends Component {
   loadHMDdata = () => {
     const {locale} = this.context;
     const {currentDeviceData} = this.props;
-    const {gcbFieldsArr} = this.state;
+    const {gcbFieldsArr, _ExecutePatchFieldsArr} = this.state;
     let hmdInfo = {};
 
     _.forEach(SAFETY_SCAN_LIST, val => {
@@ -396,6 +401,30 @@ class HMDscanInfo extends Component {
               tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
 
               return <span style={{color}} title={tooltip}>{value}</span>
+            }
+          }
+        };
+      })
+    }
+
+    if (hmdInfo._ExecutePatch && hmdInfo._ExecutePatch.data) {
+      hmdInfo._ExecutePatch.fields = {};
+      _ExecutePatchFieldsArr.forEach(tempData => {
+        hmdInfo._ExecutePatch.fields[tempData] = {
+          label: f(`vansPatchFields.${tempData}`),
+          sortable: true,
+          className: '_ExecutePatch' + tempData,
+          formatter: (value, allValue) => {
+            if (tempData === 'actionModel') {
+              return <span>{t('hmd-scan.txt-patch-' + allValue['vansPatchDescriptionDTO'][tempData])}</span>
+            } else if (tempData === 'taskCreateDttm' || tempData === 'taskResponseDttm') {
+              return <span>{helper.getFormattedDate(value, 'local')}</span>
+            } else if (tempData === 'taskStatus') {
+              return <span>{t('hmd-scan.txt-task' + value)}</span>
+            } else if (tempData === 'executeStatus') {
+              return <span>{t('hmd-scan.txt-execute' + value)}</span>
+            } else {
+              return allValue['vansPatchDescriptionDTO'][tempData];
             }
           }
         };
@@ -2484,7 +2513,7 @@ class HMDscanInfo extends Component {
             </div>
           }
 
-          {activeTab !== 'dashboard' && activeTab !== 'eventTracing' && activeTab !== 'edr' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
+          {activeTab !== 'dashboard' && activeTab !== 'eventTracing' && activeTab !== 'edr' && activeTab !== '_ExecutePatch' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
             <div>
               {this.getTriggerBtnInfo()}
               {this.getMainContent()}
@@ -2504,6 +2533,16 @@ class HMDscanInfo extends Component {
               <div className='edr-btn-group'>
                 {EDR_BUTTON_LIST.map(this.getEdrButtonList)}
               </div>
+            </div>
+          }
+
+          {activeTab === '_ExecutePatch' &&
+            <div className='vans-patch-record'>
+              <DataTable
+                className='main-table'
+                fields={hmdInfo[activeTab].fields}
+                data={hmdInfo[activeTab].data}
+                onSort={this.handleTableSort} />
             </div>
           }
 

@@ -668,5 +668,18 @@
     "action": "Action ",
     "status": "Status",
     "isEnable": "Enable"
+  },
+  "vansPatchFields": {
+    "actionModel": "Action Model",
+    "scriptFileName": "Script Filename",
+    "executableFileName": "Executable Filename",
+    "memo": "Memo",
+    "patchProduct": "Patch Product",
+    "patchVendor": "Patch Vendor",
+    "patchVersion": "Patch Version",
+    "taskCreateDttm": "Create Datetime",
+    "taskResponseDttm": "Response Datetime",
+    "taskStatus": "Task Status",
+    "executeStatus": "Execute Result"
   }
 }

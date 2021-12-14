@@ -813,6 +813,7 @@
     "txt-uplaodSuccess": "HMD setup file has been uploaded successfully",
     "txt-triggerAll": "Trigger All (HMD)",
     "txt-vansPatch": "VANS Patch",
+    "txt-vansPatchRecord": "VANS Patch Record",
     "txt-vansType": "Vans Type",
     "txt-vansInstall": "Install Vans",
     "txt-vansUninstall": "Uninstall Vans",
@@ -880,6 +881,16 @@
     "txt-confirmTo": "Confirm to ",
     "txt-checkHmdSettings": "Please check HMD settings",
     "txt-notYetAssessed": "Not assessed",
+    "txt-patch-install": "Install Patch",
+    "txt-patch-update": "Update Patch",
+    "txt-patch-delete": "Delete Patch",
+    "txt-taskRunning": "Running",
+    "txt-taskComplete": "Complete",
+    "txt-taskNotSupport": "Not Support",
+    "txt-executeFailure": "Failure",
+    "txt-executeRunning": "Running",
+    "txt-executeComplete": "Complete",
+    "txt-taskFailure": "Failure",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
@@ -889,7 +900,8 @@
       "txt-fileIntegrity": "File Integrity",
       "txt-procMonitor": "Process Monitor",
       "txt-ftpUpload": "FTP Upload",
-      "txt-_Vans": "VANS"
+      "txt-_Vans": "VANS",
+      "txt-_ExecutePatch": "VANS Patch Record"
     },
     "ir-type": {
       "txt-quick": "Quick IR",
