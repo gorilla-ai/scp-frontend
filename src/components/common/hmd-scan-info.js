@@ -122,7 +122,7 @@ class HMDscanInfo extends Component {
         }
       },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
-      _ExecutePatchFieldsArr: ['actionModel', 'scriptFileName', 'executableFileName', 'memo', 'patchProduct', 'patchVendor', 'patchVersion', 'taskCreateDttm', 'taskResponseDttm', 'taskStatus', 'executeStatus'],
+      _ExecutePatchFieldsArr: ['description', 'software', 'taskCreateDttm', 'taskResponseDttm', 'taskStatus', 'executeStatus'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true,
@@ -412,19 +412,34 @@ class HMDscanInfo extends Component {
       _ExecutePatchFieldsArr.forEach(tempData => {
         hmdInfo._ExecutePatch.fields[tempData] = {
           label: f(`vansPatchFields.${tempData}`),
-          sortable: true,
+          sortable: false,
           className: '_ExecutePatch' + tempData,
           formatter: (value, allValue) => {
-            if (tempData === 'actionModel') {
-              return <span>{t('hmd-scan.txt-patch-' + allValue['vansPatchDescriptionDTO'][tempData])}</span>
+            const vansInfo = allValue['vansPatchDescriptionDTO'];
+
+            if (tempData === 'description') {
+              return (
+                <div>
+                  <div><span className='cell-header'>{f('vansPatchFields.actionModel')}</span>: {t('hmd-scan.txt-patch-' + vansInfo.actionModel)}</div>
+                  <div><span className='cell-header'>{f('vansPatchFields.scriptFileName')}</span>: {vansInfo.scriptFileName}</div>
+                  <div><span className='cell-header'>{f('vansPatchFields.executableFileName')}</span>: {vansInfo.executableFileName}</div>
+                  <div><span className='cell-header'>{f('vansPatchFields.memo')}</span>: {vansInfo.memo}</div>
+                </div>
+              )
+            } else if (tempData === 'software') {
+              return (
+                <div>
+                  <div><span className='cell-header'>{f('vansPatchFields.patchProduct')}</span>: {vansInfo.patchProduct}</div>
+                  <div><span className='cell-header'>{f('vansPatchFields.patchVendor')}</span>: {vansInfo.patchVendor}</div>
+                  <div><span className='cell-header'>{f('vansPatchFields.patchVersion')}</span>: {vansInfo.patchVersion}</div>
+                </div>
+              )
             } else if (tempData === 'taskCreateDttm' || tempData === 'taskResponseDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
             } else if (tempData === 'taskStatus') {
               return <span>{t('hmd-scan.txt-task' + value)}</span>
             } else if (tempData === 'executeStatus') {
               return <span>{t('hmd-scan.txt-execute' + value)}</span>
-            } else {
-              return allValue['vansPatchDescriptionDTO'][tempData];
             }
           }
         };

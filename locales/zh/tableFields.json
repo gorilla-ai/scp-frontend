@@ -669,6 +669,8 @@
     "isEnable": "啟用"
   },
   "vansPatchFields": {
+    "description": "描述",
+    "software": "軟體登錄",
     "actionModel": "指令類型",
     "scriptFileName": "執行腳本",
     "executableFileName": "執行程式",

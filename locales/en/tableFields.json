@@ -670,6 +670,8 @@
     "isEnable": "Enable"
   },
   "vansPatchFields": {
+    "description": "Description",
+    "software": "Software Record",
     "actionModel": "Action Model",
     "scriptFileName": "Script Filename",
     "executableFileName": "Executable Filename",
