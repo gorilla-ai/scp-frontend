@@ -680,7 +680,13 @@
     "patchVersion": "軟體登錄版本",
     "taskCreateDttm": "派送時間",
     "taskResponseDttm": "結束時間",
+    "taskUpdateDttm": "更新時間",
     "taskStatus": "派送狀態",
-    "executeStatus": "執行結果"
+    "executeStatus": "執行結果",
+    "deviceCount": "主機數量",
+    "ip": "IP",
+    "hostName": "主機名稱",
+    "system": "作業系統",
+    "isConnected": "主機狀態"
   }
 }

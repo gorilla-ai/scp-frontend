@@ -814,7 +814,9 @@
     "txt-triggerAll": "Trigger All (HMD)",
     "txt-vansPatch": "VANS Patch",
     "txt-vansPatchRecord": "VANS Patch Record",
+    "txt-vansPatchHost": "VANS Patch Host",
     "txt-vansType": "Vans Type",
+    "txt-executeInfo": "Execute Info",
     "txt-vansInstall": "Install Vans",
     "txt-vansUninstall": "Uninstall Vans",
     "txt-scriptFile": "Script File",
@@ -886,11 +888,11 @@
     "txt-patch-delete": "Delete Patch",
     "txt-taskRunning": "Running",
     "txt-taskComplete": "Complete",
+    "txt-taskFailure": "Failure",
     "txt-taskNotSupport": "Not Support",
-    "txt-executeFailure": "Failure",
     "txt-executeRunning": "Running",
     "txt-executeComplete": "Complete",
-    "txt-taskFailure": "Failure",
+    "txt-executeFailure": "Failure",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
@@ -901,7 +903,7 @@
       "txt-procMonitor": "Process Monitor",
       "txt-ftpUpload": "FTP Upload",
       "txt-_Vans": "VANS",
-      "txt-_ExecutePatch": "VANS Patch Record"
+      "txt-_ExecutePatch": "VANS Patch"
     },
     "ir-type": {
       "txt-quick": "Quick IR",

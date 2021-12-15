@@ -420,26 +420,62 @@ class HMDscanInfo extends Component {
             if (tempData === 'description') {
               return (
                 <div>
-                  <div><span className='cell-header'>{f('vansPatchFields.actionModel')}</span>: {t('hmd-scan.txt-patch-' + vansInfo.actionModel)}</div>
-                  <div><span className='cell-header'>{f('vansPatchFields.scriptFileName')}</span>: {vansInfo.scriptFileName}</div>
-                  <div><span className='cell-header'>{f('vansPatchFields.executableFileName')}</span>: {vansInfo.executableFileName}</div>
-                  <div><span className='cell-header'>{f('vansPatchFields.memo')}</span>: {vansInfo.memo}</div>
+                  {vansInfo.actionModel &&
+                    <div><span className='cell-header'>{f('vansPatchFields.actionModel')}</span>: {t('hmd-scan.txt-patch-' + vansInfo.actionModel)}</div>
+                  }
+                  {vansInfo.scriptFileName &&
+                    <div><span className='cell-header'>{f('vansPatchFields.scriptFileName')}</span>: {vansInfo.scriptFileName}</div>
+                  }
+                  {vansInfo.executableFileName &&
+                    <div><span className='cell-header'>{f('vansPatchFields.executableFileName')}</span>: {vansInfo.executableFileName}</div>
+                  }
+                  {vansInfo.memo &&
+                    <div><span className='cell-header'>{f('vansPatchFields.memo')}</span>: {vansInfo.memo}</div>
+                  }
                 </div>
               )
             } else if (tempData === 'software') {
               return (
                 <div>
-                  <div><span className='cell-header'>{f('vansPatchFields.patchProduct')}</span>: {vansInfo.patchProduct}</div>
-                  <div><span className='cell-header'>{f('vansPatchFields.patchVendor')}</span>: {vansInfo.patchVendor}</div>
-                  <div><span className='cell-header'>{f('vansPatchFields.patchVersion')}</span>: {vansInfo.patchVersion}</div>
+                  {vansInfo.patchProduct &&
+                    <div><span className='cell-header'>{f('vansPatchFields.patchProduct')}</span>: {vansInfo.patchProduct}</div>
+                  }
+                  {vansInfo.patchVendor &&
+                    <div><span className='cell-header'>{f('vansPatchFields.patchVendor')}</span>: {vansInfo.patchVendor}</div>
+                  }
+                  {vansInfo.patchVersion &&
+                    <div><span className='cell-header'>{f('vansPatchFields.patchVersion')}</span>: {vansInfo.patchVersion}</div>
+                  }
                 </div>
               )
             } else if (tempData === 'taskCreateDttm' || tempData === 'taskResponseDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
             } else if (tempData === 'taskStatus') {
-              return <span>{t('hmd-scan.txt-task' + value)}</span>
+              let backgroundColor = '';
+
+              if (value === 'Running') {
+                backgroundColor = '#ff9802';
+              } else if (value === 'Complete') {
+                backgroundColor = '#22ac38';
+              } else if (value === 'Failure') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'NotSupport') {
+                backgroundColor = '#d10d25';
+              }
+
+              return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
             } else if (tempData === 'executeStatus') {
-              return <span>{t('hmd-scan.txt-execute' + value)}</span>
+              let backgroundColor = '';
+
+              if (value === 'Running') {
+                backgroundColor = '#ff9802';
+              } else if (value === 'Complete') {
+                backgroundColor = '#22ac38';
+              } else if (value === 'Failure') {
+                backgroundColor = '#d10d25';
+              }
+
+              return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
             }
           }
         };

@@ -681,7 +681,13 @@
     "patchVersion": "Patch Version",
     "taskCreateDttm": "Create Datetime",
     "taskResponseDttm": "Response Datetime",
+    "taskUpdateDttm": "Update Datetime",
     "taskStatus": "Task Status",
-    "executeStatus": "Execute Result"
+    "executeStatus": "Execute Result",
+    "deviceCount": "Device Count",
+    "ip": "IP",
+    "hostName": "Host Name",
+    "system": "System",
+    "isConnected": "Host Status"
   }
 }

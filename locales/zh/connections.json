@@ -814,7 +814,9 @@
     "txt-triggerAll": "全部檢測(HMD)",
     "txt-vansPatch": "VANS Patch",
     "txt-vansPatchRecord": "VANS Patch紀錄",
+    "txt-vansPatchHost": "派送主機",
     "txt-vansType": "指令類型",
+    "txt-executeInfo": "執行內容",
     "txt-vansInstall": "安裝指令",
     "txt-vansUninstall": "移除指令",
     "txt-scriptFile": "執行腳本",
@@ -886,11 +888,11 @@
     "txt-patch-delete": "刪除指令",
     "txt-taskRunning": "派送中",
     "txt-taskComplete": "已派送",
-    "txt-taskNotSupport": "未支援",
-    "txt-executeFailure": "派送失敗",
+    "txt-taskFailure": "派送失敗",
+    "txt-taskNotSupport": "不支援",
     "txt-executeRunning": "等待執行",
     "txt-executeComplete": "執行成功",
-    "txt-taskFailure": "執行失敗",
+    "txt-executeFailure": "執行失敗",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
@@ -901,7 +903,7 @@
       "txt-procMonitor": "Process Monitor",
       "txt-ftpUpload": "FTP上傳",
       "txt-_Vans": "VANS",
-      "txt-_ExecutePatch": "VANS Patch紀錄"
+      "txt-_ExecutePatch": "VANS Patch"
     },
     "ir-type": {
       "txt-quick": "快速採證",

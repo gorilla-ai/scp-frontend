@@ -70,6 +70,7 @@ class MuiTableContent extends Component {
       serverSide: true,
       search: false,
       filter: false,
+      viewColumns: true,
       print: false,
       download: false,
       rowsPerPageOptions: [10, 20, 50, 100],

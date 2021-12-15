@@ -41,7 +41,8 @@ import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
 import VansDevice from './vans-device'
 import VansPatch from './vans-patch'
-import VansPatchRecord from './vans-patch-record'
+import VansPatchDetails from './vans-patch-details'
+import VansPatchGroup from './vans-patch-group'
 import VansPieChart from './vans-pie-chart'
 import YaraRule from '../common/yara-rule'
 
@@ -278,7 +279,8 @@ class HostController extends Component {
       },
       frMotpOpen: false,
       vansPatchOpen: false,
-      vansPatchRecordOpen: false,
+      vansPatchGroupOpen: false,
+      vansPatchDetailsOpen: false,
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
@@ -350,6 +352,9 @@ class HostController extends Component {
         table: t('host.txt-hostList'),
         statistics: t('host.txt-deviceMap')
       },
+      vansPatchGroup: [],
+      vansPatchDetails: [],
+      activeVansPatch: {},
       hostInfo: {
         dataContent: null,
         totalCount: 0,
@@ -416,6 +421,7 @@ class HostController extends Component {
         this.setLeftNavData();
         this.getFloorPlan();
         this.getVansStatus();
+        this.getVansPatchGroup();
       });
     }
   }
@@ -704,6 +710,51 @@ class HostController extends Component {
             vansHmdStatusList: list
           });
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get vans patch group
+   * @method
+   * @param {string} [keyword] - keyword search
+   * @param {object} [datetimeFrom] - datetime from
+   * @param {object} [datetimeTo] - datetime to
+   */
+  getVansPatchGroup = (keyword, datetimeFrom, datetimeTo) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/group`;
+    let datetime = this.getHostDateTime();
+
+    if (datetimeFrom) {
+      datetime.from = moment(datetimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    } else if (datetimeTo) {
+      datetime.to = moment(datetimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
+    let requestData = {
+      startDttm: datetime.from,
+      endDttm: datetime.to
+    };
+
+    if (keyword) {
+      requestData.keyword = keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          vansPatchGroup: data.rows
+        });
       }
       return null;
     })
@@ -3449,15 +3500,60 @@ class HostController extends Component {
     })
   }
   /**
-   * Toggle vans patch Record modal dialog on/off
+   * Toggle vans patch group modal dialog on/off
    * @method
    */
-  toggleVansPatchRecord = () => {
+  toggleVansPatchGroup = () => {
     this.setState({
-      vansPatchRecordOpen: !this.state.vansPatchRecordOpen
+      vansPatchGroupOpen: !this.state.vansPatchGroupOpen
     });
 
     this.handleCloseMenu();
+  }
+  /**
+   * Toggle vans patch details modal dialog on/off
+   * @method
+   */
+  toggleVansPatchDetails = () => {
+    this.setState({
+      vansPatchDetailsOpen: !this.state.vansPatchDetailsOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Get vans patch details info
+   * @method
+   * @param {object} allValue - selected Vans data
+   */
+  getVansPatchDetails = (allValue) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/taskinfo/ipdevice`;
+    const requestData = {
+      taskName: 'executePatch',
+      groupId: allValue.groupId
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          vansPatchDetails: data.rows,
+          activeVansPatch: allValue
+        }, () => {
+          this.toggleVansPatchDetails();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get HMD test menu
@@ -3469,7 +3565,7 @@ class HostController extends Component {
     if (val.cmds === 'executePatch') {
       return <MenuItem key={i} onClick={this.checkFrMotp}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
     } else if (val.cmds === 'executePatchRecord') {
-      return <MenuItem key={i} onClick={this.toggleVansPatchRecord}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
+      return <MenuItem key={i} onClick={this.toggleVansPatchGroup}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
@@ -3790,7 +3886,8 @@ class HostController extends Component {
       assessmentDatetime,
       frMotpOpen,
       vansPatchOpen,
-      vansPatchRecordOpen,
+      vansPatchGroupOpen,
+      vansPatchDetailsOpen,
       yaraRuleOpen,
       hostAnalysisOpen,
       safetyDetailsOpen,
@@ -3808,6 +3905,9 @@ class HostController extends Component {
       leftNavData,
       filterNav,
       hmdSearch,
+      vansPatchGroup,
+      vansPatchDetails,
+      activeVansPatch,
       hostInfo,
       hostData,
       hostSort,
@@ -3829,6 +3929,7 @@ class HostController extends Component {
       floorPlan,
       showLoadingIcon
     } = this.state;
+    const vansDateTime = this.getHostDateTime();
 
     return (
       <div>
@@ -3850,9 +3951,20 @@ class HostController extends Component {
             toggleFrMotp={this.toggleFrMotp} />
         }
 
-        {vansPatchRecordOpen &&
-          <VansPatchRecord
-            toggleVansPatchRecord={this.toggleVansPatchRecord} />
+        {vansPatchGroupOpen &&
+          <VansPatchGroup
+            vansPatchGroup={vansPatchGroup}
+            vansDateTime={vansDateTime}
+            toggleVansPatchGroup={this.toggleVansPatchGroup}
+            getVansPatchGroup={this.getVansPatchGroup}
+            getVansPatchDetails={this.getVansPatchDetails} />
+        }
+
+        {vansPatchDetailsOpen &&
+          <VansPatchDetails
+            vansPatchDetails={vansPatchDetails}
+            activeVansPatch={activeVansPatch}
+            toggleVansPatchDetails={this.toggleVansPatchDetails} />
         }
 
         {frMotpOpen &&
