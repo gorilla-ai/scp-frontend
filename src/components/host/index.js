@@ -248,7 +248,9 @@ class HostController extends Component {
         id: '',
         login: false,
         fields: [],
-        logsLocale: ''
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
       },
       showFilter: false,
       openQueryOpen: false,
@@ -397,6 +399,7 @@ class HostController extends Component {
       showLoadingIcon: false,
       nccstSelectedList: [],
       nccstCheckAll: false,
+      limitedDepartment: [],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -412,6 +415,11 @@ class HostController extends Component {
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId || '';
+
+      if (_.includes(session.roles, 'SOC Executor')) {
+        tempAccount.limitedRole = true;
+      }
 
       this.setState({
         account: tempAccount
@@ -587,7 +595,7 @@ class HostController extends Component {
             this.getFloorList();
           });
         } else {
-          this.getHostData();
+          this.getDepartmentTree();
         }
       }
       return null;
@@ -671,7 +679,7 @@ class HostController extends Component {
           currentBaseLayers,
           currentFloor: areaUUID
         }, () => {
-          this.getHostData();
+          this.getDepartmentTree();
         });
       }
       return null;
@@ -774,6 +782,36 @@ class HostController extends Component {
     };
   }
   /**
+   * Get department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          departmentList: data
+        }, () => {
+          if (account.departmentId && account.limitedRole) {
+            this.setSelectedDepartment();
+          } else {
+            this.getHostData();
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get and set host info data
    * @method
    * @param {string} [options] - option for CSV export
@@ -850,7 +888,7 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
-          departmentList: [],
+          //departmentList: [],
           privateMaskedIPtree: {
             children: []
           },
@@ -928,7 +966,7 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
-          departmentList: data.deptTree,
+          //departmentList: data.deptTree,
           hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
           hostInfo: tempHostInfo,
           showLoadingIcon: false
@@ -1122,7 +1160,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {activeTab, filterNav, deviceSearchList, hmdSearch} = this.state;
+    const {account, activeTab, filterNav, deviceSearchList, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -1139,6 +1177,10 @@ class HostController extends Component {
 
     if (filterNav.departmentSelected.length > 0) {
       requestData.departmentArray = filterNav.departmentSelected;
+    } else {
+      if (account.limitedRole) {
+        requestData.departmentArray =  ['emptyDepartmentId'];
+      }
     }
 
     if (filterNav.maskedIPSelected.length > 0) {
@@ -1756,7 +1798,8 @@ class HostController extends Component {
    * @param {bool} checked - checkbox on/off
    * @param {string} type - filterNav type
    * @param {array.<string>} list - list of selected items
-   *  @param {string} id - selected checkbox id
+   * @param {string} id - selected checkbox id
+   * @returns array of selected list
    */
   getSelectedItems = (checked, type, list, id) => {
     const {filterNav} = this.state;
@@ -3194,6 +3237,36 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+    let tempFilterNav = {...this.state.filterNav};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempFilterNav.departmentSelected = data;
+
+        this.setState({
+          filterNav: tempFilterNav,
+          limitedDepartment: data
+        }, () => {
+          this.getHostData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle department checkbox check/uncheck
    * @method
    * @param {object} tree - department tree data
@@ -3218,13 +3291,29 @@ class HostController extends Component {
     });
   }
   /**
+   * Determine checkbox disabled status
+   * @method
+   * @param {string} id - department tree ID
+   * @returns true/false
+   */
+  checkboxDisabled = (id) => {
+    const {limitedDepartment} = this.state;
+
+    if (limitedDepartment.length > 0) {
+      if (!_.includes(limitedDepartment, id)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
    * Display department tree content
    * @method
    * @param {object} tree - department tree data
    * @returns HTML DOM
    */
   getDepartmentTreeLabel = (tree) => {
-    return <span><Checkbox checked={_.includes(this.state.filterNav.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
+    return <span><Checkbox checked={_.includes(this.state.filterNav.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' disabled={this.checkboxDisabled(tree.id)} />{tree.name}</span>
   }
   /**
    * Display department tree item

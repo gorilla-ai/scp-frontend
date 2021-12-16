@@ -48,11 +48,15 @@ const cfg = _.assign({
   companyName: 'NSGUARD',
   session: {
     rights: ["Module_Common", "Module_Config","Module_Soc"],
-    name: "kennethSOC",
-    account:"kenneth.soc1",
-    // accountId: "DPIR-3094b2fc-96a9-41fc-80b4-bbfbb83e95fb",
-    accountId: "DPIR-0b06ab24-9bee-4929-9eb4-c6627b278f31",
-    roles:["SOC Analyzer"],
+    name: 'ryan',
+    account: 'ryanchen',
+    accountId: 'DPIR-61f66d8a-08dd-4082-a592-f9ffd117c17b',
+    syncAD: false,
+    departmentName: null,
+    departmentId: '310c6493-4832-4360-b537-229cc26e3a28',
+    titleName: null,
+    titleId: 'RD',
+    roles: ['SOC Executor', 'Default Admin Privilege']
   },
 
   mapUrl: 'https://mt0.google.com/vt/lyrs=m&hl=en-US&x={x}&y={y}&z={z}',
