@@ -417,6 +417,8 @@ class HMDscanInfo extends Component {
           formatter: (value, allValue) => {
             const vansInfo = allValue['vansPatchDescriptionDTO'];
 
+            if (!vansInfo) return;
+
             if (tempData === 'description') {
               return (
                 <div>
@@ -2477,17 +2479,28 @@ class HMDscanInfo extends Component {
       <div key={i} className='btn-group'>
         <Button variant='contained' color='primary' className='btn' onClick={this.openTriggerMenu.bind(this, val)}>{t('hmd-scan.txt-' + val)}</Button>
         <div className='display-time'>
-          {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
-            <div className='trigger'><span>{t('hmd-scan.txt-lastTriggerTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].latestCreateDttm, 'local') || NOT_AVAILABLE}</div>
-          }
-          {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
-            <div className='execute'>
-              {assessmentInfo &&
-                <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
-              }
-              <span>{t('hmd-scan.txt-executeTime')}</span>: {helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].taskResponseDttm, 'local') || NOT_AVAILABLE}
-            </div>
-          }
+          <div className='trigger'>
+            <span>{t('hmd-scan.txt-lastTriggerTime')}: </span>
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length === 0 &&
+              <span>{NOT_AVAILABLE}</span>
+            }
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
+              <span>{helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].latestCreateDttm, 'local') || NOT_AVAILABLE}</span>
+            }
+          </div>
+
+          <div className='execute'>
+            {assessmentInfo &&
+              <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
+            }
+            <span>{t('hmd-scan.txt-executeTime')}: </span>
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length === 0 &&
+              <span>{NOT_AVAILABLE}</span>
+            }
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &&
+              <span>{helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
+            }
+          </div>
         </div>
         {currentDeviceData.safetyScanInfo[val + 'Result'].length > 1 &&
           <i className={`fg fg-arrow-${edrMoreInfo[val] ? 'top' : 'bottom'}`} onClick={this.handleMoreEdrInfo.bind(this, val)}></i>
@@ -2589,11 +2602,16 @@ class HMDscanInfo extends Component {
 
           {activeTab === '_ExecutePatch' &&
             <div className='vans-patch-record'>
-              <DataTable
-                className='main-table'
-                fields={hmdInfo[activeTab].fields}
-                data={hmdInfo[activeTab].data}
-                onSort={this.handleTableSort} />
+              {!hmdInfo[activeTab].data &&
+                <span>{NOT_AVAILABLE}</span>
+              }
+              {hmdInfo[activeTab].data &&
+                <DataTable
+                  className='main-table'
+                  fields={hmdInfo[activeTab].fields}
+                  data={hmdInfo[activeTab].data}
+                  onSort={this.handleTableSort} />
+              }
             </div>
           }
 
