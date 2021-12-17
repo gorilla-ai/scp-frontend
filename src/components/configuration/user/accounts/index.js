@@ -40,6 +40,10 @@ class AccountList extends Component {
 
     this.state = {
       showFilter: false,
+      list: {
+        department: [],
+        title: []
+      },
       accountSearch: {
         name: '',
         account: ''
@@ -79,11 +83,95 @@ class AccountList extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
     helper.inactivityTime(baseUrl, locale);
 
-    this.getAccountsData();
+    this.getTitleData();
     this.getOwnerData();
   }
   componentWillUnmount() {
     helper.clearTimer();
+  }
+  /**
+   * Get and set title data
+   * @method
+   */
+  getTitleData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let titleList = [];
+
+        _.forEach(data, val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+
+        tempList.title = _.cloneDeep(titleList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getDepartmentData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getAccountsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set account list data
@@ -147,6 +235,10 @@ class AccountList extends Component {
                       <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
+                } else if (val === 'unit') {
+                  return <span>{allValue.unitName}</span>
+                } else if (val === 'title') {
+                  return <span>{allValue.titleName}</span>
                 } else if (val === 'account' && allValue.isLock) {
                   return <span><i className='fg fg-key' title={c('txt-account-unlocked')}></i>{value}</span>;
                 } else {
@@ -610,7 +702,7 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, userAccount, ownerList, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const {showFilter, list, userAccount, ownerList, contextAnchor, currentAccountData, showNewPassword} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -669,8 +761,9 @@ class AccountList extends Component {
 
         <AccountEdit
           ref={ref => { this.editor = ref }}
-          currentAccountData={currentAccountData}
+          list={list}
           ownerList={ownerList}
+          currentAccountData={currentAccountData}
           onDone={this.getAccountsData} />
 
         <AdConfig ref={ref => { this.config = ref }} />

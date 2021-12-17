@@ -918,6 +918,7 @@ html[data-theme='dark'] {
           color: var(--primaryContentHeader);
         }
         .status-item {
+          display: block;
           padding: 5px;
           border-radius: 5px;
         }
@@ -2205,9 +2206,6 @@ html[data-theme='dark'] {
   }
 }
 #vansPatchRecordDialog-dialog {
-  .date-picker input {
-    height: 25px;
-  }
   .back-btn {
     top: 5px;
   }
@@ -2219,6 +2217,7 @@ html[data-theme='dark'] {
     color: var(--primaryContentHeader);
   }
   .status-item {
+    display: block;
     padding: 5px;
     border-radius: 5px;
   }
@@ -2229,9 +2228,12 @@ html[data-theme='dark'] {
         width: 100%;
       }
     }
-    .date-picker {
+    .date-picker-section {
       margin-top: 10px;
       margin-right: 0;
+      input {
+        height: 25px;
+      }
     }
   }
 }

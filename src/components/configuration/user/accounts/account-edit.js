@@ -39,8 +39,8 @@ const INITIAL_STATE = {
     account: '',
     name: '',
     email: '',
-    unit: '',
-    title: '',
+    unit: {},
+    title: {},
     phone: '',
     syncAD: false,
     selected: []
@@ -149,6 +149,7 @@ class AccountEdit extends Component {
    */
   loadAccount = (id) => {
     const {baseUrl} = this.context;
+    const {list} = this.props;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -169,11 +170,14 @@ class AccountEdit extends Component {
           account: data[0].rt.account,
           name: data[0].rt.name,
           email: data[0].rt.email,
-          unit: data[0].rt.unit,
-          title: data[0].rt.title,
           phone: data[0].rt.phone,
           selected: _.map(data[1].rt, 'privilegeid')
         };
+
+        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data[0].rt.unit });
+        const selectedTitleIndex = _.findIndex(list.title, { 'value': data[0].rt.title });
+        accountData.unit = list.department[selectedDepartmentIndex];
+        accountData.title = list.title[selectedTitleIndex];
 
         this.setState({
           accountData,
@@ -281,18 +285,37 @@ class AccountEdit extends Component {
   /**
    * Handle owner combo box change
    * @method
+   * @param {string} type - comboBox type ('owner', 'department' or 'title')
    * @param {object} event - select event
    * @param {object} value - selected owner info
    */
-  handleComboBoxChange = (event, value) => {
-    const {ownerList} = this.props;
+  handleComboBoxChange = (type, event, value) => {
+    const {list, ownerList} = this.props;
+    const {accountData} = this.state;
+    let tempAccountData = {...accountData};
 
     if (value && value.value) {
-      const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
+      if (type === 'owner') {
+        const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
 
-      this.setState({
-        selectedOwner: ownerList[selectedTitleIndex]
-      });
+        this.setState({
+          selectedOwner: ownerList[selectedTitleIndex]
+        });
+      } else if (type === 'department') {
+        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
+        tempAccountData.unit = list.department[selectedDepartmentIndex];
+
+        this.setState({
+          accountData: tempAccountData
+        });
+      } else if (type === 'title') {
+        const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
+        tempAccountData.title = list.title[selectedTitleIndex];
+
+        this.setState({
+          accountData: tempAccountData
+        });
+      }
     }
   }
   /**
@@ -315,7 +338,7 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {
-    const {ownerList} = this.props;
+    const {list, ownerList} = this.props;
     const {id, accountData, privileges, showPrivileges, selectedOwner, formValidation} = this.state;
 
     return (
@@ -365,32 +388,28 @@ class AccountEdit extends Component {
               onChange={this.handleDataChange} />
           </div>
           <div className='group'>
-            <TextField
+            <Autocomplete
               id='account-edit-unit'
-              name='unit'
-              label={t('l-unit')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!formValidation.unit.valid}
-              helperText={formValidation.unit.valid ? '' : c('txt-required')}
-              value={accountData.unit}
-              onChange={this.handleDataChange} />
+              className='combo-box'
+              options={list.department}
+              value={accountData.unit || ''}
+              getOptionLabel={(option) => option.text}
+              renderInput={(params) => (
+                <TextField {...params} label={t('l-unit')} variant='outlined' size='small' />         
+              )}
+              onChange={this.handleComboBoxChange.bind(this, 'department')} />
           </div>
           <div className='group'>
-            <TextField
+            <Autocomplete
               id='account-edit-title'
-              name='title'
-              label={t('l-title')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!formValidation.title.valid}
-              helperText={formValidation.title.valid ? '' : c('txt-required')}
-              value={accountData.title}
-              onChange={this.handleDataChange} />
+              className='combo-box'
+              options={list.title}
+              value={accountData.title || ''}
+              getOptionLabel={(option) => option.text}
+              renderInput={(params) => (
+                <TextField {...params} label={t('l-title')} variant='outlined' size='small' />         
+              )}
+              onChange={this.handleComboBoxChange.bind(this, 'title')} />
           </div>
           <div className='group'>
             <TextField
@@ -411,12 +430,12 @@ class AccountEdit extends Component {
               <Autocomplete
                 className='combo-box'
                 options={ownerList}
-                value={selectedOwner}
+                value={selectedOwner || ''}
                 getOptionLabel={(option) => option.text}
                 renderInput={(params) => (
                   <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
                 )}
-                onChange={this.handleComboBoxChange} />
+                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
             </div>
           }
           {!id &&
@@ -487,20 +506,6 @@ class AccountEdit extends Component {
       validate = false;
     }
 
-    if (accountData.unit) {
-      tempFormValidation.unit.valid = true;
-    } else {
-      tempFormValidation.unit.valid = false;
-      validate = false;
-    }
-
-    if (accountData.title) {
-      tempFormValidation.title.valid = true;
-    } else {
-      tempFormValidation.title.valid = false;
-      validate = false;
-    }
-
     if (accountData.phone) {
       tempFormValidation.phone.valid = true;
     } else {
@@ -532,7 +537,15 @@ class AccountEdit extends Component {
       ...formattedAccountData
     };
 
-    if (id) {
+    if (accountData.unit.value) {
+      requestData.unit = accountData.unit.value;
+    }
+
+    if (accountData.title.value) {
+      requestData.title = accountData.title.value;
+    }
+
+    if (id && selectedOwner) {
       requestData.ownerId = selectedOwner.value;
     }
 
@@ -647,8 +660,9 @@ class AccountEdit extends Component {
 AccountEdit.contextType = BaseDataContext;
 
 AccountEdit.propTypes = {
-  currentAccountData: PropTypes.array.isRequired,
+  list: PropTypes.object.isRequired,
   ownerList: PropTypes.array.isRequired,
+  currentAccountData: PropTypes.object.isRequired,
   onDone: PropTypes.func.isRequired
 };
 

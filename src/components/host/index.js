@@ -2364,7 +2364,7 @@ class HostController extends Component {
     let status = '';
 
     if (severityTypeName === '_ExecutePatchResult') {
-      severityTypeName = 'VansPatchResult'
+      severityTypeName = 'VANS Patch'
     }
 
     if (_.includes(scanResult, val.severity_type_name)) {

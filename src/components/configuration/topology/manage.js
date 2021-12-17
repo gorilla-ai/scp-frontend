@@ -776,9 +776,12 @@ class Manage extends Component {
         ip: owner.ip,
         domainAccount: owner.domainAccount,
         unitCode: owner.unitCode,
-        unitCodeRegex: owner.unitCodeRegex,
-        ownerId: selectedOwner.value
+        unitCodeRegex: owner.unitCodeRegex
       };
+
+      if (selectedOwner) {
+        requestData.ownerId = selectedOwner.value;
+      }
 
       if (parentTreetId !== 'root' && parentTreetId !== treeId) {
         requestData.parentId = parentTreetId;

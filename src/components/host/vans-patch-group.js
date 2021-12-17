@@ -235,31 +235,29 @@ class VansPatchGroup extends Component {
               value={vansRecordSearch.keyword}
               onChange={this.handleDataChange} />
           </div>
-          <div className='date-picker'>
+          <div className='date-picker-section'>
             <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-              <KeyboardDateTimePicker
-                id='searchDateTimePickerFrom'
-                className='date-time-picker'
+              <KeyboardDatePicker
+                id='searchDatePickerFrom'
+                className='date-picker'
                 inputVariant='outlined'
                 variant='inline'
-                format='YYYY-MM-DD HH:mm'
+                format='YYYY-MM-DD'
                 invalidDateMessage={t('txt-invalidDateMessage')}
                 maxDateMessage={t('txt-maxDateMessage')}
                 minDateMessage={t('txt-minDateMessage')}
-                ampm={false}
                 value={datetime.from}
                 onChange={this.handleDateChange.bind(this, 'from')} />
               <div className='between'>~</div>
-              <KeyboardDateTimePicker
-                id='searchDateTimePickerTo'
-                className='date-time-picker'
+              <KeyboardDatePicker
+                id='searchDatePickerTo'
+                className='date-picker'
                 inputVariant='outlined'
                 variant='inline'
-                format='YYYY-MM-DD HH:mm'
+                format='YYYY-MM-DD'
                 invalidDateMessage={t('txt-invalidDateMessage')}
                 maxDateMessage={t('txt-maxDateMessage')}
                 minDateMessage={t('txt-minDateMessage')}
-                ampm={false}
                 value={datetime.to}
                 onChange={this.handleDateChange.bind(this, 'to')} />
             </MuiPickersUtilsProvider>
