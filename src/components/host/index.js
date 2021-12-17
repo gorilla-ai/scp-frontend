@@ -415,9 +415,9 @@ class HostController extends Component {
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
-      tempAccount.departmentId = session.departmentId || '';
+      tempAccount.departmentId = session.departmentId;
 
-      if (_.includes(session.roles, 'SOC Executor')) {
+      if (_.includes(session.roles, 'SOC單位設備承辦人') || _.includes(session.roles, 'SOC單位設備資安長')) {
         tempAccount.limitedRole = true;
       }
 
@@ -798,8 +798,12 @@ class HostController extends Component {
         this.setState({
           departmentList: data
         }, () => {
-          if (account.departmentId && account.limitedRole) {
-            this.setSelectedDepartment();
+          if (account.limitedRole) {
+            if (account.departmentId) {
+              this.setSelectedDepartment();
+            } else {
+              this.getHostData();              
+            }
           } else {
             this.getHostData();
           }
@@ -888,7 +892,6 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
-          //departmentList: [],
           privateMaskedIPtree: {
             children: []
           },
@@ -905,20 +908,6 @@ class HostController extends Component {
           }, () => {
             this.getPrivateTreeData();
           });
-        }
-
-        if (!data.rows || data.rows.length === 0) {
-          if (activeTab === 'hostList') {
-            this.setState({
-              hostInfo: tempHostInfo
-            });
-            helper.showPopupMsg(t('txt-notFound'));
-          } else if (activeTab === 'deviceMap') {
-            this.setState({
-              showLoadingIcon: false
-            });
-          }
-          return;
         }
 
         _.forEach(SEVERITY_TYPE, val => { //Create formattedSeverityType object for input data based on severity
@@ -958,6 +947,26 @@ class HostController extends Component {
           });
         });
 
+        if (!data.rows || data.rows.length === 0) {
+          if (activeTab === 'hostList') {
+            this.setState({
+              severityList,
+              hmdStatusList,
+              scanStatusList,
+              hostInfo: tempHostInfo
+            });
+            helper.showPopupMsg(t('txt-notFound'));
+          } else if (activeTab === 'deviceMap') {
+            this.setState({
+              severityList,
+              hmdStatusList,
+              scanStatusList,
+              showLoadingIcon: false
+            });
+          }
+          return;
+        }
+
         this.setState({
           assessmentDatetime: {
             from: data.assessmentStartDttm,
@@ -966,7 +975,6 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
-          //departmentList: data.deptTree,
           hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
           hostInfo: tempHostInfo,
           showLoadingIcon: false
@@ -3297,12 +3305,19 @@ class HostController extends Component {
    * @returns true/false
    */
   checkboxDisabled = (id) => {
-    const {limitedDepartment} = this.state;
+    const {account, limitedDepartment} = this.state;
 
-    if (limitedDepartment.length > 0) {
-      if (!_.includes(limitedDepartment, id)) {
+    if (account.limitedRole) {
+      if (limitedDepartment.length === 0) {
         return true;
       }
+
+      if (limitedDepartment.length > 0) {
+        if (!_.includes(limitedDepartment, id)) {
+          return true;
+        }
+      }
+      return false;
     }
     return false;
   }
