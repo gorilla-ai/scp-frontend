@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import moment from 'moment'
 import cx from 'classnames'
 
 import Button from '@material-ui/core/Button'
 
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
@@ -119,6 +121,23 @@ class VansPatchDetails extends Component {
     });
   }
   /**
+   * Handle PDF export
+   * @method
+   */
+  exportPdf = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {activeVansPatch, vansSearch} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_search/_vansPatch/_pdf`;
+    const requestData = {
+      groupId: activeVansPatch.groupId,
+      keyword: vansSearch.keyword,
+      startDttm: moment(vansSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: moment(vansSearch.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
    * Display vans patch record content
    * @method
    * @returns HTML DOM
@@ -139,6 +158,7 @@ class VansPatchDetails extends Component {
     return (
       <div>
         <Button variant='outlined' color='primary' className='standard back-btn' onClick={this.props.toggleVansPatchDetails}>{t('txt-backToList')}</Button>
+        <Button variant='contained' color='primary' className='btn pdf-btn' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
 
         {vansInfo &&
           <table className='c-table main-table align-center with-border patch-table'>
@@ -199,6 +219,7 @@ VansPatchDetails.contextType = BaseDataContext;
 VansPatchDetails.propTypes = {
   vansPatchDetails: PropTypes.array.isRequired,
   activeVansPatch: PropTypes.object.isRequired,
+  vansSearch: PropTypes.object.isRequired,
   toggleVansPatchDetails: PropTypes.func.isRequired
 };
 
