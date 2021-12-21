@@ -1168,6 +1168,8 @@
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type",
     "version": "Version",
+    "netproxyIp": "NetProxy IP",
+    "netproxyName": "NetProxy Name",
     "latestTime": "Last Scan",
     "theLastestTaskResponseDttm": "Last Scan"
   },

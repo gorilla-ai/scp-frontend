@@ -298,6 +298,7 @@ class HostController extends Component {
       hmdStatusList: null,
       scanStatusList: null,
       departmentList: null,
+      netProxyTree: {},
       privateMaskedIPtree: {},
       hostCreateTime: '',
       leftNavData: [],
@@ -308,6 +309,8 @@ class HostController extends Component {
         hmdStatusSelected: [],
         scanStatusSelected: [],
         departmentSelected: [],
+        netProxyHostSelected: [],
+        netProxyDeviceSelected: [],
         maskedIPSelected: []
       },
       deviceSearch: {
@@ -905,6 +908,9 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
+          netProxyTree: {
+            children: []
+          },
           privateMaskedIPtree: {
             children: []
           },
@@ -915,11 +921,15 @@ class HostController extends Component {
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
 
+        if (data.netproxyHostAgg.length > 0) {
+          this.getNetProxyTreeData(data.netproxyHostAgg);
+        }
+
         if (!_.isEmpty(data.subnetAgg)) {
+          this.getPrivateTreeData(data.subnetAgg);
+
           this.setState({
             privateIpData: data.subnetAgg
-          }, () => {
-            this.getPrivateTreeData();
           });
         }
 
@@ -1204,6 +1214,14 @@ class HostController extends Component {
       }
     }
 
+    if (filterNav.netProxyHostSelected.length > 0) {
+      requestData.netproxyHostIdArray = filterNav.netProxyHostSelected;
+    }
+
+    if (filterNav.netProxyDeviceSelected.length > 0) {
+      requestData.hostIdArray = filterNav.netProxyDeviceSelected;
+    }
+
     if (filterNav.maskedIPSelected.length > 0) {
       requestData.exactIps = filterNav.maskedIPSelected;
     }
@@ -1348,7 +1366,7 @@ class HostController extends Component {
   /**
    * Check if item is already in the selected list
    * @method
-   * @param {string} type - checked item type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
+   * @param {string} type - checked item type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected', 'netProxyHostSelected', 'netProxyDeviceSelected', 'maskedIPSelected')
    * @param {string} val - checked item name
    * @returns boolean true/false
    */
@@ -1819,7 +1837,7 @@ class HostController extends Component {
    * @param {bool} checked - checkbox on/off
    * @param {string} type - filterNav type
    * @param {array.<string>} list - list of selected items
-   * @param {string} id - selected checkbox id
+   * @param {string} [id] - selected checkbox id
    * @returns array of selected list
    */
   getSelectedItems = (checked, type, list, id) => {
@@ -1830,6 +1848,23 @@ class HostController extends Component {
     } else {
       return _.without(filterNav[type], ...list, id);
     }
+  }
+  /**
+   * Handle net proxy host checkbox check/uncheck
+   * @method
+   * @param {string} id - selected host or device ID
+   * @param {string} type - checkbox type ('netProxyDeviceSelected' or 'netProxyHostSelected')
+   * @param {object} event - event object
+   */
+  toggleNetProxyCheckbox = (id, type, event) => {
+    let tempFilterNav = {...this.state.filterNav};
+    tempFilterNav[type] = this.getSelectedItems(event.target.checked, type, '', id);
+
+    this.setState({
+      filterNav: tempFilterNav
+    }, () => {
+      this.handleSearchSubmit();
+    });
   }
   /**
    * Handle private IP checkbox check/uncheck
@@ -1862,14 +1897,56 @@ class HostController extends Component {
     });
   }
   /**
-   * Set the alert private tree data
+   * Set the net proxy tree data
    * @method
+   * @param {array.<object>} netProxyData - net proxy data
    * @returns tree data object
    */
-  getPrivateTreeData = () => {
-    const {privateIpData} = this.state;
+  getNetProxyTreeData = (netProxyData) => {
+    let treeObj = {
+      id: 'All',
+      children: []
+    };
 
-    let treeObj = { //Handle service tree data
+    _.forEach(netProxyData, val => {
+      let tempChild = [];
+      let treeProperty = {};
+
+      if (val.devs && val.devs.length > 0) {
+        _.forEach(val.devs, val2 => {
+          tempChild.push({
+            id: val2.ipdeviceuuid,
+            label: <span><Checkbox color='primary' checked={this.checkSelectedItem('netProxyDeviceSelected', val2.ipdeviceuuid)} onChange={this.toggleNetProxyCheckbox.bind(this, val2.ipdeviceuuid, 'netProxyDeviceSelected')} />{val2.ip}</span>
+          });
+        })
+      }
+
+      treeProperty = {
+        id: val.id,
+        label: <span><Checkbox color='primary' checked={this.checkSelectedItem('netProxyHostSelected', val.id)} onChange={this.toggleNetProxyCheckbox.bind(this, val.id, 'netProxyHostSelected')} />{val.hostName} ({helper.numberWithCommas(val.devs.length)})</span>
+      };
+
+      if (tempChild.length > 0) {
+        treeProperty.children = tempChild;
+      }
+
+      treeObj.children.push(treeProperty);
+    })
+
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(netProxyData.length) + ')';
+
+    this.setState({
+      netProxyTree: treeObj
+    });
+  }
+  /**
+   * Set the alert private tree data
+   * @method
+   * @param {array.<object>} privateIpData - private masked IP data
+   * @returns tree data object
+   */
+  getPrivateTreeData = (privateIpData) => {
+    let treeObj = {
       id: 'All',
       children: []
     };
@@ -1891,7 +1968,7 @@ class HostController extends Component {
 
               tempChild.push({
                 id: val.ip,
-                label: <span><Checkbox checked={this.checkSelectedItem('maskedIPSelected', val.ip)} onChange={this.togglePrivateIpCheckbox.bind(this, val.ip, 'ip')} color='primary' /><i className={nodeClass} />{val.ip}</span>
+                label: <span><Checkbox color='primary' checked={this.checkSelectedItem('maskedIPSelected', val.ip)} onChange={this.togglePrivateIpCheckbox.bind(this, val.ip, 'ip')} /><i className={nodeClass} />{val.ip}</span>
               });
             }
           })
@@ -1905,7 +1982,7 @@ class HostController extends Component {
 
         treeProperty = {
           id: key,
-          label: <span><Checkbox onChange={this.togglePrivateIpCheckbox.bind(this, key, 'masked')} color='primary' /><i className={nodeClass} />{key} ({helper.numberWithCommas(privateIpData[key].doc_count)})</span>
+          label: <span><Checkbox color='primary' onChange={this.togglePrivateIpCheckbox.bind(this, key, 'masked')} /><i className={nodeClass} />{key} ({helper.numberWithCommas(privateIpData[key].doc_count)})</span>
         };
 
         if (tempChild.length > 0) {
@@ -2481,8 +2558,8 @@ class HostController extends Component {
 
       let newContent = content;
 
-      if (content.length > 20) {
-        newContent = content.substr(0, 20) + '...';
+      if (content.length > 25) {
+        newContent = content.substr(0, 25) + '...';
       }
 
       return <li key={i} title={t('ipFields.' + val.name)}>{context}<span title={content}>{newContent}</span></li>
@@ -2780,6 +2857,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'netproxyName',
+        path: 'netproxyName',
+        icon: 'network'
       },
       {
         name: 'latestTime',
@@ -4017,6 +4099,7 @@ class HostController extends Component {
       hostCreateTime,
       vansDeviceStatusList,
       vansHmdStatusList,
+      netProxyTree,
       privateMaskedIPtree,
       departmentList,
       leftNavData,
@@ -4168,6 +4251,32 @@ class HostController extends Component {
                     defaultCollapseIcon={<ExpandMoreIcon />}
                     defaultExpandIcon={<ChevronRightIcon />}>
                     {departmentList.map(this.getDepartmentTreeItem)}
+                  </TreeView>
+                }
+              </div>
+              <div>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>NetProxy</label>
+                {!netProxyTree.children &&
+                  <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
+                }
+                {netProxyTree.children && netProxyTree.children.length === 0 &&
+                  <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
+                }
+                {netProxyTree.children && netProxyTree.children.length > 0 &&
+                  <TreeView
+                    className='tree-view'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                    defaultExpanded={['All']}>
+                    {!_.isEmpty(netProxyTree) &&
+                      <TreeItem
+                        nodeId={netProxyTree.id}
+                        label={netProxyTree.label}>
+                        {netProxyTree.children.length > 0 &&
+                          netProxyTree.children.map(this.getTreeItem.bind(this, ''))
+                        }
+                      </TreeItem>
+                    }
                   </TreeView>
                 }
               </div>

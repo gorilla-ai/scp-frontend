@@ -14,7 +14,7 @@ import helper from './helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
-const IP_INFO = ['ip', 'mac'];
+const IP_INFO = ['ip', 'mac', 'netproxyIp', 'netproxyName'];
 const HOST_INFO = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders', 'remarks'];
 const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
 
@@ -59,7 +59,9 @@ class PrivateDetails extends Component {
     const {alertInfo, topoInfo} = this.props;
     const ip = {
       ip: topoInfo.ip,
-      mac: topoInfo.mac
+      mac: topoInfo.mac,
+      netproxyIp: topoInfo.netproxyIp,
+      netproxyName: topoInfo.netproxyName
     };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
