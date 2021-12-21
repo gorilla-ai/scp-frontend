@@ -11,6 +11,7 @@ import 'moment/locale/zh-tw'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
@@ -197,6 +198,22 @@ class VansPatchGroup extends Component {
     });
   }
   /**
+   * Handle PDF export
+   * @method
+   */
+  exportPdf = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {vansRecordSearch, datetime} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_search/_vansPatch/_pdf`;
+    const requestData = {
+      keyword: vansRecordSearch.keyword,
+      startDttm: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
    * Display vans patch record content
    * @method
    * @returns HTML DOM
@@ -222,6 +239,7 @@ class VansPatchGroup extends Component {
 
     return (
       <div className='filter'>
+        <Button variant='contained' color='primary' className='btn pdf-btn group' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
         <div className='filter-wrapper'>
           <div className='filter-section'>
             <TextField

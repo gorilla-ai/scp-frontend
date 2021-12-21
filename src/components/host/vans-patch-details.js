@@ -158,7 +158,7 @@ class VansPatchDetails extends Component {
     return (
       <div>
         <Button variant='outlined' color='primary' className='standard back-btn' onClick={this.props.toggleVansPatchDetails}>{t('txt-backToList')}</Button>
-        <Button variant='contained' color='primary' className='btn pdf-btn' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
+        <Button variant='contained' color='primary' className='btn pdf-btn details' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
 
         {vansInfo &&
           <table className='c-table main-table align-center with-border patch-table'>
