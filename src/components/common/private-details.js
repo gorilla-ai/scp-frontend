@@ -7,6 +7,7 @@ import cx from 'classnames'
 import Button from '@material-ui/core/Button'
 
 import Gis from 'react-gis/build/src/components'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from './context'
 import helper from './helper'
@@ -197,7 +198,10 @@ class PrivateDetails extends Component {
             <div className='trigger-text'>{t('edge-management.txt-lastUpdateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo && topoInfo.isHmd &&
-            <Button variant='contained' color='primary' className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</Button>
+            <div className='system-btn-group'>
+              <Button variant='contained' color='primary' className='btn' onClick={this.props.toggleViewMore}>{t('hmd-scan.txt-viewMore')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</Button>
+            </div>
           }
           <table className='c-table main-table host'>
             <tbody>
@@ -258,7 +262,8 @@ PrivateDetails.propTypes = {
   alertInfo: PropTypes.object.isRequired,
   topoInfo: PropTypes.object.isRequired,
   picPath: PropTypes.string.isRequired,
-  triggerTask: PropTypes.func.isRequired
+  triggerTask: PropTypes.func.isRequired,
+  toggleViewMore: PropTypes.func.isRequired
 };
 
 export default PrivateDetails;

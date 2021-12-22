@@ -2661,3 +2661,24 @@ html[data-theme='dark'] {
     }
   }
 }
+#deviceInfoDialog-content {
+  max-height: 800px;
+  table {
+    td {
+      vertical-align: top;
+      &.long-field {
+        display: block;
+        height: 200px;
+        overflow-y: auto;
+      }
+    }
+  }
+  .field {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--primaryBorder);
+  }
+  .item {
+    margin-bottom: 5px;
+  }
+}

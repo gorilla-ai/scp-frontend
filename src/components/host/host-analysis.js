@@ -9,6 +9,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import HMDmoreInfo from '../common/hmd-more-info'
 import HMDscanInfo from '../common/hmd-scan-info'
 import IrSelections from '../common/ir-selections'
 import NetworkBehavior from '../common/network-behavior'
@@ -48,6 +49,7 @@ class HostAnalysis extends Component {
         safety: false,
         network: false
       },
+      modalViewMoreOpen: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
       showVansNotes: false
@@ -182,7 +184,8 @@ class HostAnalysis extends Component {
           alertInfo={alertInfo}
           topoInfo={hostData}
           picPath={picPath}
-          triggerTask={this.triggerTask} />
+          triggerTask={this.triggerTask}
+          toggleViewMore={this.toggleViewMore} />
       </div>
     )
   }
@@ -310,6 +313,15 @@ class HostAnalysis extends Component {
         </div>
       </div>
     )
+  }
+  /**
+   * Toggle view more dialog
+   * @method
+   */
+  toggleViewMore = () => {
+    this.setState({
+      modalViewMoreOpen: !this.state.modalViewMoreOpen
+    });
   }
   /**
    * Toggle yara rule dialog
@@ -490,7 +502,7 @@ class HostAnalysis extends Component {
   }
   render() {
     const {hostData} = this.props;
-    const {modalYaraRuleOpen, modalIRopen} = this.state;
+    const {modalViewMoreOpen, modalYaraRuleOpen, modalIRopen} = this.state;
     const actions = {
       export: {text: t('txt-export'), handler: this.exportPdf.bind(this)},
       confirm: {text: t('txt-close'), handler: this.props.toggleHostAnalysis}
@@ -508,6 +520,12 @@ class HostAnalysis extends Component {
           closeAction='confirm'>
           {this.displayHostAnalysisData()}
         </ModalDialog>
+
+        {modalViewMoreOpen &&
+          <HMDmoreInfo
+            hostData={hostData}
+            toggleViewMore={this.toggleViewMore} />
+        }
 
         {modalYaraRuleOpen &&
           <YaraRule
