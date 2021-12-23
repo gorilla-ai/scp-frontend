@@ -42,6 +42,7 @@ import FileUpload from '../../common/file-upload'
 import FilterContent from '../../common/filter-content'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
+import HMDmoreInfo from '../../common/hmd-more-info'
 import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
 import MuiTableContent from '../../common/mui-table-content'
@@ -75,6 +76,7 @@ class NetworkInventory extends Component {
       showFilter: false,
       showSeatData: false,
       modalFloorOpen: false,
+      modalViewMoreOpen: false,
       modalIRopen: false,
       addSeatOpen: false,
       uploadOpen: false,
@@ -1796,6 +1798,15 @@ class NetworkInventory extends Component {
     })
   }
   /**
+   * Toggle view more dialog
+   * @method
+   */
+  toggleViewMore = () => {
+    this.setState({
+      modalViewMoreOpen: !this.state.modalViewMoreOpen
+    });
+  }
+  /**
    * Toggle IR combo selection dialog on/off
    * @method
    */
@@ -3318,6 +3329,7 @@ class NetworkInventory extends Component {
           }
           {activeSteps === 2 && activeContent !== 'batchUpdates' &&
             <div className='form-group steps-host'>
+              <Button variant='contained' color='primary' className='btn view-more' onClick={this.toggleViewMore}>{t('hmd-scan.txt-viewMore')}</Button>
               <header>{t('alert.txt-systemInfo')}</header>
               <div className='group'>
                 <TextField
@@ -4089,6 +4101,7 @@ class NetworkInventory extends Component {
       showFilter,
       showSeatData,
       modalFloorOpen,
+      modalViewMoreOpen,
       modalIRopen,
       addSeatOpen,
       uploadOpen,
@@ -4180,6 +4193,12 @@ class NetworkInventory extends Component {
         {modalFloorOpen &&
           <FloorMap
             closeDialog={this.closeFloorDialog} />
+        }
+
+        {modalViewMoreOpen &&
+          <HMDmoreInfo
+            hostData={currentDeviceData}
+            toggleViewMore={this.toggleViewMore} />
         }
 
         {modalIRopen &&
@@ -4443,7 +4462,8 @@ class NetworkInventory extends Component {
                     alertInfo={ownerInfo}
                     topoInfo={currentDeviceData}
                     picPath={picPath}
-                    triggerTask={this.triggerTask} />
+                    triggerTask={this.triggerTask}
+                    toggleViewMore={this.toggleViewMore} />
                 </div>
               </div>
             </div>

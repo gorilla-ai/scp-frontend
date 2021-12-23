@@ -7,6 +7,8 @@ import helper from './helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const NOT_AVAILABLE = 'N/A';
+
 let t = null;
 let f = null;
 
@@ -24,9 +26,8 @@ class HmdMoreInfo extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
-  ryan = () => {}
   /**
-   * Display host or owner table row
+   * Display HMD more table
    * @method
    * @param {object} val - host data
    * @param {number} i - index of the hostInfo array
@@ -36,7 +37,7 @@ class HmdMoreInfo extends Component {
     return (
       <tr key={i}>
         <td style={{width: '180px'}}>{f('hmdDeviceFields.' + val)}</td>
-        <td>{this.props.hostData[val]}</td>
+        <td>{this.props.hostData[val] || NOT_AVAILABLE}</td>
       </tr>
     )
   }
@@ -87,7 +88,12 @@ class HmdMoreInfo extends Component {
     return (
       <tr key={i}>
         <td>{f('hmdDeviceFields.' + val)}</td>
-        <td className='long-field'>{this.props.hostData[val].map(this.displayFieldInfo.bind(this, val))}</td>
+        {!this.props.hostData[val] &&
+          <td className='long-field'>{NOT_AVAILABLE}</td>
+        }
+        {this.props.hostData[val] &&
+          <td className='long-field'>{this.props.hostData[val].map(this.displayFieldInfo.bind(this, val))}</td>
+        }
       </tr>
     )
   }
@@ -120,6 +126,7 @@ class HmdMoreInfo extends Component {
       <ModalDialog
         id='deviceInfoDialog'
         className='modal-dialog'
+        title={t('alert.txt-systemInfo')}
         draggable={true}
         global={true}
         actions={actions}
