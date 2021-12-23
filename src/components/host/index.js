@@ -2618,6 +2618,7 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {assessmentDatetime, hostInfo, hostData, eventInfo} = this.state;
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
+    //const ipDeviceUUID = 'ddc14d5d-0d3e-46c9-bdf8-9a523906917c';
 
     this.ah.all([
       {
@@ -4089,6 +4090,7 @@ class HostController extends Component {
     })
   }
   render() {
+    const {session} = this.context;
     const {
       activeTab,
       activeContent,
@@ -4372,7 +4374,9 @@ class HostController extends Component {
                 {activeTab !== 'vansCharts' &&
                   <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
+                    {_.includes(session.roles, 'Default Admin Privilege') &&
+                      <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
+                    }
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleUploadFile}>{t('hmd-scan.txt-uploadHMDfile')}</Button>
                   </div>
