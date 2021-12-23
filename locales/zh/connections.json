@@ -829,7 +829,7 @@
     "txt-gcbVersion": "GCB版本",
     "txt-eventsLogCount": "事件日誌數量",
     "txt-taskFailure": "執行異常",
-    "txt-notSupport": "未支援",
+    "txt-notSupport": "不支援",
     "txt-passCount": "通過",
     "txt-totalItem": "總項目",
     "txt-lastUpdate": "最近更新時間",
@@ -893,6 +893,7 @@
     "txt-executeRunning": "等待執行",
     "txt-executeComplete": "執行成功",
     "txt-executeFailure": "執行失敗",
+    "txt-executeNotSupport": "不支援",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",

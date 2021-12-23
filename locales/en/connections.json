@@ -893,6 +893,7 @@
     "txt-executeRunning": "Running",
     "txt-executeComplete": "Complete",
     "txt-executeFailure": "Failure",
+    "txt-executeNotSupport": "Not Support",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",

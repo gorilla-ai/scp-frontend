@@ -103,7 +103,7 @@ class HmdMoreInfo extends Component {
    * @returns HTML DOM
    */
   displayDeviceInfo = () => {
-    const tableFields = ['browserInfo', 'trustedSite', 'cpu', 'ram', 'disks', 'antiVirus'];
+    const tableFields = ['browserInfo', 'trustedSite', 'cpu', 'ram', 'disks', 'antiVirus', 'userName', 'groups'];
     const moreFields = ['initProgramInfo', 'installs', 'firewallInfo'];
 
     return (

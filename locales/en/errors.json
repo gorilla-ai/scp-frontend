@@ -116,6 +116,9 @@
   "-9108": "SMS insufficient balance failure",
   "-9110": "FR-MOTP connect test failure",
   "-9111": "FR-MOTP verification failure",
+  "-9113": "Missing scriptFile or executableFile",
+  "-9114": "Upload file name is empty",
+  "-9115": "Upload file size is empty",
 
   "-10222": "Device ID is already exist",
   "-10322": "Unit OID is already exist",

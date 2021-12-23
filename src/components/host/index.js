@@ -921,7 +921,7 @@ class HostController extends Component {
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
 
-        if (data.netproxyHostAgg.length > 0) {
+        if (data.netproxyHostAgg && data.netproxyHostAgg.length > 0) {
           this.getNetProxyTreeData(data.netproxyHostAgg);
         }
 
@@ -1002,7 +1002,7 @@ class HostController extends Component {
           hostInfo: tempHostInfo,
           showLoadingIcon: false
         }, () => {
-          if (activeTab === 'deviceMap' && data.rows.length > 0) {
+          if (activeTab === 'deviceMap' && data.rows && data.rows.length > 0) {
             this.getDeviceSeatData();
           }
         });
@@ -2502,6 +2502,14 @@ class HostController extends Component {
         status = t('hmd-scan.txt-taskFailure');
       } else if (val.taskStatus === 'NotSupport') {
         status = t('hmd-scan.txt-notSupport');
+      }
+
+      if (severityTypeName = 'VANS Patch') { //Special case for Vans Patch
+        if (val.taskStatus === 'Complete') {
+          status = t('txt-success');
+        } else if (val.taskStatus === 'Failure') {
+          status = t('txt-fail');
+        }
       }
     }
 

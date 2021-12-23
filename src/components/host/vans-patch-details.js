@@ -30,7 +30,7 @@ class VansPatchDetails extends Component {
 
     this.state = {
       vansDetails: {
-        dataFieldsArr: ['ip', 'hostName', 'system', 'taskCreateDttm', 'taskResponseDttm', 'isConnected', 'taskStatus', 'executeStatus'],
+        dataFieldsArr: ['ip', 'hostName', 'system', 'taskCreateDttm', 'taskResponseDttm', 'hbDttm', 'receiveDttm', 'receiveCompleteDttm', 'isConnected', 'taskStatus', 'executeStatus'],
         dataFields: [],
         dataContent: null
       }
@@ -70,6 +70,12 @@ class VansPatchDetails extends Component {
               return <span>{deviceInfo[val]}</span>
             } else if (val === 'taskCreateDttm' || val === 'taskResponseDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
+            } else if (val === 'hbDttm') {
+              return <span>{helper.getFormattedDate(deviceInfo[value], 'local')}</span>
+            } else if (val === 'receiveDttm') {
+              return <span>{helper.getFormattedDate(value, 'local')}</span>
+            } else if (val === 'receiveCompleteDttm') {
+              return <span>{helper.getFormattedDate(value, 'local')}</span>
             } else if (val === 'isConnected') {
               const status = deviceInfo[val] ? t('txt-connected') : t('txt-disconnected');
               let color = '';
@@ -106,6 +112,8 @@ class VansPatchDetails extends Component {
               } else if (value === 'Complete') {
                 backgroundColor = '#22ac38';
               } else if (value === 'Failure') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'NotSupport') {
                 backgroundColor = '#d10d25';
               }
 
