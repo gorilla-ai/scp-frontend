@@ -682,15 +682,15 @@
     "taskCreateDttm": "Create Datetime",
     "taskResponseDttm": "Response Datetime",
     "taskUpdateDttm": "Update Datetime",
-    "hbDttm": "Last Connected Datetime",
     "receiveDttm": "Receive Datetime",
     "receiveCompleteDttm": "Receive Complete Datetime",
+    "hbDttm": "Last Connected Datetime",
     "taskStatus": "Task Status",
     "executeStatus": "Execute Result",
+    "taskStatusDescription": "Task Status Description",
     "deviceCount": "Device Count",
     "ip": "IP",
     "hostName": "Host Name",
-    "system": "System",
     "isConnected": "Host Status"
   },
   "hmdDeviceFields": {

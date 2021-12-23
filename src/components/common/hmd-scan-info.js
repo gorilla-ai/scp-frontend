@@ -122,7 +122,7 @@ class HMDscanInfo extends Component {
         }
       },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
-      _ExecutePatchFieldsArr: ['description', 'software', 'taskCreateDttm', 'taskResponseDttm', 'taskStatus', 'executeStatus'],
+      _ExecutePatchFieldsArr: ['description', 'software', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true,
@@ -450,8 +450,10 @@ class HMDscanInfo extends Component {
                   }
                 </div>
               )
-            } else if (tempData === 'taskCreateDttm' || tempData === 'taskResponseDttm') {
+            } else if (tempData === 'receiveDttm' || tempData === 'receiveCompleteDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
+            } else if (tempData === 'hbDttm') {
+              return <span>{helper.getFormattedDate(vansInfo[tempData], 'local')}</span>
             } else if (tempData === 'taskStatus') {
               let backgroundColor = '';
 
@@ -478,6 +480,16 @@ class HMDscanInfo extends Component {
               }
 
               return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
+            } else if (tempData === 'taskStatusDescription') {
+              let desc = '';
+
+              if (value === -1) {
+                desc = t('hmd-scan.txt-netProxyFail');
+              } else if (value === -2) {
+                desc = t('hmd-scan.txt-msgQueueFail');
+              }
+
+              return <span>{desc}</span>
             }
           }
         };

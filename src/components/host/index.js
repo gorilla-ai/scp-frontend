@@ -743,6 +743,7 @@ class HostController extends Component {
    */
   getVansPatchGroup = (keyword, datetimeFrom, datetimeTo) => {
     const {baseUrl} = this.context;
+    const {limitedDepartment} = this.state;
     const url = `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/group`;
     let datetime = this.getHostDateTime();
 
@@ -759,6 +760,10 @@ class HostController extends Component {
 
     if (keyword) {
       requestData.keyword = keyword;
+    }
+
+    if (limitedDepartment.length > 0) {
+      requestData.departmentId = limitedDepartment;
     }
 
     this.ah.one({
@@ -2453,10 +2458,6 @@ class HostController extends Component {
     let title = '';
     let status = '';
 
-    if (severityTypeName === '_ExecutePatchResult') {
-      severityTypeName = 'VANS Patch'
-    }
-
     if (_.includes(scanResult, val.severity_type_name)) {
       _.forEach(SCAN_RESULT, val2 => {
         if (val2.result === val.severity_type_name) {
@@ -2465,6 +2466,11 @@ class HostController extends Component {
           return false;
         }
       })
+    }
+
+    if (severityTypeName === '_ExecutePatchResult') {
+      severityTypeName = 'VANS Patch'
+      hmd = true;
     }
 
     displayTooltip = severityTypeName + ' ';
@@ -3670,6 +3676,7 @@ class HostController extends Component {
    */
   confirmVansPatch = (patch) => {
     const {baseUrl} = this.context;
+    const {account} = this.state;
     const datetime = this.getHostDateTime();
     const retriggerBody = {
       timestamp: [datetime.from, datetime.to],
@@ -3687,6 +3694,7 @@ class HostController extends Component {
     formData.append('patchVendor', patch.vendor);
     formData.append('patchVersion', patch.version);
     formData.append('memo', patch.memo);
+    formData.append('departmentId', account.departmentId);
     formData.append('retriggerBody', JSON.stringify(retriggerBody));
 
     this.ah.one({

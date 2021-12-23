@@ -30,7 +30,7 @@ class VansPatchDetails extends Component {
 
     this.state = {
       vansDetails: {
-        dataFieldsArr: ['ip', 'hostName', 'system', 'taskCreateDttm', 'taskResponseDttm', 'hbDttm', 'receiveDttm', 'receiveCompleteDttm', 'isConnected', 'taskStatus', 'executeStatus'],
+        dataFieldsArr: ['ip', 'hostName', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'isConnected', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
         dataFields: [],
         dataContent: null
       }
@@ -66,16 +66,12 @@ class VansPatchDetails extends Component {
             const deviceInfo = allValue['ipDeviceDTO'];
             const vansInfo = allValue['vansPatchDescriptionDTO'];
 
-            if (val === 'ip' || val === 'hostName' || val === 'system') {
+            if (val === 'ip' || val === 'hostName') {
               return <span>{deviceInfo[val]}</span>
-            } else if (val === 'taskCreateDttm' || val === 'taskResponseDttm') {
+            } else if (val === 'receiveDttm' || val === 'receiveCompleteDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
             } else if (val === 'hbDttm') {
               return <span>{helper.getFormattedDate(deviceInfo[value], 'local')}</span>
-            } else if (val === 'receiveDttm') {
-              return <span>{helper.getFormattedDate(value, 'local')}</span>
-            } else if (val === 'receiveCompleteDttm') {
-              return <span>{helper.getFormattedDate(value, 'local')}</span>
             } else if (val === 'isConnected') {
               const status = deviceInfo[val] ? t('txt-connected') : t('txt-disconnected');
               let color = '';
@@ -118,6 +114,16 @@ class VansPatchDetails extends Component {
               }
 
               return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
+            } else if (val === 'taskStatusDescription') {
+              let desc = '';
+
+              if (value === -1) {
+                desc = t('hmd-scan.txt-netProxyFail');
+              } else if (value === -2) {
+                desc = t('hmd-scan.txt-msgQueueFail');
+              }
+
+              return <span>{desc}</span>
             }
           }
         }
