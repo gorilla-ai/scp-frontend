@@ -2,8 +2,13 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
+import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
+
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
@@ -12,10 +17,12 @@ import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import TextField from '@material-ui/core/TextField'
 
+import {downloadLink} from 'react-ui/build/src/utils/download'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context'
 import CpeHeader from './cpe-header'
+import FileUpload from '../common/file-upload'
 import helper from '../common/helper'
 import InputPath from '../common/input-path'
 import ProductRegex from './product-regex'
@@ -92,6 +99,10 @@ class HMDsettings extends Component {
 
     this.state = {
       activeContent: 'viewMode', //'viewMode' or 'editMode'
+      datetimeExport: {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
       originalScanFiles: [],
       scanFiles: {
         includePath: [{
@@ -156,6 +167,7 @@ class HMDsettings extends Component {
         apiKey: '',
         apiUrl: ''
       },
+      hmdFile: '',
       formValidation: {
         ip: {
           valid: true,
@@ -980,8 +992,77 @@ class HMDsettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetimeExport = {...this.state.datetimeExport};
+    tempDatetimeExport[type] = newDatetime;
+
+    this.setState({
+      datetimeExport: tempDatetimeExport
+    });
+  }
+  /**
+   * Handle HMD upload input value change
+   * @method
+   * @param {object} value - input data to be set
+   */
+  handleFileChange = (value) => {
+    this.setState({
+      hmdFile: value
+    });
+  }
+  /**
+   * Handle HMD export
+   * @method
+   */
+  handleFileExport = () => {
+    const {baseUrl} = this.context;
+    const {datetimeExport} = this.state;
+    const startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const url = `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${startDttm}&endDttm=${endDttm}`;
+
+    downloadLink(url);
+  }
+  /**
+   * Handle HMD file import
+   * @method
+   */
+  handleFileImport = () => {
+    const {baseUrl} = this.context;
+    const {hmdFile} = this.state;
+    let formData = new FormData();
+
+    console.log(hmdFile);
+
+    //formData.append('file', hmdFile);
+
+    // ah.one({
+    //   url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${datetimeExport.from}&endDttm=${datetimeExport.to}`,
+    //   data: formData,
+    //   type: 'POST',
+    //   processData: false,
+    //   contentType: false
+    // })
+    // .then(data => {
+    //   if (data.ret === 0) {
+    //     helper.showPopupMsg(t('network-topology.txt-saveSuccess'));
+    //   }
+    //   return null;
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // })
+  }
   render() {
+    const {locale} = this.context;
     const {
+      datetimeExport,
       activeContent,
       gcbVersion,
       pmInterval,
@@ -1008,8 +1089,15 @@ class HMDsettings extends Component {
       cpeData,
       setCpeData: this.setCpeData
     };
+    let dateLocale = locale;
     let msg = '';
     let color = '';
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
 
     if (connectionsStatus !== '') {
       msg = connectionsStatus ? t('txt-success') : t('txt-fail');
@@ -1344,6 +1432,58 @@ class HMDsettings extends Component {
                 value={cpeData}
                 onChange={this.setCpeData.bind(this, 'header')}
                 disabled={activeContent === 'viewMode'} />
+            </div>
+
+            <div className='form-group normal long'>
+              <header>{t('hmd-scan.txt-hmdImportExport')}</header>
+              <div className='sub-section'>
+                <div className='import-header'>{t('txt-export')}</div>
+                <div className='date-picker'>
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                      id='hmdSettingsDateTimePickerFrom'
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      ampm={false}
+                      value={datetimeExport.from}
+                      onChange={this.handleDateChange.bind(this, 'from')}
+                      disabled={activeContent === 'viewMode'} />
+                    <div className='between'>~</div>
+                    <KeyboardDateTimePicker
+                      id='hmdSettingsDateTimePickerTo'
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      ampm={false}
+                      value={datetimeExport.to}
+                      onChange={this.handleDateChange.bind(this, 'to')}
+                      disabled={activeContent === 'viewMode'} />
+                  </MuiPickersUtilsProvider>
+                </div>
+                <Button variant='contained' color='primary' className='export-btn' onClick={this.handleFileExport} disabled={activeContent === 'viewMode'}>{t('txt-export')}</Button>
+              </div>
+
+              {false &&
+                <div className='sub-section'>
+                  <div className='import-header'>{t('txt-import')}</div>
+                  <FileUpload
+                    id='importHmd'
+                    fileType='text'
+                    readOnly={activeContent === 'viewMode'}
+                    btnText={t('txt-upload')}
+                    handleFileChange={this.handleFileChange} />
+                  <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport} disabled={activeContent === 'viewMode'}>{t('txt-import')}</Button>  
+                </div>
+              }
             </div>
           </div>
 

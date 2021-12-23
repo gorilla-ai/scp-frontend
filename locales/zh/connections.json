@@ -896,6 +896,7 @@
     "txt-executeNotSupport": "不支援",
     "txt-netProxyFail": "檔案上傳NetProxy失敗",
     "txt-msgQueueFail": "分流異常",
+    "txt-hmdImportExport": "HMD匯出/匯入",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",

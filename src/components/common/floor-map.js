@@ -600,7 +600,7 @@ class FloorMap extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    })    
+    })
   }
   /**
    * Clear floor plan data

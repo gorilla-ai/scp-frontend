@@ -896,6 +896,7 @@
     "txt-executeNotSupport": "Not Support",
     "txt-netProxyFail": "File upload to NetProxy failed",
     "txt-msgQueueFail": "Message queue failed",
+    "txt-hmdImportExport": "HMD Import/Export",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware",
