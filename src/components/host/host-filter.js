@@ -44,17 +44,17 @@ class HostFilter extends Component {
    * @param {object} [value] - selected info
    */
   handleDataChange = (event, value) => {
-    const {vansDeviceStatusList} = this.props;
+    const {activeFilter, vansDeviceStatusList} = this.props;
     let inputValue = event.target.value;
 
-    if (value && value.value) {
+    if (activeFilter === 'status') {
       const selectedStatusIndex = _.findIndex(vansDeviceStatusList, { 'value': value.value });
       inputValue = vansDeviceStatusList[selectedStatusIndex];
     }
 
     this.props.onChange({
       ...this.props.value,
-      input: inputValue
+      [event.target.name]: inputValue
     });
   }
   render() {
@@ -78,6 +78,40 @@ class HostFilter extends Component {
           placeholder={t('host.txt-annotation')}
           value={value.input}
           onChange={this.handleDataChange} />
+      )
+    } else if (activeFilter === 'version') {
+      const conditionList = ['>', '=', '<'];
+      const filterList = _.map(conditionList, (val, i) => {
+        let formattedValue = val.toLowerCase();
+        formattedValue = formattedValue.replace(' ', '_');
+        return <MenuItem key={i} value={formattedValue}>{val}</MenuItem>
+      });
+
+      return (
+        <div>
+          <TextField
+            name='condition'
+            className='condition-select'
+            style={{float: 'left', width: '30%', marginRight: '3%'}}
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value.condition}
+            onChange={this.handleDataChange}>
+            {filterList}
+          </TextField>
+          <TextField
+            name='input'
+            clssName='condition-input'
+            style={{float: 'left', width: '65%'}}
+            label={t('ipFields.' + activeFilter)}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value.input}
+            onChange={this.handleDataChange} />
+        </div>
       )
     } else {
       return (

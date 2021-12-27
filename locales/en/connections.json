@@ -1158,6 +1158,7 @@
     "floorName": "Floor Name",
     "userAccount": "User Account",
     "userName": "User",
+    "groups": "Groups",
     "disks": "$t(txt-disks)",
     "shareFolders": "$t(txt-shareFolders)",
     "ownerId": "Owner ID",

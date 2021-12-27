@@ -48,7 +48,7 @@ import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation'];
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -252,7 +252,7 @@ class HostController extends Component {
         departmentId: '',
         limitedRole: false
       },
-      showFilter: false,
+      showFilter: true,
       openQueryOpen: false,
       saveQueryOpen: false,
       uploadFileOpen: false,
@@ -337,6 +337,16 @@ class HostController extends Component {
         }],
         annotation: [{
           input: ''
+        }],
+        userName: [{
+          input: ''
+        }],
+        groups: [{
+          input: ''
+        }],
+        version: [{
+          condition: '=',
+          input: ''
         }]
       },
       deviceSearchList: {
@@ -347,7 +357,10 @@ class HostController extends Component {
         system: [],
         scanInfo: [],
         status: [],
-        annotation: []
+        annotation: [],
+        userName: [],
+        groups: [],
+        version: []
       },
       hmdSearch: {
         status: {},
@@ -1270,6 +1283,18 @@ class HostController extends Component {
       };
     }
 
+    if (deviceSearchList.userName.length > 0) {
+      requestData.userNameArray = deviceSearchList.userName;
+    }
+
+    if (deviceSearchList.groups.length > 0) {
+      requestData.groupsArray = deviceSearchList.groups;
+    }
+
+    if (deviceSearchList.version.length > 0) {
+      requestData.versionArray = deviceSearchList.version;
+    }
+
     return requestData;
   }
   /**
@@ -2190,7 +2215,7 @@ class HostController extends Component {
   /**
    * Set device filter data
    * @method
-   * @param {string} filter - filter type
+   * @param {string} type - filter type
    * @param {array.<string>} data - filter data
    */
   setDeviceSearch = (type, data) => {
@@ -2201,9 +2226,15 @@ class HostController extends Component {
     tempDeviceSearch[type] = data;
 
     _.forEach(data, val => {
-      const value = type === 'status' ? val.input.text : val.input;
+      let value = val.input;
 
       if (value) {
+        if (type === 'status') {
+          value = val.input.text;
+        } else if (type === 'version') {
+          value = val.condition + ' ' + value;
+        }
+
         dataList.push(value);
       }
     });
@@ -2223,6 +2254,8 @@ class HostController extends Component {
    */
   showFilterForm = (val, i) => {
     const {deviceSearchList} = this.state;
+
+    if (!deviceSearchList[val]) return;
 
     return (
       <div key={i} className='group'>
@@ -2317,9 +2350,9 @@ class HostController extends Component {
               <MultiInput
                 base={HostFilter}
                 defaultItemValue={{
-                    input: defaultItemValue
-                  }
-                }
+                  condition: '=',
+                  input: defaultItemValue
+                }}
                 value={deviceSearch[activeFilter]}
                 props={data}
                 onChange={this.setDeviceSearch.bind(this, activeFilter)} />
@@ -2370,6 +2403,16 @@ class HostController extends Component {
         }],
         annotation: [{
           input: ''
+        }],
+        userName: [{
+          input: ''
+        }],
+        groups: [{
+          input: ''
+        }],
+        version: [{
+          condition: '=',
+          input: ''
         }]
       },
       deviceSearchList: {
@@ -2380,7 +2423,10 @@ class HostController extends Component {
         system: [],
         scanInfo: [],
         status: [],
-        annotation: []
+        annotation: [],
+        userName: [],
+        groups: [],
+        version: []
       }
     });
   }
