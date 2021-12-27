@@ -1037,27 +1037,24 @@ class HMDsettings extends Component {
     const {baseUrl} = this.context;
     const {hmdFile} = this.state;
     let formData = new FormData();
+    formData.append('file', hmdFile);
 
-    console.log(hmdFile);
-
-    //formData.append('file', hmdFile);
-
-    // ah.one({
-    //   url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${datetimeExport.from}&endDttm=${datetimeExport.to}`,
-    //   data: formData,
-    //   type: 'POST',
-    //   processData: false,
-    //   contentType: false
-    // })
-    // .then(data => {
-    //   if (data.ret === 0) {
-    //     helper.showPopupMsg(t('network-topology.txt-saveSuccess'));
-    //   }
-    //   return null;
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'), err.message);
-    // })
+    ah.one({
+      url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-uploadSuccess'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
     const {locale} = this.context;
@@ -1472,18 +1469,16 @@ class HMDsettings extends Component {
                 <Button variant='contained' color='primary' className='export-btn' onClick={this.handleFileExport} disabled={activeContent === 'viewMode'}>{t('txt-export')}</Button>
               </div>
 
-              {false &&
-                <div className='sub-section'>
-                  <div className='import-header'>{t('txt-import')}</div>
-                  <FileUpload
-                    id='importHmd'
-                    fileType='text'
-                    readOnly={activeContent === 'viewMode'}
-                    btnText={t('txt-upload')}
-                    handleFileChange={this.handleFileChange} />
-                  <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport} disabled={activeContent === 'viewMode'}>{t('txt-import')}</Button>  
-                </div>
-              }
+              <div className='sub-section'>
+                <div className='import-header'>{t('txt-import')}</div>
+                <FileUpload
+                  id='importHmd'
+                  fileType='zip'
+                  readOnly={activeContent === 'viewMode'}
+                  btnText={t('txt-upload')}
+                  handleFileChange={this.handleFileChange} />
+                <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport} disabled={activeContent === 'viewMode'}>{t('txt-import')}</Button>  
+              </div>
             </div>
           </div>
 
