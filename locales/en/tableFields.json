@@ -694,6 +694,15 @@
     "isConnected": "Host Status"
   },
   "hmdDeviceFields": {
+    "remarks": "Remarks",
+    "cpu": "CPU",
+    "ram": "RAM",
+    "hostID": "Host ID",
+    "hostName": "Hostname",
+    "system": "System",
+    "deviceType": "Device Type",
+    "userAccount": "User Account",
+    "shareFolders": "Share Folders",
     "firewallInfo": "Firewall Info",
     "initProgramInfo": "Init Program Info",
     "installs": "Installs",

@@ -80,6 +80,21 @@ class VansPatchGroup extends Component {
     });
   }
   /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', 'software', 'deviceCount', '_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
    * Construct Vans Patch table
    * @method
    */
@@ -94,7 +109,7 @@ class VansPatchGroup extends Component {
         name: val,
         label: val === '_menu' ? ' ' : f(`vansPatchFields.${val}`),
         options: {
-          sort: false,
+          sort: this.checkSortable(val),
           viewColumns: true,
           customBodyRenderLite: (dataIndex) => {
             const allValue = tempVansRecord.dataContent[dataIndex];
@@ -225,6 +240,7 @@ class VansPatchGroup extends Component {
     const {locale} = this.context;
     const {datetime, vansRecordSearch, vansRecord} = this.state;
     const tableOptions = {
+      serverSide: false,
       viewColumns: false,
       pagination: false,
       tableBodyHeight: '57vh',

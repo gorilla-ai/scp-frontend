@@ -44,6 +44,21 @@ class VansPatchDetails extends Component {
     this.getVansDetailsTable();
   }
   /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['taskStatusDescription'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
    * Construct Vans Details table
    * @method
    */
@@ -58,7 +73,7 @@ class VansPatchDetails extends Component {
         name: val,
         label: f(`vansPatchFields.${val}`),
         options: {
-          sort: false,
+          sort: this.checkSortable(val),
           viewColumns: true,
           customBodyRenderLite: (dataIndex) => {
             const allValue = tempVansRecord.dataContent[dataIndex];
@@ -169,6 +184,7 @@ class VansPatchDetails extends Component {
     const {vansPatchDetails, activeVansPatch} = this.props;
     const {vansDetails} = this.state;
     const tableOptions = {
+      serverSide: false,
       viewColumns: false,
       pagination: false,
       tableBodyHeight: '51vh',

@@ -103,14 +103,14 @@ class HmdMoreInfo extends Component {
    * @returns HTML DOM
    */
   displayDeviceInfo = () => {
-    const tableFields = ['browserInfo', 'trustedSite', 'cpu', 'ram', 'disks', 'antiVirus', 'userName', 'groups'];
+    const hostFields = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders', 'remarks', 'browserInfo', 'trustedSite', 'antiVirus', 'userName', 'groups'];    
     const moreFields = ['initProgramInfo', 'installs', 'firewallInfo'];
 
     return (
       <div>
         <table className='c-table main-table'>
           <tbody>
-            {tableFields.map(this.displayDataInfo)}
+            {hostFields.map(this.displayDataInfo)}
             {moreFields.map(this.displayMoreTable)}
           </tbody>
         </table>
