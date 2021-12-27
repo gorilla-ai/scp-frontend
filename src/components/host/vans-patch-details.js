@@ -71,7 +71,7 @@ class VansPatchDetails extends Component {
             } else if (val === 'receiveDttm' || val === 'receiveCompleteDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
             } else if (val === 'hbDttm') {
-              return <span>{helper.getFormattedDate(deviceInfo[value], 'local')}</span>
+              return <span>{helper.getFormattedDate(deviceInfo[val], 'local')}</span>
             } else if (val === 'isConnected') {
               const status = deviceInfo[val] ? t('txt-connected') : t('txt-disconnected');
               let color = '';
@@ -117,7 +117,15 @@ class VansPatchDetails extends Component {
             } else if (val === 'taskStatusDescription') {
               let desc = '';
 
-              if (value === -1) {
+              if (value === 1) {
+                desc = t('hmd-scan.txt-taskReceived');
+              } else if (value === 2) {
+                desc = t('hmd-scan.txt-downloadCompleted');
+              } else if (value === 3) {
+                desc = t('hmd-scan.txt-executeCompleted');
+              } else if (value === 4) {
+                desc = t('hmd-scan.txt-executeAberrant');
+              } else if (value === -1) {
                 desc = t('hmd-scan.txt-netProxyFail');
               } else if (value === -2) {
                 desc = t('hmd-scan.txt-msgQueueFail');
@@ -137,11 +145,12 @@ class VansPatchDetails extends Component {
   /**
    * Handle PDF export
    * @method
+   * @param {string} type - file type ('pdf' or 'csv')
    */
-  exportPdf = () => {
+  exportFile = (type) => {
     const {baseUrl, contextRoot} = this.context;
     const {activeVansPatch, vansSearch} = this.props;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_search/_vansPatch/_pdf`;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_search/_vansPatch/_${type}`;
     const requestData = {
       groupId: activeVansPatch.groupId,
       keyword: vansSearch.keyword,
@@ -172,7 +181,10 @@ class VansPatchDetails extends Component {
     return (
       <div>
         <Button variant='outlined' color='primary' className='standard back-btn' onClick={this.props.toggleVansPatchDetails}>{t('txt-backToList')}</Button>
-        <Button variant='contained' color='primary' className='btn pdf-btn details' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
+        <div className='export-btn details'>
+          <Button variant='contained' color='primary' className='btn' onClick={this.exportFile.bind(this, 'csv')}>{t('txt-exportCSV')}</Button>
+          <Button variant='contained' color='primary' className='btn' onClick={this.exportFile.bind(this, 'pdf')}>{t('txt-exportPDF')}</Button>
+        </div>
 
         {vansInfo &&
           <table className='c-table main-table align-center with-border patch-table'>
@@ -188,9 +200,12 @@ class VansPatchDetails extends Component {
             <tbody>
               <tr>
                 <td>{t('hmd-scan.txt-patch-' + vansInfo.actionModel)}</td>
-                <td>
+                <td style={{textAlign: 'left'}}>
                   <div><span className='cell-header'>{f('vansPatchFields.scriptFileName')}</span>: {vansInfo.scriptFileName}</div>
                   <div><span className='cell-header'>{f('vansPatchFields.executableFileName')}</span>: {vansInfo.executableFileName}</div>
+                  <div><span className='cell-header'>{t('hmd-scan.txt-patchProduct')}</span>: {vansInfo.patchProduct}</div>
+                  <div><span className='cell-header'>{t('hmd-scan.txt-patchVendor')}</span>: {vansInfo.patchVendor}</div>
+                  <div><span className='cell-header'>{t('hmd-scan.txt-patchVersion')}</span>: {vansInfo.patchVersion}</div>
                 </td>
                 <td>{vansInfo.memo}</td>
                 <td>{helper.getFormattedDate(activeVansPatch.taskCreateDttm, 'local')}</td>

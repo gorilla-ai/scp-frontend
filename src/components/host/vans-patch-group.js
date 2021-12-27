@@ -243,7 +243,9 @@ class VansPatchGroup extends Component {
     return (
       <div className='filter'>
         {vansRecord.dataContent && vansRecord.dataContent.length > 0 &&
-          <Button variant='contained' color='primary' className='btn pdf-btn group' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
+          <div className='export-btn group'>
+            <Button variant='contained' color='primary' className='btn' onClick={this.exportPdf}>{t('txt-exportPDF')}</Button>
+          </div>
         }
         <div className='filter-wrapper'>
           <div className='filter-section'>

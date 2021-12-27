@@ -918,7 +918,7 @@ html[data-theme='dark'] {
           color: var(--primaryContentHeader);
         }
         .status-item {
-          display: block;
+          display: inline-block;
           padding: 5px;
           border-radius: 5px;
         }
@@ -2209,15 +2209,18 @@ html[data-theme='dark'] {
   .back-btn {
     top: 5px;
   }
-  .pdf-btn {
+  .export-btn {
     position: absolute;
+    right: 5px;
     &.group {
       top: 35px;
-      right: 10px;
     }
     &.details {
       top: 15px;
-      right: 10px;
+    }
+    button {
+      float: left;
+      margin-right: 10px;
     }
   }
   .patch-table {
@@ -2228,7 +2231,7 @@ html[data-theme='dark'] {
     color: var(--primaryContentHeader);
   }
   .status-item {
-    display: block;
+    display: inline-block;
     padding: 5px;
     border-radius: 5px;
   }

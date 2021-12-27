@@ -477,13 +477,23 @@ class HMDscanInfo extends Component {
                 backgroundColor = '#22ac38';
               } else if (value === 'Failure') {
                 backgroundColor = '#d10d25';
+              }else if (value === 'NotSupport') {
+                backgroundColor = '#d10d25';
               }
 
               return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
             } else if (tempData === 'taskStatusDescription') {
               let desc = '';
 
-              if (value === -1) {
+              if (value === 1) {
+                desc = t('hmd-scan.txt-taskReceived');
+              } else if (value === 2) {
+                desc = t('hmd-scan.txt-downloadCompleted');
+              } else if (value === 3) {
+                desc = t('hmd-scan.txt-executeCompleted');
+              } else if (value === 4) {
+                desc = t('hmd-scan.txt-executeAberrant');
+              } else if (value === -1) {
                 desc = t('hmd-scan.txt-netProxyFail');
               } else if (value === -2) {
                 desc = t('hmd-scan.txt-msgQueueFail');

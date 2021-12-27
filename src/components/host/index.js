@@ -407,6 +407,11 @@ class HostController extends Component {
       nccstSelectedList: [],
       nccstCheckAll: false,
       limitedDepartment: [],
+      formValidation: {
+        frMotp: {
+          valid: true
+        }
+      },
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -4022,6 +4027,8 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displayfrMotpContent = () => {
+    const {frMotp, formValidation} = this.state;
+
     return (
       <div>
         <div className='desc-text' style={{marginBottom: '15px'}}>{t('host.txt-frMotpMsg')}</div>
@@ -4031,7 +4038,10 @@ class HostController extends Component {
           variant='outlined'
           fullWidth={true}
           size='small'
-          value={this.state.frMotp}
+          required
+          error={!formValidation.frMotp.valid}
+          helperText={formValidation.frMotp.valid ? '' : t('txt-required')}
+          value={frMotp}
           onChange={this.handleDataChange} />
       </div>
     )
@@ -4066,12 +4076,29 @@ class HostController extends Component {
    */
   confirmFrMotp = () => {
     const {baseUrl, session} = this.context;
-    const {frMotp, vansPatch} = this.state;
+    const {frMotp, vansPatch, formValidation} = this.state;
     const url = `${baseUrl}/api/frmotp/_verify`;
     const requestData = {
       otp: frMotp,
       accountId: session.accountId,
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (frMotp) {
+      tempFormValidation.frMotp.valid = true;
+    } else {
+      tempFormValidation.frMotp.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     this.ah.one({
       url,
