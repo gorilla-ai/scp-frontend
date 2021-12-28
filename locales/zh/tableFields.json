@@ -710,7 +710,7 @@
     "trustedSite": "信任網站清單",
     "cpu": "CPU資訊",
     "ram": "記憶體容量",
-    "disks": "硬碟剩餘空間",
+    "disks": "硬碟",
     "antiVirus": "防毒軟體資訊",
     "userName": "登入帳號",
     "groups": "群組",
@@ -731,6 +731,11 @@
     "displayName": "軟體名稱",
     "displayVersion": "軟體版本",
     "publisher": "發行者",
-    "installDate": "安裝日期"
+    "installDate": "安裝日期",
+    "productName": "名稱",
+    "productPath": "位置",
+    "productState": "啟用狀態",
+    "productStatus": "更新狀態",
+    "timestamp": "最後更新時間"
   }
 }

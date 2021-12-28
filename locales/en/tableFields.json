@@ -731,6 +731,11 @@
     "displayName": "Display Name",
     "displayVersion": "Display Version",
     "publisher": "Publisher",
-    "installDate": "Install Date"
+    "installDate": "Install Date",
+    "productName": "Name",
+    "productPath": "Path",
+    "productState": "State",
+    "productStatus": "Status",
+    "timestamp": "Timestamp"
   }
 }

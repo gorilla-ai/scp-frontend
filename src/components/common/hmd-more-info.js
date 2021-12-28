@@ -50,6 +50,11 @@ class HmdMoreInfo extends Component {
    * @returns HTML DOM
    */
   displayItem = (field, val, i) => {
+    if (val === 'timestamp') {
+      const value = helper.getFormattedDate(field[val], 'local');
+      return <div key={i} className='item'>{f('hmdDeviceFields.' + val)}: {value}</div>
+    }
+
     return <div key={i} className='item'>{f('hmdDeviceFields.' + val)}: {field[val]}</div>
   }
   /**
@@ -63,7 +68,9 @@ class HmdMoreInfo extends Component {
   displayFieldInfo = (type, val, i) => {
     let tableFields = '';
 
-    if (type === 'initProgramInfo') {
+    if (type === 'antiVirus') {
+      tableFields = ['productName', 'productPath', 'productState', 'productStatus', 'timestamp'];
+    } else if (type === 'initProgramInfo') {
       tableFields = ['name', 'command', 'location'];
     } else if (type === 'installs') {
       tableFields = ['name', 'displayName', 'displayVersion', 'publisher', 'installDate'];
@@ -103,8 +110,8 @@ class HmdMoreInfo extends Component {
    * @returns HTML DOM
    */
   displayDeviceInfo = () => {
-    const hostFields = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders', 'remarks', 'browserInfo', 'trustedSite', 'antiVirus', 'userName', 'groups'];    
-    const moreFields = ['initProgramInfo', 'installs', 'firewallInfo'];
+    const hostFields = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders', 'remarks', 'browserInfo', 'trustedSite', 'userName', 'groups'];
+    const moreFields = ['antiVirus', 'initProgramInfo', 'installs', 'firewallInfo'];
 
     return (
       <div>

@@ -1337,7 +1337,7 @@ class HostController extends Component {
         } else if (condition === '>') {
           mode = 'gt';
         } else if (condition === '<') {
-          mode = 'le';
+          mode = 'lt';
         }
 
         return {
