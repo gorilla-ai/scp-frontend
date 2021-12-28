@@ -1223,7 +1223,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
+    const {account, activeTab, datetime, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -1293,14 +1293,11 @@ class HostController extends Component {
     }
 
     if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
-      const datetime = this.getHostDateTime();
+      const DateTime = helper.getFormattedDate(datetime, 'local');
+      const formattedDatetime = DateTime.substr(0, 10);
       const searchDatetime = {
         from: moment(deviceSearch.theLatestTaskResponseDttm.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
         to: moment(deviceSearch.theLatestTaskResponseDttm.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-      };
-      const formattedDatetime = {
-        from: datetime.from.substr(0, 10),
-        to: datetime.to.substr(0, 10)
       };
       const formattedSearchDatetime = {
         from: searchDatetime.from.substr(-10),
@@ -1313,8 +1310,8 @@ class HostController extends Component {
       }
 
       requestData.theLatestTaskResponseDttm = [
-        formattedDatetime.from + formattedSearchDatetime.from,
-        formattedDatetime.to + formattedSearchDatetime.to
+        formattedDatetime + formattedSearchDatetime.from,
+        formattedDatetime + formattedSearchDatetime.to
       ];
     }
 

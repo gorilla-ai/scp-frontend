@@ -1039,6 +1039,8 @@ class HMDsettings extends Component {
     let formData = new FormData();
     formData.append('file', hmdFile);
 
+    if (!hmdFile) return;
+
     ah.one({
       url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import`,
       data: formData,
@@ -1475,7 +1477,7 @@ class HMDsettings extends Component {
                   id='importHmd'
                   fileType='zip'
                   readOnly={activeContent === 'viewMode'}
-                  btnText={t('txt-upload')}
+                  btnText={t('txt-selectFile')}
                   handleFileChange={this.handleFileChange} />
                 <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport} disabled={activeContent === 'viewMode'}>{t('txt-import')}</Button>  
               </div>

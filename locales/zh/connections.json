@@ -1157,7 +1157,7 @@
     "owner": "所屬人員",
     "floorName": "樓層名稱",
     "userAccount": "使用者帳號",
-    "userName": "人員",
+    "userName": "登入帳號",
     "groups": "群組",
     "disks": "$t(txt-disks)",
     "shareFolders": "$t(txt-shareFolders)",
