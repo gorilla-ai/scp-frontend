@@ -37,7 +37,7 @@ class HmdMoreInfo extends Component {
     return (
       <tr key={i}>
         <td style={{width: '180px'}}>{f('hmdDeviceFields.' + val)}</td>
-        <td>{this.props.hostData[val] || NOT_AVAILABLE}</td>
+        <td className='long-field'>{this.props.hostData[val] || NOT_AVAILABLE}</td>
       </tr>
     )
   }
