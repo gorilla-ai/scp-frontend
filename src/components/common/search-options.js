@@ -386,6 +386,9 @@ class SearchOptions extends Component {
 SearchOptions.contextType = BaseDataContext;
 
 SearchOptions.propTypes = {
+  dateType: PropTypes.string,
+  datetime: PropTypes.object,
+  showFilter: PropTypes.bool,
   handleDateChange: PropTypes.func.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired
 };

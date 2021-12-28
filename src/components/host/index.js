@@ -4,6 +4,10 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import { MuiPickersUtilsProvider, KeyboardTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
+
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
@@ -48,7 +52,7 @@ import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version'];
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttm'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -161,11 +165,11 @@ const HOST_SORT_LIST = [
     sort: 'desc'
   },
   {
-    name: 'theLastestTaskResponseDttm',
+    name: 'theLatestTaskResponseDttm',
     sort: 'asc'
   },
   {
-    name: 'theLastestTaskResponseDttm',
+    name: 'theLatestTaskResponseDttm',
     sort: 'desc'
   }
 ];
@@ -252,7 +256,7 @@ class HostController extends Component {
         departmentId: '',
         limitedRole: false
       },
-      showFilter: true,
+      showFilter: false,
       openQueryOpen: false,
       saveQueryOpen: false,
       uploadFileOpen: false,
@@ -338,6 +342,10 @@ class HostController extends Component {
         annotation: [{
           input: ''
         }],
+        theLatestTaskResponseDttm: {
+          from: '',
+          to: ''
+        },
         userName: [{
           input: ''
         }],
@@ -358,6 +366,7 @@ class HostController extends Component {
         scanInfo: [],
         status: [],
         annotation: [],
+        theLatestTaskResponseDttm: {},
         userName: [],
         groups: [],
         version: []
@@ -1214,7 +1223,7 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {account, activeTab, filterNav, deviceSearchList, hmdSearch} = this.state;
+    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -1283,6 +1292,32 @@ class HostController extends Component {
       };
     }
 
+    if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
+      const datetime = this.getHostDateTime();
+      const searchDatetime = {
+        from: moment(deviceSearch.theLatestTaskResponseDttm.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(deviceSearch.theLatestTaskResponseDttm.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+      const formattedDatetime = {
+        from: datetime.from.substr(0, 10),
+        to: datetime.to.substr(0, 10)
+      };
+      const formattedSearchDatetime = {
+        from: searchDatetime.from.substr(-10),
+        to: searchDatetime.to.substr(-10)
+      };
+
+      if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
+        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+        return;
+      }
+
+      requestData.theLatestTaskResponseDttm = [
+        formattedDatetime.from + formattedSearchDatetime.from,
+        formattedDatetime.to + formattedSearchDatetime.to
+      ];
+    }
+
     if (deviceSearchList.userName.length > 0) {
       requestData.userNameArray = deviceSearchList.userName;
     }
@@ -1292,7 +1327,24 @@ class HostController extends Component {
     }
 
     if (deviceSearchList.version.length > 0) {
-      requestData.versionArray = deviceSearchList.version;
+      requestData.versionArray = _.map(deviceSearchList.version, val => {
+        const condition = val.substr(0, 1);
+        const version = val.substr(2);
+        let mode = '';
+
+        if (condition === '=') {
+          mode = 'eq';
+        } else if (condition === '>') {
+          mode = 'gt';
+        } else if (condition === '<') {
+          mode = 'le';
+        }
+
+        return {
+          mode,
+          version
+        }
+      });
     }
 
     return requestData;
@@ -2246,6 +2298,20 @@ class HostController extends Component {
     });
   }
   /**
+   * Set device filter data for time picker
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  setTimePickerChange = (type, newDatetime) => {
+    let tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch.theLatestTaskResponseDttm[type] = newDatetime;
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
+    });
+  }
+  /**
    * Display filter form
    * @method
    * @param {string} val - filter data
@@ -2253,9 +2319,22 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   showFilterForm = (val, i) => {
-    const {deviceSearchList} = this.state;
+    const {deviceSearch, deviceSearchList} = this.state;
+    let value = '';
 
     if (!deviceSearchList[val]) return;
+
+    if (val === 'theLatestTaskResponseDttm') {
+      if (deviceSearch.theLatestTaskResponseDttm.from) {
+        value = moment(deviceSearch.theLatestTaskResponseDttm.from).local().format('HH:mm')  + ' ~ ';
+      }
+
+      if (deviceSearch.theLatestTaskResponseDttm.to) {
+        value += moment(deviceSearch.theLatestTaskResponseDttm.to).local().format('HH:mm');
+      }
+    } else {
+      value = deviceSearchList[val].join(', ');
+    }
 
     return (
       <div key={i} className='group'>
@@ -2266,7 +2345,7 @@ class HostController extends Component {
           variant='outlined'
           fullWidth
           size='small'
-          value={deviceSearchList[val].join(', ')}
+          value={value}
           onClick={this.handleFilterclick.bind(this, val)}
           InputProps={{
             readOnly: true
@@ -2315,6 +2394,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
+    const {locale} = this.context;
     const {queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
@@ -2322,6 +2402,13 @@ class HostController extends Component {
     };
     const defaultItemValue = activeFilter === 'status' ? {} : '';
     const filterTitle = queryData.displayName || t('txt-filter');
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);    
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -2347,15 +2434,40 @@ class HostController extends Component {
               horizontal: 'left',
             }}>
             <div className='content'>
-              <MultiInput
-                base={HostFilter}
-                defaultItemValue={{
-                  condition: '=',
-                  input: defaultItemValue
-                }}
-                value={deviceSearch[activeFilter]}
-                props={data}
-                onChange={this.setDeviceSearch.bind(this, activeFilter)} />
+              {activeFilter === 'theLatestTaskResponseDttm' &&
+                <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                  <KeyboardTimePicker
+                    id='hostFilterTimePickerFrom'
+                    className='date-time-picker'
+                    inputVariant='outlined'
+                    variant='inline'
+                    invalidDateMessage={t('txt-invalidDateMessage')}
+                    ampm={false}
+                    value={deviceSearch[activeFilter].from}
+                    onChange={this.setTimePickerChange.bind(this, 'from')} />
+                  <div className='between'>~</div>
+                  <KeyboardTimePicker
+                    id='hostFilterTimePickerTo'
+                    className='date-time-picker'
+                    inputVariant='outlined'
+                    variant='inline'
+                    invalidDateMessage={t('txt-invalidDateMessage')}
+                    ampm={false}
+                    value={deviceSearch[activeFilter].to}
+                    onChange={this.setTimePickerChange.bind(this, 'to')} />
+                </MuiPickersUtilsProvider>
+              }
+              {activeFilter !== 'theLatestTaskResponseDttm' &&
+                <MultiInput
+                  base={HostFilter}
+                  defaultItemValue={{
+                    condition: '=',
+                    input: defaultItemValue
+                  }}
+                  value={deviceSearch[activeFilter]}
+                  props={data}
+                  onChange={this.setDeviceSearch.bind(this, activeFilter)} />
+              }
             </div>
           </PopoverMaterial>
           {FILTER_LIST.map(this.showFilterForm)}
@@ -2404,6 +2516,10 @@ class HostController extends Component {
         annotation: [{
           input: ''
         }],
+        theLatestTaskResponseDttm: {
+          from: '',
+          to: ''
+        },
         userName: [{
           input: ''
         }],
@@ -2424,6 +2540,7 @@ class HostController extends Component {
         scanInfo: [],
         status: [],
         annotation: [],
+        theLatestTaskResponseDttm: {},
         userName: [],
         groups: [],
         version: []
@@ -2931,7 +3048,7 @@ class HostController extends Component {
       },
       {
         name: 'latestTime',
-        path: 'theLastestTaskResponseDttm',
+        path: 'theLatestTaskResponseDttm',
         icon: 'clock'
       },
       {

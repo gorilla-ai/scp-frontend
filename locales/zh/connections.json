@@ -1182,7 +1182,7 @@
     "netproxyIp": "NetProxy IP",
     "netproxyName": "NetProxy 名稱",
     "latestTime": "最後掃描時間",
-    "theLastestTaskResponseDttm": "最後掃描時間"
+    "theLatestTaskResponseDttm": "最後回報主機時間"
   },
   "syslogFields": {
     "port": "接收Port",

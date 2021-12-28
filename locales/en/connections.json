@@ -1182,7 +1182,7 @@
     "netproxyIp": "NetProxy IP",
     "netproxyName": "NetProxy Name",
     "latestTime": "Last Scan",
-    "theLastestTaskResponseDttm": "Last Scan"
+    "theLatestTaskResponseDttm": "Latest Task Response Time"
   },
   "syslogFields": {
     "port": "Received Port",
