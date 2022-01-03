@@ -102,6 +102,7 @@ class VansPatchDetails extends Component {
 
               return <span className='status-item' style={{color, backgroundColor}}>{status}</span>
             } else if (val === 'taskStatus') {
+              let color = '#fff';
               let backgroundColor = '';
 
               if (value === 'Running') {
@@ -112,10 +113,14 @@ class VansPatchDetails extends Component {
                 backgroundColor = '#d10d25';
               } else if (value === 'NotSupport') {
                 backgroundColor = '#d10d25';
+              } else if (value === 'Waiting') {
+                color = '#000';
+                backgroundColor = '#d9d9d9';
               }
 
-              return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
+              return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
             } else if (val === 'executeStatus') {
+              let color = '#fff';
               let backgroundColor = '';
 
               if (value === 'Running') {
@@ -126,9 +131,12 @@ class VansPatchDetails extends Component {
                 backgroundColor = '#d10d25';
               } else if (value === 'NotSupport') {
                 backgroundColor = '#d10d25';
+              } else if (value === 'Waiting') {
+                color = '#000';
+                backgroundColor = '#d9d9d9';
               }
 
-              return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
+              return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
             } else if (val === 'taskStatusDescription') {
               let desc = '';
 

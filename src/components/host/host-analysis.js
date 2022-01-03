@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import {downloadLink} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -17,7 +18,6 @@ import PrivateDetails from '../common/private-details'
 import VansNotes from './vans-notes'
 import YaraRule from '../common/yara-rule'
 
-import {downloadLink} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
@@ -492,13 +492,16 @@ class HostAnalysis extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  exportPdf() {
-    const {baseUrl, contextRoot} = this.context
-    const {hostData, assessmentDatetime} = this.props
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdf`
+  /**
+   * Handle PDF download
+   * @method
+   */
+  exportPdf = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {hostData, assessmentDatetime} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdf`;
 
-    downloadLink(url, {uuid: hostData.ipDeviceUUID, startDttm: assessmentDatetime.from, endDttm: assessmentDatetime.to, page: 1, pageSize: 5})
-  
+    downloadLink(url, {uuid: hostData.ipDeviceUUID, startDttm: assessmentDatetime.from, endDttm: assessmentDatetime.to, page: 1, pageSize: 5});
   }
   render() {
     const {hostData} = this.props;

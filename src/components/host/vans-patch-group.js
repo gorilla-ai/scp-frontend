@@ -159,6 +159,7 @@ class VansPatchGroup extends Component {
                 </div>
               )
             } else if (val === 'taskStatus') {
+              let color = '#fff';
               let backgroundColor = '';
 
               if (value === 'Running') {
@@ -169,9 +170,12 @@ class VansPatchGroup extends Component {
                 backgroundColor = '#d10d25';
               } else if (value === 'NotSupport') {
                 backgroundColor = '#d10d25';
+              } else if (value === 'Waiting') {
+                color = '#000';
+                backgroundColor = '#d9d9d9';
               }
 
-              return <span className='status-item' style={{color: '#fff', backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
+              return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
             } else if (val === '_menu') {
               return (
                 <div className='table-menu menu active'>

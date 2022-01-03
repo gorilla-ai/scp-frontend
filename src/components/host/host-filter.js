@@ -54,7 +54,18 @@ class HostFilter extends Component {
 
     this.props.onChange({
       ...this.props.value,
-      [event.target.name]: inputValue
+      input: inputValue
+    });
+  }
+  /**
+   * Set condition filter input
+   * @method
+   * @param {object} event - event object
+   */
+  handleConditionChange = (event) => {
+    this.props.onChange({
+      ...this.props.value,
+      condition: event.target.value
     });
   }
   render() {
@@ -98,7 +109,7 @@ class HostFilter extends Component {
             fullWidth
             size='small'
             value={value.condition}
-            onChange={this.handleDataChange}>
+            onChange={this.handleConditionChange}>
             {filterList}
           </TextField>
           <TextField

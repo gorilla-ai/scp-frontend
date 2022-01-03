@@ -45,7 +45,7 @@ class SearchMark extends Component {
 
     return (
       <div>
-        <i className={'c-link fg fg-recode ' + value.color}></i>
+        <i className={'fg fg-recode ' + value.color}></i>
         <TextareaAutosize
           id='searchMarkInput'
           className='textarea-autosize mark-inputbox'

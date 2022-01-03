@@ -16,18 +16,18 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import PictureAsPdfOutlinedIcon from '@material-ui/icons/PictureAsPdfOutlined';
 import PopoverMaterial from '@material-ui/core/Popover'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
 import Tab from '@material-ui/core/Tab'
 import Tabs from '@material-ui/core/Tabs'
 
-import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
-
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import Popover from 'react-ui/build/src/components/popover'
@@ -866,7 +866,7 @@ class HostController extends Component {
   /**
    * Get and set host info data
    * @method
-   * @param {string} [options] - option for CSV export
+   * @param {string} [options] - option for CSV or PDF export
    */
   getHostData = (options) => {
     const {baseUrl} = this.context;
@@ -894,7 +894,7 @@ class HostController extends Component {
       requestData.areaUUID = currentFloor;
     }
 
-    if (options === 'csv') { //For CSV export
+    if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
       requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
@@ -1293,15 +1293,15 @@ class HostController extends Component {
     }
 
     if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
-      const DateTime = helper.getFormattedDate(datetime, 'local');
-      const formattedDatetime = DateTime.substr(0, 10);
+      const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
+      const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
       const searchDatetime = {
-        from: moment(deviceSearch.theLatestTaskResponseDttm.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        to: moment(deviceSearch.theLatestTaskResponseDttm.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.from, 'local'), //Format: '2022-01-03 00:45:33'
+        to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.to, 'local')
       };
       const formattedSearchDatetime = {
-        from: searchDatetime.from.substr(-10),
-        to: searchDatetime.to.substr(-10)
+        from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
+        to: searchDatetime.to.substr(-9)
       };
 
       if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
@@ -1310,8 +1310,8 @@ class HostController extends Component {
       }
 
       requestData.theLatestTaskResponseDttm = [
-        formattedDatetime + formattedSearchDatetime.from,
-        formattedDatetime + formattedSearchDatetime.to
+        moment(formattedDatetime + formattedSearchDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z', //Format: '2022-01-02T16:45:33Z'
+        moment(formattedDatetime + formattedSearchDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       ];
     }
 
@@ -3509,6 +3509,17 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
+   * Handle PDF download
+   * @method
+   */
+  getPDFfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`;
+    const requestData = this.getHostData('pdf');
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
    * Handle security diagnostic
    * @method
    */
@@ -4427,7 +4438,8 @@ class HostController extends Component {
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.exportSecurityDiagnostic} title={t('txt-exportSecurityDiagnostic')}><i className='fg fg-file-csv'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
+            <Button variant='outlined' color='primary' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getPDFfile} title={t('txt-txt-exportPDF')}><PictureAsPdfOutlinedIcon /></Button>
           </div>
 
           <SearchOptions
