@@ -817,7 +817,7 @@ class IncidentManagement extends Component {
         if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
             closeCheck = true
             deleteCheck = true
-            publishCheck = true
+            // publishCheck = true
         }
 
         if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
@@ -833,6 +833,11 @@ class IncidentManagement extends Component {
             closeCheck = false
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_SUBMITTED) {
             closeCheck = false
+
+            if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
+                publishCheck = true
+            }
+
         } else if (incident.info.status === constants.soc.INCIDENT_STATUS_DELETED) {
             if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
                 restartCheck = true
