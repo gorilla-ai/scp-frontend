@@ -2676,9 +2676,9 @@ class HostController extends Component {
       }
 
       if (severityTypeName = 'VANS Patch') { //Special case for Vans Patch
-        if (val.taskStatus === 'Complete') {
+        if (val.executeStatus === 'Complete') {
           status = t('txt-success');
-        } else if (val.taskStatus === 'Failure') {
+        } else if (val.executeStatus === 'Failure') {
           status = t('txt-fail');
         }
       }
@@ -4439,7 +4439,7 @@ class HostController extends Component {
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.exportSecurityDiagnostic} title={t('txt-exportSecurityDiagnostic')}><i className='fg fg-file-csv'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getPDFfile} title={t('txt-txt-exportPDF')}><PictureAsPdfOutlinedIcon /></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getPDFfile} title={t('txt-exportPDF')}><PictureAsPdfOutlinedIcon /></Button>
           </div>
 
           <SearchOptions
