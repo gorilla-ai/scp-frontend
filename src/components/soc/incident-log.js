@@ -243,7 +243,7 @@ class IncidentLog extends Component {
         let temp = {...this.state.incidentLog};
         temp[type] = Number(value);
         this.setState({
-            incidentRule: temp
+            incidentLog: temp
         }, () => {
             this.getData(type);
         });
@@ -260,7 +260,7 @@ class IncidentLog extends Component {
         temp.sort.desc = sort;
 
         this.setState({
-            incidentRule: temp
+            incidentLog: temp
         }, () => {
             this.getData();
         });
