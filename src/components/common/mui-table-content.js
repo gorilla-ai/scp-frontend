@@ -104,6 +104,11 @@ class MuiTableContent extends Component {
         viewColumns: {
           title: t('MuiDataTable.viewColumns.title'),
           titleAria: t('MuiDataTable.viewColumns.titleAria')
+        },
+        selectedRows: {
+          text: t('MuiDataTable.selectedRows.text'),
+          delete: t('MuiDataTable.selectedRows.delete'),
+          deleteAria: t('MuiDataTable.selectedRows.deleteAria')
         }
       },
       ...tableOptions

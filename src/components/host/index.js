@@ -287,6 +287,7 @@ class HostController extends Component {
       vansPatchOpen: false,
       vansPatchGroupOpen: false,
       vansPatchDetailsOpen: false,
+      vansPatchSelectedOpen: false,
       yaraRuleOpen: false,
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
@@ -429,6 +430,7 @@ class HostController extends Component {
       nccstSelectedList: [],
       nccstCheckAll: false,
       limitedDepartment: [],
+      patchSelectedItem: [],
       formValidation: {
         frMotp: {
           valid: true
@@ -3800,6 +3802,7 @@ class HostController extends Component {
     })
     .then(data => {
       this.setState({
+        vansPatchSelectedOpen: false,
         frMotpEnable: data
       }, () => {
         this.toggleVansPatch();
@@ -3853,15 +3856,25 @@ class HostController extends Component {
    */
   confirmVansPatch = (patch) => {
     const {baseUrl} = this.context;
-    const {account} = this.state;
+    const {account, patchSelectedItem} = this.state;
     const datetime = this.getHostDateTime();
-    const retriggerBody = {
+    let retriggerBody = {
       timestamp: [datetime.from, datetime.to],
-      ...this.getHostSafetyRequestData(),
       cmdJO: {
         cmds: ['executePatch']
       }
     };
+
+    if (patchSelectedItem.length > 0) {
+      retriggerBody.ipArray = _.map(patchSelectedItem, val => {
+        return val.ip;
+      });
+    } else {
+      retriggerBody = {
+        ...retriggerBody,
+        ...this.getHostSafetyRequestData()
+      };
+    }
 
     let formData = new FormData();
     formData.append('actionModel', patch.actionType);
@@ -3882,6 +3895,10 @@ class HostController extends Component {
       contentType: false
     })
     .then(data => {
+      this.setState({
+        patchSelectedItem: []
+      });
+
       helper.showPopupMsg(t('host.txt-patchSuccess'));
       this.toggleFrMotp('', 'close');
       this.toggleVansPatch();
@@ -3912,6 +3929,89 @@ class HostController extends Component {
     });
 
     this.handleCloseMenu();
+  }
+  /**
+   * Toggle vans patch selected modal dialog on/off
+   * @method
+   * @param {object} patchSelectedItem - user selected patch items
+   */
+  toggleVansPatchSelected = (patchSelectedItem) => {
+    this.setState({
+      vansPatchSelectedOpen: !this.state.vansPatchSelectedOpen,
+      patchSelectedItem: patchSelectedItem || []
+    });
+  }
+  /**
+   * Show vans patch info
+   * @method
+   * @param {string} val - individual patch item
+   * @param {number} i - index of the patch item
+   */
+  showPatchItem = (val, i) => {
+    return (
+      <tr key={i}>
+        <td>{val.ip}</td>
+        <td>{val.hostName}</td>
+        <td>{val.osType}</td>
+      </tr>
+    )
+  }
+  /**
+   * Display Vans Patch selected content
+   * @method
+   * @returns HTML DOM
+   */
+  displayVansPatchSelectedContent = () => {
+    return (
+      <div className='table-content'>
+        <table className='c-table main-table align-center with-border'>
+          <thead>
+            <tr>
+              <th>{t('ipFields.ip')}</th>
+              <th>{t('ipFields.hostName')}</th>
+              <th>{t('ipFields.system')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.patchSelectedItem.map(this.showPatchItem)}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  /**
+   * Display Vans Patch selected dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  vansPatchSelectedDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleVansPatchSelected},
+      confirm: {text: t('txt-confirm'), handler: this.checkFrMotp}
+    };
+
+    return (
+      <ModalDialog
+        id='vansPatchSelectedDialog'
+        className='modal-dialog'
+        title={t('hmd-scan.txt-reviewHostList')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayVansPatchSelectedContent()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Set input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
   }
   /**
    * Get vans patch details info
@@ -4183,16 +4283,6 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   /**
-   * Set input data change
-   * @method
-   * @param {object} event - event object
-   */
-  handleDataChange = (event) => {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-  }
-  /**
    * Display FR-MOTP dialog content
    * @method
    * @returns HTML DOM
@@ -4230,7 +4320,7 @@ class HostController extends Component {
 
     return (
       <ModalDialog
-        id='forgotPasswordDialog'
+        id='frMotpDialog'
         className='modal-dialog'
         title='FR-MOTP'
         draggable={true}
@@ -4303,6 +4393,7 @@ class HostController extends Component {
       vansPatchOpen,
       vansPatchGroupOpen,
       vansPatchDetailsOpen,
+      vansPatchSelectedOpen,
       yaraRuleOpen,
       hostAnalysisOpen,
       safetyDetailsOpen,
@@ -4362,12 +4453,6 @@ class HostController extends Component {
           this.uploadFileDialog()
         }
 
-        {vansPatchOpen &&
-          <VansPatch
-            toggleVansPatch={this.toggleVansPatch}
-            toggleFrMotp={this.toggleFrMotp} />
-        }
-
         {vansPatchGroupOpen &&
           <VansPatchGroup
             vansPatchGroup={vansPatchGroup}
@@ -4382,7 +4467,18 @@ class HostController extends Component {
             vansPatchDetails={vansPatchDetails}
             activeVansPatch={activeVansPatch}
             vansSearch={vansSearch}
-            toggleVansPatchDetails={this.toggleVansPatchDetails} />
+            toggleVansPatchDetails={this.toggleVansPatchDetails}
+            toggleVansPatchSelected={this.toggleVansPatchSelected} />
+        }
+
+        {vansPatchSelectedOpen &&
+          this.vansPatchSelectedDialog()
+        }
+
+        {vansPatchOpen &&
+          <VansPatch
+            toggleVansPatch={this.toggleVansPatch}
+            toggleFrMotp={this.toggleFrMotp} />
         }
 
         {frMotpOpen &&

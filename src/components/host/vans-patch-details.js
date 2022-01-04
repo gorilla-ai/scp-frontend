@@ -33,7 +33,9 @@ class VansPatchDetails extends Component {
         dataFieldsArr: ['ip', 'hostName', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'isConnected', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
         dataFields: [],
         dataContent: null
-      }
+      },
+      selectableRows: 'none',
+      rowsSelected: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -184,13 +186,66 @@ class VansPatchDetails extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
+   * Toggle table selectable on/off
+   * @method
+   * @param {string} selectableRows - selectable rows ('none' or 'multiple')
+   */
+  toggleTableSelectable = (selectableRows) => {
+    if (selectableRows === 'none') {
+      this.setState({
+        rowsSelected: []
+      });
+    }
+
+    this.setState({
+      selectableRows
+    });
+  }
+  /**
+   * Select failure items
+   * @method
+   */
+  selectFailureOnes = () => {
+    const {vansDetails, rowsSelected} = this.state;
+    let tempRowsSelected = [];
+
+    _.forEach(vansDetails.dataContent, (val, i) => {
+      if (val.executeStatus === 'Failure') {
+        tempRowsSelected.push(i);
+      }
+    });
+
+    this.setState({
+      rowsSelected: _.concat(rowsSelected, tempRowsSelected)
+    });
+  }
+  /**
+   * Handle selected row items
+   * @method
+   */
+  getSelectedItems = () => {
+    const {vansDetails, rowsSelected} = this.state;
+
+    if (rowsSelected.length > 0) {
+      const selectedItems = _.map(rowsSelected, val => {
+        return {
+          ip: vansDetails.dataContent[val].ipDeviceDTO.ip,
+          hostName: vansDetails.dataContent[val].ipDeviceDTO.hostName,
+          osType: vansDetails.dataContent[val].ipDeviceDTO.osType
+        }
+      });
+
+      this.props.toggleVansPatchSelected(selectedItems);
+    }
+  }
+  /**
    * Display vans patch record content
    * @method
    * @returns HTML DOM
    */
   displayVansPatchDetailsContent = () => {
     const {vansPatchDetails, activeVansPatch} = this.props;
-    const {vansDetails} = this.state;
+    const {vansDetails, selectableRows, rowsSelected} = this.state;
     const tableOptions = {
       serverSide: false,
       viewColumns: false,
@@ -198,6 +253,16 @@ class VansPatchDetails extends Component {
       tableBodyHeight: '51vh',
       draggableColumns: {
         enabled: false
+      },
+      selectableRows,
+      rowsSelected,
+      onRowSelectionChange: (currentRowsSelected, allRowsSelected, rowsSelected) => {
+        this.setState({
+          rowsSelected
+        });
+      },
+      customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
+        return null
       }
     };
     const vansInfo = activeVansPatch['vansPatchDescriptionDTO'];
@@ -239,6 +304,19 @@ class VansPatchDetails extends Component {
           </table>
         }
 
+        <div className='patch-btns'>
+          {selectableRows === 'none' &&
+            <Button variant='contained' color='primary' className='btn' onClick={this.toggleTableSelectable.bind(this, 'multiple')}>{t('hmd-scan.txt-rePatch')}</Button>
+          }
+          {selectableRows === 'multiple' &&
+            <React.Fragment>
+              <Button variant='outlined' color='primary' className='standard' onClick={this.toggleTableSelectable.bind(this, 'none')}>{t('txt-cancel')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.selectFailureOnes}>{t('hmd-scan.txt-patchFailure')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.getSelectedItems} disabled={rowsSelected.length === 0}>Vans Patch</Button>
+            </React.Fragment>
+          }
+        </div>
+
         <MuiTableContent
           data={vansDetails}
           tableOptions={tableOptions}
@@ -273,7 +351,8 @@ VansPatchDetails.propTypes = {
   vansPatchDetails: PropTypes.array.isRequired,
   activeVansPatch: PropTypes.object.isRequired,
   vansSearch: PropTypes.object.isRequired,
-  toggleVansPatchDetails: PropTypes.func.isRequired
+  toggleVansPatchDetails: PropTypes.func.isRequired,
+  toggleVansPatchSelected: PropTypes.func.isRequired
 };
 
 export default VansPatchDetails;
