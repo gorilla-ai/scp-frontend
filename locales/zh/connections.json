@@ -825,6 +825,9 @@
     "txt-patchVendor": "軟體登錄廠商",
     "txt-patchVersion": "軟體登錄版本",
     "txt-readyPatch": "開始派送",
+    "txt-rePatch": "重新派送",
+    "txt-patchFailure": "選擇失敗的",
+    "txt-reviewHostList": "確認主機清單",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB版本",
     "txt-eventsLogCount": "事件日誌數量",
@@ -1256,6 +1259,11 @@
     "viewColumns": {
       "title": "顯示欄位",
       "titleAria": "顯示/隱藏欄位"
+    },
+    "selectedRows": {
+      "text": "筆資料已被選擇",
+      "delete": "刪除",
+      "deleteAria": "刪除已選擇資料"
     }
   }
 }

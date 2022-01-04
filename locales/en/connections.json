@@ -825,6 +825,9 @@
     "txt-patchVendor": "Patch Vendor",
     "txt-patchVersion": "Patch Version",
     "txt-readyPatch": "Ready to Patch",
+    "txt-rePatch": "Patch Again",
+    "txt-patchFailure": "Select failure ones",
+    "txt-reviewHostList": "Review Host List",
     "txt-yaraRules": "Yara Rules",
     "txt-gcbVersion": "GCB Version",
     "txt-eventsLogCount": "Events Log Count",
@@ -1256,6 +1259,11 @@
     "viewColumns": {
       "title": "Show Columns",
       "titleAria": "Show/Hide Table Columns"
+    },
+    "selectedRows": {
+      "text": "row(s) selected",
+      "delete": "Delete",
+      "deleteAria": "Delete Selected Rows"
     }
   }
 }

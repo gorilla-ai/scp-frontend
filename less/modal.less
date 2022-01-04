@@ -331,7 +331,7 @@ html[data-theme='dark'] {
         margin-top: 10px;
         background-color: var(--paginationBtnBackground);
         &:hover:not([disabled]) {
-          background-color: var(--buttonHoverColor);
+          background-color: var(--formBackground);
         }
       }
     }
@@ -2223,9 +2223,20 @@ html[data-theme='dark'] {
       margin-right: 10px;
     }
   }
+  .patch-btns {
+    position: absolute;
+    right: 5px;
+    button {
+      float: left;
+      margin-right: 10px;
+    }
+  }
   .patch-table {
     margin-top: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+  }
+  .mui-table-content {
+    margin-top: 60px;
   }
   .cell-header {
     color: var(--primaryContentHeader);
@@ -2706,5 +2717,10 @@ html[data-theme='dark'] {
   }
   .item {
     margin-bottom: 5px;
+  }
+}
+#vansPatchSelectedDialog-content {
+  .table-content {
+    margin: 10px 20px;
   }
 }
