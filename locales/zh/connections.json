@@ -450,7 +450,8 @@
     "txt-mark": "標記",
     "txt-parentDept": "直屬設備",
     "txt-frMotpMsg": "請輸入FR-MOTP所顯示的驗證碼",
-    "txt-patchSuccess": "派送成功"
+    "txt-patchSuccess": "派送成功",
+    "txt-csvFileError": "CSV檔案欄位錯誤"
   },
 
   "alert": {

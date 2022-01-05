@@ -38,6 +38,7 @@ import FileUpload from '../common/file-upload'
 import HMDsettings from './hmd-settings'
 import HostAnalysis from './host-analysis'
 import HostFilter from './host-filter'
+import ImportFile from './import-file'
 import Pagination from '../common/pagination'
 import QueryOpenSave from '../common/query-open-save'
 import SafetyDetails from './safety-details'
@@ -52,6 +53,7 @@ import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttm'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
@@ -260,6 +262,7 @@ class HostController extends Component {
       openQueryOpen: false,
       saveQueryOpen: false,
       uploadFileOpen: false,
+      importCsvOpen: false,
       hmdFile: {},
       notifyEmailData: [],
       queryModalType: '',
@@ -1807,8 +1810,7 @@ class HostController extends Component {
                 name='nccstCheckAll'
                 checked={nccstCheckAll}
                 onChange={this.toggleNCCSTcheckAll}
-                color='primary'
-              />
+                color='primary' />
             }
             label={t('txt-selectAll')} />
           {hitCveList.map(this.showNccstCheckboxList)}
@@ -2399,9 +2401,24 @@ class HostController extends Component {
       activeFilter,
       vansDeviceStatusList
     };
-    const defaultItemValue = activeFilter === 'status' ? {} : '';
     const filterTitle = queryData.displayName || t('txt-filter');
+    let defaultItemValue = {};
     let dateLocale = locale;
+
+    if (activeFilter === 'status') {
+      defaultItemValue = {
+        input: {}
+      };
+    } else if (activeFilter === 'version') {
+      defaultItemValue = {
+        condition: '=',
+        input: ''
+      };
+    } else {
+      defaultItemValue = {
+        input: ''
+      };
+    }
 
     if (locale === 'zh') {
       dateLocale += '-tw';
@@ -2457,15 +2474,17 @@ class HostController extends Component {
                 </MuiPickersUtilsProvider>
               }
               {activeFilter !== 'theLatestTaskResponseDttm' &&
-                <MultiInput
-                  base={HostFilter}
-                  defaultItemValue={{
-                    condition: '=',
-                    input: defaultItemValue
-                  }}
-                  value={deviceSearch[activeFilter]}
-                  props={data}
-                  onChange={this.setDeviceSearch.bind(this, activeFilter)} />
+                <React.Fragment>
+                  <MultiInput
+                    base={HostFilter}
+                    defaultItemValue
+                    value={deviceSearch[activeFilter]}
+                    props={data}
+                    onChange={this.setDeviceSearch.bind(this, activeFilter)} />
+                  {activeFilter === 'ip' &&
+                    <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport}>{t('network-inventory.txt-batchUploadIp')}</Button>
+                  }
+                </React.Fragment>
               }
             </div>
           </PopoverMaterial>
@@ -3775,6 +3794,61 @@ class HostController extends Component {
     })
   }
   /**
+   * Toggle CSV import dialog on/off
+   * @method
+   */
+  toggleCsvImport = () => {
+    this.setState({
+      importCsvOpen : !this.state.importCsvOpen
+    });
+
+    this.handlePopoverClose();
+  }
+  /**
+   * Handle CSV import confirm 
+   * @method
+   * @param {array.<array>} csvData - upload CSV data
+   */
+  confirmCsvImport = (csvData) => {
+    let tempDeviceSearchList = {...this.state.deviceSearchList};
+    let validData = true;
+    let validIpFormat = true;
+    let formattedData = [];
+
+    if (csvData.length > 0) {
+      _.forEach(csvData, val => {
+        if (val.length > 1) { //Check CSV column count
+          validData = false;
+          return;
+        }
+
+        _.forEach(val, val2 => {
+          if (!IP_PATTERN.test(val2)) { //Check IP format
+            validIpFormat = false;
+            return;
+          }
+
+          formattedData.push({
+            input: val2
+          });
+        })
+      })
+    }
+
+    if (!validData) {
+      helper.showPopupMsg(t('host.txt-csvFileError'));
+      return;
+    }
+
+    if (!validIpFormat) {
+      helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
+      return;
+    }
+
+    this.setDeviceSearch('ip', formattedData);
+    this.toggleCsvImport();
+  }
+  /**
    * Toggle yara rule modal dialog on/off
    * @method
    */
@@ -4387,6 +4461,7 @@ class HostController extends Component {
       openQueryOpen,
       saveQueryOpen,
       uploadFileOpen,
+      importCsvOpen,
       datetime,
       assessmentDatetime,
       frMotpOpen,
@@ -4451,6 +4526,12 @@ class HostController extends Component {
 
         {uploadFileOpen &&
           this.uploadFileDialog()
+        }
+
+        {importCsvOpen &&
+          <ImportFile
+            toggleCsvImport={this.toggleCsvImport}
+            confirmCsvImport={this.confirmCsvImport} />
         }
 
         {vansPatchGroupOpen &&

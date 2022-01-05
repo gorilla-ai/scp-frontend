@@ -450,7 +450,8 @@
     "txt-mark": "Mark",
     "txt-parentDept": "Parent Department",
     "txt-frMotpMsg": "Please enter FR-MOTP code",
-    "txt-patchSuccess": "Patch Success"
+    "txt-patchSuccess": "Patch Success",
+    "txt-csvFileError": "CSV column error"
   },
 
   "alert": {

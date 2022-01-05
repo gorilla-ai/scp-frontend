@@ -2302,7 +2302,7 @@ class NetworkInventory extends Component {
           <FileUpload
             id='csvFileInput'
             fileType='csv'
-            supportText={t('network-inventory.txt-batchUploadIp')}
+            supportText={titleText}
             btnText={t('txt-upload')}
             handleFileChange={this.parseCSVfile} />
           <div className='csv-options'>
