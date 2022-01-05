@@ -89,11 +89,17 @@ class PrivilegeEdit extends Component {
     if (name === 'Common Module') {
       return c('txt-commonModule');
     }
+
     if (name === 'Configuration Module') {
       return c('txt-configModule');
     }
+
     if (name === 'SOC Module') {
       return c('txt-socModule');
+    }
+
+    if (name === 'Account Module') {
+      return c('txt-accountModule');
     }
   }
   /**
@@ -266,15 +272,17 @@ class PrivilegeEdit extends Component {
    * @returns HTML DOM
    */
   getRoleList = (val, i) => {
-    const {name} = this.state;
+    const {name, privilegeid} = this.state;
     let showCheckbox = false;
 
     if (name.includes('SOC')){
       showCheckbox = true;
     }
 
+    if (!val.text) return;
 
-    if (val.text.includes('SOC') || this.state.privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
+
+    if (val.text.includes('SOC') || privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
       return (
         <FormControlLabel
           key={i}

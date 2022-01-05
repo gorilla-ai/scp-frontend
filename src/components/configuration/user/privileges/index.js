@@ -225,11 +225,17 @@ class Roles extends Component {
     if (name === 'Common Module') {
       return c('txt-commonModule');
     }
+
     if (name === 'Configuration Module') {
       return c('txt-configModule');
     }
+
     if (name === 'SOC Module') {
       return c('txt-socModule');
+    }
+
+    if (name === 'Account Module') {
+      return c('txt-accountModule');
     }
   }
   /**

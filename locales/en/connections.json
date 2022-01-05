@@ -169,6 +169,7 @@
   "txt-commonModule": "Common Module",
   "txt-configModule": "Configuration Module",
   "txt-socModule": "SOC Module",
+  "txt-accountModule": "Account Module",
   "txt-host": "Host",
   "txt-group": "Group",
   "txt-priority": "Priority",
