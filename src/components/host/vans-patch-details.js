@@ -208,6 +208,7 @@ class VansPatchDetails extends Component {
   selectFailureOnes = () => {
     const {vansDetails, rowsSelected} = this.state;
     let tempRowsSelected = [];
+    let mergedRowsSelected = [];
 
     _.forEach(vansDetails.dataContent, (val, i) => {
       if (val.executeStatus === 'Failure') {
@@ -215,8 +216,10 @@ class VansPatchDetails extends Component {
       }
     });
 
+    mergedRowsSelected = _.uniq(_.concat(rowsSelected, tempRowsSelected));
+
     this.setState({
-      rowsSelected: _.concat(rowsSelected, tempRowsSelected)
+      rowsSelected: mergedRowsSelected
     });
   }
   /**

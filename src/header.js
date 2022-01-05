@@ -42,6 +42,12 @@ class Header extends Component {
       theme: '',
       contextAnchor: null,
       showChangePassword: false,
+      list: {
+        department: [],
+        title: []
+      },
+      ownerList: [],
+      currentAccountData: {},
       formData: {
         oldPwd: '',
         newPwd1: '',
@@ -65,6 +71,8 @@ class Header extends Component {
   }
   componentDidMount() {
     this.setTheme();
+    this.getTitleData();
+    this.getOwnerData();
   }
   /**
    * Set site theme
@@ -74,6 +82,129 @@ class Header extends Component {
     this.setState({
       theme: this.props.themeName
     });
+  }
+  /**
+   * Get and set title data
+   * @method
+   */
+  getTitleData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let titleList = [];
+
+        _.forEach(data, val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+
+        tempList.title = _.cloneDeep(titleList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getDepartmentData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+
+        this.setState({
+          list: tempList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set owner data
+   * @method
+   */
+  getOwnerData = () => {
+    const {baseUrl} = this.context;
+    const requestData = {
+      sort: 'ownerID',
+      order: 'asc'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          let ownerList = [];
+
+          _.forEach(sortedOwnerList, val => {
+            ownerList.push({
+              value: val.ownerUUID,
+              text: val.ownerName
+            });
+          })
+
+          this.setState({
+            ownerList
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Determine the active page
@@ -429,7 +560,7 @@ class Header extends Component {
   render() {
     const {contextRoot, language, session, sessionRights} = this.context;
     const {productName} = this.props;
-    const {contextAnchor, showChangePassword} = this.state;
+    const {contextAnchor, showChangePassword, list, ownerList} = this.state;
     let showLanguage = '';
 
     if (language === 'zh') {
@@ -501,6 +632,8 @@ class Header extends Component {
 
         <AccountEdit
           ref={ref => { this.editor = ref }}
+          list={list}
+          ownerList={ownerList}
           onDone={this.showPopup} />
       </div>
     )

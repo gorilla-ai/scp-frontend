@@ -33,6 +33,7 @@ const et =  i18n.getFixedT(null, 'errors');
 
 const INITIAL_STATE = {
   open: false,
+  id: '',
   info: null,
   error: false,
   accountData: {
@@ -45,6 +46,7 @@ const INITIAL_STATE = {
     syncAD: false,
     selected: []
   },
+  fromPage: '',
   privileges: [],
   showPrivileges: true,
   selectedPrivileges: [],
@@ -105,6 +107,7 @@ class AccountEdit extends Component {
     this.setState({
       open: true,
       id,
+      fromPage: options,
       showPrivileges,
       selectedPrivileges: []
     }, () => {
@@ -112,7 +115,6 @@ class AccountEdit extends Component {
       
       if (id) {
        this.loadAccount(id);
-       this.setOwnerInfo();
       }
     });
   }
@@ -171,6 +173,7 @@ class AccountEdit extends Component {
           name: data[0].rt.name,
           email: data[0].rt.email,
           phone: data[0].rt.phone,
+          ownerId: data[0].rt.ownerId,
           selected: _.map(data[1].rt, 'privilegeid')
         };
 
@@ -182,6 +185,8 @@ class AccountEdit extends Component {
         this.setState({
           accountData,
           selectedPrivileges: _.cloneDeep(accountData.selected)
+        }, () => {
+          this.setOwnerInfo();
         });
       }
       return null;
@@ -197,7 +202,16 @@ class AccountEdit extends Component {
    */
   setOwnerInfo = () => {
     const {currentAccountData, ownerList} = this.props;
-    const selectedOwnerIndex = _.findIndex(ownerList, { 'value': currentAccountData.ownerId });
+    const {fromPage, accountData} = this.state;
+    let ownerId = '';
+
+    if (fromPage === 'fromHeader') {
+      ownerId = accountData.ownerId;
+    } else if (fromPage === 'fromAccount') {
+      ownerId = currentAccountData.ownerId;
+    }
+
+    const selectedOwnerIndex = _.findIndex(ownerList, { 'value': ownerId });
 
     this.setState({
       selectedOwner: ownerList[selectedOwnerIndex]
@@ -662,11 +676,8 @@ AccountEdit.contextType = BaseDataContext;
 AccountEdit.propTypes = {
   list: PropTypes.object.isRequired,
   ownerList: PropTypes.array.isRequired,
-  currentAccountData: PropTypes.object.isRequired,
+  currentAccountData: PropTypes.object,
   onDone: PropTypes.func.isRequired
-};
-
-AccountEdit.defaultProps = {
 };
 
 export default AccountEdit;
