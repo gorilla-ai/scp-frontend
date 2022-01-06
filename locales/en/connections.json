@@ -893,7 +893,6 @@
     "txt-patch-delete": "Delete Patch",
     "txt-taskRunning": "Running",
     "txt-taskComplete": "Complete",
-    "txt-taskFailure": "Failure",
     "txt-taskNotSupport": "Not Support",
     "txt-taskWaiting": "Waiting",
     "txt-executeRunning": "Running",

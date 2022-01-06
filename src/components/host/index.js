@@ -2696,12 +2696,13 @@ class HostController extends Component {
         status = t('hmd-scan.txt-notSupport');
       }
 
-      if (severityTypeName = 'VANS Patch') { //Special case for Vans Patch
+      if (severityTypeName === 'VANS Patch') { //Special case for Vans Patch
         if (val.executeStatus === 'Complete') {
           status = t('txt-success');
         } else if (val.executeStatus === 'Failure') {
           status = t('txt-fail');
         }
+        title = severityTypeName + ': ' + status;
       }
     }
 
