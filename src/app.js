@@ -13,6 +13,7 @@ import i18n from 'i18next'
 import Highcharts from 'highcharts'
 import Moment from 'moment'
 
+import AccountConfig from './components/configuration/account'
 import AuditLog from './components/configuration/audit/audit-log'
 import DashboardMaps from './components/dashboard/maps'
 import DashboardOverview from './components/dashboard/overview'
@@ -208,6 +209,12 @@ const userPrivileges = () => (
   </BaseDataContext.Provider>
 );
 
+const Account = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <AccountConfig />
+  </BaseDataContext.Provider>
+)
+
 const Audit = () => (
   <BaseDataContext.Provider value={baseData}>
     <AuditLog />
@@ -310,6 +317,7 @@ const Main = () => (
       <Route exact path='/SCP/configuration/syslog/pattern' component={syslogPattern} />
       <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
       <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
+      <Route exact path='/SCP/account' component={Account} />
       <Route exact path='/SCP/configuration/audit' component={Audit} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
       <Route exact path='/SCP/configuration/product-info' component={productInfo} />

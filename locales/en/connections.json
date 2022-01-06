@@ -231,6 +231,7 @@
   "txt-netflow": "Netflow",
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
+  "txt-accountConfig": "Account Configuration",
 
   "txt-connections-eng": "Connections",
   "txt-dns": "DNS",
