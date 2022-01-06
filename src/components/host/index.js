@@ -4525,6 +4525,11 @@ class HostController extends Component {
       showLoadingIcon
     } = this.state;
     const vansDateTime = this.getHostDateTime();
+    let adminPrivilege = false;
+
+    if (_.includes(session.roles, 'Default Admin Privilege') || _.includes(session.roles, 'SOC單位設備承辦人') || _.includes(session.roles, 'SOC單位設備資安長')) {
+      adminPrivilege = true;
+    }
 
     return (
       <div>
@@ -4763,7 +4768,7 @@ class HostController extends Component {
                 {activeTab !== 'vansCharts' &&
                   <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
-                    {_.includes(session.roles, 'Default Admin Privilege') &&
+                    {adminPrivilege &&
                       <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
                     }
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
