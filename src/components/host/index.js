@@ -433,6 +433,7 @@ class HostController extends Component {
       nccstSelectedList: [],
       nccstCheckAll: false,
       limitedDepartment: [],
+      patchInfo: {},
       patchSelectedItem: [],
       formValidation: {
         frMotp: {
@@ -3917,8 +3918,16 @@ class HostController extends Component {
    * @method
    */
   toggleVansPatch = () => {
+    const {vansPatchOpen} = this.state;
+
+    if (vansPatchOpen) { //Clear patch info when close dialog
+      this.setState({
+        patchInfo: {}
+      });
+    }
+
     this.setState({
-      vansPatchOpen: !this.state.vansPatchOpen
+      vansPatchOpen: !vansPatchOpen
     });
 
     this.handleCloseMenu();
@@ -4007,11 +4016,13 @@ class HostController extends Component {
   /**
    * Toggle vans patch selected modal dialog on/off
    * @method
+   * @param {object} patchInfo - user selected patch info
    * @param {object} patchSelectedItem - user selected patch items
    */
-  toggleVansPatchSelected = (patchSelectedItem) => {
+  toggleVansPatchSelected = (patchInfo, patchSelectedItem) => {
     this.setState({
       vansPatchSelectedOpen: !this.state.vansPatchSelectedOpen,
+      patchInfo,
       patchSelectedItem: patchSelectedItem || []
     });
   }
@@ -4509,6 +4520,7 @@ class HostController extends Component {
       vansSearch,
       vansTableType,
       vansPieChartData,
+      patchInfo,
       floorPlan,
       showLoadingIcon
     } = this.state;
@@ -4558,6 +4570,7 @@ class HostController extends Component {
 
         {vansPatchOpen &&
           <VansPatch
+            patchInfo={patchInfo}
             toggleVansPatch={this.toggleVansPatch}
             toggleFrMotp={this.toggleFrMotp} />
         }

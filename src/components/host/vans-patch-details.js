@@ -227,9 +227,11 @@ class VansPatchDetails extends Component {
    * @method
    */
   getSelectedItems = () => {
+    const {activeVansPatch} = this.props;
     const {vansDetails, rowsSelected} = this.state;
 
     if (rowsSelected.length > 0) {
+      const vansInfo = activeVansPatch['vansPatchDescriptionDTO'];
       const selectedItems = _.map(rowsSelected, val => {
         return {
           ip: vansDetails.dataContent[val].ipDeviceDTO.ip,
@@ -238,7 +240,7 @@ class VansPatchDetails extends Component {
         }
       });
 
-      this.props.toggleVansPatchSelected(selectedItems);
+      this.props.toggleVansPatchSelected(vansInfo, selectedItems);
     }
   }
   /**
@@ -247,8 +249,9 @@ class VansPatchDetails extends Component {
    * @returns HTML DOM
    */
   displayVansPatchDetailsContent = () => {
-    const {vansPatchDetails, activeVansPatch} = this.props;
+    const {activeVansPatch} = this.props;
     const {vansDetails, selectableRows, rowsSelected} = this.state;
+    const vansInfo = activeVansPatch['vansPatchDescriptionDTO'];
     const tableOptions = {
       serverSide: false,
       viewColumns: false,
@@ -268,7 +271,6 @@ class VansPatchDetails extends Component {
         return null
       }
     };
-    const vansInfo = activeVansPatch['vansPatchDescriptionDTO'];
 
     return (
       <div>

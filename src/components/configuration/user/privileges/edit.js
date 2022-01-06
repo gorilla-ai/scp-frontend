@@ -80,29 +80,6 @@ class PrivilegeEdit extends Component {
     });
   }
   /**
-   * Get locale name for module
-   * @method
-   * @param {string} name - module name
-   * @returns locale name
-   */
-  getLocaleName = (name) => {
-    if (name === 'Common Module') {
-      return c('txt-commonModule');
-    }
-
-    if (name === 'Configuration Module') {
-      return c('txt-configModule');
-    }
-
-    if (name === 'SOC Module') {
-      return c('txt-socModule');
-    }
-
-    if (name === 'Account Module') {
-      return c('txt-accountModule');
-    }
-  }
-  /**
    * Get and set privilege permits data
    * @method
    */
@@ -120,7 +97,7 @@ class PrivilegeEdit extends Component {
         const permitsList = _.map(data.rt, val => {
           return {
             value: val.permitid,
-            text: this.getLocaleName(val.dispname)
+            text: c('txt-' + val.name)
           };
         });
 

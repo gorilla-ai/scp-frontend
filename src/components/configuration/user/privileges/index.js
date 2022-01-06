@@ -216,29 +216,6 @@ class Roles extends Component {
     });
   }
   /**
-   * Get locale name for module
-   * @method
-   * @param {string} name - module name
-   * @returns locale name
-   */
-  getLocaleName = (name) => {
-    if (name === 'Common Module') {
-      return c('txt-commonModule');
-    }
-
-    if (name === 'Configuration Module') {
-      return c('txt-configModule');
-    }
-
-    if (name === 'SOC Module') {
-      return c('txt-socModule');
-    }
-
-    if (name === 'Account Module') {
-      return c('txt-accountModule');
-    }
-  }
-  /**
    * Display role privilege data
    * @method
    * @param {array} value - role list
@@ -246,7 +223,7 @@ class Roles extends Component {
    */
   displayPermit = (value) => {
     const permitList = _.map(value, (val, i) => {
-      return <span key={i} className='item'>{this.getLocaleName(val.dispname)}</span>
+      return <span key={i} className='item'>{c('txt-' + val.name)}</span>
     });
 
     return permitList;

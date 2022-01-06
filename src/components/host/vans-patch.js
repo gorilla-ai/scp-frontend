@@ -57,6 +57,28 @@ class VansPatch extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     this.ah = getInstance('chewbacca');
   }
+  componentDidMount() {
+    this.getVansPatchInfo();
+  }
+  /**
+   * Get and set Vans Patch info
+   * @method
+   */
+  getVansPatchInfo = () => {
+    const {patchInfo} = this.props;
+    let tempPatch = {...this.state.patch};
+
+    if (!_.isEmpty(patchInfo)) {
+      tempPatch.product = patchInfo.patchProduct;
+      tempPatch.vendor = patchInfo.patchVendor;
+      tempPatch.version = patchInfo.patchVersion;
+      tempPatch.memo = patchInfo.memo;
+
+      this.setState({
+        patch: tempPatch
+      });
+    }
+  }
   /**
    * Handle input data change
    * @method
@@ -256,6 +278,7 @@ class VansPatch extends Component {
 VansPatch.contextType = BaseDataContext;
 
 VansPatch.propTypes = {
+  patchInfo: PropTypes.object.isRequired,
   toggleVansPatch: PropTypes.func.isRequired,
   toggleFrMotp: PropTypes.func.isRequired
 };
