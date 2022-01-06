@@ -2269,30 +2269,29 @@ class HostController extends Component {
   /**
    * Set device filter data
    * @method
-   * @param {string} type - filter type
    * @param {array.<string>} data - filter data
    */
-  setDeviceSearch = (type, data) => {
-    const {deviceSearch, deviceSearchList} = this.state;
+  setDeviceSearch = (data) => {
+    const {activeFilter, deviceSearch, deviceSearchList} = this.state;
     let tempDeviceSearch = {...deviceSearch};
     let tempDeviceSearchList = {...deviceSearchList};
     let dataList = [];
-    tempDeviceSearch[type] = data;
+    tempDeviceSearch[activeFilter] = data;
 
     _.forEach(data, val => {
       let value = val.input;
 
       if (value) {
-        if (type === 'status') {
+        if (activeFilter === 'status') {
           value = val.input.text;
-        } else if (type === 'version') {
+        } else if (activeFilter === 'version') {
           value = val.condition + ' ' + value;
         }
 
         dataList.push(value);
       }
     });
-    tempDeviceSearchList[type] = dataList;
+    tempDeviceSearchList[activeFilter] = dataList;
 
     this.setState({
       deviceSearch: tempDeviceSearch,
@@ -2478,10 +2477,10 @@ class HostController extends Component {
                 <React.Fragment>
                   <MultiInput
                     base={HostFilter}
-                    defaultItemValue
+                    defaultItemValue={defaultItemValue}
                     value={deviceSearch[activeFilter]}
                     props={data}
-                    onChange={this.setDeviceSearch.bind(this, activeFilter)} />
+                    onChange={this.setDeviceSearch} />
                   {activeFilter === 'ip' &&
                     <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport}>{t('network-inventory.txt-batchUploadIp')}</Button>
                   }

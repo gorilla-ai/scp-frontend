@@ -87,7 +87,7 @@ class HostFilter extends Component {
           className='textarea-autosize search-annotation'
           name='input'
           placeholder={t('host.txt-annotation')}
-          value={value.input}
+          value={value.input || ''}
           onChange={this.handleDataChange} />
       )
     } else if (activeFilter === 'version') {
@@ -120,7 +120,7 @@ class HostFilter extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            value={value.input}
+            value={value.input || ''}
             onChange={this.handleDataChange} />
         </div>
       )
@@ -132,7 +132,7 @@ class HostFilter extends Component {
           variant='outlined'
           fullWidth
           size='small'
-          value={value.input}
+          value={value.input || ''}
           onChange={this.handleDataChange} />
       )
     }
