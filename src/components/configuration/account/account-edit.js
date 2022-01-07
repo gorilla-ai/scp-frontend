@@ -13,7 +13,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormGroup from '@material-ui/core/FormGroup'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import MenuItem from '@material-ui/core/MenuItem'
-import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -451,17 +450,6 @@ class AccountEdit extends Component {
                 )}
                 onChange={this.handleComboBoxChange.bind(this, 'owner')} />
             </div>
-          }
-          {!id &&
-            <FormControlLabel
-              className='switch-control'
-              control={
-                <Switch
-                  checked={accountData.syncAD}
-                  onChange={this.handleSyncAdChange}
-                  color='primary' />
-              }
-              label='Sync AD' />
           }
         </div>
         {showPrivileges &&
