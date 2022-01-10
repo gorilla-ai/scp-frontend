@@ -135,7 +135,8 @@ class Manage extends Component {
     const requestData = {
       sort: 'ownerID',
       order: 'asc',
-      name: tree.name
+      name: tree.name,
+      department: tree.id
     };
 
     this.ah.one({

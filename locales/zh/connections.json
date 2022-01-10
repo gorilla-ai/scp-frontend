@@ -1190,7 +1190,7 @@
     "unauthType": "Unauthorize Type",
     "version": "版本",
     "netproxyIp": "NetProxy IP",
-    "netproxyName": "NetProxy 名稱",
+    "netproxyName": "NetProxy名稱",
     "latestTime": "最後掃描時間",
     "theLatestTaskResponseDttm": "最後回報主機時間"
   },

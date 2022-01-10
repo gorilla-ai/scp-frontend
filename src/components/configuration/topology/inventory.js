@@ -93,6 +93,7 @@ class NetworkInventory extends Component {
       deviceSearch: {
         ip: '',
         mac: '',
+        netproxyIp: '',
         hostName: '',
         system: '',
         owner: '',
@@ -102,7 +103,7 @@ class NetworkInventory extends Component {
       showAllSeats: false,
       deviceSearchArea: '',
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
+        dataFieldsArr: ['ip', 'mac', 'netproxyIp', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
         dataFields: [],
         dataContent: null,
         ipListArr: [],
@@ -177,6 +178,7 @@ class NetworkInventory extends Component {
       csvColumns: {
         ip: '',
         mac: '',
+        netproxyIp: '',
         hostName: '',
         ownerId: '',
         ownerName: '',
@@ -824,6 +826,10 @@ class NetworkInventory extends Component {
         dataParams += `&mac=${deviceSearch.mac}`;
       }
 
+      if (deviceSearch.netproxyIp) {
+        dataParams += `&netproxyIp=${deviceSearch.netproxyIp}`;
+      }
+
       if (deviceSearch.hostName) {
         dataParams += `&hostName=${deviceSearch.hostName}`;
       }
@@ -1034,6 +1040,7 @@ class NetworkInventory extends Component {
     const requestData = {
       ip: deviceSearch.ip,
       mac: deviceSearch.mac,
+      netproxyIp: deviceSearch.netproxyIp,
       hostName: deviceSearch.hostName,
       system: deviceSearch.system,
       owner: deviceSearch.owner,
@@ -1313,6 +1320,17 @@ class NetworkInventory extends Component {
                 onChange={this.handleSearchChange} />
             </div>
           }
+          <div className='group'>
+            <TextField
+              id='deviceSearchNetProxyIP'
+              name='netproxyIp'
+              label={t('ipFields.netproxyIp')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.netproxyIp}
+              onChange={this.handleSearchChange} />
+          </div>
           {activeTab !== 'deviceLA' &&
             <div className='group'>
               <TextField
@@ -1932,6 +1950,7 @@ class NetworkInventory extends Component {
       deviceSearch: {
         ip: '',
         mac: '',
+        netproxyIp: '',
         hostName: '',
         system: '',
         owner: '',
@@ -2241,6 +2260,7 @@ class NetworkInventory extends Component {
           csvColumns: {
             ip: '',
             mac: '',
+            netproxyIp: '',
             hostName: '',
             ownerId: '',
             ownerName: '',
@@ -2456,6 +2476,7 @@ class NetworkInventory extends Component {
           let dataObj = {
             ip: '',
             mac: '',
+            netproxyIp: '',
             hostName: '',
             ownerId: '',
             ownerName: '',
@@ -2555,6 +2576,7 @@ class NetworkInventory extends Component {
                 csvColumns: {
                   ip: '',
                   mac: '',
+                  netproxyIp: '',
                   hostName: '',
                   ownerId: '',
                   ownerName: '',
@@ -2587,6 +2609,7 @@ class NetworkInventory extends Component {
         csvColumns: {
           ip: '',
           mac: '',
+          netproxyIp: '',
           hostName: '',
           ownerId: '',
           ownerName: '',
