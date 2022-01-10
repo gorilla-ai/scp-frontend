@@ -413,6 +413,19 @@ class AccountEdit extends Component {
               )}
               onChange={this.handleComboBoxChange.bind(this, 'department')} />
           </div>
+          {id &&
+            <div className='group'>
+              <Autocomplete
+                className='combo-box'
+                options={ownerList}
+                value={selectedOwner || ''}
+                getOptionLabel={(option) => option.text}
+                renderInput={(params) => (
+                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
+                )}
+                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
+            </div>
+          }
           <div className='group'>
             <Autocomplete
               id='account-edit-title'
@@ -439,19 +452,6 @@ class AccountEdit extends Component {
               value={accountData.phone}
               onChange={this.handleDataChange} />
           </div>
-          {id &&
-            <div className='group'>
-              <Autocomplete
-                className='combo-box'
-                options={ownerList}
-                value={selectedOwner || ''}
-                getOptionLabel={(option) => option.text}
-                renderInput={(params) => (
-                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
-                )}
-                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
-            </div>
-          }
           {!id &&
             <FormControlLabel
               className='switch-control'
