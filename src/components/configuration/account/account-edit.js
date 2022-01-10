@@ -45,6 +45,7 @@ const INITIAL_STATE = {
     syncAD: false,
     selected: []
   },
+  ownerList: [],
   fromPage: '',
   privileges: [],
   showPrivileges: true,
@@ -125,7 +126,7 @@ class AccountEdit extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/account/privileges`
+      url: `${baseUrl}/api/account/privileges?accountModule=true`
     })
     .then(data => {
       if (data) {
@@ -185,7 +186,9 @@ class AccountEdit extends Component {
           accountData,
           selectedPrivileges: _.cloneDeep(accountData.selected)
         }, () => {
-          this.setOwnerInfo();
+          if (!_.isEmpty(accountData.unit)) {
+            this.getOwnerData();
+          }
         });
       }
       return null;
@@ -196,12 +199,67 @@ class AccountEdit extends Component {
     })
   }
   /**
+   * Get and set owner data
+   * @method
+   * @param {string} [departmentId] - selected department ID
+   */
+  getOwnerData = (departmentId) => {
+    const {baseUrl} = this.context;
+    const {accountData} = this.state;
+    const requestData = {
+      department: departmentId || accountData.unit.value
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          let ownerList = [];
+
+          _.forEach(sortedOwnerList, val => {
+            ownerList.push({
+              value: val.ownerUUID,
+              text: val.ownerName,
+              title: val.title
+            });
+          })
+
+          this.setState({
+            ownerList
+          }, () => {
+            this.setOwnerInfo();
+          });
+        } else {
+          let tempAccountData = {...accountData};
+          tempAccountData.title = {};
+
+          this.setState({
+            accountData: tempAccountData,
+            ownerList: [],
+            selectedOwner: {}
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Set owner info
    * @method
    */
   setOwnerInfo = () => {
-    const {currentAccountData, ownerList} = this.props;
-    const {fromPage, accountData} = this.state;
+    const {list, currentAccountData} = this.props;
+    const {accountData, ownerList, fromPage} = this.state;
+    let tempAccountData = {...accountData};
     let ownerId = '';
 
     if (fromPage === 'fromHeader') {
@@ -211,8 +269,17 @@ class AccountEdit extends Component {
     }
 
     const selectedOwnerIndex = _.findIndex(ownerList, { 'value': ownerId });
+    let selectedTitleIndex = '';
+
+    if (selectedOwnerIndex >= 0) {
+      selectedTitleIndex = _.findIndex(list.title, { 'value': ownerList[selectedOwnerIndex].title });
+      tempAccountData.title = list.title[selectedTitleIndex];
+    } else {
+      tempAccountData.title = {};
+    }
 
     this.setState({
+      accountData: tempAccountData,
       selectedOwner: ownerList[selectedOwnerIndex]
     });
   }
@@ -298,28 +365,33 @@ class AccountEdit extends Component {
   /**
    * Handle owner combo box change
    * @method
-   * @param {string} type - comboBox type ('owner', 'department' or 'title')
+   * @param {string} type - comboBox type ('department', 'owner' or 'title')
    * @param {object} event - select event
    * @param {object} value - selected owner info
    */
   handleComboBoxChange = (type, event, value) => {
-    const {list, ownerList} = this.props;
-    const {accountData} = this.state;
+    const {list} = this.props;
+    const {accountData, ownerList} = this.state;
     let tempAccountData = {...accountData};
 
     if (value && value.value) {
-      if (type === 'owner') {
-        const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
-
-        this.setState({
-          selectedOwner: ownerList[selectedTitleIndex]
-        });
-      } else if (type === 'department') {
+      if (type === 'department') {
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
         tempAccountData.unit = list.department[selectedDepartmentIndex];
 
         this.setState({
           accountData: tempAccountData
+        }, () => {
+          this.getOwnerData();
+        });
+      } else if (type === 'owner') {
+        const selectedOwnerIndex = _.findIndex(ownerList, { 'value': value.value });
+        const selectedTitleIndex = _.findIndex(list.title, { 'value': ownerList[selectedOwnerIndex].title });
+        tempAccountData.title = list.title[selectedTitleIndex];
+
+        this.setState({
+          accountData: tempAccountData,
+          selectedOwner: ownerList[selectedOwnerIndex]
         });
       } else if (type === 'title') {
         const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
@@ -351,8 +423,9 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {
-    const {list, ownerList} = this.props;
-    const {id, accountData, privileges, showPrivileges, selectedOwner, formValidation} = this.state;
+    const {list} = this.props;
+    const {id, accountData, ownerList, privileges, showPrivileges, selectedOwner, formValidation} = this.state;
+    const titleList = ownerList.length > 0 ? list.title : [];
 
     return (
       <div className='account-form' style={this.getContentWidth()}>
@@ -412,11 +485,24 @@ class AccountEdit extends Component {
               )}
               onChange={this.handleComboBoxChange.bind(this, 'department')} />
           </div>
+          {id &&
+            <div className='group'>
+              <Autocomplete
+                className='combo-box'
+                options={ownerList}
+                value={selectedOwner || ''}
+                getOptionLabel={(option) => option.text}
+                renderInput={(params) => (
+                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
+                )}
+                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
+            </div>
+          }
           <div className='group'>
             <Autocomplete
               id='account-edit-title'
               className='combo-box'
-              options={list.title}
+              options={titleList}
               value={accountData.title || ''}
               getOptionLabel={(option) => option.text}
               renderInput={(params) => (
@@ -438,19 +524,6 @@ class AccountEdit extends Component {
               value={accountData.phone}
               onChange={this.handleDataChange} />
           </div>
-          {id &&
-            <div className='group'>
-              <Autocomplete
-                className='combo-box'
-                options={ownerList}
-                value={selectedOwner || ''}
-                getOptionLabel={(option) => option.text}
-                renderInput={(params) => (
-                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
-                )}
-                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
-            </div>
-          }
         </div>
         {showPrivileges &&
           <div className='group privileges-list'>
@@ -663,7 +736,6 @@ AccountEdit.contextType = BaseDataContext;
 
 AccountEdit.propTypes = {
   list: PropTypes.object.isRequired,
-  ownerList: PropTypes.array.isRequired,
   currentAccountData: PropTypes.object,
   onDone: PropTypes.func.isRequired
 };

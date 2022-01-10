@@ -578,9 +578,11 @@ const helper = {
     return tempGeoJson;
   },
   getPrivilegesInfo: function(sessionRights, privilege, locale) {
-    if (privilege === 'common' && !sessionRights.Module_Common) {
+    if (privilege === 'common' && (!sessionRights.Module_Common && !sessionRights.Module_Account)) {
       window.location.href = '/SCP/configuration/edge/edge?lng=' + locale;
     } else if (privilege === 'config' && !sessionRights.Module_Config)  {
+      window.location.href = '/SCP?lng=' + locale;
+    } else if (privilege === 'account' && !sessionRights.Module_Account)  {
       window.location.href = '/SCP?lng=' + locale;
     } else if (privilege === 'soc' && !sessionRights.Module_Soc)  {
       window.location.href = '/SCP?lng=' + locale;

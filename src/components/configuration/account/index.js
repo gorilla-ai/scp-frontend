@@ -79,7 +79,7 @@ class AccountList extends Component {
   componentDidMount() {
     const {baseUrl, locale, sessionRights} = this.context;
 
-    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.getPrivilegesInfo(sessionRights, 'account', locale);
     helper.inactivityTime(baseUrl, locale);
 
     this.getTitleData();
@@ -137,11 +137,11 @@ class AccountList extends Component {
    * @method
    */
   getDepartmentData = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, session} = this.context;
     const {list} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/department/_tree`,
+      url: `${baseUrl}/api/department/_tree?route=${session.route}`,
       type: 'GET'
     })
     .then(data => {
@@ -178,12 +178,14 @@ class AccountList extends Component {
    * @param {string} options - option for 'currentPage'
    */
   getAccountsData = (options) => {
-    const {baseUrl} = this.context;
+    const {baseUrl, session} = this.context;
     const {accountSearch, userAccount} = this.state;
     const sort = userAccount.sort.desc ? 'desc' : 'asc';
     const page = options === 'currentPage' ? userAccount.currentPage : 0;
     const url = `${baseUrl}/api/account/v2/_search?page=${page + 1}&pageSize=${userAccount.pageSize}&orders=${userAccount.sort.field} ${sort}`;
-    let requestData = {};
+    let requestData = {
+      departmentId: session.departmentId
+    };
 
     if (accountSearch.account) {
       requestData.account = accountSearch.account;

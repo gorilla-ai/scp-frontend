@@ -587,16 +587,16 @@ class Header extends Component {
               <div className='main-nav'>
                 <Link id='header-link-dashboard' to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
 
-                {sessionRights.Module_Common &&
+                {(sessionRights.Module_Common || sessionRights.Module_Account) &&
                   <Link id='header-link-host' to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
                 }
 
                 {/*<Link to='/SCP/dashboard/statisticsUIF' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>*/}
 
-                {sessionRights.Module_Common &&
+                {(sessionRights.Module_Common || sessionRights.Module_Account) &&
                   <Link id='header-link-threats' to='/SCP/threats' className={cx('item', {'active': this.getActiveTab('threats')})}>{t('txt-threats')}</Link>
                 }
-                {sessionRights.Module_Common &&
+                {(sessionRights.Module_Common || sessionRights.Module_Account) &&
                   <Link id='header-link-events' to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
                 {sessionRights.Module_Soc &&
@@ -608,7 +608,9 @@ class Header extends Component {
                 {sessionRights.Module_Config &&
                   <Link id='header-link-config' to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
-                <Link id='header-link-accountConfig' to='/SCP/account' className={cx('item', {'active': this.getActiveTab('account')})}>{t('txt-accountConfig')}</Link>
+                {sessionRights.Module_Account &&
+                  <Link id='header-link-accountConfig' to='/SCP/account' className={cx('item', {'active': this.getActiveTab('account')})}>{t('txt-accountConfig')}</Link>
+                }
               </div>
             </div>
 
