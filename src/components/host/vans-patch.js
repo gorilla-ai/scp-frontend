@@ -192,7 +192,7 @@ class VansPatch extends Component {
               }
               label={t('hmd-scan.txt-vansInstall')} />
             <FormControlLabel
-              value='delete'
+              value='uninstall'
               control={
                 <Radio
                   id='vansUninstall'

@@ -435,6 +435,7 @@ class HostController extends Component {
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
+      vansPatchFrom: '', //'new' or 'exist'
       formValidation: {
         frMotp: {
           valid: true
@@ -3941,14 +3942,23 @@ class HostController extends Component {
    */
   confirmVansPatch = (patch) => {
     const {baseUrl} = this.context;
-    const {account, patchSelectedItem} = this.state;
-    const datetime = this.getHostDateTime();
+    const {account, activeVansPatch, patchSelectedItem, vansPatchFrom} = this.state;
     let retriggerBody = {
-      timestamp: [datetime.from, datetime.to],
       cmdJO: {
         cmds: ['executePatch']
       }
     };
+
+    if (vansPatchFrom === 'new') {
+      const datetime = this.getHostDateTime();
+      retriggerBody.timestamp = [datetime.from, datetime.to];
+    } else if (vansPatchFrom === 'exist') {
+      const timestamp = activeVansPatch.hmdRetriggerBodyDTO.timestamp;
+
+      if (timestamp) {
+        retriggerBody.timestamp = timestamp;
+      }
+    }
 
     if (patchSelectedItem.length > 0) {
       retriggerBody.ipArray = _.map(patchSelectedItem, val => {
@@ -3981,7 +3991,8 @@ class HostController extends Component {
     })
     .then(data => {
       this.setState({
-        patchSelectedItem: []
+        patchSelectedItem: [],
+        vansPatchFrom: ''
       });
 
       helper.showPopupMsg(t('host.txt-patchSuccess'));
@@ -4027,6 +4038,8 @@ class HostController extends Component {
       patchInfo,
       patchSelectedItem: patchSelectedItem || []
     });
+
+    this.setVansPatchFrom('exist');
   }
   /**
    * Show vans patch info
@@ -4135,6 +4148,20 @@ class HostController extends Component {
     })
   }
   /**
+   * Set VansPatchFrom type
+   * @method
+   * @param {string} type - vans patch from ('new' or 'exist')
+   */
+  setVansPatchFrom = (type) => {
+    this.setState({
+      vansPatchFrom: type
+    }, () => {
+      if (type === 'new') {
+        this.checkFrMotp();
+      }
+    });
+  }
+  /**
    * Get HMD test menu
    * @method
    * @param {string} val - individual HMD data
@@ -4142,7 +4169,7 @@ class HostController extends Component {
    */
   getHMDmenu = (val, i) => {
     if (val.cmds === 'executePatch') {
-      return <MenuItem key={i} onClick={this.checkFrMotp}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
+      return <MenuItem key={i} onClick={this.setVansPatchFrom.bind(this, 'new')}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
     } else if (val.cmds === 'executePatchRecord') {
       return <MenuItem key={i} onClick={this.toggleVansPatchGroup}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
