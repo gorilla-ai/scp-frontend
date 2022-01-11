@@ -296,7 +296,7 @@ class VansPatchDetails extends Component {
         }
 
         <div className='patch-btns'>
-          {selectableRows === 'none' &&
+          {selectableRows === 'none' && (vansDetails.dataContent && vansDetails.dataContent.length > 0) &&
             <Button variant='contained' color='primary' className='btn' onClick={this.toggleTableSelectable.bind(this, 'multiple')}>{t('hmd-scan.txt-rePatch')}</Button>
           }
           {selectableRows === 'multiple' &&

@@ -179,8 +179,14 @@ class AccountEdit extends Component {
 
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data[0].rt.unit });
         const selectedTitleIndex = _.findIndex(list.title, { 'value': data[0].rt.title });
-        accountData.unit = list.department[selectedDepartmentIndex];
-        accountData.title = list.title[selectedTitleIndex];
+
+        if (selectedDepartmentIndex >= 0) {
+          accountData.unit = list.department[selectedDepartmentIndex];
+        }
+
+        if (selectedTitleIndex >= 0) {
+          accountData.title = list.title[selectedTitleIndex];
+        }
 
         this.setState({
           accountData,
@@ -310,25 +316,39 @@ class AccountEdit extends Component {
 
     if (value && value.value) {
       if (type === 'owner') {
-        const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
+        const selectedOwnerIndex = _.findIndex(ownerList, { 'value': value.value });
 
-        this.setState({
-          selectedOwner: ownerList[selectedTitleIndex]
-        });
+        if (selectedOwnerIndex >= 0) {
+          const selectedDepartmentIndex = _.findIndex(list.department, { 'value': ownerList[selectedOwnerIndex].department });
+          const selectedTitleIndex = _.findIndex(list.title, { 'value': ownerList[selectedOwnerIndex].title });
+          tempAccountData.unit = list.department[selectedDepartmentIndex];
+          tempAccountData.title = list.title[selectedTitleIndex];
+
+          this.setState({
+            accountData: tempAccountData,
+            selectedOwner: ownerList[selectedOwnerIndex]
+          });
+        }
       } else if (type === 'department') {
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
-        tempAccountData.unit = list.department[selectedDepartmentIndex];
 
-        this.setState({
-          accountData: tempAccountData
-        });
+        if (selectedDepartmentIndex >= 0) {
+          tempAccountData.unit = list.department[selectedDepartmentIndex];
+
+          this.setState({
+            accountData: tempAccountData
+          });
+        }
       } else if (type === 'title') {
         const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
-        tempAccountData.title = list.title[selectedTitleIndex];
 
-        this.setState({
-          accountData: tempAccountData
-        });
+        if (selectedTitleIndex >= 0) {
+          tempAccountData.title = list.title[selectedTitleIndex];
+
+          this.setState({
+            accountData: tempAccountData
+          });
+        }
       }
     }
   }
@@ -401,18 +421,6 @@ class AccountEdit extends Component {
               value={accountData.email}
               onChange={this.handleDataChange} />
           </div>
-          <div className='group'>
-            <Autocomplete
-              id='account-edit-unit'
-              className='combo-box'
-              options={list.department}
-              value={accountData.unit || ''}
-              getOptionLabel={(option) => option.text}
-              renderInput={(params) => (
-                <TextField {...params} label={t('l-unit')} variant='outlined' size='small' />         
-              )}
-              onChange={this.handleComboBoxChange.bind(this, 'department')} />
-          </div>
           {id &&
             <div className='group'>
               <Autocomplete
@@ -426,6 +434,18 @@ class AccountEdit extends Component {
                 onChange={this.handleComboBoxChange.bind(this, 'owner')} />
             </div>
           }
+          <div className='group'>
+            <Autocomplete
+              id='account-edit-unit'
+              className='combo-box'
+              options={list.department}
+              value={accountData.unit || ''}
+              getOptionLabel={(option) => option.text}
+              renderInput={(params) => (
+                <TextField {...params} label={t('l-unit')} variant='outlined' size='small' />         
+              )}
+              onChange={this.handleComboBoxChange.bind(this, 'department')} />
+          </div>
           <div className='group'>
             <Autocomplete
               id='account-edit-title'
@@ -470,10 +490,10 @@ class AccountEdit extends Component {
               required
               error={!formValidation.privileges.valid}>
               <FormLabel>{t('l-privileges')}</FormLabel>
+              <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
               <FormGroup>
                 {privileges.map(this.showPrivilegesList)}
               </FormGroup>
-              <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
             </FormControl>
           </div>
         }
@@ -551,11 +571,11 @@ class AccountEdit extends Component {
       ...formattedAccountData
     };
 
-    if (accountData.unit.value) {
+    if (accountData.unit && accountData.unit.value) {
       requestData.unit = accountData.unit.value;
     }
 
-    if (accountData.title.value) {
+    if (accountData.title && accountData.title.value) {
       requestData.title = accountData.title.value;
     }
 

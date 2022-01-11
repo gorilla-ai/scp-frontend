@@ -262,6 +262,7 @@ class PrivilegeEdit extends Component {
     if (val.text.includes('SOC') || privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
       return (
         <FormControlLabel
+          className='privilege-checkbox'
           key={i}
           label={val.text}
           control={
@@ -278,6 +279,7 @@ class PrivilegeEdit extends Component {
     } else {
       return (
         <FormControlLabel
+          className='privilege-checkbox'
           key={i}
           label={val.text}
           control={
@@ -290,6 +292,19 @@ class PrivilegeEdit extends Component {
               color='primary' />
           } />
       )
+    }
+  }
+  /**
+   * Check disable status
+   * @method
+   * @param {string} name - role name
+   * @returns boolean true/false
+   */
+  checkDisabled = (name) => {
+    const roleList = ['SOC Analyzer', 'SOC Executor', 'SOC Supervior', 'SOC單位設備承辦人', 'SOC單位設備資安長', 'Default Admin Privilege'];
+
+    if (_.includes(roleList, name)) {
+      return true;
     }
   }
   /**
@@ -314,17 +329,17 @@ class PrivilegeEdit extends Component {
           error={!formValidation.name.valid}
           helperText={formValidation.name.valid ? '' : c('txt-required')}
           value={name}
-          disabled={name === 'SOC Analyzer' || name === 'SOC Executor' || name === 'SOC Supervior' || name === 'SOC Supervisor' || name === 'SOC單位設備承辦人' || name === 'SOC單位設備資安長'|| name === 'Default Admin Privilege'}
-          onChange={this.handleDataChange} />
+          onChange={this.handleDataChange}
+          disabled={this.checkDisabled(name)} />
         <div className='group'>
           <FormControl
             required
             error={!formValidation.privileges.valid}>
             <FormLabel>{c('txt-privileges')}</FormLabel>
+            <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
             <FormGroup>
               {permitsList.map(this.getRoleList)}
             </FormGroup>
-            <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
           </FormControl>
         </div>
       </div>

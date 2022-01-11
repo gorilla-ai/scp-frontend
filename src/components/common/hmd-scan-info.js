@@ -122,7 +122,7 @@ class HMDscanInfo extends Component {
         }
       },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
-      _ExecutePatchFieldsArr: ['description', 'software', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
+      _ExecutePatchFieldsArr: ['description', 'software', 'receiveDttm', 'receiveCompleteDttm', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true,
@@ -452,8 +452,6 @@ class HMDscanInfo extends Component {
               )
             } else if (tempData === 'receiveDttm' || tempData === 'receiveCompleteDttm') {
               return <span>{helper.getFormattedDate(value, 'local')}</span>
-            } else if (tempData === 'hbDttm') {
-              return <span>{helper.getFormattedDate(vansInfo[tempData], 'local')}</span>
             } else if (tempData === 'taskStatus') {
               let color = '#fff';
               let backgroundColor = '';

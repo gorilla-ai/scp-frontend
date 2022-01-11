@@ -782,7 +782,9 @@ class HostController extends Component {
 
     if (datetimeFrom) {
       datetime.from = moment(datetimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    } else if (datetimeTo) {
+    }
+
+    if (datetimeTo) {
       datetime.to = moment(datetimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     }
 

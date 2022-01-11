@@ -179,8 +179,14 @@ class AccountEdit extends Component {
 
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data[0].rt.unit });
         const selectedTitleIndex = _.findIndex(list.title, { 'value': data[0].rt.title });
-        accountData.unit = list.department[selectedDepartmentIndex];
-        accountData.title = list.title[selectedTitleIndex];
+
+        if (selectedDepartmentIndex >= 0) {
+          accountData.unit = list.department[selectedDepartmentIndex];
+        }
+
+        if (selectedTitleIndex >= 0) {
+          accountData.title = list.title[selectedTitleIndex];
+        }
 
         this.setState({
           accountData,
@@ -377,29 +383,38 @@ class AccountEdit extends Component {
     if (value && value.value) {
       if (type === 'department') {
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
-        tempAccountData.unit = list.department[selectedDepartmentIndex];
 
-        this.setState({
-          accountData: tempAccountData
-        }, () => {
-          this.getOwnerData();
-        });
+        if (selectedDepartmentIndex >= 0) {
+          tempAccountData.unit = list.department[selectedDepartmentIndex];
+
+          this.setState({
+            accountData: tempAccountData
+          }, () => {
+            this.getOwnerData();
+          });
+        }
       } else if (type === 'owner') {
         const selectedOwnerIndex = _.findIndex(ownerList, { 'value': value.value });
-        const selectedTitleIndex = _.findIndex(list.title, { 'value': ownerList[selectedOwnerIndex].title });
-        tempAccountData.title = list.title[selectedTitleIndex];
 
-        this.setState({
-          accountData: tempAccountData,
-          selectedOwner: ownerList[selectedOwnerIndex]
-        });
+        if (selectedOwnerIndex >= 0) {
+          const selectedTitleIndex = _.findIndex(list.title, { 'value': ownerList[selectedOwnerIndex].title });
+          tempAccountData.title = list.title[selectedTitleIndex];
+
+          this.setState({
+            accountData: tempAccountData,
+            selectedOwner: ownerList[selectedOwnerIndex]
+          });
+        }
       } else if (type === 'title') {
         const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
-        tempAccountData.title = list.title[selectedTitleIndex];
 
-        this.setState({
-          accountData: tempAccountData
-        });
+        if (selectedTitleIndex >= 0) {
+          tempAccountData.title = list.title[selectedTitleIndex];
+
+          this.setState({
+            accountData: tempAccountData
+          });
+        }
       }
     }
   }
@@ -531,10 +546,10 @@ class AccountEdit extends Component {
               required
               error={!formValidation.privileges.valid}>
               <FormLabel>{t('l-privileges')}</FormLabel>
+              <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
               <FormGroup>
                 {privileges.map(this.showPrivilegesList)}
               </FormGroup>
-              <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
             </FormControl>
           </div>
         }

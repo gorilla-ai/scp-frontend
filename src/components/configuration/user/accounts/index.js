@@ -285,7 +285,9 @@ class AccountList extends Component {
           _.forEach(sortedOwnerList, val => {
             ownerList.push({
               value: val.ownerUUID,
-              text: val.ownerName
+              text: val.ownerName,
+              department: val.department,
+              title: val.title
             });
           })
 

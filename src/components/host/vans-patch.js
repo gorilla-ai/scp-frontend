@@ -118,7 +118,7 @@ class VansPatch extends Component {
       <div key={i} className='group'>
         <FileUpload
           id={'vansPatch' + val}
-          supportText={t('hmd-scan.txt-' + val)}
+          supportText={t('hmd-scan.txt-' + val) + ' *'}
           btnText={t('txt-upload')}
           handleFileChange={this.getVansPatchFile.bind(this, val)} />
       </div>
@@ -204,7 +204,7 @@ class VansPatch extends Component {
         </div>
         {VANS_FILES.map(this.displayFileUpload)}
         <div className='group full'>
-          <label>{t('hmd-scan.txt-patchProduct')}</label>
+          <label>{t('hmd-scan.txt-patchProduct')} *</label>
           <TextField
             name='product'
             variant='outlined'
@@ -217,7 +217,7 @@ class VansPatch extends Component {
             onChange={this.handleDataChange} />
         </div>
         <div className='group full'>
-          <label>{t('hmd-scan.txt-patchVendor')}</label>
+          <label>{t('hmd-scan.txt-patchVendor')} *</label>
           <TextField
             name='vendor'
             variant='outlined'
@@ -230,7 +230,7 @@ class VansPatch extends Component {
             onChange={this.handleDataChange} />
         </div>
         <div className='group full'>
-          <label>{t('hmd-scan.txt-patchVersion')}</label>
+          <label>{t('hmd-scan.txt-patchVersion')} *</label>
           <TextField
             name='version'
             variant='outlined'
