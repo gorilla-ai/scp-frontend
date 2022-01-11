@@ -891,7 +891,7 @@
     "txt-notYetAssessed": "未評估",
     "txt-patch-install": "安裝指令",
     "txt-patch-update": "修改指令",
-    "txt-patch-delete": "刪除指令",
+    "txt-patch-uninstall": "刪除指令",
     "txt-taskRunning": "派送中",
     "txt-taskComplete": "已派送",
     "txt-taskNotSupport": "不支援",

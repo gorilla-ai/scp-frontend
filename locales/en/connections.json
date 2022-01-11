@@ -891,7 +891,7 @@
     "txt-notYetAssessed": "Not assessed",
     "txt-patch-install": "Install Patch",
     "txt-patch-update": "Update Patch",
-    "txt-patch-delete": "Delete Patch",
+    "txt-patch-uninstall": "Uninstall Patch",
     "txt-taskRunning": "Running",
     "txt-taskComplete": "Complete",
     "txt-taskNotSupport": "Not Support",
