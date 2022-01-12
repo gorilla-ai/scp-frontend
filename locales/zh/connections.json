@@ -371,6 +371,8 @@
     "txt-safetyScanType": "安全掃描類型",
     "txt-export-cpe": "匯出CPE",
     "txt-report-nccst": "回報NCCST",
+    "txt-report-nccst-success": "回報成功",
+    "txt-report-nccst-fail": "回報失敗",
     "txt-report-withCpe": "請再次確認以下包含漏洞的CPE是否一併送出",
     "txt-report-noCpe": "無包含漏洞的CPE",
     "txt-hostInfo": "主機資訊",

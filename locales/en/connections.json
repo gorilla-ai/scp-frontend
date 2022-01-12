@@ -371,6 +371,8 @@
     "txt-safetyScanType": "Safety Scan Type",
     "txt-export-cpe": "Export CPE",
     "txt-report-nccst": "Report NCCST",
+    "txt-report-nccst-success": "Report Success",
+    "txt-report-nccst-fail": "Report Failed",
     "txt-report-withCpe": "Please onfirm the following CPE with exploit",
     "txt-report-noCpe": "No CPE with exploit found",
     "txt-hostInfo": "Host Info",

@@ -8,6 +8,7 @@ import {GithubPicker} from 'react-color'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText'
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
@@ -55,7 +56,12 @@ class VansNotes extends Component {
         annotation: '',
         color: ''
       },
-      showColorPalette: false
+      showColorPalette: false,
+      formValidation: {
+        status: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -152,7 +158,7 @@ class VansNotes extends Component {
     return (
       <TextField
         {...params}
-        label={t('host.txt-status')}
+        label={t('host.txt-status') + ' *'}
         variant='outlined'
         size='small' />
     )
@@ -194,7 +200,12 @@ class VansNotes extends Component {
 
     this.setState({
       statusType: event.target.value,
-      vansNotes: tempVansNotes
+      vansNotes: tempVansNotes,
+      formValidation: {
+        status: {
+          valid: true
+        }
+      }
     });
   }
   /**
@@ -236,16 +247,34 @@ class VansNotes extends Component {
   handleVansNotesSave = () => {
     const {baseUrl} = this.context;
     const {currentData, currentType} = this.props;
-    const {statusType, vansNotes} = this.state;
+    const {statusType, vansNotes, formValidation} = this.state;
     const url = `${baseUrl}/api/annotation`;
+    const status = statusType === 'new' ? vansNotes.status : vansNotes.status.value;
     let requestType = 'POST';
     let requestData = {
       attribute: currentData.ipDeviceUUID || currentData.primaryKeyValue,
-      status: statusType === 'new' ? vansNotes.status : vansNotes.status.value,
+      status,
       annotation: vansNotes.annotation,
       color: vansNotes.color,
       module: MODULE_TYPE[currentType]
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (status) {
+      tempFormValidation.status.valid = true;
+    } else {
+      tempFormValidation.status.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     if (vansNotes.id) {
       requestData.id = vansNotes.id;
@@ -396,7 +425,7 @@ class VansNotes extends Component {
     }
   }
   render() {
-    const {statusType, statusList, vansNotes, showColorPalette} = this.state;
+    const {statusType, statusList, vansNotes, showColorPalette, formValidation} = this.state;
 
     return (
       <div className='vans-notes' style={this.getHeight()}>
@@ -423,17 +452,23 @@ class VansNotes extends Component {
               variant='outlined'
               fullWidth
               size='small'
+              required
+              error={!formValidation.status.valid}
+              helperText={formValidation.status.valid ? '' : t('txt-required')}
               value={vansNotes.status}
               onChange={this.handleVansNotesChange} />
           }
           {statusType === 'existing' &&
-            <Autocomplete
-              className='combo-box'
-              options={statusList}
-              value={vansNotes.status}
-              getOptionLabel={(option) => option.text}
-              renderInput={this.renderStatusList}
-              onChange={this.handleComboBoxChange} />
+            <React.Fragment>
+              <Autocomplete
+                className='combo-box'
+                options={statusList}
+                value={vansNotes.status}
+                getOptionLabel={(option) => option.text}
+                renderInput={this.renderStatusList}
+                onChange={this.handleComboBoxChange} />
+              <div className='error-msg'>{formValidation.status.valid ? '' : t('txt-required')}</div>
+            </React.Fragment>
           }
         </div>
         <div className='group'>

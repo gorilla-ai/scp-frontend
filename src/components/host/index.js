@@ -1883,7 +1883,14 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
+        const status = data.Message;
+
+        if (status && status === 'A-S-0401') {
+          helper.showPopupMsg(t('host.txt-report-nccst-success'));
+        } else {
+          helper.showPopupMsg(t('host.txt-report-nccst-fail'));
+        }
+        
         this.toggleReportNCCST();
       }
       return null;
