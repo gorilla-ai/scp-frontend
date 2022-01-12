@@ -1,6 +1,7 @@
 build/
 node_modules/
 package-lock.json
+server.js
 .eslintrc
 *.log
 src/components/dashboard/world-map.js
