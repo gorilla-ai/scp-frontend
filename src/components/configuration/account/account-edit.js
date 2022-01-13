@@ -622,16 +622,17 @@ class AccountEdit extends Component {
     }
 
     const formattedAccountData = _.omit(accountData, 'selected');
-
     let requestData = {
-      ...formattedAccountData
+      ...formattedAccountData,
+      unit: '',
+      title: ''
     };
 
-    if (accountData.unit.value) {
+    if (accountData.unit && accountData.unit.value) {
       requestData.unit = accountData.unit.value;
     }
 
-    if (accountData.title.value) {
+    if (accountData.title && accountData.title.value) {
       requestData.title = accountData.title.value;
     }
 
