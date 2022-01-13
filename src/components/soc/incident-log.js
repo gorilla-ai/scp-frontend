@@ -156,7 +156,7 @@ class IncidentLog extends Component {
             requestData.dttmType = logSearch.dttmType;
         }
 
-        requestData.session = session.accountId;
+        requestData.account = session.accountId;
 
         if (logSearch.datetime) {
             requestData.startDttm =   Moment(logSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
