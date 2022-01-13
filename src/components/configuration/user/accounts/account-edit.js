@@ -442,9 +442,10 @@ class AccountEdit extends Component {
               value={accountData.unit || ''}
               getOptionLabel={(option) => option.text}
               renderInput={(params) => (
-                <TextField {...params} label={t('l-unit')} variant='outlined' size='small' />         
+                <TextField {...params} label={t('l-unit') + ' *'} variant='outlined' size='small' />
               )}
               onChange={this.handleComboBoxChange.bind(this, 'department')} />
+            <div className='error-msg'>{formValidation.unit.valid ? '' : c('txt-required')}</div>
           </div>
           <div className='group'>
             <Autocomplete
@@ -454,9 +455,10 @@ class AccountEdit extends Component {
               value={accountData.title || ''}
               getOptionLabel={(option) => option.text}
               renderInput={(params) => (
-                <TextField {...params} label={t('l-title')} variant='outlined' size='small' />         
+                <TextField {...params} label={t('l-title') + ' *'} variant='outlined' size='small' />
               )}
               onChange={this.handleComboBoxChange.bind(this, 'title')} />
+            <div className='error-msg'>{formValidation.title.valid ? '' : c('txt-required')}</div>
           </div>
           <div className='group'>
             <TextField
@@ -540,6 +542,22 @@ class AccountEdit extends Component {
       validate = false;
     }
 
+    if (accountData.unit && accountData.unit.value) {
+      tempFormValidation.unit.valid = true;
+      tempFormValidation.unit.msg = '';
+    } else {
+      tempFormValidation.unit.valid = false;
+      validate = false;
+    }
+
+    if (accountData.title && accountData.title.value) {
+      tempFormValidation.title.valid = true;
+      tempFormValidation.title.msg = '';
+    } else {
+      tempFormValidation.title.valid = false;
+      validate = false;
+    }
+
     if (accountData.phone) {
       tempFormValidation.phone.valid = true;
     } else {
@@ -568,17 +586,9 @@ class AccountEdit extends Component {
     const formattedAccountData = _.omit(accountData, 'selected');
     let requestData = {
       ...formattedAccountData,
-      unit: '',
-      title: ''
+      unit: accountData.unit.value,
+      title: accountData.title.value
     };
-
-    if (accountData.unit && accountData.unit.value) {
-      requestData.unit = accountData.unit.value;
-    }
-
-    if (accountData.title && accountData.title.value) {
-      requestData.title = accountData.title.value;
-    }
 
     if (id && selectedOwner) {
       requestData.ownerId = selectedOwner.value;

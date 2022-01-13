@@ -2137,23 +2137,51 @@ class HostController extends Component {
     });
   }
   /**
+   * Validate time range filter
+   * @method
+   */
+  validateTimeRagne = () => {
+    const {datetime, deviceSearch} = this.state;
+
+    if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
+      const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
+      const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
+      const searchDatetime = {
+        from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.from, 'local'), //Format: '2022-01-03 00:45:33'
+        to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.to, 'local')
+      };
+      const formattedSearchDatetime = {
+        from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
+        to: searchDatetime.to.substr(-9)
+      };
+
+      if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
+        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
    * Handle filter search submit
    * @method
    */
   handleSearchSubmit = () => {
-    const {activeTab, hostInfo, safetyScanData} = this.state;
+    const {activeTab, datetime, deviceSearch, hostInfo, safetyScanData} = this.state;
 
     if (activeTab === 'hostList') {
-      let tempHostInfo = {...hostInfo};
-      tempHostInfo.dataContent = null;
-      tempHostInfo.totalCount = 0;
-      tempHostInfo.currentPage = 1;
+      if (this.validateTimeRagne()) {
+        let tempHostInfo = {...hostInfo};
+        tempHostInfo.dataContent = null;
+        tempHostInfo.totalCount = 0;
+        tempHostInfo.currentPage = 1;
 
-      this.setState({
-        hostInfo: tempHostInfo
-      }, () => {
-        this.getHostData();
-      });
+        this.setState({
+          hostInfo: tempHostInfo
+        }, () => {
+          this.getHostData();
+        });
+      }
     } else if (activeTab === 'deviceMap') {
       this.setState({
         showLoadingIcon: true,
@@ -2277,29 +2305,30 @@ class HostController extends Component {
   /**
    * Set device filter data
    * @method
+   * @param {string} type - filter type
    * @param {array.<string>} data - filter data
    */
-  setDeviceSearch = (data) => {
-    const {activeFilter, deviceSearch, deviceSearchList} = this.state;
+  setDeviceSearch = (type, data) => {
+    const {deviceSearch, deviceSearchList} = this.state;
     let tempDeviceSearch = {...deviceSearch};
     let tempDeviceSearchList = {...deviceSearchList};
     let dataList = [];
-    tempDeviceSearch[activeFilter] = data;
+    tempDeviceSearch[type] = data;
 
     _.forEach(data, val => {
       let value = val.input;
 
       if (value) {
-        if (activeFilter === 'status') {
+        if (type === 'status') {
           value = val.input.text;
-        } else if (activeFilter === 'version') {
+        } else if (type === 'version') {
           value = val.condition + ' ' + value;
         }
 
         dataList.push(value);
       }
     });
-    tempDeviceSearchList[activeFilter] = dataList;
+    tempDeviceSearchList[type] = dataList;
 
     this.setState({
       deviceSearch: tempDeviceSearch,
@@ -2488,7 +2517,7 @@ class HostController extends Component {
                     defaultItemValue={defaultItemValue}
                     value={deviceSearch[activeFilter]}
                     props={data}
-                    onChange={this.setDeviceSearch} />
+                    onChange={this.setDeviceSearch.bind(this, activeFilter)} />
                   {activeFilter === 'ip' &&
                     <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport}>{t('network-inventory.txt-batchUploadIp')}</Button>
                   }
