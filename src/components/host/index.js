@@ -458,10 +458,8 @@ class HostController extends Component {
       tempAccount.login = true;
       tempAccount.departmentId = session.departmentId;
 
-      if (!_.includes(session.roles, 'Default Admin Privilege')) {
-        if (_.includes(session.roles, 'SOC單位設備承辦人') || _.includes(session.roles, 'SOC單位設備資安長')) {
-          tempAccount.limitedRole = true;
-        }
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
       }
 
       this.setState({
@@ -4499,7 +4497,7 @@ class HostController extends Component {
     })
   }
   render() {
-    const {session} = this.context;
+    const {session, sessionRights} = this.context;
     const {
       activeTab,
       activeContent,
@@ -4563,7 +4561,7 @@ class HostController extends Component {
     const vansDateTime = this.getHostDateTime();
     let adminPrivilege = false;
 
-    if (_.includes(session.roles, 'Default Admin Privilege') || _.includes(session.roles, 'SOC單位設備承辦人') || _.includes(session.roles, 'SOC單位設備資安長')) {
+    if (sessionRights.Module_Config) {
       adminPrivilege = true;
     }
 
