@@ -65,8 +65,8 @@ import IncidentManagement from "./components/soc/incident-manager";
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
 const appcfg = initialState.appCfg;
-const productName = initialState.productName;
 const companyName = initialState.companyName;
+const productName = initialState.productName;
 const year = Moment().year();
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
@@ -80,6 +80,7 @@ Highcharts.setOptions({
 const HeaderComp = (props) => (
   <BaseDataContext.Provider value={baseData}>
     <Header
+      companyName={companyName}
       productName={productName}
       themeName={props.themeName}
       setThemeName={props.setThemeName} />

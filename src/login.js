@@ -632,7 +632,6 @@ class Login extends Component {
         <div id='loingTitle'>
           <img src='/SCP/images/nsguard-logo.png' />
           <span className='title'>{productName}</span>
-          <span className='subtitle'></span>
         </div>
 
         <div id='loingForm' className='c-flex fdc'>

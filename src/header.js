@@ -559,7 +559,7 @@ class Header extends Component {
   }
   render() {
     const {contextRoot, language, session, sessionRights} = this.context;
-    const {productName} = this.props;
+    const {companyName, productName} = this.props;
     const {contextAnchor, showChangePassword, list, ownerList} = this.state;
     let showLanguage = '';
 
@@ -579,7 +579,10 @@ class Header extends Component {
           <header id='g-header'>
             <div className='title'>
               <Link to='/SCP'>
-                <img src={contextRoot + '/images/nsguard-logo.png'} />{productName}
+                <div>
+                  <span className='company-name'>{companyName}</span>
+                  <span className='product-name'>{productName}</span>
+                </div>
               </Link>
             </div>
 
@@ -646,6 +649,7 @@ class Header extends Component {
 Header.contextType = BaseDataContext;
 
 Header.propTypes = {
+  companyName: PropTypes.string.isRequired,
   productName: PropTypes.string.isRequired
 };
 
