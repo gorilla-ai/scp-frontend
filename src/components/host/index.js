@@ -1300,26 +1300,7 @@ class HostController extends Component {
     }
 
     if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
-      const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
-      const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
-      const searchDatetime = {
-        from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.from, 'local'), //Format: '2022-01-03 00:45:33'
-        to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.to, 'local')
-      };
-      const formattedSearchDatetime = {
-        from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
-        to: searchDatetime.to.substr(-9)
-      };
-
-      if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
-        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
-        return;
-      }
-
-      requestData.theLatestTaskResponseDttm = [
-        moment(formattedDatetime + formattedSearchDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z', //Format: '2022-01-02T16:45:33Z'
-        moment(formattedDatetime + formattedSearchDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-      ];
+      requestData.theLatestTaskResponseDttm = this.getFormattedTimeRange();
     }
 
     if (deviceSearchList.userName.length > 0) {
@@ -2137,30 +2118,35 @@ class HostController extends Component {
     });
   }
   /**
-   * Validate time range filter
+   * Get formatted time range filter
    * @method
+   * @param {string} [options] - option for 'validate'
+   * @returns time range or boolean false
    */
-  validateTimeRagne = () => {
+  getFormattedTimeRange = (options) => {
     const {datetime, deviceSearch} = this.state;
+    const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
+    const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
+    const searchDatetime = {
+      from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.from, 'local'), //Format: '2022-01-03 00:45:33'
+      to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.to, 'local')
+    };
+    const formattedSearchDatetime = {
+      from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
+      to: searchDatetime.to.substr(-9)
+    };
 
-    if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
-      const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
-      const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
-      const searchDatetime = {
-        from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.from, 'local'), //Format: '2022-01-03 00:45:33'
-        to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.to, 'local')
-      };
-      const formattedSearchDatetime = {
-        from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
-        to: searchDatetime.to.substr(-9)
-      };
-
-      if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
-        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
-        return false;
-      }
+    if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
+      helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+      return false;
     }
-    return true;
+
+    if (options === 'validate') return true;
+
+    const searchTimeFrom =  moment(formattedDatetime + formattedSearchDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'; //Format: '2022-01-02T16:45:33Z'
+    const searchTimeTo = moment(formattedDatetime + formattedSearchDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+
+    return [searchTimeFrom, searchTimeTo];
   }
   /**
    * Handle filter search submit
@@ -2170,18 +2156,22 @@ class HostController extends Component {
     const {activeTab, datetime, deviceSearch, hostInfo, safetyScanData} = this.state;
 
     if (activeTab === 'hostList') {
-      if (this.validateTimeRagne()) {
-        let tempHostInfo = {...hostInfo};
-        tempHostInfo.dataContent = null;
-        tempHostInfo.totalCount = 0;
-        tempHostInfo.currentPage = 1;
+      if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
+        const validateTime = this.getFormattedTimeRange('validate');
 
-        this.setState({
-          hostInfo: tempHostInfo
-        }, () => {
-          this.getHostData();
-        });
+        if (!validateTime) return;
       }
+
+      let tempHostInfo = {...hostInfo};
+      tempHostInfo.dataContent = null;
+      tempHostInfo.totalCount = 0;
+      tempHostInfo.currentPage = 1;
+
+      this.setState({
+        hostInfo: tempHostInfo
+      }, () => {
+        this.getHostData();
+      });
     } else if (activeTab === 'deviceMap') {
       this.setState({
         showLoadingIcon: true,
