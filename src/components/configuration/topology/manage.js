@@ -741,18 +741,13 @@ class Manage extends Component {
       helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
     })
   }
-
   /**
    * Handle name modal confirm
    * @method
    */
   handleConfirmName = () => {
-    const {baseUrl} = this.context;
-    const {activeTab, name, owner, selectedOwner, parentTreetId, treeId, nameUUID, formValidation} = this.state;
-    let url = '';
+    const {activeTab, name, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
-    let requestType = 'POST';
-    let requestData = {};
     let validate = true;
 
     if (name) {
@@ -771,45 +766,88 @@ class Manage extends Component {
     }
 
     if (activeTab === 'department') {
-      url = `${baseUrl}/api/department`;
-      requestData = {
-        name,
-        ip: owner.ip,
-        domainAccount: owner.domainAccount,
-        unitCode: owner.unitCode,
-        unitCodeRegex: owner.unitCodeRegex
-      };
-
-      if (selectedOwner) {
-        requestData.ownerId = selectedOwner.value;
-      }
-
-      if (parentTreetId !== 'root' && parentTreetId !== treeId) {
-        requestData.parentId = parentTreetId;
-      }
-
-      if (parentTreetId === treeId) {
-        requestData.id = treeId;
-      }
-
-      if (treeId) {
-        requestType = 'PATCH';
-        requestData.id = treeId;
-      }
+      this.handleConfirmDepartemnt();
     } else if (activeTab === 'title') {
-      url = `${baseUrl}/api/name`;
-      requestData = {
-        name,
-        nameType: 2
-      };
+      this.handleConfirmTitle();
+    }
+  }
+  /**
+   * Handle department modal confirm
+   * @method
+   */
+  handleConfirmDepartemnt = () => {
+    const {baseUrl} = this.context;
+    const {name, owner, selectedOwner, parentTreetId, treeId} = this.state;
+    const url = `${baseUrl}/api/department`;
+    let requestType = 'POST';
+    let requestData = {
+      name,
+      ip: owner.ip,
+      domainAccount: owner.domainAccount,
+      unitCode: owner.unitCode,
+      unitCodeRegex: owner.unitCodeRegex
+    };
 
-      if (nameUUID) {
-        requestType = 'PATCH';
-        requestData.nameUUID = nameUUID;
-      }
+    if (selectedOwner) {
+      requestData.ownerId = selectedOwner.value;
+    }
+
+    if (parentTreetId !== 'root' && parentTreetId !== treeId) {
+      requestData.parentId = parentTreetId;
+    }
+
+    if (parentTreetId === treeId) {
+      requestData.id = treeId;
+    }
+
+    if (treeId) {
+      requestType = 'PATCH';
+      requestData.id = treeId;
     }
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          openName: false,
+          name: '',
+          parentTreetId: '',
+          treeId: ''
+        });
+
+        this.getDepartmentTree();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle title modal confirm
+   * @method
+   */
+  handleConfirmTitle = () => {
+    const {baseUrl} = this.context;
+    const {name, nameUUID} = this.state;
+    const url = `${baseUrl}/api/name`;
+    let requestType = 'POST';
+    let requestData = {
+      name,
+      nameType: 2
+    };
+
+    if (nameUUID) {
+      requestType = 'PATCH';
+      requestData.nameUUID = nameUUID;
+    }
 
     ah.one({
       url,
@@ -819,29 +857,18 @@ class Manage extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        if (activeTab === 'department') {
-          this.setState({
-            openName: false,
-            name: '',
-            parentTreetId: '',
-            treeId: ''
-          });
+        this.setState({
+          openName: false,
+          nameUUID: ''
+        });
 
-          this.getDepartmentTree();
-        } else if (activeTab === 'title') {
-          this.setState({
-            openName: false,
-            nameUUID: ''
-          });
-
-          this.getTitleNameList();
-        }
+        this.getTitleNameList();
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    })    
   }
   /**
    * Close open name dialog
