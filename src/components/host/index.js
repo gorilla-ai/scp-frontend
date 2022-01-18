@@ -1344,25 +1344,20 @@ class HostController extends Component {
     const {deviceSearchList, safetyScanData, safetyScanType} = this.state;
     const datetime = this.getHostDateTime();
     let url = '';
-    let requestData = {};
+    let requestData = {
+      timestamp: [datetime.from, datetime.to],
+      ...this.getHostSafetyRequestData()
+    };
 
     if (options === 'hitCVE') {
       url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
-      requestData = {
-        timestamp: [datetime.from, datetime.to],
-        ...this.getHostSafetyRequestData(),
-        hmdScanDistribution: {
-          taskName: 'getVans',
-          primaryKeyName: 'cpe23Uri',
-          hitCVE: true
-        }
+      requestData.hmdScanDistribution = {
+        taskName: 'getVans',
+        primaryKeyName: 'cpe23Uri',
+        hitCVE: true
       };
     } else {
       url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
-      requestData = {
-        timestamp: [datetime.from, datetime.to],
-        ...this.getHostSafetyRequestData()
-      };
 
       if (safetyScanType === 'getVansCpe') {
         requestData.hmdScanDistribution = {
@@ -1379,18 +1374,18 @@ class HostController extends Component {
           taskName: safetyScanType
         };
       }
+    }
 
-      if (deviceSearchList.scanInfo.length > 0) {
-        let scanInfo = deviceSearchList.scanInfo;
+    if (deviceSearchList.scanInfo.length > 0) {
+      let scanInfo = deviceSearchList.scanInfo;
 
-        if (safetyScanType === 'getFileIntegrity') {
-          scanInfo = _.map(deviceSearchList.scanInfo, val => {
-            return val.replace(/\\/g, '\\\\');
-          });
-        }
-
-        requestData.hmdScanDistribution.primaryKeyValueArray = scanInfo;
+      if (safetyScanType === 'getFileIntegrity') {
+        scanInfo = _.map(deviceSearchList.scanInfo, val => {
+          return val.replace(/\\/g, '\\\\');
+        });
       }
+
+      requestData.hmdScanDistribution.primaryKeyValueArray = scanInfo;
     }
 
     this.ah.one({
@@ -1781,7 +1776,7 @@ class HostController extends Component {
     const {hitCveList, nccstCheckAll} = this.state;
 
     if (hitCveList.length === 0) {
-      return <div>{t('host.txt-report-noCpe')}</div>
+      return <div className='align-center'>{t('host.txt-report-noCpe')}</div>
     } else {
       return (
         <div>
@@ -1807,10 +1802,19 @@ class HostController extends Component {
    * @returns ModalDialog component
    */
   showNCCSTlist = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReportNCCST},
-      confirm: {text: t('txt-confirm'), handler: this.confirmNCCSTlist}
-    };
+    const {hitCveList} = this.state;
+    let actions = {};
+
+    if (hitCveList.length === 0) {
+      actions = {
+        cancel: {text: t('txt-close'), handler: this.toggleReportNCCST}
+      };
+    } else {
+      actions = {
+        cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReportNCCST},
+        confirm: {text: t('txt-confirm'), handler: this.confirmNCCSTlist}
+      };
+    }
 
     return (
       <ModalDialog
