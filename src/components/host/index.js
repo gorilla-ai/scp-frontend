@@ -1802,19 +1802,10 @@ class HostController extends Component {
    * @returns ModalDialog component
    */
   showNCCSTlist = () => {
-    const {hitCveList} = this.state;
-    let actions = {};
-
-    if (hitCveList.length === 0) {
-      actions = {
-        cancel: {text: t('txt-close'), handler: this.toggleReportNCCST}
-      };
-    } else {
-      actions = {
-        cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReportNCCST},
-        confirm: {text: t('txt-confirm'), handler: this.confirmNCCSTlist}
-      };
-    }
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReportNCCST},
+      confirm: {text: t('txt-confirm'), handler: this.confirmNCCSTlist}
+    };
 
     return (
       <ModalDialog
