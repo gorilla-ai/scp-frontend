@@ -196,7 +196,7 @@ class AccountEdit extends Component {
           selectedPrivileges: _.cloneDeep(accountData.selected)
         }, () => {
           if (!_.isEmpty(accountData.unit)) {
-            this.getOwnerData();
+            this.getOwnerData(id);
           }
         });
       }
@@ -210,13 +210,15 @@ class AccountEdit extends Component {
   /**
    * Get and set owner data
    * @method
-   * @param {string} [departmentId] - selected department ID
+   * @param {string} id - selected account ID
    */
-  getOwnerData = (departmentId) => {
+  getOwnerData = (id) => {
     const {baseUrl} = this.context;
     const {accountData} = this.state;
     const requestData = {
-      department: departmentId || accountData.unit.value
+      accountId : id,
+      department: accountData.unit.value,
+      getUnusedOwner: true
     };
 
     this.ah.one({
@@ -235,6 +237,7 @@ class AccountEdit extends Component {
             ownerList.push({
               value: val.ownerUUID,
               text: val.ownerName,
+              department: val.department,
               title: val.title
             });
           })
@@ -602,7 +605,7 @@ class AccountEdit extends Component {
       validate = false;
     }
 
-    if (id && selectedOwner) {
+    if (id && selectedOwner && selectedOwner.value) {
       tempFormValidation.owner.valid = true;
       tempFormValidation.owner.msg = '';
     } else {

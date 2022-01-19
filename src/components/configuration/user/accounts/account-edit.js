@@ -49,6 +49,7 @@ const INITIAL_STATE = {
   fromPage: '',
   privileges: [],
   showPrivileges: true,
+  ownerList: [],
   selectedPrivileges: [],
   selectedOwner: {},
   formValidation: {
@@ -195,7 +196,7 @@ class AccountEdit extends Component {
           accountData,
           selectedPrivileges: _.cloneDeep(accountData.selected)
         }, () => {
-          this.setOwnerInfo();
+          this.getOwnerData(id);
         });
       }
       return null;
@@ -206,12 +207,58 @@ class AccountEdit extends Component {
     })
   }
   /**
+   * Get and set owner data
+   * @method
+   * @param {string} id - selected account ID
+   */
+  getOwnerData = (id) => {
+    const {baseUrl} = this.context;
+    const requestData = {
+      accountId : id,
+      getUnusedOwner: true
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          let ownerList = [];
+
+          _.forEach(sortedOwnerList, val => {
+            ownerList.push({
+              value: val.ownerUUID,
+              text: val.ownerName,
+              department: val.department,
+              title: val.title
+            });
+          })
+
+          this.setState({
+            ownerList
+          }, () => {
+            this.setOwnerInfo();
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Set owner info
    * @method
    */
   setOwnerInfo = () => {
-    const {currentAccountData, ownerList} = this.props;
-    const {fromPage, accountData} = this.state;
+    const {currentAccountData} = this.props;
+    const {fromPage, accountData, ownerList} = this.state;
     let ownerId = '';
 
     if (fromPage === 'fromHeader') {
@@ -313,8 +360,8 @@ class AccountEdit extends Component {
    * @param {object} value - selected owner info
    */
   handleComboBoxChange = (type, event, value) => {
-    const {list, ownerList} = this.props;
-    const {accountData} = this.state;
+    const {list} = this.props;
+    const {accountData, ownerList} = this.state;
     let tempAccountData = {...accountData};
 
     if (value && value.value) {
@@ -375,8 +422,8 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {
-    const {list, ownerList} = this.props;
-    const {id, accountData, privileges, showPrivileges, selectedOwner, formValidation} = this.state;
+    const {list} = this.props;
+    const {id, accountData, privileges, showPrivileges, ownerList, selectedOwner, formValidation} = this.state;
 
     return (
       <div className='account-form' style={this.getContentWidth()}>
@@ -546,7 +593,7 @@ class AccountEdit extends Component {
       validate = false;
     }
 
-    if (id && selectedOwner) {
+    if (id && selectedOwner && selectedOwner.value) {
       tempFormValidation.owner.valid = true;
       tempFormValidation.owner.msg = '';
     } else {
@@ -718,7 +765,6 @@ AccountEdit.contextType = BaseDataContext;
 
 AccountEdit.propTypes = {
   list: PropTypes.object.isRequired,
-  ownerList: PropTypes.array.isRequired,
   currentAccountData: PropTypes.object,
   onDone: PropTypes.func.isRequired
 };

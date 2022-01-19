@@ -222,7 +222,8 @@ class VansPatchDetails extends Component {
         return {
           ip: vansDetails.dataContent[val].ipDeviceDTO.ip,
           hostName: vansDetails.dataContent[val].ipDeviceDTO.hostName,
-          osType: vansDetails.dataContent[val].ipDeviceDTO.osType
+          osType: vansDetails.dataContent[val].ipDeviceDTO.osType,
+          ipDeviceUUID: vansDetails.dataContent[val].ipDeviceDTO.ipDeviceUUID
         }
       });
 

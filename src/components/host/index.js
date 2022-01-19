@@ -3980,8 +3980,8 @@ class HostController extends Component {
     }
 
     if (patchSelectedItem.length > 0) {
-      retriggerBody.ipArray = _.map(patchSelectedItem, val => {
-        return val.ip;
+      retriggerBody.hostIdArray = _.map(patchSelectedItem, val => {
+        return val.ipDeviceUUID;
       });
     } else {
       retriggerBody = {

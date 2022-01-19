@@ -62,7 +62,6 @@ class AccountList extends Component {
       },
       accountID: '',
       accountName: '',
-      ownerList: [],
       contextAnchor: null,
       currentAccountData: {},
       showNewPassword: false,
@@ -84,7 +83,6 @@ class AccountList extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getTitleData();
-    this.getOwnerData();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -257,49 +255,6 @@ class AccountList extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', c('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set owner data
-   * @method
-   */
-  getOwnerData = () => {
-    const {baseUrl} = this.context;
-    const requestData = {
-      sort: 'ownerID',
-      order: 'asc'
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/owner/_search`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        if (data.rows.length > 0) {
-          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
-          let ownerList = [];
-
-          _.forEach(sortedOwnerList, val => {
-            ownerList.push({
-              value: val.ownerUUID,
-              text: val.ownerName,
-              department: val.department,
-              title: val.title
-            });
-          })
-
-          this.setState({
-            ownerList
-          });
-        }
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -704,7 +659,7 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, list, userAccount, ownerList, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const {showFilter, list, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -764,7 +719,6 @@ class AccountList extends Component {
         <AccountEdit
           ref={ref => { this.editor = ref }}
           list={list}
-          ownerList={ownerList}
           currentAccountData={currentAccountData}
           onDone={this.getAccountsData} />
 
