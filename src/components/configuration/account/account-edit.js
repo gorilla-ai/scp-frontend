@@ -62,6 +62,9 @@ const INITIAL_STATE = {
       valid: true,
       msg: ''
     },
+    owner: {
+      valid: true
+    },
     unit: {
       valid: true
     },
@@ -509,9 +512,10 @@ class AccountEdit extends Component {
                 value={selectedOwner || ''}
                 getOptionLabel={(option) => option.text}
                 renderInput={(params) => (
-                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
+                  <TextField {...params} label={c('ownerFields.ownerName') + ' *'} variant='outlined' size='small' />
                 )}
                 onChange={this.handleComboBoxChange.bind(this, 'owner')} />
+              <div className='error-msg'>{formValidation.owner.valid ? '' : c('txt-required')}</div>
             </div>
           }
           <div className='group'>
@@ -595,6 +599,14 @@ class AccountEdit extends Component {
     } else {
       tempFormValidation.email.valid = false;
       tempFormValidation.email.msg = c('txt-required');
+      validate = false;
+    }
+
+    if (id && selectedOwner.value) {
+      tempFormValidation.owner.valid = true;
+      tempFormValidation.owner.msg = '';
+    } else {
+      tempFormValidation.owner.valid = false;
       validate = false;
     }
 
