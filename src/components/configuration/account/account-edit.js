@@ -602,7 +602,7 @@ class AccountEdit extends Component {
       validate = false;
     }
 
-    if (id && selectedOwner.value) {
+    if (id && selectedOwner) {
       tempFormValidation.owner.valid = true;
       tempFormValidation.owner.msg = '';
     } else {
