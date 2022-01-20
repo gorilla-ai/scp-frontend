@@ -605,12 +605,17 @@ class AccountEdit extends Component {
       validate = false;
     }
 
-    if (id && selectedOwner && selectedOwner.value) {
+    if (id) {
+      if (selectedOwner && selectedOwner.value) {
+        tempFormValidation.owner.valid = true;
+        tempFormValidation.owner.msg = '';
+      } else {
+        tempFormValidation.owner.valid = false;
+        validate = false;
+      }
+    } else {
       tempFormValidation.owner.valid = true;
       tempFormValidation.owner.msg = '';
-    } else {
-      tempFormValidation.owner.valid = false;
-      validate = false;
     }
 
     if (accountData.unit && accountData.unit.value) {
