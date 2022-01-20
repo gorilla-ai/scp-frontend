@@ -579,7 +579,10 @@ class Header extends Component {
           <header id='g-header'>
             <div className='title'>
               <Link to='/SCP'>
-                <img src={contextRoot + '/images/logo_SCP.png'} />
+                <div>
+                  <span className='company-name'>{companyName}</span>
+                  <span className='product-name'>{productName}</span>
+                </div>
               </Link>
             </div>
 
