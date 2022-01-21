@@ -160,13 +160,10 @@ class VansPatchDetails extends Component {
    */
   exportFile = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const {activeVansPatch, vansSearch} = this.props;
+    const {activeVansPatch} = this.props;
     const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_search/_vansPatch/_${type}`;
     const requestData = {
-      groupId: activeVansPatch.groupId,
-      keyword: vansSearch.keyword,
-      startDttm: moment(vansSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      endDttm: moment(vansSearch.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      groupId: activeVansPatch.groupId
     };
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
@@ -342,7 +339,6 @@ VansPatchDetails.contextType = BaseDataContext;
 VansPatchDetails.propTypes = {
   vansPatchDetails: PropTypes.array.isRequired,
   activeVansPatch: PropTypes.object.isRequired,
-  vansSearch: PropTypes.object.isRequired,
   toggleVansPatchDetails: PropTypes.func.isRequired,
   toggleVansPatchSelected: PropTypes.func.isRequired
 };

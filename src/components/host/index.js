@@ -423,10 +423,6 @@ class HostController extends Component {
       openHmdType: '',
       vansChartsData: {},
       vansData: {},
-      vansSearch: {
-        keyword: '',
-        datetime: {}
-      },
       vansTableType: 'assessment', //'assessment' or 'hmd'
       vansPieChartData: {},
       showLoadingIcon: false,
@@ -809,14 +805,7 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          vansPatchGroup: data.rows,
-          vansSearch: {
-            keyword,
-            datetime: {
-              from: datetimeFrom,
-              to: datetimeTo
-            }
-          }
+          vansPatchGroup: data.rows
         });
       }
       return null;
@@ -4565,7 +4554,6 @@ class HostController extends Component {
       fromSafetyPage,
       vansChartsData,
       vansData,
-      vansSearch,
       vansTableType,
       vansPieChartData,
       patchInfo,
@@ -4612,7 +4600,6 @@ class HostController extends Component {
           <VansPatchDetails
             vansPatchDetails={vansPatchDetails}
             activeVansPatch={activeVansPatch}
-            vansSearch={vansSearch}
             toggleVansPatchDetails={this.toggleVansPatchDetails}
             toggleVansPatchSelected={this.toggleVansPatchSelected} />
         }
