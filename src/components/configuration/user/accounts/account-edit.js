@@ -422,6 +422,7 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {
+    const {sessionRights} = this.context;
     const {list} = this.props;
     const {id, accountData, privileges, showPrivileges, ownerList, selectedOwner, formValidation} = this.state;
 
@@ -441,7 +442,7 @@ class AccountEdit extends Component {
               helperText={formValidation.account.valid ? '' : c('txt-required')}
               value={accountData.account}
               onChange={this.handleDataChange}
-              disabled={id} />
+              disabled={id || !sessionRights.Module_Config} />
           </div>
           <div className='group'>
             <TextField
@@ -455,7 +456,8 @@ class AccountEdit extends Component {
               error={!formValidation.name.valid}
               helperText={formValidation.name.valid ? '' : c('txt-required')}
               value={accountData.name}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange}
+              disabled={!sessionRights.Module_Config} />
           </div>
           <div className='group'>
             <TextField
@@ -469,7 +471,8 @@ class AccountEdit extends Component {
               helperText={formValidation.email.msg}
               required
               value={accountData.email}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange}
+              disabled={!sessionRights.Module_Config} />
           </div>
           {id &&
             <div className='group'>
@@ -481,7 +484,8 @@ class AccountEdit extends Component {
                 renderInput={(params) => (
                   <TextField {...params} label={c('ownerFields.ownerName') + ' *'} variant='outlined' size='small' />
                 )}
-                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
+                onChange={this.handleComboBoxChange.bind(this, 'owner')}
+                disabled={!sessionRights.Module_Config} />
               <div className='error-msg'>{formValidation.owner.valid ? '' : c('txt-required')}</div>
             </div>
           }
@@ -495,7 +499,8 @@ class AccountEdit extends Component {
               renderInput={(params) => (
                 <TextField {...params} label={t('l-unit') + ' *'} variant='outlined' size='small' />
               )}
-              onChange={this.handleComboBoxChange.bind(this, 'department')} />
+              onChange={this.handleComboBoxChange.bind(this, 'department')}
+              disabled={!sessionRights.Module_Config} />
             <div className='error-msg'>{formValidation.unit.valid ? '' : c('txt-required')}</div>
           </div>
           <div className='group'>
@@ -508,7 +513,8 @@ class AccountEdit extends Component {
               renderInput={(params) => (
                 <TextField {...params} label={t('l-title') + ' *'} variant='outlined' size='small' />
               )}
-              onChange={this.handleComboBoxChange.bind(this, 'title')} />
+              onChange={this.handleComboBoxChange.bind(this, 'title')}
+              disabled={!sessionRights.Module_Config} />
             <div className='error-msg'>{formValidation.title.valid ? '' : c('txt-required')}</div>
           </div>
           <div className='group'>
@@ -523,18 +529,20 @@ class AccountEdit extends Component {
               error={!formValidation.phone.valid}
               helperText={formValidation.phone.valid ? '' : c('txt-required')}
               value={accountData.phone}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange}
+              disabled={!sessionRights.Module_Config} />
           </div>
           {!id &&
             <FormControlLabel
               className='switch-control'
+              label='Sync AD'
               control={
                 <Switch
                   checked={accountData.syncAD}
                   onChange={this.handleSyncAdChange}
                   color='primary' />
               }
-              label='Sync AD' />
+              disabled={!sessionRights.Module_Config} />
           }
         </div>
         {showPrivileges &&
