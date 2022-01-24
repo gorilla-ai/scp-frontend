@@ -182,6 +182,7 @@ class AccountList extends Component {
     const page = options === 'currentPage' ? userAccount.currentPage : 0;
     const url = `${baseUrl}/api/account/v2/_search?page=${page + 1}&pageSize=${userAccount.pageSize}&orders=${userAccount.sort.field} ${sort}`;
     let requestData = {
+      accountModule: true,
       departmentId: session.departmentId
     };
 
