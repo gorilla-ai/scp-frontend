@@ -747,11 +747,20 @@ class AccountEdit extends Component {
     });
   }
   render() {
+    const {sessionRights} = this.context;
     const {id, info, error, open} = this.state;
-    const actions = {
-      cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close},
-      confirm: {text: gt('btn-ok'), handler: this.saveAccount}
-    };
+    let actions = {};
+
+    if (sessionRights.Module_Config) {
+      actions = {
+        cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close},
+        confirm: {text: gt('btn-ok'), handler: this.saveAccount}
+      };
+    } else {
+      actions = {
+        cancel: {text: gt('btn-close'), handler: this.close}
+      };
+    }
 
     if (!open) {
       return null
