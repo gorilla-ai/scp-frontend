@@ -307,7 +307,9 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.rows.length > 0) {
           let ownerList = _.map(data.rows, val => {
             return {
@@ -358,7 +360,9 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let titleList = [];
         let tempAddIP = {...addIP};
 
@@ -401,7 +405,9 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let departmentList = [];
 
         if (data.length > 0) {
@@ -438,21 +444,25 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && data.length > 0) {
-        const floorPlanData = data[0];
-        const floorPlan = {
-          treeData: data,
-          currentAreaUUID: floorPlanData.areaUUID,
-          currentAreaName: floorPlanData.areaName
-        };
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          floorPlan
-        }, () => {
-          this.getFloorList();
-        });
-      } else {
-        this.getInventoryEdit(options);
+        if (data.length > 0) {
+          const floorPlanData = data[0];
+          const floorPlan = {
+            treeData: data,
+            currentAreaUUID: floorPlanData.areaUUID,
+            currentAreaName: floorPlanData.areaName
+          };
+
+          this.setState({
+            floorPlan
+          }, () => {
+            this.getFloorList();
+          });
+        } else {
+          this.getInventoryEdit(options);
+        }
       }
       return null;
     })
@@ -513,7 +523,9 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.length > 0) {
           this.setState({
             deviceSearchArea: data[0].areaUUID
@@ -542,7 +554,9 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const areaName = data.areaName;
         const areaUUID = data.areaUUID;
         let currentMap = {};
@@ -632,7 +646,9 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let deviceSeatData = {};
         let seatListArr = [];
 
@@ -711,7 +727,9 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let currentDeviceData = {
           ip
         };
@@ -864,164 +882,164 @@ class NetworkInventory extends Component {
       });
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.series(apiArr)
+    this.ah.series(apiArr)
     .then(data => {
-      let ipRt = '';
-      let ipData = '';
+      if (data && data.length > 0) {
+        let ipRt = '';
+        let ipData = '';
 
-      if (options === 'delete') {
-        ipRt = data[1].ret;
-        ipData = data[1].rt;
+        if (options === 'delete') {
+          ipRt = data[1].ret;
+          ipData = data[1].rt;
 
-        if (data[0] && data[0].ret === 0) {
-          this.closeFloorDialog('reload');
+          if (data[0] && data[0].ret === 0) {
+            this.closeFloorDialog('reload');
+          }
+        } else {
+          ipRt = data[0].ret;
+          ipData = data[0].rt;
         }
-      } else {
-        ipRt = data[0].ret;
-        ipData = data[0].rt;
-      }
 
-      if (ipRt === 0) {
-        let tempDeviceData = {...deviceData};
+        if (ipRt === 0) {
+          let tempDeviceData = {...deviceData};
 
-        if (options === 'oneSeat') {
-          let currentSeatData = {};
-          let currentDeviceData = {};
+          if (options === 'oneSeat') {
+            let currentSeatData = {};
+            let currentDeviceData = {};
 
-          if (ipData.counts > 0) {
-            const allAssignedDeviceList = _.map(ipData.rows, (val, i) => {
-              return <MenuItem key={i} value={val.ip}>{val.ip}</MenuItem>
-            });
-            currentDeviceData = ipData.rows[0];
+            if (ipData.counts > 0) {
+              const allAssignedDeviceList = _.map(ipData.rows, (val, i) => {
+                return <MenuItem key={i} value={val.ip}>{val.ip}</MenuItem>
+              });
+              currentDeviceData = ipData.rows[0];
+
+              this.setState({
+                allAssignedDeviceData: ipData.rows,
+                allAssignedDeviceList,
+                assignedDevice: ipData.rows[0].ip
+              });
+            } else {
+              _.forEach(originalSeatData, val => {
+                if (val.seatUUID === seatUUID) {
+                  currentSeatData = val;
+                }
+              })
+            }
 
             this.setState({
-              allAssignedDeviceData: ipData.rows,
-              allAssignedDeviceList,
-              assignedDevice: ipData.rows[0].ip
+              showSeatData: true,
+              currentSeatData,
+              currentDeviceData
             });
-          } else {
-            _.forEach(originalSeatData, val => {
-              if (val.seatUUID === seatUUID) {
-                currentSeatData = val;
-              }
-            })
+            return null;
           }
 
-          this.setState({
-            showSeatData: true,
-            currentSeatData,
-            currentDeviceData
-          });
-          return null;
-        }
+          if (ipData.rows.length === 0) {
+            tempDeviceData.dataContent = [];
+            tempDeviceData.totalCount = 0;
 
-        if (ipData.rows.length === 0) {
-          tempDeviceData.dataContent = [];
-          tempDeviceData.totalCount = 0;
-
-          this.setState({
-            deviceData: tempDeviceData
-          });
-          return null;
-        }
-
-        tempDeviceData.dataContent = _.map(ipData.rows, item => {
-          return {
-            ...item,
-            _menu: true
-          };
-        });
-        tempDeviceData.totalCount = ipData.counts;
-        tempDeviceData.currentPage = page;
-
-        //HMD only
-        let hmdDataOnly = [];
-
-        _.forEach(ipData.rows, val => {
-          if (val.isHmd) {
-            hmdDataOnly.push(val);
+            this.setState({
+              deviceData: tempDeviceData
+            });
+            return null;
           }
-        });
 
-        tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
-        tempDeviceData.hmdOnly.currentIndex = 0;
-        tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
-        tempDeviceData.dataFields = _.map(deviceData.dataFieldsArr, val => {
-          return {
-            name: val,
-            label: val === '_menu' ? ' ' : t(`ipFields.${val}`),
-            options: {
-              sort: this.checkSortable(val),
-              viewColumns: val === '_menu' ? false : true,
-              customBodyRenderLite: (dataIndex, options) => {
-                const allValue = tempDeviceData.dataContent[dataIndex];
-                const value = tempDeviceData.dataContent[dataIndex][val];
+          tempDeviceData.dataContent = _.map(ipData.rows, item => {
+            return {
+              ...item,
+              _menu: true
+            };
+          });
+          tempDeviceData.totalCount = ipData.counts;
+          tempDeviceData.currentPage = page;
 
-                if (options === 'getAllValue') {
-                  return allValue;
-                }
-
-                if (val === 'owner') {
-                  if (allValue.ownerObj) {
-                    return <span>{allValue.ownerObj.ownerName}</span>
-                  } else {
-                    return <span>{value}</span>
-                  }
-                } else if (val === 'areaName') {
-                  if (allValue.areaObj) {
-                    return <span>{allValue.areaObj.areaName}</span>
-                  }
-                } else if (val === 'seatName') {
-                  if (allValue.seatObj) {
-                    return <span>{allValue.seatObj.seatName}</span>
-                  }
-                } else if (val === '_menu') {
-                  return (
-                    <div className='table-menu menu active'>
-                      <i id='inventoryViewDevice' className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}></i>
-                      <i id='inventoryDeleteDevice' className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            className='checkbox-ui batch-updates'
-                            checked={this.checkBatchUpdates(allValue.ipDeviceUUID)}
-                            onChange={this.toggleBatchUpdates.bind(this, allValue)}
-                            color='primary' />
-                        } />
-                    </div>
-                  )
-                } else {
-                  return value;
-                }
-              }
-            }
-          };
-        });
-
-        if (ipData.rows.length > 0) {
-          let ipListArr = [];
+          //HMD only
+          let hmdDataOnly = [];
 
           _.forEach(ipData.rows, val => {
-            ipListArr.push({
-              value: val.ip,
-              text: val.ip
-            });
-          })
+            if (val.isHmd) {
+              hmdDataOnly.push(val);
+            }
+          });
 
-          tempDeviceData.ipListArr = ipListArr;
-        }
+          tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
+          tempDeviceData.hmdOnly.currentIndex = 0;
+          tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
+          tempDeviceData.dataFields = _.map(deviceData.dataFieldsArr, val => {
+            return {
+              name: val,
+              label: val === '_menu' ? ' ' : t(`ipFields.${val}`),
+              options: {
+                sort: this.checkSortable(val),
+                viewColumns: val === '_menu' ? false : true,
+                customBodyRenderLite: (dataIndex, options) => {
+                  const allValue = tempDeviceData.dataContent[dataIndex];
+                  const value = tempDeviceData.dataContent[dataIndex][val];
 
-        this.setState({
-          deviceData: tempDeviceData,
-          batchUpdatesList: [],
-          activeIPdeviceUUID: ''
-        }, () => {
-          if (options === 'previous' || options === 'next') {
-            this.showAlertData('', options);
+                  if (options === 'getAllValue') {
+                    return allValue;
+                  }
+
+                  if (val === 'owner') {
+                    if (allValue.ownerObj) {
+                      return <span>{allValue.ownerObj.ownerName}</span>
+                    } else {
+                      return <span>{value}</span>
+                    }
+                  } else if (val === 'areaName') {
+                    if (allValue.areaObj) {
+                      return <span>{allValue.areaObj.areaName}</span>
+                    }
+                  } else if (val === 'seatName') {
+                    if (allValue.seatObj) {
+                      return <span>{allValue.seatObj.seatName}</span>
+                    }
+                  } else if (val === '_menu') {
+                    return (
+                      <div className='table-menu menu active'>
+                        <i id='inventoryViewDevice' className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}></i>
+                        <i id='inventoryDeleteDevice' className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              className='checkbox-ui batch-updates'
+                              checked={this.checkBatchUpdates(allValue.ipDeviceUUID)}
+                              onChange={this.toggleBatchUpdates.bind(this, allValue)}
+                              color='primary' />
+                          } />
+                      </div>
+                    )
+                  } else {
+                    return value;
+                  }
+                }
+              }
+            };
+          });
+
+          if (ipData.rows.length > 0) {
+            let ipListArr = [];
+
+            _.forEach(ipData.rows, val => {
+              ipListArr.push({
+                value: val.ip,
+                text: val.ip
+              });
+            })
+
+            tempDeviceData.ipListArr = ipListArr;
           }
-        });
+
+          this.setState({
+            deviceData: tempDeviceData,
+            batchUpdatesList: [],
+            activeIPdeviceUUID: ''
+          }, () => {
+            if (options === 'previous' || options === 'next') {
+              this.showAlertData('', options);
+            }
+          });
+        }
       }
       return null;
     })
@@ -1211,14 +1229,12 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {currentSeatData, floorPlan} = this.state;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/seat?uuid=${currentSeatData.seatUUID}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.setState({
           showSeatData: false
         }, () => {
@@ -1556,14 +1572,12 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {currentDeviceData, floorPlan} = this.state;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getDeviceSeatData(floorPlan.currentAreaUUID);
         this.getDeviceData('', 'oneSeat', currentDeviceData.seatUUID);
       }
@@ -1625,31 +1639,35 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && data.length > 0) {
-        let deviceEventsDataList = {};
-        let deviceEventsData = {};
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        _.forEach(data, val => {
-          deviceEventsDataList[helper.getFormattedDate(val.createDttm, 'local')] = val.topology;
-        })
+        if (data.length > 0) {
+          let deviceEventsDataList = {};
+          let deviceEventsData = {};
 
-        _.forEach(data[0].topology, val => {
-          deviceEventsData[val.id] = val.content;
-        })
+          _.forEach(data, val => {
+            deviceEventsDataList[helper.getFormattedDate(val.createDttm, 'local')] = val.topology;
+          })
 
-        const eventsDateList = _.map(data, (val, i) => {
-          return <MenuItem key={i} value={helper.getFormattedDate(val.createDttm, 'local')}>{helper.getFormattedDate(val.createDttm, 'local')}</MenuItem>
-        });
+          _.forEach(data[0].topology, val => {
+            deviceEventsData[val.id] = val.content;
+          })
 
-        this.setState({
-          deviceEventsDataList,
-          deviceEventsData,
-          deviceLAdata: analyze(deviceEventsData, LAconfig, {analyzeGis: false}),
-          eventsDateList,
-          eventsDate: helper.getFormattedDate(data[0].createDttm, 'local')
-        });
-      } else {
-        helper.showPopupMsg(t('txt-notFound'));
+          const eventsDateList = _.map(data, (val, i) => {
+            return <MenuItem key={i} value={helper.getFormattedDate(val.createDttm, 'local')}>{helper.getFormattedDate(val.createDttm, 'local')}</MenuItem>
+          });
+
+          this.setState({
+            deviceEventsDataList,
+            deviceEventsData,
+            deviceLAdata: analyze(deviceEventsData, LAconfig, {analyzeGis: false}),
+            eventsDateList,
+            eventsDate: helper.getFormattedDate(data[0].createDttm, 'local')
+          });
+        } else {
+          helper.showPopupMsg(t('txt-notFound'));
+        }
       }
       return null;
     })
@@ -1790,23 +1808,23 @@ class NetworkInventory extends Component {
       }
     ])
     .then(data => {
-      if (data) {
-        if (data[0]) {
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0) {
           if (options === 'oneDevice') {
-            this.getOwnerSeat(data[0]);
+            this.getOwnerSeat(data[0].rt);
             return;
           }
 
           this.setState({
             modalIRopen: false,
             deviceData: tempDeviceData,
-            currentDeviceData: data[0],
+            currentDeviceData: data[0].rt,
             activeIPdeviceUUID: ipDeviceID
           });
         }
 
-        if (data[1]) {
-          this.setEventTracingData(data[1]);
+        if (data[1] && data[1].ret === 0) {
+          this.setEventTracingData(data[1].rt);
         }
       }
       return null;
@@ -1887,8 +1905,8 @@ class NetworkInventory extends Component {
 
     this.ah.series(apiArr)
     .then(data => {
-      if (data) {
-        if (data[0]) {
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0) {
           helper.showPopupMsg(t('txt-requestSent'));
 
           this.setState({
@@ -1896,10 +1914,10 @@ class NetworkInventory extends Component {
           });
         }
 
-        if (data[1]) {
+        if (data[1] && data[1].ret === 0) {
           this.setState({
             modalIRopen: false,
-            currentDeviceData: data[1],
+            currentDeviceData: data[1].rt,
             activeIPdeviceUUID: currentDeviceData.ipDeviceUUID
           });
         }
@@ -2565,7 +2583,9 @@ class NetworkInventory extends Component {
           contentType: 'text/plain'
         })
         .then(data => {
-          if (data) {
+          if (data && data.ret === 0) {
+            data = data.rt;
+
             if (data.successList.length > 0 && data.failureList.length === 0) {
               helper.showPopupMsg(t('txt-uploadSuccess'));
 
@@ -2678,7 +2698,9 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.counts > 0) {
           tempFormValidation.ip.valid = false;
           tempFormValidation.ip.msg = t('network-inventory.txt-duplicatedIP');
@@ -2876,7 +2898,8 @@ class NetworkInventory extends Component {
         contentType: false
       })
       .then(data => {
-        if (data) { //Return ownerUUID
+        if (data && data.ret === 0) { //Return ownerUUID
+          data = data.rt;
           this.handleIPdeviceConfirm(data, from);
         }
         return null;
@@ -2946,16 +2969,14 @@ class NetworkInventory extends Component {
       };
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getDeviceData();
 
         if (from === 'batchUpdates') {
@@ -3083,14 +3104,12 @@ class NetworkInventory extends Component {
     const {departmentList, titleList} = this.state;
     const value = event.target ? event.target.value : event;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${value}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.rt) {
+      if (data && data.ret === 0) {
         data = data.rt;
 
         let tempAddIP = {...this.state.addIP};
@@ -4040,7 +4059,9 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           addSeatOpen: false,
           addSeat: {

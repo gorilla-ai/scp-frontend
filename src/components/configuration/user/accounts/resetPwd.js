@@ -252,13 +252,15 @@ class ResetPwd extends Component {
       contentType: 'application/json'
     })
     .then(data => {
-      PopupDialog.alert({
-        id: 'modalWindowSmall',
-        confirmText: at('btn-ok'),
-        display: <div className='content'>{at('txt-passwordSuccess')}</div>
-      });
+      if (data && data.ret === 0) {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          confirmText: at('btn-ok'),
+          display: <div className='content'>{at('txt-passwordSuccess')}</div>
+        });
 
-      this.close();
+        this.close();
+      }
       return null;
     })
     .catch(err => {

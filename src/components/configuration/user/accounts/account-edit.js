@@ -133,7 +133,9 @@ class AccountEdit extends Component {
       url: `${baseUrl}/api/account/privileges`
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const privileges = _.map(data, el => {
           return {
             value: el.privilegeid,
@@ -157,9 +159,7 @@ class AccountEdit extends Component {
     const {baseUrl} = this.context;
     const {list} = this.props;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.all([
+    this.ah.all([
       {
         url: `${baseUrl}/api/account/v1?accountid=${id}`,
         type:'GET'
@@ -170,34 +170,36 @@ class AccountEdit extends Component {
       }
     ])
     .then(data => {
-      if (data) {
-        let accountData = {
-          accountid: data[0].rt.accountid,
-          account: data[0].rt.account,
-          name: data[0].rt.name,
-          email: data[0].rt.email,
-          phone: data[0].rt.phone,
-          ownerId: data[0].rt.ownerId,
-          selected: _.map(data[1].rt, 'privilegeid')
-        };
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+          let accountData = {
+            accountid: data[0].rt.accountid,
+            account: data[0].rt.account,
+            name: data[0].rt.name,
+            email: data[0].rt.email,
+            phone: data[0].rt.phone,
+            ownerId: data[0].rt.ownerId,
+            selected: _.map(data[1].rt, 'privilegeid')
+          };
 
-        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data[0].rt.unit });
-        const selectedTitleIndex = _.findIndex(list.title, { 'value': data[0].rt.title });
+          const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data[0].rt.unit });
+          const selectedTitleIndex = _.findIndex(list.title, { 'value': data[0].rt.title });
 
-        if (selectedDepartmentIndex >= 0) {
-          accountData.unit = list.department[selectedDepartmentIndex];
+          if (selectedDepartmentIndex >= 0) {
+            accountData.unit = list.department[selectedDepartmentIndex];
+          }
+
+          if (selectedTitleIndex >= 0) {
+            accountData.title = list.title[selectedTitleIndex];
+          }
+
+          this.setState({
+            accountData,
+            selectedPrivileges: _.cloneDeep(accountData.selected)
+          }, () => {
+            this.getOwnerData(id);
+          });
         }
-
-        if (selectedTitleIndex >= 0) {
-          accountData.title = list.title[selectedTitleIndex];
-        }
-
-        this.setState({
-          accountData,
-          selectedPrivileges: _.cloneDeep(accountData.selected)
-        }, () => {
-          this.getOwnerData(id);
-        });
       }
       return null;
     })
@@ -225,7 +227,9 @@ class AccountEdit extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.rows.length > 0) {
           const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
           let ownerList = [];
@@ -674,7 +678,9 @@ class AccountEdit extends Component {
       dataType: 'json'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const resId = id || data || data.rt;
 
         this.setState({
@@ -713,10 +719,12 @@ class AccountEdit extends Component {
       dataType: 'json'
     })
     .then(data => {
-      this.setState(
-        _.cloneDeep(INITIAL_STATE), () => {
-        this.props.onDone();
-      });
+      if (data && data.ret === 0) {
+        this.setState(
+          _.cloneDeep(INITIAL_STATE), () => {
+          this.props.onDone();
+        });
+      }
       return null;
     })
     .catch(err => {

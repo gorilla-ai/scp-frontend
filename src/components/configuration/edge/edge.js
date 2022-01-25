@@ -143,7 +143,9 @@ class Edge extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           allGroupList: data.rows
         });
@@ -166,7 +168,9 @@ class Edge extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const serviceType = _.map(data, (val, i) => {
           return <MenuItem key={i} value={val}>{val}</MenuItem>
         });
@@ -319,7 +323,9 @@ class Edge extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempEdge = {...edge};
 
         if (!data.rows || data.rows.length === 0) {
@@ -518,14 +524,12 @@ class Edge extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getEdgeData();
       }
       return null;
@@ -786,9 +790,9 @@ class Edge extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         let tempEdge = {...this.state.edge};
-        tempEdge.info.lastStatus = data;
+        tempEdge.info.lastStatus = data.rt;
 
         this.setState({
           edge: tempEdge
@@ -848,14 +852,12 @@ class Edge extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getEdgeData();
       }
       return null;
@@ -962,9 +964,7 @@ class Edge extends Component {
       })
     };
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.series([
+    this.ah.series([
       {
         url: `${baseUrl}/api/agent`,
         data: JSON.stringify(requestData),
@@ -979,7 +979,7 @@ class Edge extends Component {
       }
     ])
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         if (data[0] && data[0].ret === 0) {
           this.toggleContent('tableList');
         } else {
@@ -1065,14 +1065,12 @@ class Edge extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/edge/nettrap/_upgrade?id=${edge.info.id}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-upgradeScheduleAdded'));
       }
       return null;

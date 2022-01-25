@@ -56,30 +56,33 @@ class AdConfig extends Component {
   openADconfig = () => {
     const {baseUrl} = this.context;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/common/config?configId=config.ad`
     })
     .then(data => {
-      let adConfig = {
-        ip: '',
-        port: '',
-        domain: '',
-        adminAccount: '',
-        adminPassword: '',
-        isSSL: false,
-        enabled: false
-      };
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-      if (data) {
-        adConfig = JSON.parse(data.rt.value);
+        let adConfig = {
+          ip: '',
+          port: '',
+          domain: '',
+          adminAccount: '',
+          adminPassword: '',
+          isSSL: false,
+          enabled: false
+        };
+
+        if (data) {
+          adConfig = JSON.parse(data.rt.value);
+        }
+
+        this.setState({
+          open: true,
+          adConfig
+        });
       }
-
-      this.setState({
-        open: true,
-        adConfig
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', c('txt-error'), err.message);
@@ -213,9 +216,7 @@ class AdConfig extends Component {
       value: JSON.stringify(adConfig)
     };
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/common/config`,
         data: JSON.stringify(payload),
         type: 'POST',
@@ -223,7 +224,10 @@ class AdConfig extends Component {
         dataType: 'json'
     })
     .then(data => {
-      this.closeDialog();
+      if (data && data.ret === 0) {
+        this.closeDialog();
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', c('txt-error'), err.message);
@@ -244,9 +248,7 @@ class AdConfig extends Component {
     const {baseUrl} = this.context;
     const {adConfig} = this.state;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/ad/_test`,
       data: JSON.stringify(adConfig),
       type: 'POST',
@@ -254,7 +256,10 @@ class AdConfig extends Component {
       dataType: 'json'
     })
     .then(data => {
-      helper.showPopupMsg(c('auto-settings.txt-connectionsSuccess'));
+      if (data && data.ret === 0) {
+        helper.showPopupMsg(c('auto-settings.txt-connectionsSuccess'));
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg(c('auto-settings.txt-connectionsFail'), c('txt-error'));

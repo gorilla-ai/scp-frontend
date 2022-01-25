@@ -222,7 +222,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           configRelationships: data.relationships
         });
@@ -267,7 +269,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempSyslog = {...syslog};
         tempSyslog.dataContent = data.rows;
 
@@ -336,7 +340,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempSyslog = {...syslog};
         let formattedSyslogArr = [];
         let status = {
@@ -378,7 +384,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           sshData: data.rows
         });
@@ -437,7 +445,9 @@ class Syslog extends Component {
       type: 'DELETE'
     })
     .then(data => {
-      this.getSshAccountList();
+      if (data && data.ret === 0) {
+        this.getSshAccountList();
+      }
       return null;
     })
     .catch(err => {
@@ -594,8 +604,6 @@ class Syslog extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
     this.ah.one({
       url: `${baseUrl}/api/log/netproxy/sshaccount?account=${sshAccountName}`,
       data: JSON.stringify({}),
@@ -603,7 +611,7 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.setState({
           sshAccountName: '',
           showAddSshAccount: false
@@ -781,7 +789,9 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempSyslogPatternConfig = {...syslogPatternConfig};
         tempSyslogPatternConfig.patternSetting[i].property = data;
         tempSyslogPatternConfig.patternSetting[i].rawOptions = _.map(data, (value, key) => {
@@ -820,7 +830,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let syslogPatternConfig = {...data};
         syslogPatternConfig.type = 'formatSettings';
 
@@ -889,14 +901,12 @@ class Syslog extends Component {
     const {baseUrl} = this.context;
     const {currentConfigData} = this.state;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/log/netproxy/config?port=${currentConfigData.port}&hostIp=${currentConfigData.loghostIp}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getSyslogData();
       }
       return null;
@@ -1033,7 +1043,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
         tempSyslogPatternConfig.patternSetting[i].input = data;
 
@@ -1129,7 +1141,9 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.toggleContent('syslogData', 'save');
+      if (data && data.ret === 0) {
+        this.toggleContent('syslogData', 'save');
+      }
       return null;
     })
     .catch(err => {
@@ -1162,7 +1176,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const hostsArr = _.map(data.hosts, (key, value) => {
           return {
             ip: value,
@@ -1460,7 +1476,9 @@ class Syslog extends Component {
         type: 'GET'
       })
       .then(data => {
-        if (data) {
+        if (data && data.ret === 0) {
+          data = data.rt;
+
           const netProxyData = {
             list: data.netProxyList,
             configs: data.configs
@@ -1709,7 +1727,7 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
       }
       return null;
@@ -1768,7 +1786,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempTaskServiceList = {...taskServiceList};
         tempTaskServiceList.data = [];
 
@@ -1905,7 +1925,7 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.getSyslogData();
         this.toggleHostNameEdit();
       }
@@ -2094,7 +2114,9 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const {hostsFieldsArr, hosts} = this.state;
         let tempHosts = {...hosts};
         let hostsDataArr = [];
@@ -2258,7 +2280,7 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.getHostsInfoById(activeHost.id);
       }
       return null;
@@ -2345,7 +2367,7 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.getHostsInfoById(activeHost.id);
       }
       return null;

@@ -70,7 +70,9 @@ class Roles extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempUserPrivileges = {...userPrivileges};
 
         if (data.length === 0) {
@@ -169,19 +171,21 @@ class Roles extends Component {
       display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
         if (confirmed && id) {
-          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-          ah.one({
+          this.ah.one({
             url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
             type: 'DELETE',
             contentType: 'application/json'
           })
           .then(data => {
-            if (!data.rt) {
-              helper.showPopupMsg(c('txt-privilegeError'), c('txt-error'));
-            }
+            if (data && data.ret === 0) {
+              data = data.rt;
 
-            this.getPrivilegesData();
+              if (data) {
+                this.getPrivilegesData();
+              } else {
+                helper.showPopupMsg(c('txt-privilegeError'), c('txt-error'));
+              }
+            }
             return null;
           })
           .catch(err => {

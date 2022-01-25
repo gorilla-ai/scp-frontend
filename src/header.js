@@ -102,9 +102,10 @@ class Header extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         let tempList = {...list};
         let titleList = [];
+        data = data.rt;
 
         _.forEach(data, val => {
           titleList.push({
@@ -140,9 +141,10 @@ class Header extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         let tempList = {...list};
         let departmentList = [];
+        data = data.rt;
 
         _.forEach(data, val => {
           helper.floorPlanRecursive(val, obj => {
@@ -183,7 +185,9 @@ class Header extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.rows.length > 0) {
           const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
           let ownerList = [];
@@ -509,7 +513,7 @@ class Header extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-changePasswordSuccess'));
         this.closeChangePasswordDialog();
       }

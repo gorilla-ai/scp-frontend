@@ -86,7 +86,9 @@ class Manage extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           departmentList: data,
           treeData:data
@@ -146,7 +148,9 @@ class Manage extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.rows.length > 0) {
           const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
           let ownerList = [];
@@ -278,6 +282,9 @@ class Manage extends Component {
       url: `${baseUrl}/api/soc/unit?uuid=${tree.id}`,
       type: 'GET',
     }).then(data => {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.id) {
           PopupDialog.prompt({
             title: t('txt-deleteDepartment'),
@@ -318,6 +325,7 @@ class Manage extends Component {
             }
           });
         }
+      }
     }).catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
@@ -335,7 +343,9 @@ class Manage extends Component {
       type: 'DELETE'
     })
     .then(data => {
-      this.getDepartmentTree();
+      if (data && data.ret === 0) {
+        this.getDepartmentTree();
+      }
       return null;
     })
     .catch(err => {
@@ -435,9 +445,9 @@ class Manage extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.setState({
-          titleNameList: data
+          titleNameList: data.rt
         });
       }
       return null;
@@ -514,7 +524,9 @@ class Manage extends Component {
       type: 'DELETE'
     })
     .then(data => {
-      this.getTitleNameList();
+      if (data && data.ret === 0) {
+        this.getTitleNameList();
+      }
       return null;
     })
     .catch(err => {
@@ -726,16 +738,18 @@ class Manage extends Component {
     const {treeData} = this.state;
     const {baseUrl} = this.context;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/department/_tree`,
       data: JSON.stringify(treeData),
       type: 'POST',
       contentType: 'text/plain'
     }).then(data => {
-      if(data.status.includes('success')){
-        helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data.status.includes('success')){
+          helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
+        }
       }
     }).catch(err => {
       helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
@@ -805,8 +819,6 @@ class Manage extends Component {
       requestData.id = treeId;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -814,7 +826,7 @@ class Manage extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.setState({
           openName: false,
           name: '',
@@ -849,14 +861,14 @@ class Manage extends Component {
       requestData.nameUUID = nameUUID;
     }
 
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.setState({
           openName: false,
           nameUUID: ''

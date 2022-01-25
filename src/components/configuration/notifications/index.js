@@ -145,68 +145,70 @@ class Notifications extends Component {
       }
     ])
     .then(data => {
-      if (data) {
-        const data1 = data[0];
-        const data2 = data[1];
-        const data3 = data[2];
-        const notifications = {
-          server: data1.smtpServer,
-          port: data1.smtpPort,
-          sender: data1.sender,
-          connectType: data1.smtpConnectType,
-          authentication: data1.emailAuthentication, //Convert boolean to string
-          senderAccount: data1.senderAcct,
-          senderPassword: data1.senderPasswd
-        };
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0 && data[2] && data[2].ret === 0) {
+          const data1 = data[0].rt;
+          const data2 = data[1].rt;
+          const data3 = data[2].rt;
+          const notifications = {
+            server: data1.smtpServer,
+            port: data1.smtpPort,
+            sender: data1.sender,
+            connectType: data1.smtpConnectType,
+            authentication: data1.emailAuthentication, //Convert boolean to string
+            senderAccount: data1.senderAcct,
+            senderPassword: data1.senderPasswd
+          };
 
-        let tempSmsProvider = {...smsProvider};
-        tempSmsProvider.list = _.map(data3.rows, val => {
-          return <MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
-        });
+          let tempSmsProvider = {...smsProvider};
+          tempSmsProvider.list = _.map(data3.rows, val => {
+            return <MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
+          });
 
-        if (data2['notify.sms.server.id'] && data2['notify.sms.server.id'].length > 0) {
-          tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
-          tempSmsProvider.data = data2['notify.sms.server.id'][0];
+          if (data2['notify.sms.server.id'] && data2['notify.sms.server.id'].length > 0) {
+            tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
+            tempSmsProvider.data = data2['notify.sms.server.id'][0];
+          }
+
+          let tempEmails = {...emails};
+          let tempLineBotSetting = {...lineBotSetting}
+
+          if (data2['notify.service.failure.id']) {
+            tempEmails.service.emails = data2['notify.service.failure.id'].receipts;
+            tempEmails.service.enable = data2['notify.service.failure.id'].enable;
+          }
+
+          if (data2['notify.edge.disconnected.id']) {
+            tempEmails.edge.emails = data2['notify.edge.disconnected.id'].receipts;
+            tempEmails.edge.enable = data2['notify.edge.disconnected.id'].enable;
+          }
+
+          if (data2['notify.alert.report.id']) {
+            tempEmails.alert.emails = data2['notify.alert.report.id'].receipts;
+            tempEmails.alert.enable = data2['notify.alert.report.id'].enable;
+          }
+
+          if (data2['notify.soc.send.id']) {
+            tempEmails.soc.emails = data2['notify.soc.send.id'].receipts;
+            tempEmails.soc.enable = data2['notify.soc.send.id'].enable;
+          }
+
+          if (data2['linetbot.config.id']) {
+            tempLineBotSetting.channelAccessToken = data2['linetbot.config.id'].channelAccessToken;
+            tempLineBotSetting.channelSecret = data2['linetbot.config.id'].channelSecret;
+            tempLineBotSetting.qrcodeLink = data2['linetbot.config.id'].qrcodeLink;
+          }
+
+          this.setState({
+            originalNotifications: _.cloneDeep(notifications),
+            notifications,
+            originalSmsProvider: _.cloneDeep(tempSmsProvider),
+            smsProvider: tempSmsProvider,
+            originalEmails: _.cloneDeep(tempEmails),
+            emails: tempEmails,
+            lineBotSetting:tempLineBotSetting
+          });
         }
-
-        let tempEmails = {...emails};
-        let tempLineBotSetting = {...lineBotSetting}
-
-        if (data2['notify.service.failure.id']) {
-          tempEmails.service.emails = data2['notify.service.failure.id'].receipts;
-          tempEmails.service.enable = data2['notify.service.failure.id'].enable;
-        }
-
-        if (data2['notify.edge.disconnected.id']) {
-          tempEmails.edge.emails = data2['notify.edge.disconnected.id'].receipts;
-          tempEmails.edge.enable = data2['notify.edge.disconnected.id'].enable;
-        }
-
-        if (data2['notify.alert.report.id']) {
-          tempEmails.alert.emails = data2['notify.alert.report.id'].receipts;
-          tempEmails.alert.enable = data2['notify.alert.report.id'].enable;
-        }
-
-        if (data2['notify.soc.send.id']) {
-          tempEmails.soc.emails = data2['notify.soc.send.id'].receipts;
-          tempEmails.soc.enable = data2['notify.soc.send.id'].enable;
-        }
-
-        if (data2['linetbot.config.id']) {
-          tempLineBotSetting.channelAccessToken = data2['linetbot.config.id'].channelAccessToken;
-          tempLineBotSetting.channelSecret = data2['linetbot.config.id'].channelSecret;
-          tempLineBotSetting.qrcodeLink = data2['linetbot.config.id'].qrcodeLink;
-        }
-
-        this.setState({
-          originalNotifications: _.cloneDeep(notifications),
-          notifications,
-          originalSmsProvider: _.cloneDeep(tempSmsProvider),
-          smsProvider: tempSmsProvider,
-          originalEmails: _.cloneDeep(tempEmails),
-          emails: tempEmails,
-          lineBotSetting:tempLineBotSetting
-        });
       }
       return null;
     })
@@ -401,9 +403,11 @@ class Notifications extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      if (data) {
-        this.getMailServerInfo();
-        this.toggleContent('viewMode');
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+          this.getMailServerInfo();
+          this.toggleContent('viewMode');
+        }
       }
       return null;
     })
@@ -731,7 +735,7 @@ class Notifications extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('notifications.txt-sendSuccess'));
         this.closeDialog();
       }
@@ -754,7 +758,8 @@ class Notifications extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
         helper.showPopupMsg(t('notifications.sms.txt-connectionsSuccess') + ': ' + data.point);
       }
       return null;

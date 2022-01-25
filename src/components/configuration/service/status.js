@@ -72,7 +72,9 @@ class Status extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
         let tempServiceStatus = {...serviceStatus};
 

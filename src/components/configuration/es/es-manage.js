@@ -201,11 +201,11 @@ class EsManage extends Component {
 
     this.ah.series(apiArr)
     .then(data => {
-      if (data) {
-        if (options === 'status') {
-          data = data[1];
-        } else {
-          data = data[0];
+      if (data && data.length > 0) {
+        if (data[1] && data[1].ret === 0 && options === 'status') {
+          data = data[1].rt;
+        } else if (data[0] && data[0].ret === 0) {
+          data = data[0].rt;
         }
 
         let tempEs = {...es};
@@ -289,7 +289,9 @@ class EsManage extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const importList = _.map(data.folderList, val => {
           return {
             value: val.replace(/\./g, '-')

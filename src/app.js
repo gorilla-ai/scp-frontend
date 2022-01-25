@@ -452,7 +452,7 @@ function start() {
                 clearTimeout(global.apiTimer);
                 global.apiTimer = setTimeout(getVersion, 1500000); //25 min.
 
-                return resp.rt;
+                return resp;
               }
             },
             parseFail: resp => ({

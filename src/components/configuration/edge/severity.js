@@ -130,7 +130,9 @@ class Severity extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempSeverity = {...severity};
 
         if (!data.rows || data.rows.length === 0) {
@@ -366,28 +368,28 @@ class Severity extends Component {
       description: severity.info.description
     };
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/severityMapping`,
       data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      this.setState({
-        originalSeverityData: _.cloneDeep(severity)
-      }, () => {
-        let showPage = '';
+      if (data && data.ret === 0) {
+        this.setState({
+          originalSeverityData: _.cloneDeep(severity)
+        }, () => {
+          let showPage = '';
 
-        if (activeContent === 'addSeverity') {
-          showPage = 'tableList';
-        } else if (activeContent === 'editSeverity') {
-          showPage = 'cancel';
-        }
+          if (activeContent === 'addSeverity') {
+            showPage = 'tableList';
+          } else if (activeContent === 'editSeverity') {
+            showPage = 'cancel';
+          }
 
-        this.toggleContent(showPage);
-      })
+          this.toggleContent(showPage);
+        })
+      }
       return null;
     })
     .catch(err => {

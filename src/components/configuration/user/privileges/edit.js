@@ -86,15 +86,15 @@ class PrivilegeEdit extends Component {
   loadPermits = () => {
     const {baseUrl} = this.context;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/permits`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
-        const permitsList = _.map(data.rt, val => {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        const permitsList = _.map(data, val => {
           return {
             value: val.permitid,
             text: c('txt-' + val.name)
@@ -184,16 +184,16 @@ class PrivilegeEdit extends Component {
       permitIds += '&permitIds=' + val;
     })
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/privilege/permits/v1?privilegeId=${privilegeid}&${permitIds}`,
       data: JSON.stringify({name}),
       type: 'PATCH',
       contentType: 'application/json'
     })
     .then(data => {
-      this.save();
+      if (data && data.ret === 0) {
+        this.save();
+      }
       return null;
     })
     .catch(err => {

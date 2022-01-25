@@ -118,7 +118,9 @@ class NetworkOwner extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempList = {...list};
         let titleList = [];
 
@@ -156,7 +158,9 @@ class NetworkOwner extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempList = {...list};
         let departmentList = [];
 
@@ -231,7 +235,9 @@ class NetworkOwner extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempOwner = {...owner};
 
         if (!data.rows || data.rows.length === 0) {
@@ -370,14 +376,12 @@ class NetworkOwner extends Component {
     const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
     let tempOwner = {...owner};
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.rt) {
+      if (data && data.ret === 0) {
         data = data.rt;
         tempOwner.info = {...data};
 
@@ -659,14 +663,15 @@ class NetworkOwner extends Component {
       contentType: false
     })
     .then(data => {
-      this.setState({
-        currentOwnerData: {}
-      }, () => {
-        this.getTitleData();
-        this.getOwnerData();
-        this.toggleContent('tableList');
-      });
-
+      if (data && data.ret === 0) {
+        this.setState({
+          currentOwnerData: {}
+        }, () => {
+          this.getTitleData();
+          this.getOwnerData();
+          this.toggleContent('tableList');
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -721,14 +726,12 @@ class NetworkOwner extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/owner?uuid=${currentOwnerData.ownerUUID}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.setState({
           currentOwnerData: {}
         }, () => {

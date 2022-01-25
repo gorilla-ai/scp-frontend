@@ -99,7 +99,9 @@ class AuditLog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempAudit = {...audit};
 
         if (!data.rows || data.rows.length === 0) {

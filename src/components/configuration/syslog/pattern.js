@@ -154,7 +154,9 @@ class Pattern extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempPattern = {...pattern};
 
         if (!data.rows || data.rows.length === 0) {
@@ -466,14 +468,12 @@ class Pattern extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/alert/pattern?patternId=${currentPatternData.patternId}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getPatternScript();
       }
       return null;
@@ -549,19 +549,21 @@ class Pattern extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.setState({
-        originalPatternData: _.cloneDeep(pattern)
-      }, () => {
-        let showPage = '';
+      if (data && data.ret === 0) {
+        this.setState({
+          originalPatternData: _.cloneDeep(pattern)
+        }, () => {
+          let showPage = '';
 
-        if (activeContent === 'addPattern') {
-          showPage = 'tableList';
-        } else if (activeContent === 'editPattern') {
-          showPage = 'cancel';
-        }
+          if (activeContent === 'addPattern') {
+            showPage = 'tableList';
+          } else if (activeContent === 'editPattern') {
+            showPage = 'cancel';
+          }
 
-        this.toggleContent(showPage);
-      })
+          this.toggleContent(showPage);
+        })
+      }
       return null;
     })
     .catch(err => {

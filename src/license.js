@@ -72,11 +72,13 @@ class License extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      if (data) {
-        this.setState({
-          originalKey: data[0],
-          lms: data[1]
-        });
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+          this.setState({
+            originalKey: data[0].rt,
+            lms: data[1].rt
+          });
+        }
       }
       return null;
     })
@@ -154,7 +156,11 @@ class License extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      this.handleLmsAvtivate(data[1]);
+      if (data && data.length > 0) {
+        if (data[1] && data[1].ret === 0) {
+          this.handleLmsAvtivate(data[1].rt);
+        }
+      }
       return null;
     })
     .catch(err => {
@@ -174,7 +180,9 @@ class License extends Component {
       type: 'GET'
     })
     .then(data => {
-      this.handleLmsAvtivate(data);
+      if (data && data.ret === 0) {
+        this.handleLmsAvtivate(data.rt);
+      }
       return null;
     })
     .catch(err => {
@@ -288,7 +296,9 @@ class License extends Component {
       contentType: false
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.returnCode === '0') {
           this.toggleFileUpload();
           this.props.onPass();

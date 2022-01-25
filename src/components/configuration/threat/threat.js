@@ -157,7 +157,9 @@ class ThreatIntelligence extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           indicatorsData: this.formatPieChartData(data)
         });
@@ -174,7 +176,9 @@ class ThreatIntelligence extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let indicatorsTrendData = [];
 
         _.keys(data)
@@ -207,7 +211,9 @@ class ThreatIntelligence extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let acuIndicatorsTrendData = [];
 
         _.keys(data)
@@ -757,7 +763,7 @@ class ThreatIntelligence extends Component {
         contentType: false
       })
       .then(data => {
-        if (data) {
+        if (data && data.ret === 0) {
           if (addThreats.length > 0) {
             helper.showPopupMsg(t('edge-management.txt-addSuccess'));
 
@@ -851,7 +857,7 @@ class ThreatIntelligence extends Component {
       contentType: false
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('edge-management.txt-addSuccess'));
         this.toggleImportThreats();
 
@@ -1058,13 +1064,11 @@ class ThreatIntelligence extends Component {
       });
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.series(apiArr)
+    this.ah.series(apiArr)
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         if (type === 'delete') {
-          if (data[0] && data[0].ret === 0) {
+          if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
             let tempThreats = {...threats};
             tempThreats.dataContent = [];
             tempThreats.totalCount = 0;

@@ -106,7 +106,9 @@ class AccountList extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempList = {...list};
         let titleList = [];
 
@@ -144,7 +146,9 @@ class AccountList extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempList = {...list};
         let departmentList = [];
 
@@ -199,7 +203,9 @@ class AccountList extends Component {
       contentType: 'application/json'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempUserAccount = {...userAccount};
 
         if (!data.rows || data.rows.length === 0) {
@@ -370,15 +376,15 @@ class AccountList extends Component {
       msg = t('txt-unlockAccountSuccess');
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       type: requestType
     })
-    .then(() => {
-      helper.showPopupMsg(msg);
-      this.getAccountsData();
+    .then(data => {
+      if (data && data.ret === 0) {
+        helper.showPopupMsg(msg);
+        this.getAccountsData();
+      }
       return null;
     })
     .catch(err => {
@@ -497,7 +503,7 @@ class AccountList extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(c('txt-resetPasswordSuccess'));
         this.closeResetPasswordDialog();
       }

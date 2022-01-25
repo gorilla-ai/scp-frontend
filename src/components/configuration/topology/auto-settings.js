@@ -130,8 +130,9 @@ class AutoSettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
-        data = data.value;
+      if (data && data.ret === 0) {
+        data = data.rt.value;
+
         let tempStatusEnable = {...statusEnable};
         let ipRangeData = [];
         let tempADdata = {...adData};
@@ -237,14 +238,18 @@ class AutoSettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && data.length > 0) {
-        const deviceList = _.map(data, (val, i) => {
-          return <MenuItem key={i} value={val.target}>{val.name}</MenuItem>
-        });
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          deviceList
-        });
+        if (data.length > 0) {
+          const deviceList = _.map(data, (val, i) => {
+            return <MenuItem key={i} value={val.target}>{val.name}</MenuItem>
+          });
+
+          this.setState({
+            deviceList
+          });
+        }
       }
       return null;
     })
@@ -360,7 +365,9 @@ class AutoSettings extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           adTableData: data
         }, () => {
@@ -423,11 +430,9 @@ class AutoSettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
-        data = data.rows;
-
+      if (data && data.ret === 0) {
         this.setState({
-          netFlowTableData: data
+          netFlowTableData: data.rt.rows
         }, () => {
           PopupDialog.alert({
             id: 'modalWindowSmall',
@@ -525,7 +530,9 @@ class AutoSettings extends Component {
       contentType: 'text/plain'
     }, {showProgress: type === 'test'})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (type === 'test') {
           this.setState({
             networkTestResult: data
@@ -667,7 +674,7 @@ class AutoSettings extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.getSettingsInfo();
       }
       return null;
