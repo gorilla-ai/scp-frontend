@@ -1536,21 +1536,25 @@ class HMDscanInfo extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && data.safetyScanInfo) {
-        const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
-        let tempHmdInfo = {...hmdInfo};
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        if (hmdResult.length > 0) {
-          tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+        if (data.safetyScanInfo) {
+          const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
+          let tempHmdInfo = {...hmdInfo};
 
-          this.setState({
-            hmdInfo: tempHmdInfo,
-            hasMore: true
-          });
-        } else {
-          this.setState({
-            hasMore: false
-          });
+          if (hmdResult.length > 0) {
+            tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+
+            this.setState({
+              hmdInfo: tempHmdInfo,
+              hasMore: true
+            });
+          } else {
+            this.setState({
+              hasMore: false
+            });
+          }
         }
       }
       return null;
@@ -1657,7 +1661,7 @@ class HMDscanInfo extends Component {
         contentType: 'text/plain'
       })
       .then(data => {
-        if (data) {
+        if (data && data.ret === 0) {
           helper.showPopupMsg(t('txt-requestSent'));
         }
         return null;
@@ -1690,16 +1694,14 @@ class HMDscanInfo extends Component {
       hostId: currentDeviceData.ipDeviceUUID
     };
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
       }
       return null;
@@ -2064,7 +2066,7 @@ class HMDscanInfo extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.props.getHMDinfo(this.props.ipType);
       }
@@ -2308,16 +2310,14 @@ class HMDscanInfo extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'PATCH',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.props.getHMDinfo('');
         this.toggleSettingsContent('save');
       }
@@ -2339,7 +2339,9 @@ class HMDscanInfo extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let includePath = '';
         let excludePath = '';
         let processKeyword = '';

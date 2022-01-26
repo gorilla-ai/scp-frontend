@@ -200,17 +200,17 @@ class IrSelections extends Component {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/hmd/isSftpConnected`;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify({}),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
-        if (data.rt) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data) {
           this.props.triggerTask(this.state.irSelectedList);
         } else {
           helper.showPopupMsg('', t('txt-error'), t('hmd-scan.txt-checkHmdSettings'));

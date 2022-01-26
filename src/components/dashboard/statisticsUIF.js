@@ -109,11 +109,16 @@ class StatisticsUIF extends Component {
       type: 'GET'
     })
     .then(data => {
-      this.setState({
-        layoutConfig: data
-      }, () => {
-        this.loadUIF();
-      });
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        this.setState({
+          layoutConfig: data
+        }, () => {
+          this.loadUIF();
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -130,106 +135,111 @@ class StatisticsUIF extends Component {
       type: 'GET'
     })
     .then(data => {
-      let dataJson = JSON.parse(data);
-      let uifCfg = JSON.parse(dataJson.data);
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-      _.forEach(uifCfg.config.widgets, (widgetValue, widgetName) => {
-        const oldUrl = widgetValue.widgetConfig.config.dataSource.query.url;
-        const pattern = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('/api'), oldUrl.indexOf('?')) : oldUrl.substring(oldUrl.indexOf('/api'));
-        const params = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('?') + 1) : '';
-        let newUrl = `${baseUrl}${pattern}`;
+        let dataJson = JSON.parse(data);
+        let uifCfg = JSON.parse(dataJson.data);
 
-        if (params) {
-          _.forEach(params.split('&'), param => {
-            _.includes(newUrl, '?') ? newUrl += '&' : newUrl += '?';
+        _.forEach(uifCfg.config.widgets, (widgetValue, widgetName) => {
+          const oldUrl = widgetValue.widgetConfig.config.dataSource.query.url;
+          const pattern = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('/api'), oldUrl.indexOf('?')) : oldUrl.substring(oldUrl.indexOf('/api'));
+          const params = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('?') + 1) : '';
+          let newUrl = `${baseUrl}${pattern}`;
 
-            if (_.includes(param, 'startDttm')) {
-              const startDttm = moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-              newUrl += `startDttm=${startDttm}`;
-            } else if (_.includes(param, 'endDttm')) {
-              const endDttm = moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-              newUrl += `endDttm=${endDttm}`;
-            } else if (_.includes(param, 'accountId')) {
-              newUrl += `accountId=${session.accountId}`;
-            } else if (_.includes(param, 'timeZone')) {
-              newUrl += `timeZone=8`;
-            } else if (_.includes(param, 'histogramInterval')) {
-              newUrl += `histogramInterval=${intervalValue}`;
-            } else {
-              newUrl += param;
-            }
-          })
-        }
+          if (params) {
+            _.forEach(params.split('&'), param => {
+              _.includes(newUrl, '?') ? newUrl += '&' : newUrl += '?';
 
-        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.query.url`], newUrl);
-        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.errorMessage`], t('txt-error'));
-        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.placeholder`], t('txt-notFound'));
-
-        // set tooltip
-        if (widgetName === 'AlertStatistics-bar') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'AlertStatistics-bar'));
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
-            labels: {
-              formatter() {
-                return moment(this.value, 'x').local().format('MM/DD HH:mm');
+              if (_.includes(param, 'startDttm')) {
+                const startDttm = moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+                newUrl += `startDttm=${startDttm}`;
+              } else if (_.includes(param, 'endDttm')) {
+                const endDttm = moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+                newUrl += `endDttm=${endDttm}`;
+              } else if (_.includes(param, 'accountId')) {
+                newUrl += `accountId=${session.accountId}`;
+              } else if (_.includes(param, 'timeZone')) {
+                newUrl += `timeZone=8`;
+              } else if (_.includes(param, 'histogramInterval')) {
+                newUrl += `histogramInterval=${intervalValue}`;
+              } else {
+                newUrl += param;
               }
-            }
-          });
-        }
+            })
+          }
 
-        if (widgetName === 'CustomAlertStatistics') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'CustomAlertStatistics'));
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
-            labels: {
-              formatter() {
-                return moment(this.value, 'x').local().format('MM/DD HH:mm');
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.query.url`], newUrl);
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.errorMessage`], t('txt-error'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.placeholder`], t('txt-notFound'));
+
+          // set tooltip
+          if (widgetName === 'AlertStatistics-bar') {
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'AlertStatistics-bar'));
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
+              labels: {
+                formatter() {
+                  return moment(this.value, 'x').local().format('MM/DD HH:mm');
+                }
               }
-            }
-          });
-        }
+            });
+          }
 
-        if (widgetName === 'MaskedIPAlertStatistics-bar') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'));
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
-        }
+          if (widgetName === 'CustomAlertStatistics') {
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'CustomAlertStatistics'));
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
+              labels: {
+                formatter() {
+                  return moment(this.value, 'x').local().format('MM/DD HH:mm');
+                }
+              }
+            });
+          }
 
-        if (widgetName === 'honeypotLoginPassword-table') {
-          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.fields.password.formatter`], this.formatter.bind(this));
-        }
-      })
+          if (widgetName === 'MaskedIPAlertStatistics-bar') {
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'));
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
+          }
 
-      // set display
-      let displayContent = {};
+          if (widgetName === 'honeypotLoginPassword-table') {
+            _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.fields.password.formatter`], this.formatter.bind(this));
+          }
+        })
 
-      _.forEach(uifCfg.config.widgets, (content, key) => {
-        let type = _.get(content.widgetConfig, 'type');
-        type = type.substring(type.indexOf('/') + 1);
-        displayContent[key] = content.boxTitle + ' (' + t('txt-chartType' + type) + ')';
-      })
-      
-      _.set(uifCfg, 'config.onLayoutChange', this.positionChange);
+        // set display
+        let displayContent = {};
 
-      // overwrite uifcfg
-      _.forEach(appendConfig, (v, k) => {
-        _.set(uifCfg, k, v);
-      })
+        _.forEach(uifCfg.config.widgets, (content, key) => {
+          let type = _.get(content.widgetConfig, 'type');
+          type = type.substring(type.indexOf('/') + 1);
+          displayContent[key] = content.boxTitle + ' (' + t('txt-chartType' + type) + ')';
+        })
+        
+        _.set(uifCfg, 'config.onLayoutChange', this.positionChange);
 
-      // set position
-      _.forEach(layoutConfig.position, el => {
-        _.set(uifCfg, `config.widgets.${el.id}.layout`, el);
-      })
+        // overwrite uifcfg
+        _.forEach(appendConfig, (v, k) => {
+          _.set(uifCfg, k, v);
+        })
 
-      this.setState({
-        uifCfg,
-        appendConfig,
-        displayContent
-      }, () => {
-        if (oneFlag) {
-          this.hoc.forceRefresh();
-        }
-      });
+        // set position
+        _.forEach(layoutConfig.position, el => {
+          _.set(uifCfg, `config.widgets.${el.id}.layout`, el);
+        })
+
+        this.setState({
+          uifCfg,
+          appendConfig,
+          displayContent
+        }, () => {
+          if (oneFlag) {
+            this.hoc.forceRefresh();
+          }
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -384,9 +394,11 @@ class StatisticsUIF extends Component {
           contentType: false
         })
         .then(data => {
-          if (data.rt) {
-            downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`);
-            Progress.done();
+          if (data && data.ret === 0) {
+            if (data.rt) {
+              downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`);
+              Progress.done();
+            }
           }
         })
         .catch(err => {
@@ -446,11 +458,14 @@ class StatisticsUIF extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.setState({
-        openLayout: false,
-        openEdit: false,
-        oneFlag: false
-      });
+      if (data && data.ret === 0) {
+        this.setState({
+          openLayout: false,
+          openEdit: false,
+          oneFlag: false
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

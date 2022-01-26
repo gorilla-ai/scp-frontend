@@ -250,17 +250,21 @@ class ManageGroup extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
-        this.toggleAddGroup();
-        this.props.getGroupList();
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          info: ''
-        });
-      } else {
-        this.setState({
-          info: t('txt-duplicatedName')
-        });
+        if (data) {
+          this.toggleAddGroup();
+          this.props.getGroupList();
+
+          this.setState({
+            info: ''
+          });
+        } else {
+          this.setState({
+            info: t('txt-duplicatedName')
+          });
+        }
       }
       return null;
     })
@@ -310,7 +314,7 @@ class ManageGroup extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.props.updateGroupList(group);
       }
       return null;

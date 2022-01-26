@@ -369,8 +369,8 @@ class AlertDetails extends Component {
 
     this.ah.series(apiArr)
     .then(data => {
-      if (data) {
-        if (data[0] && data[0].counts === 0) {
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0 && data[0].counts === 0) {
           tempAlertInfo[ipType].exist = false;
 
           this.setState({
@@ -378,9 +378,9 @@ class AlertDetails extends Component {
           });
         }
 
-        if (data[1] && data[0].counts > 0) {
+        if (data[1] && data[1].ret === 0 && data[0].ret === 0 && data[0].counts > 0) {
           tempAlertInfo[ipType].exist = true;
-          tempIPdeviceInfo[ipType] = data[1];
+          tempIPdeviceInfo[ipType] = data[1].rt;
 
           this.setState({
             alertInfo: tempAlertInfo,
@@ -389,7 +389,7 @@ class AlertDetails extends Component {
           });
         }
 
-        if (data[2]) {
+        if (data[2] && data[2].ret === 0) {
           let tempEventInfo = {...eventInfo};
           tempEventInfo.dataContent = [];
           tempEventInfo.scrollCount = 1;
@@ -398,7 +398,7 @@ class AlertDetails extends Component {
           this.setState({
             eventInfo: tempEventInfo
           }, () => {
-            this.setEventTracingData(data[2]);
+            this.setEventTracingData(data[2].rt);
           });
         }
       }
@@ -426,7 +426,8 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
         this.setEventTracingData(data);
       }
       return null;
@@ -492,19 +493,19 @@ class AlertDetails extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.rt && data.rt.base64) {
-        tempAlertInfo[ipType].ownerPic = data.rt.base64;
+      if (data && data.ret === 0) {
+        if (data.rt && data.rt.base64) {
+          tempAlertInfo[ipType].ownerPic = data.rt.base64;
 
-        this.setState({
-          alertInfo: tempAlertInfo
-        });
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
+        }
       }
       return null;
     })
@@ -614,7 +615,9 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let threatsCountData10 = [];
         let threatsCountData20 = [];
         let threatsCountData50 = [];
@@ -674,7 +677,9 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let internalNetworkData = [];
         let threatStatAlert = [];
         let threatStat = [];
@@ -752,7 +757,9 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let eventStatConfig = [];
         let eventStat = [];
 
@@ -933,13 +940,17 @@ class AlertDetails extends Component {
       type: 'GET'
     })
     .then(data => {
-      const pcapDownloadLink = data ? `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp}&infoType=${alertData['alertInformation.type']}` : '';
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-      this.setState({
-        pcapDownloadLink
-      }, () => {
-        this.toggleRedirectMenu();
-      });
+        const pcapDownloadLink = data ? `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp}&infoType=${alertData['alertInformation.type']}` : '';
+
+        this.setState({
+          pcapDownloadLink
+        }, () => {
+          this.toggleRedirectMenu();
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -2026,7 +2037,7 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.triggerTask(['compareIOC'], '', yaraRule);
       }
       return null;
@@ -2096,8 +2107,8 @@ class AlertDetails extends Component {
 
     this.ah.series(apiArr)
     .then(data => {
-      if (data) {
-        if (data[0]) {
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0) {
           helper.showPopupMsg(t('txt-requestSent'));
 
           if (type[0] === 'compareIOC') {
@@ -2109,7 +2120,7 @@ class AlertDetails extends Component {
           }
         }
 
-        if (data[1] && data[1].counts === 0) {
+        if (data[1] && data[1].ret === 0 && data[1].counts === 0) {
           tempAlertInfo[ipTypeParam || ipType].exist = false;
 
           this.setState({
@@ -2117,9 +2128,9 @@ class AlertDetails extends Component {
           });
         }
 
-        if (data[2] && data[1].counts > 0) {
+        if (data[2] && data[2].ret === 0 && data[1] && data[1].ret === 0 && data[1].counts > 0) {
           tempAlertInfo[ipTypeParam || ipType].exist = true;
-          tempIPdeviceInfo[ipTypeParam || ipType] = data[2];
+          tempIPdeviceInfo[ipTypeParam || ipType] = data[2].rt;
 
           this.setState({
             alertInfo: tempAlertInfo,
@@ -2159,7 +2170,7 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
       }
       return null;
@@ -2182,16 +2193,14 @@ class AlertDetails extends Component {
       hasHandled: true
     }];
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/hmd/malwareList`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.getHMDinfo(ipType);
       }
@@ -2269,8 +2278,12 @@ class AlertDetails extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.id) {
-        window.location.href = `${baseUrl}${contextRoot}/api/honeynet/attack/payload/file/${data.id}`;
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data.id) {
+          window.location.href = `${baseUrl}${contextRoot}/api/honeynet/attack/payload/file/${data.id}`;
+        }
       }
       return null;
     })

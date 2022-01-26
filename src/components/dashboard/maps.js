@@ -129,7 +129,9 @@ class DashboardMaps extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const tempArray = _.map(data.data.rows, val => {
           val._source.id = val._id;
           return val._source;
@@ -373,7 +375,9 @@ class DashboardMaps extends Component {
         contentType: 'text/plain'
       })
       .then(data => {
-        if (data) {
+        if (data && data.ret === 0) {
+          data = data.rt;
+
           const tempArray = _.map(data.data.rows, val => {
             val._source.id = val._id;
             val._source.index = val._index;
@@ -515,22 +519,26 @@ class DashboardMaps extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data && data.length > 0) {
-        const floorPlanData = data[0];
-        const floorPlan = {
-          treeData: data,
-          currentAreaUUID: floorPlanData.areaUUID,
-          currentAreaName: floorPlanData.areaName
-        };
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          floorPlan
-        }, () => {
-          this.getFloorList();
-        });
-      } else {
-        this.loadAlertPrivateData(); //No floor map
-      }
+        if (data.length > 0) {
+          const floorPlanData = data[0];
+          const floorPlan = {
+            treeData: data,
+            currentAreaUUID: floorPlanData.areaUUID,
+            currentAreaName: floorPlanData.areaName
+          };
+
+          this.setState({
+            floorPlan
+          }, () => {
+            this.getFloorList();
+          });
+        } else {
+          this.loadAlertPrivateData(); //No floor map
+          }
+        }
       return null;
     })
     .catch(err => {
@@ -586,7 +594,9 @@ class DashboardMaps extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const areaName = data.areaName;
         const areaUUID = data.areaUUID;
         let currentMap = '';
@@ -685,7 +695,9 @@ class DashboardMaps extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const allPrivateData = data.aggregations.InternalMaskedIpWithLoc;
         let tempAlertDetails = {...alertDetails};
         let currentFloorPrivateData = [];

@@ -327,16 +327,16 @@ class NetworkBehavior extends Component {
         tempNetworkBehavior.threats.fieldsData = tempFields;
 
         if (ipType === 'srcIp') {
-          tempNetworkBehavior.threats.srcIp.totalCount = data[0].data.counts;
+          tempNetworkBehavior.threats.srcIp.totalCount = data[0].rt.data.counts;
 
-          if (data[0].aggregations) {
-            tempNetworkBehavior.threats.srcIp.data = this.getNetworkBehaviorData('threats', data[0].aggregations);
+          if (data[0].rt.aggregations) {
+            tempNetworkBehavior.threats.srcIp.data = this.getNetworkBehaviorData('threats', data[0].rt.aggregations);
           }
         } else if (ipType === 'destIp') {
-          tempNetworkBehavior.threats.destIp.totalCount = data[0].data.counts;
+          tempNetworkBehavior.threats.destIp.totalCount = data[0].rt.data.counts;
 
-          if (data[0].aggregations) {
-            tempNetworkBehavior.threats.destIp.data = this.getNetworkBehaviorData('threats', data[0].aggregations);
+          if (data[0].rt.aggregations) {
+            tempNetworkBehavior.threats.destIp.data = this.getNetworkBehaviorData('threats', data[0].rt.aggregations);
           }
         }
 
@@ -355,28 +355,28 @@ class NetworkBehavior extends Component {
         tempNetworkBehavior.dns.fieldsData = tempFields;
 
         if (ipType === 'srcIp') {
-          tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
+          tempNetworkBehavior.connections.srcIp.totalCount = data[1].rt.data.counts;
 
-          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
+          if (data[1].rt.aggregations && data[1].rt.aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[1].rt.aggregations.TopDestIpPortAgg.buckets);
           }
 
-          tempNetworkBehavior.dns.srcIp.totalCount = data[2].data.counts;
+          tempNetworkBehavior.dns.srcIp.totalCount = data[2].rt.data.counts;
 
-          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
+          if (data[2].rt.aggregations && data[2].rt.aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].rt.aggregations.TopDestIpPortAgg.buckets);
           }
         } else if (ipType === 'destIp') {
-          tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
+          tempNetworkBehavior.connections.destIp.totalCount = data[1].rt.data.counts;
 
-          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
+          if (data[1].rt.aggregations && data[1].rt.aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[1].rt.aggregations.TopDestIpPortAgg.buckets);
           }
 
-          tempNetworkBehavior.dns.destIp.totalCount = data[2].data.counts;
+          tempNetworkBehavior.dns.destIp.totalCount = data[2].rt.data.counts;
 
-          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
+          if (data[2].rt.aggregations && data[2].rt.aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[2].rt.aggregations.TopDestIpPortAgg.buckets);
           }
         }
 
@@ -394,16 +394,16 @@ class NetworkBehavior extends Component {
         tempNetworkBehavior.syslog.fieldsData = tempFields;
 
         if (ipType === 'srcIp') {
-          tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
+          tempNetworkBehavior.syslog.srcIp.totalCount = data[3].rt.data.counts;
 
-          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
-            tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
+          if (data[3].rt.aggregations && data[3].rt.aggregations.Top10SyslogConfigSource) {
+            tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].rt.aggregations.Top10SyslogConfigSource.agg.buckets);
           }
         } else if (ipType === 'destIp') {
-          tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
+          tempNetworkBehavior.syslog.destIp.totalCount = data[3].rt.data.counts;
 
-          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
-            tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
+          if (data[3].rt.aggregations && data[3].rt.aggregations.Top10SyslogConfigSource) {
+            tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[3].rt.aggregations.Top10SyslogConfigSource.agg.buckets);
           }
         }
 

@@ -218,7 +218,9 @@ class DashboardStats extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempAlertPieData = {...alertPieData};
         let alertHistogram = {
           Emergency: {},
@@ -389,7 +391,9 @@ class DashboardStats extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let alertPatternData = [];
 
         if (data.event_histogram) {
@@ -444,7 +448,9 @@ class DashboardStats extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempIvar = {...ivar};
         tempIvar.dataContent = [data];
 
@@ -499,21 +505,25 @@ class DashboardStats extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data.aggregations) {
-        let configSrcData = [];
-        let tempSyslogPieData = {...syslogPieData};
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        if (data.aggregations[configSrcInfo.id]) {
-          configSrcData = data.aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+        if (data.aggregations) {
+          let configSrcData = [];
+          let tempSyslogPieData = {...syslogPieData};
+
+          if (data.aggregations[configSrcInfo.id]) {
+            configSrcData = data.aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+          }
+
+          tempSyslogPieData[configSrcInfo.id] = configSrcData;
+
+          this.setState({
+            syslogPieData: tempSyslogPieData
+          }, () => {
+            this.getPieChartsData();
+          });
         }
-
-        tempSyslogPieData[configSrcInfo.id] = configSrcData;
-
-        this.setState({
-          syslogPieData: tempSyslogPieData
-        }, () => {
-          this.getPieChartsData();
-        });
       }
       return null;
     })
@@ -544,7 +554,9 @@ class DashboardStats extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const dnsInfo = CHARTS_LIST[6];
         let tempDnsPieData = {...dnsPieData};
         let tempDnsMetricData = {...dnsMetricData};
@@ -597,12 +609,12 @@ class DashboardStats extends Component {
   loadMetricData = () => {
     const {baseUrl} = this.context;
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/alert/diskUsage`,
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         data = data.rt;
 
         let validData = false;
@@ -661,30 +673,32 @@ class DashboardStats extends Component {
 
     this.ah.all(apiArr, {showProgress: false})
     .then(data => {
-      if (data) {
-        let lms = 'empty';
+      if (data && data.length > 0) {
+        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+          let lms = 'empty';
 
-        if (data[0].expireDate) {
-          lms = moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+          if (data[0].rt.expireDate) {
+            lms = moment(data[0].rt.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+          }
+
+          let tempHmdData = {...hmdData};
+          tempHmdData.data = [{
+            hmd: data[1].rt.hmd,
+            max: data[1].rt.max,
+            hosts: data[1].rt.hosts
+          }];
+          tempHmdData.agg = ['hmd', 'max', 'hosts'];
+          tempHmdData.keyLabels = {
+            hmd: t('dashboard.txt-hmd'),
+            max: t('dashboard.txt-max'),
+            hosts: t('dashboard.txt-hosts')
+          };
+
+          this.setState({
+            hmdData: tempHmdData,
+            lms
+          });
         }
-
-        let tempHmdData = {...hmdData};
-        tempHmdData.data = [{
-          hmd: data[1].hmd,
-          max: data[1].max,
-          hosts: data[1].hosts
-        }];
-        tempHmdData.agg = ['hmd', 'max', 'hosts'];
-        tempHmdData.keyLabels = {
-          hmd: t('dashboard.txt-hmd'),
-          max: t('dashboard.txt-max'),
-          hosts: t('dashboard.txt-hosts')
-        };
-
-        this.setState({
-          hmdData: tempHmdData,
-          lms
-        });
       }
       return null;
     })

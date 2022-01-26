@@ -176,7 +176,9 @@ class DashboardOverview extends Component {
       contentType: 'application/json'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let countryTopList = [];
 
         if (data.aggregations) {
@@ -199,7 +201,9 @@ class DashboardOverview extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const tempArray = _.map(data.data.rows, val => {
           val.id = val.srcCity + '-' + val.destCity + '-' + val._eventDttm_;
           return val;
@@ -494,7 +498,9 @@ class DashboardOverview extends Component {
       contentType: 'application/json'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let selectedAttackData = [];
 
         if (data.aggregations) {

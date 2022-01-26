@@ -165,46 +165,51 @@ class QueryOpenSave extends Component {
     }
 
     let url = `${baseUrl}/api/soc/template?id=${activeQuery.value}`;
+
     this.ah.one({
       url,
       type: 'GET',
       contentType: 'text/plain'
     }).then(data => {
-      if (data) {
-        tempQueryData.soc = {
-          id: data.id,
-          title: data.title,
-          eventDescription: data.eventDescription,
-          category: data.category,
-          impact: data.impact,
-          severity: data.severity,
-          limitQuery: data.limitQuery,
-          status: data.status
-        };
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.props.setQueryData(tempQueryData);
+        if (data) {
+          tempQueryData.soc = {
+            id: data.id,
+            title: data.title,
+            eventDescription: data.eventDescription,
+            category: data.category,
+            impact: data.impact,
+            severity: data.severity,
+            limitQuery: data.limitQuery,
+            status: data.status
+          };
 
-        this.setState({
-          socTemplateEnable: true,
-          soc: tempQueryData.soc
-        });
-      } else {
-        tempQueryData.soc = {
-          id: '',
-          severity: 'Emergency',
-          limitQuery: 10,
-          title: '',
-          eventDescription: '',
-          impact: 4,
-          category: 1,
-          status: true
-        };
+          this.props.setQueryData(tempQueryData);
 
-        this.props.setQueryData(tempQueryData);
+          this.setState({
+            socTemplateEnable: true,
+            soc: tempQueryData.soc
+          });
+        } else {
+          tempQueryData.soc = {
+            id: '',
+            severity: 'Emergency',
+            limitQuery: 10,
+            title: '',
+            eventDescription: '',
+            impact: 4,
+            category: 1,
+            status: true
+          };
 
-        this.setState({
-          socTemplateEnable: false,
-        });
+          this.props.setQueryData(tempQueryData);
+
+          this.setState({
+            socTemplateEnable: false,
+          });
+        }
       }
       return null;
     }).catch(err => {
@@ -224,42 +229,47 @@ class QueryOpenSave extends Component {
     }
 
     let url = `${baseUrl}/api/soc/template?id=${id}`;
+
     this.ah.one({
       url,
       type: 'GET',
       contentType: 'text/plain'
     }).then(data => {
-      if (data) {
-        tempQueryData.soc = {
-          id: data.id,
-          title: data.title,
-          eventDescription: data.eventDescription,
-          category: data.category,
-          impact: data.impact,
-          severity: data.severity,
-          limitQuery: data.limitQuery,
-          status: data.status
-        };
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          socTemplateEnable: true,
-          soc: tempQueryData.soc
-        });
-      } else {
-        tempQueryData.soc = {
-          id: '',
-          severity: 'Emergency',
-          limitQuery: 10,
-          title: '',
-          eventDescription: '',
-          impact: 4,
-          category: 1,
-          status: true
-        };
+        if (data) {
+          tempQueryData.soc = {
+            id: data.id,
+            title: data.title,
+            eventDescription: data.eventDescription,
+            category: data.category,
+            impact: data.impact,
+            severity: data.severity,
+            limitQuery: data.limitQuery,
+            status: data.status
+          };
 
-        this.setState({
-          socTemplateEnable: false
-        });
+          this.setState({
+            socTemplateEnable: true,
+            soc: tempQueryData.soc
+          });
+        } else {
+          tempQueryData.soc = {
+            id: '',
+            severity: 'Emergency',
+            limitQuery: 10,
+            title: '',
+            eventDescription: '',
+            impact: 4,
+            category: 1,
+            status: true
+          };
+
+          this.setState({
+            socTemplateEnable: false
+          });
+        }
       }
       return null;
     }).catch(err => {
@@ -605,7 +615,9 @@ class QueryOpenSave extends Component {
         contentType: 'text/plain'
       })
       .then(data => {
-        if (data) {
+        if (data && data.ret === 0) {
+          data = data.rt;
+
           if (moduleWithSOC && type === 'save') {
             if (requestType === 'PATCH') {
               let socRequestBody = {
@@ -617,12 +629,15 @@ class QueryOpenSave extends Component {
                 limitQuery: soc.limitQuery,
                 creator: account.id
               };
+
               if (activeTab === 'alert') {
                 socRequestBody.severity = soc.severity;
               }
+
               if (activeTab === 'logs') {
                 socRequestBody.severity = pattern.severity;
               }
+
               if (this.state.socTemplateEnable) {
                 this.ah.one({
                   url: `${baseUrl}/api/soc/template`,
@@ -630,9 +645,6 @@ class QueryOpenSave extends Component {
                   type: 'POST',
                   contentType: 'text/plain'
                 }).then(data => {
-                  if (data) {
-
-                  }
                   return null;
                 }).catch(err => {
                   helper.showPopupMsg('', t('txt-error'), err.message);
@@ -658,15 +670,14 @@ class QueryOpenSave extends Component {
                   url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
                   type: 'DELETE',
                 }).then(data => {
-                  if (data) {
-
-                  }
                   return null;
                 }).catch(err => {
                   helper.showPopupMsg('', t('txt-error'), err.message);
                 }).finally(err => {
                   helper.showPopupMsg(t('events.connections.txt-querySaved'));
+
                   this.props.getSavedQuery();
+
                   this.setState({
                     socTemplateEnable: false,
                     soc: {
@@ -708,15 +719,14 @@ class QueryOpenSave extends Component {
                   type: 'POST',
                   contentType: 'text/plain'
                 }).then(data => {
-                  if (data) {
-
-                  }
                   return null;
                 }).catch(err => {
                   helper.showPopupMsg('', t('txt-error'), err.message);
                 }).finally(err => {
                   helper.showPopupMsg(t('events.connections.txt-querySaved'));
+
                   this.props.getSavedQuery();
+
                   this.setState({
                     socTemplateEnable: false,
                     soc: {
@@ -733,7 +743,9 @@ class QueryOpenSave extends Component {
               }
             }
           }
+
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
+
           this.props.getSavedQuery();
 
           this.setState({

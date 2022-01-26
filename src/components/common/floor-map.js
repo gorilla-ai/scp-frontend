@@ -66,7 +66,9 @@ class FloorMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempFloorPlan = {...this.state.floorPlan};
 
         if (data.length > 0) {
@@ -125,7 +127,9 @@ class FloorMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let currentMap = '';
 
         if (data.picPath) {
@@ -311,14 +315,12 @@ class FloorMap extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.setState({
           floorPlan: this.clearFloorPlanData('edit'),
           currentMap: ''
@@ -394,12 +396,14 @@ class FloorMap extends Component {
       contentType: false
     })
     .then(data => {
-      this.setState({
-        floorPlan: this.clearFloorPlanData('edit'),
-        currentMap: ''
-      }, () => {
-        this.getFloorPlan();
-      });
+      if (data && data.ret === 0) {
+        this.setState({
+          floorPlan: this.clearFloorPlanData('edit'),
+          currentMap: ''
+        }, () => {
+          this.getFloorPlan();
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -574,9 +578,7 @@ class FloorMap extends Component {
       }
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/area`,
       data: formData,
       type: requestType,
@@ -584,7 +586,9 @@ class FloorMap extends Component {
       contentType: false
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         helper.showPopupMsg(t('network-topology.txt-saveSuccess'));
 
         this.setState({
@@ -593,7 +597,7 @@ class FloorMap extends Component {
         }, () => {
           this.fileInput.handleClick();
           this.getFloorPlan();
-          this.getAreaData(data.rt); //areaUUID
+          this.getAreaData(data); //areaUUID
         });
       }
       return null;

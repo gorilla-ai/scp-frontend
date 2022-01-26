@@ -52,14 +52,12 @@ class ExportCsv extends Component {
   deleteServiceTask = (id) => {
     const {baseUrl} = this.context;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/taskService/${id}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.props.getTaskService('firstLoad');
       }
       return null;
@@ -80,16 +78,14 @@ class ExportCsv extends Component {
       id: [id]
     };
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.props.getTaskService('firstLoad');
       }
       return null;
