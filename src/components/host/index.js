@@ -617,7 +617,9 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (data.length > 0) {
           const floorPlanData = data[0];
           const floorPlan = {
@@ -685,7 +687,9 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const areaName = data.areaName;
         const areaUUID = data.areaUUID;
         let currentMap = '';
@@ -738,7 +742,9 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const list = _.map(data, val => {
           return {
             value: val,
@@ -803,7 +809,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           vansPatchGroup: data.rows
         });
@@ -838,7 +846,9 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           departmentList: data
         }, () => {
@@ -902,141 +912,145 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      let severityList = [];
-      let hmdStatusList = [];
-      let scanStatusList = [];
-      let tempHostInfo = {...hostInfo};
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-      if (_.isEmpty(data)) { //Take care empty data case
-        tempHostInfo.dataContent = [];
-        tempHostInfo.totalCount = 0;
+        let severityList = [];
+        let hmdStatusList = [];
+        let scanStatusList = [];
+        let tempHostInfo = {...hostInfo};
 
-        _.forEach(SEVERITY_TYPE, val => {
-          severityList.push({
-            value: val,
-            text: <span><i className={'fg fg-recode ' + val.toLowerCase()}></i>{val + ' (0)'}</span>
+        if (_.isEmpty(data)) { //Take care empty data case
+          tempHostInfo.dataContent = [];
+          tempHostInfo.totalCount = 0;
+
+          _.forEach(SEVERITY_TYPE, val => {
+            severityList.push({
+              value: val,
+              text: <span><i className={'fg fg-recode ' + val.toLowerCase()}></i>{val + ' (0)'}</span>
+            });
+          })
+
+          _.forEach(HMD_STATUS_LIST, val => {
+            hmdStatusList.push({
+              text: t('host.txt-' + val) + ' (0)',
+              value: val
+            });
+          })
+
+          _.forEach(hmd_list, val => {
+            scanStatusList.push({
+              text: val.name + ' (0)',
+              value: val.value
+            });
           });
-        })
-
-        _.forEach(HMD_STATUS_LIST, val => {
-          hmdStatusList.push({
-            text: t('host.txt-' + val) + ' (0)',
-            value: val
-          });
-        })
-
-        _.forEach(hmd_list, val => {
-          scanStatusList.push({
-            text: val.name + ' (0)',
-            value: val.value
-          });
-        });
-
-        this.setState({
-          severityList,
-          hmdStatusList,
-          scanStatusList,
-          netProxyTree: {
-            children: []
-          },
-          privateMaskedIPtree: {
-            children: []
-          },
-          hostInfo: tempHostInfo
-        });
-        helper.showPopupMsg(t('txt-notFound'));
-      } else {
-        tempHostInfo.dataContent = data.rows;
-        tempHostInfo.totalCount = data.count;
-
-        if (data.netproxyHostAgg && data.netproxyHostAgg.length > 0) {
-          this.getNetProxyTreeData(data.netproxyHostAgg);
-        }
-
-        if (!_.isEmpty(data.subnetAgg)) {
-          this.getPrivateTreeData(data.subnetAgg);
 
           this.setState({
-            privateIpData: data.subnetAgg
+            severityList,
+            hmdStatusList,
+            scanStatusList,
+            netProxyTree: {
+              children: []
+            },
+            privateMaskedIPtree: {
+              children: []
+            },
+            hostInfo: tempHostInfo
           });
-        }
+          helper.showPopupMsg(t('txt-notFound'));
+        } else {
+          tempHostInfo.dataContent = data.rows;
+          tempHostInfo.totalCount = data.count;
 
-        _.forEach(SEVERITY_TYPE, val => { //Create formattedSeverityType object for input data based on severity
-          _.forEach(data.severityAgg, (val2, key) => {
-            if (val === key) {
-              severityList.push({
-                value: val,
-                text: <span><i className={'fg fg-recode ' + val.toLowerCase()}></i>{val + ' (' + helper.numberWithCommas(val2) + ')'}</span>
+          if (data.netproxyHostAgg && data.netproxyHostAgg.length > 0) {
+            this.getNetProxyTreeData(data.netproxyHostAgg);
+          }
+
+          if (!_.isEmpty(data.subnetAgg)) {
+            this.getPrivateTreeData(data.subnetAgg);
+
+            this.setState({
+              privateIpData: data.subnetAgg
+            });
+          }
+
+          _.forEach(SEVERITY_TYPE, val => { //Create formattedSeverityType object for input data based on severity
+            _.forEach(data.severityAgg, (val2, key) => {
+              if (val === key) {
+                severityList.push({
+                  value: val,
+                  text: <span><i className={'fg fg-recode ' + val.toLowerCase()}></i>{val + ' (' + helper.numberWithCommas(val2) + ')'}</span>
+                });
+              }
+            })
+          })
+
+          _.forEach(HMD_STATUS_LIST, val => {
+            let text = t('host.txt-' + val);
+
+            if (data.devInfoAgg[val]) {
+              text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+            }
+
+            hmdStatusList.push({
+              text,
+              value: val
+            });
+          })
+
+          _.forEach(hmd_list, val => {
+            let text = val.name;
+
+            if (_.has(data.scanInfoAgg, val.value)) {
+              text += ' (' + data.scanInfoAgg[val.value] + ')';
+            }
+
+            scanStatusList.push({
+              text,
+              value: val.value
+            });
+          });
+
+          if (!data.rows || data.rows.length === 0) {
+            if (activeTab === 'hostList') {
+              this.setState({
+                severityList,
+                hmdStatusList,
+                scanStatusList,
+                hostInfo: tempHostInfo
+              });
+              helper.showPopupMsg(t('txt-notFound'));
+            } else if (activeTab === 'deviceMap') {
+              this.setState({
+                severityList,
+                hmdStatusList,
+                scanStatusList,
+                showLoadingIcon: false
               });
             }
-          })
-        })
-
-        _.forEach(HMD_STATUS_LIST, val => {
-          let text = t('host.txt-' + val);
-
-          if (data.devInfoAgg[val]) {
-            text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+            return;
           }
 
-          hmdStatusList.push({
-            text,
-            value: val
+          this.setState({
+            assessmentDatetime: {
+              from: data.assessmentStartDttm,
+              to: data.assessmentEndDttm
+            },
+            severityList,
+            hmdStatusList,
+            scanStatusList,
+            hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
+            hostInfo: tempHostInfo,
+            showLoadingIcon: false
+          }, () => {
+            if (activeTab === 'deviceMap' && data.rows && data.rows.length > 0) {
+              this.getDeviceSeatData();
+            }
           });
-        })
 
-        _.forEach(hmd_list, val => {
-          let text = val.name;
-
-          if (_.has(data.scanInfoAgg, val.value)) {
-            text += ' (' + data.scanInfoAgg[val.value] + ')';
-          }
-
-          scanStatusList.push({
-            text,
-            value: val.value
-          });
-        });
-
-        if (!data.rows || data.rows.length === 0) {
-          if (activeTab === 'hostList') {
-            this.setState({
-              severityList,
-              hmdStatusList,
-              scanStatusList,
-              hostInfo: tempHostInfo
-            });
+          if (activeTab === 'hostList' && data.count === 0) {
             helper.showPopupMsg(t('txt-notFound'));
-          } else if (activeTab === 'deviceMap') {
-            this.setState({
-              severityList,
-              hmdStatusList,
-              scanStatusList,
-              showLoadingIcon: false
-            });
           }
-          return;
-        }
-
-        this.setState({
-          assessmentDatetime: {
-            from: data.assessmentStartDttm,
-            to: data.assessmentEndDttm
-          },
-          severityList,
-          hmdStatusList,
-          scanStatusList,
-          hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
-          hostInfo: tempHostInfo,
-          showLoadingIcon: false
-        }, () => {
-          if (activeTab === 'deviceMap' && data.rows && data.rows.length > 0) {
-            this.getDeviceSeatData();
-          }
-        });
-
-        if (activeTab === 'hostList' && data.count === 0) {
-          helper.showPopupMsg(t('txt-notFound'));
         }
       }
       return null;
@@ -1178,7 +1192,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           vansChartsData: data,
           vansData: {}
@@ -1384,7 +1400,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (options === 'hitCVE') {
           this.setState({
             hitCveList: data.hmdScanDistribution
@@ -1554,7 +1572,9 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           hostDeviceOpen: true,
           hostDeviceList: data.rows,
@@ -1845,7 +1865,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const status = data.Message;
 
         if (status && status === 'A-S-0101') {
@@ -2831,10 +2853,10 @@ class HostController extends Component {
       }
     ])
     .then(data => {
-      if (data) {
-        if (data[0]) {
+      if (data && data.length > 0) {
+        if (data[0] && data[0].rt) {
           const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
-          let hostData = {...data[0]};
+          let hostData = {...data[0].rt};
 
           if (activeHostInfo && activeHostInfo.networkBehaviorInfo) {
             hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
@@ -2872,7 +2894,7 @@ class HostController extends Component {
           });
         }
 
-        if (data[1]) {
+        if (data[1] && data[1].rt) {
           let tempEventInfo = {...eventInfo};
           tempEventInfo.dataContent = null;
           tempEventInfo.scrollCount = 1;
@@ -2881,7 +2903,7 @@ class HostController extends Component {
           this.setState({
             eventInfo: tempEventInfo
           }, () => {
-            this.setEventTracingData(data[1]);
+            this.setEventTracingData(data[1].rt);
           });
         }
       }
@@ -2908,7 +2930,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setEventTracingData(data);
       }
       return null;
@@ -3451,7 +3475,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (_.isEmpty(data)) {
           helper.showPopupMsg(t('txt-notFound'));
           return;
@@ -3577,7 +3603,9 @@ class HostController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         tempFilterNav.departmentSelected = data;
 
         this.setState({
@@ -3780,8 +3808,6 @@ class HostController extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
     this.ah.one({
       url: `${baseUrl}/api/hmd/setupFile/_upload`,
       data: formData,
@@ -3790,7 +3816,7 @@ class HostController extends Component {
       contentType: false
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-uploadSuccess'));
 
         this.setState({
@@ -3887,12 +3913,16 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.setState({
-        vansPatchSelectedOpen: false,
-        frMotpEnable: data
-      }, () => {
-        this.toggleVansPatch();
-      });
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        this.setState({
+          vansPatchSelectedOpen: false,
+          frMotpEnable: data
+        }, () => {
+          this.toggleVansPatch();
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -3998,14 +4028,16 @@ class HostController extends Component {
       contentType: false
     })
     .then(data => {
-      this.setState({
-        patchSelectedItem: [],
-        vansPatchFrom: ''
-      });
+      if (data && data.ret === 0) {
+        this.setState({
+          patchSelectedItem: [],
+          vansPatchFrom: ''
+        });
 
-      helper.showPopupMsg(t('host.txt-patchSuccess'));
-      this.toggleFrMotp('', 'close');
-      this.toggleVansPatch();
+        helper.showPopupMsg(t('host.txt-patchSuccess'));
+        this.toggleFrMotp('', 'close');
+        this.toggleVansPatch();
+      }
       return null;
     })
     .catch(err => {
@@ -4141,7 +4173,9 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           vansPatchDetails: data.rows,
           activeVansPatch: allValue
@@ -4230,9 +4264,7 @@ class HostController extends Component {
       };
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
@@ -4271,7 +4303,7 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.triggerHmdAll(HMD_TRIGGER[0], yaraRule);
       }
       return null;
@@ -4490,7 +4522,7 @@ class HostController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.confirmVansPatch(vansPatch);
       }
       return null;

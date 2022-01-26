@@ -285,16 +285,14 @@ class VansNotes extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-saved'));
 
         if (currentType === 'device') {
@@ -350,14 +348,12 @@ class VansNotes extends Component {
     const {currentType} = this.props;
     const {vansNotes} = this.state;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/annotation?id=${vansNotes.id}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.setState({
           vansNotes: {
             id: '',

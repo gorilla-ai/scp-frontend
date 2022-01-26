@@ -371,18 +371,22 @@ class Netflow extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data.rows.length > 0) {
-        const projectID = data.rows.map(tempData => {
-          return tempData.projectId;
-        });
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          projectID
-        }, () => {
-          this.loadAllFields();
-        });
-      } else {
-        helper.showPopupMsg(t('txt-notFound'));
+        if (data.rows.length > 0) {
+          const projectID = data.rows.map(tempData => {
+            return tempData.projectId;
+          });
+
+          this.setState({
+            projectID
+          }, () => {
+            this.loadAllFields();
+          });
+        } else {
+          helper.showPopupMsg(t('txt-notFound'));
+        }
       }
       return null;
     })
@@ -431,15 +435,15 @@ class Netflow extends Component {
 
     this.ah.all(apiArr, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         let i = 0;
 
         _.forEach(ALL_TAB_DATA, (val, key) => {
-          if (data[i]) {
-            if (data[i].data) { //For Connections
-              tempEventsCount[key] = data[i].data.counts;
+          if (data[i].rt) {
+            if (data[i].rt.data) { //For Connections
+              tempEventsCount[key] = data[i].rt.data.counts;
             } else { //For all others
-              tempEventsCount[key] = data[i].counts;
+              tempEventsCount[key] = data[i].rt.counts;
             }
           }
           i++;
@@ -495,38 +499,42 @@ class Netflow extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data.length > 0) {
-        let filedsArr = [];
+      if (data && date.ret === 0) {
+        data = data.rt;
 
-        data.unshift('_tableMenu_');
+        if (data.length > 0) {
+          let filedsArr = [];
 
-        _.forEach(data, val => {
-          filedsArr.push(val);
-        });
+          data.unshift('_tableMenu_');
 
-        //Filter out the columns that are not in the account fields
-        const filterArr = _.remove(tempSubSectionsData.tableColumns[activeTab], item => {
-          return _.indexOf(filedsArr, item) < 0;
-        });
+          _.forEach(data, val => {
+            filedsArr.push(val);
+          });
 
-        //Merge the account fields and all other fields
-        tempSubSectionsData.tableColumns[activeTab] = _.concat(filedsArr, filterArr);
-        tempAccont.fields = filedsArr;
+          //Filter out the columns that are not in the account fields
+          const filterArr = _.remove(tempSubSectionsData.tableColumns[activeTab], item => {
+            return _.indexOf(filedsArr, item) < 0;
+          });
 
-        if (activeTab === 'file') {
-          if (!_.includes(tempAccont.fields, 'base64')) {
-            tempAccont.fields.push('base64');
+          //Merge the account fields and all other fields
+          tempSubSectionsData.tableColumns[activeTab] = _.concat(filedsArr, filterArr);
+          tempAccont.fields = filedsArr;
+
+          if (activeTab === 'file') {
+            if (!_.includes(tempAccont.fields, 'base64')) {
+              tempAccont.fields.push('base64');
+            }
           }
-        }
 
-        this.setState({
-          subSectionsData: tempSubSectionsData,
-          account: tempAccont
-        }, () => {
-          this.loadSection(options);
-        });
-      } else {
-        this.loadFields(activeTab, 'showDefault');
+          this.setState({
+            subSectionsData: tempSubSectionsData,
+            account: tempAccont
+          }, () => {
+            this.loadSection(options);
+          });
+        } else {
+          this.loadFields(activeTab, 'showDefault');
+        }
       }
       return null;
     })
@@ -733,8 +741,8 @@ class Netflow extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (data) {
-        if (currentPage > 1 && !data[0]) {
+      if (data && data.length > 0) {
+        if (currentPage > 1 && !data[0].rt) {
           helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           this.setState({
@@ -743,7 +751,7 @@ class Netflow extends Component {
           return;
         }
 
-        if (_.isEmpty(data[0]) || data[0].data.counts === 0) {
+        if (_.isEmpty(data[0].rt) || data[0].rt.data.counts === 0) {
           helper.showPopupMsg(t('txt-notFound', ''));
 
           let tempSubSectionsData = {...this.state.subSectionsData};
@@ -768,7 +776,7 @@ class Netflow extends Component {
           return;
         }
 
-        const tempArray = data[0].data.rows.map(tempData => {
+        const tempArray = data[0].rt.data.rows.map(tempData => {
           tempData.content.id = tempData.id;
 
           if (tempData.tag) {
@@ -778,7 +786,7 @@ class Netflow extends Component {
           return tempData.content;
         });
 
-        const currentLength = data[0].data.rows.length < pageSize ? data[0].data.rows.length : pageSize;
+        const currentLength = data[0].rt.data.rows.length < pageSize ? data[0].rt.data.rows.length : pageSize;
 
         let tempFields = {};
         subSectionsData.tableColumns.connections.forEach(tempData => {
@@ -812,12 +820,12 @@ class Netflow extends Component {
           }
         })
 
-        const treeObj = this.getTreeData(data[1]);
+        const treeObj = this.getTreeData(data[1].rt);
         let tempSubSectionsData = {...subSectionsData};
         tempSubSectionsData.mainData.connections = tempArray;
         tempSubSectionsData.fieldsData.connections = tempFields;
-        tempSubSectionsData.mapData.connections = data[0].data.rows;
-        tempSubSectionsData.totalCount.connections = data[0].data.counts;
+        tempSubSectionsData.mapData.connections = data[0].rt.data.rows;
+        tempSubSectionsData.totalCount.connections = data[0].rt.data.counts;
 
         const tempCurrentPage = options === 'search' ? 1 : currentPage;
         const dataArray = tempSubSectionsData.mainData.connections;
@@ -834,12 +842,12 @@ class Netflow extends Component {
           currentPage: tempCurrentPage,
           oldPage: tempCurrentPage,
           subSectionsData: tempSubSectionsData,
-          treeRawData: data[1],
+          treeRawData: data[1].rt,
           treeData: treeObj,
           searchTreeObj: treeObj,
-          sessionHistogram: data[0].sessionHistogram,
-          packageHistogram: data[0].packageHistogram,
-          byteHistogram: data[0].byteHistogram,
+          sessionHistogram: data[0].rt.sessionHistogram,
+          packageHistogram: data[0].rt.packageHistogram,
+          byteHistogram: data[0].rt.byteHistogram,
           currentLength
         }, () => {
           if (type) {
@@ -880,8 +888,8 @@ class Netflow extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (data) {
-        if (currentPage > 1 && data[0].rows.length === 0) {
+      if (data && data.length > 0) {
+        if (currentPage > 1 && data[0].rt.rows.length === 0) {
           helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           this.setState({
@@ -892,7 +900,7 @@ class Netflow extends Component {
 
         let tempSubSectionsData = {...subSectionsData};
 
-        if (_.isEmpty(data[0]) || data[0].counts === 0) {
+        if (_.isEmpty(data[0].rt) || data[0].rt.counts === 0) {
           helper.showPopupMsg(t('txt-notFound', ''));
 
           let tempSubSectionsData = {...this.state.subSectionsData};
@@ -916,7 +924,7 @@ class Netflow extends Component {
           return;
         }
 
-        const tempArray = data[0].rows.map(tempData => {
+        const tempArray = data[0].rt.rows.map(tempData => {
           if (activeTab === 'dns') {
             tempData.content.id = tempData.id;
           } else {
@@ -930,7 +938,7 @@ class Netflow extends Component {
           return tempData.content;
         });
 
-        const currentLength = data[0].rows.length < pageSize ? data[0].rows.length : pageSize;
+        const currentLength = data[0].rt.rows.length < pageSize ? data[0].rt.rows.length : pageSize;
 
         let tempFields = {};
         subSectionsData.tableColumns[activeTab].forEach(tempData => {
@@ -978,8 +986,8 @@ class Netflow extends Component {
           };
         })
 
-        const treeObj = this.getTreeData(data[1]);
-        tempSubSectionsData.totalCount[activeTab] = data[0].counts;
+        const treeObj = this.getTreeData(data[1].rt);
+        tempSubSectionsData.totalCount[activeTab] = data[0].rt.counts;
         tempSubSectionsData.mainData[activeTab] = tempArray;
         tempSubSectionsData.fieldsData[activeTab] = tempFields;
 
@@ -1011,7 +1019,7 @@ class Netflow extends Component {
         this.setState({
           currentPage: tempCurrentPage,
           oldPage: tempCurrentPage,
-          treeRawData: data[1],
+          treeRawData: data[1].rt,
           treeData: treeObj,
           subSectionsData: tempSubSectionsData,
           currentLength
@@ -1066,7 +1074,9 @@ class Netflow extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let laData = [];
 
         if (data.rows) {
@@ -1115,7 +1125,9 @@ class Netflow extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const tempArray = _.map(data.rows, val => {
           val.content.id = val.id;
           return val.content;
@@ -1481,10 +1493,14 @@ class Netflow extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ResultMessage === 'fail') {
-        helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
-      } else {
-        window.location.assign(data.PcapFilelink);
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data.ResultMessage === 'fail') {
+          helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
+        } else {
+          window.location.assign(data.PcapFilelink);
+        }
       }
       return null;
     })
@@ -1672,17 +1688,19 @@ class Netflow extends Component {
     }
     url = `${baseUrl}/api/account/flow/fields?module=${module}&accountId=${account.id}${fieldString}`;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       type: 'POST'
     }, {showProgress: false})
     .then(data => {
-      if (data.status === 'success') {
-        this.setState({
-          account: tempAccount
-        });
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data.status === 'success') {
+          this.setState({
+            account: tempAccount
+          });
+        }
       }
       return null;
     })
@@ -2189,22 +2207,26 @@ class Netflow extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && !_.isEmpty(data.rows)) {
-        let tempPcapData = {...pcapData};
-        tempPcapData.projectID = projectID;
-        tempPcapData.sessionID = sessionID;
-        tempPcapData.origData = data.rows;
-        tempPcapData.data = data.rows;
-        tempPcapData.totalCount = data.counts;
-        tempPcapData.activeIndex = null;
-        tempPcapData.hex = '';
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        this.setState({
-          pcapData: tempPcapData,
-          pcapOpen: true
-        });
-      } else {
-        helper.showPopupMsg('', t('txt-pcapNotAvailable'), err.message);
+        if (data && !_.isEmpty(data.rows)) {
+          let tempPcapData = {...pcapData};
+          tempPcapData.projectID = projectID;
+          tempPcapData.sessionID = sessionID;
+          tempPcapData.origData = data.rows;
+          tempPcapData.data = data.rows;
+          tempPcapData.totalCount = data.counts;
+          tempPcapData.activeIndex = null;
+          tempPcapData.hex = '';
+
+          this.setState({
+            pcapData: tempPcapData,
+            pcapOpen: true
+          });
+        } else {
+          helper.showPopupMsg('', t('txt-pcapNotAvailable'), err.message);
+        }
       }
       return null;
     })
@@ -2274,11 +2296,15 @@ class Netflow extends Component {
       type: 'DELETE'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
-        this.clearTagData();
-        this.resetDataTable();
-      } else {
-        helper.showPopupMsg('', t('txt-error'), err.message);
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data) {
+          this.clearTagData();
+          this.resetDataTable();
+        } else {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        }
       }
       return null;
     });
@@ -2455,11 +2481,15 @@ class Netflow extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
-        this.clearTagData();
-        this.resetDataTable();
-      } else {
-        helper.showPopupMsg('', t('txt-error'), err.message);
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data) {
+          this.clearTagData();
+          this.resetDataTable();
+        } else {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        }
       }
       return null;
     })
@@ -2492,19 +2522,21 @@ class Netflow extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/network/html/reLinkFile?path=${value}`,
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
-        PopupDialog.alert({
-          id: 'fileModal',
-          confirmText: t('txt-close'),
-          display: <div dangerouslySetInnerHTML={{__html: data}} />
-        });
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data) {
+          PopupDialog.alert({
+            id: 'fileModal',
+            confirmText: t('txt-close'),
+            display: <div dangerouslySetInnerHTML={{__html: data}} />
+          });
+        }
       }
       return null;
     })

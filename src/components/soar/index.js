@@ -110,7 +110,9 @@ class SoarController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const isEnable = [
           {
             text: 'true',
@@ -158,7 +160,9 @@ class SoarController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           ipExist: data.ipExists
         }, () => {
@@ -223,11 +227,11 @@ class SoarController extends Component {
 
     this.ah.series(apiArr)
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         if (options === 'toggle') {
-          data = data[1];
+          data = data[1].rt;
         } else {
-          data = data[0];
+          data = data[0].rt;
         }
 
         let tempSoarData = {...soarData};
@@ -320,7 +324,9 @@ class SoarController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           soarTemplate: {
             internalInventory: data.internalInventory,
@@ -408,7 +414,9 @@ class SoarController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const soarIndividualData = {
           ...data,
           isEnable
@@ -522,14 +530,12 @@ class SoarController extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/soar/flow?flowId=${currentSoarData.flowId}`,
       type: 'DELETE'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         this.getSoarData();
       }
       return null;

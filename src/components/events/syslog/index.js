@@ -290,7 +290,9 @@ class SyslogController extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           treeRawData: data,
           treeData: this.getTreeData(data)
@@ -434,34 +436,38 @@ class SyslogController extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data.length > 0) {
-        let fieldsArr = [];
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        if (!_.includes(data, '_tableMenu_')) {
-          fieldsArr.push('_tableMenu_');
+        if (data.length > 0) {
+          let fieldsArr = [];
+
+          if (!_.includes(data, '_tableMenu_')) {
+            fieldsArr.push('_tableMenu_');
+          }
+
+          _.forEach(data, val => {
+            fieldsArr.push(val);
+          });
+
+          //Filter out the columns that are not in the account fields
+          const filterArr = _.remove(syslogData.dataFieldsArr, item => {
+            return _.indexOf(fieldsArr, item) < 0;
+          });
+
+          //Merge the account fields and all other fields
+          tempSyslogData.dataFieldsArr = _.concat(fieldsArr, filterArr);
+          tempAccont.fields = fieldsArr;
+
+          this.setState({
+            syslogData: tempSyslogData,
+            account: tempAccont
+          }, () => {
+            this.loadLogsFields();
+          });
+        } else {
+          this.loadFields(activeTab, 'showDefault');
         }
-
-        _.forEach(data, val => {
-          fieldsArr.push(val);
-        });
-
-        //Filter out the columns that are not in the account fields
-        const filterArr = _.remove(syslogData.dataFieldsArr, item => {
-          return _.indexOf(fieldsArr, item) < 0;
-        });
-
-        //Merge the account fields and all other fields
-        tempSyslogData.dataFieldsArr = _.concat(fieldsArr, filterArr);
-        tempAccont.fields = fieldsArr;
-
-        this.setState({
-          syslogData: tempSyslogData,
-          account: tempAccont
-        }, () => {
-          this.loadLogsFields();
-        });
-      } else {
-        this.loadFields(activeTab, 'showDefault');
       }
       return null;
     })
@@ -489,7 +495,9 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let fieldsArr = ['_tableMenu_'];
 
         _.forEach(data, val => {
@@ -525,7 +533,9 @@ class SyslogController extends Component {
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempAccount = {...account};
         let localObj = {};
 
@@ -613,23 +623,27 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data.data.rows) {
-        const logsData = data.data;
+      if (data && data.ret === 0) {
+        data = data.rt;
 
-        _.forEach(logsData.rows, val => {
-          logEventsData[val.id] = val.content;
-        })
+        if (data.data.rows) {
+          const logsData = data.data;
 
-        tempLaData.currentPage = page;
-        tempLaData.totalCount = logsData.counts;
-        tempLaData.dataContent = analyze(logEventsData, laData.LAconfig, {analyzeGis: false});
-        tempLaData.logEventsData = logEventsData;
+          _.forEach(logsData.rows, val => {
+            logEventsData[val.id] = val.content;
+          })
 
-        this.setState({
-          laData: tempLaData
-        });
-      } else {
-        helper.showPopupMsg(t('txt-notFound'));
+          tempLaData.currentPage = page;
+          tempLaData.totalCount = logsData.counts;
+          tempLaData.dataContent = analyze(logEventsData, laData.LAconfig, {analyzeGis: false});
+          tempLaData.logEventsData = logEventsData;
+
+          this.setState({
+            laData: tempLaData
+          });
+        } else {
+          helper.showPopupMsg(t('txt-notFound'));
+        }
       }
       return null;
     })
@@ -723,10 +737,10 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         let tempSyslogData = {...syslogData};
 
-        if (syslogData.currentPage > 1 && data[0].data.counts === 0) { //Exceed 10,000 data count
+        if (syslogData.currentPage > 1 && data[0].rt.data.counts === 0) { //Exceed 10,000 data count
           helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           tempSyslogData.currentPage = syslogData.oldPage;
@@ -737,11 +751,11 @@ class SyslogController extends Component {
           return;
         }
 
-        if (_.isEmpty(data[0]) || _.isEmpty(data[1])) {
+        if (_.isEmpty(data[0].rt) || _.isEmpty(data[1].rt)) {
           return;
         }
 
-        const dataObj = data[0].data;
+        const dataObj = data[0].rt.data;
         const currentLength = dataObj.rows.length < syslogData.pageSize ? dataObj.rows.length : syslogData.pageSize;
         let eventHistogram = {};
 
@@ -763,7 +777,7 @@ class SyslogController extends Component {
 
         let tempFieldsArr = [];
         tempSyslogData.dataContent = tempArray;
-        tempSyslogData.totalCount = data[0].data.counts;
+        tempSyslogData.totalCount = data[0].rt.data.counts;
         tempSyslogData.currentPage = page;
         tempSyslogData.oldPage = page;
 
@@ -834,8 +848,8 @@ class SyslogController extends Component {
           }
         }
 
-        if (data[1].search) {
-          _.forEach(data[1].search, val => {
+        if (data[1].rt.search) {
+          _.forEach(data[1].rt.search, val => {
             eventHistogram[val.searchName] = val.eventHistogram
           })
         }
@@ -1249,17 +1263,19 @@ class SyslogController extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/log/fields?accountId=${account.id}${fieldString}`,
       type: 'POST'
     }, {showProgress: false})
     .then(data => {
-      if (data.status === 'success') {
-        this.setState({
-          account: tempAccount
-        });
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data.status === 'success') {
+          this.setState({
+            account: tempAccount
+          });
+        }
       }
       return null;
     })
@@ -1493,7 +1509,9 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      this.closeLocaleChange('reload');
+      if (data && data.ret === 0) {
+        this.closeLocaleChange('reload');
+      }
       return null;
     })
     .catch(err => {
@@ -1946,7 +1964,9 @@ class SyslogController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempTaskServiceList = {...taskServiceList};
         tempTaskServiceList.data = [];
 
@@ -2034,7 +2054,7 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.handlePopoverClose();
       }
@@ -2362,7 +2382,9 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempStatisticsData = {...statisticsData};
         let tempStatisticsTableChart = {...statisticsTableChart};
 

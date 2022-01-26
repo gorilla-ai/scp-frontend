@@ -674,7 +674,7 @@ class DashboardStats extends Component {
     this.ah.all(apiArr, {showProgress: false})
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+        if (data[0] && data[1]) {
           let lms = 'empty';
 
           if (data[0].rt.expireDate) {

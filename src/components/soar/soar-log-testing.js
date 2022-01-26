@@ -199,11 +199,14 @@ class SoarLogTesting extends Component {
 				type: 'POST',
 				contentType: 'text/plain'
 			}).then(data => {
-				if (data.status === 200) {
-					this.adjustRespToShow(data.result)
-				} else {
-					helper.showPopupMsg('', t('txt-error'), t('soar.txt-error' + data.status));
+				if (data && data.ret === 0) {
+					if (data.status === 200) {
+						this.adjustRespToShow(data.result)
+					} else {
+						helper.showPopupMsg('', t('txt-error'), t('soar.txt-error' + data.status));
+					}
 				}
+				return null;
 			}).catch(err => {
 				helper.showPopupMsg('', t('txt-error'), err.message);
 			})
@@ -330,16 +333,14 @@ class SoarLogTesting extends Component {
 		let formData = new FormData();
 		formData.append('file', logFile);
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
 			url: `${baseUrl}/api/soar/dryRun/uploadLogs`,
 			data: formData,
 			type: 'POST',
 			processData: false,
 			contentType: false
 		}).then(data => {
-			if (data) {
+			if (data && data.ret === 0) {
 				if (data.rt.logs) {
 					let resultList = [];
 					_.forEach(data.rt.logs, log => {

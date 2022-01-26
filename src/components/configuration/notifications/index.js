@@ -146,7 +146,7 @@ class Notifications extends Component {
     ])
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0 && data[2] && data[2].ret === 0) {
+        if (data[0] && data[1] && data[2]) {
           const data1 = data[0].rt;
           const data2 = data[1].rt;
           const data3 = data[2].rt;
@@ -404,10 +404,8 @@ class Notifications extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
-          this.getMailServerInfo();
-          this.toggleContent('viewMode');
-        }
+        this.getMailServerInfo();
+        this.toggleContent('viewMode');
       }
       return null;
     })

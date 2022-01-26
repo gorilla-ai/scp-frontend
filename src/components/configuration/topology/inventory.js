@@ -892,7 +892,7 @@ class NetworkInventory extends Component {
           ipRt = data[1].ret;
           ipData = data[1].rt;
 
-          if (data[0] && data[0].ret === 0) {
+          if (data[0]) {
             this.closeFloorDialog('reload');
           }
         } else {
@@ -1809,7 +1809,7 @@ class NetworkInventory extends Component {
     ])
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0) {
+        if (data[0]) {
           if (options === 'oneDevice') {
             this.getOwnerSeat(data[0].rt);
             return;
@@ -1823,7 +1823,7 @@ class NetworkInventory extends Component {
           });
         }
 
-        if (data[1] && data[1].ret === 0) {
+        if (data[1]) {
           this.setEventTracingData(data[1].rt);
         }
       }
@@ -1906,7 +1906,7 @@ class NetworkInventory extends Component {
     this.ah.series(apiArr)
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0) {
+        if (data[0]) {
           helper.showPopupMsg(t('txt-requestSent'));
 
           this.setState({
@@ -1914,7 +1914,7 @@ class NetworkInventory extends Component {
           });
         }
 
-        if (data[1] && data[1].ret === 0) {
+        if (data[1]) {
           this.setState({
             modalIRopen: false,
             currentDeviceData: data[1].rt,

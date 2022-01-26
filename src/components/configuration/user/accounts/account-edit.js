@@ -171,7 +171,7 @@ class AccountEdit extends Component {
     ])
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+        if (data[0] && data[1]) {
           let accountData = {
             accountid: data[0].rt.accountid,
             account: data[0].rt.account,

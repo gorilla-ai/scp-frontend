@@ -1068,7 +1068,7 @@ class ThreatIntelligence extends Component {
     .then(data => {
       if (data && data.length > 0) {
         if (type === 'delete') {
-          if (data[0] && data[0].ret === 0 && data[1] && data[1].ret === 0) {
+          if (data[0] && data[1]) {
             let tempThreats = {...threats};
             tempThreats.dataContent = [];
             tempThreats.totalCount = 0;

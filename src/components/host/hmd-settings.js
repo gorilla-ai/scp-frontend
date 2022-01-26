@@ -219,10 +219,10 @@ class HMDsettings extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      if (data) {
-        if (!_.isEmpty(data[0]) && !_.isEmpty(data[1])) {
-          const scanIncludePath = data[0].value.split(',');
-          const scanExcludePath = data[1].value.split(',');
+      if (data && data.length > 0) {
+        if (!_.isEmpty(data[0].rt) && !_.isEmpty(data[1].rt)) {
+          const scanIncludePath = data[0].rt.value.split(',');
+          const scanExcludePath = data[1].rt.value.split(',');
           let scanFiles = {
             includePath: [],
             excludePath: []
@@ -251,46 +251,46 @@ class HMDsettings extends Component {
           });
         }
 
-        if (data[2] && data[2].value) {
+        if (data[2].rt && data[2].rt.value) {
           this.setState({
-            originalGcbVersion: _.cloneDeep(data[2].value),
-            gcbVersion: data[2].value
+            originalGcbVersion: _.cloneDeep(data[2].rt.value),
+            gcbVersion: data[2].rt.value
           });
         }
 
-        if (data[3] && data[3].value) {
+        if (data[3].rt && data[3].rt.value) {
           this.setState({
-            originalPmInterval: _.cloneDeep(data[3].value),
-            pmInterval: Number(data[3].value)
+            originalPmInterval: _.cloneDeep(data[3].rt.value),
+            pmInterval: Number(data[3].rt.value)
           });
         }
 
-        if (data[4] && data[4].value) {
+        if (data[4].rt && data[4].rt.value) {
           this.setState({
-            originalFtpIp: _.cloneDeep(data[4].value),
-            ftpIp: data[4].value
+            originalFtpIp: _.cloneDeep(data[4].rt.value),
+            ftpIp: data[4].rt.value
           });
         }
 
-        if (data[5] && data[5].value) {
+        if (data[5].rt && data[5].rt.value) {
           this.setState({
-            originalFtpUrl: _.cloneDeep(data[5].value),
-            ftpUrl: data[5].value
+            originalFtpUrl: _.cloneDeep(data[5].rt.value),
+            ftpUrl: data[5].rt.value
           });
         }
 
-        if (data[6] && data[6].value) {
+        if (data[6].rt && data[6].rt.value) {
           this.setState({
-            originalFtpAccount: _.cloneDeep(data[6].value),
-            ftpAccount: data[6].value
+            originalFtpAccount: _.cloneDeep(data[6].rt.value),
+            ftpAccount: data[6].rt.value
           });
         }
 
         const nccstSettings = {
-          unitOID: data[7].value,
-          unitName: data[8].value,
-          apiKey: data[9].value,
-          apiUrl: data[10].value
+          unitOID: data[7].rt.value,
+          unitName: data[8].rt.value,
+          apiKey: data[9].rt.value,
+          apiUrl: data[10].rt.value
         };
 
         this.setState({
@@ -298,7 +298,7 @@ class HMDsettings extends Component {
           nccstSettings
         });
 
-        const parsedCpeData = JSON.parse(data[11].value);
+        const parsedCpeData = JSON.parse(data[11].rt.value);
         let cpeData = [];
       
         _.forEach(parsedCpeData, (val, index) => {
@@ -322,7 +322,7 @@ class HMDsettings extends Component {
           cpeData
         });
 
-        const parsedFrMotpData = JSON.parse(data[12].value);
+        const parsedFrMotpData = JSON.parse(data[12].rt.value);
         const frMotp = {
           ip: parsedFrMotpData.ip,
           apiKey: parsedFrMotpData.apiKey,
@@ -352,7 +352,9 @@ class HMDsettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           originalProductRegex: _.cloneDeep(data),
           productRegexData: data
@@ -723,7 +725,7 @@ class HMDsettings extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         this.getSettingsInfo();
         this.clearData();
       }
@@ -875,18 +877,18 @@ class HMDsettings extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
-          connectionsStatus: data.rt
+          connectionsStatus: data
         });
       }
       return null;
@@ -929,7 +931,9 @@ class HMDsettings extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         this.setState({
           cpe23Uri: data.cpe23Uri,
           cpeConvertResult: data.match
@@ -981,10 +985,14 @@ class HMDsettings extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-connectionsSuccess'));
-      } else {
-        helper.showPopupMsg(t('txt-connectionsFail'));
+      if (data && data.ret === 0) {
+        data = data.rt;
+
+        if (data) {
+          helper.showPopupMsg(t('txt-connectionsSuccess'));
+        } else {
+          helper.showPopupMsg(t('txt-connectionsFail'));
+        }
       }
       return null;
     })
@@ -1041,7 +1049,7 @@ class HMDsettings extends Component {
 
     if (!hmdFile) return;
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import`,
       data: formData,
       type: 'POST',
@@ -1049,7 +1057,7 @@ class HMDsettings extends Component {
       contentType: false
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-uploadSuccess'));
       }
       return null;

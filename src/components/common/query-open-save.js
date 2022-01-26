@@ -882,7 +882,7 @@ class QueryOpenSave extends Component {
       type: 'DELETE'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         let newQueryList = [];
         let tempQueryData = {...queryData};
         let tempQueryDataPublic = {...queryDataPublic};

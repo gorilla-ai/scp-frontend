@@ -351,7 +351,7 @@ class HostAnalysis extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.triggerTask(['compareIOC'], '', yaraRule);
       }
       return null;
@@ -407,7 +407,7 @@ class HostAnalysis extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
 
         if (type[0] === 'compareIOC') {
@@ -451,7 +451,7 @@ class HostAnalysis extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
       }
       return null;
@@ -473,16 +473,14 @@ class HostAnalysis extends Component {
       hasHandled: true
     }];
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/hmd/malwareList`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.props.getIPdeviceInfo(hostData);
       }

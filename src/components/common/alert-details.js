@@ -370,7 +370,7 @@ class AlertDetails extends Component {
     this.ah.series(apiArr)
     .then(data => {
       if (data && data.length > 0) {
-        if (data[0] && data[0].ret === 0 && data[0].counts === 0) {
+        if (data[0] && data[0].rt.counts === 0) {
           tempAlertInfo[ipType].exist = false;
 
           this.setState({
@@ -378,7 +378,7 @@ class AlertDetails extends Component {
           });
         }
 
-        if (data[1] && data[1].ret === 0 && data[0].ret === 0 && data[0].counts > 0) {
+        if (data[1] && data[0] && data[0].rt.counts > 0) {
           tempAlertInfo[ipType].exist = true;
           tempIPdeviceInfo[ipType] = data[1].rt;
 
@@ -389,7 +389,7 @@ class AlertDetails extends Component {
           });
         }
 
-        if (data[2] && data[2].ret === 0) {
+        if (data[2]) {
           let tempEventInfo = {...eventInfo};
           tempEventInfo.dataContent = [];
           tempEventInfo.scrollCount = 1;
@@ -2120,7 +2120,7 @@ class AlertDetails extends Component {
           }
         }
 
-        if (data[1] && data[1].ret === 0 && data[1].counts === 0) {
+        if (data[1] && data[1].rt.counts === 0) {
           tempAlertInfo[ipTypeParam || ipType].exist = false;
 
           this.setState({
@@ -2128,7 +2128,7 @@ class AlertDetails extends Component {
           });
         }
 
-        if (data[2] && data[2].ret === 0 && data[1] && data[1].ret === 0 && data[1].counts > 0) {
+        if (data[2] && data[1] && data[1].rt.counts > 0) {
           tempAlertInfo[ipTypeParam || ipType].exist = true;
           tempIPdeviceInfo[ipTypeParam || ipType] = data[2].rt;
 

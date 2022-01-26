@@ -580,28 +580,28 @@ class SoarFlow extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) { //Success
-        this.clearSoarData('table');
-      } else {
-        if (data.rt.length === 0) {
-          const errorMsg = t('soar.txt-error' + data.ret);
-          helper.showPopupMsg('', t('txt-error'), errorMsg);
+      if (data) {
+        if (data.ret === 0) { //Success
+          this.clearSoarData('table');
         } else {
-          PopupDialog.alert({
-            id: 'modalWindowSmall',
-            title: t('txt-error'),
-            confirmText: t('txt-close'),
-            display: this.showErrorInfo(data.ret, data.rt)
-          });
+          if (data.rt.length === 0) {
+            const errorMsg = t('soar.txt-error' + data.ret);
+            helper.showPopupMsg('', t('txt-error'), errorMsg);
+          } else {
+            PopupDialog.alert({
+              id: 'modalWindowSmall',
+              title: t('txt-error'),
+              confirmText: t('txt-close'),
+              display: this.showErrorInfo(data.ret, data.rt)
+            });
+          }
         }
       }
     })

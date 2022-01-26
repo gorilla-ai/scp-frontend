@@ -462,16 +462,14 @@ class ThreatsController extends Component {
       account:session.accountId
     };
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/soc/unit/limit/_check`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         if (data.rt.isDefault) {
           this.setState({
             accountType: constants.soc.NONE_LIMIT_ACCOUNT
@@ -550,8 +548,8 @@ class ThreatsController extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
-        data = data.aggregations;
+      if (data && data.ret === 0) {
+        data = data.rt.aggregations;
 
         let alertTreeData = {
           default: data.default
@@ -623,7 +621,9 @@ class ThreatsController extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         let tempTaskServiceList = {...taskServiceList};
         tempTaskServiceList.data = [];
 
@@ -710,7 +710,7 @@ class ThreatsController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('txt-requestSent'));
         this.handlePopoverClose();
       }
@@ -734,7 +734,9 @@ class ThreatsController extends Component {
       type: 'GET',
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const tableData = JSON.parse(data.alertTrackSource);
         let tmpTrackData = trackData;
         tmpTrackData.trackObj = data;
@@ -920,7 +922,7 @@ class ThreatsController extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg('', t('txt-success'),  t('alert.txt-alertTrackOverrideSuccess'));
       }
     })
@@ -1011,9 +1013,7 @@ class ThreatsController extends Component {
 
     this.handleCloseIncidentMenu();
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/soc/flow/_search`,
       data: JSON.stringify({}),
       type: 'POST',
@@ -1021,7 +1021,7 @@ class ThreatsController extends Component {
       dataType: 'json'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         const {originalThreatsList, cancelThreatsList} = this.state;
         let flowSourceList = [];
         let selectRows = [];
@@ -1107,9 +1107,7 @@ class ThreatsController extends Component {
               deviceId: eventItem._edgeId ? eventItem._edgeId : eventItem._edgeInfo.agentId
             };
 
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
+            this.ah.one({
               url: `${baseUrl}/api/soc/device/redirect/_search`,
               data: JSON.stringify(searchRequestData),
               type: 'POST',
@@ -1117,7 +1115,10 @@ class ThreatsController extends Component {
               dataType: 'json'
             })
             .then(data => {
-              eventListItem.deviceId = data.rt.device.id;
+              if (data && data.ret === 0) {
+                eventListItem.deviceId = data.rt.device.id;
+              }
+              return null;
             })
           }
 
@@ -1126,9 +1127,7 @@ class ThreatsController extends Component {
               deviceId: eventItem.LoghostIp
             };
 
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
+            this.ah.one({
               url: `${baseUrl}/api/soc/device/redirect/_search`,
               data: JSON.stringify(searchRequestData),
               type: 'POST',
@@ -1136,7 +1135,10 @@ class ThreatsController extends Component {
               dataType: 'json'
             })
             .then(data => {
-              eventListItem.deviceId = data.rt.device.id;
+              if (data && data.ret === 0) {
+                eventListItem.deviceId = data.rt.device.id;
+              }
+              return null;
             })
           }
 
@@ -1292,9 +1294,7 @@ class ThreatsController extends Component {
 
     incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/soc`,
       data: JSON.stringify(incident.info),
       type: 'POST',
@@ -1302,63 +1302,65 @@ class ThreatsController extends Component {
       dataType: 'json'
     })
     .then(data => {
-      if (data.status) {
-        if (incident.info.attach) {
-          this.uploadAttachment(data.rt.id);
-        } else {
-          this.closeAddIncidentDialog();
-        }
+      if (data && data.ret === 0) {
+        if (data.status) {
+          if (incident.info.attach) {
+            this.uploadAttachment(data.rt.id);
+          } else {
+            this.closeAddIncidentDialog();
+          }
 
-        PopupDialog.prompt({
-          title: t('alert.txt-deleteSelectTrackList'),
-          id: 'modalWindowSmall',
-          confirmText: t('txt-delete'),
-          cancelText: t('txt-cancel'),
-          display: (
-            <div className='content'>
-              <span>{it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+ data.rt.id + ' ' + t('alert.txt-deleteSelectTrackListMsg')}?</span>
-            </div>
-          ),
-          act: (confirmed) => {
-            if (confirmed) {
-              const {trackData, cancelThreatsList} = this.state;
-              let emptyList = [];
+          PopupDialog.prompt({
+            title: t('alert.txt-deleteSelectTrackList'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: (
+              <div className='content'>
+                <span>{it('txt-addIncident-events') + '-' + t('txt-success') + ' ID:'+ data.rt.id + ' ' + t('alert.txt-deleteSelectTrackListMsg')}?</span>
+              </div>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                const {trackData, cancelThreatsList} = this.state;
+                let emptyList = [];
 
-              if (selectType === 'select') {
-                _.forEach(cancelThreatsList, data => {
-                  data.select = false;
-                })
+                if (selectType === 'select') {
+                  _.forEach(cancelThreatsList, data => {
+                    data.select = false;
+                  })
 
-                _.forEach(trackData.dataContent, data => {
-                  data.select = false;
-                })
+                  _.forEach(trackData.dataContent, data => {
+                    data.select = false;
+                  })
 
-                this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList));
+                  this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList));
 
-                this.setState({
-                  trackData: trackData,
-                  cancelThreatsList: []
-                }, () => {
-                  this.loadTrackData();
-                });
-              } else {
-                this.overrideAlertTrack(emptyList);
+                  this.setState({
+                    trackData: trackData,
+                    cancelThreatsList: []
+                  }, () => {
+                    this.loadTrackData();
+                  });
+                } else {
+                  this.overrideAlertTrack(emptyList);
 
-                let tmpTrackData = trackData;
-                tmpTrackData.dataContent = emptyList;
+                  let tmpTrackData = trackData;
+                  tmpTrackData.dataContent = emptyList;
 
-                this.setState({
-                  trackData: tmpTrackData,
-                  cancelThreatsList: []
-                }, () => {
-                  this.loadTrackData();
-                });
+                  this.setState({
+                    trackData: tmpTrackData,
+                    cancelThreatsList: []
+                  }, () => {
+                    this.loadTrackData();
+                  });
+                }
               }
             }
-          }
-        });
-      } else {
-        helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:'+data.rt.id);
+          });
+        } else {
+          helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:'+data.rt.id);
+        }
       }
       return null;
     }).catch(err => {
@@ -1410,9 +1412,7 @@ class ThreatsController extends Component {
       formData.append('file', incident.info.attach);
       formData.append('fileMemo', incident.info.fileMemo);
 
-      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-      ah.one({
+      this.ah.one({
         url: `${baseUrl}/api/soc/attachment/_upload`,
         data: formData,
         type: 'POST',
@@ -1420,12 +1420,15 @@ class ThreatsController extends Component {
         contentType: false
       })
       .then(data => {
-        this.setState({
-          cancelThreatsList: []
-        },() => {
-          this.closeAddIncidentDialog();
-          this.loadTrackData();
-        });
+        if (data && data.ret === 0) {
+          this.setState({
+            cancelThreatsList: []
+          }, () => {
+            this.closeAddIncidentDialog();
+            this.loadTrackData();
+          });
+        }
+        return null;
       }).catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
@@ -1722,7 +1725,9 @@ class ThreatsController extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         if (!options || options === 'alertDetails') {
           let tempThreatsData = {...threatsData};
 

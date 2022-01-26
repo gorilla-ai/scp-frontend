@@ -148,7 +148,9 @@ class SoarSettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
+        data = data.rt;
+
         const soarIP = data['soar.ip'];
         const soarAdapter = data['soar.adapter'];
         const soarAction = data['soar.action'];
@@ -206,7 +208,7 @@ class SoarSettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         let tempFormValidation = {...this.state.formValidation};
         tempFormValidation.ip = {
           valid: true,
@@ -390,7 +392,7 @@ class SoarSettings extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         this.getSoarSettingsInfo();
         this.toggleContent('viewMode');
       }
@@ -524,7 +526,7 @@ class SoarSettings extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data && data.ret === 0) {
         helper.showPopupMsg(t('notifications.txt-sendSuccess'));
         this.closeDialog();
       }
