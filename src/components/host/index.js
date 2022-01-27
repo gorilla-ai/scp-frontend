@@ -793,7 +793,7 @@ class HostController extends Component {
     }
 
     if (limitedDepartment.length > 0) {
-      requestData.departmentId = limitedDepartment;
+      requestData.departmentArray = limitedDepartment;
     }
 
     this.ah.one({
