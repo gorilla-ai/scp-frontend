@@ -61,9 +61,6 @@ class VansPatchGroup extends Component {
       this.getVansPatchTable();
     }
   }
-  componentWillUnmount() {
-    this.props.getVansPatchGroup(); //Refresh vansPatchGroup value
-  }
   /**
    * Set initial datetime
    * @method

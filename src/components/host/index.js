@@ -768,8 +768,9 @@ class HostController extends Component {
    * @param {string} [keyword] - keyword search
    * @param {object} [datetimeFrom] - datetime from
    * @param {object} [datetimeTo] - datetime to
+   * @param {string} [options] - option for 'openDialog'
    */
-  getVansPatchGroup = (keyword, datetimeFrom, datetimeTo) => {
+  getVansPatchGroup = (keyword, datetimeFrom, datetimeTo, options) => {
     const {baseUrl} = this.context;
     const {limitedDepartment} = this.state;
     const url = `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/group`;
@@ -796,6 +797,10 @@ class HostController extends Component {
       requestData.departmentArray = limitedDepartment;
     }
 
+    if (options === 'openDialog') {
+      this.handleCloseMenu();
+    }
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -806,6 +811,10 @@ class HostController extends Component {
       if (data) {
         this.setState({
           vansPatchGroup: data.rows
+        }, () => {
+          if (options === 'openDialog') {
+            this.toggleVansPatchGroup();
+          }
         });
       }
       return null;
@@ -4179,7 +4188,7 @@ class HostController extends Component {
     if (val.cmds === 'executePatch') {
       return <MenuItem key={i} onClick={this.setVansPatchFrom.bind(this, 'new')}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
     } else if (val.cmds === 'executePatchRecord') {
-      return <MenuItem key={i} onClick={this.toggleVansPatchGroup}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
+      return <MenuItem key={i} onClick={this.getVansPatchGroup.bind(this, '', '', '', 'openDialog')}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
