@@ -42,6 +42,7 @@ class PrivilegeAdd extends Component {
     super(props);
 
     this.state = _.clone(INITIAL_STATE);
+    this.ah = getInstance('chewbacca');
   }
   /**
    * Open privilege add modal dialog
