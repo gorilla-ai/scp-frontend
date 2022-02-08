@@ -3,7 +3,7 @@ import _ from 'lodash'
 import cx from "classnames"
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {BaseDataContext} from "../../common/context"
-import {default as ah} from "react-ui/build/src/utils/ajax-helper"
+import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
 
 let t = null
@@ -27,6 +27,7 @@ class IncidentFlowDialog extends Component {
     	it = global.chewbaccaI18n.getFixedT(null, "incident")
 
     	this.state = _.cloneDeep(INIT)
+    	this.ah = getInstance('chewbacca');
 	}
 	componentDidMount() {
 	}
@@ -36,53 +37,53 @@ class IncidentFlowDialog extends Component {
 		let tempList = [];
 		let activeSteps = 1;
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
 			url: `${baseUrl}/api/soc/flowEngine/instance?id=${id}`,
 			type: 'GET',
 			contentType: 'application/json',
 			dataType: 'json'
-		}).then(result => {
-			Object.keys(result.rt.entities).forEach(key => {
-				let index = 0;
-				if (Object.entries(result.rt.entities).length > 4){
-					if (result.rt.entities[key].entityName.includes('SOC-1')) {
-						index = 0
-					} else if (result.rt.entities[key].entityName.includes('SOC-2')) {
-						index = 1
-					} else if (result.rt.entities[key].entityName === '單位承辦人簽核') {
-						index = 2
-					} else if (result.rt.entities[key].entityName === '單位資安長簽核') {
-						index = 3
-					} else if (result.rt.entities[key].entityName === '主管單位承辦人簽核') {
-						index = 4
-					} else if (result.rt.entities[key].entityName === '主管單位資安長簽核') {
-						index = 5
+		}).then(data => {
+			if (data && data.ret === 0) {
+				Object.keys(data.rt.entities).forEach(key => {
+					let index = 0;
+					if (Object.entries(data.rt.entities).length > 4){
+						if (data.rt.entities[key].entityName.includes('SOC-1')) {
+							index = 0
+						} else if (data.rt.entities[key].entityName.includes('SOC-2')) {
+							index = 1
+						} else if (data.rt.entities[key].entityName === '單位承辦人簽核') {
+							index = 2
+						} else if (data.rt.entities[key].entityName === '單位資安長簽核') {
+							index = 3
+						} else if (data.rt.entities[key].entityName === '主管單位承辦人簽核') {
+							index = 4
+						} else if (data.rt.entities[key].entityName === '主管單位資安長簽核') {
+							index = 5
+						}
+					}else{
+						if (data.rt.entities[key].entityName.includes('SOC-1')) {
+							index = 0
+						}else if (data.rt.entities[key].entityName.includes('SOC-2')){
+							index= 1
+						}else if (data.rt.entities[key].entityName === '單位承辦人簽核'){
+							index = 2
+						}else if (data.rt.entities[key].entityName === '主管單位承辦人簽核'){
+							index = 3
+						}
 					}
-				}else{
-					if (result.rt.entities[key].entityName.includes('SOC-1')) {
-						index = 0
-					}else if (result.rt.entities[key].entityName.includes('SOC-2')){
-						index= 1
-					}else if (result.rt.entities[key].entityName === '單位承辦人簽核'){
-						index = 2
-					}else if (result.rt.entities[key].entityName === '主管單位承辦人簽核'){
-						index = 3
+					let tmpData = {
+						index: index,
+						step: data.rt.entities[key].entityName,
+						updateTime: data.rt.entities[key].updateTime ? data.rt.entities[key].updateTime : ''
 					}
-				}
-				let tmpData = {
-					index: index,
-					step: result.rt.entities[key].entityName,
-					updateTime: result.rt.entities[key].updateTime ? result.rt.entities[key].updateTime : ''
-				}
-				tempList.push(tmpData)
+					tempList.push(tmpData)
 
-				if (result.rt.currentEntity[id].entityName === result.rt.entities[key].entityName){
-					activeSteps = tmpData.index + 1
-				}
-			})
-			this.setState({open: true, activeSteps: activeSteps, stepTitleList: tempList})
+					if (data.rt.currentEntity[id].entityName === data.rt.entities[key].entityName){
+						activeSteps = tmpData.index + 1
+					}
+				})
+				this.setState({open: true, activeSteps: activeSteps, stepTitleList: tempList})
+			}
 		}).catch(err => {
 			helper.showPopupMsg('', t('txt-error'), it('txt-flow-msg-na'))
 		})

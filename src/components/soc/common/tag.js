@@ -42,15 +42,14 @@ class IncidentTag extends Component {
     	it = global.chewbaccaI18n.getFixedT(null, "incident")
 
     	this.state = _.cloneDeep(INIT)
+        this.ah = getInstance('chewbacca');
 	}
 	componentDidMount() {
 	}
 	open(id) {
 		const {baseUrl, session} = this.context
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
             url: `${baseUrl}/api/soc/tag/_search`,
             data: JSON.stringify({account: session.accountId}),
             type: 'POST',
@@ -58,30 +57,29 @@ class IncidentTag extends Component {
             dataType: 'json'
         })
         .then(data => {
-            if (id) {
-                helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+            if (data && data.ret === 0) {
+                if (id) {
+                    this.ah.one({
+                        url: `${baseUrl}/api/soc/tag/mapping/_search`,
+                        data: JSON.stringify({incidentId: id}),
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json'
+                    })
+                    .then(result => {
+                        if (result && result.ret === 0) {
+                            const selected = _.map(result.rt, 'tagId')
 
-                ah.one({
-                    url: `${baseUrl}/api/soc/tag/mapping/_search`,
-                    data: JSON.stringify({incidentId: id}),
-                    type: 'POST',
-                    contentType: 'application/json',
-                    dataType: 'json'
-                })
-                .then(result => {
-                    const selected = _.map(result.rt, 'tagId')
-
-                    this.setState({open: true, tags: data.rt, id, selectedTags: selected, originalSelectedTags: selected, mapping: result.rt})
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message)
-                })
+                            this.setState({open: true, tags: data.rt, id, selectedTags: selected, originalSelectedTags: selected, mapping: result.rt})
+                        }
+                    }).catch(err => {
+                        helper.showPopupMsg('', t('txt-error'), err.message)
+                    })
+                } else {
+                    this.setState({open: true, tags: data.rt, origianlTags: data.rt, id})
+                }
             }
-            else {
-                this.setState({open: true, tags: data.rt, origianlTags: data.rt, id})
-            }
-        })
-        .catch(err => {
+        }).catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
 	}
@@ -152,11 +150,11 @@ class IncidentTag extends Component {
 			apis.push(api)
 		})
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.all(apis)
-        .then(result => {
-            this.close()
+        this.ah.all(apis)
+        .then(data => {
+            if (data) {
+                this.close()
+            }
         })
         .catch(err => {
             popupErrorMsg(err.message)
@@ -198,12 +196,12 @@ class IncidentTag extends Component {
             })
         })
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.all(apis)
+        this.ah.all(apis)
         .then(result => {
-            this.props.onLoad()
-            this.close()
+            if (result && result.ret === 0) {
+                this.props.onLoad()
+                this.close()
+            }
         })
         .catch(err => {
             popupErrorMsg(err.message)

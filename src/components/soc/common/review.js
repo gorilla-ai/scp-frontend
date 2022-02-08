@@ -39,19 +39,20 @@ class IncidentReview extends Component {
     	it = global.chewbaccaI18n.getFixedT(null, "incident")
 
     	this.state = _.cloneDeep(INIT)
+    	this.ah = getInstance('chewbacca');
 	}
 	componentDidMount() {
 	}
 	open(incidentId, reviewType) {
 		const {baseUrl} = this.context
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
             url: `${baseUrl}/api/soc/command/_search`
         })
         .then(data => {
-            this.setState({incidentId, reviewType, open: true, comments: data.rt})
+        	if (data && data.ret === 0) {
+        		this.setState({incidentId, reviewType, open: true, comments: data.rt})
+        	}
         })
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
@@ -127,34 +128,30 @@ class IncidentReview extends Component {
           url =  `${baseUrl}/api/soc/analyzer/_draw`
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session    
-
-		    ah.one({
+		    this.ah.one({
 			    url: url,
 			    data: JSON.stringify(payload),
 			    type: 'POST',
 			    contentType: 'application/json',
 			    dataType: 'json'
 		    }).then(data => {
-			    helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
+		    	if (data && data.ret === 0) {
+				    helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
 
-			    if (this.props.loadTab === 'manager'){
-				    this.props.onLoad(incidentId, 'view')
-			    }else{
-				    this.props.onLoad('button', 'unhandled')
-			    }
+				    if (this.props.loadTab === 'manager'){
+					    this.props.onLoad(incidentId, 'view')
+				    }else{
+					    this.props.onLoad('button', 'unhandled')
+				    }
 
-			    this.close()
-
+				    this.close()
+		    	}
+		    }).catch(err => {
+			    helper.showPopupMsg('', t('txt-error'), err.message)
 		    })
-			    .catch(err => {
-				    helper.showPopupMsg('', t('txt-error'), err.message)
-			    })
-	    }else{
+	    } else {
 		    helper.showPopupMsg( it(`txt-required`),t(`txt-fail`));
 	    }
-
-
     }
     render() {
     	const {open, reviewType, comments, selected, comment} = this.state

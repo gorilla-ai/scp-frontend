@@ -39,19 +39,20 @@ class IncidentComment extends Component {
     	it = global.chewbaccaI18n.getFixedT(null, "incident")
 
     	this.state = _.cloneDeep(INIT)
+        this.ah = getInstance('chewbacca');
 	}
 	componentDidMount() {
 	}
 	open() {
         const {baseUrl} = this.context
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/command/_search`
         })
         .then(data => {
-            this.setState({open: true, comments: data.rt, selected: 'new', comment: {}})
+            if (data && data.ret === 0) {
+                this.setState({open: true, comments: data.rt, selected: 'new', comment: {}})
+            }
         })
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
@@ -61,13 +62,13 @@ class IncidentComment extends Component {
     refresh() {
         const {baseUrl} = this.context
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/command/_search`
         })
             .then(data => {
-                this.setState({open: true, comments: data.rt, selected: 'selected',})
+                if (data && data.ret === 0) {
+                    this.setState({open: true, comments: data.rt, selected: 'selected',})
+                }
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
@@ -154,9 +155,7 @@ class IncidentComment extends Component {
             command: comment.command
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/command`,
             data: JSON.stringify(payload),
             type: 'POST',
@@ -164,16 +163,17 @@ class IncidentComment extends Component {
             dataType: 'json'
         })
         .then(data => {
-
-            this.setState({
-                open: false,
-                comments: [],
-                selected: 'new',
-                comment: null
-            },()=>{
-                this.open()
-            })
-            helper.showPopupMsg('', t('txt-success'),   it('txt-new')+it('txt-comment-example')+t('txt-success'))
+            if (data && data.ret === 0) {
+                this.setState({
+                    open: false,
+                    comments: [],
+                    selected: 'new',
+                    comment: null
+                },()=>{
+                    this.open()
+                })
+                helper.showPopupMsg('', t('txt-success'),   it('txt-new')+it('txt-comment-example')+t('txt-success'))
+            }
         })
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
@@ -206,9 +206,7 @@ class IncidentComment extends Component {
             display: <span>{it('txt-edit-msg')}</span>,
             act: (confirmed, data) => {
                 if (confirmed) {
-                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                    ah.one({
+                    this.ah.one({
                         url: `${baseUrl}/api/soc/command`,
                         data: JSON.stringify(payload),
                         type: 'PATCH',
@@ -216,8 +214,10 @@ class IncidentComment extends Component {
                         dataType: 'json'
                     })
                     .then(data => {
-                        this.close()
-                        helper.showPopupMsg('', t('txt-success'),   it('txt-update')+it('txt-comment-example')+t('txt-success'))
+                        if (data && data.ret === 0) {
+                            this.close()
+                            helper.showPopupMsg('', t('txt-success'),   it('txt-update')+it('txt-comment-example')+t('txt-success'))
+                        }
                     })
                     .catch(err => {
                         helper.showPopupMsg('', t('txt-error'), err.message)
@@ -239,22 +239,22 @@ class IncidentComment extends Component {
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
-                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                    ah.one({
+                    this.ah.one({
                         url: `${baseUrl}/api/soc/command?id=${selected}`,
                         type: 'DELETE'
                     })
                     .then(data => {
-                        this.setState({
-                            open: false,
-                            comments: [],
-                            selected: 'new',
-                            comment: null
-                        },()=>{
-                            this.open()
-                        })
-                        helper.showPopupMsg('', t('txt-success'),   it('txt-delete')+it('txt-comment-example')+t('txt-success'))
+                        if (data && data.ret === 0) {
+                            this.setState({
+                                open: false,
+                                comments: [],
+                                selected: 'new',
+                                comment: null
+                            },()=>{
+                                this.open()
+                            })
+                            helper.showPopupMsg('', t('txt-success'),   it('txt-delete')+it('txt-comment-example')+t('txt-success'))
+                        }
                     })
                     .catch(err => {
                         helper.showPopupMsg('', t('txt-error'), err.message)

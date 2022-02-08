@@ -130,7 +130,9 @@ class IncidentUnit extends Component {
             contentType: 'text/plain'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let tempEdge = {...incidentUnit};
                 tempEdge.dataContent = data.rows;
                 tempEdge.totalCount = data.counts;
@@ -216,36 +218,42 @@ class IncidentUnit extends Component {
             type: 'POST',
             contentType: 'text/plain'
         })
-            .then(data => {
-                if (data) {
-                    let list = [];
-                    _.forEach(data.rows, val => {
-                        let tmp = {
-                            value: val.id, text: val.name
-                        };
-                        list.push(tmp)
-                    });
-                    this.setState({
-                        unitList: list
-                    },()=>{
-                        this.checkUnitOrgFromDepartment();
-                    });
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-            })
+        .then(data => {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
+                let list = [];
+                _.forEach(data.rows, val => {
+                    let tmp = {
+                        value: val.id, text: val.name
+                    };
+                    list.push(tmp)
+                });
+                this.setState({
+                    unitList: list
+                },()=>{
+                    this.checkUnitOrgFromDepartment();
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     checkUnitOrgFromDepartment = () => {
         const {baseUrl, session} = this.context;
         const {unitList} = this.state;
+
         this.ah.one({
             url: `${baseUrl}/api/department/_tree`,
             type: 'GET'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let  departmentList = [];
 
                 _.forEach(data, val => {
@@ -271,11 +279,11 @@ class IncidentUnit extends Component {
                     treeData: data,
                     departmentList:result
                 })
-
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     }
 
     comparer(otherArray){
@@ -293,45 +301,43 @@ class IncidentUnit extends Component {
             account: session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
-            .then(data => {
-                if (data) {
-                    const {incidentUnit} = this.state;
-                    let tempUnitObj = incidentUnit;
+        .then(data => {
+            if (data && data.ret === 0) {
+                const {incidentUnit} = this.state;
+                let tempUnitObj = incidentUnit;
 
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
-                        tempUnitObj.dataFieldsArr = ['isGovernment','oid', 'name', 'abbreviation', 'level', 'industryType'];
-                        this.setState({
-                            accountType: constants.soc.LIMIT_ACCOUNT,
-                            incidentUnit: tempUnitObj
-                        }, () => {
-                            this.getData();
-                        })
-                    } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
-                        this.setState({
-                            accountType: constants.soc.NONE_LIMIT_ACCOUNT,
-                        }, () => {
-                            this.getData();
-                        })
-                    } else {
-                        this.setState({
-                            accountType: constants.soc.CHECK_ERROR
-                        }, () => {
-                            this.getData();
-                        })
-                    }
+                if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+                    tempUnitObj.dataFieldsArr = ['isGovernment','oid', 'name', 'abbreviation', 'level', 'industryType'];
+                    this.setState({
+                        accountType: constants.soc.LIMIT_ACCOUNT,
+                        incidentUnit: tempUnitObj
+                    }, () => {
+                        this.getData();
+                    })
+                } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
+                    this.setState({
+                        accountType: constants.soc.NONE_LIMIT_ACCOUNT,
+                    }, () => {
+                        this.getData();
+                    })
+                } else {
+                    this.setState({
+                        accountType: constants.soc.CHECK_ERROR
+                    }, () => {
+                        this.getData();
+                    })
                 }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
     }
 
     getOptions = () => {
@@ -341,31 +347,32 @@ class IncidentUnit extends Component {
         const url = `${baseUrl}/api/account/v2/_search?page=1&pageSize=100000&orders=account ${sort}`;
         let requestData = {};
 
-
         this.ah.one({
             url,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'application/json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rows, val => {
-                        return {
-                            value: val.accountid,
-                            text: val.account + ' (' + val.name + ')'
-                        }
-                    });
+        .then(data => {
+            if (data && data.ret === 0) {
+                data = data.rt;
 
-                    this.setState({
-                        accountListOptions: list
-                    });
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-            })
+                let list = _.map(data.rows, val => {
+                    return {
+                        value: val.accountid,
+                        text: val.account + ' (' + val.name + ')'
+                    }
+                });
+
+                this.setState({
+                    accountListOptions: list
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
 
@@ -550,15 +557,13 @@ class IncidentUnit extends Component {
         const {treeData} = this.state;
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/department/_tree`,
             data: JSON.stringify(treeData),
             type: 'POST',
             contentType: 'text/plain'
         }).then(data => {
-            if(data.status.includes('success')){
+            if (data && data.status.includes('success')){
                 helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
             }
         }).catch(err => {
@@ -836,15 +841,14 @@ class IncidentUnit extends Component {
             apiType = 'PATCH'
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit`,
             data: JSON.stringify(tmpIncidentUnit.info),
             type: apiType,
             contentType: 'text/plain'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 tmpIncidentUnit.info.id = data.rt.id;
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
 
@@ -853,11 +857,12 @@ class IncidentUnit extends Component {
                 }, () => {
                     this.toggleContent('cancel');
                 });
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), it('unit.txt-exists'));
-            })
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), it('unit.txt-exists'));
+        })
     };
 
     checkAddData = (incidentUnit) => {
@@ -993,29 +998,27 @@ class IncidentUnit extends Component {
             return;
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit?id=${currentIncidentDeviceData.id}`,
             type: 'DELETE'
         })
-            .then(data => {
-                if (data.rt === 'ERR_CHILD_DEPT_EXIST') {
-                    // this.getData();
-                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existChildren'));
-                }else if (data.ret === -1004) {
-                    // this.getData();
-                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existChildren'));
-                }else{
-                    helper.showPopupMsg('', t('txt-success'),t('txt-delete')+t('txt-success'));
-                    this.getData();
-                    this.getUnitList()
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-            })
+        .then(data => {
+            if (data.rt === 'ERR_CHILD_DEPT_EXIST') {
+                // this.getData();
+                helper.showPopupMsg('', t('txt-error'),it('unit.txt-existChildren'));
+            }else if (data.ret === -1004) {
+                // this.getData();
+                helper.showPopupMsg('', t('txt-error'),it('unit.txt-existChildren'));
+            }else{
+                helper.showPopupMsg('', t('txt-success'),t('txt-delete')+t('txt-success'));
+                this.getData();
+                this.getUnitList()
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     /**

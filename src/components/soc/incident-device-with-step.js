@@ -215,31 +215,34 @@ class IncidentDeviceStep extends Component {
             type: 'GET'
         })
             .then(data => {
-                let  departmentList = [];
+                if (data && data.ret === 0) {
+                    data = data.rt;
 
-                _.forEach(data, val => {
-                    helper.floorPlanRecursive(val, obj => {
-                        departmentList.push(
-                            {
-                                id:obj.id,
-                                name: obj.name,
-                                title:obj.name,
-                                value:obj.id,
-                                text: obj.name,
-                            }
-                        );
-                    });
-                })
+                    let  departmentList = [];
 
-                // let onlyInA = departmentList.filter(this.comparer(unitList));
-                // let onlyInB = unitList.filter(this.comparer(departmentList));
-                //
-                // let result = onlyInA.concat(onlyInB);
+                    _.forEach(data, val => {
+                        helper.floorPlanRecursive(val, obj => {
+                            departmentList.push(
+                                {
+                                    id:obj.id,
+                                    name: obj.name,
+                                    title:obj.name,
+                                    value:obj.id,
+                                    text: obj.name,
+                                }
+                            );
+                        });
+                    })
 
-                this.setState({
-                    departmentList:departmentList
-                })
+                    // let onlyInA = departmentList.filter(this.comparer(unitList));
+                    // let onlyInB = unitList.filter(this.comparer(departmentList));
+                    //
+                    // let result = onlyInA.concat(onlyInB);
 
+                    this.setState({
+                        departmentList:departmentList
+                    })
+                }
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message);
@@ -252,16 +255,14 @@ class IncidentDeviceStep extends Component {
             account:session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
                     const {incidentDevice} = this.state;
                     let tempDeviceObj = incidentDevice;
 
@@ -297,14 +298,12 @@ class IncidentDeviceStep extends Component {
         const {baseUrl, contextRoot} = this.context;
         let tempSendCheck = {...this.state.sendCheck};
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_status`,
             type: 'GET'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
                     tempSendCheck.sendStatus = data.rt
                     this.setState({
                         sendCheck: tempSendCheck
@@ -329,7 +328,9 @@ class IncidentDeviceStep extends Component {
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
+                    data = data.rt;
+
                     let tempDefenseRange = {...defenseRange};
                     tempDefenseRange.list = data.rows;
                     
@@ -357,7 +358,9 @@ class IncidentDeviceStep extends Component {
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let tempDefenseRange = {...defenseRange};
 
                 if (type === 'load') {
@@ -410,7 +413,9 @@ class IncidentDeviceStep extends Component {
             type: 'POST',
             contentType: 'text/plain'
         }).then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let tempEdge = {...incidentDevice};
                 tempEdge.dataContent = data.rows;
                 tempEdge.totalCount = data.counts;
@@ -505,7 +510,9 @@ class IncidentDeviceStep extends Component {
             contentType: 'text/plain'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let tempStatistic = {...healthStatistic};
 
                 if (this.state.setType === 'send' && data.counts === 0){
@@ -645,7 +652,9 @@ class IncidentDeviceStep extends Component {
             contentType: 'text/plain'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let list = [];
                 _.forEach(data.rows, val => {
                     let tmp = {
@@ -803,14 +812,12 @@ class IncidentDeviceStep extends Component {
     checkDeviceSlave = (id) => {
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/deviceSlave/isSlave?id=${id}`,
             type: 'GET'
         })
         .then(data => {
-            if (data.ret === 0) {
+            if (data && data.ret === 0) {
                 this.setState({
                     isSlave: data.rt
                 }, () => {
@@ -2038,16 +2045,14 @@ class IncidentDeviceStep extends Component {
 
         let apiType = 'POST';
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit`,
             data: JSON.stringify(tmpIncidentUnit),
             type: apiType,
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data.status.includes('success')){
+                if (data && data.status.includes('success')){
                     this.handleDeviceSubmit()
                 }
             })
@@ -2121,7 +2126,10 @@ class IncidentDeviceStep extends Component {
             type: apiType,
             contentType: 'text/plain'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 incidentDevice.edgeItem = '';
                 incidentDevice.edgeList = [];
                 incidentDevice.info.updateDttm = data.updateDttm;
@@ -2143,12 +2151,13 @@ class IncidentDeviceStep extends Component {
                 }, () => {
                     this.getDeviceSlave(data, 'submit');
                 });
+            }
 
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-            })
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     /**
@@ -2270,14 +2279,12 @@ class IncidentDeviceStep extends Component {
             return;
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device?id=${currentIncidentDeviceData.id}`,
             type: 'DELETE'
         })
             .then(data => {
-                if (data.ret === 0) {
+                if (data && data.ret === 0) {
                     this.getDeviceData();
                 }
                 return null;
@@ -2546,9 +2553,7 @@ class IncidentDeviceStep extends Component {
             sendList.push(tmp)
         })
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_sendV2?`,
             data: JSON.stringify(sendList),
             type: 'POST',
@@ -2619,7 +2624,9 @@ class IncidentDeviceStep extends Component {
             dataType: 'json'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 this.setState({
                     slaveList: data.rows
                 }, () => {
@@ -2782,37 +2789,39 @@ class IncidentDeviceStep extends Component {
             type: 'GET',
         })
             .then(data => {
-                if(data.id){
-                    tempUnit.id = data.id
-                    tempUnit.oid = data.oid
-                    tempUnit.name = data.name
-                    tempUnit.abbreviation = data.abbreviation
-                    tempUnit.industryType = data.industryType.toString()
-                    tempUnit.level = data.level
-                    tempUnit.isGovernment = data.isGovernment
+                if (data && data.ret === 0) {
+                    data = data.rt;
 
-                    this.setState({
-                        ownerType: 'existing',
-                        incidentDevice: tempDevice,
-                        unit:tempUnit
-                    });
-                }else{
-                    tempUnit.id = values.value;
-                    tempUnit.name = values.text;
-                    tempUnit.oid = ''
-                    tempUnit.abbreviation = ''
-                    tempUnit.industryType = ''
-                    tempUnit.level = ''
-                    tempUnit.isGovernment = ''
+                    if(data.id){
+                        tempUnit.id = data.id
+                        tempUnit.oid = data.oid
+                        tempUnit.name = data.name
+                        tempUnit.abbreviation = data.abbreviation
+                        tempUnit.industryType = data.industryType.toString()
+                        tempUnit.level = data.level
+                        tempUnit.isGovernment = data.isGovernment
 
-                    this.setState({
-                        ownerType: 'new',
-                        incidentDevice: tempDevice,
-                        unit:tempUnit
-                    });
+                        this.setState({
+                            ownerType: 'existing',
+                            incidentDevice: tempDevice,
+                            unit:tempUnit
+                        });
+                    }else{
+                        tempUnit.id = values.value;
+                        tempUnit.name = values.text;
+                        tempUnit.oid = ''
+                        tempUnit.abbreviation = ''
+                        tempUnit.industryType = ''
+                        tempUnit.level = ''
+                        tempUnit.isGovernment = ''
+
+                        this.setState({
+                            ownerType: 'new',
+                            incidentDevice: tempDevice,
+                            unit:tempUnit
+                        });
+                    }
                 }
-
-
             })
             .catch(err => {
                 // helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
@@ -2953,9 +2962,7 @@ class IncidentDeviceStep extends Component {
 
         tempSendCheck.sendStatus = value;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_override`,
             data: JSON.stringify(tempSendCheck),
             type: 'POST',
@@ -2963,7 +2970,7 @@ class IncidentDeviceStep extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
                     tempSendCheck.sendStatus = data.rt
                     this.setState({
                         sendCheck: tempSendCheck
@@ -2980,16 +2987,14 @@ class IncidentDeviceStep extends Component {
         const {baseUrl, contextRoot} = this.context;
         let usedDeviceIdList = {...this.state.usedDeviceIdList}
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/edge/_search`,
             data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
                     let edgeList = [];
 
 
@@ -3029,15 +3034,13 @@ class IncidentDeviceStep extends Component {
         let usedDeviceIdList = {...this.state.usedDeviceIdList}
         let tempEdgeList = edgeList
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/v2/log/config`,
             type: 'GET',
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
                 let netProxyList = [];
                 let lookup = _.keyBy(usedDeviceIdList, function (o) {
                     return o.deviceId

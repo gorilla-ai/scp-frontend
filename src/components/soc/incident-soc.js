@@ -82,17 +82,14 @@ class IncidentSoc extends Component {
 			account:session.accountId
 		}
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
 			url: `${baseUrl}/api/soc/unit/limit/_check`,
 			data: JSON.stringify(requestData),
 			type: 'POST',
 			contentType: 'text/plain'
 		})
 			.then(data => {
-				if (data) {
-
+				if (data && data.ret === 0) {
 					if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
 						this.setState({
 							accountType: constants.soc.LIMIT_ACCOUNT
@@ -129,7 +126,7 @@ class IncidentSoc extends Component {
 		])
 			.then(data => {
 				if (data) {
-					const data1 = data[0];
+					const data1 = data[0].rt;
 
 					const tmpSocSetting = {
 						companyName: data1.companyName,
@@ -141,8 +138,8 @@ class IncidentSoc extends Component {
 					};
 
 					this.setState({
-                      originalSetting: _.cloneDeep(socSettings),
-                      socSettings : tmpSocSetting,
+            originalSetting: _.cloneDeep(socSettings),
+            socSettings : tmpSocSetting,
 					});
 				}
 				return null;

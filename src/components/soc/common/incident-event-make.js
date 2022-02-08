@@ -113,17 +113,14 @@ class IncidentEventMake extends Component {
 		});
 		let flowSourceList = []
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
 			url: `${baseUrl}/api/soc/flow/_search`,
 			data: JSON.stringify({}),
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json'
 		}).then(data => {
-			if (data) {
-
+			if (data && data.ret === 0) {
 				let list = _.map(data.rt.rows, val => {
 					flowSourceList.push(val);
 					return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
@@ -150,9 +147,7 @@ class IncidentEventMake extends Component {
 	getOptions = () => {
 		const {baseUrl, contextRoot} = this.context;
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-		ah.one({
+		this.ah.one({
 			url: `${baseUrl}/api/soc/_search`,
 			data: JSON.stringify({}),
 			type: 'POST',
@@ -160,7 +155,7 @@ class IncidentEventMake extends Component {
 			dataType: 'json'
 		})
 			.then(data => {
-				if (data) {
+				if (data && data.ret === 0) {
 					let list = _.map(data.rt.rows, val => {
 						let ipContent = '';
 
@@ -187,9 +182,7 @@ class IncidentEventMake extends Component {
 				helper.showPopupMsg('', t('txt-error'), err.message)
 			});
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session	
-
-		ah.one({
+		this.ah.one({
 			url: `${baseUrl}/api/soc/device/_search`,
 			data: JSON.stringify({}),
 			type: 'POST',
@@ -197,7 +190,7 @@ class IncidentEventMake extends Component {
 			dataType: 'json'
 		})
 			.then(data => {
-				if (data) {
+				if (data && data.ret === 0) {
 					let list = _.map(data.rt.rows, val => {
 						return {value: val.id, text: val.deviceName}
 					});

@@ -123,16 +123,14 @@ class IncidentRuleTemplate extends Component {
             account: session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
 
                     if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
                         this.setState({
@@ -209,7 +207,9 @@ class IncidentRuleTemplate extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
+                    data = data.rt;
+
                     let tempData = {...incidentRule};
                     tempData.dataContent = data.rows;
                     tempData.totalCount = data.counts;
@@ -452,7 +452,8 @@ class IncidentRuleTemplate extends Component {
                 type: requestType,
                 contentType: 'text/plain'
             })
-                .then(data => {
+            .then(data => {
+                if (data && data.ret === 0) {
                     let requestData = {
                         id: incidentRule.info.id,
                         title: incidentRule.info.title,
@@ -464,41 +465,37 @@ class IncidentRuleTemplate extends Component {
                         status: incidentRule.info.status
                     };
 
-
                     this.ah.one({
                         url: `${baseUrl}/api/soc/template`,
                         data: JSON.stringify(requestData),
                         type: 'POST',
                         contentType: 'text/plain'
                     })
-                        .then(data => {
+                    .then(data => {
+                        if (data && data.ret === 0) {
+                            helper.showPopupMsg('', t('txt-success'), t('network-topology.txt-saveSuccess'));
+                            let showPage = '';
 
-                            if (data) {
-                                helper.showPopupMsg('', t('txt-success'), t('network-topology.txt-saveSuccess'));
-                                let showPage = '';
-
-                                if (activeContent === 'add') {
-                                    showPage = 'tableList';
-                                } else if (activeContent === 'edit') {
-                                    showPage = 'save';
-                                }
-
-                                this.toggleContent(showPage);
-                            } else {
-                                helper.showPopupMsg('', t('txt-error'), t('txt-fail'));
+                            if (activeContent === 'add') {
+                                showPage = 'tableList';
+                            } else if (activeContent === 'edit') {
+                                showPage = 'save';
                             }
 
-
-                            return null;
-                        })
-                        .catch(err => {
-                            helper.showPopupMsg('', t('txt-error'), err.message);
-                        })
-
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message);
-                })
+                            this.toggleContent(showPage);
+                        } else {
+                            helper.showPopupMsg('', t('txt-error'), t('txt-fail'));
+                        }
+                        return null;
+                    })
+                    .catch(err => {
+                        helper.showPopupMsg('', t('txt-error'), err.message);
+                    })
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
         } else {
             let requestData = {
                 id: incidentRule.info.id,
@@ -511,33 +508,32 @@ class IncidentRuleTemplate extends Component {
                 status: incidentRule.info.status
             };
 
-
             this.ah.one({
                 url: `${baseUrl}/api/soc/template`,
                 data: JSON.stringify(requestData),
                 type: 'POST',
                 contentType: 'text/plain'
             })
-                .then(data => {
-                    if (data) {
-                        helper.showPopupMsg('', t('txt-success'), t('network-topology.txt-saveSuccess'));
-                        let showPage = '';
+            .then(data => {
+                if (data && data.ret === 0) {
+                    helper.showPopupMsg('', t('txt-success'), t('network-topology.txt-saveSuccess'));
+                    let showPage = '';
 
-                        if (activeContent === 'add') {
-                            showPage = 'tableList';
-                        } else if (activeContent === 'edit') {
-                            showPage = 'save';
-                        }
-
-                        this.toggleContent(showPage);
-                    } else {
-                        helper.showPopupMsg('', t('txt-error'), t('txt-fail'));
+                    if (activeContent === 'add') {
+                        showPage = 'tableList';
+                    } else if (activeContent === 'edit') {
+                        showPage = 'save';
                     }
-                    return null;
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message);
-                })
+
+                    this.toggleContent(showPage);
+                } else {
+                    helper.showPopupMsg('', t('txt-error'), t('txt-fail'));
+                }
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
         }
 
     }

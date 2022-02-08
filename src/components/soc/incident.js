@@ -162,17 +162,14 @@ class Incident extends Component {
         });
         let flowSourceList = []
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/flow/_search`,
             data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-            if (data) {
-
+            if (data && data.ret === 0) {
                 let list = _.map(data.rt.rows, val => {
                     flowSourceList.push(val);
                     return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
@@ -214,35 +211,32 @@ class Incident extends Component {
             account:session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
-            .then(data => {
-                if (data) {
-
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
-                        this.setState({
-                            accountType: constants.soc.LIMIT_ACCOUNT
-                        })
-                    }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
-                        this.setState({
-                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
-                        })
-                    }else {
-                        this.setState({
-                            accountType: constants.soc.CHECK_ERROR
-                        })
-                    }
+        .then(data => {
+            if (data && data.ret === 0) {
+                if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                    this.setState({
+                        accountType: constants.soc.LIMIT_ACCOUNT
+                    })
+                }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                    this.setState({
+                        accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                    })
+                }else {
+                    this.setState({
+                        accountType: constants.soc.CHECK_ERROR
+                    })
                 }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
     }
 
 
@@ -269,122 +263,119 @@ class Incident extends Component {
             search.accountRoleType = this.state.accountRoleType
             search.account = session.accountId
 
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
+            this.ah.one({
                 url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
                 data: JSON.stringify(search),
                 type: 'POST',
                 contentType: 'application/json',
                 dataType: 'json'
             })
-                .then(data => {
-                    if (data) {
-                        let tempEdge = {...incident};
+            .then(data => {
+                if (data && data.ret === 0) {
+                    let tempEdge = {...incident};
 
+                    if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
+                        tempEdge.dataFields = [];
+                        tempEdge.dataContent = [];
+                        tempEdge.totalCount = 0;
+                        tempEdge.currentPage = 1;
+                        tempEdge.pageSize = 20;
 
-                        if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
-                            tempEdge.dataFields = [];
-                            tempEdge.dataContent = [];
-                            tempEdge.totalCount = 0;
-                            tempEdge.currentPage = 1;
-                            tempEdge.pageSize = 20;
+                        this.setState({
+                            incident: tempEdge,
+                            activeContent: 'tableList'
+                        });
+                    } else {
+                        tempEdge.dataContent = data.rt.rows;
+                        tempEdge.totalCount = data.rt.counts;
+                        tempEdge.currentPage = page;
 
-                            this.setState({
-                                incident: tempEdge,
-                                activeContent: 'tableList'
-                            });
-                        } else {
-                            tempEdge.dataContent = data.rt.rows;
-                            tempEdge.totalCount = data.rt.counts;
-                            tempEdge.currentPage = page;
+                        tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+                            return {
+                                name: val === '_menu' ? '' : val,
+                                label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                                options: {
+                                    filter: true,
+                                    sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
+                                    customBodyRenderLite: (dataIndex, options) => {
+                                        const allValue = tempEdge.dataContent[dataIndex];
+                                        let value = tempEdge.dataContent[dataIndex][val];
 
-                            tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                                return {
-                                    name: val === '_menu' ? '' : val,
-                                    label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                                    options: {
-                                        filter: true,
-                                        sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
-                                        customBodyRenderLite: (dataIndex, options) => {
-                                            const allValue = tempEdge.dataContent[dataIndex];
-                                            let value = tempEdge.dataContent[dataIndex][val];
+                                        if (options === 'getAllValue') {
+                                            return allValue;
+                                        }
 
-                                            if (options === 'getAllValue') {
-                                                return allValue;
-                                            }
-
-                                            if (val === '_menu') {
-                                                return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                                    <MoreIcon/>
-                                                </IconButton>
-                                            } else if (val === 'type') {
-                                                let tmpList = [];
-                                                tmpList = allValue.ttpList;
-                                                if (tmpList.length === 0) {
-                                                    return <span>{it('txt-incident-event')}</span>
-                                                } else {
-                                                    return <span>{it('txt-incident-related')}</span>
-                                                }
-                                            } else if (val === 'category') {
-                                                return <span>{it(`category.${value}`)}</span>
-                                            } else if (val === 'status') {
-                                                let status = 'N/A'
-                                                if (allValue.flowData) {
-
-                                                    if (allValue.flowData.finish) {
-                                                        return <span>{it('status.3')}</span>
-                                                    }
-
-                                                    if (allValue.flowData.currentEntity) {
-                                                        status = allValue.flowData.currentEntity[allValue.id].entityName
-                                                    }
-                                                }
-                                                return <span>{status}</span>
-                                            } else if (val === 'createDttm' || val === 'updateDttm') {
-                                                return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                            } else if (val === 'tag') {
-                                                const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                                return <div>
-                                                    {
-                                                        _.map(allValue.tagList, el => {
-                                                            return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                                <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                                                                &nbsp;{el.tag.tag}
-                                                            </div>
-                                                        })
-                                                    }
-                                                </div>
-
-                                            } else if (val === 'severity') {
-                                                return <span className='severity-level'
-                                                             style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                            } else if (val === 'srcIPListString' || val === 'dstIPListString'){
-                                                let formattedPatternIP = ''
-                                                if (value.length > 32) {
-                                                    formattedPatternIP = value.substr(0, 32) + '...';
-                                                }else{
-                                                    formattedPatternIP = value
-                                                }
-                                                return <span>{formattedPatternIP}</span>
+                                        if (val === '_menu') {
+                                            return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                                <MoreIcon/>
+                                            </IconButton>
+                                        } else if (val === 'type') {
+                                            let tmpList = [];
+                                            tmpList = allValue.ttpList;
+                                            if (tmpList.length === 0) {
+                                                return <span>{it('txt-incident-event')}</span>
                                             } else {
-                                                return <span>{value}</span>
+                                                return <span>{it('txt-incident-related')}</span>
                                             }
+                                        } else if (val === 'category') {
+                                            return <span>{it(`category.${value}`)}</span>
+                                        } else if (val === 'status') {
+                                            let status = 'N/A'
+                                            if (allValue.flowData) {
+
+                                                if (allValue.flowData.finish) {
+                                                    return <span>{it('status.3')}</span>
+                                                }
+
+                                                if (allValue.flowData.currentEntity) {
+                                                    status = allValue.flowData.currentEntity[allValue.id].entityName
+                                                }
+                                            }
+                                            return <span>{status}</span>
+                                        } else if (val === 'createDttm' || val === 'updateDttm') {
+                                            return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                        } else if (val === 'tag') {
+                                            const tags = _.map(allValue.tagList, 'tag.tag')
+
+                                            return <div>
+                                                {
+                                                    _.map(allValue.tagList, el => {
+                                                        return <div style={{display: 'flex', marginRight: '30px'}}>
+                                                            <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                            &nbsp;{el.tag.tag}
+                                                        </div>
+                                                    })
+                                                }
+                                            </div>
+
+                                        } else if (val === 'severity') {
+                                            return <span className='severity-level'
+                                                         style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+                                        } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                                            let formattedPatternIP = ''
+                                            if (value.length > 32) {
+                                                formattedPatternIP = value.substr(0, 32) + '...';
+                                            }else{
+                                                formattedPatternIP = value
+                                            }
+                                            return <span>{formattedPatternIP}</span>
+                                        } else {
+                                            return <span>{value}</span>
                                         }
                                     }
-                                };
-                            });
+                                }
+                            };
+                        });
 
-                            this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
-                        }
-
+                        this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
                     }
-                    return null
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message)
-                })
+
+                }
+                return null
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
         });
     };
 
@@ -1331,29 +1322,28 @@ class Incident extends Component {
             incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED ;
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc`,
             data: JSON.stringify(incident.info),
             type: activeContent === 'addIncident' ? 'POST' : 'PATCH',
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-            incident.info.id = data.rt.id;
-            incident.info.updateDttm = data.rt.updateDttm;
-            incident.info.status = data.rt.status;
+            if (data && data.ret === 0) {
+                incident.info.id = data.rt.id;
+                incident.info.updateDttm = data.rt.updateDttm;
+                incident.info.status = data.rt.status;
 
-            this.setState({
-                originalIncident: _.cloneDeep(incident)
-            }, () => {
-                if (attach) {
-                    this.uploadAttachment()
-                }
-                this.getIncident(incident.info.id);
-                this.toggleContent('cancel');
-            });
-
+                this.setState({
+                    originalIncident: _.cloneDeep(incident)
+                }, () => {
+                    if (attach) {
+                        this.uploadAttachment()
+                    }
+                    this.getIncident(incident.info.id);
+                    this.toggleContent('cancel');
+                });
+            }
             return null;
         })
         .catch(err => {
@@ -1664,71 +1654,71 @@ class Incident extends Component {
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
         })
         .then(data => {
-            let {incident} = this.state;
-            let temp = data.rt;
+            if (data && data.ret === 0) {
+                let {incident} = this.state;
+                let temp = data.rt;
 
-            if (temp.relatedList) {
-                temp.relatedList = _.map(temp.relatedList, el => {
-                    let obj = {
-                        value :el.incidentRelatedId,
-                        text:el.incidentRelatedId
-                    }
-                    return obj
-                })
-            }
-
-
-            let result = _.map(temp.relatedList, function(obj) {
-                return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
-            });
-
-            temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
-            temp.showFontendRelatedList = result
-
-            if (temp.eventList) {
-                temp.eventList = _.map(temp.eventList, el => {
-                    return {
-                        ...el,
-                        time: {
-                            from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                            to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                if (temp.relatedList) {
+                    temp.relatedList = _.map(temp.relatedList, el => {
+                        let obj = {
+                            value :el.incidentRelatedId,
+                            text:el.incidentRelatedId
                         }
-                    }
+                        return obj
+                    })
+                }
+
+
+                let result = _.map(temp.relatedList, function(obj) {
+                    return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+                });
+
+                temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
+                temp.showFontendRelatedList = result
+
+                if (temp.eventList) {
+                    temp.eventList = _.map(temp.eventList, el => {
+                        return {
+                            ...el,
+                            time: {
+                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                            }
+                        }
+                    })
+                }
+
+                if (temp.ttpList) {
+                    temp.ttpList = _.map(temp.ttpList, el => {
+
+                        let tempTtp = el
+                        if (tempTtp.infrastructureType === 0) {
+                            tempTtp.infrastructureType = '0'
+
+                        }else if (tempTtp.infrastructureType === 1) {
+                            tempTtp.infrastructureType = '1'
+
+                        }
+
+                        return {
+                            ...tempTtp
+                        }
+                    })
+                }
+
+                let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
+                let toggleType = type
+                incident.info = temp;
+
+                this.setState({incident, incidentType, toggleType}, () => {
+                    this.toggleContent('viewIncident', temp)
                 })
             }
-
-            if (temp.ttpList) {
-                temp.ttpList = _.map(temp.ttpList, el => {
-
-                    let tempTtp = el
-                    if (tempTtp.infrastructureType === 0) {
-                        tempTtp.infrastructureType = '0'
-
-                    }else if (tempTtp.infrastructureType === 1) {
-                        tempTtp.infrastructureType = '1'
-
-                    }
-
-                    return {
-                        ...tempTtp
-                    }
-                })
-            }
-
-            let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
-            let toggleType = type
-            incident.info = temp;
-
-            this.setState({incident, incidentType, toggleType}, () => {
-                this.toggleContent('viewIncident', temp)
-            })
         })
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
@@ -1740,16 +1730,16 @@ class Incident extends Component {
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 let {incident} = this.state;
                 let tempIncident = {...incident};
                 let temp = data.rt;
+
                 if (temp.relatedList) {
                     temp.relatedList = _.map(temp.relatedList, el => {
                         let obj = {
@@ -1805,11 +1795,11 @@ class Incident extends Component {
                 this.setState({incident,incidentType}, () => {
                     this.toggleContent('refreshAttach', temp)
                 })
-
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
     /**
@@ -1979,22 +1969,20 @@ class Incident extends Component {
     deleteIncident = (id) => {
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'DELETE'
         })
-            .then(data => {
-                if (data.ret === 0) {
-                    // this.loadData()
-                    this.loadData()
-                }
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+        .then(data => {
+            if (data && data.ret === 0) {
+                // this.loadData()
+                this.loadData()
+            }
+            return null
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
 
@@ -2166,16 +2154,16 @@ class Incident extends Component {
                     deviceId: alertData._edgeInfo.agentId || alertData._edgeId
                 };
 
-                helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                ah.one({
+                this.ah.one({
                     url: `${baseUrl}/api/soc/device/redirect/_search`,
                     data: JSON.stringify(searchRequestData),
                     type: 'POST',
                     contentType: 'application/json',
                     dataType: 'json'
                 }).then(data => {
-                    eventListItem.deviceId = data.rt.device.id;
+                    if (data && data.ret === 0) {
+                        eventListItem.deviceId = data.rt.device.id;
+                    }
                 })
             }
 
@@ -2224,9 +2212,7 @@ class Incident extends Component {
             id: id
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_audit`,
             data: JSON.stringify(tmp),
             type: 'POST',
@@ -2234,8 +2220,10 @@ class Incident extends Component {
             dataType: 'json'
         })
         .then(data => {
-            this.afterAuditDialog(id)
-            // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
+            if (data && data.ret === 0) {
+                this.afterAuditDialog(id)
+                // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
+            }
             return null
         })
         .catch(err => {
@@ -2255,23 +2243,22 @@ class Incident extends Component {
             id: id
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_send`,
             data: JSON.stringify(tmp),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 this.loadData()
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
+        })
     };
 
     /**
@@ -2494,9 +2481,7 @@ class Incident extends Component {
     getOptions = () => {
         const {baseUrl, contextRoot, session} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_search`,
             data: JSON.stringify({}),
             type: 'POST',
@@ -2504,7 +2489,7 @@ class Incident extends Component {
             dataType: 'json'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
                 let list = _.map(data.rt.rows, val => {
                     let ipContent = '';
 
@@ -2531,9 +2516,7 @@ class Incident extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         });
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use:'1',account:session.accountId}),
             type: 'POST',
@@ -2541,7 +2524,7 @@ class Incident extends Component {
             dataType: 'json'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
                 let list = _.map(data.rt.rows, val => {
                     return {value: val.id, text: val.deviceName}
                 });
@@ -2553,7 +2536,7 @@ class Incident extends Component {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
 
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use:'2',account:session.accountId}),
             type: 'POST',
@@ -2561,7 +2544,7 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
                     let list = _.map(data.rt.rows, val => {
                         return {value: val.id, text: val.deviceName}
                     });
@@ -2663,23 +2646,23 @@ class Incident extends Component {
         formData.append('file', attach)
         formData.append('fileMemo', incident.info.fileMemo)
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/attachment/_upload`,
             data: formData,
             type: 'POST',
             processData: false,
             contentType: false
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 this.setState({attach: null},()=>{
                     this.getIncident(incident.info.id, 'view')
                 })
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 
     uploadAttachmentByModal(file, fileMemo) {
@@ -2692,9 +2675,7 @@ class Incident extends Component {
             formData.append('file', file)
             formData.append('fileMemo', fileMemo)
 
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
+            this.ah.one({
                 url: `${baseUrl}/api/soc/attachment/_upload`,
                 data: formData,
                 type: 'POST',
@@ -2702,7 +2683,9 @@ class Incident extends Component {
                 contentType: false
             })
             .then(data => {
-                this.refreshIncidentAttach(incident.info.id)
+                if (data && data.ret === 0) {
+                    this.refreshIncidentAttach(incident.info.id)
+                }
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
@@ -2731,14 +2714,12 @@ class Incident extends Component {
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
-                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                    ah.one({
+                    this.ah.one({
                         url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
                         type: 'DELETE'
                     })
                     .then(data => {
-                        if (data.ret === 0) {
+                        if (data && data.ret === 0) {
                             // this.getIncident(incident.info.id, 'view')
                             this.refreshIncidentAttach(incident.info.id)
                         }
@@ -3038,9 +3019,7 @@ class Incident extends Component {
             payload = search
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_searchV3`,
             data: JSON.stringify(payload),
             type: 'POST',
@@ -3048,11 +3027,13 @@ class Incident extends Component {
             dataType: 'json'
         })
         .then(data => {
-            let payload = _.map(data.rt.rows, el => {
-                return this.toPdfPayload(el)
-            })
+            if (data && data.ret === 0) {
+                let payload = _.map(data.rt.rows, el => {
+                    return this.toPdfPayload(el)
+                })
 
-            downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
+                downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
+            }
         })
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
@@ -3067,25 +3048,25 @@ class Incident extends Component {
             incidentId:incident.info.id
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_notify`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
+        .then(data => {
+            if (data) {
                 if (data.status.includes('success')){
                     helper.showPopupMsg('', it('txt-notify'), it('txt-notify')+t('notifications.txt-sendSuccess'))
-                }else{
+                } else {
                     helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
                 }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
 
     }
 }

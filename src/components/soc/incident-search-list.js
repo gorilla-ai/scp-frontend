@@ -160,17 +160,14 @@ class IncidentSearch extends Component {
         });
         let flowSourceList = []
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/flow/_search`,
             data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-            if (data) {
-
+            if (data && data.ret === 0) {
                 let list = _.map(data.rt.rows, val => {
                     flowSourceList.push(val);
                     return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
@@ -213,35 +210,32 @@ class IncidentSearch extends Component {
             account: session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
-            .then(data => {
-                if (data) {
-
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
-                        this.setState({
-                            accountType: constants.soc.LIMIT_ACCOUNT
-                        })
-                    } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
-                        this.setState({
-                            accountType: constants.soc.NONE_LIMIT_ACCOUNT
-                        })
-                    } else {
-                        this.setState({
-                            accountType: constants.soc.CHECK_ERROR
-                        })
-                    }
+        .then(data => {
+            if (data && data.ret === 0) {
+                if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+                    this.setState({
+                        accountType: constants.soc.LIMIT_ACCOUNT
+                    })
+                } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
+                    this.setState({
+                        accountType: constants.soc.NONE_LIMIT_ACCOUNT
+                    })
+                } else {
+                    this.setState({
+                        accountType: constants.soc.CHECK_ERROR
+                    })
                 }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
     }
 
 
@@ -265,96 +259,94 @@ class IncidentSearch extends Component {
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/history/_search?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let tempEdge = {...incident};
+        .then(data => {
+            if (data && data.ret === 0) {
+                let tempEdge = {...incident};
 
-                    tempEdge.dataContent = data.rt.rows;
-                    tempEdge.totalCount = data.rt.counts;
-                    tempEdge.currentPage = page;
+                tempEdge.dataContent = data.rt.rows;
+                tempEdge.totalCount = data.rt.counts;
+                tempEdge.currentPage = page;
 
-                    tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                        return {
-                            name: val === '_menu' ? '' : val,
-                            label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                            options: {
-                                filter: true,
-                                sort: val === 'severity',
-                                customBodyRenderLite: (dataIndex, options) => {
-                                    const allValue = tempEdge.dataContent[dataIndex];
-                                    let value = tempEdge.dataContent[dataIndex][val];
+                tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+                    return {
+                        name: val === '_menu' ? '' : val,
+                        label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                        options: {
+                            filter: true,
+                            sort: val === 'severity',
+                            customBodyRenderLite: (dataIndex, options) => {
+                                const allValue = tempEdge.dataContent[dataIndex];
+                                let value = tempEdge.dataContent[dataIndex][val];
 
-                                    if (options === 'getAllValue') {
-                                        return allValue;
-                                    }
+                                if (options === 'getAllValue') {
+                                    return allValue;
+                                }
 
-                                    if (val === '_menu') {
-                                        return <IconButton aria-label="more"
-                                                           onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                            <MoreIcon/>
-                                        </IconButton>
-                                    } else if (val === 'type') {
-                                        let tmpList = [];
-                                        tmpList = allValue.ttpList;
-                                        if (tmpList.length === 0) {
-                                            return <span>{it('txt-incident-event')}</span>
-                                        } else {
-                                            return <span>{it('txt-incident-related')}</span>
-                                        }
-                                    } else if (val === 'category') {
-                                        return <span>{it(`category.${value}`)}</span>
-                                    } else if (val === 'createDttm') {
-                                        return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                    } else if (val === 'tag') {
-                                        const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                        return <div>
-                                            {
-                                                _.map(allValue.tagList, el => {
-                                                    return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                        <div className='incident-tag-square'
-                                                             style={{backgroundColor: el.tag.color}}></div>
-                                                        &nbsp;{el.tag.tag}
-                                                    </div>
-                                                })
-                                            }
-                                        </div>
-
-                                    } else if (val === 'severity') {
-                                        return <span className='severity-level'
-                                                     style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                    } else if (val === 'srcIPListString' || val === 'dstIPListString') {
-                                        let formattedPatternIP = ''
-                                        if (value.length > 32) {
-                                            formattedPatternIP = value.substr(0, 32) + '...';
-                                        } else {
-                                            formattedPatternIP = value
-                                        }
-                                        return <span>{formattedPatternIP}</span>
+                                if (val === '_menu') {
+                                    return <IconButton aria-label="more"
+                                                       onClick={this.handleOpenMenu.bind(this, allValue)}>
+                                        <MoreIcon/>
+                                    </IconButton>
+                                } else if (val === 'type') {
+                                    let tmpList = [];
+                                    tmpList = allValue.ttpList;
+                                    if (tmpList.length === 0) {
+                                        return <span>{it('txt-incident-event')}</span>
                                     } else {
-                                        return <span>{value}</span>
+                                        return <span>{it('txt-incident-related')}</span>
                                     }
+                                } else if (val === 'category') {
+                                    return <span>{it(`category.${value}`)}</span>
+                                } else if (val === 'createDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (val === 'tag') {
+                                    const tags = _.map(allValue.tagList, 'tag.tag')
+
+                                    return <div>
+                                        {
+                                            _.map(allValue.tagList, el => {
+                                                return <div style={{display: 'flex', marginRight: '30px'}}>
+                                                    <div className='incident-tag-square'
+                                                         style={{backgroundColor: el.tag.color}}></div>
+                                                    &nbsp;{el.tag.tag}
+                                                </div>
+                                            })
+                                        }
+                                    </div>
+
+                                } else if (val === 'severity') {
+                                    return <span className='severity-level'
+                                                 style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+                                } else if (val === 'srcIPListString' || val === 'dstIPListString') {
+                                    let formattedPatternIP = ''
+                                    if (value.length > 32) {
+                                        formattedPatternIP = value.substr(0, 32) + '...';
+                                    } else {
+                                        formattedPatternIP = value
+                                    }
+                                    return <span>{formattedPatternIP}</span>
+                                } else {
+                                    return <span>{value}</span>
                                 }
                             }
-                        };
-                    });
+                        }
+                    };
+                });
 
-                    this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 3,})
-                }
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+                this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 3,})
+            }
+            return null
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
     /**
@@ -1208,13 +1200,12 @@ class IncidentSearch extends Component {
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 let {incident} = this.state;
                 let temp = data.rt;
 
@@ -1227,7 +1218,6 @@ class IncidentSearch extends Component {
                         return obj
                     })
                 }
-
 
                 let result = _.map(temp.relatedList, function (obj) {
                     return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
@@ -1275,10 +1265,11 @@ class IncidentSearch extends Component {
                 this.setState({incident, incidentType, toggleType}, () => {
                     this.toggleContent('viewIncident', temp)
                 })
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
     refreshIncidentAttach = (id) => {
@@ -1286,13 +1277,12 @@ class IncidentSearch extends Component {
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 let {incident} = this.state;
                 let tempIncident = {...incident};
                 let temp = data.rt;
@@ -1353,11 +1343,12 @@ class IncidentSearch extends Component {
                 this.setState({incident, incidentType}, () => {
                     this.toggleContent('refreshAttach', temp)
                 })
+            }
 
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
     /**
@@ -1497,21 +1488,19 @@ class IncidentSearch extends Component {
     deleteIncident = (id) => {
         const {baseUrl} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'DELETE'
         })
-            .then(data => {
-                if (data.ret === 0) {
-                   this.loadData()
-                }
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+        .then(data => {
+            if (data && data.ret === 0) {
+               this.loadData()
+            }
+            return null
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
 
@@ -1680,16 +1669,16 @@ class IncidentSearch extends Component {
                     deviceId: alertData._edgeInfo.agentId || alertData._edgeId
                 };
 
-                helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                ah.one({
+                this.ah.one({
                     url: `${baseUrl}/api/soc/device/redirect/_search`,
                     data: JSON.stringify(searchRequestData),
                     type: 'POST',
                     contentType: 'application/json',
                     dataType: 'json'
                 }).then(data => {
-                    eventListItem.deviceId = data.rt.device.id;
+                    if (data && data.ret === 0) {
+                        eventListItem.deviceId = data.rt.device.id;
+                    }
                 })
             }
 
@@ -1738,23 +1727,23 @@ class IncidentSearch extends Component {
             id: id
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_audit`,
             data: JSON.stringify(tmp),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 this.afterAuditDialog(id)
                 // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
-            })
+            }
+            return null
+        })
+        .catch(err => {
+            helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
+        })
     };
 
 
@@ -1768,23 +1757,22 @@ class IncidentSearch extends Component {
             id: id
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_send`,
             data: JSON.stringify(tmp),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 this.loadData()
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
+        })
     };
 
     /**
@@ -2007,87 +1995,80 @@ class IncidentSearch extends Component {
     getOptions = () => {
         const {baseUrl, contextRoot, session} = this.context;
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_search`,
             data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        let ipContent = '';
+        .then(data => {
+            if (data && data.ret === 0) {
+                let list = _.map(data.rt.rows, val => {
+                    let ipContent = '';
 
-                        if (val.eventList) {
-                            val.eventList = _.map(val.eventList, el => {
-                                if (el.eventConnectionList) {
-                                    el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
-                                        ipContent += '(' + it('txt-srcIp') + ': ' + ecl.srcIp + ')'
-                                    })
-                                }
-                            })
-                        }
+                    if (val.eventList) {
+                        val.eventList = _.map(val.eventList, el => {
+                            if (el.eventConnectionList) {
+                                el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
+                                    ipContent += '(' + it('txt-srcIp') + ': ' + ecl.srcIp + ')'
+                                })
+                            }
+                        })
+                    }
 
-                        return {
-                            value: val.id,
-                            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
-                        }
-                    });
+                    return {
+                        value: val.id,
+                        text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
+                    }
+                });
 
-                    this.setState({relatedListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
+                this.setState({relatedListOptions: list})
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use: '1', account: session.accountId}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.deviceName}
-                    });
+        .then(data => {
+            if (data && data.ret === 0) {
+                let list = _.map(data.rt.rows, val => {
+                    return {value: val.id, text: val.deviceName}
+                });
 
-                    this.setState({deviceListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+                this.setState({deviceListOptions: list})
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
             data: JSON.stringify({use: '2', account: session.accountId}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.deviceName}
-                    });
+        .then(data => {
+            if (data && data.ret === 0) {
+                let list = _.map(data.rt.rows, val => {
+                    return {value: val.id, text: val.deviceName}
+                });
 
-                    this.setState({showDeviceListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
+                this.setState({showDeviceListOptions: list})
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
     /**
@@ -2179,23 +2160,23 @@ class IncidentSearch extends Component {
         formData.append('file', attach)
         formData.append('fileMemo', incident.info.fileMemo)
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/attachment/_upload`,
             data: formData,
             type: 'POST',
             processData: false,
             contentType: false
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 this.setState({attach: null}, () => {
                     this.getIncident(incident.info.id, 'view')
                 })
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 
     uploadAttachmentByModal(file, fileMemo) {
@@ -2208,21 +2189,21 @@ class IncidentSearch extends Component {
             formData.append('file', file)
             formData.append('fileMemo', fileMemo)
 
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
+            this.ah.one({
                 url: `${baseUrl}/api/soc/attachment/_upload`,
                 data: formData,
                 type: 'POST',
                 processData: false,
                 contentType: false
             })
-                .then(data => {
+            .then(data => {
+                if (data && data.ret === 0) {
                     this.refreshIncidentAttach(incident.info.id)
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message)
-                })
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
         }
     }
 
@@ -2247,21 +2228,19 @@ class IncidentSearch extends Component {
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
-                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                    ah.one({
+                    this.ah.one({
                         url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
                         type: 'DELETE'
                     })
-                        .then(data => {
-                            if (data.ret === 0) {
-                                // this.getIncident(incident.info.id, 'view')
-                                this.refreshIncidentAttach(incident.info.id)
-                            }
-                        })
-                        .catch(err => {
-                            helper.showPopupMsg('', t('txt-error'), err.message)
-                        })
+                    .then(data => {
+                        if (data && data.ret === 0) {
+                            // this.getIncident(incident.info.id, 'view')
+                            this.refreshIncidentAttach(incident.info.id)
+                        }
+                    })
+                    .catch(err => {
+                        helper.showPopupMsg('', t('txt-error'), err.message)
+                    })
                 }
             }
         })
@@ -2564,25 +2543,25 @@ class IncidentSearch extends Component {
             payload = search
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_searchV2`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
+        .then(data => {
+            if (data && data.ret === 0) {
                 let payload = _.map(data.rt.rows, el => {
                     return this.toPdfPayload(el)
                 })
 
                 downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 
     notifyContact() {
@@ -2593,26 +2572,25 @@ class IncidentSearch extends Component {
             incidentId: incident.info.id
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/_notify`,
             data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
+        .then(data => {
+            if (data) {
                 if (data.status.includes('success')) {
                     helper.showPopupMsg('', it('txt-notify'), it('txt-notify') + t('notifications.txt-sendSuccess'))
                 } else {
                     helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
                 }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 }
 

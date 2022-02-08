@@ -847,8 +847,6 @@ class ThreatIntelligence extends Component {
       return;
     }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
     this.ah.one({
       url: `${baseUrl}/api/threat/upload`,
       data: formData,

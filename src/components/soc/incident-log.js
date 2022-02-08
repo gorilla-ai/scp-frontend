@@ -93,17 +93,14 @@ class IncidentLog extends Component {
             account:session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data) {
-
+                if (data && data.ret === 0) {
                     if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
                         this.setState({
                             accountType: constants.soc.LIMIT_ACCOUNT
@@ -117,7 +114,6 @@ class IncidentLog extends Component {
                             accountType: constants.soc.CHECK_ERROR
                         })
                     }
-
                 }
             })
             .catch(err => {
@@ -170,7 +166,9 @@ class IncidentLog extends Component {
             contentType: 'text/plain'
         })
         .then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
+                data = data.rt;
+
                 let tempLog = {...incidentLog};
                 tempLog.dataContent = data.rows;
                 tempLog.totalCount = data.counts;

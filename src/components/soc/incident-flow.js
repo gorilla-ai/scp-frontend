@@ -116,16 +116,14 @@ class IncidentFlow extends Component {
             account: session.accountId
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/unit/limit/_check`,
             data: JSON.stringify(requestData),
             type: 'POST',
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
 
                     if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
                         this.setState({
@@ -156,16 +154,14 @@ class IncidentFlow extends Component {
         });
         let flowSourceList = [];
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/flowEngine/_search`,
             data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
         }).then(data => {
-            if (data) {
+            if (data && data.ret === 0) {
                 let list = _.map(data.rt.rows, val => {
                     flowSourceList.push(val)
                     return <MenuItem key={val.entityId} value={val.entityId}>{`${val.entityName}`}</MenuItem>
@@ -211,7 +207,9 @@ class IncidentFlow extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data) {
+                if (data && data.ret === 0) {
+                    data = data.rt;
+
                     let tempData = {...incidentRule};
                     tempData.dataContent = data.rows;
                     tempData.totalCount = data.counts;
@@ -562,7 +560,7 @@ class IncidentFlow extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
-                if (data){
+                if (data && data.ret === 0) {
                     helper.showPopupMsg('', t('txt-success'), t('network-topology.txt-saveSuccess'));
                     let showPage = '';
 
