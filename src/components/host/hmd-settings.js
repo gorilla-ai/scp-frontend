@@ -30,7 +30,7 @@ import ProductRegex from './product-regex'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
+//const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -182,6 +182,18 @@ class HMDsettings extends Component {
         password: {
           valid: true
         }
+      },
+      fieldEnable: {
+        scanFile: false,
+        gcb: false,
+        processMonitor: false,
+        ftpUpload: false,
+        vansSoftware: false,
+        frMotp: false,
+        cpeConvert: false,
+        nccst: false,
+        security: false,
+        hmd: false
       }
     };
 
@@ -196,7 +208,7 @@ class HMDsettings extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getSettingsInfo();
-    this.getProductRegexInfo();
+    //this.getProductRegexInfo();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -368,8 +380,9 @@ class HMDsettings extends Component {
    * Toggle content type
    * @method
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
+   * @param {string} [options] - option for field type
    */
-  toggleContent = (type) => {
+  toggleContent = (type, options) => {
     const {
       originalScanFiles,
       originalGcbVersion,
@@ -380,15 +393,24 @@ class HMDsettings extends Component {
       originalProductRegex,
       originalCpeData,
       originaFrMotpSettings,
-      originalNccstSettings
+      originalNccstSettings,
+      fieldEnable
     } = this.state;
     let showPage = type;
+    let tempFieldEnable = {...fieldEnable};
 
-    if (type === 'save') {
-      this.handleScanFilesConfirm();
+    if (type === 'editMode') {
+      tempFieldEnable[options] = true;
+
+      this.setState({
+        fieldEnable: tempFieldEnable
+      });
+    } else if (type === 'save') {
+      this.handleScanFilesConfirm(options);
       return;
     } else if (type === 'cancel') {
       showPage = 'viewMode';
+      tempFieldEnable[options] = false;
 
       this.setState({
         scanFiles: _.cloneDeep(originalScanFiles),
@@ -400,7 +422,8 @@ class HMDsettings extends Component {
         productRegexData: _.cloneDeep(originalProductRegex),
         cpeData: _.cloneDeep(originalCpeData),
         frMotp: _.cloneDeep(originaFrMotpSettings),
-        nccstSettings: _.cloneDeep(originalNccstSettings)
+        nccstSettings: _.cloneDeep(originalNccstSettings),
+        fieldEnable: tempFieldEnable
       });
 
       this.clearData();
@@ -442,7 +465,7 @@ class HMDsettings extends Component {
    * @returns HTML DOM
    */
   showMalwarePath = (val, i) => {
-    const {activeContent, scanFiles} = this.state;
+    const {activeContent, scanFiles, fieldEnable} = this.state;
 
     return (
       <div key={i} className='group'>
@@ -450,7 +473,7 @@ class HMDsettings extends Component {
         {activeContent === 'viewMode' && scanFiles[val].length > 0 &&
           <div className='flex-item'>{scanFiles[val].map(this.displayScanFile)}</div>
         }
-        {activeContent === 'editMode' &&
+        {activeContent === 'editMode' && fieldEnable.scanFile &&
           <MultiInput
             className='file-path'
             base={InputPath}
@@ -486,8 +509,9 @@ class HMDsettings extends Component {
   /**
    * Handle scan files confirm
    * @method
+   * @param {string} type - field type
    */
-  handleScanFilesConfirm = () => {
+  handleScanFilesConfirm = (type) => {
     const {baseUrl} = this.context;
     const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
@@ -674,11 +698,11 @@ class HMDsettings extends Component {
             msg = t('txt-required');
           }
 
-          if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
-            validate = false;
-            cpeValid = false;
-            msg = t('txt-checkFormat');
-          }
+          // if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+          //   validate = false;
+          //   cpeValid = false;
+          //   msg = t('txt-checkFormat');
+          // }
 
           cpeList.push({
             cpe: val2.cpe,
@@ -693,7 +717,7 @@ class HMDsettings extends Component {
           parsedCpeData.push({
             cpeHeader: val.header,
             cpeArray: _.map(val.list, val2 => {
-              return val2.cpe
+              return val2.cpe;
             })
           });
         }
@@ -1077,6 +1101,7 @@ class HMDsettings extends Component {
       frMotp,
       nccstSettings,
       cpeData,
+      fieldEnable,
       formValidation
     } = this.state;
     const data = {
@@ -1113,17 +1138,22 @@ class HMDsettings extends Component {
               <Button variant='outlined' color='primary' className='standard btn no-padding'>
                 <Link to={{pathname: '/SCP/host', state: 'hostContent'}}>{t('txt-back')}</Link>
               </Button>
-              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
             </div>
           }
 
           <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFile')}>{t('txt-edit')}</Button>
+              </div>
               {MALWARE_DETECTION.map(this.showMalwarePath)}
             </div>
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'gcb')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group'>
                 <label>{t('hmd-scan.txt-gcbVersion')}</label>
                 <RadioGroup
@@ -1138,7 +1168,7 @@ class HMDsettings extends Component {
                         color='primary' />
                     }
                     label='TW'
-                    disabled={activeContent === 'viewMode'} />
+                    disabled={activeContent === 'viewMode' || !fieldEnable.gcb} />
                   <FormControlLabel
                     className='radio-ui'
                     value='US'
@@ -1148,13 +1178,16 @@ class HMDsettings extends Component {
                         color='primary' />
                     }
                     label='US'
-                    disabled={activeContent === 'viewMode'} />
+                    disabled={activeContent === 'viewMode' || !fieldEnable.gcb} />
                 </RadioGroup>
               </div>
             </div>
 
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-procMonitor')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'processMonitor')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group'>
                 <label>{t('hmd-scan.txt-learningInterval')}</label>
                 <TextField
@@ -1166,20 +1199,23 @@ class HMDsettings extends Component {
                   InputProps={{inputProps: { min: 0 }}}
                   value={pmInterval}
                   onChange={this.handleDataChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.processMonitor} />
               </div>
             </div>
 
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-ftpUpload')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'ftpUpload')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group'>
-                {activeContent === 'viewMode' &&
+                {(activeContent === 'viewMode' || !fieldEnable.ftpUpload) &&
                   <label>IP</label>
                 }
                 {activeContent === 'editMode' &&
                   <label>IP *</label>
                 }
-                {activeContent === 'viewMode' &&
+                {(activeContent === 'viewMode' || !fieldEnable.ftpUpload) &&
                   <div className='flex-item'><span>{ftpIp || NOT_AVAILABLE}</span></div>
                 }
                 {activeContent === 'editMode' &&
@@ -1196,13 +1232,13 @@ class HMDsettings extends Component {
                 }
               </div>
               <div className='group'>
-                {activeContent === 'viewMode' &&
+                {(activeContent === 'viewMode' || !fieldEnable.ftpUpload) &&
                   <label>URL</label>
                 }
                 {activeContent === 'editMode' &&
                   <label>URL *</label>
                 }
-                {activeContent === 'viewMode' &&
+                {(activeContent === 'viewMode' || !fieldEnable.ftpUpload) &&
                   <div className='flex-item'><span>{ftpUrl || NOT_AVAILABLE}</span></div>
                 }
                 {activeContent === 'editMode' &&
@@ -1220,13 +1256,13 @@ class HMDsettings extends Component {
                 }
               </div>
               <div className='group'>
-                {activeContent === 'viewMode' &&
+                {(activeContent === 'viewMode' || !fieldEnable.ftpUpload) &&
                   <label>{t('txt-account')}</label>
                 }
                 {activeContent === 'editMode' &&
                   <label>{t('txt-account')} *</label>
                 }
-                {activeContent === 'viewMode' &&
+                {(activeContent === 'viewMode' || !fieldEnable.ftpUpload) &&
                   <div className='flex-item'><span>{ftpAccount || NOT_AVAILABLE}</span></div>
                 }
                 {activeContent === 'editMode' &&
@@ -1267,6 +1303,10 @@ class HMDsettings extends Component {
 
             <div className='form-group normal'>
               <header>{t('network-inventory.txt-VansProductRegex')}</header>
+              <div className='header-btn-group'>
+                <Button variant='contained' color='primary' onClick={this.getProductRegexInfo}>{t('hmd-scan.txt-getProductRegex')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'vansSoftware')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group full multi product-regex-group'>
                 <MultiInput
                   id='hmdSettingsProductRegex'
@@ -1289,13 +1329,16 @@ class HMDsettings extends Component {
                   }}
                   value={productRegexData}
                   onChange={this.setProductRegexData}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.vansSoftware} />
               </div>
             </div>
 
             <div className='form-group normal'>
               <header>FR-MOTP</header>
-              <Button variant='contained' color='primary' className='connections-test' onClick={this.handleConnectionsTest} disabled={activeContent === 'editMode'}>{t('soar.txt-testConnections')}</Button>
+              <div className='header-btn-group'>
+                <Button variant='contained' color='primary' className='header-btn' onClick={this.handleConnectionsTest} disabled={activeContent === 'editMode'}>{t('soar.txt-testConnections')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'frMotp')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group full'>
                 <FormControlLabel
                   label={t('network-inventory.txt-frMotpTest')}
@@ -1307,7 +1350,7 @@ class HMDsettings extends Component {
                       onChange={this.handleFrMotpChange}
                       color='primary' />
                   }
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.frMotp} />
               </div>
               <div className='group'>
                 <TextField
@@ -1318,7 +1361,7 @@ class HMDsettings extends Component {
                   size='small'
                   value={frMotp.ip}
                   onChange={this.handleFrMotpChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.frMotp} />
               </div>
               <div className='group'>
                 <TextField
@@ -1329,12 +1372,15 @@ class HMDsettings extends Component {
                   size='small'
                   value={frMotp.apiKey}
                   onChange={this.handleFrMotpChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.frMotp} />
               </div>
             </div>
 
             <div className='form-group normal'>
               <header>{t('network-inventory.txt-CPEconvertTest')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'cpeConvert')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group full'>
                 <label></label>
                 <TextField
@@ -1345,7 +1391,7 @@ class HMDsettings extends Component {
                   size='small'
                   value={cpeInputTest}
                   onChange={this.handleDataChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.cpeConvert} />
                 <Button variant='contained' color='primary' className='convert-test' onClick={this.handleCPEconvertTest} disabled={activeContent === 'editMode'}>{t('network-inventory.txt-CPEconvertTest')}</Button>
                 <TextField
                   name='cpeConvertResult'
@@ -1361,6 +1407,9 @@ class HMDsettings extends Component {
 
             <div className='form-group normal'>
               <header>{t('network-inventory.txt-reportNCCST')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'nccst')}>{t('txt-edit')}</Button>
+              </div>
               <div className='group'>
                 <TextField
                   id='nccstSettingsUnitOID'
@@ -1371,7 +1420,7 @@ class HMDsettings extends Component {
                   size='small'
                   value={nccstSettings.unitOID}
                   onChange={this.handleNccstDataChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.nccst} />
               </div>
               <div className='group'>
                 <TextField
@@ -1383,7 +1432,7 @@ class HMDsettings extends Component {
                   size='small'
                   value={nccstSettings.unitName}
                   onChange={this.handleNccstDataChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.nccst} />
               </div>
               <div className='group full'>
                 <TextField
@@ -1395,7 +1444,7 @@ class HMDsettings extends Component {
                   size='small'
                   value={nccstSettings.apiKey}
                   onChange={this.handleNccstDataChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.nccst} />
               </div>
               <div className='group full'>
                 <TextField
@@ -1407,12 +1456,15 @@ class HMDsettings extends Component {
                   size='small'
                   value={nccstSettings.apiUrl}
                   onChange={this.handleNccstDataChange}
-                  disabled={activeContent === 'viewMode'} />
+                  disabled={activeContent === 'viewMode' || !fieldEnable.nccst} />
               </div>
             </div>
 
             <div className='form-group normal long'>
               <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'security')}>{t('txt-edit')}</Button>
+              </div>
               <MultiInput
                 className='cpe-group'
                 base={CpeHeader}
@@ -1430,11 +1482,14 @@ class HMDsettings extends Component {
                 }}
                 value={cpeData}
                 onChange={this.setCpeData.bind(this, 'header')}
-                disabled={activeContent === 'viewMode'} />
+                disabled={activeContent === 'viewMode' || !fieldEnable.security} />
             </div>
 
             <div className='form-group normal long'>
               <header>{t('hmd-scan.txt-hmdImportExport')}</header>
+              <div className='header-btn-group'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'hmd')}>{t('txt-edit')}</Button>
+              </div>
               <div className='sub-section'>
                 <div className='import-header'>{t('txt-export')}</div>
                 <div className='date-picker'>
@@ -1451,7 +1506,7 @@ class HMDsettings extends Component {
                       ampm={false}
                       value={datetimeExport.from}
                       onChange={this.handleDateChange.bind(this, 'from')}
-                      disabled={activeContent === 'viewMode'} />
+                      disabled={activeContent === 'viewMode' || !fieldEnable.hmd} />
                     <div className='between'>~</div>
                     <KeyboardDateTimePicker
                       id='hmdSettingsDateTimePickerTo'
@@ -1465,10 +1520,10 @@ class HMDsettings extends Component {
                       ampm={false}
                       value={datetimeExport.to}
                       onChange={this.handleDateChange.bind(this, 'to')}
-                      disabled={activeContent === 'viewMode'} />
+                      disabled={activeContent === 'viewMode' || !fieldEnable.hmd} />
                   </MuiPickersUtilsProvider>
                 </div>
-                <Button variant='contained' color='primary' className='export-btn' onClick={this.handleFileExport} disabled={activeContent === 'viewMode'}>{t('txt-export')}</Button>
+                <Button variant='contained' color='primary' className='export-btn' onClick={this.handleFileExport} disabled={activeContent === 'viewMode' || !fieldEnable.hmd}>{t('txt-export')}</Button>
               </div>
 
               <div className='sub-section'>
@@ -1476,10 +1531,10 @@ class HMDsettings extends Component {
                 <FileUpload
                   id='importHmd'
                   fileType='zip'
-                  readOnly={activeContent === 'viewMode'}
+                  readOnly={activeContent === 'viewMode' || !fieldEnable.hmd}
                   btnText={t('txt-selectFile')}
                   handleFileChange={this.handleFileChange} />
-                <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport} disabled={activeContent === 'viewMode'}>{t('txt-import')}</Button>  
+                <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport} disabled={activeContent === 'viewMode' || !fieldEnable.hmd}>{t('txt-import')}</Button>  
               </div>
             </div>
           </div>

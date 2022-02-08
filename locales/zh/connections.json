@@ -829,6 +829,7 @@
     "txt-patchProduct": "軟體登錄名稱",
     "txt-patchVendor": "軟體登錄廠商",
     "txt-patchVersion": "軟體登錄版本",
+    "txt-getProductRegex": "Get Product Regex",
     "txt-readyPatch": "開始派送",
     "txt-rePatch": "重新派送",
     "txt-patchFailure": "選擇失敗的",

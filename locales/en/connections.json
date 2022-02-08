@@ -829,6 +829,7 @@
     "txt-patchProduct": "Patch Name",
     "txt-patchVendor": "Patch Vendor",
     "txt-patchVersion": "Patch Version",
+    "txt-getProductRegex": "Get Product Regex",
     "txt-readyPatch": "Ready to Patch",
     "txt-rePatch": "Patch Again",
     "txt-patchFailure": "Select failure ones",
