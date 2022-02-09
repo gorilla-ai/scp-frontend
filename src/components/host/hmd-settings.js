@@ -176,10 +176,8 @@ class HMDsettings extends Component {
         ftpUpload: false,
         vansSoftware: false,
         frMotp: false,
-        cpeConvert: false,
         nccst: false,
-        security: false,
-        hmd: false
+        security: false
       },
       formValidation: {
         ip: {
@@ -877,10 +875,8 @@ class HMDsettings extends Component {
         ftpUpload: false,
         vansSoftware: false,
         frMotp: false,
-        cpeConvert: false,
         nccst: false,
-        security: false,
-        hmd: false
+        security: false
       },
       formValidation: {
         ip: {
