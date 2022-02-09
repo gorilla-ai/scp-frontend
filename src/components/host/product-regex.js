@@ -33,7 +33,7 @@ class ProductRegex extends Component {
    * @returns TextField component
    */
   getIndividualTextField = (val, i) => {
-    const {activeContent, value} = this.props;
+    const {activeContent, fieldEnable, value} = this.props;
 
     return (
       <TextField
@@ -45,7 +45,7 @@ class ProductRegex extends Component {
         size='small'
         value={value[val.name]}
         onChange={this.handleDataChange}
-        disabled={activeContent === 'viewMode'} />
+        disabled={!fieldEnable.vansSoftware} />
     )
   }
   render() {

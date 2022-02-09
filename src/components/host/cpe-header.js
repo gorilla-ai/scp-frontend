@@ -36,9 +36,10 @@ class CpeHeader extends Component {
     });
   }
   render() {
-    const {activeContent, value} = this.props;
+    const {activeContent, fieldEnable, value} = this.props;
     const data = {
-      activeContent
+      activeContent,
+      fieldEnable
     };
 
     return (
@@ -55,7 +56,7 @@ class CpeHeader extends Component {
           helperText={value.msg}
           value={value.header}
           onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode'} />
+          disabled={!fieldEnable.security} />
         <label id='cpeListLabel'>
           <span>{t('network-inventory.txt-cpeItem')} *</span>
         </label>
@@ -72,7 +73,7 @@ class CpeHeader extends Component {
           }}
           value={value.list}
           onChange={this.props.setCpeData.bind(this, 'list', value)}
-          disabled={activeContent === 'viewMode'} />
+          disabled={!fieldEnable.security} />
       </div>
     )
   }

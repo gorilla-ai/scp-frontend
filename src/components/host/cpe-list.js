@@ -32,7 +32,7 @@ class CpeList extends Component {
     });
   }
   render() {
-    const {activeContent, value} = this.props;
+    const {activeContent, fieldEnable, value} = this.props;
 
     return (
       <div className='group-content'>
@@ -45,7 +45,7 @@ class CpeList extends Component {
           helperText={value.msg}
           value={value.cpe}
           onChange={this.handleDataChange}
-          disabled={activeContent === 'viewMode'} />
+          disabled={!fieldEnable.security} />
       </div>
     )
   }
