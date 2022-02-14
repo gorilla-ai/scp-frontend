@@ -1232,6 +1232,8 @@
     "txt-customFieldName": "Custom Field Name",
     "txt-lastUpdate": "Last status update",
     "txt-editSyslog": "Edit Syslog",
+    "txt-restartLogstash": "Restart SCP Logstash service",
+    "txt-logStashRestarted": "Logstash service restarted",
     "txt-eventDist": " Event Distribution",
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",

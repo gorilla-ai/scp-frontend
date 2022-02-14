@@ -21,6 +21,8 @@ import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
+import UpdateIcon from '@material-ui/icons/Update'
+
 import DataTable from 'react-ui/build/src/components/table'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -943,6 +945,27 @@ class Syslog extends Component {
     }, () => {
       this.getTimeline();
     });
+  }
+  /**
+   * Handle restart logstash
+   * @method
+   */
+  restartLogstash = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/maintain/service/logstash`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data && data === 'success') {
+        helper.showPopupMsg(t('syslogFields.txt-logStashRestarted'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Open syslog events chart dialog
@@ -2728,6 +2751,7 @@ class Syslog extends Component {
           <div className='secondary-btn-group right'>
             {activeContent === 'syslogData' &&
               <div>
+                <Button variant='outlined' color='primary' onClick={this.restartLogstash} title={t('syslogFields.txt-restartLogstash')}><UpdateIcon className='fg-update' fontSize='large' /></Button>
                 <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
                 <Button variant='outlined' color='primary' onClick={this.toggleSshDialog} title={a('txt-addSshAccount')}><i className='fg fg-add'></i></Button>
                 <Button variant='outlined' color='primary' className={cx({'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>

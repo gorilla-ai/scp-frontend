@@ -1232,6 +1232,8 @@
     "txt-customFieldName": "自訂欄位名稱",
     "txt-lastUpdate": "狀態更新時間",
     "txt-editSyslog": "編輯系統日誌",
+    "txt-restartLogstash": "重啟SCP Logstash服務",
+    "txt-logStashRestarted": "Logstash服務已重啟",
     "txt-eventDist": "日誌串流事件趨勢圖",
     "txt-viewEvents": "日誌串流事件",
     "txt-overallDist": "日誌串流事件趨勢圖",
