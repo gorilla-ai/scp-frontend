@@ -918,7 +918,8 @@
     "txt-hmdImportExport": "HMD匯出/匯入",
     "scan-list": {
       "txt-yara": "Yara Scan",
-      "txt-scanFile": "Malware",
+      "txt-scanFile": "Malware - Windows",
+      "txt-scanFileLinux": "Malware - Linux",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
       "txt-eventTracing": "Event Tracing",

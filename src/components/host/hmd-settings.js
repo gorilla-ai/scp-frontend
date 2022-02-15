@@ -30,7 +30,7 @@ import ProductRegex from './product-regex'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
+//const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -112,6 +112,31 @@ class HMDsettings extends Component {
           path: ''
         }]
       },
+      scanFilesDefault: {
+        includePath: [{
+          path: ''
+        }],
+        excludePath: [{
+          path: ''
+        }]
+      },
+      originalScanFilesLinux: [],
+      scanFilesLinux: {
+        includePath: [{
+          path: ''
+        }],
+        excludePath: [{
+          path: ''
+        }]
+      },
+      scanFilesLinuxDefault: {
+        includePath: [{
+          path: ''
+        }],
+        excludePath: [{
+          path: ''
+        }]
+      },
       originalGcbVersion: '',
       gcbVersion: '',
       originalPmInterval: '',
@@ -171,6 +196,7 @@ class HMDsettings extends Component {
       activeSettings: '',
       fieldEnable: {
         scanFiles: false,
+        scanFilesLinux: false,
         gcb: false,
         processMonitor: false,
         ftpUpload: false,
@@ -218,7 +244,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp'];
+    const scanType = ['hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -234,7 +260,13 @@ class HMDsettings extends Component {
         if (!_.isEmpty(data[0]) && !_.isEmpty(data[1])) {
           const scanIncludePath = data[0].value.split(',');
           const scanExcludePath = data[1].value.split(',');
+          const scanIncludePathLinux = data[2].value.split(',');
+          const scanExcludePathLinux = data[3].value.split(',');
           let scanFiles = {
+            includePath: [],
+            excludePath: []
+          };
+          let scanFilesLinux = {
             includePath: [],
             excludePath: []
           };
@@ -255,53 +287,121 @@ class HMDsettings extends Component {
             }
           })
 
+          _.forEach(scanIncludePathLinux, val => {
+            if (val) {
+              scanFilesLinux.includePath.push({
+                path: val
+              });
+            }
+          })
+
+          _.forEach(scanExcludePathLinux, val => {
+            if (val) {
+              scanFilesLinux.excludePath.push({
+                path: val
+              });
+            }
+          })
+
           this.setState({
             activeContent: 'viewMode',
             originalScanFiles: _.cloneDeep(scanFiles),
-            scanFiles
+            scanFiles,
+            originalScanFilesLinux: _.cloneDeep(scanFilesLinux),
+            scanFilesLinux
           });
         }
 
-        if (data[2] && data[2].value) {
+        const winIncludePath = data[4].value.split(',');
+        const winExcludePath = data[5].value.split(',');
+        const linIncludePath = data[6].value.split(',');
+        const linExcludePath = data[7].value.split(',');
+        let scanFilesDefault = {
+          includePath: [],
+          excludePath: []
+        };
+        let scanFilesLinuxDefault = {
+          includePath: [],
+          excludePath: []
+        };
+
+        _.forEach(winIncludePath, val => {
+          if (val) {
+            scanFilesDefault.includePath.push({
+              path: val
+            });
+          }
+        })
+
+        _.forEach(winExcludePath, val => {
+          if (val) {
+            scanFilesDefault.excludePath.push({
+              path: val
+            });
+          }
+        })
+
+        _.forEach(winIncludePath, val => {
+          if (val) {
+            scanFilesLinuxDefault.includePath.push({
+              path: val
+            });
+          }
+        })
+
+        _.forEach(winExcludePath, val => {
+          if (val) {
+            scanFilesLinuxDefault.excludePath.push({
+              path: val
+            });
+          }
+        })
+
+        this.setState({
+          scanFilesDefault,
+          scanFilesLinuxDefault
+        });
+
+        if (data[8] && data[8].value) {
           this.setState({
-            originalGcbVersion: _.cloneDeep(data[2].value),
-            gcbVersion: data[2].value
+            originalGcbVersion: _.cloneDeep(data[8].value),
+            gcbVersion: data[8].value
           });
         }
 
-        if (data[3] && data[3].value) {
+        if (data[9] && data[9].value) {
           this.setState({
-            originalPmInterval: _.cloneDeep(data[3].value),
-            pmInterval: Number(data[3].value)
+            originalPmInterval: _.cloneDeep(data[9].value),
+            pmInterval: Number(data[9].value)
           });
         }
 
-        if (data[4] && data[4].value) {
+        if (data[10] && data[10].value) {
           this.setState({
-            originalFtpIp: _.cloneDeep(data[4].value),
-            ftpIp: data[4].value
+            originalFtpIp: _.cloneDeep(data[10].value),
+            ftpIp: data[10].value
           });
         }
 
-        if (data[5] && data[5].value) {
+        if (data[11] && data[11].value) {
           this.setState({
-            originalFtpUrl: _.cloneDeep(data[5].value),
-            ftpUrl: data[5].value
+            originalFtpUrl: _.cloneDeep(data[11].value),
+            ftpUrl: data[11].value
           });
         }
 
-        if (data[6] && data[6].value) {
+        if (data[12] && data[12].value) {
           this.setState({
-            originalFtpAccount: _.cloneDeep(data[6].value),
-            ftpAccount: data[6].value
+            originalFtpAccount: _.cloneDeep(data[12].value),
+            ftpAccount: data[12].value
           });
         }
 
         const nccstSettings = {
-          unitOID: data[7].value,
-          unitName: data[8].value,
-          apiKey: data[9].value,
-          apiUrl: data[10].value
+          unitOID: data[13].value,
+          unitName: data[14].value,
+          apiKey: data[15].value,
+          apiUrl: data[16].value
         };
 
         this.setState({
@@ -309,7 +409,7 @@ class HMDsettings extends Component {
           nccstSettings
         });
 
-        const parsedCpeData = JSON.parse(data[11].value);
+        const parsedCpeData = JSON.parse(data[17].value);
         let cpeData = [];
       
         _.forEach(parsedCpeData, (val, index) => {
@@ -333,7 +433,7 @@ class HMDsettings extends Component {
           cpeData
         });
 
-        const parsedFrMotpData = JSON.parse(data[12].value);
+        const parsedFrMotpData = JSON.parse(data[18].value);
         const frMotp = {
           ip: parsedFrMotpData.ip,
           apiKey: parsedFrMotpData.apiKey,
@@ -384,6 +484,7 @@ class HMDsettings extends Component {
   toggleContent = (type, options) => {
     const {
       originalScanFiles,
+      originalScanFilesLinux,
       originalGcbVersion,
       originalPmInterval,
       originalFtpIp,
@@ -413,6 +514,7 @@ class HMDsettings extends Component {
 
       this.setState({
         scanFiles: _.cloneDeep(originalScanFiles),
+        scanFilesLinux: _.cloneDeep(originalScanFilesLinux),
         gcbVersion: _.cloneDeep(originalGcbVersion),
         pmInterval: _.cloneDeep(originalPmInterval),
         ftpIp: _.cloneDeep(originalFtpIp),
@@ -456,6 +558,20 @@ class HMDsettings extends Component {
     });
   }
   /**
+   * Set path data for Linux
+   * @method
+   * @param {string} type - path type ('includePath' or 'excludePath')
+   * @param {array} pathData - path data to be set
+   */
+  setScanFilesLinux = (type, pathData) => {
+    let tempScanFilesLinux = {...this.state.scanFilesLinux};
+    tempScanFilesLinux[type] = pathData;
+
+    this.setState({
+      scanFilesLinux: tempScanFilesLinux
+    });
+  }
+  /**
    * Show Malware Detection path
    * @method
    * @param {string} val - malware detection list
@@ -463,7 +579,7 @@ class HMDsettings extends Component {
    * @returns HTML DOM
    */
   showMalwarePath = (val, i) => {
-    const {activeContent, scanFiles, fieldEnable} = this.state;
+    const {scanFiles, fieldEnable} = this.state;
 
     return (
       <div key={i} className='group'>
@@ -478,6 +594,33 @@ class HMDsettings extends Component {
             inline={true}
             value={scanFiles[val]}
             onChange={this.setScanFiles.bind(this, val)} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Show Malware Detection path for Linux
+   * @method
+   * @param {string} val - malware detection list
+   * @param {string} i - index of the  malware detection list
+   * @returns HTML DOM
+   */
+  showMalwarePathLinux = (val, i) => {
+    const {scanFilesLinux, fieldEnable} = this.state;
+
+    return (
+      <div key={i} className='group'>
+        <label>{t('hmd-scan.txt-' + val)}</label>
+        {!fieldEnable.scanFilesLinux && scanFilesLinux[val].length > 0 &&
+          <div className='flex-item'>{scanFilesLinux[val].map(this.displayScanFile)}</div>
+        }
+        {fieldEnable.scanFilesLinux &&
+          <MultiInput
+            className='file-path'
+            base={InputPath}
+            inline={true}
+            value={scanFilesLinux[val]}
+            onChange={this.setScanFilesLinux.bind(this, val)} />
         }
       </div>
     )
@@ -510,15 +653,16 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, activeSettings, fieldEnable, formValidation} = this.state;
+    const {scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, activeSettings, fieldEnable, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
-    let parsedIncludePath = [];
-    let parsedExcludePath = [];
     let tempFormValidation = {...formValidation};
     let validate = true;
     let requestData = {};
 
     if (activeSettings === 'scanFiles') {
+      let parsedIncludePath = [];
+      let parsedExcludePath = [];
+
       _.forEach(scanFiles.includePath, val => {
         if (val.path) {
           parsedIncludePath.push(val.path);
@@ -533,11 +677,65 @@ class HMDsettings extends Component {
 
       const scanType = [
         {
-          type: 'hmd.scanFile.path',
+          type: 'hmd.scanFile.windows.path',
           value: parsedIncludePath.join()
         },
         {
-          type: 'hmd.scanFile.exclude.path',
+          type: 'hmd.scanFile.windows.exclude.path',
+          value: parsedExcludePath.join()
+        }
+      ];
+      let apiArr = [];
+
+      _.forEach(scanType, val => {
+        const requestData = {
+          configId: val.type,
+          value: val.value
+        };
+
+        apiArr.push({
+          url,
+          data: JSON.stringify(requestData),
+          type: 'POST',
+          contentType: 'text/plain'
+        });
+      })
+
+      this.ah.all(apiArr)
+      .then(data => {
+        if (data) {
+          this.getSettingsInfo();
+          this.clearData();
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+      return;
+    } else if (activeSettings === 'scanFilesLinux') {
+      let parsedIncludePath = [];
+      let parsedExcludePath = [];
+
+      _.forEach(scanFilesLinux.includePath, val => {
+        if (val.path) {
+          parsedIncludePath.push(val.path);
+        }
+      });
+
+      _.forEach(scanFilesLinux.excludePath, val => {
+        if (val.path) {
+          parsedExcludePath.push(val.path);
+        }
+      });
+
+      const scanType = [
+        {
+          type: 'hmd.scanFile.linux.path',
+          value: parsedIncludePath.join()
+        },
+        {
+          type: 'hmd.scanFile.linux.exclude.path',
           value: parsedExcludePath.join()
         }
       ];
@@ -778,11 +976,11 @@ class HMDsettings extends Component {
               msg = t('txt-required');
             }
 
-            if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
-              validate = false;
-              cpeValid = false;
-              msg = t('txt-checkFormat');
-            }
+            // if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+            //   validate = false;
+            //   cpeValid = false;
+            //   msg = t('txt-checkFormat');
+            // }
 
             cpeList.push({
               cpe: val2.cpe,
@@ -1170,6 +1368,24 @@ class HMDsettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get default file path
+   * @method
+   * @param {string} type - scan file type ('scanFiles' or 'scanFilesLinux')
+   */
+  getDefaultScanFile = (type) => {
+    const {scanFilesDefault, scanFilesLinuxDefault} = this.state;
+
+    if (type === 'scanFiles') {
+      this.setState({
+        scanFiles: scanFilesDefault
+      });
+    } else if (type === 'scanFilesLinux') {
+      this.setState({
+        scanFilesLinux: scanFilesLinuxDefault
+      });
+    }
+  }
   render() {
     const {locale} = this.context;
     const {
@@ -1235,12 +1451,29 @@ class HMDsettings extends Component {
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
               <div className='header-btn-group'>
+                {activeContent === 'editMode' && fieldEnable.scanFiles &&
+                  <Button variant='contained' color='primary' onClick={this.getDefaultScanFile.bind(this, 'scanFiles')}>{t('hmd-scan.txt-restoreDefault')}</Button>
+                }
                 {activeContent === 'viewMode' &&
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFiles')}>{t('txt-edit')}</Button>
                 }
               </div>
               {MALWARE_DETECTION.map(this.showMalwarePath)}
             </div>
+
+            <div className='form-group normal long'>
+              <header>{t('hmd-scan.scan-list.txt-scanFileLinux')}</header>
+              <div className='header-btn-group'>
+                {activeContent === 'editMode' && fieldEnable.scanFilesLinux &&
+                  <Button variant='contained' color='primary' onClick={this.getDefaultScanFile.bind(this, 'scanFilesLinux')}>{t('hmd-scan.txt-restoreDefault')}</Button>
+                }
+                {activeContent === 'viewMode' &&
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFilesLinux')}>{t('txt-edit')}</Button>
+                }
+              </div>
+              {MALWARE_DETECTION.map(this.showMalwarePathLinux)}
+            </div>
+
             <div className='form-group normal long'>
               <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
               <div className='header-btn-group'>
