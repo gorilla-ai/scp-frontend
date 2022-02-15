@@ -30,7 +30,7 @@ import ProductRegex from './product-regex'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-//const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
+const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -976,11 +976,11 @@ class HMDsettings extends Component {
               msg = t('txt-required');
             }
 
-            // if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
-            //   validate = false;
-            //   cpeValid = false;
-            //   msg = t('txt-checkFormat');
-            // }
+            if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+              validate = false;
+              cpeValid = false;
+              msg = t('txt-checkFormat');
+            }
 
             cpeList.push({
               cpe: val2.cpe,
