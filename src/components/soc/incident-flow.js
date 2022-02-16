@@ -365,25 +365,25 @@ class IncidentFlow extends Component {
                             if (Object.entries(flowVal.entities).length > 4){
                                 if (value.entityName.includes('SOC-1')) {
                                     index = 0
-                                }else if (value.entityName.includes('SOC-2')){
+                                } else if (value.entityName.includes('SOC-2')) {
                                     index = 1
-                                }else if (value.entityName === '單位承辦人簽核'){
+                                } else if ((value.entityName === '單位承辦人簽核') || (value.entityName === 'Unit Promoter')) {
                                     index = 2
-                                }else if (value.entityName === '單位資安長簽核'){
+                                } else if ((value.entityName === '單位資安長簽核') || (value.entityName === 'Unit CISO')) {
                                     index = 3
-                                }else if (value.entityName.includes('主管單位承辦人簽核')){
+                                } else if ((value.entityName.includes('主管單位承辦人簽核')) || (value.entityName.includes('Organizer Promoter'))) {
                                     index = 4
-                                }else if (value.entityName.includes('主管單位資安長簽核')){
+                                } else if ((value.entityName.includes('主管單位資安長簽核')) || (value.entityName.includes('Organizer CISO'))) {
                                     index = 5
                                 }
                             }else{
                                 if (value.entityName.includes('SOC-1')) {
                                     index = 0
-                                }else if (value.entityName.includes('SOC-2')){
-                                    index= 1
-                                }else if (value.entityName === '單位承辦人簽核'){
+                                } else if (value.entityName.includes('SOC-2')) {
+                                    index = 1
+                                } else if ((value.entityName === '單位承辦人簽核') || (value.entityName === 'Unit Promoter')) {
                                     index = 2
-                                }else if (value.entityName === '主管單位承辦人簽核'){
+                                } else if ((value.entityName.includes('主管單位承辦人簽核')) || (value.entityName.includes('Organizer Promoter'))) {
                                     index = 3
                                 }
                             }
@@ -417,13 +417,13 @@ class IncidentFlow extends Component {
                                     index = 0
                                 }else if (value.entityName.includes('SOC-2')){
                                     index = 1
-                                }else if (value.entityName === '單位承辦人簽核'){
+                                }else if ((value.entityName === '單位承辦人簽核') || (value.entityName === 'Unit Promoter')){
                                     index = 2
-                                }else if (value.entityName === '單位資安長簽核'){
+                                }else if ((value.entityName === '單位資安長簽核') || (value.entityName === 'Unit CISO')){
                                     index = 3
-                                }else if (value.entityName.includes('主管單位承辦人簽核')){
+                                }else if ((value.entityName.includes('主管單位承辦人簽核')) || (value.entityName.includes('Organizer Promoter'))){
                                     index = 4
-                                }else if (value.entityName.includes('主管單位資安長簽核')){
+                                }else if ((value.entityName.includes('主管單位資安長簽核')) || (value.entityName.includes('Organizer CISO'))){
                                     index = 5
                                 }
                             }else{
@@ -431,9 +431,9 @@ class IncidentFlow extends Component {
                                     index = 0
                                 }else if (value.entityName.includes('SOC-2')){
                                     index= 1
-                                }else if (value.entityName === '單位承辦人簽核'){
+                                }else if ((value.entityName === '單位承辦人簽核') || (value.entityName === 'Unit Promoter')){
                                     index = 2
-                                }else if (value.entityName === '主管單位承辦人簽核'){
+                                }else if ((value.entityName.includes('主管單位承辦人簽核')) || (value.entityName.includes('Organizer Promoter'))){
                                     index = 3
                                 }
                             }
@@ -498,13 +498,13 @@ class IncidentFlow extends Component {
                                 index = 0
                             }else if (value.entityName.includes('SOC-2')){
                                 index = 1
-                            }else if (value.entityName === '單位承辦人簽核'){
+                            }else if ((value.entityName === '單位承辦人簽核') || (value.entityName === 'Unit Promoter')){
                                 index = 2
-                            }else if (value.entityName === '單位資安長簽核'){
+                            }else if ((value.entityName === '單位資安長簽核')||(value.entityName === 'Unit CISO')){
                                 index = 3
-                            }else if (value.entityName.includes('主管單位承辦人簽核')){
+                            }else if ((value.entityName.includes('主管單位承辦人簽核'))||(value.entityName.includes('Organizer Promoter'))){
                                 index = 4
-                            }else if (value.entityName.includes('主管單位資安長簽核')){
+                            }else if ((value.entityName.includes('主管單位資安長簽核')) || (value.entityName.includes('Organizer CISO'))){
                                 index = 5
                             }
                         }else{
@@ -512,9 +512,9 @@ class IncidentFlow extends Component {
                                 index = 0
                             }else if (value.entityName.includes('SOC-2')){
                                 index= 1
-                            }else if (value.entityName === '單位承辦人簽核'){
+                            }else if ((value.entityName === '單位承辦人簽核') || (value.entityName === 'Unit Promoter')){
                                 index = 2
-                            }else if (value.entityName === '主管單位承辦人簽核'){
+                            }else if ((value.entityName.includes('主管單位承辦人簽核'))||(value.entityName.includes('Organizer Promoter'))){
                                 index = 3
                             }
                         }
@@ -867,9 +867,9 @@ class IncidentFlow extends Component {
             i = 0
         }else if (val.includes('SOC-2')){
             i = 1
-        }else if (val === '單位承辦人簽核'){
+        }else if ((val === '單位承辦人簽核')||(val === 'Unit Promoter')){
             i = 2
-        }else if (val === '主管單位承辦人簽核'){
+        }else if ((val === '主管單位承辦人簽核')||(val === 'Organizer Promoter')){
             i = 3
         }
 
@@ -967,13 +967,13 @@ class IncidentFlow extends Component {
             i = 0
         }else if (val.includes('SOC-2')){
             i = 1
-        }else if (val === '單位承辦人簽核'){
+        }else if ((val === '單位承辦人簽核')||(val === 'Unit Promoter')){
             i = 2
-        }else if (val === '單位資安長簽核'){
+        }else if ((val === '單位資安長簽核')||(val === 'Unit CISO')){
             i = 3
-        }else if (val.includes('主管單位承辦人簽核')){
+        }else if ((val.includes('主管單位承辦人簽核'))||(val.includes('Organizer Promoter'))){
             i = 4
-        }else if (val.includes('主管單位資安長簽核')){
+        }else if ((val.includes('主管單位資安長簽核'))||(val.includes('Organizer CISO'))){
             i = 5
         }
 
@@ -1075,13 +1075,13 @@ class IncidentFlow extends Component {
                 i = 0
             }else if (stepListObj[key].entityName.includes('SOC-2')){
                 i = 1
-            }else if (stepListObj[key].entityName === '單位承辦人簽核'){
+            }else if ((stepListObj[key].entityName === '單位承辦人簽核')||(stepListObj[key].entityName === 'Unit Promoter')){
                 i = 2
-            }else if (stepListObj[key].entityName === '單位資安長簽核'){
+            }else if ((stepListObj[key].entityName === '單位資安長簽核')||(stepListObj[key].entityName === 'Unit CISO')){
                 i = 3
-            }else if (stepListObj[key].entityName.includes('主管單位承辦人簽核')){
+            }else if ((stepListObj[key].entityName.includes('主管單位承辦人簽核'))||(stepListObj[key].entityName === 'Organizer Promoter')){
                 i = 4
-            }else if (stepListObj[key].entityName.includes('主管單位資安長簽核')){
+            }else if ((stepListObj[key].entityName.includes('主管單位資安長簽核'))||(stepListObj[key].entityName === 'Organizer CISO')){
                 i = 5
             }
 

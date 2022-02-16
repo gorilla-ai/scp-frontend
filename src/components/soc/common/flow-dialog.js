@@ -51,13 +51,13 @@ class IncidentFlowDialog extends Component {
 						index = 0
 					} else if (result.rt.entities[key].entityName.includes('SOC-2')) {
 						index = 1
-					} else if (result.rt.entities[key].entityName === '單位承辦人簽核') {
+					} else if ((result.rt.entities[key].entityName === '單位承辦人簽核') || (result.rt.entities[key].entityName.includes('Unit Promoter'))) {
 						index = 2
-					} else if (result.rt.entities[key].entityName === '單位資安長簽核') {
+					} else if ((result.rt.entities[key].entityName === '單位資安長簽核') || (result.rt.entities[key].entityName.includes('Unit CISO'))) {
 						index = 3
-					} else if (result.rt.entities[key].entityName === '主管單位承辦人簽核') {
+					} else if ((result.rt.entities[key].entityName === '主管單位承辦人簽核') || (result.rt.entities[key].entityName.includes('Organizer Promoter'))){
 						index = 4
-					} else if (result.rt.entities[key].entityName === '主管單位資安長簽核') {
+					} else if ((result.rt.entities[key].entityName === '主管單位資安長簽核') || (result.rt.entities[key].entityName.includes('Organizer CISO'))) {
 						index = 5
 					}
 				}else{
@@ -65,9 +65,9 @@ class IncidentFlowDialog extends Component {
 						index = 0
 					}else if (result.rt.entities[key].entityName.includes('SOC-2')){
 						index= 1
-					}else if (result.rt.entities[key].entityName === '單位承辦人簽核'){
+					} else if ((result.rt.entities[key].entityName === '單位承辦人簽核') || (result.rt.entities[key].entityName.includes('Unit Promoter'))) {
 						index = 2
-					}else if (result.rt.entities[key].entityName === '主管單位承辦人簽核'){
+					} else if ((result.rt.entities[key].entityName === '主管單位承辦人簽核') || (result.rt.entities[key].entityName.includes('Organizer Promoter'))){
 						index = 3
 					}
 				}
