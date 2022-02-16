@@ -341,7 +341,7 @@ class HMDsettings extends Component {
           }
         })
 
-        _.forEach(winIncludePath, val => {
+        _.forEach(linIncludePath, val => {
           if (val) {
             scanFilesLinuxDefault.includePath.push({
               path: val
@@ -349,7 +349,7 @@ class HMDsettings extends Component {
           }
         })
 
-        _.forEach(winExcludePath, val => {
+        _.forEach(linExcludePath, val => {
           if (val) {
             scanFilesLinuxDefault.excludePath.push({
               path: val
@@ -574,7 +574,7 @@ class HMDsettings extends Component {
   /**
    * Show Malware Detection path
    * @method
-   * @param {string} val - malware detection list
+   * @param {string} val - malware detection list ('includePath' or 'excludePath')
    * @param {string} i - index of the  malware detection list
    * @returns HTML DOM
    */
@@ -592,6 +592,9 @@ class HMDsettings extends Component {
             className='file-path'
             base={InputPath}
             inline={true}
+            defaultItemValue={{
+              path: ''
+            }}
             value={scanFiles[val]}
             onChange={this.setScanFiles.bind(this, val)} />
         }
@@ -619,6 +622,9 @@ class HMDsettings extends Component {
             className='file-path'
             base={InputPath}
             inline={true}
+            defaultItemValue={{
+              path: ''
+            }}
             value={scanFilesLinux[val]}
             onChange={this.setScanFilesLinux.bind(this, val)} />
         }
