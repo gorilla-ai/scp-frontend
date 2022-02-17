@@ -1038,7 +1038,8 @@ class SoarSettings extends Component {
                     <div className='group' style={{marginTop: '-15px'}}>
                       <label>Request Body</label>
                       <TextareaAutosize
-                        className='textarea-autosize filter-inputbox'
+                        className='textarea-autosize'
+                        name='requestBody'
                         rows={3}
                         value={soarAction.restful_api.requestBody}
                         onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
