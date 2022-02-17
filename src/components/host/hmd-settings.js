@@ -1337,11 +1337,11 @@ class HMDsettings extends Component {
    * @method
    */
   handleFileExport = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {datetimeExport} = this.state;
     const startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const url = `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${startDttm}&endDttm=${endDttm}`;
+    const url = `${baseUrl}${contextRoot}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${startDttm}&endDttm=${endDttm}`;
 
     downloadLink(url);
   }

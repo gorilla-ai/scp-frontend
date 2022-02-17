@@ -4508,6 +4508,22 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Check NCCST button disabled status
+   * @method
+   */
+  checkNCCSTdisabled = () => {
+    const {sessionRights} = this.context;
+    const {safetyScanData} = this.state;
+    let disabled = true;
+
+    if (sessionRights.Module_Config || sessionRights.Module_Account) {
+      if (safetyScanData.dataContent.length > 0) {
+        disabled = false;
+      }
+    }
+    return disabled;
+  }
   render() {
     const {session, sessionRights} = this.context;
     const {
@@ -4930,7 +4946,7 @@ class HostController extends Component {
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
                         {safetyScanData.dataContent &&
-                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={safetyScanData.dataContent.length === 0}>{t('host.txt-report-nccst')}</Button>
+                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
                         }
                       </div>
                     }
