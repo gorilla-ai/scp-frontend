@@ -60,6 +60,7 @@ class Manage extends Component {
       treeId: '',
       tableArr: ['nameUUID', 'name', 'option'],
       nameUUID: '',
+      info: '',
       formValidation: {
         name: {
           valid: true
@@ -671,7 +672,7 @@ class Manage extends Component {
    * @returns ModalDialog component
    */
   titleNameModal = () => {
-    const {header} = this.state;
+    const {header, info} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeTitleName},
       confirm: {text: t('txt-confirm'), handler: this.handleConfirmName}
@@ -685,43 +686,41 @@ class Manage extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={info}
         closeAction='cancel'>
         {this.displayTitleName()}
       </ModalDialog>
     )
   }
-
   dragModal = () => {
     const {treeData} = this.state;
-
     const actions = {
       cancel: {text: t('txt-close'), className: 'standard', handler: this.closeODialog},
       confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
     };
 
     return (
-        <ModalDialog
-            id='addUnitDialog'
-            className='modal-dialog'
-            title={t('txt-setOrganization')}
-            draggable={true}
-            global={true}
-            actions={actions}
-            closeAction='cancel'>
-          <div style={{width: '890px', height: '630px'}}>
-            <SortableTree
-                treeData={treeData}
-                onChange={treeData => this.setState({treeData: treeData})}
-            />
-          </div>
-        </ModalDialog>
+      <ModalDialog
+        id='addUnitDialog'
+        className='modal-dialog'
+        title={t('txt-setOrganization')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <div style={{width: '890px', height: '630px'}}>
+          <SortableTree
+            treeData={treeData}
+            onChange={treeData => this.setState({treeData: treeData})} />
+        </div>
+      </ModalDialog>
     )
   }
-
   closeODialog = () => {
-    this.setState({openDrag: false})
+    this.setState({
+      openDrag: false
+    });
   }
-
   handleUnitTreeConfirm = () =>{
     const {treeData} = this.state;
     const {baseUrl} = this.context;
@@ -777,7 +776,7 @@ class Manage extends Component {
    */
   handleConfirmDepartemnt = () => {
     const {baseUrl} = this.context;
-    const {name, owner, selectedOwner, parentTreetId, treeId} = this.state;
+    const {name, dialogType, owner, selectedOwner, parentTreetId, treeId} = this.state;
     const url = `${baseUrl}/api/department`;
     let requestType = 'POST';
     let requestData = {
@@ -787,6 +786,17 @@ class Manage extends Component {
       unitCode: owner.unitCode,
       unitCodeRegex: owner.unitCodeRegex
     };
+
+    if (dialogType === 'edit') {
+      if (owner.ip || owner.domainAccount || owner.unitCode || owner.unitCodeRegex) {
+        if (!selectedOwner) {
+          this.setState({
+            info: t('txt-ownerIsRequired')
+          });
+          return;
+        }
+      }
+    }
 
     if (selectedOwner) {
       requestData.ownerId = selectedOwner.value;
@@ -819,7 +829,8 @@ class Manage extends Component {
           openName: false,
           name: '',
           parentTreetId: '',
-          treeId: ''
+          treeId: '',
+          info: ''
         });
 
         this.getDepartmentTree();
@@ -877,6 +888,7 @@ class Manage extends Component {
   closeTitleName = () => {
     this.setState({
       openName: false,
+      info: '',
       formValidation: {
         name: {
           valid: true

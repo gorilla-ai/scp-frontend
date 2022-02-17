@@ -293,6 +293,7 @@
   "txt-account-delete": "確定要刪除帳號",
   "txt-commaSeparated": "用逗號,區隔",
   "txt-privilegeError": "此角色還在被帳號使用中",
+  "txt-ownerIsRequired": "所屬人員為必填",
 
   "txt-statistics": "統計",
   "txt-table": "列表",

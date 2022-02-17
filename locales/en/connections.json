@@ -293,6 +293,7 @@
   "txt-account-delete": "Are you sure you want to delete this account",
   "txt-commaSeparated": "separated by comma ,",
   "txt-privilegeError": "The privilege is still used by the account(s)",
+  "txt-ownerIsRequired": "Owner field is required",
 
   "txt-statistics": "Statistics",
   "txt-table": "Table",
