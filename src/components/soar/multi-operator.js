@@ -9,16 +9,20 @@ import MenuItem from '@material-ui/core/MenuItem'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
 import helper from '../common/helper'
+import requestHeaders from './request-headers'
 
 const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const REQUEST_TYPE = ['GET', 'POST', 'DELETE', 'PATCH'];
 
 let t = null;
 let et = null;
 
 /**
- * Input Path
+ * SOAR Multi Operators
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component for the SOAR multi operator
@@ -31,6 +35,7 @@ class MultiOperator extends Component {
       openRuleSection: false,
       actionTypeList: [],
       severityTypeList: [],
+      requestTypeList: [],
       linkOperatorList: [],
       nodeActionOperatorList: [],
       soarActiveOperator: ''
@@ -42,6 +47,7 @@ class MultiOperator extends Component {
   componentDidMount() {
     this.setOperatorList();
     this.setDropDownList();
+    this.setRequestTypeList();
   }
   componentDidUpdate(prevProps) {
     if (!prevProps || (this.props.value !== prevProps.value)) {
@@ -91,6 +97,19 @@ class MultiOperator extends Component {
     this.setState({
       actionTypeList,
       severityTypeList
+    });
+  }
+  /**
+   * Set dropdown list for request type
+   * @method
+   */
+  setRequestTypeList = () => {
+    const requestTypeList = _.map(REQUEST_TYPE, val => {
+      return <MenuItem value={val}>{val}</MenuItem>
+    });
+
+    this.setState({
+      requestTypeList
     });
   }
   /**
@@ -203,6 +222,25 @@ class MultiOperator extends Component {
     )
   }
   /**
+   * Set request header data
+   * @method
+   * @param {array} requestHeadersData - request headers data
+   */
+  setRequestHeaderData = (requestHeadersData) => {
+    let tempNewValue = _.cloneDeep(this.props.value);
+    let tempData = {...this.state.restful_api};
+    tempNewValue.args.headers = requestHeadersData;
+    tempData.headers = requestHeadersData;
+
+    this.props.onChange({
+      ...tempNewValue
+    });
+
+    this.setState({
+      restful_api: tempData
+    });
+  }
+  /**
    * Display individual form
    * @method
    * @param {string} operator - soar operator
@@ -210,7 +248,7 @@ class MultiOperator extends Component {
    * @param {number} i - index of the form data
    */
   displayForm = (operator, key, i) => {
-    const {actionTypeList, severityTypeList} = this.state;
+    const {actionTypeList, severityTypeList, requestTypeList} = this.state;
     const {soarColumns} = this.props;
     const label = t('soar.txt-' + key);
     const value = soarColumns.spec[operator][key];
@@ -218,7 +256,7 @@ class MultiOperator extends Component {
     const textValue = (operatorValue ? operatorValue[key] : '') || '';
 
     if (typeof value === 'string' && operatorValue) {
-      if (key === 'content') { //For email content
+      if (key === 'content' || key === 'requestBody') { //For email content or restful api request body
         return (
           <div key={i} className='group'>
             <label>{label}</label>
@@ -257,19 +295,35 @@ class MultiOperator extends Component {
         }
 
         return (
-        <div key={i} className='group'>
-          <TextField
-            name={key}
-            select
-            label={label}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={textValue}
-            onChange={this.handleDataChange.bind(this, operator)}>
-            {dropDownList}
-          </TextField>
-        </div>
+          <div key={i} className='group'>
+            <TextField
+              name={key}
+              select
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={textValue}
+              onChange={this.handleDataChange.bind(this, operator)}>
+              {dropDownList}
+            </TextField>
+          </div>
+        )
+      } else if (key === 'method') {
+        return (
+          <div key={i} className='group'>
+            <TextField
+              name={key}
+              select
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={textValue}
+              onChange={this.handleDataChange.bind(this, operator)}>
+              {requestTypeList}
+            </TextField>
+          </div>
         )
       } else {
         return (
@@ -323,8 +377,25 @@ class MultiOperator extends Component {
             onChange={this.handleDataChange.bind(this, operator)} />
         </div>
       )
-    } else if (typeof value === 'object' && operatorValue) {
-      if (operator === 'email' && key === 'receiver') { //For email recipient
+    } else if (typeof value === 'object') {
+      if (key === 'headers') { //For request headers
+        const data = {};
+
+        return (
+          <MultiInput
+            key={i}
+            className='request-multi'
+            base={requestHeaders}
+            defaultItemValue={{
+                header: '',
+                value: ''
+              }
+            }
+            value={textValue}
+            props={data}
+            onChange={this.setRequestHeaderData} />
+        )
+      } else if (operator === 'email' && key === 'receiver') { //For email recipient
         return (
           <div key={i} className='group'>
             <label>{label}</label>

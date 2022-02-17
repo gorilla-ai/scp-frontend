@@ -7,10 +7,10 @@ import TextField from '@material-ui/core/TextField'
 import TextareaAutosize from "@material-ui/core/TextareaAutosize";
 
 /**
- * Config Inventory auto settings IP Range
+ * SOAR Logs page
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the IP range form
+ * @summary A react component to show the logs
  */
 class Log extends Component {
   constructor(props) {

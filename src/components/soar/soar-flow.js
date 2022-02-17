@@ -41,7 +41,7 @@ let t = null;
 let f = null;
 
 /**
- * SOAR
+ * SoarFlow
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the SOAR flow page
