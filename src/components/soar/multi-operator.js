@@ -227,8 +227,6 @@ class MultiOperator extends Component {
    * @param {array} requestHeadersData - request headers data
    */
   setRequestHeaderData = (requestHeadersData) => {
-    //console.log(requestHeadersData);
-
     let tempNewValue = _.cloneDeep(this.props.value);
     let tempData = {...this.state.restful_api};
     tempNewValue.args.headers = requestHeadersData;
@@ -382,20 +380,6 @@ class MultiOperator extends Component {
     } else if (typeof value === 'object') {
       if (key === 'headers') { //For request headers
         const data = {};
-        let requestHeadersData = [];
-
-        if (textValue) {
-          if (textValue.length) {
-            requestHeadersData = textValue;
-          } else {
-            Object.keys(textValue).map(key => {
-              requestHeadersData.push({
-                header: key,
-                value: textValue[key]
-              });
-            });
-          }
-        }
 
         return (
           <MultiInput
@@ -407,7 +391,7 @@ class MultiOperator extends Component {
                 value: ''
               }
             }
-            value={requestHeadersData}
+            value={textValue}
             props={data}
             onChange={this.setRequestHeaderData} />
         )

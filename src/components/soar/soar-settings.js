@@ -13,9 +13,11 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
+import requestHeaders from './request-headers'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
@@ -24,6 +26,7 @@ const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-
 const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const REQUEST_TYPE = ['GET', 'POST', 'DELETE', 'PATCH'];
 
 let t = null;
 let et = null;
@@ -46,6 +49,7 @@ class SoarSettings extends Component {
       info: '',
       actionTypeList: [],
       severityTypeList: [],
+      requestTypeList: [],
       originalSoarIP: {},
       soarIP: '',
       originalSoarAdapter: {},
@@ -84,6 +88,12 @@ class SoarSettings extends Component {
           ip: '',
           drop: '',
           severityType: ''
+        },
+        restful_api: {
+          headers: [],
+          method: '',
+          requestBody: '',
+          url: ''
         }
       },
       formValidation: {
@@ -117,6 +127,7 @@ class SoarSettings extends Component {
   componentDidMount() {
     this.getDropDownList();
     this.getSoarSettingsInfo();
+    this.setRequestTypeList();
   }
   /**
    * Set dropdown list for HMD Action and Severity type
@@ -167,6 +178,19 @@ class SoarSettings extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Set dropdown list for request type
+   * @method
+   */
+  setRequestTypeList = () => {
+    const requestTypeList = _.map(REQUEST_TYPE, val => {
+      return <MenuItem value={val}>{val}</MenuItem>
+    });
+
+    this.setState({
+      requestTypeList
+    });
   }
   /**
    * Check IP connections
@@ -265,6 +289,19 @@ class SoarSettings extends Component {
         soarAction: tempSoarAction
       });
     }
+  }
+  /**
+   * Set request header data
+   * @method
+   * @param {array} requestHeadersData - request headers data
+   */
+  setRequestHeaderData = (requestHeadersData) => {
+    let tempSoarAction = {...this.state.soarAction};
+    tempSoarAction.restful_api.headers = requestHeadersData;
+
+    this.setState({
+      soarAction: tempSoarAction
+    });
   }
   /**
    * Toggle different content
@@ -575,11 +612,15 @@ class SoarSettings extends Component {
       openEmailDialog,
       actionTypeList,
       severityTypeList,
+      requestTypeList,
       soarIP,
       soarAdapter,
       soarAction,
       formValidation
     } = this.state;
+    const data = {
+      activeContent
+    };
 
     return (
       <div>
@@ -934,6 +975,76 @@ class SoarSettings extends Component {
                       {severityTypeList}
                     </TextField>
                   </div>
+
+                  <div className='group-header'>Restful API</div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionRestfulUrl'
+                      name='url'
+                      label='URL'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.restful_api.url || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionRestfulMethod'
+                      name='method'
+                      select
+                      label='Method'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.restful_api.method || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
+                      disabled={activeContent === 'viewMode'}>
+                      {requestTypeList}
+                    </TextField>
+                  </div>
+                  <div className='group full'>
+                    <MultiInput
+                      className='request-multi'
+                      base={requestHeaders}
+                      defaultItemValue={{
+                          header: '',
+                          value: ''
+                        }
+                      }
+                      value={soarAction.restful_api.headers}
+                      props={data}
+                      onChange={this.setRequestHeaderData} />
+                  </div>
+
+                  {activeContent === 'viewMode' &&
+                    <div className='group' style={{marginTop: '-10px'}}>
+                      <TextField
+                        id='soarActionRestfulRequestBody'
+                        name='content'
+                        className='text-area'
+                        label='Request Body'
+                        multiline
+                        rows={3}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={soarAction.restful_api.requestBody}
+                        disabled={true} />
+                    </div>
+                  }
+                  {activeContent === 'editMode' &&
+                    <div className='group' style={{marginTop: '-15px'}}>
+                      <label>Request Body</label>
+                      <TextareaAutosize
+                        className='textarea-autosize filter-inputbox'
+                        rows={3}
+                        value={soarAction.restful_api.requestBody}
+                        onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
+                        disabled={activeContent === 'viewMode'} />
+                    </div>
+                  }
                 </div>
               </div>
 

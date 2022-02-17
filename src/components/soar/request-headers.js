@@ -40,19 +40,20 @@ class RequestHeaders extends Component {
     });
   }
   render() {
-    const {value} = this.props;
+    const {activeContent, value} = this.props;
 
     return (
       <div className='group-content request-headers'>
         <TextField
           id='requestHeadersHeader'
-          className='request-field'
+          className='request-header'
           name='header'
           label='Header'
           variant='outlined'
           size='small'
           value={value.header}
-          onChange={this.handleDataChange} />
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode'} />
         <TextField
           id='requestHeadersValue'
           className='request-field'
@@ -61,7 +62,8 @@ class RequestHeaders extends Component {
           variant='outlined'
           size='small'
           value={value.value}
-          onChange={this.handleDataChange} />
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode'} />
       </div>
     )
   }
