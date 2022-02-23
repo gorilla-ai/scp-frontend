@@ -5106,6 +5106,14 @@ class HostController extends Component {
                           source={hmdLAdata}
                           sourceItemOptions={LAconfig.la}
                           lng={language} />
+                        <footer>
+                          <Pagination
+                            totalCount={safetyScanData.totalCount}
+                            pageSize={safetyScanData.pageSize}
+                            currentPage={safetyScanData.currentPage}
+                            onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
+                            onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
+                        </footer>
                       </div>
                     }
                   </div>
