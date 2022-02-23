@@ -890,6 +890,7 @@
     "txt-lastTriggerTime": "上次觸發時間",
     "txt-executeTime": "執行時間",
     "txt-shutdownHost": "關機",
+    "txt-rebootHost": "重新開機",
     "txt-logoffAllUsers": "登出",
     "txt-netcut": "斷網",
     "txt-netcutResume": "恢復",

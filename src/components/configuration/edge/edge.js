@@ -1099,6 +1099,34 @@ class Edge extends Component {
     });
   }
   /**
+   * Handle button actions
+   * @param {string} type - action type ('reboot' or 'shutdown')
+   * @method
+   */
+  edgeButtonActions = (type) => {
+    const {baseUrl} = this.context;
+    const {edge} = this.state;
+    const url = `${baseUrl}/api/edge/system/${type}`;
+    const requestData = {
+      id: edge.info.id
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+  }
+  /**
    * Display edit Edge content
    * @method
    * @returns HTML DOM
@@ -1152,6 +1180,8 @@ class Edge extends Component {
           {activeContent === 'viewEdge' &&
             <div>
               <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.edgeButtonActions.bind(this, 'reboot')}>{t('hmd-scan.txt-rebootHost')}</Button>
+              <Button variant='contained' color='primary' className='btn' onClick={this.edgeButtonActions.bind(this, 'shutdown')}>{t('hmd-scan.txt-shutdownHost')}</Button>
               <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</Button>
             </div>
           }

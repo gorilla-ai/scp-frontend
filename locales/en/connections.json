@@ -890,6 +890,7 @@
     "txt-lastTriggerTime": "Trigger Time",
     "txt-executeTime": "Execute Time",
     "txt-shutdownHost": "Shutdown",
+    "txt-rebootHost": "Restart",
     "txt-logoffAllUsers": "Log Off",
     "txt-netcut": "Disconnected",
     "txt-netcutResume": "Resume",
