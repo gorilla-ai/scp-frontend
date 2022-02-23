@@ -24,13 +24,18 @@ import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
 import Tab from '@material-ui/core/Tab'
 import Tabs from '@material-ui/core/Tabs'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import Gis from 'react-gis/build/src/components'
 
+import {analyze} from 'vbda-ui/build/src/analyzer'
+import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import Popover from 'react-ui/build/src/components/popover'
+import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -229,6 +234,60 @@ const MAPS_PRIVATE_DATA = {
   deviceSeatData: {}
 };
 const NOT_AVAILABLE = 'N/A';
+const LA_DATA = [
+  {
+    "id": "9f4dfd0a-5130-4b2b-aa58-2b40bcaff8fe",
+    "taskName": "scanFile",
+    "primaryKeyName": "_MD5",
+    "primaryKeyValue": "71421d87b26d5ffe70f6b671afd81fcb",
+    "hostIdArraySize": 35,
+    "createDttm": 1645596854000,
+    "startDttm": 1645545600000,
+    "endDttm": 1645596627000,
+    "hitCVE": false,
+    "startTimeString": "2022-02-22T16:00:00Z",
+    "srcIP": "71421d87b26d5ffe70f6b671afd81fcb",
+    "dstIP": "10.1.80.10",
+    "message": "Unit: 1 Slot: 0 Port: 1 10G - Level",
+    "__data_source": "chewbacca",
+    "__data_type": "log",
+    "__index_name": "chewbacca-log-2020.11.25"
+  }, {
+    "id": "75b25d5a-59ab-438f-ad0b-3b5107853711",
+    "taskName": "scanFile",
+    "primaryKeyName": "_MD5",
+    "primaryKeyValue": "71421d87b26d5ffe70f6b671afd81fcb",
+    "hostIdArraySize": 35,
+    "createDttm": 1645596854000,
+    "startDttm": 1645545600000,
+    "endDttm": 1645596627000,
+    "hitCVE": false,
+    "startTimeString": "2022-02-22T16:00:00Z",
+    "srcIP": "71421d87b26d5ffe70f6b671afd81fcb",
+    "dstIP": "10.1.80.16",
+    "message": "Unit: 1 Slot: 0 Port: 1 10G - Level",
+    "__data_source": "chewbacca",
+    "__data_type": "log",
+    "__index_name": "chewbacca-log-2020.11.25"
+  }, {
+    "id": "bee7a6d6-ee5b-42d3-bf83-2537124a5812",
+    "taskName": "scanFile",
+    "primaryKeyName": "_MD5",
+    "primaryKeyValue": "71421d87b26d5ffe70f6b671afd81fcb",
+    "hostIdArraySize": 35,
+    "createDttm": 1645596854000,
+    "startDttm": 1645545600000,
+    "endDttm": 1645596627000,
+    "hitCVE": false,
+    "startTimeString": "2022-02-22T16:00:00Z",
+    "srcIP": "71421d87b26d5ffe70f6b671afd81fcb",
+    "dstIP": "10.1.80.20",
+    "message": "Unit: 1 Slot: 0 Port: 1 10G - Level",
+    "__data_source": "chewbacca",
+    "__data_type": "log",
+    "__index_name": "chewbacca-log-2020.11.25"
+  }
+];
 
 let t = null;
 let f = null;
@@ -248,7 +307,8 @@ class HostController extends Component {
 
     this.state = {
       hmd_list: [],
-      activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
+      activeTab: 'hostList', //'hostList',deviceMap', 'safetyScan' or 'vansCharts'
+      activeSafetyTab: 'list', //'list' or 'la'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       account: {
         id: '',
@@ -263,6 +323,7 @@ class HostController extends Component {
       saveQueryOpen: false,
       uploadFileOpen: false,
       importCsvOpen: false,
+      LAconfig: {},
       hmdFile: {},
       notifyEmailData: [],
       queryModalType: '',
@@ -407,6 +468,8 @@ class HostController extends Component {
         pageSize: 20
       },
       currentSafetyData: {},
+      hmdEventsData: {},
+      hmdLAdata: {},
       safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
       savedCpeData: {},
       fromSafetyPage: '',
@@ -461,6 +524,7 @@ class HostController extends Component {
       this.setState({
         account: tempAccount
       }, () => {
+        this.getLAconfig();
         this.getHmdlist();
         this.getSavedQuery();
         this.setLeftNavData();
@@ -477,6 +541,23 @@ class HostController extends Component {
   }
   componentWillUnmount() {
     helper.clearTimer();
+  }
+  /**
+   * Get and set the Link Analysis config
+   * @method
+   */
+  getLAconfig = () => {
+    const {baseUrl} = this.context;
+
+    helper.getLAconfig(baseUrl)
+    .then(data => {
+      if (!_.isEmpty(data)) {
+        this.setState({
+          LAconfig: configLoader.processAll(data)
+        });
+      }
+      return null;
+    });
   }
   /**
    * Get HMD list constant
@@ -1333,13 +1414,28 @@ class HostController extends Component {
     return requestData;
   }
   /**
+   * Toggle safety content data
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - safety content ('list' or 'la')
+   */
+  toggleSfetyContent = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      activeSafetyTab: type
+    });
+  }
+  /**
    * Get and set safety scan data
    * @method
    * @param {string} [options] - option for 'hitCVE'
    */
   getSafetyScanData = (options) => {
     const {baseUrl} = this.context;
-    const {deviceSearchList, safetyScanData, safetyScanType} = this.state;
+    const {LAconfig, deviceSearchList, safetyScanData, safetyScanType} = this.state;
     const datetime = this.getHostDateTime();
     let url = '';
     let requestData = {
@@ -1402,6 +1498,7 @@ class HostController extends Component {
           });
         } else {
           let tempSafetyScanData = {...safetyScanData};
+          let hmdEventsData = {};
 
           if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
             tempSafetyScanData.dataContent = [];
@@ -1417,8 +1514,16 @@ class HostController extends Component {
           tempSafetyScanData.dataContent = data.hmdScanDistribution;
           tempSafetyScanData.totalCount = data.count;
 
+          if (data.linkLA.length > 0) {
+            _.forEach(data.linkLA, val => {
+              hmdEventsData[val.id] = val;
+            })
+          }
+
           this.setState({
-            safetyScanData: tempSafetyScanData
+            safetyScanData: tempSafetyScanData,
+            hmdEventsData,
+            hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
           });
         }
       }
@@ -2177,7 +2282,9 @@ class HostController extends Component {
       tempSafetyScanData.currentPage = 1;
 
       this.setState({
-        safetyScanData: tempSafetyScanData
+        safetyScanData: tempSafetyScanData,
+        hmdEventsData: {},
+        hmdLAdata: {}
       }, () => {
         this.getHostData();
         this.getSafetyScanData();
@@ -4525,9 +4632,10 @@ class HostController extends Component {
     return disabled;
   }
   render() {
-    const {session, sessionRights} = this.context;
+    const {contextRoot, language, session, sessionRights} = this.context;
     const {
       activeTab,
+      activeSafetyTab,
       activeContent,
       showLeftNav,
       showFilter,
@@ -4535,6 +4643,7 @@ class HostController extends Component {
       saveQueryOpen,
       uploadFileOpen,
       importCsvOpen,
+      LAconfig,
       datetime,
       assessmentDatetime,
       frMotpOpen,
@@ -4567,6 +4676,8 @@ class HostController extends Component {
       hostData,
       hostSort,
       safetyScanData,
+      hmdEventsData,
+      hmdLAdata,
       floorList,
       currentFloor,
       currentMap,
@@ -4586,6 +4697,7 @@ class HostController extends Component {
       showLoadingIcon
     } = this.state;
     const vansDateTime = this.getHostDateTime();
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     let adminPrivilege = false;
 
     if (sessionRights.Module_Config) {
@@ -4950,26 +5062,60 @@ class HostController extends Component {
                         }
                       </div>
                     }
-                    <div className='table-content'>
-                      <div className='table' style={{height: '57vh'}}>
-                        {!safetyScanData.dataContent &&
-                          <span className='loading'><i className='fg fg-loading-2'></i></span>
-                        }
-                        {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
-                          <ul className='safety-list'>
-                            {safetyScanData.dataContent.map(this.getSafetyList)}
-                          </ul>
-                        }
-                      </div>
-                      <footer>
-                        <Pagination
-                          totalCount={safetyScanData.totalCount}
-                          pageSize={safetyScanData.pageSize}
-                          currentPage={safetyScanData.currentPage}
-                          onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
-                          onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
-                      </footer>
+
+                    <div className='options-btns'>
+                      <ToggleButtonGroup
+                        id='hmdSafetyContentBtn'
+                        value={activeSafetyTab}
+                        exclusive
+                        onChange={this.toggleSfetyContent}>
+                        <ToggleButton id='hmdSafetyList' value='list'>{t('txt-table')}</ToggleButton>
+                        <ToggleButton id='hmdSafetyLA' value='la'>{t('txt-linkAnalysis')}</ToggleButton>
+                      </ToggleButtonGroup>
                     </div>
+
+                    {activeSafetyTab === 'list' &&
+                      <div className='table-content'>
+                        <div className='table' style={{height: '57vh'}}>
+                          {!safetyScanData.dataContent &&
+                            <span className='loading'><i className='fg fg-loading-2'></i></span>
+                          }
+                          {safetyScanData.dataContent && safetyScanData.dataContent.length > 0 &&
+                            <ul className='safety-list'>
+                              {safetyScanData.dataContent.map(this.getSafetyList)}
+                            </ul>
+                          }
+                        </div>
+                        <footer>
+                          <Pagination
+                            totalCount={safetyScanData.totalCount}
+                            pageSize={safetyScanData.pageSize}
+                            currentPage={safetyScanData.currentPage}
+                            onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
+                            onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
+                        </footer>
+                      </div>
+                    }
+
+                    {activeSafetyTab === 'la' &&
+                      <div className='la-content'>
+                        <VbdaLA
+                          assetsPath={assetsPath}
+                          sourceCfg={LAconfig}
+                          events={hmdEventsData}
+                          source={hmdLAdata}
+                          sourceItemOptions={LAconfig.la}
+                          lng={language} />
+                        <footer>
+                          <Pagination
+                            totalCount={safetyScanData.totalCount}
+                            pageSize={safetyScanData.pageSize}
+                            currentPage={safetyScanData.currentPage}
+                            onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
+                            onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
+                        </footer>
+                      </div>
+                    }
                   </div>
                 }
 
