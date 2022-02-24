@@ -1431,7 +1431,7 @@ class HostController extends Component {
   /**
    * Get and set safety scan data
    * @method
-   * @param {string} [options] - option for 'hitCVE'
+   * @param {string} [options] - option for 'hitCVE' or 'vansStatus'
    */
   getSafetyScanData = (options) => {
     const {baseUrl} = this.context;
@@ -1525,6 +1525,10 @@ class HostController extends Component {
             hmdEventsData,
             hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
           });
+        }
+
+        if (options === 'vansStatus') {
+          this.getVansStatus();
         }
       }
       return null;
@@ -2314,8 +2318,7 @@ class HostController extends Component {
         this.setState({
           currentHostModule: 'malware'
         }, () => {
-          this.getSafetyScanData();
-          this.getVansStatus();
+          this.getSafetyScanData('vansStatus');
         });
       } else if (newTab === 'vansCharts') {
         this.getVansChartsData();
@@ -2701,20 +2704,6 @@ class HostController extends Component {
       hmdSearch: {
         status: {},
         annotation: ''
-      }
-    });
-  }
-  /**
-   * Clear safety scan data
-   * @method
-   */
-  clearSafetyScanData = () => {
-    this.setState({
-      safetyScanData: {
-        dataContent: null,
-        totalCount: 0,
-        currentPage: 1,
-        pageSize: 20
       }
     });
   }
@@ -3322,8 +3311,7 @@ class HostController extends Component {
       showSafetyTab
     }, () => {
       if (!this.state.safetyDetailsOpen) {
-        this.getSafetyScanData();
-        this.getVansStatus();
+        this.getSafetyScanData('vansStatus');
       }
     });
   }
@@ -4433,11 +4421,11 @@ class HostController extends Component {
       currentHostModule: MODULE_TYPE[event.target.value],
       hmdSearch: tempHmdSearch,
       safetyScanData: tempSafetyScanData,
-      safetyScanType: event.target.value
+      safetyScanType: event.target.value,
+      hmdEventsData: {},
+      hmdLAdata: {}
     }, () => {
-      this.getVansStatus();
-      this.clearSafetyScanData();
-      this.getSafetyScanData();
+      this.getSafetyScanData('vansStatus');
     });
   }
   /**
@@ -5098,14 +5086,16 @@ class HostController extends Component {
                     }
 
                     {activeSafetyTab === 'la' &&
-                      <div className='la-content'>
-                        <VbdaLA
-                          assetsPath={assetsPath}
-                          sourceCfg={LAconfig}
-                          events={hmdEventsData}
-                          source={hmdLAdata}
-                          sourceItemOptions={LAconfig.la}
-                          lng={language} />
+                      <React.Fragment>
+                        <div className='la-content' style={{height: '56vh'}}>
+                          <VbdaLA
+                            assetsPath={assetsPath}
+                            sourceCfg={LAconfig}
+                            events={hmdEventsData}
+                            source={hmdLAdata}
+                            sourceItemOptions={LAconfig.la}
+                            lng={language} />
+                        </div>
                         <footer>
                           <Pagination
                             totalCount={safetyScanData.totalCount}
@@ -5114,7 +5104,7 @@ class HostController extends Component {
                             onPageChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'currentPage')}
                             onDropDownChange={this.handlePaginationChange.bind(this, 'safetyScanData', 'pageSize')} />
                         </footer>
-                      </div>
+                      </React.Fragment>
                     }
                   </div>
                 }
