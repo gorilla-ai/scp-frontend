@@ -24,6 +24,21 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
 
 const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const FORM_VALIDATION = {
+  notificationsServer: {
+    valid: true
+  },
+  notificationsSender: {
+    valid: true,
+    msg: ''
+  },
+  notificationsSenderAccount: {
+    valid: true
+  },
+  notificationsSenderPassword: {
+    valid: true
+  }
+};
 
 let t = null;
 let et = null;
@@ -84,21 +99,7 @@ class Notifications extends Component {
         channelSecret:'',
         qrcodeLink:'',
       },
-      formValidation: {
-        notificationsServer: {
-          valid: true
-        },
-        notificationsSender: {
-          valid: true,
-          msg: ''
-        },
-        notificationsSenderAccount: {
-          valid: true
-        },
-        notificationsSenderPassword: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -267,21 +268,7 @@ class Notifications extends Component {
         notifications: _.cloneDeep(originalNotifications),
         smsProvider: _.cloneDeep(originalSmsProvider),
         emails: _.cloneDeep(originalEmails),
-        formValidation: {
-          notificationsServer: {
-            valid: true
-          },
-          notificationsSender: {
-            valid: true,
-            msg: ''
-          },
-          notificationsSenderAccount: {
-            valid: true
-          },
-          notificationsSenderPassword: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

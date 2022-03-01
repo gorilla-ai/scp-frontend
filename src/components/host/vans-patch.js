@@ -18,6 +18,17 @@ import helper from '../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const VANS_FILES = ['scriptFile', 'executableFile'];
+const FORM_VALIDATION = {
+  product: {
+    valid: true
+  },
+  vendor: {
+    valid: true
+  },
+  version: {
+    valid: true
+  }
+};
 
 let t = null;
 
@@ -41,17 +52,7 @@ class VansPatch extends Component {
         version: '',
         memo: ''
       },
-      formValidation: {
-        product: {
-          valid: true
-        },
-        vendor: {
-          valid: true
-        },
-        version: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');

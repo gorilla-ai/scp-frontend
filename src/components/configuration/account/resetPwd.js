@@ -13,6 +13,21 @@ import {BaseDataContext} from '../../common/context'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  account: {
+    valid: true
+  },
+  oldPwd: {
+    valid: true
+  },
+  newPwd1: {
+    valid: true
+  },
+  newPwd2: {
+    valid: true
+  }
+};
+
 const log = require('loglevel').getLogger('system/audit');
 const t = i18n.getFixedT(null, 'accounts');
 const at = i18n.getFixedT(null, 'app');
@@ -39,20 +54,7 @@ class ResetPwd extends Component {
       },
       error: false,
       errInfo: null,
-      formValidation: {
-        account: {
-          valid: true
-        },
-        oldPwd: {
-          valid: true
-        },
-        newPwd1: {
-          valid: true
-        },
-        newPwd2: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
@@ -306,20 +308,7 @@ class ResetPwd extends Component {
       },
       error: false,
       errInfo: null,
-      formValidation: {
-        account: {
-          valid: true
-        },
-        oldPwd: {
-          valid: true
-        },
-        newPwd1: {
-          valid: true
-        },
-        newPwd2: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
   }
   render() {

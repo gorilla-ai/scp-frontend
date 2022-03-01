@@ -22,6 +22,15 @@ import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  },
+  privileges: {
+    valid: true
+  }
+};
+
 const log = require('loglevel').getLogger('user/privileges/edit');
 const t = i18n.getFixedT(null, 'privileges');
 const c = i18n.getFixedT(null, 'connections');
@@ -38,14 +47,7 @@ const INITIAL_STATE = {
   permitsSelected: [],
   name: '',
   privilegeid: '',
-  formValidation: {
-    name: {
-      valid: true
-    },
-    privileges: {
-      valid: true
-    }
-  }
+  formValidation: _.cloneDeep(FORM_VALIDATION)
 };
 
 /**
@@ -127,14 +129,7 @@ class PrivilegeEdit extends Component {
       permitsSelected: [],
       name: '',
       privilegeid: '',
-      formValidation: {
-        name: {
-          valid: true
-        },
-        privileges: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**

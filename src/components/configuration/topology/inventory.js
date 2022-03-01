@@ -55,6 +55,45 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
+const FORM_VALIDATION = {
+  ip: {
+    valid: true,
+    msg: ''
+  },
+  mac: {
+    valid: true,
+    msg: ''
+  },
+  newOwnerName: {
+    valid: true,
+    msg: ''
+  },
+  newOwnerID: {
+    valid: true,
+    msg: ''
+  },
+  csvColumnsIp: {
+    valid: true
+  },
+  csvOwnerID: {
+    valid: true
+  },
+  csvOwnerName: {
+    valid: true
+  },
+  seatName: {
+    valid: true
+  },
+  hostName: {
+    valid: true
+  },
+  system: {
+    valid: true
+  },
+  deviceType: {
+    valid: true
+  }
+};
 
 let t = null;
 let f = null;
@@ -190,45 +229,7 @@ class NetworkInventory extends Component {
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'ownerId', 'ownerName', 'departmentName', 'remarks', 'errCode'],
       showLoadingIcon: false,
-      formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        mac: {
-          valid: true,
-          msg: ''
-        },
-        newOwnerName: {
-          valid: true,
-          msg: ''
-        },
-        newOwnerID: {
-          valid: true,
-          msg: ''
-        },
-        csvColumnsIp: {
-          valid: true
-        },
-        csvOwnerID: {
-          valid: true
-        },
-        csvOwnerName: {
-          valid: true
-        },
-        seatName: {
-          valid: true
-        },
-        hostName: {
-          valid: true
-        },
-        system: {
-          valid: true
-        },
-        deviceType: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -1988,45 +1989,7 @@ class NetworkInventory extends Component {
 
       this.setState({
         showAllSeats: false,
-        formValidation: {
-          ip: {
-            valid: true,
-            msg: ''
-          },
-          mac: {
-            valid: true,
-            msg: ''
-          },
-          newOwnerName: {
-            valid: true,
-            msg: ''
-          },
-          newOwnerID: {
-            valid: true,
-            msg: ''
-          },
-          csvColumnsIp: {
-            valid: true
-          },
-          csvOwnerID: {
-            valid: true
-          },
-          csvOwnerName: {
-            valid: true
-          },
-          seatName: {
-            valid: true
-          },
-          hostName: {
-            valid: true
-          },
-          system: {
-            valid: true
-          },
-          deviceType: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'showList') {
       tempActiveContent = 'tableList';
@@ -2616,45 +2579,7 @@ class NetworkInventory extends Component {
           departmentName: '',
           remarks: ''
         },
-        formValidation: {
-          ip: {
-            valid: true,
-            msg: ''
-          },
-          mac: {
-            valid: true,
-            msg: ''
-          },
-          newOwnerName: {
-            valid: true,
-            msg: ''
-          },
-          newOwnerID: {
-            valid: true,
-            msg: ''
-          },
-          csvColumnsIp: {
-            valid: true
-          },
-          csvOwnerID: {
-            valid: true
-          },
-          csvOwnerName: {
-            valid: true
-          },
-          seatName: {
-            valid: true
-          },
-          hostName: {
-            valid: true
-          },
-          system: {
-            valid: true
-          },
-          deviceType: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       }, () => {
         this.getDeviceData();
       });

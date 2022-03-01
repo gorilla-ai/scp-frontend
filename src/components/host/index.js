@@ -234,60 +234,11 @@ const MAPS_PRIVATE_DATA = {
   deviceSeatData: {}
 };
 const NOT_AVAILABLE = 'N/A';
-const LA_DATA = [
-  {
-    "id": "9f4dfd0a-5130-4b2b-aa58-2b40bcaff8fe",
-    "taskName": "scanFile",
-    "primaryKeyName": "_MD5",
-    "primaryKeyValue": "71421d87b26d5ffe70f6b671afd81fcb",
-    "hostIdArraySize": 35,
-    "createDttm": 1645596854000,
-    "startDttm": 1645545600000,
-    "endDttm": 1645596627000,
-    "hitCVE": false,
-    "startTimeString": "2022-02-22T16:00:00Z",
-    "srcIP": "71421d87b26d5ffe70f6b671afd81fcb",
-    "dstIP": "10.1.80.10",
-    "message": "Unit: 1 Slot: 0 Port: 1 10G - Level",
-    "__data_source": "chewbacca",
-    "__data_type": "log",
-    "__index_name": "chewbacca-log-2020.11.25"
-  }, {
-    "id": "75b25d5a-59ab-438f-ad0b-3b5107853711",
-    "taskName": "scanFile",
-    "primaryKeyName": "_MD5",
-    "primaryKeyValue": "71421d87b26d5ffe70f6b671afd81fcb",
-    "hostIdArraySize": 35,
-    "createDttm": 1645596854000,
-    "startDttm": 1645545600000,
-    "endDttm": 1645596627000,
-    "hitCVE": false,
-    "startTimeString": "2022-02-22T16:00:00Z",
-    "srcIP": "71421d87b26d5ffe70f6b671afd81fcb",
-    "dstIP": "10.1.80.16",
-    "message": "Unit: 1 Slot: 0 Port: 1 10G - Level",
-    "__data_source": "chewbacca",
-    "__data_type": "log",
-    "__index_name": "chewbacca-log-2020.11.25"
-  }, {
-    "id": "bee7a6d6-ee5b-42d3-bf83-2537124a5812",
-    "taskName": "scanFile",
-    "primaryKeyName": "_MD5",
-    "primaryKeyValue": "71421d87b26d5ffe70f6b671afd81fcb",
-    "hostIdArraySize": 35,
-    "createDttm": 1645596854000,
-    "startDttm": 1645545600000,
-    "endDttm": 1645596627000,
-    "hitCVE": false,
-    "startTimeString": "2022-02-22T16:00:00Z",
-    "srcIP": "71421d87b26d5ffe70f6b671afd81fcb",
-    "dstIP": "10.1.80.20",
-    "message": "Unit: 1 Slot: 0 Port: 1 10G - Level",
-    "__data_source": "chewbacca",
-    "__data_type": "log",
-    "__index_name": "chewbacca-log-2020.11.25"
+const FORM_VALIDATION = {
+  frMotp: {
+    valid: true
   }
-];
+};
 
 let t = null;
 let f = null;
@@ -495,11 +446,7 @@ class HostController extends Component {
       patchInfo: {},
       patchSelectedItem: [],
       vansPatchFrom: '', //'new' or 'exist'
-      formValidation: {
-        frMotp: {
-          valid: true
-        }
-      },
+      formValidation: _.cloneDeep(FORM_VALIDATION),
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 

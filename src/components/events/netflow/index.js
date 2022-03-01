@@ -44,10 +44,6 @@ import Http from './tabs/http'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-
 const ALL_TAB_DATA = {
   connections: 'Connections',
   dns: 'DNS',
@@ -58,6 +54,15 @@ const ALL_TAB_DATA = {
   cert: 'Certification',
   ftp: 'FTP'
 };
+const FORM_VALIDATION = {
+  memo: {
+    valid: true
+  }
+};
+
+let t = null;
+let f = null;
+let et = null;
 
 /**
  * Events Netflow
@@ -226,11 +231,7 @@ class Netflow extends Component {
       currentLength: '',
       currentTableID: '',
       loadNetflowData: true,
-      formValidation: {
-        memo: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
@@ -1880,11 +1881,7 @@ class Netflow extends Component {
       saveQueryOpen: false,
       taggingOpen: false,
       pcapOpen: false,
-      formValidation: {
-        memo: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     }, () => {
       this.clearTagData();
       this.clearPcapData();

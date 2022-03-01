@@ -29,6 +29,14 @@ import IpRange from './ip-range'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const FORM_VALIDATION = {
+  ip: {
+    valid: true
+  },
+  port: {
+    valid: true
+  }
+};
 
 let t = null;
 let et = null;
@@ -92,14 +100,7 @@ class AutoSettings extends Component {
       }],
       topoTriggerStatus: '',
       networkTestResult: [],
-      formValidation: {
-        ip: {
-          valid: true
-        },
-        port: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -572,14 +573,7 @@ class AutoSettings extends Component {
         adData: _.cloneDeep(originalADdata),
         netflowData: _.cloneDeep(originalNetflowData),
         edgeData: _.cloneDeep(originalEdgeData),
-        formValidation: {
-          ip: {
-            valid: true
-          },
-          port: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

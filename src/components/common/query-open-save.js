@@ -22,11 +22,6 @@ import Switch from "@material-ui/core/Switch";
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-let it = null;
-
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -36,6 +31,25 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
+const FORM_VALIDATION = {
+  queryName: {
+    valid: true,
+    msg: ''
+  },
+  title: {
+    valid: true,
+    msg: ''
+  },
+  eventDescription: {
+    valid: true,
+    msg: ''
+  }
+};
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
 
 /**
  * Query open/save
@@ -75,20 +89,7 @@ class QueryOpenSave extends Component {
       socTemplateEnable: false,
       dialogOpenType: '',
       info: '',
-      formValidation: {
-        queryName: {
-          valid: true,
-          msg: ''
-        },
-        title: {
-          valid: true,
-          msg: ''
-        },
-        eventDescription: {
-          valid: true,
-          msg: ''
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     it = global.chewbaccaI18n.getFixedT(null, "incident");

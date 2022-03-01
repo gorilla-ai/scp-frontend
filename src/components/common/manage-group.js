@@ -13,6 +13,12 @@ import InputPath from './input-path'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  }
+};
+
 let t = null;
 
 /**
@@ -32,11 +38,7 @@ class ManageGroup extends Component {
       formattedGroupList: [],
       groupName: '',
       info: '',
-      formValidation: {
-        name: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -143,11 +145,7 @@ class ManageGroup extends Component {
     if (!openAddGroup) {
       this.setState({
         groupName: '',
-        formValidation: {
-          name: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

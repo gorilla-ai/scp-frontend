@@ -13,6 +13,12 @@ import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  }
+};
+
 const log = require('loglevel').getLogger('privileges')
 const t = i18n.getFixedT(null, 'privileges');
 const c = i18n.getFixedT(null, 'connections');
@@ -24,11 +30,7 @@ const INITIAL_STATE = {
   info: null,
   error: false,
   name: '',
-  formValidation: {
-    name: {
-      valid: true
-    }
-  }
+  formValidation: _.cloneDeep(FORM_VALIDATION)
 };
 
 /**
@@ -62,11 +64,7 @@ class PrivilegeAdd extends Component {
       info: null,
       error: false,
       name: '',
-      formValidation: {
-        name: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**

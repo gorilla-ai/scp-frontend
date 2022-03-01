@@ -22,6 +22,15 @@ import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  ownerName: {
+    valid: true
+  },
+  ownerID: {
+    valid: true
+  }
+};
+
 let t = null;
 let et = null;
 
@@ -68,14 +77,7 @@ class NetworkOwner extends Component {
       error: false,
       info: '',
       previewOwnerPic: '',
-      formValidation: {
-        ownerName: {
-          valid: true
-        },
-        ownerID: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -521,14 +523,7 @@ class NetworkOwner extends Component {
       tempOwner.removePhoto = false;
     } else if (type === 'tableList') {
       this.setState({
-        formValidation: {
-          ownerName: {
-            valid: true
-          },
-          ownerID: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

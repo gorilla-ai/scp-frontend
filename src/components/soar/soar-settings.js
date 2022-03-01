@@ -27,6 +27,27 @@ const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".
 const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const REQUEST_TYPE = ['GET', 'POST', 'DELETE', 'PATCH'];
+const FORM_VALIDATION = {
+  ip: {
+    valid: true,
+    msg: ''
+  },
+  email: {
+    smtpServer: {
+      valid: true
+    },
+    sender: {
+      valid: true,
+      msg: ''
+    },
+    senderAccount: {
+      valid: true
+    },
+    senderPassword: {
+      valid: true
+    }
+  }
+};
 
 let t = null;
 let et = null;
@@ -96,27 +117,7 @@ class SoarSettings extends Component {
           url: ''
         }
       },
-      formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        email: {
-          smtpServer: {
-            valid: true
-          },
-          sender: {
-            valid: true,
-            msg: ''
-          },
-          senderAccount: {
-            valid: true
-          },
-          senderPassword: {
-            valid: true
-          }
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -322,27 +323,7 @@ class SoarSettings extends Component {
         soarIP: _.cloneDeep(originalSoarIP),
         soarAdapter: _.cloneDeep(originalSoarAdapter),
         soarAction: _.cloneDeep(originalSoarAction),
-        formValidation: {
-          ip: {
-            valid: true,
-            msg: ''
-          },
-          email: {
-            smtpServer: {
-              valid: true
-            },
-            sender: {
-              valid: true,
-              msg: ''
-            },
-            senderAccount: {
-              valid: true
-            },
-            senderPassword: {
-              valid: true
-            }
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

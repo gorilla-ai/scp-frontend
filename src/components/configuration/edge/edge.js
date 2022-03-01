@@ -45,6 +45,17 @@ const SERVICE_TYPE_LIST = {
   'IDS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
   'IPS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt']
 };
+const FORM_VALIDATION = {
+  edgeName: {
+    valid: true
+  },
+  longitude: {
+    valid: true
+  },
+  latitude: {
+    valid: true
+  }
+};
 
 let t = null;
 let f = null;
@@ -98,17 +109,7 @@ class Edge extends Component {
         mapDataArr: [],
         edgeDataArr: []
       },
-      formValidation: {
-        edgeName: {
-          valid: true
-        },
-        longitude: {
-          valid: true
-        },
-        latitude: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
@@ -705,17 +706,7 @@ class Edge extends Component {
       tempEdge = _.cloneDeep(originalEdgeData);
 
       this.setState({
-        formValidation: {
-          edgeName: {
-            valid: true
-          },
-          longitude: {
-            valid: true
-          },
-          latitude: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

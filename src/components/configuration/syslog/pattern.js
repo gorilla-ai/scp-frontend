@@ -20,10 +20,6 @@ import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -33,6 +29,21 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  },
+  queryScript: {
+    valid: true
+  },
+  threshold: {
+    valid: true
+  }
+};
+
+let t = null;
+let f = null;
+let et = null;
 
 /**
  * Pattern
@@ -81,17 +92,7 @@ class Pattern extends Component {
           queryScript: '',
         }
       },
-      formValidation: {
-        name: {
-          valid: true
-        },
-        queryScript: {
-          valid: true
-        },
-        threshold: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
@@ -254,17 +255,7 @@ class Pattern extends Component {
       tempPattern = _.cloneDeep(originalPatternData);
 
       this.setState({
-        formValidation: {
-          name: {
-            valid: true
-          },
-          queryScript: {
-            valid: true
-          },
-          threshold: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 

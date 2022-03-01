@@ -86,6 +86,13 @@ const SETTINGS = {
   procWhiteList: 'setProcessWhiteList'
 };
 const EDR_BUTTON_LIST = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd'];
+const FORM_VALIDATION = {
+  fileIntegrity: {
+    includePath: {
+      valid: true
+    }
+  }
+};
 let scrollCount = 1;
 
 let t = null;
@@ -153,13 +160,7 @@ class HMDscanInfo extends Component {
         netcut: false,
         netcutResume: false
       },
-      formValidation: {
-        fileIntegrity: {
-          includePath: {
-            valid: true
-          }
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -2104,13 +2105,7 @@ class HMDscanInfo extends Component {
 
       this.setState({
         settingsPath: _.cloneDeep(originalSettingsPathData),
-        formValidation: {
-          fileIntegrity: {
-            includePath: {
-              valid: true
-            }
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 
@@ -2370,13 +2365,7 @@ class HMDscanInfo extends Component {
                 }]
               }
             },
-            formValidation: {
-              fileIntegrity: {
-                includePath: {
-                  valid: true
-                }
-              }
-            }
+            formValidation: _.cloneDeep(FORM_VALIDATION)
           });
         }
       }

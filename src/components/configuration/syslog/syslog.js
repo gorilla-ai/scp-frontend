@@ -60,6 +60,14 @@ const INIT_CONFIG = {
     rawOptions: []
   }]
 };
+const FORM_VALIDATION = {
+  editHostsHost: {
+    valid: true
+  },
+  sshAccountName: {
+    valid: true
+  }
+};
 
 let a = null;
 let t = null;
@@ -183,14 +191,7 @@ class Syslog extends Component {
         index: '',
         data: {}
       },
-      formValidation: {
-        editHostsHost: {
-          valid: true
-        },
-        sshAccountName: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     a = global.chewbaccaI18n.getFixedT(null, 'accounts');
@@ -627,14 +628,7 @@ class Syslog extends Component {
     this.setState({
       sshAccountName: '',
       showAddSshAccount: false,
-      formValidation: {
-        editHostsHost: {
-          valid: true
-        },
-        sshAccountName: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**
@@ -679,14 +673,7 @@ class Syslog extends Component {
       this.resetConfigValue();
 
       this.setState({
-        formValidation: {
-          editHostsHost: {
-            valid: true
-          },
-          sshAccountName: {
-            valid: true
-          }
-        }
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 
@@ -2298,14 +2285,7 @@ class Syslog extends Component {
   closeEditHosts = () => {
     this.setState({
       openEditHosts: false,
-      formValidation: {
-        editHostsHost: {
-          valid: true
-        },
-        sshAccountName: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**

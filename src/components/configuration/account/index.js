@@ -22,6 +22,12 @@ import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  password: {
+    valid: true
+  }
+};
+
 const log = require('loglevel').getLogger('user/accounts')
 const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
@@ -66,11 +72,7 @@ class AccountList extends Component {
       showNewPassword: false,
       newPassword: '',
       info: '',
-      formValidation: {
-        password: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
@@ -520,11 +522,7 @@ class AccountList extends Component {
       showNewPassword: false,
       newPassword: '',
       info: '',
-      formValidation: {
-        password: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**

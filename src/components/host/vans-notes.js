@@ -32,6 +32,11 @@ const MODULE_TYPE = {
   getVansCpe: 'cpe',
   getVansCve: 'cve'
 };
+const FORM_VALIDATION = {
+  status: {
+    valid: true
+  }
+};
 
 let t = null;
 let f = null;
@@ -57,11 +62,7 @@ class VansNotes extends Component {
         color: ''
       },
       showColorPalette: false,
-      formValidation: {
-        status: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -201,11 +202,7 @@ class VansNotes extends Component {
     this.setState({
       statusType: event.target.value,
       vansNotes: tempVansNotes,
-      formValidation: {
-        status: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**

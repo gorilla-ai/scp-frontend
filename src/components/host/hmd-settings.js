@@ -83,6 +83,21 @@ const PRODUCT_REGEX = [
     label: 'Other'
   }
 ];
+const FORM_VALIDATION = {
+  ip: {
+    valid: true,
+    msg: ''
+  },
+  url: {
+    valid: true
+  },
+  account: {
+    valid: true
+  },
+  password: {
+    valid: true
+  }
+};
 
 let t = null;
 let et = null;
@@ -205,21 +220,7 @@ class HMDsettings extends Component {
         nccst: false,
         security: false
       },
-      formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        url: {
-          valid: true
-        },
-        account: {
-          valid: true
-        },
-        password: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -1082,21 +1083,7 @@ class HMDsettings extends Component {
         nccst: false,
         security: false
       },
-      formValidation: {
-        ip: {
-          valid: true,
-          msg: ''
-        },
-        url: {
-          valid: true
-        },
-        account: {
-          valid: true
-        },
-        password: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   /**
@@ -1454,7 +1441,7 @@ class HMDsettings extends Component {
           }
 
           <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
-            <div className='form-group normal long'>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFiles})}>
               <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'editMode' && fieldEnable.scanFiles &&
@@ -1467,7 +1454,7 @@ class HMDsettings extends Component {
               {MALWARE_DETECTION.map(this.showMalwarePath)}
             </div>
 
-            <div className='form-group normal long'>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFilesLinux})}>
               <header>{t('hmd-scan.scan-list.txt-scanFileLinux')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'editMode' && fieldEnable.scanFilesLinux &&
@@ -1480,7 +1467,7 @@ class HMDsettings extends Component {
               {MALWARE_DETECTION.map(this.showMalwarePathLinux)}
             </div>
 
-            <div className='form-group normal long'>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.gcb})}>
               <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'viewMode' &&
@@ -1516,7 +1503,7 @@ class HMDsettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal long'>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.processMonitor})}>
               <header>{t('hmd-scan.scan-list.txt-procMonitor')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'viewMode' &&
@@ -1538,7 +1525,7 @@ class HMDsettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal long'>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.ftpUpload})}>
               <header>{t('hmd-scan.scan-list.txt-ftpUpload')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'viewMode' &&
@@ -1638,7 +1625,7 @@ class HMDsettings extends Component {
               }
             </div>
 
-            <div className='form-group normal'>
+            <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.vansSoftware})}>
               <header>{t('network-inventory.txt-VansProductRegex')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'viewMode' &&
@@ -1701,7 +1688,7 @@ class HMDsettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal'>
+            <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.frMotp})}>
               <header>FR-MOTP</header>
               <div className='header-btn-group'>
                 {(activeContent === 'viewMode' || (activeContent === 'editMode' && fieldEnable.frMotp)) &&
@@ -1748,7 +1735,7 @@ class HMDsettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal'>
+            <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.nccst})}>
               <header>{t('network-inventory.txt-reportNCCST')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'viewMode' &&
@@ -1805,7 +1792,7 @@ class HMDsettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal long'>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.security})}>
               <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
               <div className='header-btn-group'>
                 {activeContent === 'viewMode' &&

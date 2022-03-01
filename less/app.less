@@ -2615,6 +2615,18 @@ button.standard:hover:not([disabled]) {
             input[name='file'] {
               width: 95%;
             }
+            &.disabled-status {
+              color: var(--disabledColor);
+              header,
+              input,
+              .MuiFormLabel-root.Mui-disabled,
+              .MuiSvgIcon-root {
+                color: var(--disabledColor);
+              }
+              .flex-item span {
+                background-color: var(--disabledColor) !important;
+              }
+            }
             &.sms-provider {
               margin-top: 10px;
               margin-bottom: 0;

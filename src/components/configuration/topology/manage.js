@@ -24,6 +24,12 @@ import helper from '../../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import SortableTree from "react-sortable-tree";
 
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  }
+};
+
 let t = null;
 let et = null;
 
@@ -61,11 +67,7 @@ class Manage extends Component {
       tableArr: ['nameUUID', 'name', 'option'],
       nameUUID: '',
       info: '',
-      formValidation: {
-        name: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -889,11 +891,7 @@ class Manage extends Component {
     this.setState({
       openName: false,
       info: '',
-      formValidation: {
-        name: {
-          valid: true
-        }
-      }
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   render() {

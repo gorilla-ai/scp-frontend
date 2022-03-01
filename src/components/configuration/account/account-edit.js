@@ -23,6 +23,33 @@ import helper from '../../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const EMAIL_PATTERN = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const FORM_VALIDATION = {
+  account: {
+    valid: true
+  },
+  name: {
+    valid: true
+  },
+  email: {
+    valid: true,
+    msg: ''
+  },
+  owner: {
+    valid: true
+  },
+  unit: {
+    valid: true
+  },
+  title: {
+    valid: true
+  },
+  phone: {
+    valid: true
+  },
+  privileges: {
+    valid: true
+  }
+};
 
 const log = require('loglevel').getLogger('accounts/account-edit')
 const t = i18n.getFixedT(null, 'accounts');
@@ -51,33 +78,7 @@ const INITIAL_STATE = {
   showPrivileges: true,
   selectedPrivileges: [],
   selectedOwner: {},
-  formValidation: {
-    account: {
-      valid: true
-    },
-    name: {
-      valid: true
-    },
-    email: {
-      valid: true,
-      msg: ''
-    },
-    owner: {
-      valid: true
-    },
-    unit: {
-      valid: true
-    },
-    title: {
-      valid: true
-    },
-    phone: {
-      valid: true
-    },
-    privileges: {
-      valid: true
-    }
-  }
+  formValidation: _.cloneDeep(FORM_VALIDATION)
 };
 
 /**
