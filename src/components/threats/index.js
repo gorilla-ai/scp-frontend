@@ -204,6 +204,7 @@ class ThreatsController extends Component {
           data: {}
         }
       },
+      edgeData: [],
       //Tab IncidentDevice
       subTabMenu: {
         table: t('alert.txt-alertList'),
@@ -575,8 +576,21 @@ class ThreatsController extends Component {
         tempTreeData.edge.rawData = data[EDGES_API.name];
         tempTreeData.edge.data = this.getEdgesTreeData(data[EDGES_API.name]);
 
+        const edgeList = data[EDGES_API.name].agg.buckets;
+        let edgeData = [];
+
+        if (edgeList.length > 0) {
+          edgeData = _.map(edgeList, val => {
+            return {
+              agentName: val.agentName,
+              agentId: val.agentId
+            };
+          });
+        }
+
         this.setState({
-          treeData: tempTreeData
+          treeData: tempTreeData,
+          edgeData
         });
       }
       return null;
@@ -1629,7 +1643,7 @@ class ThreatsController extends Component {
    * @param {object} event - event object
    */
   handleOpenQueryMenu = (field, value, event) => {
-    const keyField = ['srcIp', 'srcPort', 'destIp', 'destPort'];
+    const keyField = ['srcIp', 'srcPort', 'destIp', 'destPort', 'Source'];
 
     if (_.includes(keyField, field)) {
       value = field + ': ' +  value;
@@ -1704,7 +1718,6 @@ class ThreatsController extends Component {
       alertPieData,
       alertTableData
     } = this.state;
-
     const page = (fromPage === 'currentPage' || this.state.tableType === 'select') ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
@@ -1833,7 +1846,7 @@ class ThreatsController extends Component {
                     )
                   }
 
-                  if (val === 'Info' || val === 'Source') {
+                  if (val === 'Info') {
                     return <span onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
                   } else {
                     if (val === '_eventDttm_') {
@@ -2034,7 +2047,7 @@ class ThreatsController extends Component {
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
-    const {datetime, threatsData, filterData, edgeFilterData} = this.state;
+    const {datetime, edgeData, threatsData, filterData, edgeFilterData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -2046,7 +2059,29 @@ class ThreatsController extends Component {
     if (options === 'tree') {
       dataObj.search = [PRIVATE_API.name, PUBLIC_API.name];
     } else {
-      const filterDataArr = helper.buildFilterDataArray(filterData); //Remove empty filter array
+      let formattedFilterData = [];
+
+      _.forEach(filterData, val => {
+        let formattedQuery = val.query;
+
+        if (val.query.includes('Source')) {
+          formattedQuery = val.query.replace('Source: ', '');
+          formattedQuery = formattedQuery.substring(0, formattedQuery.lastIndexOf('('));
+
+          _.forEach(edgeData, val => {
+            if (val.agentName === formattedQuery) {
+              formattedQuery = '_edgeId: "' + val.agentId + '"'
+            }
+          })
+        }
+
+        formattedFilterData.push({
+          condition: val.condition,
+          query: formattedQuery
+        });
+      })
+
+      const filterDataArr = helper.buildFilterDataArray(formattedFilterData); //Remove empty filter array
       const combinedFilterDataArr = _.concat(filterDataArr, edgeFilterData);
 
       if (combinedFilterDataArr.length > 0) {
