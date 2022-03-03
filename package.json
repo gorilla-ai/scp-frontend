@@ -47,7 +47,7 @@
     "errorhandler": "^1.5.0",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
-    "font-gorilla": "git+ssh://git@git.gorilla-technology.com:scrd01/font-gorilla.git",
+    "font-gorilla": "^1.2.2",
     "formidable": "^1.2.1",
     "graceful-fs": "^4.2.6",
     "gui": "git+ssh://git@git.gorilla-technology.com:gorilla/f2e/gui.git",
