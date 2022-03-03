@@ -922,6 +922,7 @@
     "txt-taskStatusCode-22002": "執行失敗",
     "txt-taskStatusCode-22003": "檢查登錄失敗",
     "txt-hmdImportExport": "HMD匯出/匯入",
+    "txt-scannerSchedule": "掃描排程",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware - Windows",

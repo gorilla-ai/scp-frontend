@@ -922,6 +922,7 @@
     "txt-taskStatusCode-22002": "Execution aberrant",
     "txt-taskStatusCode-22003": "Registry aberrant",
     "txt-hmdImportExport": "HMD Import/Export",
+    "txt-scannerSchedule": "Scanner Schedule",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware - Windows",

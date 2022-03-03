@@ -6,7 +6,7 @@ import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardTimePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -163,7 +163,7 @@ class HMDsettings extends Component {
       originalFtpAccount: '',
       ftpAccount: '',
       ftpPassword: '',
-      originalProductRegex: '',
+      originalProductRegex: [],
       productRegexData: [{
         regexp: '',
         part: '',
@@ -178,7 +178,7 @@ class HMDsettings extends Component {
         target_hw: '',
         other: ''
       }],
-      originalCpeData: '',
+      originalCpeData: [],
       cpeData: [{
         header: '',
         validate: true,
@@ -194,7 +194,7 @@ class HMDsettings extends Component {
       cpe23Uri: '',
       cpeConvertResult: '',
       connectionsStatus: '',
-      originaFrMotpSettings: '',
+      originalFrMotpSettings: '',
       frMotp: {
         enable: true,
         ip: '',
@@ -207,6 +207,8 @@ class HMDsettings extends Component {
         apiKey: '',
         apiUrl: ''
       },
+      originalScannerSchedule: '',
+      scannerSchedule: '',
       hmdFile: '',
       activeSettings: '',
       fieldEnable: {
@@ -218,7 +220,8 @@ class HMDsettings extends Component {
         vansSoftware: false,
         frMotp: false,
         nccst: false,
-        security: false
+        security: false,
+        scannerSchedule: false
       },
       formValidation: _.cloneDeep(FORM_VALIDATION)
     };
@@ -245,7 +248,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp'];
+    const scanType = ['hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp', 'hmd.scanner.schedule'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -441,9 +444,13 @@ class HMDsettings extends Component {
           enable: parsedFrMotpData.enable
         };
 
+        const scannerSchedule = moment(data[19].value).local().format('YYYY-MM-DDTHH:mm:ss')
+
         this.setState({
-          originaFrMotpSettings: _.cloneDeep(frMotp),
-          frMotp
+          originalFrMotpSettings: _.cloneDeep(frMotp),
+          frMotp,
+          originalScannerSchedule: scannerSchedule,
+          scannerSchedule
         });
       }
       return null;
@@ -493,8 +500,9 @@ class HMDsettings extends Component {
       originalFtpAccount,
       originalProductRegex,
       originalCpeData,
-      originaFrMotpSettings,
+      originalFrMotpSettings,
       originalNccstSettings,
+      originalScannerSchedule,
       fieldEnable
     } = this.state;
     let showPage = type;
@@ -523,8 +531,9 @@ class HMDsettings extends Component {
         ftpAccount: _.cloneDeep(originalFtpAccount),
         productRegexData: _.cloneDeep(originalProductRegex),
         cpeData: _.cloneDeep(originalCpeData),
-        frMotp: _.cloneDeep(originaFrMotpSettings),
-        nccstSettings: _.cloneDeep(originalNccstSettings)
+        frMotp: _.cloneDeep(originalFrMotpSettings),
+        nccstSettings: _.cloneDeep(originalNccstSettings),
+        scannerSchedule: _.cloneDeep(originalScannerSchedule)
       });
 
       this.clearData();
@@ -660,7 +669,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, activeSettings, fieldEnable, formValidation} = this.state;
+    const {scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, scannerSchedule, activeSettings, fieldEnable, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -1022,6 +1031,11 @@ class HMDsettings extends Component {
           value: JSON.stringify(parsedCpeData)
         };
       }
+    } else if (activeSettings === 'scannerSchedule') {
+      requestData = {
+        configId: 'hmd.scanner.schedule',
+        value: moment(scannerSchedule).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
     }
 
     this.ah.one({
@@ -1310,6 +1324,16 @@ class HMDsettings extends Component {
     });
   }
   /**
+   * Set new time
+   * @method
+   * @param {object} newTime - new datetime object
+   */
+  handleScannerTimeChange = (newTime) => {
+    this.setState({
+      scannerSchedule: newTime
+    });
+  }
+  /**
    * Handle HMD upload input value change
    * @method
    * @param {object} value - input data to be set
@@ -1397,6 +1421,7 @@ class HMDsettings extends Component {
       connectionsStatus,
       frMotp,
       nccstSettings,
+      scannerSchedule,
       cpeData,
       fieldEnable,
       formValidation
@@ -1522,6 +1547,30 @@ class HMDsettings extends Component {
                   value={pmInterval}
                   onChange={this.handleDataChange}
                   disabled={!fieldEnable.processMonitor} />
+              </div>
+            </div>
+
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scannerSchedule})}>
+              <header>{t('hmd-scan.txt-scannerSchedule')}</header>
+              <div className='header-btn-group'>
+                {activeContent === 'viewMode' &&
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scannerSchedule')}>{t('txt-edit')}</Button>
+                }
+              </div>
+              <div className='sub-section'>
+                <div className='time-picker'>
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardTimePicker
+                      id='hmdSettingsTimePicker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      ampm={false}
+                      value={scannerSchedule}
+                      onChange={this.handleScannerTimeChange}
+                      disabled={!fieldEnable.scannerSchedule} />
+                  </MuiPickersUtilsProvider>
+                </div>
               </div>
             </div>
 
@@ -1823,7 +1872,7 @@ class HMDsettings extends Component {
               <header>{t('hmd-scan.txt-hmdImportExport')}</header>
               <div className='header-btn-group'>
               </div>
-              <div className='sub-section'>
+              <div className='sub-section space'>
                 <div className='import-header'>{t('txt-export')}</div>
                 <div className='date-picker'>
                   <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
@@ -1864,7 +1913,7 @@ class HMDsettings extends Component {
                   fileType='zip'
                   btnText={t('txt-selectFile')}
                   handleFileChange={this.handleFileChange} />
-                <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport}>{t('txt-import')}</Button>  
+                <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport}>{t('txt-import')}</Button>
               </div>
             </div>
           </div>

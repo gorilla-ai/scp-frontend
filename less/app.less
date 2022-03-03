@@ -701,7 +701,8 @@ button.standard:hover:not([disabled]) {
     padding: 0px 2px 5px 5px;
   }
   .date-time-picker,
-  .date-picker {
+  .date-picker,
+  .time-picker {
     float: left;
     margin-right: 10px;
     input {
@@ -727,7 +728,8 @@ button.standard:hover:not([disabled]) {
   .date-time-picker input {
     width: 125px !important;
   }
-  .date-picker input {
+  .date-picker input,
+  .time-picker input {
     width: 85px !important;
   }
   .between {
@@ -3893,13 +3895,18 @@ button.standard:hover:not([disabled]) {
           }
           .sub-section {
             width: 100%;
-            margin-bottom: 15px;
+            &.space {
+              margin-bottom: 15px;
+            }
             .import-header {
               text-align: left;
               margin-bottom: 10px;
             }
             .date-picker {
               margin-right: 0;
+            }
+            .time-picker {
+              margin-right: 10px;
             }
             #importHmd {
               float: left;
