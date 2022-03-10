@@ -1203,7 +1203,7 @@
     "netproxyIp": "NetProxy IP",
     "netproxyName": "NetProxy Name",
     "latestTime": "Last Scan",
-    "theLatestTaskResponseDttm": "Latest Task Response Time"
+    "theLatestTaskResponseDttmArray": "Latest Task Response Time"
   },
   "syslogFields": {
     "port": "Received Port",
