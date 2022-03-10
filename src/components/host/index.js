@@ -59,7 +59,7 @@ import YaraRule from '../common/yara-rule'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttm'];
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttmArray'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -172,11 +172,11 @@ const HOST_SORT_LIST = [
     sort: 'desc'
   },
   {
-    name: 'theLatestTaskResponseDttm',
+    name: 'theLatestTaskResponseDttmArray',
     sort: 'asc'
   },
   {
-    name: 'theLatestTaskResponseDttm',
+    name: 'theLatestTaskResponseDttmArray',
     sort: 'desc'
   }
 ];
@@ -358,7 +358,7 @@ class HostController extends Component {
         annotation: [{
           input: ''
         }],
-        theLatestTaskResponseDttm: {
+        theLatestTaskResponseDttmArray: {
           from: '',
           to: ''
         },
@@ -382,7 +382,7 @@ class HostController extends Component {
         scanInfo: [],
         status: [],
         annotation: [],
-        theLatestTaskResponseDttm: {},
+        theLatestTaskResponseDttmArray: {},
         userName: [],
         groups: [],
         version: []
@@ -1325,8 +1325,8 @@ class HostController extends Component {
       };
     }
 
-    if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
-      requestData.theLatestTaskResponseDttm = this.getFormattedTimeRange();
+    if (deviceSearch.theLatestTaskResponseDttmArray.from && deviceSearch.theLatestTaskResponseDttmArray.to) {
+      requestData.theLatestTaskResponseDttmArray = this.getFormattedTimeRange();
     }
 
     if (deviceSearchList.userName.length > 0) {
@@ -2177,8 +2177,8 @@ class HostController extends Component {
     const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
     const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
     const searchDatetime = {
-      from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.from, 'local'), //Format: '2022-01-03 00:45:33'
-      to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttm.to, 'local')
+      from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttmArray.from, 'local'), //Format: '2022-01-03 00:45:33'
+      to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttmArray.to, 'local')
     };
     const formattedSearchDatetime = {
       from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
@@ -2205,7 +2205,7 @@ class HostController extends Component {
     const {activeTab, datetime, deviceSearch, hostInfo, safetyScanData} = this.state;
 
     if (activeTab === 'hostList') {
-      if (deviceSearch.theLatestTaskResponseDttm.from && deviceSearch.theLatestTaskResponseDttm.to) {
+      if (deviceSearch.theLatestTaskResponseDttmArray.from && deviceSearch.theLatestTaskResponseDttmArray.to) {
         const validateTime = this.getFormattedTimeRange('validate');
 
         if (!validateTime) return;
@@ -2383,7 +2383,7 @@ class HostController extends Component {
    */
   setTimePickerChange = (type, newDatetime) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch.theLatestTaskResponseDttm[type] = newDatetime;
+    tempDeviceSearch.theLatestTaskResponseDttmArray[type] = newDatetime;
 
     this.setState({
       deviceSearch: tempDeviceSearch
@@ -2402,13 +2402,13 @@ class HostController extends Component {
 
     if (!deviceSearchList[val]) return;
 
-    if (val === 'theLatestTaskResponseDttm') {
-      if (deviceSearch.theLatestTaskResponseDttm.from) {
-        value = moment(deviceSearch.theLatestTaskResponseDttm.from).local().format('HH:mm')  + ' ~ ';
+    if (val === 'theLatestTaskResponseDttmArray') {
+      if (deviceSearch.theLatestTaskResponseDttmArray.from) {
+        value = moment(deviceSearch.theLatestTaskResponseDttmArray.from).local().format('HH:mm')  + ' ~ ';
       }
 
-      if (deviceSearch.theLatestTaskResponseDttm.to) {
-        value += moment(deviceSearch.theLatestTaskResponseDttm.to).local().format('HH:mm');
+      if (deviceSearch.theLatestTaskResponseDttmArray.to) {
+        value += moment(deviceSearch.theLatestTaskResponseDttmArray.to).local().format('HH:mm');
       }
     } else {
       value = deviceSearchList[val].join(', ');
@@ -2527,7 +2527,7 @@ class HostController extends Component {
               horizontal: 'left',
             }}>
             <div className='content'>
-              {activeFilter === 'theLatestTaskResponseDttm' &&
+              {activeFilter === 'theLatestTaskResponseDttmArray' &&
                 <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                   <KeyboardTimePicker
                     id='hostFilterTimePickerFrom'
@@ -2550,7 +2550,7 @@ class HostController extends Component {
                     onChange={this.setTimePickerChange.bind(this, 'to')} />
                 </MuiPickersUtilsProvider>
               }
-              {activeFilter !== 'theLatestTaskResponseDttm' &&
+              {activeFilter !== 'theLatestTaskResponseDttmArray' &&
                 <React.Fragment>
                   <MultiInput
                     base={HostFilter}
@@ -2611,7 +2611,7 @@ class HostController extends Component {
         annotation: [{
           input: ''
         }],
-        theLatestTaskResponseDttm: {
+        theLatestTaskResponseDttmArray: {
           from: '',
           to: ''
         },
@@ -2635,7 +2635,7 @@ class HostController extends Component {
         scanInfo: [],
         status: [],
         annotation: [],
-        theLatestTaskResponseDttm: {},
+        theLatestTaskResponseDttmArray: {},
         userName: [],
         groups: [],
         version: []
@@ -3130,7 +3130,7 @@ class HostController extends Component {
       },
       {
         name: 'latestTime',
-        path: 'theLatestTaskResponseDttm',
+        path: 'theLatestTaskResponseDttmArray',
         icon: 'clock'
       },
       {
