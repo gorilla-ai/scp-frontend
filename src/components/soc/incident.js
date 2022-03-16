@@ -944,11 +944,15 @@ class Incident extends Component {
                             const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
 
                             let formattedWording = ''
-                            if (target.fileMemo && target.fileMemo.length > 32) {
-                                formattedWording = target.fileMemo.substr(0, 32) + '...';
-                            }else{
-                                formattedWording = target.fileMemo
+
+                            if (target) {
+                                if (target.fileMemo && target.fileMemo.length > 32) {
+                                    formattedWording = target.fileMemo.substr(0, 32) + '...';
+                                }else{
+                                    formattedWording = target.fileMemo
+                                }
                             }
+
                             return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
                         }
                     }
