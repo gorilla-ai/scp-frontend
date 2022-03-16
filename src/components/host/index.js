@@ -4989,14 +4989,6 @@ class HostController extends Component {
                       onChange={this.handleHmdSearch} />
                     <Button variant='contained' color='primary' className='btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
-                    {safetyScanType === 'getVansCpe' &&
-                      <div className='safety-btns'>
-                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
-                        {safetyScanData.dataContent &&
-                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
-                        }
-                      </div>
-                    }
 
                     <div className='options-btns'>
                       <ToggleButtonGroup
@@ -5008,6 +5000,15 @@ class HostController extends Component {
                         <ToggleButton id='hmdSafetyLA' value='la'>{t('txt-linkAnalysis')}</ToggleButton>
                       </ToggleButtonGroup>
                     </div>
+
+                    {safetyScanType === 'getVansCpe' &&
+                      <div className='safety-btns'>
+                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
+                        {safetyScanData.dataContent &&
+                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
+                        }
+                      </div>
+                    }
 
                     {activeSafetyTab === 'list' &&
                       <div className='table-content'>
