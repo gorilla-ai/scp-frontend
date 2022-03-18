@@ -17,6 +17,26 @@ import SearchOptions from '../../common/search-options'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+import XLSX from 'xlsx'
+import { CSVLink, CSVDownload } from "react-csv";
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+
+const JSON_DATA = [
+  ["firstname", "lastname", "email", "column 4", "column 5"],
+  ["Ahmed", "Tomi", "ah@smthing.co.com"],
+  ["Raed", "Labes", "rl@smthing.co.com"],
+  ["Yezzi", "Min l3b", "ymin@cocococo.com"]
+];
+const JSON_DATA2 = {
+  head: [["firstname", "lastname", "email", "column 4", "column 5"]],
+  body: [
+    ["Ahmed", "Tomi", "ah@smthing.co.com"],
+    ["Raed", "Labes", "rl@smthing.co.com"],
+    ["Yezzi", "Min l3b", "ymin@cocococo.com"]
+  ]
+};
+
 let t = null;
 let f = null;
 
@@ -280,6 +300,18 @@ class AuditLog extends Component {
       }
     });
   }
+  generateXlsxFile = () => {
+    const fileName = 'ryan.xlsx';
+    const ws = XLSX.utils.json_to_sheet(JSON_DATA, {skipHeader: true});
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'output');
+    XLSX.writeFile(wb, fileName);
+  }
+  generatePdfFile = () => {
+    const doc = new jsPDF();
+    doc.autoTable(JSON_DATA2);
+    doc.save('table.pdf');
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, datetime, audit} = this.state;
@@ -319,6 +351,17 @@ class AuditLog extends Component {
 
             <div className='main-content'>
               <header className='main-header'>{t('txt-auditLog')}</header>
+
+              {/*<CSVLink
+                data={JSON_DATA}
+                filename={"my-file.csv"}>
+                Download me
+              </CSVLink>
+
+              <Button onClick={this.generateXlsxFile}>xlsx file</Button>
+
+              <Button onClick={this.generatePdfFile}>pdf file</Button>*/}
+
               <MuiTableContent
                 data={audit}
                 tableOptions={tableOptions} />
