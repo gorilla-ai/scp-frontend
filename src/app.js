@@ -1,6 +1,6 @@
 import React from 'react'
-import {render} from 'react-dom'
-import {BrowserRouter, Route, Switch} from 'react-router-dom'
+import { render } from 'react-dom'
+import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom'
 import { ThemeProvider } from '@material-ui/core/styles'
 import _ from 'lodash'
 
@@ -294,10 +294,24 @@ const incidentManagement = () => (
   </BaseDataContext.Provider>
 );
 
+const redirectStartPage = () => {
+  if (_.includes(session.rights, 'Module_Dashboard')) {
+    return '/SCP/dashboard/overview';
+  } else if (_.includes(session.rights, 'Module_Common')) {
+    return '/SCP/host';
+  } else if (_.includes(session.rights, 'Module_Soc')) {
+    return '/SCP/soc/incident-device';
+  } else if (_.includes(session.rights, 'Module_Config')) {
+    return '/SCP/soar';
+  } else if (_.includes(session.rights, 'Module_Account')) {
+    return '/SCP/account';
+  }
+}
+
 const Main = () => (
   <main className='main'>
     <Switch>
-      <Route exact path='/SCP' component={DashboardOverviewComp} />
+      <Route exact path='/SCP'><Redirect to={redirectStartPage()} /></Route>
       <Route exact path='/SCP/dashboard/overview' component={DashboardOverviewComp} />
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
       {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
@@ -353,9 +367,7 @@ const App = () => {
   if (session.accountId) {
     return (
       <ThemeProvider theme={createTheme(themeName)}>
-        <HeaderComp
-          themeName={themeName}
-          setThemeName={setThemeName} />
+        <HeaderComp themeName={themeName} setThemeName={setThemeName} />
         <Main />
         <footer className='footer'>{footerText}</footer>
       </ThemeProvider>

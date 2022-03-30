@@ -209,17 +209,13 @@ class Header extends Component {
   /**
    * Determine the active page
    * @method
-   * @param {string} tab - page sections ('dashboard', 'host', 'threats', 'events', 'soar', soc' and 'configuration')
+   * @param {string} tab - page sections ('dashboard', 'host', 'threats', 'events', soc', 'soar', 'configuration' and 'account')
    * @returns true/false boolean value
    */
   getActiveTab = (tab) => {
     const activeRoute = this.props.location.pathname;
-    const pattern = /^(\/SCP[\/]?)$/i;
     const pathArr = activeRoute.split('/');
 
-    if (activeRoute.match(pattern) && tab === 'dashboard') {
-      return true;
-    }
     return pathArr[2] === tab;
   }
   /**
@@ -588,7 +584,9 @@ class Header extends Component {
 
             <div>
               <div className='main-nav'>
-                <Link id='header-link-dashboard' to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+                {sessionRights.Module_Dashboard &&
+                  <Link id='header-link-dashboard' to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+                }
 
                 {(sessionRights.Module_Common || sessionRights.Module_Account) &&
                   <Link id='header-link-host' to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
