@@ -191,7 +191,7 @@ class SocConfig extends Component {
                     </div>
                     }
 
-                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer)|| _.includes(this.state.accountRoleType, constants.soc.SOC_Executor))  &&
+                    {accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor))  &&
                     <div className='subframe'>
                         <Link to='/SCP/soc/incident-Flow'>
                             <span

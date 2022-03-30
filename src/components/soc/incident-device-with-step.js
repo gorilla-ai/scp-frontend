@@ -728,7 +728,7 @@ class IncidentDeviceStep extends Component {
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
                                 }
 
-                                {insertCheck &&
+                                {insertCheck && accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor)) &&
                                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.getDeviceUsableList.bind(this, 'add')}>{t('txt-add')}</Button>
                                 }
 
