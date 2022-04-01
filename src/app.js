@@ -300,7 +300,7 @@ const redirectStartPage = () => {
   } else if (_.includes(session.rights, 'Module_Common')) {
     return '/SCP/host';
   } else if (_.includes(session.rights, 'Module_Soc')) {
-    return '/SCP/soc/incident-device';
+    return '/SCP/soc/incident';
   } else if (_.includes(session.rights, 'Module_Config')) {
     return '/SCP/soar';
   } else if (_.includes(session.rights, 'Module_Account')) {
