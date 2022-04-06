@@ -258,7 +258,7 @@ class HostController extends Component {
 
     this.state = {
       hmd_list: [],
-      activeTab: 'hostList', //'hostList',deviceMap', 'safetyScan' or 'vansCharts'
+      activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeSafetyTab: 'list', //'list' or 'la'
       activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
       account: {
