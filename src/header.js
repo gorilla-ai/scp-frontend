@@ -588,25 +588,25 @@ class Header extends Component {
                   <Link id='header-link-dashboard' to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
                 }
 
-                {(sessionRights.Module_Common || sessionRights.Module_Account) &&
+                {sessionRights.Module_Common &&
                   <Link id='header-link-host' to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
                 }
 
                 {/*<Link to='/SCP/dashboard/statisticsUIF' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>*/}
 
-                {(sessionRights.Module_Common || sessionRights.Module_Account) &&
+                {sessionRights.Module_Common &&
                   <Link id='header-link-threats' to='/SCP/threats' className={cx('item', {'active': this.getActiveTab('threats')})}>{t('txt-threats')}</Link>
                 }
-                {(sessionRights.Module_Common || sessionRights.Module_Account) &&
+                {sessionRights.Module_Common &&
                   <Link id='header-link-events' to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
                 {sessionRights.Module_Soc &&
                   <Link id='header-link-soc' to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
                 }
-                {sessionRights.Module_Config &&
+                {sessionRights.Module_Service &&
                   <Link id='header-link-soar' to='/SCP/soar' className={cx('item', {'active': this.getActiveTab('soar')})}>SOAR</Link>
                 }
-                {sessionRights.Module_Config &&
+                {(sessionRights.Module_Account || sessionRights.Module_Edge || sessionRights.Module_Service) &&
                   <Link id='header-link-config' to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
                 {sessionRights.Module_Account &&

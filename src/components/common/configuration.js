@@ -7,6 +7,7 @@ import _ from 'lodash'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
+import {BaseDataContext} from './context'
 import helper from './helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -114,28 +115,35 @@ class Config extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   render() {
+    const {sessionRights} = this.context;
     const {showContent, openEdgeManagement, openTopology, openSyslog, openAccount, selected} = this.state;
 
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>
-        <div className='item frame notifications'>
-          <Link id='config-link-notify' to={{pathname: '/SCP/configuration/notifications', state: 'viewMode'}}>
-            <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
-          </Link>
-        </div>
+        {sessionRights.Module_Service &&
+          <div className='item frame notifications'>
+            <Link id='config-link-notify' to={{pathname: '/SCP/configuration/notifications', state: 'viewMode'}}>
+              <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
+            </Link>
+          </div>
+        }
 
-        <div className='item frame threat'>
-          <Link id='config-link-threat' to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
-            <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
-          </Link>
-        </div>
+        {sessionRights.Module_Service &&
+          <div className='item frame threat'>
+            <Link id='config-link-threat' to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
+              <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
+            </Link>
+          </div>
+        }
 
-        <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
-          <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edgeManage')}</span>
-          <i className={`c-link fg fg-arrow-${openEdgeManagement ? 'top' : 'bottom'}`}></i>
-        </div>
+        {sessionRights.Module_Edge &&
+          <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
+            <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edgeManage')}</span>
+            <i className={`c-link fg fg-arrow-${openEdgeManagement ? 'top' : 'bottom'}`}></i>
+          </div>
+        }
 
-        {openEdgeManagement &&
+        {sessionRights.Module_Edge && openEdgeManagement &&
           <div className='item open-edge'>
             <div className='subframe'>
               <Link id='config-link-edges' to={{pathname: '/SCP/configuration/edge/edge', state: 'tableList'}}>
@@ -150,18 +158,22 @@ class Config extends Component {
           </div>
         }
 
-        <div className='item frame es-manage'>
-          <Link id='config-link-es' to='/SCP/configuration/es'>
-            <span className={`${this.getActiveFrame('es')}`}>{t('txt-esManage')}</span>
-          </Link>
-        </div>
+        {sessionRights.Module_Service &&
+          <div className='item frame es-manage'>
+            <Link id='config-link-es' to='/SCP/configuration/es'>
+              <span className={`${this.getActiveFrame('es')}`}>{t('txt-esManage')}</span>
+            </Link>
+          </div>
+        }
 
-        <div id='config-link-topology' className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
-          <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner')}`}>{t('txt-topology')}</span>
-          <i className={`c-link fg fg-arrow-${openTopology ? 'top' : 'bottom'}`}></i>
-        </div>
+        {sessionRights.Module_Edge &&
+          <div id='config-link-topology' className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
+            <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner')}`}>{t('txt-topology')}</span>
+            <i className={`c-link fg fg-arrow-${openTopology ? 'top' : 'bottom'}`}></i>
+          </div>
+        }
 
-        {openTopology &&
+        {sessionRights.Module_Edge && openTopology &&
           <div className='item open-topology'>
             <div className='subframe'>
               <Link id='config-link-inventory' to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>
@@ -176,12 +188,14 @@ class Config extends Component {
           </div>
         }
 
-        <div id='config-link-syslog' className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
-          <span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern')}`}>{t('txt-syslogManage')}</span>
-          <i className={`c-link fg fg-arrow-${openSyslog ? 'top' : 'bottom'}`}></i>
-        </div>
+        {sessionRights.Module_Edge &&
+          <div id='config-link-syslog' className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
+            <span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern')}`}>{t('txt-syslogManage')}</span>
+            <i className={`c-link fg fg-arrow-${openSyslog ? 'top' : 'bottom'}`}></i>
+          </div>
+        }
 
-        {openSyslog &&
+        {sessionRights.Module_Edge && openSyslog &&
           <div className='item open-syslog'>
             <div className='subframe'>
               <Link id='config-link-syslogs' to='/SCP/configuration/syslog/config'>
@@ -196,18 +210,22 @@ class Config extends Component {
           </div>
         }
 
-        <div className='item frame audit-log'>
-          <Link id='config-link-audit' to='/SCP/configuration/audit'>
-            <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
-          </Link>
-        </div>
+        {sessionRights.Module_Service &&
+          <div className='item frame audit-log'>
+            <Link id='config-link-audit' to='/SCP/configuration/audit'>
+              <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
+            </Link>
+          </div>
+        }
 
-        <div id='config-link-account' className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
-          <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
-          <i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}></i>
-        </div>
+        {sessionRights.Module_Account &&
+          <div id='config-link-account' className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
+            <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
+            <i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}></i>
+          </div>
+        }
 
-        {openAccount &&
+        {sessionRights.Module_Account && openAccount &&
           <div className='item open-account'>
             <div className='subframe'>
               <Link id='config-link-accounts' to='/SCP/configuration/user/account'>
@@ -222,21 +240,27 @@ class Config extends Component {
           </div>
         }
 
-        <div className='item frame service-status'>
-          <Link id='config-link-service' to='/SCP/configuration/service-status'>
-            <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
-          </Link>
-        </div>
+        {sessionRights.Module_Service &&
+          <div className='item frame service-status'>
+            <Link id='config-link-service' to='/SCP/configuration/service-status'>
+              <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
+            </Link>
+          </div>
+        }
 
-        <div className='item frame product-info'>
-          <Link id='config-link-product' to='/SCP/configuration/product-info'>
-            <span className={`${this.getActiveFrame('productInfo')}`}>{t('txt-productInfo')}</span>
-          </Link>
-        </div>
+        {sessionRights.Module_Edge &&
+          <div className='item frame product-info'>
+            <Link id='config-link-product' to='/SCP/configuration/product-info'>
+              <span className={`${this.getActiveFrame('productInfo')}`}>{t('txt-productInfo')}</span>
+            </Link>
+          </div>
+        }
 
-        <div id='config-link-feedback' className='item frame issues-feedback last' onClick={this.downloadLogs}>
-          <span>{t('txt-issuesFeedback')}</span>
-        </div>
+        {sessionRights.Module_Service &&
+          <div id='config-link-feedback' className='item frame issues-feedback last' onClick={this.downloadLogs}>
+            <span>{t('txt-issuesFeedback')}</span>
+          </div>
+        }
 
         <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
           <i className={`fg fg-arrow-${showContent ? 'left' : 'right'}`}></i>
@@ -245,6 +269,8 @@ class Config extends Component {
     )
   }
 }
+
+Config.contextType = BaseDataContext;
 
 Config.propTypes = {
 };
