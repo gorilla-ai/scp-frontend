@@ -60,6 +60,11 @@
     "title": "$t(l-title)",
     "phone": "$t(l-phone)"
   },
+  "tenancyFields": {
+    "name": "租戶名稱",
+    "info": "備註",
+    "enterpriseId": "租戶企業ID"
+  },
   "setNewPwd": "設定密碼",
   "change-expired-pwd":"請更改你的密碼，因密碼已過期",
   "oldPwd":"舊密碼",

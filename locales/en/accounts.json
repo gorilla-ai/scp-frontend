@@ -60,6 +60,11 @@
     "title": "$t(l-title)",
     "phone": "$t(l-phone)"
   },
+  "tenancyFields": {
+    "name": "Tenancy Name",
+    "info": "Info",
+    "enterpriseId": "Enterprise ID"
+  },
   "setNewPwd": "Set new password",
   "change-expired-pwd":"Please change your password because it has expired",
   "oldPwd":"Old password",

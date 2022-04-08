@@ -253,6 +253,7 @@
   "txt-networkInventory": "網路清單",
   "txt-productInfo": "產品資訊",
   "txt-issuesFeedback": "問題回報",
+  "txt-multiTenancy": "多租戶管理",
 
   "txt-esManage": "ES管理",
   "txt-importEsIndex": "匯入索引",
@@ -269,6 +270,7 @@
   "txt-deleteTitle": "刪除職稱",
   "txt-deleteAccount": "刪除帳號",
   "txt-deletePrivilege": "刪除角色",
+  "txt-deleteTenancy": "刪除租戶",
   "txt-unlockAccount": "解鎖帳號",
   "txt-network-owner": "所屬人員",
   "txt-ownerList": "人員列表",
@@ -297,6 +299,7 @@
   "txt-account-unlocked": "帳號已鎖住",
   "txt-account-unlock": "確定要解鎖帳號",
   "txt-account-delete": "確定要刪除帳號",
+  "txt-tenancy-delete": "確定要刪除租戶",
   "txt-commaSeparated": "用逗號,區隔",
   "txt-privilegeError": "此角色還在被帳號使用中",
   "txt-ownerIsRequired": "所屬人員為必填",

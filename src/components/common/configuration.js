@@ -85,7 +85,8 @@ class Config extends Component {
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
       serviceStatus: '/SCP/configuration/service-status',
-      productInfo: '/SCP/configuration/product-info'
+      productInfo: '/SCP/configuration/product-info',
+      multiTenancy: '/SCP/configuration/multi-tenancy'
     };
 
     return path === pattern[frame];
@@ -259,6 +260,14 @@ class Config extends Component {
         {sessionRights.Module_Service &&
           <div id='config-link-feedback' className='item frame issues-feedback last' onClick={this.downloadLogs}>
             <span>{t('txt-issuesFeedback')}</span>
+          </div>
+        }
+
+        {sessionRights.Module_Service &&
+          <div className='item frame service-status'>
+            <Link id='config-link-tenancy' to='/SCP/configuration/multi-tenancy'>
+              <span className={`${this.getActiveFrame('multiTenancy')}`}>{t('txt-multiTenancy')}</span>
+            </Link>
           </div>
         }
 

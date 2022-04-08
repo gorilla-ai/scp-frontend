@@ -33,6 +33,7 @@ import IncidentSearch from "./components/soc/incident-search-list";
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
+import MultiTenancy from './components/configuration/tenancy/tenancy'
 import Netflow from './components/events/netflow/index'
 import NetworkInventory from './components/configuration/topology/inventory'
 import NetworkOwner from './components/configuration/topology/owner'
@@ -234,6 +235,12 @@ const productInfo = () => (
   </BaseDataContext.Provider>
 );
 
+const multiTenancy = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <MultiTenancy />
+  </BaseDataContext.Provider>
+);
+
 const incidentDevice = () => (
   <BaseDataContext.Provider value={baseData}>
     <IncidentDeviceStep />
@@ -321,6 +328,7 @@ const Main = () => (
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/soar' component={SoarComp} />
+      <Route exact path='/SCP/account' component={Account} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
       <Route exact path='/SCP/configuration/threat' component={Threat} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
@@ -332,10 +340,10 @@ const Main = () => (
       <Route exact path='/SCP/configuration/syslog/pattern' component={syslogPattern} />
       <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
       <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
-      <Route exact path='/SCP/account' component={Account} />
       <Route exact path='/SCP/configuration/audit' component={Audit} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
       <Route exact path='/SCP/configuration/product-info' component={productInfo} />
+      <Route exact path='/SCP/configuration/multi-tenancy' component={multiTenancy} />
       <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
       <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
       <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
