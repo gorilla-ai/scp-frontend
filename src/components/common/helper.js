@@ -580,8 +580,16 @@ const helper = {
   getPrivilegesInfo: function(sessionRights, privilege, locale) {
     if (privilege === 'common' && (!sessionRights.Module_Common && !sessionRights.Module_Account)) {
       window.location.href = '/SCP/configuration/edge/edge?lng=' + locale;
-    } else if (privilege === 'config' && !sessionRights.Module_Config)  {
-      window.location.href = '/SCP?lng=' + locale;
+    } else if (privilege === 'config')  {
+      let login = false;
+
+      if ((sessionRights.Module_Account || sessionRights.Module_Edge || sessionRights.Module_Service)) {
+        login = true;
+      }
+
+      if (!login) {
+        window.location.href = '/SCP?lng=' + locale;
+      }
     } else if (privilege === 'account' && !sessionRights.Module_Account)  {
       window.location.href = '/SCP?lng=' + locale;
     } else if (privilege === 'soc' && !sessionRights.Module_Soc)  {

@@ -76,12 +76,11 @@ class MultiTenancy extends Component {
   componentDidMount() {
     const {baseUrl, locale, sessionRights} = this.context;
 
-    helper.getPrivilegesInfo(sessionRights, 'account', locale);
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
     helper.inactivityTime(baseUrl, locale);
 
     this.getTenancyData();
   }
-  ryan = () => {}
   /**
    * Get and set tenancy data
    * @method

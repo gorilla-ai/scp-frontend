@@ -308,10 +308,12 @@ const redirectStartPage = () => {
     return '/SCP/host';
   } else if (_.includes(session.rights, 'Module_Soc')) {
     return '/SCP/soc/incident';
-  } else if (_.includes(session.rights, 'Module_Config')) {
-    return '/SCP/soar';
+  } else if (_.includes(session.rights, 'Module_Service')) {
+    return '/SCP/configuration/notifications';
+  } else if (_.includes(session.rights, 'Module_Edge')) {
+    return '/SCP/configuration/edge/edge';
   } else if (_.includes(session.rights, 'Module_Account')) {
-    return '/SCP/account';
+    return '/SCP/configuration/user/account';
   }
 }
 
