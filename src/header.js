@@ -609,9 +609,6 @@ class Header extends Component {
                 {(sessionRights.Module_Account || sessionRights.Module_Edge || sessionRights.Module_Service) &&
                   <Link id='header-link-config' to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
-                {sessionRights.Module_Account &&
-                  <Link id='header-link-accountConfig' to='/SCP/account' className={cx('item', {'active': this.getActiveTab('account')})}>{t('txt-accountConfig')}</Link>
-                }
               </div>
             </div>
 
