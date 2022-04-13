@@ -31,6 +31,7 @@
   "ph-search":"Enter $t(name)/$t(username)/$t(id-no)",
   "ph-account":"Input account",
   "ph-name":"Input name",
+  "l-tenancyName": "Tenancy Name",
   "l-account":"Account",
   "l-name":"Name",
   "l-email":"Email",
@@ -55,13 +56,14 @@
   "accountFields": {
     "account": "$t(l-account)",
     "name": "$t(l-name)",
+    "tenancyName": "$t(l-tenancyName)",
     "email": "$t(l-email)",
     "unit": "$t(l-unit)",
     "title": "$t(l-title)",
     "phone": "$t(l-phone)"
   },
   "tenancyFields": {
-    "name": "Tenancy Name",
+    "name": "$t(l-tenancyName)",
     "info": "Info",
     "enterpriseId": "Enterprise ID"
   },

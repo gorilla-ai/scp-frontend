@@ -23,6 +23,11 @@ import MuiTableContent from '../../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const ACCOUNT_SEARCH = {
+  name: '',
+  account: '',
+  tenancyName: ''
+};
 const FORM_VALIDATION = {
   password: {
     valid: true
@@ -50,12 +55,9 @@ class AccountList extends Component {
         department: [],
         title: []
       },
-      accountSearch: {
-        name: '',
-        account: ''
-      },
+      accountSearch: _.cloneDeep(ACCOUNT_SEARCH),
       userAccount: {
-        dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone'],
+        dataFieldsArr: ['_menu', 'tenancyName', 'account', 'name', 'email', 'unit', 'title', 'phone'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -193,6 +195,10 @@ class AccountList extends Component {
     if (accountSearch.name) {
       requestData.name = accountSearch.name;
     }
+
+    if (accountSearch.tenancyName) {
+      requestData.tenancyName = accountSearch.tenancyName;
+    }    
 
     this.ah.one({
       url,
@@ -551,10 +557,7 @@ class AccountList extends Component {
    */
   clearFilter = () => {
     this.setState({
-      accountSearch: {
-        name: '',
-        account: ''
-      }
+      accountSearch: _.cloneDeep(ACCOUNT_SEARCH)
     });
   }
   /**
@@ -608,6 +611,17 @@ class AccountList extends Component {
               fullWidth
               size='small'
               value={accountSearch.name}
+              onChange={this.handleSearchChange} />
+          </div>
+          <div className='group'>
+            <TextField
+              id='tenancyName'
+              name='tenancyName'
+              label={t('l-tenancyName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={accountSearch.tenancyName}
               onChange={this.handleSearchChange} />
           </div>
         </div>

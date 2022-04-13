@@ -33,6 +33,7 @@
   "ph-name":"輸入名字",
   "l-account":"帳號",
   "l-name":"姓名",
+  "l-tenancyName": "租戶名稱",
   "l-email":"Email",
   "l-unit":"單位",
   "l-title":"位階",
@@ -55,13 +56,14 @@
   "accountFields": {
     "account": "$t(l-account)",
     "name": "$t(l-name)",
+    "tenancyName": "$t(l-tenancyName)",
     "email": "$t(l-email)",
     "unit": "$t(l-unit)",
     "title": "$t(l-title)",
     "phone": "$t(l-phone)"
   },
   "tenancyFields": {
-    "name": "租戶名稱",
+    "name": "$t(l-tenancyName)",
     "info": "備註",
     "enterpriseId": "租戶企業ID"
   },
