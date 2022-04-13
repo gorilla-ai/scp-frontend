@@ -60,6 +60,13 @@ const INIT_CONFIG = {
     rawOptions: []
   }]
 };
+const SYSLOG_SEARCH = {
+  name: '',
+  loghostip: '',
+  port: '',
+  isactive: '',
+  netproxyname: ''
+};
 const FORM_VALIDATION = {
   editHostsHost: {
     valid: true
@@ -108,13 +115,7 @@ class Syslog extends Component {
           desc: false
         }
       },
-      search: {
-        name: '',
-        loghostip: '',
-        port: '',
-        isactive: '',
-        netproxyname: ''
-      },
+      syslogSearch: _.cloneDeep(SYSLOG_SEARCH),
       activeHostInfo: {
         id: '',
         ip: ''
@@ -242,27 +243,27 @@ class Syslog extends Component {
    */
   getSyslogData = () => {
     const {baseUrl} = this.context;
-    const {dataFieldsArr, syslog, search} = this.state;
+    const {dataFieldsArr, syslog, syslogSearch} = this.state;
     let urlParams = '';
 
-    if (search.name) {
-      urlParams += `&name=${search.name}`;
+    if (syslogSearch.name) {
+      urlParams += `&name=${syslogSearch.name}`;
     }
 
-    if (search.loghostip) {
-      urlParams += `&loghostip=${search.loghostip}`;
+    if (syslogSearch.loghostip) {
+      urlParams += `&loghostip=${syslogSearch.loghostip}`;
     }
 
-    if (search.port) {
-      urlParams += `&port=${search.port}`;
+    if (syslogSearch.port) {
+      urlParams += `&port=${syslogSearch.port}`;
     }
 
-    if (search.isactive === true || search.isactive === false) {
-      urlParams += `&isactive=${search.isactive}`;
+    if (syslogSearch.isactive === true || syslogSearch.isactive === false) {
+      urlParams += `&isactive=${syslogSearch.isactive}`;
     }
 
-    if (search.netproxyname) {
-      urlParams += `&netproxyname=${search.netproxyname}`;
+    if (syslogSearch.netproxyname) {
+      urlParams += `&netproxyname=${syslogSearch.netproxyname}`;
     }
 
     this.ah.one({
@@ -2363,11 +2364,11 @@ class Syslog extends Component {
    * @param {string} event - event object
    */
   handleSearchChange = (event) => {
-    let tempSearch = {...this.state.search};
-    tempSearch[event.target.name] = event.target.value;
+    let tempSyslogSearch = {...this.state.syslogSearch};
+    tempSyslogSearch[event.target.name] = event.target.value;
 
     this.setState({
-      search: tempSearch
+      syslogSearch: tempSyslogSearch
     });
   }
   /**
@@ -2385,13 +2386,7 @@ class Syslog extends Component {
    */
   clearFilter = () => {
     this.setState({
-      search: {
-        name: '',
-        loghostip: '',
-        port: '',
-        isactive: '',
-        netproxyname: ''
-      }
+      syslogSearch: _.cloneDeep(SYSLOG_SEARCH)
     });
   }
   /**
@@ -2400,7 +2395,7 @@ class Syslog extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {search, openFilter} = this.state;
+    const {syslogSearch, openFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': openFilter})}>
@@ -2415,7 +2410,7 @@ class Syslog extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={search.name}
+              value={syslogSearch.name}
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
@@ -2426,7 +2421,7 @@ class Syslog extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={search.loghostip}
+              value={syslogSearch.loghostip}
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
@@ -2438,7 +2433,7 @@ class Syslog extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={search.port}
+              value={syslogSearch.port}
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
@@ -2450,7 +2445,7 @@ class Syslog extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={search.isactive}
+              value={syslogSearch.isactive}
               onChange={this.handleSearchChange}>
               <MenuItem value='all'>{t('txt-all')}</MenuItem>
               <MenuItem value={true}>{t('txt-online')}</MenuItem>
@@ -2465,7 +2460,7 @@ class Syslog extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={search.netproxyname}
+              value={syslogSearch.netproxyname}
               onChange={this.handleSearchChange} />
           </div>
         </div>

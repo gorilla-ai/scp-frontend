@@ -24,6 +24,13 @@ import SoarSettings from './soar-settings'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NEW_SOAR_RULE = ['new', 'internalInventory', 'windowsLoginFail', 'fortigateLog'];
+const SOAR_SEARCH = {
+  flowName: '',
+  aggField: '',
+  adapter: 'all',
+  action: 'all',
+  isEnable: 'all'
+};
 
 let t = null;
 let f = null;
@@ -52,13 +59,7 @@ class SoarController extends Component {
         adapter: [],
         action: []
       },
-      soarSearch: {
-        flowName: '',
-        aggField: '',
-        adapter: 'all',
-        action: 'all',
-        isEnable: 'all'
-      },
+      soarSearch: _.cloneDeep(SOAR_SEARCH),
       contextAnchor: null,
       soarTemplate: {
         internalInventory: {},
@@ -713,13 +714,7 @@ class SoarController extends Component {
    */
   clearFilter = () => {
     this.setState({
-      soarSearch: {
-        flowName: '',
-        aggField: '',
-        adapter: 'all',
-        action: 'all',
-        isEnable: 'all'
-      }
+      soarSearch: _.cloneDeep(SOAR_SEARCH)
     });
   }
   render() {

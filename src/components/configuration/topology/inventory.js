@@ -55,6 +55,16 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
+const DEVICE_SEARCH = {
+  ip: '',
+  mac: '',
+  netproxyIp: '',
+  hostName: '',
+  system: '',
+  owner: '',
+  areaName: '',
+  seatName: ''
+};
 const FORM_VALIDATION = {
   ip: {
     valid: true,
@@ -129,16 +139,7 @@ class NetworkInventory extends Component {
       eventsDateList: [],
       eventsDate: '',
       deviceLAdata: {},
-      deviceSearch: {
-        ip: '',
-        mac: '',
-        netproxyIp: '',
-        hostName: '',
-        system: '',
-        owner: '',
-        areaName: '',
-        seatName: ''
-      },
+      deviceSearch: _.cloneDeep(DEVICE_SEARCH),
       showAllSeats: false,
       deviceSearchArea: '',
       deviceData: {
@@ -1948,16 +1949,7 @@ class NetworkInventory extends Component {
    */
   clearFilter = () => {
     this.setState({
-      deviceSearch: {
-        ip: '',
-        mac: '',
-        netproxyIp: '',
-        hostName: '',
-        system: '',
-        owner: '',
-        areaName: '',
-        seatName: ''
-      }
+      deviceSearch: _.cloneDeep(DEVICE_SEARCH)
     });
   }
   /**

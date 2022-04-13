@@ -45,6 +45,12 @@ const SERVICE_TYPE_LIST = {
   'IDS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
   'IPS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt']
 };
+const EDGE_SEARCH = {
+  keyword: '',
+  groups: [],
+  serviceType: 'all',
+  connectionStatus: 'all'
+};
 const FORM_VALIDATION = {
   edgeName: {
     valid: true
@@ -83,12 +89,7 @@ class Edge extends Component {
       allGroupList: [],
       currentEdgeData: '',
       serviceType: [],
-      edgeSearch: {
-        keyword: '',
-        groups: [],
-        serviceType: 'all',
-        connectionStatus: 'all'
-      },
+      edgeSearch: _.cloneDeep(EDGE_SEARCH),
       originalEdgeData: {},
       edge: {
         dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
@@ -1574,12 +1575,7 @@ class Edge extends Component {
    */
   clearFilter = () => {
     this.setState({
-      edgeSearch: {
-        keyword: '',
-        groups: [],
-        serviceType: 'all',
-        connectionStatus: 'all'
-      }
+      edgeSearch: _.cloneDeep(EDGE_SEARCH)
     });
   }
   render() {

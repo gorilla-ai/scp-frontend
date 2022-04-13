@@ -22,6 +22,11 @@ import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const OWNER_SEARCH = {
+  name: '',
+  department: {},
+  title: {}
+};
 const FORM_VALIDATION = {
   ownerName: {
     valid: true
@@ -50,11 +55,7 @@ class NetworkOwner extends Component {
         department: [],
         title: []
       },
-      search: {
-        name: '',
-        department: {},
-        title: {}
-      },
+      ownerSearch: _.cloneDeep(OWNER_SEARCH),
       openManage: false,
       addOwnerType: '',
       addOwnerTitle: '',
@@ -205,7 +206,7 @@ class NetworkOwner extends Component {
    */
   getOwnerData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {owner, search} = this.state;
+    const {owner, ownerSearch} = this.state;
     const page = fromPage === 'currentPage' ? owner.currentPage : 0;
     let requestData = {
       sort: owner.sort.field,
@@ -214,16 +215,16 @@ class NetworkOwner extends Component {
       pageSize: Number(owner.pageSize)
     };
 
-    if (search.name) {
-      requestData.ownerName = '%' + search.name + '%';
+    if (ownerSearch.name) {
+      requestData.ownerName = '%' + ownerSearch.name + '%';
     }
 
-    if (!_.isEmpty(search.department)) {
-      requestData.department = search.department.value;
+    if (!_.isEmpty(ownerSearch.department)) {
+      requestData.department = ownerSearch.department.value;
     }
 
-    if (!_.isEmpty(search.title)) {
-      requestData.title = search.title.value;
+    if (!_.isEmpty(ownerSearch.title)) {
+      requestData.title = ownerSearch.title.value;
     }
 
     this.ah.one({
@@ -338,11 +339,11 @@ class NetworkOwner extends Component {
    * @param {string} event - event object
    */
   handleSearchChange = (event) => {
-    let tempSearch = {...this.state.search};
-    tempSearch[event.target.name] = event.target.value;
+    let tempOwnerSearch = {...this.state.ownerSearch};
+    tempOwnerSearch[event.target.name] = event.target.value;
 
     this.setState({
-      search: tempSearch
+      ownerSearch: tempOwnerSearch
     });
   }
   /**
@@ -445,18 +446,18 @@ class NetworkOwner extends Component {
    * @param {object} value - selected department info
    */
   handleComboBoxChange = (from, type, event, value) => {
-    const {list, search, owner} = this.state;
+    const {list, ownerSearch, owner} = this.state;
 
     if (value && value.value) {
       if (from === 'department') {
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
 
         if (type === 'search') {
-          let tempSearch = {...search};
-          tempSearch.department = list.department[selectedDepartmentIndex];
+          let tempOwnerSearch = {...ownerSearch};
+          tempOwnerSearch.department = list.department[selectedDepartmentIndex];
 
           this.setState({
-            search: tempSearch
+            ownerSearch: tempOwnerSearch
           });
         }
 
@@ -472,11 +473,11 @@ class NetworkOwner extends Component {
         const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
 
         if (type === 'search') {
-          let tempSearch = {...search};
-          tempSearch.title = list.title[selectedTitleIndex];
+          let tempOwnerSearch = {...ownerSearch};
+          tempOwnerSearch.title = list.title[selectedTitleIndex];
 
           this.setState({
-            search: tempSearch
+            ownerSearch: tempOwnerSearch
           });
         }
 
@@ -760,11 +761,7 @@ class NetworkOwner extends Component {
    */
   clearFilter = () => {
     this.setState({
-      search: {
-        name: '',
-        department: {},
-        title: {}
-      }
+      ownerSearch: _.cloneDeep(OWNER_SEARCH)
     });
   }
   /**
@@ -773,7 +770,7 @@ class NetworkOwner extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {list, search, showFilter} = this.state;
+    const {list, ownerSearch, showFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -788,7 +785,7 @@ class NetworkOwner extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={search.name}
+              value={ownerSearch.name}
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
@@ -796,7 +793,7 @@ class NetworkOwner extends Component {
               id='topologyFilterComboDepartment'
               className='combo-box'
               options={list.department}
-              value={search.department}
+              value={ownerSearch.department}
               getOptionLabel={(option) => option.text}
               renderInput={this.renderDepartmentList}
               onChange={this.handleComboBoxChange.bind(this, 'department', 'search')} />
@@ -806,7 +803,7 @@ class NetworkOwner extends Component {
               id='topologyFilterComboTitle'
               className='combo-box'
               options={list.title}
-              value={search.title}
+              value={ownerSearch.title}
               getOptionLabel={(option) => option.text}
               renderInput={this.renderTitleList}
               onChange={this.handleComboBoxChange.bind(this, 'title', 'search')} />

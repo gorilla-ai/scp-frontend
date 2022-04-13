@@ -29,6 +29,10 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
+const PATTERN_SEARCH = {
+  name: '',
+  queryScript: ''
+};
 const FORM_VALIDATION = {
   name: {
     valid: true
@@ -62,10 +66,7 @@ class Pattern extends Component {
     this.state = {
       activeContent: 'tableList', //'tableList', 'viewPattern', 'addPattern' or 'editPattern'
       showFilter: false,
-      patternSearch: {
-        name: '',
-        queryScript: ''
-      },
+      patternSearch: _.cloneDeep(PATTERN_SEARCH),
       severitySelected: [],
       originalPatternData: {},
       severityList: [],
@@ -721,10 +722,7 @@ class Pattern extends Component {
    */
   clearFilter = () => {
     this.setState({
-      patternSearch: {
-        name: '',
-        queryScript: ''
-      },
+      patternSearch: _.cloneDeep(PATTERN_SEARCH),
       severitySelected: []
     });
   }

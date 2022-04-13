@@ -26,6 +26,10 @@ import SearchOptions from '../../common/search-options'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const ES_SEARCH = {
+  status: 'all'
+};
+
 let t = null;
 let f = null;
 
@@ -51,9 +55,7 @@ class EsManage extends Component {
       },
       importList: [],
       statusList: [],
-      esSearch: {
-        status: 'all'
-      },
+      esSearch: _.cloneDeep(ES_SEARCH),
       selectedImportList: [],
       es: {
         dataFieldsArr: ['date', 'status', 'docCount', 'storeSize', 'priStoreSize', '_menu'],
@@ -427,9 +429,7 @@ class EsManage extends Component {
    */
   clearFilter = () => {
     this.setState({
-      esSearch: {
-        status: 'all'
-      }
+      esSearch: _.cloneDeep(ES_SEARCH)
     });
   }
   /**

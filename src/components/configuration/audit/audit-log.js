@@ -17,6 +17,10 @@ import SearchOptions from '../../common/search-options'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const AUDIT_SEARCH = {
+  keyword: ''
+};
+
 let t = null;
 let f = null;
 
@@ -39,9 +43,7 @@ class AuditLog extends Component {
         from: helper.getSubstractDate(1, 'month'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
-      auditSearch: {
-        keyword: ''
-      },
+      auditSearch: _.cloneDeep(AUDIT_SEARCH),
       audit: {
         dataFieldsArr: ['createDttm', 'message'],
         dataFields: [],
@@ -275,9 +277,7 @@ class AuditLog extends Component {
    */
   clearFilter = () => {
     this.setState({
-      auditSearch: {
-        keyword: ''
-      }
+      auditSearch: _.cloneDeep(AUDIT_SEARCH)
     });
   }
   render() {

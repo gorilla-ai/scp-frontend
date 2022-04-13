@@ -234,6 +234,60 @@ const MAPS_PRIVATE_DATA = {
   deviceSeatData: {}
 };
 const NOT_AVAILABLE = 'N/A';
+const DEVICE_SEARCH = {
+  ip: [{
+    input: ''
+  }],
+  mac: [{
+    input: ''
+  }],
+  hostName: [{
+    input: ''
+  }],
+  deviceType: [{
+    input: ''
+  }],
+  system: [{
+    input: ''
+  }],
+  scanInfo: [{
+    input: ''
+  }],
+  status: [{
+    input: {}
+  }],
+  annotation: [{
+    input: ''
+  }],
+  theLatestTaskResponseDttmArray: {
+    from: '',
+    to: ''
+  },
+  userName: [{
+    input: ''
+  }],
+  groups: [{
+    input: ''
+  }],
+  version: [{
+    condition: '=',
+    input: ''
+  }]
+};
+const DEVICE_SEARCH_LIST = {
+  ip: [],
+  mac: [],
+  hostName: [],
+  deviceType: [],
+  system: [],
+  scanInfo: [],
+  status: [],
+  annotation: [],
+  theLatestTaskResponseDttmArray: {},
+  userName: [],
+  groups: [],
+  version: []
+};
 const FORM_VALIDATION = {
   frMotp: {
     valid: true
@@ -333,60 +387,8 @@ class HostController extends Component {
         netProxyDeviceSelected: [],
         maskedIPSelected: []
       },
-      deviceSearch: {
-        ip: [{
-          input: ''
-        }],
-        mac: [{
-          input: ''
-        }],
-        hostName: [{
-          input: ''
-        }],
-        deviceType: [{
-          input: ''
-        }],
-        system: [{
-          input: ''
-        }],
-        scanInfo: [{
-          input: ''
-        }],
-        status: [{
-          input: {}
-        }],
-        annotation: [{
-          input: ''
-        }],
-        theLatestTaskResponseDttmArray: {
-          from: '',
-          to: ''
-        },
-        userName: [{
-          input: ''
-        }],
-        groups: [{
-          input: ''
-        }],
-        version: [{
-          condition: '=',
-          input: ''
-        }]
-      },
-      deviceSearchList: {
-        ip: [],
-        mac: [],
-        hostName: [],
-        deviceType: [],
-        system: [],
-        scanInfo: [],
-        status: [],
-        annotation: [],
-        theLatestTaskResponseDttmArray: {},
-        userName: [],
-        groups: [],
-        version: []
-      },
+      deviceSearch: _.cloneDeep(DEVICE_SEARCH),
+      deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST),
       hmdSearch: {
         status: {},
         annotation: ''
@@ -2586,60 +2588,8 @@ class HostController extends Component {
 
     this.setState({
       queryData: tempQueryData,
-      deviceSearch: {
-        ip: [{
-          input: ''
-        }],
-        mac: [{
-          input: ''
-        }],
-        hostName: [{
-          input: ''
-        }],
-        deviceType: [{
-          input: ''
-        }],
-        system: [{
-          input: ''
-        }],
-        scanInfo: [{
-          input: ''
-        }],
-        status: [{
-          input: {}
-        }],
-        annotation: [{
-          input: ''
-        }],
-        theLatestTaskResponseDttmArray: {
-          from: '',
-          to: ''
-        },
-        userName: [{
-          input: ''
-        }],
-        groups: [{
-          input: ''
-        }],
-        version: [{
-          condition: '=',
-          input: ''
-        }]
-      },
-      deviceSearchList: {
-        ip: [],
-        mac: [],
-        hostName: [],
-        deviceType: [],
-        system: [],
-        scanInfo: [],
-        status: [],
-        annotation: [],
-        theLatestTaskResponseDttmArray: {},
-        userName: [],
-        groups: [],
-        version: []
-      }
+      deviceSearch: _.cloneDeep(DEVICE_SEARCH),
+      deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST)
     });
   }
   /**
