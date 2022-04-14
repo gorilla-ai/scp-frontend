@@ -61,7 +61,7 @@ class AccountList extends Component {
         dataFields: [],
         dataContent: null,
         sort: {
-          field: 'account',
+          field: 'tenancyName',
           desc: false
         },
         totalCount: 0,
