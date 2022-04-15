@@ -166,6 +166,8 @@
   "txt-column": "欄位",
   "txt-ip": "IP",
   "txt-domain": "網域",
+  "txt-tenancy": "租戶",
+  "txt-chooseTenancy": "選擇租戶",
   "txt-Module_Dashboard": "Dashboard模組",
   "txt-Module_Common": "一般模組",
   "txt-Module_Config": "設定模組",
