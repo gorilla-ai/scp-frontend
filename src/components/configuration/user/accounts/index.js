@@ -51,6 +51,10 @@ class AccountList extends Component {
 
     this.state = {
       showFilter: false,
+      list: {
+        department: [],
+        title: []
+      },
       accountSearch: _.cloneDeep(ACCOUNT_SEARCH),
       tenancyList: [],
       userAccount: {
@@ -83,43 +87,94 @@ class AccountList extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
     helper.inactivityTime(baseUrl, locale);
 
+    this.getTitleData();
     this.getTenancyData();
-    this.getAccountsData();
   }
   componentWillUnmount() {
     helper.clearTimer();
   }
   /**
-   * Get and set tenancy data
+   * Get and set title data
    * @method
    */
-  getTenancyData = () => {
+  getTitleData = () => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/tenancy/_search`;
+    const {list} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
 
     this.ah.one({
       url,
-      data: JSON.stringify({}),
+      data: JSON.stringify(requestData),
       type: 'POST',
-      contentType: 'application/json'
+      contentType: 'text/plain'
     })
     .then(data => {
       if (data) {
-        const tenancyList = _.map(data.rows, val => {
-          return {
-            value: val.id,
+        let tempList = {...list};
+        let titleList = [];
+
+        _.forEach(data, val => {
+          titleList.push({
+            value: val.nameUUID,
             text: val.name
-          }
-        });
+          });
+        })
+
+        tempList.title = _.cloneDeep(titleList);
 
         this.setState({
-          tenancyList
+          list: tempList
+        }, () => {
+          this.getDepartmentData();
         });
       }
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', c('txt-error'), err.message);
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getAccountsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -204,6 +259,39 @@ class AccountList extends Component {
 
         this.setState({
           userAccount: tempUserAccount
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set tenancy data
+   * @method
+   */
+  getTenancyData = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/tenancy/_search`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        const tenancyList = _.map(data.rows, val => {
+          return {
+            value: val.id,
+            text: val.name
+          }
+        });
+
+        this.setState({
+          tenancyList
         });
       }
       return null;
@@ -618,7 +706,7 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, tenancyList, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const {showFilter, list, tenancyList, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -677,6 +765,7 @@ class AccountList extends Component {
 
         <AccountEdit
           ref={ref => { this.editor = ref }}
+          list={list}
           currentAccountData={currentAccountData}
           tenancyList={tenancyList}
           onDone={this.getAccountsData} />

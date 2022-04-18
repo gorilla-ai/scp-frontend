@@ -46,6 +46,7 @@ class Header extends Component {
         department: [],
         title: []
       },
+      tenancyList: [],
       ownerList: [],
       currentAccountData: {},
       formData: {
@@ -72,6 +73,7 @@ class Header extends Component {
   componentDidMount() {
     this.setTheme();
     this.getTitleData();
+    this.getTenancyData();
     this.getOwnerData();
   }
   /**
@@ -163,6 +165,39 @@ class Header extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set tenancy data
+   * @method
+   */
+  getTenancyData = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/tenancy/_search`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        const tenancyList = _.map(data.rows, val => {
+          return {
+            value: val.id,
+            text: val.name
+          }
+        });
+
+        this.setState({
+          tenancyList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**
@@ -556,7 +591,7 @@ class Header extends Component {
   render() {
     const {contextRoot, language, session, sessionRights} = this.context;
     const {companyName, productName} = this.props;
-    const {contextAnchor, showChangePassword, list, ownerList} = this.state;
+    const {contextAnchor, showChangePassword, list, tenancyList, ownerList} = this.state;
     let showLanguage = '';
 
     if (language === 'zh') {
@@ -634,6 +669,7 @@ class Header extends Component {
         <AccountEdit
           ref={ref => { this.editor = ref }}
           list={list}
+          tenancyList={tenancyList}
           ownerList={ownerList}
           onDone={this.showPopup} />
       </div>

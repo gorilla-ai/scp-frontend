@@ -53,7 +53,7 @@ const INITIAL_STATE = {
   id: '',
   info: null,
   error: false,
-  list: {
+  accountList: {
     department: [],
     title: []
   },
@@ -67,7 +67,7 @@ const INITIAL_STATE = {
     syncAD: false,
     selected: []
   },
-  fromPage: '',
+  fromPage: '', //'fromHeader' or 'fromAccount'
   selectedTenancy: {},
   ownerList: [],
   selectedPrivileges: [],
@@ -98,7 +98,18 @@ class AccountEdit extends Component {
 
     this.ah = getInstance('chewbacca');
   }
-  ryan = () => {}
+  componentDidMount() {
+    this.getListData();
+  }
+  /**
+   * Set account list
+   * @method
+   */
+  getListData = () => {
+    this.setState({
+      accountList: this.props.list
+    });
+  }
   /**
    * Open account add/edit modal dialog
    * @method
@@ -106,6 +117,7 @@ class AccountEdit extends Component {
    * @param {string} options - option for 'fromHeader' or 'fromAccount'
    */
   openAccount = (id, options) => {
+    const {currentAccountData} = this.props;
     let showPrivileges = true;
 
     if (options === 'fromHeader') {
@@ -159,7 +171,8 @@ class AccountEdit extends Component {
    */
   loadAccount = (id) => {
     const {baseUrl} = this.context;
-    const {list} = this.props;
+    const {tenancyList} = this.props;
+    const {accountList} = this.state;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -184,20 +197,27 @@ class AccountEdit extends Component {
           ownerId: data[0].rt.ownerId,
           selected: _.map(data[1].rt, 'privilegeid')
         };
+        let selectedTenancy = {};
 
-        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data[0].rt.unit });
-        const selectedTitleIndex = _.findIndex(list.title, { 'value': data[0].rt.title });
+        const selectedDepartmentIndex = _.findIndex(accountList.department, { 'value': data[0].rt.unit });
+        const selectedTitleIndex = _.findIndex(accountList.title, { 'value': data[0].rt.title });
+        const selectedTenancyIndex = _.findIndex(tenancyList, { 'value': data[0].rt.multiTenancyDTO.id });
 
         if (selectedDepartmentIndex >= 0) {
-          accountData.unit = list.department[selectedDepartmentIndex];
+          accountData.unit = accountList.department[selectedDepartmentIndex];
         }
 
         if (selectedTitleIndex >= 0) {
-          accountData.title = list.title[selectedTitleIndex];
+          accountData.title = accountList.title[selectedTitleIndex];
+        }
+
+        if (selectedTenancyIndex >= 0) {
+          selectedTenancy = tenancyList[selectedTenancyIndex];
         }
 
         this.setState({
           accountData,
+          selectedTenancy,
           selectedPrivileges: _.cloneDeep(accountData.selected)
         }, () => {
           this.getOwnerData(id);
@@ -363,7 +383,7 @@ class AccountEdit extends Component {
    */
   getTitleData = (tenancyId) => {
     const {baseUrl} = this.context;
-    const {list} = this.state;
+    const {accountList} = this.state;
     const url = `${baseUrl}/api/name/_search`;
     const requestData = {
       nameType: 2,
@@ -378,7 +398,7 @@ class AccountEdit extends Component {
     })
     .then(data => {
       if (data) {
-        let tempList = {...list};
+        let tempAccountList = {...accountList};
         let titleList = [];
 
         _.forEach(data, val => {
@@ -388,10 +408,10 @@ class AccountEdit extends Component {
           });
         })
 
-        tempList.title = _.cloneDeep(titleList);
+        tempAccountList.title = _.cloneDeep(titleList);
 
         this.setState({
-          list: tempList
+          accountList: tempAccountList
         }, () => {
           this.getDepartmentData(tenancyId);
         });
@@ -409,7 +429,7 @@ class AccountEdit extends Component {
    */
   getDepartmentData = (tenancyId) => {
     const {baseUrl} = this.context;
-    const {list} = this.state;
+    const {accountList} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/department/_tree?tenancyId=${tenancyId}`,
@@ -417,7 +437,7 @@ class AccountEdit extends Component {
     })
     .then(data => {
       if (data) {
-        let tempList = {...list};
+        let tempAccountList = {...accountList};
         let departmentList = [];
 
         _.forEach(data, val => {
@@ -429,10 +449,10 @@ class AccountEdit extends Component {
           });
         })
 
-        tempList.department = _.cloneDeep(departmentList);
+        tempAccountList.department = _.cloneDeep(departmentList);
 
         this.setState({
-          list: tempList
+          accountList: tempAccountList
         });
       }
       return null;
@@ -481,7 +501,7 @@ class AccountEdit extends Component {
    */
   handleComboBoxChange = (type, event, value) => {
     const {tenancyList} = this.props;
-    const {list, accountData, ownerList} = this.state;
+    const {accountList, accountData, ownerList} = this.state;
     let tempAccountData = {...accountData};
 
     if (value && value.value) {
@@ -500,10 +520,10 @@ class AccountEdit extends Component {
         const selectedOwnerIndex = _.findIndex(ownerList, { 'value': value.value });
 
         if (selectedOwnerIndex >= 0) {
-          const selectedDepartmentIndex = _.findIndex(list.department, { 'value': ownerList[selectedOwnerIndex].department });
-          const selectedTitleIndex = _.findIndex(list.title, { 'value': ownerList[selectedOwnerIndex].title });
-          tempAccountData.unit = list.department[selectedDepartmentIndex];
-          tempAccountData.title = list.title[selectedTitleIndex];
+          const selectedDepartmentIndex = _.findIndex(accountList.department, { 'value': ownerList[selectedOwnerIndex].department });
+          const selectedTitleIndex = _.findIndex(accountList.title, { 'value': ownerList[selectedOwnerIndex].title });
+          tempAccountData.unit = accountList.department[selectedDepartmentIndex];
+          tempAccountData.title = accountList.title[selectedTitleIndex];
 
           this.setState({
             accountData: tempAccountData,
@@ -511,20 +531,20 @@ class AccountEdit extends Component {
           });
         }
       } else if (type === 'department') {
-        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
+        const selectedDepartmentIndex = _.findIndex(accountList.department, { 'value': value.value });
 
         if (selectedDepartmentIndex >= 0) {
-          tempAccountData.unit = list.department[selectedDepartmentIndex];
+          tempAccountData.unit = accountList.department[selectedDepartmentIndex];
 
           this.setState({
             accountData: tempAccountData
           });
         }
       } else if (type === 'title') {
-        const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
+        const selectedTitleIndex = _.findIndex(accountList.title, { 'value': value.value });
 
         if (selectedTitleIndex >= 0) {
-          tempAccountData.title = list.title[selectedTitleIndex];
+          tempAccountData.title = accountList.title[selectedTitleIndex];
 
           this.setState({
             accountData: tempAccountData
@@ -563,6 +583,26 @@ class AccountEdit extends Component {
     });
   }
   /**
+   * Check module for field disable
+   * @method
+   * @param {string} [type] - field type
+   * @returns boolean true/false
+   */
+  checkModuleRights = (type) => {
+    const {sessionRights} = this.context;
+    const {id, fromPage} = this.state;
+
+    if (type === 'tenancy') {
+      if (fromPage === 'fromHeader') {
+        return true;
+      } else if (fromPage === 'fromAccount') {
+        return id ? true : false;
+      }
+    } else {
+      return !sessionRights.Module_Account;
+    }
+  }
+  /**
    * Display account edit content
    * @method
    * @returns HTML DOM
@@ -570,7 +610,7 @@ class AccountEdit extends Component {
   displayAccountsEdit = () => {
     const {sessionRights} = this.context;
     const {tenancyList} = this.props;
-    const {id, list, accountData, privileges, showPrivileges, selectedTenancy, ownerList, selectedOwner, tenancyChecked, formValidation} = this.state;
+    const {id, accountList, accountData, privileges, showPrivileges, fromPage, selectedTenancy, ownerList, selectedOwner, tenancyChecked, formValidation} = this.state;
 
     return (
       <div className='account-form' style={this.getContentWidth()}>
@@ -602,7 +642,8 @@ class AccountEdit extends Component {
               error={!formValidation.name.valid}
               helperText={formValidation.name.valid ? '' : c('txt-required')}
               value={accountData.name}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange}
+              disabled={this.checkModuleRights()} />
           </div>
           <div className='group'>
             <TextField
@@ -616,7 +657,8 @@ class AccountEdit extends Component {
               helperText={formValidation.email.msg}
               required
               value={accountData.email}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange}
+              disabled={this.checkModuleRights()} />
           </div>
           <div className='group'>
             <TextField
@@ -630,9 +672,10 @@ class AccountEdit extends Component {
               error={!formValidation.phone.valid}
               helperText={formValidation.phone.valid ? '' : c('txt-required')}
               value={accountData.phone}
-              onChange={this.handleDataChange} />
+              onChange={this.handleDataChange}
+              disabled={this.checkModuleRights()} />
           </div>
-          {sessionRights.Module_Auth_System &&
+          {!id && fromPage === 'fromAccount' && sessionRights.Module_Auth_System &&
             <div className='group'>
               <FormControlLabel
                 label={c('txt-chooseTenancy')}
@@ -658,7 +701,8 @@ class AccountEdit extends Component {
                 renderInput={(params) => (
                   <TextField {...params} label={c('txt-tenancy')} variant='outlined' size='small' />
                 )}
-                onChange={this.handleComboBoxChange.bind(this, 'tenancy')} />
+                onChange={this.handleComboBoxChange.bind(this, 'tenancy')}
+                disabled={this.checkModuleRights('tenancy')} />
               <div className='error-msg'>{formValidation.tenancy.valid ? '' : c('txt-required')}</div>
             </div>
           }
@@ -672,7 +716,8 @@ class AccountEdit extends Component {
                 renderInput={(params) => (
                   <TextField {...params} label={c('ownerFields.ownerName') + ' *'} variant='outlined' size='small' />
                 )}
-                onChange={this.handleComboBoxChange.bind(this, 'owner')} />
+                onChange={this.handleComboBoxChange.bind(this, 'owner')}
+                disabled={this.checkModuleRights()} />
               <div className='error-msg'>{formValidation.owner.valid ? '' : c('txt-required')}</div>
             </div>
           }
@@ -681,13 +726,14 @@ class AccountEdit extends Component {
               <Autocomplete
                 id='account-edit-unit'
                 className='combo-box'
-                options={list.department}
+                options={accountList.department}
                 value={accountData.unit || ''}
                 getOptionLabel={(option) => option.text}
                 renderInput={(params) => (
                   <TextField {...params} label={t('l-unit')} variant='outlined' size='small' />
                 )}
-                onChange={this.handleComboBoxChange.bind(this, 'department')} />
+                onChange={this.handleComboBoxChange.bind(this, 'department')}
+                disabled={this.checkModuleRights()} />
             </div>
           }
           {((sessionRights.Module_Auth_System && tenancyChecked) || !sessionRights.Module_Auth_System) &&
@@ -695,13 +741,14 @@ class AccountEdit extends Component {
               <Autocomplete
                 id='account-edit-title'
                 className='combo-box'
-                options={list.title}
+                options={accountList.title}
                 value={accountData.title || ''}
                 getOptionLabel={(option) => option.text}
                 renderInput={(params) => (
                   <TextField {...params} label={t('l-title')} variant='outlined' size='small' />
                 )}
-                onChange={this.handleComboBoxChange.bind(this, 'title')} />
+                onChange={this.handleComboBoxChange.bind(this, 'title')}
+                disabled={this.checkModuleRights()} />
             </div>
           }
           {!id &&
@@ -907,6 +954,7 @@ AccountEdit.contextType = BaseDataContext;
 
 AccountEdit.propTypes = {
   currentAccountData: PropTypes.object,
+  list: PropTypes.array.isRequired,
   tenancyList: PropTypes.array,
   onDone: PropTypes.func.isRequired
 };
