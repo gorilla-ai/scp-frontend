@@ -68,11 +68,13 @@ const INITIAL_STATE = {
     selected: []
   },
   fromPage: '', //'fromHeader' or 'fromAccount'
+  activeTenancyID: '',
   selectedTenancy: {},
+  selectedOwner: {},
   ownerList: [],
   selectedPrivileges: [],
-  selectedOwner: {},
   tenancyChecked: true,
+  ownerChecked: true,
   privileges: [],
   showPrivileges: true,
   formValidation: _.cloneDeep(FORM_VALIDATION)
@@ -99,17 +101,9 @@ class AccountEdit extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getListData();
+    
   }
-  /**
-   * Set account list
-   * @method
-   */
-  getListData = () => {
-    this.setState({
-      accountList: this.props.list
-    });
-  }
+  ryan = () => {}
   /**
    * Open account add/edit modal dialog
    * @method
@@ -134,7 +128,7 @@ class AccountEdit extends Component {
       this.loadPrivileges();
       
       if (id) {
-       this.loadAccount(id);
+        this.getListData(id);
       }
     });
   }
@@ -165,6 +159,18 @@ class AccountEdit extends Component {
     })
   }
   /**
+   * Set account list
+   * @method
+   * @param {string} id - selected account ID
+   */
+  getListData = (id) => {
+    this.setState({
+      accountList: this.props.list
+    }, () => {
+      this.loadAccount(id);
+    });
+  }
+  /**
    * Get and set account data
    * @method
    * @param {string} id - selected account ID
@@ -193,6 +199,8 @@ class AccountEdit extends Component {
           account: data[0].rt.account,
           name: data[0].rt.name,
           email: data[0].rt.email,
+          unit: {},
+          title: {},
           phone: data[0].rt.phone,
           ownerId: data[0].rt.ownerId,
           selected: _.map(data[1].rt, 'privilegeid')
@@ -217,10 +225,15 @@ class AccountEdit extends Component {
 
         this.setState({
           accountData,
+          activeTenancyID: data[0].rt.multiTenancyDTO.id,
           selectedTenancy,
           selectedPrivileges: _.cloneDeep(accountData.selected)
         }, () => {
           this.getOwnerData(id);
+
+          if (this.state.activeTenancyID) {
+            this.getTitleData(this.state.activeTenancyID);
+          }
         });
       }
       return null;
@@ -252,7 +265,12 @@ class AccountEdit extends Component {
       if (data) {
         if (data.rows.length > 0) {
           const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
-          let ownerList = [];
+          let ownerList = [
+            {
+              value: '',
+              text: ''
+            }
+          ];
 
           _.forEach(sortedOwnerList, val => {
             ownerList.push({
@@ -583,14 +601,35 @@ class AccountEdit extends Component {
     });
   }
   /**
+   * Handle owner checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleOwnerCheckbox = () => {
+    if (!event.target.checked) {
+      let tempAccountData = {...this.state.accountData};
+      tempAccountData.unit = {};
+      tempAccountData.title = {};
+
+      this.setState({
+        accountData: tempAccountData,
+        selectedOwner: {}
+      });
+    }
+
+    this.setState({
+      ownerChecked: event.target.checked
+    });
+  }
+  /**
    * Check module for field disable
    * @method
-   * @param {string} [type] - field type
+   * @param {string} type - field type
    * @returns boolean true/false
    */
   checkModuleRights = (type) => {
     const {sessionRights} = this.context;
-    const {id, fromPage} = this.state;
+    const {id, fromPage, activeTenancyID} = this.state;
 
     if (type === 'tenancy') {
       if (fromPage === 'fromHeader') {
@@ -610,7 +649,7 @@ class AccountEdit extends Component {
   displayAccountsEdit = () => {
     const {sessionRights} = this.context;
     const {tenancyList} = this.props;
-    const {id, accountList, accountData, privileges, showPrivileges, fromPage, selectedTenancy, ownerList, selectedOwner, tenancyChecked, formValidation} = this.state;
+    const {id, accountList, accountData, privileges, showPrivileges, fromPage, selectedTenancy, ownerList, selectedOwner, tenancyChecked, ownerChecked, formValidation} = this.state;
 
     return (
       <div className='account-form' style={this.getContentWidth()}>
@@ -643,7 +682,7 @@ class AccountEdit extends Component {
               helperText={formValidation.name.valid ? '' : c('txt-required')}
               value={accountData.name}
               onChange={this.handleDataChange}
-              disabled={this.checkModuleRights()} />
+              disabled={this.checkModuleRights('name')} />
           </div>
           <div className='group'>
             <TextField
@@ -658,7 +697,7 @@ class AccountEdit extends Component {
               required
               value={accountData.email}
               onChange={this.handleDataChange}
-              disabled={this.checkModuleRights()} />
+              disabled={this.checkModuleRights('email')} />
           </div>
           <div className='group'>
             <TextField
@@ -673,7 +712,7 @@ class AccountEdit extends Component {
               helperText={formValidation.phone.valid ? '' : c('txt-required')}
               value={accountData.phone}
               onChange={this.handleDataChange}
-              disabled={this.checkModuleRights()} />
+              disabled={this.checkModuleRights('phone')} />
           </div>
           {!id && fromPage === 'fromAccount' && sessionRights.Module_Auth_System &&
             <div className='group'>
@@ -697,7 +736,7 @@ class AccountEdit extends Component {
                 className='combo-box'
                 options={tenancyList}
                 value={selectedTenancy || ''}
-                getOptionLabel={(option) => option.text}
+                getOptionLabel={(option) => option.text || ''}
                 renderInput={(params) => (
                   <TextField {...params} label={c('txt-tenancy')} variant='outlined' size='small' />
                 )}
@@ -706,49 +745,65 @@ class AccountEdit extends Component {
               <div className='error-msg'>{formValidation.tenancy.valid ? '' : c('txt-required')}</div>
             </div>
           }
-          {id &&
+          {id && fromPage === 'fromAccount' && sessionRights.Module_Auth_System &&
+            <div className='group'>
+              <FormControlLabel
+                label={c('txt-chooseOwner')}
+                className='checkbox-label'
+                control={
+                  <Checkbox
+                    id='chooseOwner'
+                    className='checkbox-ui'
+                    name='ownerChecked'
+                    checked={ownerChecked}
+                    onChange={this.toggleOwnerCheckbox}
+                    color='primary' />
+                } />
+            </div>
+          }
+          {id && (((sessionRights.Module_Auth_System && ownerChecked) || !sessionRights.Module_Auth_System)) &&
             <div className='group'>
               <Autocomplete
                 className='combo-box'
                 options={ownerList}
                 value={selectedOwner || ''}
-                getOptionLabel={(option) => option.text}
+                getOptionLabel={(option) => option.text || ''}
                 renderInput={(params) => (
-                  <TextField {...params} label={c('ownerFields.ownerName') + ' *'} variant='outlined' size='small' />
+                  <TextField {...params} label={c('ownerFields.ownerName')} variant='outlined' size='small' />
                 )}
                 onChange={this.handleComboBoxChange.bind(this, 'owner')}
-                disabled={this.checkModuleRights()} />
+                disabled={this.checkModuleRights('owner')} />
               <div className='error-msg'>{formValidation.owner.valid ? '' : c('txt-required')}</div>
             </div>
           }
-          {((sessionRights.Module_Auth_System && tenancyChecked) || !sessionRights.Module_Auth_System) &&
+          {((sessionRights.Module_Auth_System && ownerChecked) || (sessionRights.Module_Auth_System && ownerChecked) || !sessionRights.Module_Auth_System) &&
             <div className='group'>
               <Autocomplete
                 id='account-edit-unit'
                 className='combo-box'
                 options={accountList.department}
                 value={accountData.unit || ''}
-                getOptionLabel={(option) => option.text}
+                getOptionLabel={(option) => option.text || ''}
                 renderInput={(params) => (
                   <TextField {...params} label={t('l-unit')} variant='outlined' size='small' />
                 )}
                 onChange={this.handleComboBoxChange.bind(this, 'department')}
-                disabled={this.checkModuleRights()} />
+                disabled={this.checkModuleRights('department')} />
             </div>
           }
-          {((sessionRights.Module_Auth_System && tenancyChecked) || !sessionRights.Module_Auth_System) &&
+          {((sessionRights.Module_Auth_System && ownerChecked) || (sessionRights.Module_Auth_System && ownerChecked) || !sessionRights.Module_Auth_System) &&
             <div className='group'>
               <Autocomplete
                 id='account-edit-title'
                 className='combo-box'
                 options={accountList.title}
                 value={accountData.title || ''}
-                getOptionLabel={(option) => option.text}
+                getOptionLabel={(option) => option.text || ''}
                 renderInput={(params) => (
                   <TextField {...params} label={t('l-title')} variant='outlined' size='small' />
                 )}
                 onChange={this.handleComboBoxChange.bind(this, 'title')}
-                disabled={this.checkModuleRights()} />
+                disabled={this.checkModuleRights('title')} />
             </div>
           }
           {!id &&
@@ -785,7 +840,7 @@ class AccountEdit extends Component {
    */
   saveAccount = () => {
     const {baseUrl, sessionRights} = this.context;
-    const {id, accountData, showPrivileges, selectedTenancy, selectedPrivileges, selectedOwner, tenancyChecked, formValidation} = this.state;
+    const {id, accountData, showPrivileges, selectedTenancy, selectedPrivileges, selectedOwner, tenancyChecked, ownerChecked, formValidation} = this.state;
     const url = `${baseUrl}/api/account/v2`;
     let tempFormValidation = {...formValidation};
     let validate = true;
@@ -819,19 +874,6 @@ class AccountEdit extends Component {
       validate = false;
     }
 
-    if (id) {
-      if (selectedOwner && selectedOwner.value) {
-        tempFormValidation.owner.valid = true;
-        tempFormValidation.owner.msg = '';
-      } else {
-        tempFormValidation.owner.valid = false;
-        validate = false;
-      }
-    } else {
-      tempFormValidation.owner.valid = true;
-      tempFormValidation.owner.msg = '';
-    }
-
     if (accountData.phone) {
       tempFormValidation.phone.valid = true;
     } else {
@@ -857,25 +899,25 @@ class AccountEdit extends Component {
       return;
     }
 
+    const formattedAccountData = _.omit(accountData, 'selected');
     let requestData = {
-      ...accountData,
-      tenancyId: '',
-      unit: '',
-      title: ''
+      ...formattedAccountData
     };
-
-    if (showPrivileges) {
-      requestData.privilegeIds = selectedPrivileges;
-    }
 
     if ((sessionRights.Module_Auth_System && tenancyChecked) || !sessionRights.Module_Auth_System) {
       requestData.tenancyId = selectedTenancy.value || '';
-      requestData.unit = accountData.unit.value || '';
-      requestData.title = accountData.title.value || '';
+      requestData.unit = (accountData.unit && accountData.unit.value) ? accountData.unit.value : '';
+      requestData.title = (accountData.title && accountData.title.value) ? accountData.title.value : '';
     }
 
-    if (id && selectedOwner) {
-      requestData.ownerId = selectedOwner.value;
+    if (id) {
+      requestData.ownerId = selectedOwner.value || '';
+      requestData.unit = (accountData.unit && accountData.unit.value) ? accountData.unit.value : '';
+      requestData.title = (accountData.title && accountData.title.value) ? accountData.title.value : '';
+    }
+
+    if (showPrivileges) {
+      requestData.privilegeIds = selectedPrivileges;
     }
 
     this.ah.one({
@@ -892,14 +934,46 @@ class AccountEdit extends Component {
         this.setState({
           id: resId
         }, () => {
-          this.close();
-          this.props.onDone();
+          if (showPrivileges) {
+            this.savePrivileges();
+          } else {
+            this.close();
+            this.props.onDone();
+          }
         });
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', c('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle save privileges confirm
+   * @method
+   */
+  savePrivileges = () => {
+    const {baseUrl} = this.context;
+    const {id, accountData:{selected}} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/privileges?accountId=${id}&${queryString.stringify({privilegeIds:selected})}`,
+      type: 'PATCH',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      this.setState(
+        _.cloneDeep(INITIAL_STATE), () => {
+        this.props.onDone();
+      });
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        error: true,
+        info: err.message
+      })
     })
   }
   /**
