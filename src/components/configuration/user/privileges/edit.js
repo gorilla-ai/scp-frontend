@@ -6,6 +6,7 @@ import cx from 'classnames'
 import im from 'object-path-immutable'
 import queryString from 'query-string'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormLabel from '@material-ui/core/FormLabel'
 import FormControl from '@material-ui/core/FormControl'
@@ -26,29 +27,34 @@ const FORM_VALIDATION = {
   name: {
     valid: true
   },
+  systemPermitsList: {
+    valid: true
+  },
   privileges: {
     valid: true
   }
 };
 
-const log = require('loglevel').getLogger('user/privileges/edit');
-const t = i18n.getFixedT(null, 'privileges');
-const c = i18n.getFixedT(null, 'connections');
-const gt =  i18n.getFixedT(null, 'app');
-
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML || '{}')
 const {apiServerPrefix} = initialState.envCfg
-
 const INITIAL_STATE = {
   open: false,
   info: null,
   error: false,
   permitsList: [],
+  systemPermitsList: [],
+  selectedSystem: {},
   permitsSelected: [],
   name: '',
   privilegeid: '',
   formValidation: _.cloneDeep(FORM_VALIDATION)
 };
+const SYSTEM_MODULE = ['Module_Auth_System', 'Module_Tenant_System', 'Module_Depart_System'];
+
+const log = require('loglevel').getLogger('user/privileges/edit');
+const t = i18n.getFixedT(null, 'privileges');
+const c = i18n.getFixedT(null, 'connections');
+const gt =  i18n.getFixedT(null, 'app');
 
 /**
  * Account Privileges Edit
@@ -62,6 +68,7 @@ class PrivilegeEdit extends Component {
 
     this.state = _.clone(INITIAL_STATE);
   }
+  ryan = () => {}
   /**
    * Open privilege edit modal dialog and set data
    * @method
@@ -70,22 +77,26 @@ class PrivilegeEdit extends Component {
   openPrivilegeEdit = (privilege) => {
     const permitsSelected = _.map(privilege.permits, val => {
       return val.permitid;
-    });
+    }); 
 
     this.setState({
       open: true,
+      permitsList: [],
+      systemPermitsList: [],
+      selectedSystem: {},
+      permitsSelected,
       name: privilege.name,
-      privilegeid: privilege.privilegeid,
-      permitsSelected
+      privilegeid: privilege.privilegeid
     }, () => {
-      this.loadPermits();
+      this.loadPermits(privilege.moduleid);
     });
   }
   /**
    * Get and set privilege permits data
    * @method
+   * @param {string} [moduleId] - selected module ID
    */
-  loadPermits = () => {
+  loadPermits = (moduleId) => {
     const {baseUrl} = this.context;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -96,15 +107,36 @@ class PrivilegeEdit extends Component {
     })
     .then(data => {
       if (data) {
-        const permitsList = _.map(data.rt, val => {
-          return {
-            value: val.permitid,
-            text: c('txt-' + val.name)
-          };
+        let permitsList = [];
+        let systemPermitsList = [];
+
+        _.forEach(data.rt, val => {
+          if (_.includes(SYSTEM_MODULE, val.name)) {
+            systemPermitsList.push({
+              value: val.permitid,
+              text: c('txt-' + val.name)
+            });
+          } else {
+            permitsList.push({
+              value: val.permitid,
+              text: c('txt-' + val.name)
+            });
+          }
         });
 
+        if (moduleId) {
+          const selectedSystemIndex = _.findIndex(systemPermitsList, { 'value': moduleId });
+
+          if (selectedSystemIndex >= 0) {
+            this.setState({
+              selectedSystem: systemPermitsList[selectedSystemIndex]
+            });
+          }
+        }
+
         this.setState({
-          permitsList
+          permitsList,
+          systemPermitsList
         });
       }
       return null;
@@ -147,7 +179,7 @@ class PrivilegeEdit extends Component {
    */
   editPrivilege = () => {
     const {baseUrl} = this.context;
-    const {name, permitsSelected, privilegeid, formValidation} = this.state;
+    const {name, selectedSystem, permitsSelected, privilegeid, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
     let validate = true;
 
@@ -173,7 +205,7 @@ class PrivilegeEdit extends Component {
       return;
     }
 
-    let permitIds = '';
+    let permitIds = '&permitIds=' + selectedSystem.value;
 
     _.forEach(permitsSelected, val => {
       permitIds += '&permitIds=' + val;
@@ -247,12 +279,11 @@ class PrivilegeEdit extends Component {
     const {name, privilegeid} = this.state;
     let showCheckbox = false;
 
+    if (!val) return;
+
     if (name.includes('SOC')){
       showCheckbox = true;
     }
-
-    if (!val.text) return;
-
 
     if (val.text.includes('SOC') || privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
       return (
@@ -303,12 +334,31 @@ class PrivilegeEdit extends Component {
     }
   }
   /**
+   * Handle privilege combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected dropdown info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {systemPermitsList} = this.state;
+
+    if (value && value.value) {
+      const selectedSystemIndex = _.findIndex(systemPermitsList, { 'value': value.value });
+
+      if (selectedSystemIndex >= 0) {
+        this.setState({
+          selectedSystem: systemPermitsList[selectedSystemIndex]
+        });
+      }
+    }
+  }
+  /**
    * Display edit privilege content
    * @method
    * @returns HTML DOM
    */
   displayEditPrivilege = () => {
-    const {permitsList, name, formValidation} = this.state;
+    const {permitsList, systemPermitsList, selectedSystem, name, formValidation} = this.state;
 
     return (
       <div className='c-form'>
@@ -326,6 +376,18 @@ class PrivilegeEdit extends Component {
           value={name}
           onChange={this.handleDataChange}
           disabled={this.checkDisabled(name)} />
+        <div className='group'>
+          <Autocomplete
+            className='combo-box'
+            options={systemPermitsList}
+            value={selectedSystem || ''}
+            getOptionLabel={(option) => option.text || ''}
+            renderInput={(params) => (
+              <TextField {...params} label={c('txt-Module_privilege')} variant='outlined' size='small' />
+            )}
+            onChange={this.handleComboBoxChange} />
+          <div className='error-msg'>{formValidation.systemPermitsList.valid ? '' : c('txt-required')}</div>  
+        </div>
         <div className='group'>
           <FormControl
             required
