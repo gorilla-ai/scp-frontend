@@ -68,15 +68,18 @@ class PrivilegeEdit extends Component {
 
     this.state = _.clone(INITIAL_STATE);
   }
-  ryan = () => {}
   /**
    * Open privilege edit modal dialog and set data
    * @method
    * @param {object} privilege - selected privilege data
    */
   openPrivilegeEdit = (privilege) => {
-    const permitsSelected = _.map(privilege.permits, val => {
-      return val.permitid;
+    let permitsSelected = [];
+
+    _.forEach(privilege.permits, val => {
+      if (!_.includes(SYSTEM_MODULE, val.name)) {
+        permitsSelected.push( val.permitid);
+      }
     }); 
 
     this.setState({
@@ -88,15 +91,15 @@ class PrivilegeEdit extends Component {
       name: privilege.name,
       privilegeid: privilege.privilegeid
     }, () => {
-      this.loadPermits(privilege.moduleid);
+      this.loadPermits(privilege.permits);
     });
   }
   /**
    * Get and set privilege permits data
    * @method
-   * @param {string} [moduleId] - selected module ID
+   * @param {array.<object>} permits - privilege permits
    */
-  loadPermits = (moduleId) => {
+  loadPermits = (permits) => {
     const {baseUrl} = this.context;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -109,6 +112,7 @@ class PrivilegeEdit extends Component {
       if (data) {
         let permitsList = [];
         let systemPermitsList = [];
+        let permitId = '';
 
         _.forEach(data.rt, val => {
           if (_.includes(SYSTEM_MODULE, val.name)) {
@@ -124,14 +128,19 @@ class PrivilegeEdit extends Component {
           }
         });
 
-        if (moduleId) {
-          const selectedSystemIndex = _.findIndex(systemPermitsList, { 'value': moduleId });
-
-          if (selectedSystemIndex >= 0) {
-            this.setState({
-              selectedSystem: systemPermitsList[selectedSystemIndex]
-            });
+        _.forEach(permits, val => {
+          if (_.includes(SYSTEM_MODULE, val.name)) {
+            permitId = val.permitid;
+            return false;
           }
+        })
+
+        const selectedSystemIndex = _.findIndex(systemPermitsList, { 'value': permitId });
+
+        if (selectedSystemIndex >= 0) {
+          this.setState({
+            selectedSystem: systemPermitsList[selectedSystemIndex]
+          });
         }
 
         this.setState({
@@ -190,6 +199,13 @@ class PrivilegeEdit extends Component {
       validate = false;
     }
 
+    if (selectedSystem.value) {
+      tempFormValidation.systemPermitsList.valid = true;
+    } else {
+      tempFormValidation.systemPermitsList.valid = false;
+      validate = false;
+    }
+
     if (permitsSelected.length > 0) {
       tempFormValidation.privileges.valid = true;
     } else {
@@ -205,11 +221,13 @@ class PrivilegeEdit extends Component {
       return;
     }
 
-    let permitIds = '&permitIds=' + selectedSystem.value;
+    let permitIds = '';
 
     _.forEach(permitsSelected, val => {
       permitIds += '&permitIds=' + val;
     })
+
+    permitIds += '&permitIds=' + selectedSystem.value;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -383,7 +401,7 @@ class PrivilegeEdit extends Component {
             value={selectedSystem || ''}
             getOptionLabel={(option) => option.text || ''}
             renderInput={(params) => (
-              <TextField {...params} label={c('txt-Module_privilege')} variant='outlined' size='small' />
+              <TextField {...params} label={c('txt-Module_privilege') + ' *'} variant='outlined' size='small' />
             )}
             onChange={this.handleComboBoxChange} />
           <div className='error-msg'>{formValidation.systemPermitsList.valid ? '' : c('txt-required')}</div>  
