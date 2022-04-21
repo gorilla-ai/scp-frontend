@@ -233,11 +233,13 @@ class Config extends Component {
                 <span className={`${this.getActiveFrame('account')}`}>{t('txt-account')}</span>
               </Link>
             </div>
-            <div className='subframe'>
-              <Link id='config-link-privileges' to='/SCP/configuration/user/privileges'>
-                <span className={`${this.getActiveFrame('privileges')}`}>{t('txt-privileges')}</span>
-              </Link>
-            </div>
+            {sessionRights.Module_Auth_System && sessionRights.Module_Account &&
+              <div className='subframe'>
+                <Link id='config-link-privileges' to='/SCP/configuration/user/privileges'>
+                  <span className={`${this.getActiveFrame('privileges')}`}>{t('txt-privileges')}</span>
+                </Link>
+              </div>
+            }
           </div>
         }
 

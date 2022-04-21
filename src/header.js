@@ -588,6 +588,28 @@ class Header extends Component {
       }
     });
   }
+  /**
+   * Get Config link based on privilege
+   * @method
+   * @returns page url
+   */
+  getConfigLink = () => {
+    const {sessionRights} = this.context;
+
+    if (sessionRights.Module_Service) {
+      return '/SCP/configuration/notifications';
+    }
+
+    if (sessionRights.Module_Edge) {
+      return '/SCP/configuration/edge/edge';
+    }
+
+    if (sessionRights.Module_Account) {
+      return '/SCP/configuration/user/account';
+    }
+
+    return '/SCP/configuration/notifications';
+  }
   render() {
     const {contextRoot, language, session, sessionRights} = this.context;
     const {companyName, productName} = this.props;
@@ -642,7 +664,7 @@ class Header extends Component {
                   <Link id='header-link-soar' to='/SCP/soar' className={cx('item', {'active': this.getActiveTab('soar')})}>SOAR</Link>
                 }
                 {(sessionRights.Module_Account || sessionRights.Module_Edge || sessionRights.Module_Service) &&
-                  <Link id='header-link-config' to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
+                  <Link id='header-link-config' to={this.getConfigLink()} className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
               </div>
             </div>
