@@ -176,6 +176,7 @@ class NetworkInventory extends Component {
       ownerListDropDown: [],
       departmentList: [],
       titleList: [],
+      tenancyList: [],
       floorPlan: {
         treeData: {},
         type: 'edit',
@@ -247,6 +248,7 @@ class NetworkInventory extends Component {
     this.getLAconfig();
     this.getOwnerData();
     this.getTitleData();
+    this.getTenancyData();
 
     if (_.isEmpty(inventoryParam)) {
       this.getDeviceData();
@@ -424,6 +426,44 @@ class NetworkInventory extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set tenancy data
+   * @method
+   */
+  getTenancyData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+    const url = `${baseUrl}/api/tenancy/_search`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        let tenancyList = [];
+
+        _.forEach(data.rows, val => {
+          helper.floorPlanRecursive(val, obj => {
+            tenancyList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        this.setState({
+          tenancyList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**
@@ -4068,6 +4108,7 @@ class NetworkInventory extends Component {
       currentMap,
       currentBaseLayers,
       deviceSeatData,
+      tenancyList,
       floorPlan,
       ownerInfo,
       activeIPdeviceUUID,
@@ -4158,6 +4199,7 @@ class NetworkInventory extends Component {
 
         {openManage &&
           <Manage
+            tenancyList={tenancyList}
             handleCloseManage={this.handleCloseManage} />
         }
 

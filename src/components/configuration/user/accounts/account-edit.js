@@ -103,7 +103,6 @@ class AccountEdit extends Component {
   componentDidMount() {
     
   }
-  ryan = () => {}
   /**
    * Open account add/edit modal dialog
    * @method

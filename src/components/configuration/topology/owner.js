@@ -48,20 +48,22 @@ class NetworkOwner extends Component {
       activeContent: 'tableList', //'tableList' or 'addOwner'
       list: {
         department: [],
-        title: []
+        title: [],
+        tenancy: []
       },
       search: {
         name: '',
         department: {},
-        title: {}
+        title: {},
+        tenancy: {}
       },
       openManage: false,
-      addOwnerType: '',
+      addOwnerType: '', //'new' or 'edit'
       addOwnerTitle: '',
       showFilter: false,
       currentOwnerData: {},
       owner: {
-        dataFieldsArr: ['ownerID', 'ownerName', 'departmentName', 'titleName', '_menu'],
+        dataFieldsArr: ['ownerID', 'tenancyName', 'ownerName', 'departmentName', 'titleName', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -104,14 +106,19 @@ class NetworkOwner extends Component {
   /**
    * Get and set title data
    * @method
+   * @param {string} [tenancyId] - tenancy ID
    */
-  getTitleData = () => {
+  getTitleData = (tenancyId) => {
     const {baseUrl} = this.context;
     const {list} = this.state;
     const url = `${baseUrl}/api/name/_search`;
-    const requestData = {
+    let requestData = {
       nameType: 2
     };
+
+    if (tenancyId) {
+      requestData.tenancyId = tenancyId;
+    }
 
     this.ah.one({
       url,
@@ -136,7 +143,7 @@ class NetworkOwner extends Component {
         this.setState({
           list: tempList
         }, () => {
-          this.getDepartmentData();
+          this.getDepartmentData(tenancyId);
         });
       }
       return null;
@@ -148,13 +155,19 @@ class NetworkOwner extends Component {
   /**
    * Get and set department data
    * @method
+   * @param {string} [tenancyId] - tenancy ID
    */
-  getDepartmentData = () => {
+  getDepartmentData = (tenancyId) => {
     const {baseUrl} = this.context;
     const {list} = this.state;
+    let url = `${baseUrl}/api/department/_tree`;
+
+    if (tenancyId) {
+      url += `?tenancyId=${tenancyId}`;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/department/_tree`,
+      url,
       type: 'GET'
     })
     .then(data => {
@@ -175,12 +188,57 @@ class NetworkOwner extends Component {
 
         this.setState({
           list: tempList
+        }, () => {
+          if (!tenancyId) {
+            this.getTenancyData();
+          }
         });
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set tenancy data
+   * @method
+   */
+  getTenancyData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+    const url = `${baseUrl}/api/tenancy/_search`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let tenancyList = [];
+
+        _.forEach(data.rows, val => {
+          helper.floorPlanRecursive(val, obj => {
+            tenancyList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.tenancy = _.cloneDeep(tenancyList);
+
+        this.setState({
+          list: tempList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**
@@ -226,6 +284,10 @@ class NetworkOwner extends Component {
       requestData.title = search.title.value;
     }
 
+    if (!_.isEmpty(search.tenancy)) {
+      requestData.tenancyId = search.tenancy.value;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/owner/_search`,
       data: JSON.stringify(requestData),
@@ -258,9 +320,15 @@ class NetworkOwner extends Component {
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempOwner.dataContent[dataIndex];
-                const value = tempOwner.dataContent[dataIndex][val];
+                let value = tempOwner.dataContent[dataIndex][val];
 
-                if (val === '_menu') {
+                if (val === 'tenancyName') {
+                  value = '';
+
+                  if (tempOwner.dataContent[dataIndex].multiTenancyDTO) {
+                    value = tempOwner.dataContent[dataIndex].multiTenancyDTO.name;
+                  }
+                } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
                       <i id='topologyOwnerGetOwnerInfo' className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
@@ -389,6 +457,11 @@ class NetworkOwner extends Component {
           });
         }
 
+        if (data.multiTenancyDTO) {
+          const selectedTenancyIndex = _.findIndex(list.tenancy, { 'value': data.multiTenancyDTO.id });
+          tempOwner.info.tenancy = list.tenancy[selectedTenancyIndex];
+        }
+        
         const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data.department });
         const selectedTitleIndex = _.findIndex(list.title, { 'value': data.title });
         tempOwner.info.department = list.department[selectedDepartmentIndex];
@@ -437,10 +510,25 @@ class NetworkOwner extends Component {
     )
   }
   /**
+   * Display tenancy list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderTenancyList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('ownerFields.tenancyName')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
    * Handle department/title combo box change
    * @method
-   * @param {string} from - form page ('department' or 'title')
-   * @param {string} type - combo type ('search' or 'owner')
+   * @param {string} from - form page ('department', 'title' or 'tenancy')
+   * @param {string} type - combo type ('search', 'owner' or 'list')
    * @param {object} event - select event
    * @param {object} value - selected department info
    */
@@ -483,6 +571,31 @@ class NetworkOwner extends Component {
         if (type === 'owner') {
           let tempOwner = {...owner};
           tempOwner.info.title = list.title[selectedTitleIndex];
+
+          this.setState({
+            owner: tempOwner
+          });
+        }
+      } else if (from === 'tenancy') {
+        const selectedTenancyIndex = _.findIndex(list.tenancy, { 'value': value.value });
+
+        if (type === 'search') {
+          let tempSearch = {...search};
+          tempSearch.tenancy = list.tenancy[selectedTenancyIndex];
+
+          this.setState({
+            search: tempSearch
+          });
+        }
+
+        if (type === 'list') {
+          const tenancyId = list.tenancy[selectedTenancyIndex];
+          this.getTitleData(tenancyId.value);
+        }
+
+        if (type === 'owner') {
+          let tempOwner = {...owner};
+          tempOwner.info.tenancy = list.tenancy[selectedTenancyIndex];
 
           this.setState({
             owner: tempOwner
@@ -615,6 +728,12 @@ class NetworkOwner extends Component {
 
     formData.append('ownerID', owner.info.ownerID);
     formData.append('ownerName', owner.info.ownerName);
+
+    if (owner.info.tenancy && owner.info.tenancy.value) {
+      formData.append('tenancyId', owner.info.tenancy.value);
+    } else {
+      formData.append('tenancyId', '');
+    }
 
     if (owner.info.department && owner.info.department.value) {
       formData.append('department', owner.info.department.value);
@@ -811,6 +930,16 @@ class NetworkOwner extends Component {
               renderInput={this.renderTitleList}
               onChange={this.handleComboBoxChange.bind(this, 'title', 'search')} />
           </div>
+          <div className='group'>
+            <Autocomplete
+              id='topologyFilterComboTenancy'
+              className='combo-box'
+              options={list.tenancy}
+              value={search.tenancy}
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderTenancyList}
+              onChange={this.handleComboBoxChange.bind(this, 'tenancy', 'search')} />
+          </div>
         </div>
         <div className='button-group'>
           <Button id='topologyFilterBtn' variant='contained' color='primary' className='filter' onClick={this.getOwnerData}>{t('txt-filter')}</Button>
@@ -834,6 +963,7 @@ class NetworkOwner extends Component {
       activeContent,
       list,
       openManage,
+      addOwnerType,
       addOwnerTitle,
       owner,
       showFilter,
@@ -856,6 +986,7 @@ class NetworkOwner extends Component {
       <div>
         {openManage &&
           <Manage
+            tenancyList={list.tenancy}
             handleCloseManage={this.handleCloseManage} />
         }
 
@@ -946,6 +1077,17 @@ class NetworkOwner extends Component {
                     </div>
                   </div>
                   <div className='user-info'>
+                    <div className='group'>
+                      <Autocomplete
+                        id='topologyOwnerTenancy'
+                        className='combo-box'
+                        options={list.tenancy}
+                        value={owner.info.tenancy}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderTenancyList}
+                        onChange={this.handleComboBoxChange.bind(this, 'tenancy', 'list')}
+                        disabled={addOwnerType === 'edit'} />
+                    </div>
                     <div className='group'>
                       <TextField
                         id='topologyOwnerName'

@@ -1173,6 +1173,7 @@
   },
   "ownerFields": {
     "ownerID": "ID",
+    "tenancyName": "租戶",
     "ownerName": "所屬人員",
     "department": "部門",
     "title": "職稱",

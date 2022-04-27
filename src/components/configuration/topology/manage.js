@@ -58,6 +58,7 @@ class Manage extends Component {
         unitCodeRegex: ''
       },
       ownerList: [],
+      selectedTenancy: {},
       selectedOwner: {},
       departmentList: [],
       titleNameList: [],
@@ -80,19 +81,30 @@ class Manage extends Component {
   /**
    * Get and set department tree data
    * @method
+   * @param {string} [tenancyId] - tenancy ID
    */
-  getDepartmentTree = () => {
+  getDepartmentTree = (tenancyId) => {
     const {baseUrl} = this.context;
+    const {tenancyList} = this.props;
+    let id = '' || tenancyId;
+
+    if (!id && tenancyList.length > 0) {
+      id = tenancyList[0].value;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/department/_tree`,
+      url: `${baseUrl}/api/department/_tree?tenancyId=${id}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
+        const selectedTenancyIndex = _.findIndex(tenancyList, { 'value': id });
+        const selectedTenancy = tenancyList[selectedTenancyIndex];
+
         this.setState({
+          selectedTenancy,
           departmentList: data,
-          treeData:data
+          treeData: data
         });
       }
       return null;
@@ -346,12 +358,95 @@ class Manage extends Component {
     })
   }
   /**
+   * Handle tenancy combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected tenancy info
+   */
+  handleTenancyComboBoxChange = (event, value) => {
+    const {tenancyList} = this.props;
+    const {activeTab} = this.state;
+
+    if (value && value.value) {
+      const selectedTenancyIndex = _.findIndex(tenancyList, { 'value': value.value });
+      const selectedTenancy = tenancyList[selectedTenancyIndex];
+
+      this.setState({
+        selectedTenancy
+      }, () => {
+        if (activeTab === 'department') {
+          this.getDepartmentTree(selectedTenancy.value);
+        } else if (activeTab === 'title') {
+          this.getTitleNameList(selectedTenancy.value);
+        }
+      });
+    }
+  }
+  /**
+   * Get and set title data
+   * @method
+   * @param {string} [tenancyId] - tenancy ID
+   */
+  getTitleNameList = (tenancyId) => {
+    const {baseUrl} = this.context;
+    const {tenancyList} = this.props;
+    const url = `${baseUrl}/api/name/_search`;
+    let id = '' || tenancyId;
+
+    if (!id && tenancyList.length > 0) {
+      id = tenancyList[0].value;
+    }
+
+    const requestData = {
+      nameType: 2,
+      tenancyId: id
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        const selectedTenancyIndex = _.findIndex(tenancyList, { 'value': id });
+        const selectedTenancy = tenancyList[selectedTenancyIndex];
+
+        this.setState({
+          selectedTenancy,
+          titleNameList: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display tenancy list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderTenancyList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={t('ownerFields.tenancyName')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
    * Display department/title manage content
    * @method
    * @returns HTML DOM
    */
   displayDepartmentTitleContent = () => {
-    const {activeTab, departmentList, treeData, titleNameList, tableArr, nameUUID} = this.state;
+    const {tenancyList} = this.props;
+    const {activeTab, departmentList, treeData, selectedTenancy, titleNameList, tableArr, nameUUID} = this.state;
     let dataFields = {};
 
     if (activeTab === 'title') {
@@ -387,6 +482,17 @@ class Manage extends Component {
           <ToggleButton id='manageTitle' value='title'>{t('ownerFields.title')}</ToggleButton>
         </ToggleButtonGroup>
 
+        <div className='group'>
+          <Autocomplete
+            id='departmentDisplayTenancy'
+            className='combo-box'
+            options={tenancyList}
+            value={selectedTenancy}
+            getOptionLabel={(option) => option.text}
+            renderInput={this.renderTenancyList}
+            onChange={this.handleTenancyComboBoxChange} />
+        </div>
+
         {activeTab === 'department' &&
           <div className='tree-section'>
             <i id='departmentTitleAddDepartment' className='c-link fg fg-add' onClick={this.handleTreeAction.bind(this, 'add')} title={t('txt-addDepartment')}></i>
@@ -419,35 +525,6 @@ class Manage extends Component {
         }
       </div>
     )
-  }
-  /**
-   * Get and set title data
-   * @method
-   */
-  getTitleNameList = () => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/name/_search`;
-    const requestData = {
-      nameType: 2
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          titleNameList: data
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Handle add/edit title name action
@@ -600,10 +677,18 @@ class Manage extends Component {
    * @returns HTML DOM
    */
   displayTitleName = () => {
-    const {activeTab, name, dialogType, owner, ownerList, selectedOwner, formValidation} = this.state;
+    const {activeTab, name, dialogType, owner, ownerList, selectedTenancy, selectedOwner, formValidation} = this.state;
 
     return (
       <React.Fragment>
+        <Autocomplete
+          id='departmentEditTenancy'
+          className='combo-box'
+          options={this.props.tenancyList}
+          value={selectedTenancy}
+          getOptionLabel={(option) => option.text}
+          renderInput={this.renderTenancyList}
+          disabled={true} />
         <TextField
           name='name'
           style={{margin: '10px 0'}}
@@ -778,15 +863,12 @@ class Manage extends Component {
    */
   handleConfirmDepartemnt = () => {
     const {baseUrl} = this.context;
-    const {name, dialogType, owner, selectedOwner, parentTreetId, treeId} = this.state;
+    const {name, dialogType, owner, selectedTenancy, selectedOwner, parentTreetId, treeId} = this.state;
     const url = `${baseUrl}/api/department`;
     let requestType = 'POST';
     let requestData = {
       name,
-      ip: owner.ip,
-      domainAccount: owner.domainAccount,
-      unitCode: owner.unitCode,
-      unitCodeRegex: owner.unitCodeRegex
+      tenancyId: selectedTenancy.value
     };
 
     if (dialogType === 'edit') {
@@ -798,6 +880,22 @@ class Manage extends Component {
           return;
         }
       }
+    }
+
+    if (owner.ip) {
+      requestData.ip = owner.ip;
+    }
+
+    if (owner.domainAccount) {
+      requestData.domainAccount = owner.domainAccount;
+    }
+
+    if (owner.unitCode) {
+      requestData.unitCode = owner.unitCode;
+    }
+
+    if (owner.unitCodeRegex) {
+      requestData.unitCodeRegex = owner.unitCodeRegex;
     }
 
     if (selectedOwner) {
@@ -849,12 +947,13 @@ class Manage extends Component {
    */
   handleConfirmTitle = () => {
     const {baseUrl} = this.context;
-    const {name, nameUUID} = this.state;
+    const {name, nameUUID, selectedTenancy} = this.state;
     const url = `${baseUrl}/api/name`;
     let requestType = 'POST';
     let requestData = {
       name,
-      nameType: 2
+      nameType: 2,
+      tenancyId: selectedTenancy.value
     };
 
     if (nameUUID) {
