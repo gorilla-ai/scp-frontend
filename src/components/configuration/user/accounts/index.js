@@ -19,6 +19,7 @@ import AdConfig from './ad-config'
 import {BaseDataContext} from '../../../common/context'
 import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
+import Manage from '../../topology/manage'
 import MuiTableContent from '../../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -55,6 +56,7 @@ class AccountList extends Component {
         department: [],
         title: []
       },
+      openManage: false,
       accountSearch: _.cloneDeep(ACCOUNT_SEARCH),
       tenancyList: [],
       userAccount: {
@@ -704,9 +706,26 @@ class AccountList extends Component {
       this.getAccountsData();
     });
   }
+  /**
+   * Handle close on department/title management modal dialog
+   * @method
+   */
+  handleCloseManage = () => {
+    this.toggleManageDialog();
+    this.getTitleData();
+  }
+  /**
+   * Toggle manage dialog
+   * @method
+   */
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, list, tenancyList, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const {showFilter, list, openManage, tenancyList, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -721,6 +740,12 @@ class AccountList extends Component {
 
     return (
       <div>
+        {openManage &&
+          <Manage
+            tenancyList={tenancyList}
+            handleCloseManage={this.handleCloseManage} />
+        }
+
         {showNewPassword &&
           this.showNewPasswordDialog()
         }
@@ -756,6 +781,11 @@ class AccountList extends Component {
 
             <div className='main-content'>
               <header className='main-header'>{c('txt-account')}</header>
+
+              <div className='content-header-btns with-menu'>
+                <Button id='userAccountTableEditDepartmentTitle' variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog}>{c('txt-manageDepartmentTitle')}</Button>
+              </div>
+
               <MuiTableContent
                 data={userAccount}
                 tableOptions={tableOptions} />

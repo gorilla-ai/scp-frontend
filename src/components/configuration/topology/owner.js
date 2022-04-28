@@ -63,7 +63,7 @@ class NetworkOwner extends Component {
       showFilter: false,
       currentOwnerData: {},
       owner: {
-        dataFieldsArr: ['ownerID', 'tenancyName', 'ownerName', 'departmentName', 'titleName', '_menu'],
+        dataFieldsArr: ['ownerID', 'multiTenancyPO', 'ownerName', 'departmentName', 'titleName', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -242,13 +242,129 @@ class NetworkOwner extends Component {
     })
   }
   /**
+   * Handle owner edit button
+   * @method
+   * @param {string} tenancyId - tenancy ID
+   * @param {object} allValue - owner data object
+   */
+  handleOwnerEdit = (tenancyId, allValue) => {
+    const {baseUrl} = this.context;
+    const {list, currentOwnerData, owner} = this.state;
+    const url1 = `${baseUrl}/api/name/_search`;
+    const url3 = `${baseUrl}/api/tenancy/_search`;
+    const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
+    const url4 = `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`;
+    let url2 = `${baseUrl}/api/department/_tree`;
+    let requestData = {
+      nameType: 2
+    };
+    let tempOwner = {...owner};
+
+    if (tenancyId) {
+      requestData.tenancyId = tenancyId;
+      url2 += `?tenancyId=${tenancyId}`;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.all([
+      {
+        url: url1,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: url2,
+        type: 'GET'
+      },
+      {
+        url: url3,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'application/json'
+      },
+      {
+        url: url4,
+        type: 'GET'
+      }
+    ])
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let titleList = [];
+        let departmentList = [];
+        let tenancyList = [];
+
+        _.forEach(data[0].rt, val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+
+        _.forEach(data[1].rt, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        _.forEach(data[2].rt.rows, val => {
+          helper.floorPlanRecursive(val, obj => {
+            tenancyList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.title = _.cloneDeep(titleList);
+        tempList.department = _.cloneDeep(departmentList);
+        tempList.tenancy = _.cloneDeep(tenancyList);
+
+        const ownerData = data[3].rt;
+        tempOwner.info = {...ownerData};
+
+        if (allValue) {
+          this.setState({
+            currentOwnerData: allValue
+          });
+        }
+
+        if (ownerData.multiTenancyDTO) {
+          const selectedTenancyIndex = _.findIndex(list.tenancy, { 'value': ownerData.multiTenancyDTO.id });
+          tempOwner.info.tenancy = list.tenancy[selectedTenancyIndex];
+        }
+
+        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': ownerData.department });
+        const selectedTitleIndex = _.findIndex(list.title, { 'value': ownerData.title });
+        tempOwner.info.department = list.department[selectedDepartmentIndex];
+        tempOwner.info.title = list.title[selectedTitleIndex];
+
+        this.setState({
+          list: tempList,
+          owner: tempOwner
+        }, () => {
+          this.toggleContent('addOwner', 'edit');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Check table sort
    * @method
    * @param {string} field - table field name
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const sortableFields = ['ownerID', 'ownerName'];
+    const sortableFields = ['ownerID', 'multiTenancyPO', 'ownerName'];
 
     if (_.includes(sortableFields, field)) {
       return true;
@@ -322,16 +438,22 @@ class NetworkOwner extends Component {
                 const allValue = tempOwner.dataContent[dataIndex];
                 let value = tempOwner.dataContent[dataIndex][val];
 
-                if (val === 'tenancyName') {
+                if (val === 'multiTenancyPO') {
                   value = '';
 
                   if (tempOwner.dataContent[dataIndex].multiTenancyDTO) {
                     value = tempOwner.dataContent[dataIndex].multiTenancyDTO.name;
                   }
                 } else if (val === '_menu') {
+                  let tenancyId = '';
+
+                  if (tempOwner.dataContent[dataIndex].multiTenancyDTO) {
+                    tenancyId = tempOwner.dataContent[dataIndex].multiTenancyDTO.id;
+                  }
+
                   return (
                     <div className='table-menu menu active'>
-                      <i id='topologyOwnerGetOwnerInfo' className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
+                      <i id='topologyOwnerGetOwnerInfo' className='fg fg-edit' onClick={this.handleOwnerEdit.bind(this, tenancyId, allValue)} title={t('txt-edit')}></i>
                       <i id='topologyOwnerDeleteOwner' className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}></i>
                     </div>
                   )
@@ -430,56 +552,6 @@ class NetworkOwner extends Component {
     });
   }
   /**
-   * Get individual owner data
-   * @method
-   * @param {object} allValue - Owner data
-   */
-  getOwnerInfo = (allValue) => {
-    const {baseUrl} = this.context;
-    const {list, currentOwnerData, owner} = this.state;
-    const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
-    let tempOwner = {...owner};
-
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
-      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data.rt) {
-        data = data.rt;
-        tempOwner.info = {...data};
-
-        if (allValue) {
-          this.setState({
-            currentOwnerData: allValue
-          });
-        }
-
-        if (data.multiTenancyDTO) {
-          const selectedTenancyIndex = _.findIndex(list.tenancy, { 'value': data.multiTenancyDTO.id });
-          tempOwner.info.tenancy = list.tenancy[selectedTenancyIndex];
-        }
-        
-        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data.department });
-        const selectedTitleIndex = _.findIndex(list.title, { 'value': data.title });
-        tempOwner.info.department = list.department[selectedDepartmentIndex];
-        tempOwner.info.title = list.title[selectedTitleIndex];
-
-        this.setState({
-          owner: tempOwner
-        }, () => {
-          this.toggleContent('addOwner', 'edit');
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Display department list
    * @method
    * @param {object} params - parameters for Autocomplete
@@ -519,7 +591,7 @@ class NetworkOwner extends Component {
     return (
       <TextField
         {...params}
-        label={t('ownerFields.tenancyName')}
+        label={t('ownerFields.multiTenancyPO')}
         variant='outlined'
         size='small' />
     )
@@ -553,7 +625,7 @@ class NetworkOwner extends Component {
           tempOwner.info.department = list.department[selectedDepartmentIndex];
 
           this.setState({
-            owner: tempOwner 
+            owner: tempOwner
           });
         }
       } else if (from === 'title') {
@@ -590,6 +662,14 @@ class NetworkOwner extends Component {
 
         if (type === 'list') {
           const tenancyId = list.tenancy[selectedTenancyIndex];
+          let tempOwner = {...owner};
+          tempOwner.info.department = {};
+          tempOwner.info.title = {};
+
+          this.setState({
+            owner: tempOwner
+          });
+
           this.getTitleData(tenancyId.value);
         }
 

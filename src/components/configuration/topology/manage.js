@@ -434,7 +434,7 @@ class Manage extends Component {
     return (
       <TextField
         {...params}
-        label={t('ownerFields.tenancyName')}
+        label={t('ownerFields.multiTenancyPO')}
         variant='outlined'
         size='small' />
     )
@@ -509,11 +509,13 @@ class Manage extends Component {
         {activeTab === 'title' &&
           <div className='title-section'>
             <i id='departmentTitleAddTree' className='c-link fg fg-add' onClick={this.openTitleName.bind(this, 'add')} title={t('txt-addTitle')}></i>
-            <div className='table-data'>
-              <DataTable
-                fields={dataFields}
-                data={titleNameList} />
-            </div>
+            {titleNameList.length > 0 &&
+              <div className='table-data'>
+                <DataTable
+                  fields={dataFields}
+                  data={titleNameList} />
+              </div>
+            }
           </div>
         }
         {activeTab === 'drag' &&
@@ -933,7 +935,7 @@ class Manage extends Component {
           info: ''
         });
 
-        this.getDepartmentTree();
+        this.getDepartmentTree(selectedTenancy.value);
       }
       return null;
     })
@@ -974,7 +976,7 @@ class Manage extends Component {
           nameUUID: ''
         });
 
-        this.getTitleNameList();
+        this.getTitleNameList(selectedTenancy.value);
       }
       return null;
     })

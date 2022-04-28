@@ -1173,7 +1173,7 @@
   },
   "ownerFields": {
     "ownerID": "ID",
-    "tenancyName": "Tenancy",
+    "multiTenancyPO": "Tenancy",
     "ownerName": "Name",
     "department": "Department",
     "title": "Title",
