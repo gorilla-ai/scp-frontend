@@ -915,6 +915,14 @@ class AccountEdit extends Component {
       requestData.title = (accountData.title && accountData.title.value) ? accountData.title.value : '';
     }
 
+    if (_.isEmpty(requestData.unit)) { //Makre sure empty string is sent for empty object
+      requestData.unit = '';
+    }
+
+    if (_.isEmpty(requestData.title)) {
+      requestData.title = '';
+    }
+
     if (showPrivileges) {
       requestData.privilegeIds = selectedPrivileges;
     }

@@ -65,7 +65,8 @@
   "tenancyFields": {
     "name": "$t(l-tenancyName)",
     "info": "備註",
-    "enterpriseId": "租戶企業ID"
+    "enterpriseId": "租戶企業ID",
+    "enable": "啟用狀態"
   },
   "setNewPwd": "設定密碼",
   "change-expired-pwd":"請更改你的密碼，因密碼已過期",

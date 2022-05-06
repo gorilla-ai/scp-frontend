@@ -50,12 +50,14 @@ class MultiTenancy extends Component {
         keyword: ''
       },
       tenancyData: {
+        id: '',
         name: '',
         info: '',
-        enterpriseId: ''
+        enterpriseId: '',
+        enable: ''
       },
       tenancyInfo: {
-        dataFieldsArr: ['_menu', 'name', 'info', 'enterpriseId'],
+        dataFieldsArr: ['_menu', 'name', 'info', 'enterpriseId', 'enable'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -139,6 +141,19 @@ class MultiTenancy extends Component {
                       <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
+                } else if (val === 'enable') {
+                  let color = '';
+                  let title = '';
+
+                  if (value) {
+                    color = '#22ac38';
+                    title = c('txt-enable');
+                  } else {
+                    color = '#d10d25';
+                    title = c('txt-disabled');
+                  }
+
+                  return <div style={{color}}><i className='fg fg-recode' title={title} /></div>
                 } else {
                   return <span>{value}</span>
                 }
@@ -169,7 +184,8 @@ class MultiTenancy extends Component {
         id: tenancy.id,
         name: tenancy.name,
         info: tenancy.info,
-        enterpriseId: tenancy.enterpriseId
+        enterpriseId: tenancy.enterpriseId,
+        enable: tenancy.enable
       },
       contextAnchor: event.currentTarget,
       currentTenancyData: tenancy
@@ -193,9 +209,11 @@ class MultiTenancy extends Component {
     if (type === 'new') {
       this.setState({
         tenancyData: {
+          id: '',
           name: '',
           info: '',
-          enterpriseId: ''
+          enterpriseId: '',
+          enable: ''
         }
       });
     }
@@ -411,6 +429,31 @@ class MultiTenancy extends Component {
     })
   }
   /**
+   * Handle tenancy enable/disable
+   * @method
+   */
+  toggleEnableStatus = () => {
+    const {baseUrl} = this.context;
+    const {tenancyData} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/tenancy/enable?id=${tenancyData.id}&enable=${!tenancyData.enable}`,
+      data: JSON.stringify({}),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getTenancyData();
+        this.handleCloseMenu();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle filter input value change
    * @method
    * @param {object} event - event object
@@ -532,7 +575,7 @@ class MultiTenancy extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, editDialogOpen, tenancyInfo, contextAnchor} = this.state;
+    const {showFilter, editDialogOpen, tenancyData, tenancyInfo, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -558,6 +601,7 @@ class MultiTenancy extends Component {
           onClose={this.handleCloseMenu}>
           <MenuItem id='account-menu-edit' onClick={this.toggleEditDialog.bind(this, 'edit')}>{c('txt-edit')}</MenuItem>
           <MenuItem id='account-menu-delete' onClick={this.showDeleteDialog}>{c('txt-delete')}</MenuItem>
+          <MenuItem id='account-menu-enable' onClick={this.toggleEnableStatus}>{tenancyData.enable ? c('txt-disabled') : c('txt-enable')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>

@@ -65,7 +65,8 @@
   "tenancyFields": {
     "name": "$t(l-tenancyName)",
     "info": "Info",
-    "enterpriseId": "Enterprise ID"
+    "enterpriseId": "Enterprise ID",
+    "enable": "Enable Status"
   },
   "setNewPwd": "Set new password",
   "change-expired-pwd":"Please change your password because it has expired",

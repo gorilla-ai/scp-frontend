@@ -328,7 +328,7 @@ class Manage extends Component {
             ),
             act: (confirmed) => {
               if (confirmed) {
-                this.deleteTreeName(tree)
+                this.deleteTreeName(tree);
               }
             }
           });
@@ -344,13 +344,14 @@ class Manage extends Component {
    */
   deleteTreeName = (tree) => {
     const {baseUrl} = this.context;
+    const {selectedTenancy} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/department?id=${tree.id}`,
       type: 'DELETE'
     })
     .then(data => {
-      this.getDepartmentTree();
+      this.getDepartmentTree(selectedTenancy.value);
       return null;
     })
     .catch(err => {
@@ -586,6 +587,7 @@ class Manage extends Component {
    */
   deleteTitleName = (nameUUID) => {
     const {baseUrl} = this.context;
+    const {selectedTenancy} = this.state;
 
     if (!nameUUID) {
       return;
@@ -596,7 +598,7 @@ class Manage extends Component {
       type: 'DELETE'
     })
     .then(data => {
-      this.getTitleNameList();
+      this.getTitleNameList(selectedTenancy.value);
       return null;
     })
     .catch(err => {

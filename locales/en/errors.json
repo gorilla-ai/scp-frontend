@@ -56,6 +56,7 @@
   "-1015": "Failed to deliver mail",
   "-1016": "Role permissions exceed account permissions",
   "-1017": "Non-system permissions title, unit and tenancy ID are required",
+  "-1018": "Tenancy ID is unavailable, please contact system manager",
 
   "-2001": "Unknown Target",
   "-2002": "Expired",

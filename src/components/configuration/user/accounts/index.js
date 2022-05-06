@@ -6,6 +6,7 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -27,7 +28,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const ACCOUNT_SEARCH = {
   name: '',
   account: '',
-  tenancyName: ''
+  tenancyName: {}
 };
 const FORM_VALIDATION = {
   password: {
@@ -200,9 +201,9 @@ class AccountList extends Component {
       requestData.name = accountSearch.name;
     }
 
-    if (accountSearch.tenancyName) {
-      requestData.tenancyName = accountSearch.tenancyName;
-    }    
+    if (accountSearch.tenancyName.value) {
+      requestData.tenancyId = accountSearch.tenancyName.value;
+    }
 
     this.ah.one({
       url,
@@ -570,10 +571,21 @@ class AccountList extends Component {
    * Handle filter input value change
    * @method
    * @param {object} event - event object
+   * @param {object} [value] - selected dropdown info
    */
-  handleSearchChange = (event) => {
-    let tempAccountSearch = {...this.state.accountSearch};
-    tempAccountSearch[event.target.name] = event.target.value;
+  handleSearchChange = (event, value) => {
+    const {accountSearch, tenancyList} = this.state;
+    let tempAccountSearch = {...accountSearch};
+
+    if (value && value.value) {
+      const selectedTenancyIndex = _.findIndex(tenancyList, { 'value': value.value });
+
+      if (selectedTenancyIndex >= 0) {
+        tempAccountSearch.tenancyName = tenancyList[selectedTenancyIndex];
+      }
+    } else {
+      tempAccountSearch[event.target.name] = event.target.value;
+    }
 
     this.setState({
       accountSearch: tempAccountSearch
@@ -621,7 +633,7 @@ class AccountList extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, accountSearch} = this.state;
+    const {showFilter, accountSearch, tenancyList} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -651,14 +663,15 @@ class AccountList extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <TextField
+            <Autocomplete
               id='tenancyName'
-              name='tenancyName'
-              label={t('l-tenancyName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={accountSearch.tenancyName}
+              className='combo-box'
+              options={tenancyList}
+              value={accountSearch.tenancyName || ''}
+              getOptionLabel={(option) => option.text || ''}
+              renderInput={(params) => (
+                <TextField {...params} label={t('l-tenancyName')} variant='outlined' size='small' />
+              )}
               onChange={this.handleSearchChange} />
           </div>
         </div>
