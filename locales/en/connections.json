@@ -309,6 +309,7 @@
   "txt-commaSeparated": "separated by comma ,",
   "txt-privilegeError": "The privilege is still used by the account(s)",
   "txt-ownerIsRequired": "Owner field is required",
+  "txt-tenancyTransfer": "Process data transfer procedure (recommend)?",
 
   "txt-statistics": "Statistics",
   "txt-table": "Table",

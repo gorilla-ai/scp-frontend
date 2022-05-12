@@ -365,6 +365,10 @@ class MultiTenancy extends Component {
     })
     .then(data => {
       if (data) {
+        if (requestType === 'POST' && data.firstTenancy) {
+          this.showTransferDialog(data.id);
+        }
+
         this.toggleEditDialog();
         this.getTenancyData();
       }
@@ -377,14 +381,64 @@ class MultiTenancy extends Component {
   /**
    * Display delete content
    * @method
+   * @param {string} type - message type ('transfer' or 'delete')
    * @returns HTML DOM
    */
-  getTenancyMsgContent = () => {
-    return (
-      <div className='content delete'>
-        <span>{c('txt-tenancy-delete') + ': ' + this.state.currentTenancyData.name}?</span>
-      </div>
-    )
+  getTenancyMsgContent = (type) => {
+    if (type === 'transfer') {
+      return (
+        <div className='content'>
+          <span>{c('txt-tenancyTransfer')}</span>
+        </div>
+      )
+    } else if (type === 'delete') {
+      return (
+        <div className='content delete'>
+          <span>{c('txt-tenancy-delete') + ': ' + this.state.currentTenancyData.name}?</span>
+        </div>
+      )
+    }
+  }
+  /**
+   * Display transfer modal dialog
+   * @param {string} id - tenancy ID
+   * @method
+   */
+  showTransferDialog = (id) => {
+    PopupDialog.prompt({
+      title: '',
+      id: 'modalWindowSmall',
+      confirmText: c('txt-confirm'),
+      cancelText: c('txt-cancel'),
+      display: this.getTenancyMsgContent('transfer'),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.transferTenancyConfirm(id);
+        }
+      }
+    });
+  }
+  /**
+   * Handle transfer confirm
+   * @param {string} id - tenancy ID
+   * @method
+   */
+  transferTenancyConfirm = (id) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/tenancy/migrate?id${id}`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
   }
   /**
    * Display delete modal dialog
@@ -396,7 +450,7 @@ class MultiTenancy extends Component {
       id: 'modalWindowSmall',
       confirmText: c('txt-delete'),
       cancelText: c('txt-cancel'),
-      display: this.getTenancyMsgContent(),
+      display: this.getTenancyMsgContent('delete'),
       act: (confirmed) => {
         if (confirmed) {
           this.deleteTenancy();
