@@ -447,7 +447,6 @@ class HostController extends Component {
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
-      vansPatchFrom: '', //'new' or 'exist'
       formValidation: _.cloneDeep(FORM_VALIDATION),
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
@@ -491,6 +490,7 @@ class HostController extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
+  ryan = () => {}
   /**
    * Get and set the Link Analysis config
    * @method
@@ -907,15 +907,15 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {hmd_list, activeTab, deviceSearchList, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
-    const datetime = this.getHostDateTime();
-    let url = `${baseUrl}/api/ipdevice/assessment/_search`;
+    //const datetime = this.getHostDateTime();
+    let url = `${baseUrl}/api/v2/ipdevice/assessment/_search`;
 
     if (activeTab === 'hostList') {
       url += `?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}&orders=${hostSortArr[0]} ${hostSortArr[1]}`;
     }
 
     let requestData = {
-      timestamp: [datetime.from, datetime.to],
+      //timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData()
     };
 
@@ -930,7 +930,7 @@ class HostController extends Component {
     }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
-      requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
+      //requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
 
@@ -3523,7 +3523,7 @@ class HostController extends Component {
     let requestData = this.getHostData('csv');
 
     if (options === 'default') {
-      url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
+      url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_export`;
     } else {
       if (vansTableType === 'assessment') {
         url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/deptCountsTable/_export`;
@@ -3548,7 +3548,7 @@ class HostController extends Component {
    */
   getPDFfile = () => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`;
+    const url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_pdfs`;
     const requestData = this.getHostData('pdf');
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
@@ -3559,7 +3559,7 @@ class HostController extends Component {
    */
   exportSecurityDiagnostic = () => {
     const {baseUrl, contextRoot} = this.context
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/kbid/_export`
+    const url = `${baseUrl}${contextRoot}/api/v2/ipdevice/kbid/_export`
     const requestData = this.getHostData('csv')
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
@@ -3951,23 +3951,12 @@ class HostController extends Component {
    */
   confirmVansPatch = (patch) => {
     const {baseUrl} = this.context;
-    const {account, activeVansPatch, patchSelectedItem, vansPatchFrom} = this.state;
+    const {account, activeVansPatch, patchSelectedItem} = this.state;
     let retriggerBody = {
       cmdJO: {
         cmds: ['executePatch']
       }
     };
-
-    if (vansPatchFrom === 'new') {
-      const datetime = this.getHostDateTime();
-      retriggerBody.timestamp = [datetime.from, datetime.to];
-    } else if (vansPatchFrom === 'exist') {
-      const timestamp = activeVansPatch.hmdRetriggerBodyDTO.timestamp;
-
-      if (timestamp) {
-        retriggerBody.timestamp = timestamp;
-      }
-    }
 
     if (patchSelectedItem.length > 0) {
       retriggerBody.hostIdArray = _.map(patchSelectedItem, val => {
@@ -4000,8 +3989,7 @@ class HostController extends Component {
     })
     .then(data => {
       this.setState({
-        patchSelectedItem: [],
-        vansPatchFrom: ''
+        patchSelectedItem: []
       });
 
       helper.showPopupMsg(t('host.txt-patchSuccess'));
@@ -4162,13 +4150,9 @@ class HostController extends Component {
    * @param {string} type - vans patch from ('new' or 'exist')
    */
   setVansPatchFrom = (type) => {
-    this.setState({
-      vansPatchFrom: type
-    }, () => {
-      if (type === 'new') {
-        this.checkFrMotp();
-      }
-    });
+    if (type === 'new') {
+      this.checkFrMotp();
+    }
   }
   /**
    * Get HMD test menu
@@ -4206,10 +4190,10 @@ class HostController extends Component {
    */
   triggerHmdAll = (hmdObj, yaraRule) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/ipdevice/assessment/_search/_retrigger`;
-    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/v2/ipdevice/assessment/_search/_retrigger`;
+    //const datetime = this.getHostDateTime();
     let requestData = {
-      timestamp: [datetime.from, datetime.to],
+      //timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData(),
       cmdJO: {
         cmds: [hmdObj.cmds]
@@ -4695,7 +4679,7 @@ class HostController extends Component {
           </div>
 
           <SearchOptions
-            dateType='datepicker'
+            dateType='no-date'
             datetime={datetime}
             showFilter={showFilter}
             handleDateChange={this.handleDateChange}
