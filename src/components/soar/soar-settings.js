@@ -115,6 +115,33 @@ class SoarSettings extends Component {
           method: '',
           requestBody: '',
           url: ''
+        },
+        ssh: {
+          username: '',
+          password: '',
+          target_ip: '',
+          target_port: 22,
+          use_password: true,
+          command: ''
+        },
+        fortigatefirewallpolicy: {
+          username: '',
+          password: '',
+          target_ip: '',
+          target_port: 22,
+          command: '',
+          use_password: true,
+          policy_id: 0,
+          name: '',
+          srcintf: '',
+          dstintf: '',
+          srcaddr: '',
+          dstaddr: '',
+          action: '',
+          schedule: '',
+          service: '',
+          nat: 'enable',
+          comment: ''
         }
       },
       formValidation: _.cloneDeep(FORM_VALIDATION)
@@ -1027,6 +1054,302 @@ class SoarSettings extends Component {
                         disabled={activeContent === 'viewMode'} />
                     </div>
                   }
+
+                  <div className='group-header'>SSH</div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshUsername'
+                      name='username'
+                      label={t('soar.txt-username')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.username || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshPassword'
+                      name='password'
+                      type='password'
+                      label={t('soar.txt-password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.password || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshTargetIp'
+                      name='target_ip'
+                      label={t('soar.txt-target_ip')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.target_ip || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshTargetPort'
+                      name='target_port'
+                      type='number'
+                      label={t('soar.txt-target_port')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.target_port || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshUsePassword'
+                      name='use_password'
+                      select
+                      label={t('soar.txt-use_password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.use_password}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'}>
+                      <MenuItem value={true}>True</MenuItem>
+                      <MenuItem value={false}>False</MenuItem>
+                    </TextField>
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshCommand'
+                      name='command'
+                      label={t('soar.txt-command')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.command || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+
+                  <div className='group-header'>FortiGate Firewall Policy</div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallUsername'
+                      name='username'
+                      label={t('soar.txt-username')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.username || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallUsername'
+                      name='username'
+                      label={t('soar.txt-username')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.username || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallPassword'
+                      name='password'
+                      label={t('soar.txt-password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.password || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallTargetIP'
+                      name='target_ip'
+                      label={t('soar.txt-target_ip')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.target_ip || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallTargetPort'
+                      name='target_port'
+                      type='number'
+                      label={t('soar.txt-target_port')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.target_port || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionSshUsePassword'
+                      name='use_password'
+                      select
+                      label={t('soar.txt-use_password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.use_password}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'}>
+                      <MenuItem value={true}>True</MenuItem>
+                      <MenuItem value={false}>False</MenuItem>
+                    </TextField>
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallPolicyID'
+                      name='policy_id'
+                      type='number'
+                      label={t('soar.txt-policy_id')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.policy_id || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallName'
+                      name='name'
+                      label={t('soar.txt-name')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.name || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallSrcInterface'
+                      name='srcintf'
+                      label={t('soar.txt-srcintf')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.srcintf || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallDestInterface'
+                      name='dstintf'
+                      label={t('soar.txt-dstintf')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.dstintf || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallSrcAddress'
+                      name='srcaddr'
+                      label={t('soar.txt-srcaddr')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.srcaddr || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallDestAddress'
+                      name='dstaddr'
+                      label={t('soar.txt-dstaddr')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.dstaddr || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallAction'
+                      name='action'
+                      label={t('soar.txt-action')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.action || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallSchedule'
+                      name='schedule'
+                      label={t('soar.txt-schedule')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.schedule || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallService'
+                      name='service'
+                      label={t('soar.txt-service')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.service || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallNat'
+                      name='nat'
+                      select
+                      label={t('soar.txt-nat')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.nat}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'}>
+                      <MenuItem value='enable'>{t('soar.txt-enable')}</MenuItem>
+                      <MenuItem value='disable'>{t('soar.txt-disable')}</MenuItem>
+                    </TextField>
+                  </div>
+                  <div className='group'>
+                    <TextField
+                      id='soarActionFirewallComment'
+                      name='comment'
+                      label={t('soar.txt-comment')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.comment || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  </div>
                 </div>
               </div>
 

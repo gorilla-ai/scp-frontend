@@ -98,7 +98,7 @@ class SoarForm extends Component {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
     const nodeActionOperatorList = _.map(soarColumns.action, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+      return <MenuItem key={i} value={val}>{t('soar.txt-' + val)}</MenuItem>
     });
 
     this.setState({

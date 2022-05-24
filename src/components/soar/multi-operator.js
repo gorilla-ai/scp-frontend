@@ -17,6 +17,7 @@ import requestHeaders from './request-headers'
 const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const REQUEST_TYPE = ['GET', 'POST', 'DELETE', 'PATCH'];
+const ENABLE_TYPE = ['enable', 'disable'];
 
 let t = null;
 let et = null;
@@ -33,12 +34,13 @@ class MultiOperator extends Component {
 
     this.state = {
       openRuleSection: false,
+      linkOperatorList: [],
+      nodeActionOperatorList: [],
+      soarActiveOperator: '',
       actionTypeList: [],
       severityTypeList: [],
       requestTypeList: [],
-      linkOperatorList: [],
-      nodeActionOperatorList: [],
-      soarActiveOperator: ''
+      enableTypeList: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -47,7 +49,6 @@ class MultiOperator extends Component {
   componentDidMount() {
     this.setOperatorList();
     this.setDropDownList();
-    this.setRequestTypeList();
   }
   componentDidUpdate(prevProps) {
     if (!prevProps || (this.props.value !== prevProps.value)) {
@@ -70,8 +71,9 @@ class MultiOperator extends Component {
     const linkOperatorList = _.map(linkOp, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
+
     const nodeActionOperatorList = _.map(soarColumns.action, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+      return <MenuItem key={i} value={val}>{t('soar.txt-' + val)}</MenuItem>
     });
 
     this.setState({
@@ -82,7 +84,7 @@ class MultiOperator extends Component {
     });
   }
   /**
-   * Set dropdown list for severity type
+   * Set dropdown list
    * @method
    */
   setDropDownList = () => {
@@ -94,22 +96,19 @@ class MultiOperator extends Component {
       return <MenuItem value={'DEFINED_IOC_' + val.toUpperCase()}>{val}</MenuItem>
     });
 
-    this.setState({
-      actionTypeList,
-      severityTypeList
-    });
-  }
-  /**
-   * Set dropdown list for request type
-   * @method
-   */
-  setRequestTypeList = () => {
     const requestTypeList = _.map(REQUEST_TYPE, val => {
       return <MenuItem value={val}>{val}</MenuItem>
     });
 
+    const enableTypeList = _.map(ENABLE_TYPE, val => {
+      return <MenuItem value={val}>{t('soar.txt-' + val)}</MenuItem>
+    });
+
     this.setState({
-      requestTypeList
+      actionTypeList,
+      severityTypeList,
+      requestTypeList,
+      enableTypeList
     });
   }
   /**
@@ -248,7 +247,7 @@ class MultiOperator extends Component {
    * @param {number} i - index of the form data
    */
   displayForm = (operator, key, i) => {
-    const {actionTypeList, severityTypeList, requestTypeList} = this.state;
+    const {actionTypeList, severityTypeList, requestTypeList, enableTypeList} = this.state;
     const {soarColumns} = this.props;
     const label = t('soar.txt-' + key);
     const value = soarColumns.spec[operator][key];
@@ -268,7 +267,7 @@ class MultiOperator extends Component {
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>
         )
-      } else if (key === 'senderPassword') { //For email password
+      } else if (key === 'senderPassword' || key === 'password') { //For email password
         return (
           <div key={i} className='group'>
             <TextField
@@ -285,13 +284,17 @@ class MultiOperator extends Component {
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>
         )
-      } else if (key === 'action' || key === 'severityType') {
+      } else if ((operator === 'hmd' && key === 'action') || (operator === 'netprobe' && key === 'severityType') || (operator === 'restful_api' && key === 'method') || (operator === 'fortigatefirewallpolicy' && key === 'nat')) {
         let dropDownList = '';
 
         if (key === 'action') {
           dropDownList = actionTypeList;
         } else if (key === 'severityType') {
           dropDownList = severityTypeList;
+        } else if (key === 'method') {
+          dropDownList = requestTypeList;
+        } else if (key === 'nat') {
+          dropDownList = enableTypeList
         }
 
         return (
@@ -306,22 +309,6 @@ class MultiOperator extends Component {
               value={textValue}
               onChange={this.handleDataChange.bind(this, operator)}>
               {dropDownList}
-            </TextField>
-          </div>
-        )
-      } else if (key === 'method') {
-        return (
-          <div key={i} className='group'>
-            <TextField
-              name={key}
-              select
-              label={label}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={textValue}
-              onChange={this.handleDataChange.bind(this, operator)}>
-              {requestTypeList}
             </TextField>
           </div>
         )
