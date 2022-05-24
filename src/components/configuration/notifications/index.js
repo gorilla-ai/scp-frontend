@@ -94,7 +94,8 @@ class Notifications extends Component {
           enable: true
         }
       },
-      lineBotSetting:{
+      originalLineBotSettings: {},
+      lineBotSettings:{
         channelAccessToken:'',
         channelSecret:'',
         qrcodeLink:'',
@@ -129,7 +130,7 @@ class Notifications extends Component {
    */
   getMailServerInfo = () => {
     const {baseUrl} = this.context;
-    const {notifications, smsProvider, emails, lineBotSetting} = this.state;
+    const {notifications, smsProvider, emails, lineBotSettings} = this.state;
 
     this.ah.all([
       {
@@ -171,7 +172,7 @@ class Notifications extends Component {
         }
 
         let tempEmails = {...emails};
-        let tempLineBotSetting = {...lineBotSetting}
+        let tempLineBotSettings = {...lineBotSettings}
 
         if (data2['notify.service.failure.id']) {
           tempEmails.service.emails = data2['notify.service.failure.id'].receipts;
@@ -194,9 +195,9 @@ class Notifications extends Component {
         }
 
         if (data2['linetbot.config.id']) {
-          tempLineBotSetting.channelAccessToken = data2['linetbot.config.id'].channelAccessToken;
-          tempLineBotSetting.channelSecret = data2['linetbot.config.id'].channelSecret;
-          tempLineBotSetting.qrcodeLink = data2['linetbot.config.id'].qrcodeLink;
+          tempLineBotSettings.channelAccessToken = data2['linetbot.config.id'].channelAccessToken;
+          tempLineBotSettings.channelSecret = data2['linetbot.config.id'].channelSecret;
+          tempLineBotSettings.qrcodeLink = data2['linetbot.config.id'].qrcodeLink;
         }
 
         this.setState({
@@ -206,7 +207,8 @@ class Notifications extends Component {
           smsProvider: tempSmsProvider,
           originalEmails: _.cloneDeep(tempEmails),
           emails: tempEmails,
-          lineBotSetting:tempLineBotSetting
+          originalLineBotSettings: _.cloneDeep(tempLineBotSettings),
+          lineBotSettings: tempLineBotSettings
         });
       }
       return null;
@@ -242,11 +244,11 @@ class Notifications extends Component {
     });
   }
   handleLineBotChange = (event) => {
-    let tempLineBotSetting = {...this.state.lineBotSetting};
-    tempLineBotSetting[event.target.name] = event.target.value;
+    let tempLineBotSettings = {...this.state.lineBotSettings};
+    tempLineBotSettings[event.target.name] = event.target.value;
 
     this.setState({
-      lineBotSetting: tempLineBotSetting
+      lineBotSettings: tempLineBotSettings
     });
   }
   /**
@@ -255,7 +257,7 @@ class Notifications extends Component {
    * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalNotifications, originalSmsProvider, originalEmails} = this.state;
+    const {originalNotifications, originalSmsProvider, originalEmails, originalLineBotSettings} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -268,6 +270,7 @@ class Notifications extends Component {
         notifications: _.cloneDeep(originalNotifications),
         smsProvider: _.cloneDeep(originalSmsProvider),
         emails: _.cloneDeep(originalEmails),
+        lineBotSettings: _.cloneDeep(originalLineBotSettings),
         formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
@@ -282,7 +285,7 @@ class Notifications extends Component {
    */
   handleNotificationsConfirm = () => {
     const {baseUrl} = this.context;
-    const {notifications, smsProvider, emails, lineBotSetting, formValidation} = this.state;
+    const {notifications, smsProvider, emails, lineBotSettings, formValidation} = this.state;
     const mailServerRequestData = {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
@@ -316,9 +319,9 @@ class Notifications extends Component {
         enable: emails.soc.enable
       },
       'linetbot.config.id': {
-        channelAccessToken: lineBotSetting.channelAccessToken,
-        channelSecret: lineBotSetting.channelSecret,
-        qrcodeLink: lineBotSetting.qrcodeLink
+        channelAccessToken: lineBotSettings.channelAccessToken,
+        channelSecret: lineBotSettings.channelSecret,
+        qrcodeLink: lineBotSettings.qrcodeLink
       }
     };
     const requestData = {
@@ -787,7 +790,7 @@ class Notifications extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, openEmailDialog, notifications, smsProvider, emails, lineBotSetting, formValidation} = this.state;
+    const {activeContent, openEmailDialog, notifications, smsProvider, emails, lineBotSettings, formValidation} = this.state;
     const EMAIL_SETTINGS = [
       {
         type: 'service',
@@ -826,8 +829,8 @@ class Notifications extends Component {
     };
     let accountName = 'N/A';
 
-    if (lineBotSetting.qrcodeLink.includes('sid/L/')) {
-      const tempSpiltAccountNameArray =  lineBotSetting.qrcodeLink.split("sid/L/");
+    if (lineBotSettings.qrcodeLink.includes('sid/L/')) {
+      const tempSpiltAccountNameArray =  lineBotSettings.qrcodeLink.split("sid/L/");
       const tmpNameArray = tempSpiltAccountNameArray[1].split(".");
       accountName = '@'+ tmpNameArray[0];
     }
@@ -974,32 +977,32 @@ class Notifications extends Component {
                 </div>
 
                 <div className='form-group normal long'>
-                  <header>{t('notifications.lineBot.txt-lineBotSettings')}</header>
+                  <header>{t('notifications.lineBot.txt-lineBotSettingss')}</header>
 
-                  {activeContent === 'viewMode' && lineBotSetting.qrcodeLink &&
+                  {activeContent === 'viewMode' && lineBotSettings.qrcodeLink &&
                     <div className='group'>
                       <label>{t('notifications.lineBot.txt-qrcode')}</label>
-                      <img style={{width: '150px', height: '150px'}} width='100%' height='100%' src={lineBotSetting.qrcodeLink} border="0"  title={t('notifications.lineBot.txt-accountId')+accountName}/>
+                      <img style={{width: '150px', height: '150px'}} width='100%' height='100%' src={lineBotSettings.qrcodeLink} border="0"  title={t('notifications.lineBot.txt-accountId')+accountName}/>
                     </div>
                   }
 
                   {activeContent !== 'viewMode' &&
                     <div className='group'>
                       <TextField
-                        id='lineBotSetting.qrcodeLink'
+                        id='lineBotSettings.qrcodeLink'
                         name='qrcodeLink'
                         label={t('notifications.lineBot.txt-qrcode')}
                         variant='outlined'
                         fullWidth
                         size='small'
-                        value={lineBotSetting.qrcodeLink}
+                        value={lineBotSettings.qrcodeLink}
                         onChange={this.handleLineBotChange} />
                     </div>
                   }
 
                   <div className='group'>
                     <TextField
-                      id='lineBotSetting.channelAccessToken'
+                      id='lineBotSettings.channelAccessToken'
                       name='channelAccessToken'
                       label={t('notifications.lineBot.txt-channelAccessToken')}
                       variant='outlined'
@@ -1008,20 +1011,20 @@ class Notifications extends Component {
                       rowsMax={5}
                       multiline
                       size='small'
-                      value={lineBotSetting.channelAccessToken}
+                      value={lineBotSettings.channelAccessToken}
                       onChange={this.handleLineBotChange}
                       disabled={activeContent === 'viewMode'} />
                   </div>
 
                   <div className='group'>
                     <TextField
-                      id='lineBotSetting.channelSecret'
+                      id='lineBotSettings.channelSecret'
                       name='channelSecret'
                       label={t('notifications.lineBot.txt-channelSecret')}
                       variant='outlined'
                       fullWidth
                       size='small'
-                      value={lineBotSetting.channelSecret}
+                      value={lineBotSettings.channelSecret}
                       onChange={this.handleLineBotChange}
                       disabled={activeContent === 'viewMode'} />
                   </div>
