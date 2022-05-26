@@ -366,13 +366,13 @@ class SearchOptions extends Component {
             }
           </div>
         }
-        
+
         <div className='datepicker'>
           {dateType === 'datepicker' &&
             this.showDatePicker()
           }
 
-          {(!dateType || dateType === 'daterange') &&
+          {dateType === 'daterange' &&
             this.showDataRange()
           }
         </div>
@@ -389,7 +389,7 @@ SearchOptions.propTypes = {
   dateType: PropTypes.string,
   datetime: PropTypes.object,
   showFilter: PropTypes.bool,
-  handleDateChange: PropTypes.func.isRequired,
+  handleDateChange: PropTypes.func,
   handleSearchSubmit: PropTypes.func.isRequired
 };
 

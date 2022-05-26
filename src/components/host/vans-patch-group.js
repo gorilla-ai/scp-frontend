@@ -38,9 +38,10 @@ class VansPatchGroup extends Component {
         keyword: ''
       },
       datetime: {
-        from: '',
-        to: ''
+        from: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
+        to: moment(helper.getAdditionDate(1, 'day', moment().local())).format('YYYY-MM-DD') + 'T00:00:00'
       },
+      vansPatchGroup: [],
       vansRecord: {
         dataFieldsArr: ['description', 'software', 'taskCreateDttm', 'taskUpdateDttm', 'deviceCount', 'taskStatus', '_menu'],
         dataFields: [],
@@ -53,28 +54,48 @@ class VansPatchGroup extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setInitialDatetime();
+    this.getVansPatchGroup();
     this.getVansPatchTable();
   }
-  componentDidUpdate(prevProps) {
-    if (!prevProps || (this.props.vansPatchGroup !== prevProps.vansPatchGroup)) {
-      this.getVansPatchTable();
-    }
-  }
   /**
-   * Set initial datetime
+   * Get vans patch group
    * @method
    */
-  setInitialDatetime = () => {
-    const {vansDateTime} = this.props;
-    const datetime = {
-      from: vansDateTime.from,
-      to: vansDateTime.to
+  getVansPatchGroup = () => {
+    const {baseUrl} = this.context;
+    const {limitedDepartment} = this.props;
+    const {vansRecordSearch, datetime} = this.state;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/group`;
+    let requestData = {
+      startDttm: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
-    this.setState({
-      datetime
-    });
+    if (vansRecordSearch.keyword) {
+      requestData.keyword = vansRecordSearch.keyword;
+    }
+
+    if (limitedDepartment.length > 0) {
+      requestData.departmentArray = limitedDepartment;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          vansPatchGroup: data.rows
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Check table sort
@@ -96,8 +117,7 @@ class VansPatchGroup extends Component {
    * @method
    */
   getVansPatchTable = () => {
-    const {vansPatchGroup} = this.props;
-    const {vansRecord} = this.state;
+    const {vansPatchGroup, vansRecord} = this.state;
     let tempVansRecord = {...vansRecord};
 
     tempVansRecord.dataContent = vansPatchGroup;
@@ -305,7 +325,7 @@ class VansPatchGroup extends Component {
             </MuiPickersUtilsProvider>
           </div>
           <div className='button-group'>
-            <Button variant='contained' color='primary' className='btn' onClick={this.props.getVansPatchGroup.bind(this, vansRecordSearch.keyword, datetime.from, datetime.to)}>{t('txt-search')}</Button>
+            <Button variant='contained' color='primary' className='btn' onClick={this.getVansPatchGroup}>{t('txt-search')}</Button>
           </div>
         </div>
 
@@ -340,10 +360,8 @@ class VansPatchGroup extends Component {
 VansPatchGroup.contextType = BaseDataContext;
 
 VansPatchGroup.propTypes = {
-  vansPatchGroup: PropTypes.array.isRequired,
-  vansDateTime: PropTypes.object.isRequired,
+  limitedDepartment: PropTypes.array.isRequired,
   toggleVansPatchGroup: PropTypes.func.isRequired,
-  getVansPatchGroup: PropTypes.func.isRequired,
   getVansPatchDetails: PropTypes.func.isRequired
 };
 

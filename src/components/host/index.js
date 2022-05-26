@@ -4,7 +4,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import { MuiPickersUtilsProvider, KeyboardTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker, KeyboardTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -347,7 +347,6 @@ class HostController extends Component {
       popOverAnchor: null,
       activeFilter: '',
       showLeftNav: true,
-      datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       assessmentDatetime: {
         from: '',
         to: ''
@@ -397,7 +396,6 @@ class HostController extends Component {
         table: t('host.txt-hostList'),
         statistics: t('host.txt-deviceMap')
       },
-      vansPatchGroup: [],
       vansPatchDetails: [],
       activeVansPatch: {},
       hostInfo: {
@@ -447,7 +445,6 @@ class HostController extends Component {
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
-      vansPatchFrom: '', //'new' or 'exist'
       formValidation: _.cloneDeep(FORM_VALIDATION),
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
@@ -479,7 +476,6 @@ class HostController extends Component {
         this.setLeftNavData();
         this.getFloorPlan();
         this.getVansStatus();
-        this.getVansPatchGroup();
       });
     }
   }
@@ -793,78 +789,6 @@ class HostController extends Component {
     })
   }
   /**
-   * Get vans patch group
-   * @method
-   * @param {string} [keyword] - keyword search
-   * @param {object} [datetimeFrom] - datetime from
-   * @param {object} [datetimeTo] - datetime to
-   * @param {string} [options] - option for 'openDialog'
-   */
-  getVansPatchGroup = (keyword, datetimeFrom, datetimeTo, options) => {
-    const {baseUrl} = this.context;
-    const {limitedDepartment} = this.state;
-    const url = `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/group`;
-    let datetime = this.getHostDateTime();
-
-    if (datetimeFrom) {
-      datetime.from = moment(datetimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    }
-
-    if (datetimeTo) {
-      datetime.to = moment(datetimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    }
-
-    let requestData = {
-      startDttm: datetime.from,
-      endDttm: datetime.to
-    };
-
-    if (keyword) {
-      requestData.keyword = keyword;
-    }
-
-    if (limitedDepartment.length > 0) {
-      requestData.departmentArray = limitedDepartment;
-    }
-
-    if (options === 'openDialog') {
-      this.handleCloseMenu();
-    }
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          vansPatchGroup: data.rows
-        }, () => {
-          if (options === 'openDialog') {
-            this.toggleVansPatchGroup();
-          }
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get formatted datetime
-   * @method
-   * @returns formatted datetime object
-   */
-  getHostDateTime = () => {
-    return {
-      from: moment(this.state.datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: moment(helper.getAdditionDate(1, 'day', this.state.datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
-  }
-  /**
    * Get department tree data
    * @method
    */
@@ -907,15 +831,13 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {hmd_list, activeTab, deviceSearchList, assessmentDatetime, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
-    const datetime = this.getHostDateTime();
-    let url = `${baseUrl}/api/ipdevice/assessment/_search`;
+    let url = `${baseUrl}/api/v2/ipdevice/assessment/_search`;
 
     if (activeTab === 'hostList') {
       url += `?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}&orders=${hostSortArr[0]} ${hostSortArr[1]}`;
     }
 
     let requestData = {
-      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData()
     };
 
@@ -930,7 +852,7 @@ class HostController extends Component {
     }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
-      requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
+      //requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
 
@@ -1197,12 +1119,10 @@ class HostController extends Component {
   getVansChartsData = () => {
     const {baseUrl} = this.context;
     const {vansTableType} = this.state;
-    const datetime = this.getHostDateTime();
     const requestData = {
-      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData()
     };
-    let url = `${baseUrl}/api/`;
+    let url = `${baseUrl}/api/v2/`;
 
     if (vansTableType === 'assessment') {
       url += 'ipdevice/assessment/deptCountsTable';
@@ -1258,7 +1178,11 @@ class HostController extends Component {
    * @method
    */
   getHostSafetyRequestData = () => {
-    const {account, activeTab, datetime, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
+    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
+    const responseDatetime = {
+      from: deviceSearch.theLatestTaskResponseDttmArray.from,
+      to: deviceSearch.theLatestTaskResponseDttmArray.to
+    };
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -1327,8 +1251,10 @@ class HostController extends Component {
       };
     }
 
-    if (deviceSearch.theLatestTaskResponseDttmArray.from && deviceSearch.theLatestTaskResponseDttmArray.to) {
-      requestData.theLatestTaskResponseDttmArray = this.getFormattedTimeRange();
+    if (responseDatetime.from && responseDatetime.to) {
+      const searchTimeFrom =  moment(responseDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      const searchTimeTo = moment(responseDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.theLatestTaskResponseDttmArray = [searchTimeFrom, searchTimeTo];
     }
 
     if (deviceSearchList.userName.length > 0) {
@@ -1385,22 +1311,20 @@ class HostController extends Component {
   getSafetyScanData = (options) => {
     const {baseUrl} = this.context;
     const {LAconfig, deviceSearchList, safetyScanData, safetyScanType} = this.state;
-    const datetime = this.getHostDateTime();
     let url = '';
     let requestData = {
-      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData()
     };
 
     if (options === 'hitCVE') {
-      url = `${baseUrl}/api/hmd/hmdScanDistribution/_search`;
+      url = `${baseUrl}/api/v2/hmd/hmdScanDistribution/_search`;
       requestData.hmdScanDistribution = {
         taskName: 'getVans',
         primaryKeyName: 'cpe23Uri',
         hitCVE: true
       };
     } else {
-      url = `${baseUrl}/api/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
+      url = `${baseUrl}/api/v2/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
 
       if (safetyScanType === 'getVansCpe') {
         requestData.hmdScanDistribution = {
@@ -1883,8 +1807,7 @@ class HostController extends Component {
   confirmNCCSTlist = () => {
     const {baseUrl} = this.context;
     const {hitCveList, nccstSelectedList} = this.state;
-    const datetime = this.getHostDateTime();
-    const url = `${baseUrl}/api/hmd/vans/_report`;
+    const url = `${baseUrl}/api/v2/hmd/vans/_report`;
     let uncheckList = [];
 
     _.forEach(hitCveList, val => {
@@ -1896,7 +1819,6 @@ class HostController extends Component {
     })
 
     const requestData = {
-      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData(),
       hmdScanDistribution: {
         taskName: 'getVans',
@@ -2147,16 +2069,6 @@ class HostController extends Component {
     });
   }
   /**
-   * Set new datetime
-   * @method
-   * @param {object} newDatetime - new datetime object
-   */
-  handleDateChange = (newDatetime) => {
-    this.setState({
-      datetime: newDatetime
-    });
-  }
-  /**
    * Handle Host sort change
    * @method
    * @param {object} event - event object
@@ -2169,48 +2081,23 @@ class HostController extends Component {
     });
   }
   /**
-   * Get formatted time range filter
-   * @method
-   * @param {string} [options] - option for 'validate'
-   * @returns time range or boolean false
-   */
-  getFormattedTimeRange = (options) => {
-    const {datetime, deviceSearch} = this.state;
-    const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
-    const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
-    const searchDatetime = {
-      from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttmArray.from, 'local'), //Format: '2022-01-03 00:45:33'
-      to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttmArray.to, 'local')
-    };
-    const formattedSearchDatetime = {
-      from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
-      to: searchDatetime.to.substr(-9)
-    };
-
-    if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
-      helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
-      return false;
-    }
-
-    if (options === 'validate') return true;
-
-    const searchTimeFrom =  moment(formattedDatetime + formattedSearchDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'; //Format: '2022-01-02T16:45:33Z'
-    const searchTimeTo = moment(formattedDatetime + formattedSearchDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-
-    return [searchTimeFrom, searchTimeTo];
-  }
-  /**
    * Handle filter search submit
    * @method
    */
   handleSearchSubmit = () => {
-    const {activeTab, datetime, deviceSearch, hostInfo, safetyScanData} = this.state;
+    const {activeTab, deviceSearch, hostInfo, safetyScanData} = this.state;
 
     if (activeTab === 'hostList') {
-      if (deviceSearch.theLatestTaskResponseDttmArray.from && deviceSearch.theLatestTaskResponseDttmArray.to) {
-        const validateTime = this.getFormattedTimeRange('validate');
+      const responseDatetime = {
+        from: deviceSearch.theLatestTaskResponseDttmArray.from,
+        to: deviceSearch.theLatestTaskResponseDttmArray.to
+      };
 
-        if (!validateTime) return;
+      if (responseDatetime.from && responseDatetime.to) {
+        if (moment(responseDatetime.to).isBefore(moment(responseDatetime.from))) {
+          helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+          return;
+        }
       }
 
       let tempHostInfo = {...hostInfo};
@@ -2378,12 +2265,12 @@ class HostController extends Component {
     });
   }
   /**
-   * Set device filter data for time picker
+   * Set device filter data for datetime picker
    * @method
    * @param {string} type - date type ('from' or 'to')
    * @param {object} newDatetime - new datetime object
    */
-  setTimePickerChange = (type, newDatetime) => {
+  setDateTimePickerChange = (type, newDatetime) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
     tempDeviceSearch.theLatestTaskResponseDttmArray[type] = newDatetime;
 
@@ -2406,11 +2293,11 @@ class HostController extends Component {
 
     if (val === 'theLatestTaskResponseDttmArray') {
       if (deviceSearch.theLatestTaskResponseDttmArray.from) {
-        value = moment(deviceSearch.theLatestTaskResponseDttmArray.from).local().format('HH:mm')  + ' ~ ';
+        value = moment(deviceSearch.theLatestTaskResponseDttmArray.from).local().format('YYYY-MM-DD HH:mm')  + ' ~ ';
       }
 
       if (deviceSearch.theLatestTaskResponseDttmArray.to) {
-        value += moment(deviceSearch.theLatestTaskResponseDttmArray.to).local().format('HH:mm');
+        value += moment(deviceSearch.theLatestTaskResponseDttmArray.to).local().format('YYYY-MM-DD HH:mm');
       }
     } else {
       value = deviceSearchList[val].join(', ');
@@ -2531,25 +2418,31 @@ class HostController extends Component {
             <div className='content'>
               {activeFilter === 'theLatestTaskResponseDttmArray' &&
                 <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                  <KeyboardTimePicker
-                    id='hostFilterTimePickerFrom'
+                  <KeyboardDateTimePicker
+                    id='hostFilterDateTimePickerFrom'
                     className='date-time-picker'
                     inputVariant='outlined'
                     variant='inline'
+                    format='YYYY-MM-DD HH:mm'
                     invalidDateMessage={t('txt-invalidDateMessage')}
+                    maxDateMessage={t('txt-maxDateMessage')}
+                    minDateMessage={t('txt-minDateMessage')}
                     ampm={false}
                     value={deviceSearch[activeFilter].from}
-                    onChange={this.setTimePickerChange.bind(this, 'from')} />
+                    onChange={this.setDateTimePickerChange.bind(this, 'from')} />
                   <div className='between'>~</div>
-                  <KeyboardTimePicker
-                    id='hostFilterTimePickerTo'
+                  <KeyboardDateTimePicker
+                    id='hostFilterDateTimePickerTo'
                     className='date-time-picker'
                     inputVariant='outlined'
                     variant='inline'
+                    format='YYYY-MM-DD HH:mm'
                     invalidDateMessage={t('txt-invalidDateMessage')}
+                    maxDateMessage={t('txt-maxDateMessage')}
+                    minDateMessage={t('txt-minDateMessage')}
                     ampm={false}
                     value={deviceSearch[activeFilter].to}
-                    onChange={this.setTimePickerChange.bind(this, 'to')} />
+                    onChange={this.setDateTimePickerChange.bind(this, 'to')} />
                 </MuiPickersUtilsProvider>
               }
               {activeFilter !== 'theLatestTaskResponseDttmArray' &&
@@ -2616,8 +2509,24 @@ class HostController extends Component {
     if (hmd) {
       this.getIPdeviceInfo(safetyScanInfo, 'toggle', val.severity_type_name);
     } else {
-      this.redirectNewPage(safetyScanInfo.ip);
+      this.redirectNewPage(safetyScanInfo.ip, val.taskResponseDttm);
     }
+  }
+  /**
+   * Redirect to Threats page
+   * @method
+   * @param {string} ip - Source IP for the Host
+   * @param {string} taskResponseDttm - task response datetime
+   */
+  redirectNewPage = (ip, taskResponseDttm) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const dateTime = {
+      from: moment(taskResponseDttm).local().format('YYYY-MM-DD') + ' 00:00:00',
+      to: helper.getFormattedDate(taskResponseDttm, 'local')
+    };
+    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${dateTime.from}&to=${dateTime.to}&sourceIP=${ip}&page=host&lng=${language}`;
+
+    window.open(linkUrl, '_blank');
   }
   /**
    * Format HMD readable name
@@ -2699,6 +2608,13 @@ class HostController extends Component {
 
     displayTooltip += text;
     title = displayTooltip + ': ' + displayCount;
+
+    let responseTime = '';
+
+    if (val.taskResponseDttm) {
+      responseTime = t('hmd-scan.txt-responseTime') + ': ' + helper.getFormattedDate(val.taskResponseDttm, 'local');
+      title += ', ' + responseTime;
+    }
 
     if (val.doc_count === 0 || val.doc_count > 0) {
       status = val.doc_count;
@@ -2992,48 +2908,6 @@ class HostController extends Component {
         }
       });
     }
-  }
-  /**
-   * Redirect to Threats page
-   * @method
-   * @param {string} ip - Source IP for the Host
-   */
-  redirectNewPage = (ip) => {
-    const {baseUrl, contextRoot, language} = this.context;
-    const {datetime, hostCreateTime} = this.state;
-    const selectedDate = moment(datetime).format('YYYY-MM-DD');
-    const currentDate = moment().local().format('YYYY-MM-DD');
-    let dateTime = {
-      from: '',
-      to: ''
-    };
-
-    if (moment(selectedDate).isBefore(currentDate)) {
-      dateTime.from = selectedDate + ' 00:00:00';
-      dateTime.to = selectedDate + ' 23:59:59';
-    } else {
-      dateTime.from = currentDate + ' 00:00:00';
-      dateTime.to = hostCreateTime;
-    }
-
-    const ipParam = `&sourceIP=${ip}&page=host`;
-    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${dateTime.from}&to=${dateTime.to}${ipParam}&lng=${language}`;
-
-    window.open(linkUrl, '_blank');
-  }
-  /**
-   * Display individual severity
-   * @method
-   * @param {object} host - all Safety Scan data
-   * @param {object} val - Severity list
-   * @param {number} i - index of the severity list
-   * @returns HTML DOM
-   */
-  displaySeverityItem = (host, val, i) => {
-    const color = val.doc_count === 0 ? '#333' : '#fff';
-    const backgroundColor = val.doc_count === 0 ? '#d9d9d9' : ALERT_LEVEL_COLORS[val.key];
-
-    return <span key={i} className='c-link' style={{color, backgroundColor}} onClick={this.redirectNewPage.bind(this, host.ip)}>{val.key}: {val.doc_count}</span>
   }
   /**
    * Display Host content
@@ -3430,7 +3304,7 @@ class HostController extends Component {
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
-    const datetime = this.getHostDateTime();
+    const {assessmentDatetime} = this.state;
     const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
     let keyValue = '';
 
@@ -3442,7 +3316,7 @@ class HostController extends Component {
 
     const requestData = {
       primaryKeyValue: keyValue,
-      exactStartDttm: datetime.from
+      exactStartDttm: assessmentDatetime.from
     };
 
     this.ah.one({
@@ -3523,7 +3397,7 @@ class HostController extends Component {
     let requestData = this.getHostData('csv');
 
     if (options === 'default') {
-      url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
+      url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_export`;
     } else {
       if (vansTableType === 'assessment') {
         url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/deptCountsTable/_export`;
@@ -3548,7 +3422,7 @@ class HostController extends Component {
    */
   getPDFfile = () => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`;
+    const url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_pdfs`;
     const requestData = this.getHostData('pdf');
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
@@ -3559,7 +3433,7 @@ class HostController extends Component {
    */
   exportSecurityDiagnostic = () => {
     const {baseUrl, contextRoot} = this.context
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/kbid/_export`
+    const url = `${baseUrl}${contextRoot}/api/v2/ipdevice/kbid/_export`
     const requestData = this.getHostData('csv')
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
@@ -3951,23 +3825,12 @@ class HostController extends Component {
    */
   confirmVansPatch = (patch) => {
     const {baseUrl} = this.context;
-    const {account, activeVansPatch, patchSelectedItem, vansPatchFrom} = this.state;
+    const {account, activeVansPatch, patchSelectedItem} = this.state;
     let retriggerBody = {
       cmdJO: {
         cmds: ['executePatch']
       }
     };
-
-    if (vansPatchFrom === 'new') {
-      const datetime = this.getHostDateTime();
-      retriggerBody.timestamp = [datetime.from, datetime.to];
-    } else if (vansPatchFrom === 'exist') {
-      const timestamp = activeVansPatch.hmdRetriggerBodyDTO.timestamp;
-
-      if (timestamp) {
-        retriggerBody.timestamp = timestamp;
-      }
-    }
 
     if (patchSelectedItem.length > 0) {
       retriggerBody.hostIdArray = _.map(patchSelectedItem, val => {
@@ -4000,8 +3863,7 @@ class HostController extends Component {
     })
     .then(data => {
       this.setState({
-        patchSelectedItem: [],
-        vansPatchFrom: ''
+        patchSelectedItem: []
       });
 
       helper.showPopupMsg(t('host.txt-patchSuccess'));
@@ -4162,13 +4024,9 @@ class HostController extends Component {
    * @param {string} type - vans patch from ('new' or 'exist')
    */
   setVansPatchFrom = (type) => {
-    this.setState({
-      vansPatchFrom: type
-    }, () => {
-      if (type === 'new') {
-        this.checkFrMotp();
-      }
-    });
+    if (type === 'new') {
+      this.checkFrMotp();
+    }
   }
   /**
    * Get HMD test menu
@@ -4180,7 +4038,7 @@ class HostController extends Component {
     if (val.cmds === 'executePatch') {
       return <MenuItem key={i} onClick={this.setVansPatchFrom.bind(this, 'new')}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
     } else if (val.cmds === 'executePatchRecord') {
-      return <MenuItem key={i} onClick={this.getVansPatchGroup.bind(this, '', '', '', 'openDialog')}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
+      return <MenuItem key={i} onClick={this.toggleVansPatchGroup}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
@@ -4206,10 +4064,8 @@ class HostController extends Component {
    */
   triggerHmdAll = (hmdObj, yaraRule) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/ipdevice/assessment/_search/_retrigger`;
-    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/v2/ipdevice/assessment/_search/_retrigger`;
     let requestData = {
-      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData(),
       cmdJO: {
         cmds: [hmdObj.cmds]
@@ -4392,10 +4248,8 @@ class HostController extends Component {
    */
   exportCPE = () => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/hmd/vans/_export`;
-    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}${contextRoot}/api/v2/hmd/vans/_export`;
     const dataOptions = {
-      timestamp: [datetime.from, datetime.to],
       ...this.getHostSafetyRequestData(),
       hmdScanDistribution: {
         taskName: 'getVans',
@@ -4529,7 +4383,6 @@ class HostController extends Component {
       uploadFileOpen,
       importCsvOpen,
       LAconfig,
-      datetime,
       assessmentDatetime,
       frMotpOpen,
       vansPatchOpen,
@@ -4554,7 +4407,6 @@ class HostController extends Component {
       leftNavData,
       filterNav,
       hmdSearch,
-      vansPatchGroup,
       vansPatchDetails,
       activeVansPatch,
       hostInfo,
@@ -4578,10 +4430,10 @@ class HostController extends Component {
       vansTableType,
       vansPieChartData,
       patchInfo,
+      limitedDepartment,
       floorPlan,
       showLoadingIcon
     } = this.state;
-    const vansDateTime = this.getHostDateTime();
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     let adminPrivilege = false;
 
@@ -4611,10 +4463,8 @@ class HostController extends Component {
 
         {vansPatchGroupOpen &&
           <VansPatchGroup
-            vansPatchGroup={vansPatchGroup}
-            vansDateTime={vansDateTime}
+            limitedDepartment={limitedDepartment}
             toggleVansPatchGroup={this.toggleVansPatchGroup}
-            getVansPatchGroup={this.getVansPatchGroup}
             getVansPatchDetails={this.getVansPatchDetails} />
         }
 
@@ -4695,10 +4545,8 @@ class HostController extends Component {
           </div>
 
           <SearchOptions
-            dateType='datepicker'
-            datetime={datetime}
+            dateType='no-date'
             showFilter={showFilter}
-            handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
         </div>
 
