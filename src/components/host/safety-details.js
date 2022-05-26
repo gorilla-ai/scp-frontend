@@ -579,13 +579,13 @@ class SafetyDetails extends Component {
               <td>{currentSafetyData.rawJsonObject.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</td>
             </tr>
           }
-          {currentSafetyData.rawJsonObject.cpeRecordDTOs.length > 0 &&
+          {currentSafetyData.rawJsonObject.cpeRecordDTOs && currentSafetyData.rawJsonObject.cpeRecordDTOs.length > 0 &&
             <tr>
               <td><span className='blue-color'>CPE ID</span></td>
               <td><ul>{currentSafetyData.rawJsonObject.cpeRecordDTOs.map(this.displayVansContent.bind(this, 'cpeID'))}</ul></td>
             </tr>
           }
-          {currentSafetyData.rawJsonObject.referenceData.reference_data.length > 0 &&
+          {currentSafetyData.rawJsonObject.referenceData && currentSafetyData.rawJsonObject.referenceData.reference_data.length > 0 &&
             <tr>
               <td><span className='blue-color'>{t('txt-reference')}</span></td>
               <td><ul>{currentSafetyData.rawJsonObject.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}</ul></td>

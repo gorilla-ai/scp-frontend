@@ -1526,7 +1526,7 @@ class HMDscanInfo extends Component {
     const {activeTab, hmdInfo} = this.state;
 
     scrollCount++;
-    let url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
+    let url = `${baseUrl}/api/v3/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
 
     if (page === 'host') {
       url += `&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`;

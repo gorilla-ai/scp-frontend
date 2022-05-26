@@ -1781,7 +1781,7 @@ class NetworkInventory extends Component {
 
     this.ah.all([
       {
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
         type: 'GET'
       },
       {
@@ -1882,7 +1882,7 @@ class NetworkInventory extends Component {
 
     if (type.length > 0 && options !== 'fromInventory') { //Get updated HMD data for scan info type
       apiArr.push({
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
         type: 'GET'
       });
     }

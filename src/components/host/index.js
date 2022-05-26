@@ -421,7 +421,7 @@ class HostController extends Component {
       currentSafetyData: {},
       hmdEventsData: {},
       hmdLAdata: {},
-      safetyScanType: 'scanFile', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
+      safetyScanType: '', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
       savedCpeData: {},
       fromSafetyPage: '',
       eventInfo: {
@@ -2732,7 +2732,7 @@ class HostController extends Component {
 
     this.ah.all([
       {
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
         type: 'GET'
       },
       {
@@ -3394,13 +3394,13 @@ class HostController extends Component {
       url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_export`;
     } else {
       if (vansTableType === 'assessment') {
-        url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/deptCountsTable/_export`;
+        url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/deptCountsTable/_export`;
         
         if (options && typeof options === 'string') {
           requestData.deptId = options;
         }
       } else if (vansTableType === 'hmd') {
-        url = `${baseUrl}${contextRoot}/api/hmd/hmdScanDistribution/deptCountsTable/_export`;
+        url = `${baseUrl}${contextRoot}/api/v2/hmd/hmdScanDistribution/deptCountsTable/_export`;
 
         if (options && typeof options === 'string') {
           requestData.deptId = options;
