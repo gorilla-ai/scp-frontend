@@ -4,7 +4,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import { MuiPickersUtilsProvider, KeyboardTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker, KeyboardTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -347,7 +347,6 @@ class HostController extends Component {
       popOverAnchor: null,
       activeFilter: '',
       showLeftNav: true,
-      //datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       assessmentDatetime: {
         from: '',
         to: ''
@@ -1180,6 +1179,10 @@ class HostController extends Component {
    */
   getHostSafetyRequestData = () => {
     const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
+    const responseDatetime = {
+      from: deviceSearch.theLatestTaskResponseDttmArray.from,
+      to: deviceSearch.theLatestTaskResponseDttmArray.to
+    };
     let requestData = {};
 
     if (filterNav.severitySelected.length > 0) {
@@ -1248,8 +1251,10 @@ class HostController extends Component {
       };
     }
 
-    if (deviceSearch.theLatestTaskResponseDttmArray.from && deviceSearch.theLatestTaskResponseDttmArray.to) {
-      requestData.theLatestTaskResponseDttmArray = this.getFormattedTimeRange();
+    if (responseDatetime.from && responseDatetime.to) {
+      const searchTimeFrom =  moment(responseDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      const searchTimeTo = moment(responseDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.theLatestTaskResponseDttmArray = [searchTimeFrom, searchTimeTo];
     }
 
     if (deviceSearchList.userName.length > 0) {
@@ -2076,37 +2081,6 @@ class HostController extends Component {
     });
   }
   /**
-   * Get formatted time range filter
-   * @method
-   * @param {string} [options] - option for 'validate'
-   * @returns time range or boolean false
-   */
-  getFormattedTimeRange = (options) => {
-    const {datetime, deviceSearch} = this.state;
-    const DateTime = helper.getFormattedDate(datetime, 'local'); //Format: '2022-01-03 08:00:00'
-    const formattedDatetime = DateTime.substr(0, 10); //Format: '2022-01-03'
-    const searchDatetime = {
-      from: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttmArray.from, 'local'), //Format: '2022-01-03 00:45:33'
-      to: helper.getFormattedDate(deviceSearch.theLatestTaskResponseDttmArray.to, 'local')
-    };
-    const formattedSearchDatetime = {
-      from: searchDatetime.from.substr(-9), //Format: ' 00:45:33'
-      to: searchDatetime.to.substr(-9)
-    };
-
-    if (moment(searchDatetime.to).isBefore(moment(searchDatetime.from))) {
-      helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
-      return false;
-    }
-
-    if (options === 'validate') return true;
-
-    const searchTimeFrom =  moment(formattedDatetime + formattedSearchDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'; //Format: '2022-01-02T16:45:33Z'
-    const searchTimeTo = moment(formattedDatetime + formattedSearchDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-
-    return [searchTimeFrom, searchTimeTo];
-  }
-  /**
    * Handle filter search submit
    * @method
    */
@@ -2114,10 +2088,16 @@ class HostController extends Component {
     const {activeTab, deviceSearch, hostInfo, safetyScanData} = this.state;
 
     if (activeTab === 'hostList') {
-      if (deviceSearch.theLatestTaskResponseDttmArray.from && deviceSearch.theLatestTaskResponseDttmArray.to) {
-        const validateTime = this.getFormattedTimeRange('validate');
+      const responseDatetime = {
+        from: deviceSearch.theLatestTaskResponseDttmArray.from,
+        to: deviceSearch.theLatestTaskResponseDttmArray.to
+      };
 
-        if (!validateTime) return;
+      if (responseDatetime.from && responseDatetime.to) {
+        if (moment(responseDatetime.to).isBefore(moment(responseDatetime.from))) {
+          helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+          return;
+        }
       }
 
       let tempHostInfo = {...hostInfo};
@@ -2285,12 +2265,12 @@ class HostController extends Component {
     });
   }
   /**
-   * Set device filter data for time picker
+   * Set device filter data for datetime picker
    * @method
    * @param {string} type - date type ('from' or 'to')
-   * @param {object} newDatetime - new date time object
+   * @param {object} newDatetime - new datetime object
    */
-  setTimePickerChange = (type, newDatetime) => {
+  setDateTimePickerChange = (type, newDatetime) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
     tempDeviceSearch.theLatestTaskResponseDttmArray[type] = newDatetime;
 
@@ -2313,11 +2293,11 @@ class HostController extends Component {
 
     if (val === 'theLatestTaskResponseDttmArray') {
       if (deviceSearch.theLatestTaskResponseDttmArray.from) {
-        value = moment(deviceSearch.theLatestTaskResponseDttmArray.from).local().format('HH:mm')  + ' ~ ';
+        value = moment(deviceSearch.theLatestTaskResponseDttmArray.from).local().format('YYYY-MM-DD HH:mm')  + ' ~ ';
       }
 
       if (deviceSearch.theLatestTaskResponseDttmArray.to) {
-        value += moment(deviceSearch.theLatestTaskResponseDttmArray.to).local().format('HH:mm');
+        value += moment(deviceSearch.theLatestTaskResponseDttmArray.to).local().format('YYYY-MM-DD HH:mm');
       }
     } else {
       value = deviceSearchList[val].join(', ');
@@ -2438,25 +2418,31 @@ class HostController extends Component {
             <div className='content'>
               {activeFilter === 'theLatestTaskResponseDttmArray' &&
                 <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                  <KeyboardTimePicker
-                    id='hostFilterTimePickerFrom'
+                  <KeyboardDateTimePicker
+                    id='hostFilterDateTimePickerFrom'
                     className='date-time-picker'
                     inputVariant='outlined'
                     variant='inline'
+                    format='YYYY-MM-DD HH:mm'
                     invalidDateMessage={t('txt-invalidDateMessage')}
+                    maxDateMessage={t('txt-maxDateMessage')}
+                    minDateMessage={t('txt-minDateMessage')}
                     ampm={false}
                     value={deviceSearch[activeFilter].from}
-                    onChange={this.setTimePickerChange.bind(this, 'from')} />
+                    onChange={this.setDateTimePickerChange.bind(this, 'from')} />
                   <div className='between'>~</div>
-                  <KeyboardTimePicker
-                    id='hostFilterTimePickerTo'
+                  <KeyboardDateTimePicker
+                    id='hostFilterDateTimePickerTo'
                     className='date-time-picker'
                     inputVariant='outlined'
                     variant='inline'
+                    format='YYYY-MM-DD HH:mm'
                     invalidDateMessage={t('txt-invalidDateMessage')}
+                    maxDateMessage={t('txt-maxDateMessage')}
+                    minDateMessage={t('txt-minDateMessage')}
                     ampm={false}
                     value={deviceSearch[activeFilter].to}
-                    onChange={this.setTimePickerChange.bind(this, 'to')} />
+                    onChange={this.setDateTimePickerChange.bind(this, 'to')} />
                 </MuiPickersUtilsProvider>
               }
               {activeFilter !== 'theLatestTaskResponseDttmArray' &&
@@ -2530,7 +2516,7 @@ class HostController extends Component {
    * Redirect to Threats page
    * @method
    * @param {string} ip - Source IP for the Host
-   * @param {string} taskResponseDttm - task response date time
+   * @param {string} taskResponseDttm - task response datetime
    */
   redirectNewPage = (ip, taskResponseDttm) => {
     const {baseUrl, contextRoot, language} = this.context;
@@ -2627,9 +2613,8 @@ class HostController extends Component {
 
     if (val.taskResponseDttm) {
       responseTime = t('hmd-scan.txt-responseTime') + ': ' + helper.getFormattedDate(val.taskResponseDttm, 'local');
+      title += ', ' + responseTime;
     }
-
-    title += ', ' + responseTime;
 
     if (val.doc_count === 0 || val.doc_count > 0) {
       status = val.doc_count;
@@ -3319,7 +3304,8 @@ class HostController extends Component {
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/v2/hmd/hmdScanDistribution`;
+    const {assessmentDatetime} = this.state;
+    const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
     let keyValue = '';
 
     if (from === 'showAvailableHost') {
@@ -3330,7 +3316,7 @@ class HostController extends Component {
 
     const requestData = {
       primaryKeyValue: keyValue,
-      exactStartDttm: datetime.from
+      exactStartDttm: assessmentDatetime.from
     };
 
     this.ah.one({
