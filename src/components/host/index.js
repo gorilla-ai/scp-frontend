@@ -852,7 +852,6 @@ class HostController extends Component {
     }
 
     if (options === 'csv' || options === 'pdf') { //For CSV or PDF export
-      //requestData.timestamp = [assessmentDatetime.from, assessmentDatetime.to];
       return requestData;
     }
 
@@ -1662,7 +1661,6 @@ class HostController extends Component {
    * @param {object} event - event object
    */
   toggleNCCSTcheckbox = (event) => {
-    const {safetyScanData} = this.state;
     let nccstSelectedList = _.cloneDeep(this.state.nccstSelectedList);
     let nccstCheckAll = false;
 
@@ -1673,7 +1671,7 @@ class HostController extends Component {
       nccstSelectedList.splice(index, 1);
     }
 
-    if (safetyScanData.dataContent && nccstSelectedList.length === safetyScanData.dataContent.length) {
+    if (nccstSelectedList.length === this.state.hitCveList.length) {
       nccstCheckAll = true;
     }
 
@@ -1806,17 +1804,16 @@ class HostController extends Component {
    */
   confirmNCCSTlist = () => {
     const {baseUrl} = this.context;
-    const {hitCveList, nccstSelectedList} = this.state;
+    const {hitCveList, nccstSelectedList, nccstCheckAll} = this.state;
     const url = `${baseUrl}/api/v2/hmd/vans/_report`;
+    const cveListArr = _.map(hitCveList, val => {
+      return val.primaryKeyValue;
+    });
     let uncheckList = [];
 
-    _.forEach(hitCveList, val => {
-      _.forEach(nccstSelectedList, val2 => {
-        if (val.primaryKeyValue !== val2) {
-          uncheckList.push(val.primaryKeyValue);
-        }
-      })
-    })
+    if (!nccstCheckAll) {
+      uncheckList = nccstSelectedList.length === 0 ? hitCveList : _.difference(cveListArr, nccstSelectedList);
+    }
 
     const requestData = {
       ...this.getHostSafetyRequestData(),
@@ -2734,7 +2731,6 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {assessmentDatetime, hostInfo, hostData, eventInfo} = this.state;
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
-    //const ipDeviceUUID = 'ddc14d5d-0d3e-46c9-bdf8-9a523906917c';
 
     this.ah.all([
       {
