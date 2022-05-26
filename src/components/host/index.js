@@ -47,7 +47,6 @@ import ImportFile from './import-file'
 import Pagination from '../common/pagination'
 import QueryOpenSave from '../common/query-open-save'
 import SafetyDetails from './safety-details'
-import SearchOptions from '../common/search-options'
 import VansCharts from './vans-charts'
 import VansDevice from './vans-device'
 import VansPatch from './vans-patch'
@@ -1812,7 +1811,7 @@ class HostController extends Component {
     let uncheckList = [];
 
     if (!nccstCheckAll) {
-      uncheckList = nccstSelectedList.length === 0 ? hitCveList : _.difference(cveListArr, nccstSelectedList);
+      uncheckList = nccstSelectedList.length === 0 ? cveListArr : _.difference(cveListArr, nccstSelectedList);
     }
 
     const requestData = {
@@ -4537,11 +4536,6 @@ class HostController extends Component {
             <Button variant='outlined' color='primary' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
             <Button variant='outlined' color='primary' className='last' onClick={this.getPDFfile} title={t('txt-exportPDF')}><PictureAsPdfOutlinedIcon /></Button>
           </div>
-
-          <SearchOptions
-            dateType='no-date'
-            showFilter={showFilter}
-            handleSearchSubmit={this.handleSearchSubmit} />
         </div>
 
         <div className='data-content'>
