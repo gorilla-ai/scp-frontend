@@ -413,7 +413,7 @@ class HostController extends Component {
       selectedTreeID: '',
       floorMapType: '',
       safetyScanData: {
-        dataContent: null,
+        dataContent: [],
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -2150,8 +2150,6 @@ class HostController extends Component {
       if (newTab === 'safetyScan') {
         this.setState({
           currentHostModule: 'malware'
-        }, () => {
-          this.getSafetyScanData('vansStatus');
         });
       } else if (newTab === 'vansCharts') {
         this.getVansChartsData();
