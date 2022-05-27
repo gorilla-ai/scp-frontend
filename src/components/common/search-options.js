@@ -372,7 +372,7 @@ class SearchOptions extends Component {
             this.showDatePicker()
           }
 
-          {dateType === 'daterange' &&
+          {(!dateType || dateType === 'daterange') &&
             this.showDataRange()
           }
         </div>
