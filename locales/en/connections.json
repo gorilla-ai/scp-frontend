@@ -253,6 +253,7 @@
   "txt-importEsIndex": "Import Index",
   "txt-esImportMsg": "Please enter the date of the index to import",
   "txt-auditLog": "Audit Log",
+  "txt-exportAuditLog": "$t(txt-export) $t(txt-auditLog)",
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "Threat Intelligence",

@@ -253,6 +253,7 @@
   "txt-importEsIndex": "匯入索引",
   "txt-esImportMsg": "請選擇要匯入的索引日期",
   "txt-auditLog": "稽核紀錄",
+  "txt-exportAuditLog": "$t(txt-export)$t(txt-auditLog)",
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "威脅情資",

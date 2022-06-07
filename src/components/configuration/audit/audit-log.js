@@ -272,6 +272,22 @@ class AuditLog extends Component {
     )
   }
   /**
+   * Handle audit log export
+   * @method
+   */
+  handleExportAuditLog = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {datetime} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}${contextRoot}/api/auditLog/system/_export?startDttm=${dateTime.from}&endDttm=${dateTime.to}`;
+
+    window.open(url, '_blank');
+    return;
+  }
+  /**
    * Clear filter input value
    * @method
    */
@@ -319,6 +335,11 @@ class AuditLog extends Component {
 
             <div className='main-content'>
               <header className='main-header'>{t('txt-auditLog')}</header>
+
+              <div className='content-header-btns with-menu'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleExportAuditLog}>{t('txt-exportAuditLog')}</Button>
+              </div>
+
               <MuiTableContent
                 data={audit}
                 tableOptions={tableOptions} />
