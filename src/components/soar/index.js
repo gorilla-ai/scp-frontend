@@ -2,6 +2,7 @@ import React, { Component, useRef } from 'react'
 import { withRouter } from 'react-router'
 import _ from 'lodash'
 import cx from 'classnames'
+import queryString from 'query-string'
 
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -79,6 +80,7 @@ class SoarController extends Component {
         oldPage: 1,
         pageSize: 20
       },
+      soarParam: '',
       soarIndividualData: {},
       currentSoarData: {}
     };
@@ -138,6 +140,44 @@ class SoarController extends Component {
         this.setState({
           filterList: tempFilterList,
           soarColumns: data
+        }, () => {
+          const soarParam = queryString.parse(location.search);
+
+          if (soarParam.flag && soarParam.flag !== '') { //Handle redirect page
+            this.setState({
+              flowActionType: 'add',
+              soarIndividualData: {
+                flowName: '',
+                aggField: '',
+                isEnable: true,
+                flow: [
+                  {
+                    id: '968.2211722858054_adapter',
+                    type: 'input',
+                    componentType: 'adapter',
+                    position: {
+                      x: 700,
+                      y: 100
+                    },
+                    data: {
+                      label: '事件來源'
+                    },
+                    adapter_type: 'scp',
+                    args: {
+                      scpIp: '172.18.0.119',
+                      apiAuth: 'Z29yaWxsYTpnb3JpbGxha20=',
+                      gap: 4
+                    }
+                  }
+                ]
+              },
+              soarParam: {
+                ...soarParam
+              }
+            }, () => {
+              this.toggleContent('flow');
+            });
+          }
         });
       }
       return null;
@@ -367,13 +407,12 @@ class SoarController extends Component {
   /**
    * Handle add Soar menu
    * @method
-   * @param {styring} type - soar menu type
+   * @param {styring} type - soar menu type ('new', 'internalInventory', 'windowsLoginFail', 'fortigateLog')
    */
   handleAddSoarMenu = (type) => {
     if (type === 'new') {
       this.getSoarIndividualData();
       this.handleCloseMenu();
-      return;
     } else {
       this.setState({
         flowActionType: 'edit',
@@ -727,7 +766,8 @@ class SoarController extends Component {
       soarColumns,
       contextAnchor,
       soarData,
-      soarIndividualData
+      soarParam,
+      soarIndividualData,
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -788,6 +828,7 @@ class SoarController extends Component {
             flowActionType={flowActionType}
             soarColumns={soarColumns}
             soarIndividualData={soarIndividualData}
+            soarParam={soarParam}
             toggleContent={this.toggleContent} />
         }
       </div>

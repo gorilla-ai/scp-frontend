@@ -48,7 +48,7 @@ class FilterContent extends Component {
   }
   render() {
     const {sessionRights} = this.context;
-    const {showFilter, queryData, queryDataPublic} = this.props;
+    const {activeTab, showFilter, queryData, queryDataPublic} = this.props;
     const filterTitle = queryData.displayName || queryDataPublic.displayName || t('txt-filter');
 
     return (
@@ -62,6 +62,9 @@ class FilterContent extends Component {
             <Button id='publicOpenQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicOpen')}>{t('events.connections.txt-publicOpenQuery')}</Button>
             {sessionRights.Module_Config &&
               <Button id='publicSaveQuery' variant='outlined' color='primary' className='save-query' onClick={this.props.openQuery.bind(this, 'publicSave')}>{t('events.connections.txt-publicSaveQuery')}</Button>
+            }
+            {queryData.displayName &&
+              <Button id='addSoarFlow' variant='outlined' color='primary' className='save-query' onClick={this.props.soarRedirect}>{t('events.connections.txt-addSoarFlow')}</Button>
             }
           </div>
         }
@@ -86,7 +89,8 @@ FilterContent.propTypes = {
   handleResetBtn: PropTypes.func.isRequired,
   filterData: PropTypes.array,
   setFilterData: PropTypes.func,
-  toggleFilter: PropTypes.func
+  toggleFilter: PropTypes.func,
+  soarRedirect: PropTypes.func
 };
 
 export default FilterContent;

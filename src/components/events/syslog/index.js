@@ -1792,6 +1792,18 @@ class SyslogController extends Component {
     });
   }
   /**
+   * Redirect to SOAR page
+   * @method
+   * @param {string} patternId - pattern ID
+   */
+  soarRedirect = (patternId) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {queryData} = this.state;
+    const url = `${baseUrl}${contextRoot}/soar?flag=events&patternId=${queryData.patternId}&lng=${language}`;
+
+    window.open(url, '_blank');
+  }
+  /**
    * Display table data content Syslog
    * @method
    * @returns Syslog component
@@ -1863,7 +1875,8 @@ class SyslogController extends Component {
       syslogData: this.state.syslogData,
       LAdata: this.state.laData,
       logFields: this.state.logFields,
-      handleLaPageChange: this.handleLaPageChange
+      handleLaPageChange: this.handleLaPageChange,
+      soarRedirect: this.soarRedirect
     };
 
     return (

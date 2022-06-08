@@ -159,7 +159,7 @@ class SoarForm extends Component {
    * @method
    */
   setFlowData = () => {
-    const {activeElementType, activeElement} = this.props;
+    const {activeElementType, soarParam, activeElement} = this.props;
     let argsData = activeElement.args;
 
     if (activeElementType === 'link') {
@@ -177,7 +177,7 @@ class SoarForm extends Component {
       if (activeElement.componentType === 'adapter') {
         this.setState({
           nodeCustomName: activeElement.data.label,
-          soarNodeAdapterOperator: activeElement.adapter_type,
+          soarNodeAdapterOperator: !soarParam ? 'socket' : activeElement.adapter_type,
           [activeElement.adapter_type]: activeElement.args
         });
       } else if (activeElement.componentType === 'node') {
@@ -396,6 +396,13 @@ class SoarForm extends Component {
    * @param {string} operatorList - soar operator list
    */
   displayDropDownSelection = (operator, operatorList) => {
+    const {soarParam} = this.props;
+    let formDisabled = operator === 'soarNodeAdapterOperator' ? true : false; //always disabled for adapter operator
+
+    if (soarParam) {
+      formDisabled = true; //For SOAR condition in left nav
+    }
+
     return (
       <React.Fragment>
         <div className='group'>
@@ -408,7 +415,8 @@ class SoarForm extends Component {
             fullWidth
             size='small'
             value={this.state[operator]}
-            onChange={this.handleOperatorDataChange.bind(this, operator)}>
+            onChange={this.handleOperatorDataChange.bind(this, operator)}
+            disabled={formDisabled}>
             {this.state[operatorList]}
           </TextField>
         </div>
@@ -474,8 +482,8 @@ class SoarForm extends Component {
     )
   }
   render() {
-    const {soarNodeActionArgs} = this.state;
     const {from, soarColumns, activeElementType, activeElement} = this.props;
+    const {soarNodeActionArgs} = this.state;
 
     if (activeElementType === 'link') {
       return (
@@ -536,6 +544,7 @@ SoarForm.propTypes = {
   activeElementType: PropTypes.string.isRequired,
   soarCondition: PropTypes.object,
   soarFlow: PropTypes.array,
+  soarParam: PropTypes.object.isRequired,
   activeElement: PropTypes.object,
   setSoarConditionData: PropTypes.func,
   setSoarFlowData: PropTypes.func

@@ -2852,6 +2852,17 @@ class ThreatsController extends Component {
     });
   }
   /**
+   * Redirect to SOAR page
+   * @method
+   */
+  soarRedirect = () => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {queryData} = this.state;
+    const url = `${baseUrl}${contextRoot}/soar?flag=threats&patternId=${queryData.id}&lng=${language}`;
+
+    window.open(url, '_blank');
+  }
+  /**
    * Display alert table data
    * @method
    * @returns Alert component
@@ -2927,7 +2938,8 @@ class ThreatsController extends Component {
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
       showTreeFilterBtn: this.showTreeFilterBtn,
-      mainEventsData: this.state.mainEventsData
+      mainEventsData: this.state.mainEventsData,
+      soarRedirect: this.soarRedirect
     };
 
     return (

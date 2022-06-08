@@ -102,18 +102,20 @@ class SoarFlow extends Component {
 
     let tempSoarRule = {...soarRule};
     let tempSoarCondition = {...soarCondition};
-    tempSoarRule.name = soarIndividualData.flowName;
-    tempSoarRule.aggFieldId = soarIndividualData.aggField;
-    tempSoarCondition.op = soarIndividualData.condition.op;
-    tempSoarCondition.args = soarIndividualData.condition.args;
+    tempSoarRule.name = soarIndividualData.flowName ? soarIndividualData.flowName : '';
+    tempSoarRule.aggFieldId = soarIndividualData.aggField ? soarIndividualData.aggField : '';
+    tempSoarCondition.op = soarIndividualData.condition ? soarIndividualData.condition.op : '';
+    tempSoarCondition.args = soarIndividualData.condition ? soarIndividualData.condition.args : {};
 
-    _.forEach(soarIndividualData.flow, val => {
-      if (val.source && val.target) {
-        linkAnimated = val.animated;
-        linkShapeType = val.type;
-        return false;
-      }
-    })
+    if (soarIndividualData.flow && soarIndividualData.flow.length > 0) {
+      _.forEach(soarIndividualData.flow, val => {
+        if (val.source && val.target) {
+          linkAnimated = val.animated;
+          linkShapeType = val.type;
+          return false;
+        }
+      })
+    }
 
     this.setState({
       linkAnimated,
@@ -481,6 +483,14 @@ class SoarFlow extends Component {
    * @param {string} options - option for redirect
    */
   clearSoarData = (options) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {soarParam} = this.props;
+
+    if (soarParam) { //Redirect to SOAR page without parameters
+      const url = `${baseUrl}${contextRoot}/soar?lng=${language}`;
+      window.open(url, '_self');
+    }
+
     this.setState({
       currentFlowID: '',
       soarRule: {
@@ -547,7 +557,7 @@ class SoarFlow extends Component {
    */
   handleSoarFlowSave = () => {
     const {baseUrl} = this.context;
-    const {flowActionType, soarIndividualData} = this.props;
+    const {flowActionType, soarIndividualData, soarParam} = this.props;
     const {currentFlowID, soarRule, soarCondition, soarFlow} = this.state;
     const url = `${baseUrl}/api/soar/flow`;
     let requestData = {
@@ -562,6 +572,11 @@ class SoarFlow extends Component {
 
     if (currentFlowID || flowActionType === 'edit') {
       requestData.flowId = currentFlowID || soarIndividualData.flowId;
+    }
+
+    if (soarParam) {
+      requestData.flag = soarParam.flag;
+      requestData.patternId = soarParam.patternId;
     }
 
     _.forEach(soarFlow, val => {
@@ -710,7 +725,7 @@ class SoarFlow extends Component {
     return '#eee';
   }
   render() {
-    const {soarColumns, soarIndividualData} = this.props;
+    const {soarColumns, soarIndividualData, soarParam} = this.props;
     const {
       openFlowSettingsDialog,
       openTestingFlowDialog,
@@ -736,6 +751,7 @@ class SoarFlow extends Component {
             soarFlow={soarFlow}
             activeElementType={activeElementType}
             activeElement={activeElement}
+            soarParam={soarParam}
             confirmSoarFlowData={this.confirmSoarFlowData}
             closeDialog={this.closeDialog} />
         }
@@ -810,6 +826,7 @@ class SoarFlow extends Component {
                         activeElementType='link'
                         soarCondition={soarCondition}
                         soarFlow={soarFlow}
+                        soarParam={soarParam}
                         setSoarConditionData={this.setSoarConditionData} />
                     </div>
                   </aside>
@@ -905,6 +922,7 @@ SoarFlow.propTypes = {
   flowActionType: PropTypes.string.isRequired,
   soarColumns: PropTypes.object.isRequired,
   soarIndividualData: PropTypes.object.isRequired,
+  soarParam: PropTypes.object.isRequired,
   toggleContent: PropTypes.func.isRequired
 };
 

@@ -127,7 +127,7 @@ class SoarSingleSettings extends Component {
    * @returns HTML DOM
    */
   displaySettings = () => {
-    const {soarColumns, activeElementType, activeElement} = this.props;
+    const {soarColumns, activeElementType, activeElement, soarParam} = this.props;
 
     return (
       <SoarForm
@@ -135,6 +135,7 @@ class SoarSingleSettings extends Component {
         soarColumns={soarColumns}
         activeElementType={activeElementType}
         activeElement={activeElement}
+        soarParam={soarParam}
         setSoarFlowData={this.setSoarFlowData} />
     )
   }
@@ -169,6 +170,7 @@ SoarSingleSettings.propTypes = {
   soarFlow: PropTypes.array.isRequired,
   activeElementType: PropTypes.string.isRequired,
   activeElement: PropTypes.object.isRequired,
+  soarParam: PropTypes.object.isRequired,
   confirmSoarFlowData: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };

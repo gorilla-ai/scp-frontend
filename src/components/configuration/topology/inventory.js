@@ -39,7 +39,6 @@ import AutoSettings from './auto-settings'
 import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import FileUpload from '../../common/file-upload'
-import FilterContent from '../../common/filter-content'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
 import HMDmoreInfo from '../../common/hmd-more-info'
@@ -252,7 +251,7 @@ class NetworkInventory extends Component {
     if (_.isEmpty(inventoryParam)) {
       this.getDeviceData();
     } else {
-      if (inventoryParam.type === 'search') { //Take care of the redirect page
+      if (inventoryParam.type === 'search') { //Handle redirect page
         let tempDeviceSearch = {...this.state.deviceSearch};
         tempDeviceSearch.ip = inventoryParam.ip
 
