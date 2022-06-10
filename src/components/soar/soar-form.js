@@ -396,10 +396,10 @@ class SoarForm extends Component {
    * @param {string} operatorList - soar operator list
    */
   displayDropDownSelection = (operator, operatorList) => {
-    const {soarParam} = this.props;
+    const {from, soarParam} = this.props;
     let formDisabled = operator === 'soarNodeAdapterOperator' ? true : false; //always disabled for adapter operator
 
-    if (soarParam) {
+    if (from === 'soarCondition' && soarParam) {
       formDisabled = true; //For SOAR condition in left nav
     }
 
