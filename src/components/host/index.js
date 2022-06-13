@@ -78,8 +78,13 @@ const SCAN_RESULT = [
     result: 'scanFileResult'
   },
   {
-    name: 'GCB',
+    name: 'Detect GCB',
     result: 'gcbResult',
+    pass: 'PassCnt'
+  },
+  {
+    name: 'Import GCB',
+    result: 'importGcbResult',
     pass: 'PassCnt'
   },
   {
@@ -109,8 +114,12 @@ const HMD_TRIGGER = [
     cmds: 'scanFile'
   },
   {
-    name: 'GCB',
+    name: 'Detect GCB',
     cmds: 'gcbDetection'
+  },
+  {
+    name: 'Import GCB',
+    cmds: 'importGcb'
   },
   {
     name: 'File Integrity',
@@ -2619,13 +2628,17 @@ class HostController extends Component {
         status = t('hmd-scan.txt-notSupport');
       }
 
-      if (severityTypeName === 'VANS Patch') { //Special case for Vans Patch
+      if (val.severity_type_name === '_ExecutePatchResult') { //Special case for Vans Patch
         if (val.executeStatus === 'Complete') {
           status = t('txt-success');
         } else if (val.executeStatus === 'Failure') {
           status = t('txt-fail');
         }
         title = severityTypeName + ': ' + status;
+      }
+
+      if (val.severity_type_name === 'importGcbResult') { //Special case for Import GCB
+        return;
       }
     }
 
@@ -3297,7 +3310,6 @@ class HostController extends Component {
    */
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
-    const {assessmentDatetime} = this.state;
     const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
     let keyValue = '';
 
@@ -3309,7 +3321,7 @@ class HostController extends Component {
 
     const requestData = {
       primaryKeyValue: keyValue,
-      exactStartDttm: assessmentDatetime.from
+      exactStartDttm: safetyData.startTimeString
     };
 
     this.ah.one({

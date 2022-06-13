@@ -37,7 +37,7 @@ const SAFETY_SCAN_LIST = [
     path: 'scanFileResult'
   },
   {
-    type: 'gcb',
+    type: 'importGcbAndGcbDetection',
     path: 'GCBResult'
   },
   {
@@ -109,7 +109,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'gcb', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -354,12 +354,12 @@ class HMDscanInfo extends Component {
       }
     })
 
-    if (hmdInfo.gcb && hmdInfo.gcb.data) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.data[0].GCBResult, ['_CompareResult', true]);
+    if (hmdInfo.importGcbAndGcbDetection && hmdInfo.importGcbAndGcbDetection.data) {
+      hmdInfo.importGcbAndGcbDetection.filteredResult = _.filter(hmdInfo.importGcbAndGcbDetection.data[0].GCBResult, ['_CompareResult', true]);
 
-      hmdInfo.gcb.fields = {};
+      hmdInfo.importGcbAndGcbDetection.fields = {};
       gcbFieldsArr.forEach(tempData => {
-        hmdInfo.gcb.fields[tempData] = {
+        hmdInfo.importGcbAndGcbDetection.fields[tempData] = {
           label: f(`gcbFields.${tempData}`),
           sortable: true,
           className: 'gcb' + tempData,
@@ -1411,19 +1411,29 @@ class HMDscanInfo extends Component {
   /**
    * Display pass / total count info for GCB
    * @method
+   * @param {object} val - GCB data object
    * @returns HTML DOM
    */
-  getPassTotalCount = () => {
+  getPassTotalCount = (val) => {
     const {hmdInfo} = this.state;
 
-    if (hmdInfo.gcb.data[0] && hmdInfo.gcb.data[0].GCBResult) {
-      const gcbDataResult = hmdInfo.gcb.data[0].GCBResult;
-      const gcbFilteredResult = hmdInfo.gcb.filteredResult;
+    if (hmdInfo.importGcbAndGcbDetection.data[0] && hmdInfo.importGcbAndGcbDetection.data[0].GCBResult) {
+      const gcbFilteredResult = hmdInfo.importGcbAndGcbDetection.filteredResult;
 
       if (gcbFilteredResult) {
-        const color = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
+        const color = val.PassCnt === val.TotalCnt ? '#22ac38' : '#d10d25'; //green : red
+        const prePassCnt = val.prePassCnt ? helper.numberWithCommas(val.prePassCnt) : 'N/A';
 
-        return <span style={{color}}>{t('hmd-scan.txt-passCount')}/{t('hmd-scan.txt-totalItem')}: {helper.numberWithCommas(gcbFilteredResult.length)}/{helper.numberWithCommas(gcbDataResult.length)}</span>
+        return (
+          <div style={{color, display: 'inline-block'}}>
+            {val.taskName === 'importGcb' &&
+              <span>{t('hmd-scan.txt-lastPassCount')}/{t('hmd-scan.txt-passCount')}/{t('hmd-scan.txt-totalItem')}: {prePassCnt}/{helper.numberWithCommas(val.PassCnt)}/{helper.numberWithCommas(val.TotalCnt)}</span>
+            }
+            {val.taskName !== 'importGcb' &&
+              <span>{t('hmd-scan.txt-passCount')}/{t('hmd-scan.txt-totalItem')}: {helper.numberWithCommas(val.PassCnt)}/{helper.numberWithCommas(val.TotalCnt)}</span>
+            }
+          </div>
+        )
       }
     }
   }
@@ -1829,7 +1839,7 @@ class HMDscanInfo extends Component {
   handleTableSort = (sort) => {
     const {activeTab, dashboardInfo, gcbSort} = this.state;
 
-    if (activeTab === 'gcb') {
+    if (activeTab === 'importGcbAndGcbDetection') {
       this.setState({
         gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
       });
@@ -1854,7 +1864,7 @@ class HMDscanInfo extends Component {
     const {hmdInfo, gcbSort} = this.state;
     let data = '';
 
-    if (activeTab === 'gcb') {
+    if (activeTab === 'importGcbAndGcbDetection') {
       data = _.orderBy(val.GCBResult, ['_CompareResult'], [gcbSort]);
     }
 
@@ -1895,6 +1905,9 @@ class HMDscanInfo extends Component {
             {assessmentInfo &&
               <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
             }
+            {activeTab === 'importGcbAndGcbDetection' &&
+              <span>{t('hmd-scan.txt-testType')}: {t('hmd-scan.txt-' + val.taskName)}</span>
+            }
             <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
             <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
             {val.taskStatus && val.taskStatus === 'Failure' &&
@@ -1903,8 +1916,8 @@ class HMDscanInfo extends Component {
             {val.taskStatus && val.taskStatus === 'NotSupport' &&
               <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}</span>
             }
-            {activeTab === 'gcb' && (!val.taskStatus || val.taskStatus && val.taskStatus === 'Complete') &&
-              this.getPassTotalCount()
+            {activeTab === 'importGcbAndGcbDetection' && (!val.taskStatus || val.taskStatus && val.taskStatus === 'Complete') &&
+              this.getPassTotalCount(val)
             }
           </div>
           {this.displayDataTable(activeTab, val)}
@@ -1988,7 +2001,7 @@ class HMDscanInfo extends Component {
 
     if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor' || activeTab === '_Vans') {
       displayContent = this.displayAccordionContent;
-    } else if (activeTab === 'gcb') {
+    } else if (activeTab === 'importGcbAndGcbDetection') {
       displayContent = this.displayTableContent;
     } else if (activeTab === 'ir') {
       displayContent = this.displayIrContent;
