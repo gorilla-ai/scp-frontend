@@ -977,7 +977,7 @@ class Notifications extends Component {
                 </div>
 
                 <div className='form-group normal long'>
-                  <header>{t('notifications.lineBot.txt-lineBotSettingss')}</header>
+                  <header>{t('notifications.lineBot.txt-lineBotSettings')}</header>
 
                   {activeContent === 'viewMode' && lineBotSettings.qrcodeLink &&
                     <div className='group'>
