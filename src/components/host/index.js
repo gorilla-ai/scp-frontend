@@ -2510,7 +2510,13 @@ class HostController extends Component {
    */
   handleSeverityClick = (hmd, val, safetyScanInfo) => {
     if (hmd) {
-      this.getIPdeviceInfo(safetyScanInfo, 'toggle', val.severity_type_name);
+      let name = val.severity_type_name;
+
+      if (name === 'gcbResult' || name === 'importGcbResult') {
+        name = 'importGcbAndGcbDetectionResult';
+      }
+
+      this.getIPdeviceInfo(safetyScanInfo, 'toggle', name);
     } else {
       this.redirectNewPage(safetyScanInfo.ip, val.taskResponseDttm);
     }
