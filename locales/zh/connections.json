@@ -225,6 +225,7 @@
   "txt-chartTypeBar": "長條圖",
   "txt-connectionsSuccess": "連線成功",
   "txt-connectionsFail": "連線失敗",
+  "txt-confirmProceed": "確認執行",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",

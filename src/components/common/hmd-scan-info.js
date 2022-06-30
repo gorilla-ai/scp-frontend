@@ -1485,6 +1485,48 @@ class HMDscanInfo extends Component {
     window.open(url, '_blank');
   }
   /**
+   * Display confirm content
+   * @method
+   * @returns HTML DOM
+   */
+  getConfirmContent = () => {
+    return (
+      <div className='content'>
+        <span>{t('txt-confirmProceed')}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show the confirm modal dialog
+   * @method
+   * @param {string} type - scan type
+   * @param {object | string} [dataResult] - malware detection result or 'getHmdLogs'
+   * @param {string} [id] - Task ID or Host ID
+   * @param {string} [from] - 'task' or 'host'
+   */
+  openConfirmModal = (type, dataResult, id, from) => {
+    if (type === 'ir' || type === 'yara') {
+      this.getTriggerTask(type);
+      return;
+    }
+
+    PopupDialog.prompt({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: this.getConfirmContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          if (type === 'compress') {
+            this.handleMalwareBtn(type, dataResult, id, from);
+          } else {
+            this.getTriggerTask(type);
+          }
+        }
+      }
+    });
+  }
+  /**
    * Display trigger button info for scan type
    * @method
    * @param {string} [type] - tab ('fileIntegrity' or 'procMonitor')
@@ -1514,7 +1556,7 @@ class HMDscanInfo extends Component {
         }
         {activeTab !== 'eventTracing' && activeTab !== 'edr' &&
           <div>
-            <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
+            <Button variant='contained' color='primary' className='btn' onClick={this.openConfirmModal.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
             <div className='last-update'>
               {hmdInfo[currentTab].data && hmdInfo[currentTab].data.length > 0 && hmdInfo[currentTab].data[0].taskStatus === 'Failure' &&
                 <span className='failure'>{t('hmd-scan.txt-taskFailure')}</span>
@@ -1780,7 +1822,7 @@ class HMDscanInfo extends Component {
             this.getSuspiciousFileCount(dataResult, val.TotalCnt)
           }
           {activeTab === 'scanFile' && dataResult &&
-            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId, 'task')} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}</Button>
+            <Button variant='contained' color='primary' className='btn download' onClick={this.openConfirmModal.bind(this, malwareBtnType, dataResult, val.taskId, 'task')} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}</Button>
           }
           {activeTab === '_Vans' && dataResult && dataResult.length > 0 &&
             <span style={{color: '#d10d25'}}>{t('hmd-scan.txt-VulnerabilityCount')}: {dataResult.length}</span>
@@ -2639,7 +2681,7 @@ class HMDscanInfo extends Component {
                   <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
                 }
                 {settingsActiveContent === 'viewMode' &&
-                  <Button variant='contained' color='primary' className='btn' onClick={this.handleMalwareBtn.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
+                  <Button variant='contained' color='primary' className='btn' onClick={this.openConfirmModal.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}</Button>
                 }
                 {settingsActiveContent === 'viewMode' &&
                   <Button variant='contained' color='primary' className='btn' onClick={this.handleUnregister}>{t(`hmd-scan.txt-unregister`)}</Button>

@@ -35,6 +35,7 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import Popover from 'react-ui/build/src/components/popover'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import {BaseDataContext} from '../common/context'
@@ -4053,7 +4054,7 @@ class HostController extends Component {
     } else if (val.cmds === 'compareIOC') {
       return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
     } else {
-      return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, val)}>{val.name}</MenuItem>
+      return <MenuItem key={i} onClick={this.openConfirmModal.bind(this, val)}>{val.name}</MenuItem>
     }
   }
   /**
@@ -4065,6 +4066,37 @@ class HostController extends Component {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
     window.open(url, '_blank');
+    this.handleCloseMenu();
+  }
+  /**
+   * Display confirm content
+   * @method
+   * @returns HTML DOM
+   */
+  getConfirmContent = () => {
+    return (
+      <div className='content'>
+        <span>{t('txt-confirmProceed')}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show the confirm modal dialog
+   * @method
+   * @param {object} hmdObj - HMD object
+   */
+  openConfirmModal = (hmdObj) => {
+    PopupDialog.prompt({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: this.getConfirmContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.triggerHmdAll(hmdObj);
+        }
+      }
+    });
     this.handleCloseMenu();
   }
   /**

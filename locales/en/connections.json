@@ -225,6 +225,7 @@
   "txt-chartTypeBar": "Bar Chart",
   "txt-connectionsSuccess": "Connections test successfully",
   "txt-connectionsFail": "Connections test fail",
+  "txt-confirmProceed": "Confirm to proceed",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
