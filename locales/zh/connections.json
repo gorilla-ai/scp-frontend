@@ -171,6 +171,7 @@
   "txt-Module_Config": "設定模組",
   "txt-Module_Soc": "SOC模組",
   "txt-Module_Account": "帳號模組",
+  "txt-Module_Host": "Host模組",
   "txt-host": "主機",
   "txt-group": "群組",
   "txt-priority": "優先",
@@ -1198,6 +1199,7 @@
     "title": "職稱",
     "departmentName": "部門",
     "titleName": "職稱",
+    "privilege": "角色",
     "email": "Email"
   },
   "ipFields": {

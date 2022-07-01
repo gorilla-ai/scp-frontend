@@ -3328,7 +3328,8 @@ class HostController extends Component {
 
     const requestData = {
       primaryKeyValue: keyValue,
-      exactStartDttm: safetyData.startTimeString
+      exactStartDttm: safetyData.startTimeString,
+      hostIdObj: safetyData.hostIdObj
     };
 
     this.ah.one({

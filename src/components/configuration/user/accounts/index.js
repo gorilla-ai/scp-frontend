@@ -6,6 +6,7 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -48,11 +49,13 @@ class AccountList extends Component {
       showFilter: false,
       list: {
         department: [],
-        title: []
+        title: [],
+        privilege: []
       },
       accountSearch: {
         name: '',
-        account: ''
+        account: '',
+        privilege: {}
       },
       userAccount: {
         dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone'],
@@ -164,6 +167,44 @@ class AccountList extends Component {
         this.setState({
           list: tempList
         }, () => {
+          this.getPrivilegesData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set privileges list
+   * @method
+   */
+  getPrivilegesData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/privileges?getPermits=true`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let privilegeList = [];
+
+        _.forEach(data, val => {
+          privilegeList.push({
+            value: val.privilegeid,
+            text: val.name
+          });
+        })        
+
+        tempList.privilege = _.cloneDeep(privilegeList);
+
+        this.setState({
+          list: tempList
+        }, () => {
           this.getAccountsData();
         });
       }
@@ -192,6 +233,10 @@ class AccountList extends Component {
 
     if (accountSearch.name) {
       requestData.name = accountSearch.name;
+    }
+
+    if (accountSearch.privilege && accountSearch.privilege.value) {
+      requestData.privilegeId = accountSearch.privilege.value;
     }
 
     this.ah.one({
@@ -576,12 +621,46 @@ class AccountList extends Component {
     });
   }
   /**
+   * Display privilege list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderPrivilegeList = (params) => {
+    return (
+      <TextField
+        {...params}
+        label={c('ownerFields.privilege')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle privilege combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected privilege info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {list, accountSearch} = this.state;
+    let tempAccountSearch = {...accountSearch};
+
+    if (value && value.value) {
+      const selectedPrivilegeIndex = _.findIndex(list.privilege, { 'value': value.value });
+      tempAccountSearch.privilege = list.privilege[selectedPrivilegeIndex];
+
+      this.setState({
+        accountSearch: tempAccountSearch
+      });
+    }
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, accountSearch} = this.state;
+    const {showFilter, list, accountSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -590,7 +669,7 @@ class AccountList extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <TextField
-              id='account'
+              id='accountFilter'
               name='account'
               label={t('l-account')}
               variant='outlined'
@@ -601,7 +680,7 @@ class AccountList extends Component {
           </div>
           <div className='group'>
             <TextField
-              id='name'
+              id='nameFilter'
               name='name'
               label={t('l-name')}
               variant='outlined'
@@ -609,6 +688,17 @@ class AccountList extends Component {
               size='small'
               value={accountSearch.name}
               onChange={this.handleSearchChange} />
+          </div>
+          <div className='group'>
+            <Autocomplete
+              id='filterComboPrivilege'
+              className='combo-box'
+              style={{width: '240px'}}
+              options={list.privilege}
+              value={accountSearch.privilege}
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderPrivilegeList}
+              onChange={this.handleComboBoxChange} />
           </div>
         </div>
         <div className='button-group'>
