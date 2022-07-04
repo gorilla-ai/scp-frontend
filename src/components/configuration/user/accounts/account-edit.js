@@ -310,7 +310,8 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   showPrivilegesList = (val, i) => {
-    let acc = `account-edit-check-${i}`
+    const {id} = this.state;
+    const acc = `account-edit-check-${i}`;
 
     return (
       <FormControlLabel
@@ -324,7 +325,8 @@ class AccountEdit extends Component {
             checked={this.checkSelectedItem(val.value)}
             onChange={this.toggleCheckbox}
             color='primary' />
-        } />
+        }
+        disabled={id === 'DPIR-00000000-0000-0000-0000-000000000000' ? true : false} />
     )
   }
   /**
