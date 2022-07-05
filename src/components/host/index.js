@@ -302,6 +302,20 @@ const FORM_VALIDATION = {
     valid: true
   }
 };
+const VANS_FORM_VALIDATION = {
+  oid: {
+    valid: true
+  },
+  unitName: {
+    valid: true
+  },
+  apiKey: {
+    valid: true
+  },
+  apiUrl: {
+    valid: true
+  }
+};
 
 let t = null;
 let f = null;
@@ -449,12 +463,19 @@ class HostController extends Component {
       vansTableType: 'assessment', //'assessment' or 'hmd'
       vansPieChartData: {},
       showLoadingIcon: false,
+      hmdVansConfigurations: {
+        oid: '',
+        unitName: '',
+        apiKey: '',
+        apiUrl: ''
+      },
       nccstSelectedList: [],
       nccstCheckAll: false,
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
       formValidation: _.cloneDeep(FORM_VALIDATION),
+      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION),
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1751,8 +1772,92 @@ class HostController extends Component {
     this.setState({
       reportNCCSTopen: !this.state.reportNCCSTopen,
       nccstSelectedList: [],
-      nccstCheckAll: false
+      nccstCheckAll: false,
+      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
+  }
+  /**
+   * Set input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleVansConfigChange = (event) => {
+    const {name, value} = event.target;
+    let tempHmdVansConfigurations = {...this.state.hmdVansConfigurations};
+    tempHmdVansConfigurations[name] = value;
+
+    this.setState({
+      hmdVansConfigurations: tempHmdVansConfigurations
+    });
+  }
+  /**
+   * Display NCCST form content
+   * @method
+   * @returns HTML DOM
+   */
+  displayNCCSTform = () => {
+    const {hmdVansConfigurations, vansFormValidation} = this.state;
+
+    return (
+      <div className='vans-config-form'>
+        <div className='group'>
+          <TextField
+            id='vansConfigOID'
+            name='oid'
+            label={t('host.txt-vansConfigOID')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.oid.valid}
+            helperText={vansFormValidation.oid.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.oid}
+            onChange={this.handleVansConfigChange} />
+        </div>
+        <div className='group'>
+          <TextField
+            id='vansConfigUnitName'
+            name='unitName'
+            label={t('host.txt-vansConfigUnitName')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.unitName.valid}
+            helperText={vansFormValidation.unitName.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.unitName}
+            onChange={this.handleVansConfigChange} />
+        </div>
+        <div className='group'>   
+          <TextField
+            id='vansConfigApiKey'
+            name='apiKey'
+            label={t('host.txt-vansConfigApiKey')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.apiKey.valid}
+            helperText={vansFormValidation.apiKey.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.apiKey}
+            onChange={this.handleVansConfigChange} />
+        </div>
+        <div className='group'>    
+          <TextField
+            id='vansConfigApiUrl'
+            name='apiUrl'
+            label={t('host.txt-vansConfigApiUrl')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.apiUrl.valid}
+            helperText={vansFormValidation.apiUrl.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.apiUrl}
+            onChange={this.handleVansConfigChange} />
+        </div>
+      </div>
+    )
   }
   /**
    * Display NCCST list content
@@ -1763,11 +1868,17 @@ class HostController extends Component {
     const {hitCveList, nccstCheckAll} = this.state;
 
     if (hitCveList.length === 0) {
-      return <div className='align-center'>{t('host.txt-report-noCpe')}</div>
+      return (
+        <div>
+          {this.displayNCCSTform()}
+          <div className='align-center'>{t('host.txt-report-noCpe')}</div>
+        </div>
+      )
     } else {
       return (
         <div>
           <div className='message'>{t('host.txt-report-withCpe')}</div>
+          {this.displayNCCSTform()}
           <FormControlLabel
             control={
               <Checkbox
@@ -1813,12 +1924,50 @@ class HostController extends Component {
    */
   confirmNCCSTlist = () => {
     const {baseUrl} = this.context;
-    const {hitCveList, nccstSelectedList, nccstCheckAll} = this.state;
+    const {hitCveList, hmdVansConfigurations, nccstSelectedList, nccstCheckAll, vansFormValidation} = this.state;
     const url = `${baseUrl}/api/v2/hmd/vans/_report`;
     const cveListArr = _.map(hitCveList, val => {
       return val.primaryKeyValue;
     });
     let uncheckList = [];
+    let tempVansFormValidation = {...vansFormValidation};
+    let validate = true;
+
+    if (hmdVansConfigurations.oid) {
+      tempVansFormValidation.oid.valid = true;
+    } else {
+      tempVansFormValidation.oid.valid = false;
+      validate = false;
+    }
+
+    if (hmdVansConfigurations.unitName) {
+      tempVansFormValidation.unitName.valid = true;
+    } else {
+      tempVansFormValidation.unitName.valid = false;
+      validate = false;
+    }
+
+    if (hmdVansConfigurations.apiKey) {
+      tempVansFormValidation.apiKey.valid = true;
+    } else {
+      tempVansFormValidation.apiKey.valid = false;
+      validate = false;
+    }
+
+    if (hmdVansConfigurations.apiUrl) {
+      tempVansFormValidation.apiUrl.valid = true;
+    } else {
+      tempVansFormValidation.apiUrl.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      vansFormValidation: tempVansFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     if (!nccstCheckAll) {
       uncheckList = nccstSelectedList.length === 0 ? cveListArr : _.difference(cveListArr, nccstSelectedList);
@@ -1830,7 +1979,13 @@ class HostController extends Component {
         taskName: 'getVans',
         primaryKeyName: 'cpe23Uri'
       },
-      uncheckList
+      uncheckList,
+      hmdVansConfigurations: {
+        oid: hmdVansConfigurations.oid,
+        unit_name: hmdVansConfigurations.unitName,
+        api_key: hmdVansConfigurations.apiKey,
+        api_url: hmdVansConfigurations.apiUrl
+      }
     };
 
     this.ah.one({
