@@ -3,6 +3,7 @@ import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import moment from 'moment'
+import momentTimezone from 'moment-timezone'
 import cx from 'classnames'
 
 import Button from '@material-ui/core/Button'
@@ -277,12 +278,18 @@ class AuditLog extends Component {
    */
   handleExportAuditLog = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {datetime} = this.state;
+    const {datetime, auditSearch} = this.state;
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const url = `${baseUrl}${contextRoot}/api/auditLog/system/_export?startDttm=${dateTime.from}&endDttm=${dateTime.to}`;
+    let url = `${baseUrl}${contextRoot}/api/auditLog/system/_export?startDttm=${dateTime.from}&endDttm=${dateTime.to}&timezone=${utc_offset}&keyword=`;
+
+    if (auditSearch.keyword) {
+      url += auditSearch.keyword;
+    }
 
     window.open(url, '_blank');
     return;
