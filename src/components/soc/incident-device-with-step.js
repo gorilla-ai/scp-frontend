@@ -1768,7 +1768,7 @@ class IncidentDeviceStep extends Component {
         return (
           <div key={i} className={`group group${index}`}>
             <div className={cx(lineClass, {active: activeSteps >= index})}></div>
-              <div className={cx(stepClass, {active: activeSteps >= index})}>
+            <div className={cx(stepClass, {active: activeSteps >= index})}>
               <div className='border-wrapper'>
                 <span className='number'>{index}</span>
               </div>

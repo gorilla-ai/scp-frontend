@@ -2920,7 +2920,7 @@ class NetworkInventory extends Component {
             <div className='text'>{val}</div>
           </div>
         </div>
-      </div>      
+      </div>
     )
   }
   /**
