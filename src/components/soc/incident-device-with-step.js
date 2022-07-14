@@ -1760,81 +1760,23 @@ class IncidentDeviceStep extends Component {
 
 
     showUnitStepIcon = (val, i) => {
-        const {locale} = this.context;
         const {activeSteps} = this.state;
         const index = ++i;
-        const groupClass = 'group group' + index;
         const lineClass = 'line line' + index;
         const stepClass = 'step step' + index;
-        const textClass = 'text';
-
-        let textAttr = {
-            className: textClass
-        };
-
-        if (index === 1) {
-            let pos = '';
-
-            if (locale === 'en') {
-                pos = '7px';
-            } else if (locale === 'zh') {
-                pos = '0';
-            }
-            textAttr.style = {left: pos};
-        }
-
-        if (index === 2) {
-            let pos = '';
-
-            if (locale === 'en') {
-                pos = '-15px';
-            } else if (locale === 'zh') {
-                pos = '-22px';
-            }
-            textAttr.style = {left: pos};
-        }
-
-        if (index === 3) {
-            let pos = '';
-
-            if (locale === 'en') {
-                pos = '-55px';
-            } else if (locale === 'zh') {
-                pos = '-20px';
-            }
-            textAttr.style = {left: pos};
-        }
-
-        if (index === 4) {
-            let pos = '';
-
-            if (locale === 'en') {
-                pos = '-42px';
-            } else if (locale === 'zh') {
-                pos = '-20px';
-            }
-            textAttr.style = {left: pos};
-        }
-
-        if (index === 5) {
-            let pos = '';
-
-            if (locale === 'en') {
-                pos = '-25px';
-            } else if (locale === 'zh') {
-                pos = '-1px';
-            }
-            textAttr.style = {left: pos};
-        }
 
         return (
-            <div className={groupClass} key={index}>
-                <div className={cx(lineClass, {active: activeSteps >= index})}></div>
-                <div className={cx(stepClass, {active: activeSteps >= index})}>
-                    <div className='wrapper'><span className='number'>{index}</span></div>
-                    <div {...textAttr}>{val}</div>
-                </div>
+          <div key={i} className={`group group${index}`}>
+            <div className={cx(lineClass, {active: activeSteps >= index})}></div>
+              <div className={cx(stepClass, {active: activeSteps >= index})}>
+              <div className='border-wrapper'>
+                <span className='number'>{index}</span>
+              </div>
+              <div className='text-wrapper'>
+                <div className='text'>{val}</div>
+              </div>
             </div>
+          </div>
         )
     }
 

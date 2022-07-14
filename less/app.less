@@ -3031,37 +3031,6 @@ button.standard:hover:not([disabled]) {
                 width: 12%;
               }
             }
-            .step {
-              position: relative;
-              width: 45px;
-              height: 45px;
-              text-align: center;
-              border-radius: 50%;
-              border: 3px solid var(--primaryBorder);
-              cursor: default;
-              &.active {
-                color: #fff;
-                border: 3px solid var(--formEmailGroup);
-                background-color: var(--formEmailGroup);
-              }
-              .wrapper {
-                width: 39px;
-                height: 39px;
-                border-radius: 50%;
-                border: 2px solid #fff;
-              }
-              .number {
-                position: absolute;
-                top: 8px;
-                left: 15px;
-              }
-              .text {
-                position: absolute;
-                top: 55px;
-                font-size: 14px;
-                color: var(--primaryTextColor);
-              }
-            }
             .line {
               width: 100%;
               height: 5px;
@@ -3070,8 +3039,38 @@ button.standard:hover:not([disabled]) {
               &.active {
                 background-color: var(--formEmailGroup);
               }
-              &.line1 {
-                display: none;
+            }
+            .step {
+              position: relative;
+              width: 45px;
+              height: 45px;
+              border-radius: 50%;
+              border: 3px solid var(--primaryBorder);
+              cursor: default;
+              &.active {
+                color: #fff;
+                border: 3px solid var(--formEmailGroup);
+                background-color: var(--formEmailGroup);
+              }
+              .border-wrapper {
+                width: 39px;
+                height: 39px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+                .number {
+                  position: absolute;
+                  top: 8px;
+                  left: 15px;
+                }
+              }
+              .text-wrapper {
+                display: flex;
+                justify-content: center;
+                margin-top: 15px;
+                .text {
+                  font-size: 14px;
+                  color: var(--primaryTextColor);
+                }
               }
             }
           }
