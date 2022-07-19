@@ -778,6 +778,19 @@ class AccountList extends Component {
       this.getAccountsData();
     });
   }
+  /**
+   * Check admin role
+   * @method
+   */
+  checkAdmin = () => {
+    const {session} = this.context;
+
+    if (_.includes(session.roles, 'Default Admin Privilege')) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, list, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
@@ -792,7 +805,9 @@ class AccountList extends Component {
         this.handleTableSort(changedColumn, direction === 'desc');
       }
     };
-    const statusText = currentAccountData.enabled ? t('disableAccount') : t('enableAccount'); 
+    const statusText = currentAccountData.enabled ? t('disableAccount') : t('enableAccount');
+
+
 
     return (
       <div>
@@ -811,7 +826,9 @@ class AccountList extends Component {
           {currentAccountData.isLock &&
             <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
           }
-          <MenuItem id='account-menu-status' onClick={this.toggleStatus}>{statusText}</MenuItem>
+          {this.checkAdmin() &&
+            <MenuItem id='account-menu-status' onClick={this.toggleStatus}>{statusText}</MenuItem>
+          }
         </Menu>
 
         <div className='sub-header'>
