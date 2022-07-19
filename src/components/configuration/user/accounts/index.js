@@ -58,7 +58,7 @@ class AccountList extends Component {
         privilege: {}
       },
       userAccount: {
-        dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone'],
+        dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone', 'enabled'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -286,6 +286,8 @@ class AccountList extends Component {
                   return <span>{allValue.titleName}</span>
                 } else if (val === 'account' && allValue.isLock) {
                   return <span><i className='fg fg-key' title={c('txt-account-unlocked')}></i>{value}</span>;
+                } else if (val === 'enabled') {
+                  return <span>{value ? t('enabled') : t('disabled')}</span>
                 } else {
                   return <span>{value}</span>
                 }
@@ -388,6 +390,37 @@ class AccountList extends Component {
         }
       }
     });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Toggle account status
+   * @method
+   */
+  toggleStatus = () => {
+    const {baseUrl} = this.context;
+    const {currentAccountData} = this.state;
+    const url = `${baseUrl}/api/account/enabled`;
+    const requestData = {
+      id: currentAccountData.accountid,
+      enabled: !currentAccountData.enabled
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getAccountsData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
 
     this.handleCloseMenu();
   }
@@ -759,6 +792,7 @@ class AccountList extends Component {
         this.handleTableSort(changedColumn, direction === 'desc');
       }
     };
+    const statusText = currentAccountData.enabled ? t('disableAccount') : t('enableAccount'); 
 
     return (
       <div>
@@ -777,6 +811,7 @@ class AccountList extends Component {
           {currentAccountData.isLock &&
             <MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
           }
+          <MenuItem id='account-menu-status' onClick={this.toggleStatus}>{statusText}</MenuItem>
         </Menu>
 
         <div className='sub-header'>

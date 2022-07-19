@@ -14,6 +14,10 @@
   "roles":"角色",
   "rights":"權限",
   "status":"帳號狀態",
+  "enabled": "啟用中",
+  "disabled": "已停用",
+  "enableAccount": "啟用帳號",
+  "disableAccount": "停用帳號",
   "sex-types": {
     "unknown": "未知",
     "male": "男",
@@ -58,7 +62,8 @@
     "email": "$t(l-email)",
     "unit": "$t(l-unit)",
     "title": "$t(l-title)",
-    "phone": "$t(l-phone)"
+    "phone": "$t(l-phone)",
+    "enabled": "狀態"
   },
   "setNewPwd": "設定密碼",
   "change-expired-pwd":"請更改你的密碼，因密碼已過期",
