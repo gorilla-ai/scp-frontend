@@ -69,9 +69,7 @@ class NotifyDialog extends Component {
       });
     } else {
       const filteredList = _.filter(this.state.emailSelectedList, val => {
-        if (val !== event.target.name) {
-          return val;
-        }
+        return val !== event.target.name;
       });
 
       this.setState({
