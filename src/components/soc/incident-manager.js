@@ -24,6 +24,7 @@ import _ from "lodash";
 import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
+import NotifyDialog from "./common/notify-dialog";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
@@ -132,6 +133,7 @@ class IncidentManagement extends Component {
                     socType: 1
                 }
             },
+            notifyEmailList: [],
             accountRoleType:[],
             loadListType:2,
             attach: null,
@@ -705,6 +707,10 @@ class IncidentManagement extends Component {
             <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}}/>
             <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
 
+            <NotifyDialog ref={ref => {
+                this.notifyDialog = ref
+            }} />
+
             <Menu
                 anchorEl={contextAnchor}
                 keepMounted
@@ -927,7 +933,7 @@ class IncidentManagement extends Component {
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'restart')}>{it('txt-restart')}</Button>
                 }
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact}>{it('txt-notify')}</Button>
             </div>
             }
 
@@ -2987,7 +2993,7 @@ class IncidentManagement extends Component {
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 isExpired: 2,
-	            tagList:[]
+              tagList:[]
             },
             selectedStatus:[]
         })
@@ -3264,6 +3270,10 @@ class IncidentManagement extends Component {
 
     openIncidentReview(incidentId, reviewType) {
         this.incidentReview.open(incidentId, reviewType)
+    }
+
+    openNotifyDialog() {
+      this.notifyDialog.open(this.state.incident.info.id, this.state.notifyEmailList)
     }
 
     uploadAttachment() {
@@ -3641,34 +3651,33 @@ class IncidentManagement extends Component {
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_exportWord`, {payload: JSON.stringify(payload)});
     }
 
-    notifyContact() {
-        const {baseUrl, contextRoot} = this.context
-        const {incident} = this.state
+    notifyContact = () => {
+      const {baseUrl} = this.context;
+      const {incident} = this.state;
+      const requestData = {
+        incidentId: incident.info.id
+      };
 
-        let payload = {
-            incidentId:incident.info.id
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+      ah.one({
+        url: `${baseUrl}/api/soc/_sendEmailList`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        if (data && data.rt) {
+          this.setState({
+            notifyEmailList: data.rt.rows
+          }, () => {
+            this.openNotifyDialog();
+          });
         }
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_notify`,
-            data: JSON.stringify(payload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data.status.includes('success')){
-                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify')+t('notifications.txt-sendSuccess'))
-                }else{
-                    helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message)
+      });
     }
 }
 

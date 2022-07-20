@@ -807,8 +807,6 @@ class AccountList extends Component {
     };
     const statusText = currentAccountData.enabled ? t('disableAccount') : t('enableAccount');
 
-
-
     return (
       <div>
         {showNewPassword &&

@@ -33,6 +33,7 @@ import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutlo
 import MoreIcon from '@material-ui/icons/More';
 import IconButton from '@material-ui/core/IconButton';
 import IncidentFlowDialog from "./common/flow-dialog";
+import NotifyDialog from "./common/notify-dialog";
 import MuiTableContent from "../common/mui-table-content";
 
 let t = null;
@@ -43,117 +44,118 @@ let at = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-    Emergency: '#CC2943',
-    Alert: '#CC7B29',
-    Critical: '#29B0CC',
-    Warning: '#29CC7A',
-    Notice: '#7ACC29'
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
 };
 
 class Incident extends Component {
-    constructor(props) {
-        super(props);
+  constructor(props) {
+    super(props);
 
-        t = global.chewbaccaI18n.getFixedT(null, "connections");
-        f = chewbaccaI18n.getFixedT(null, "tableFields");
-        et = global.chewbaccaI18n.getFixedT(null, "errors");
-        it = global.chewbaccaI18n.getFixedT(null, "incident");
-        at = global.chewbaccaI18n.getFixedT(null, "account");
+    t = global.chewbaccaI18n.getFixedT(null, "connections");
+    f = chewbaccaI18n.getFixedT(null, "tableFields");
+    et = global.chewbaccaI18n.getFixedT(null, "errors");
+    it = global.chewbaccaI18n.getFixedT(null, "incident");
+    at = global.chewbaccaI18n.getFixedT(null, "account");
 
-        this.state = {
-            INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
-                return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-            }),
-            INCIDENT_ACCIDENT_SUB_LIST: [
-                _.map(_.range(11, 17), el => {
-                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-                }),
-                _.map(_.range(21, 26), el => {
-                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-                }),
-                _.map(_.range(31, 33), el => {
-                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-                }),
-                _.map(_.range(41, 45), el => {
-                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-                })
-            ],
-            activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
-            displayPage: 'main', /* main, events, ttps */
-            incidentType: '',
-            toggleType:'',
-            showFilter: false,
-            showChart: true,
-            currentIncident: {},
-            originalIncident: {},
-            accountType:constants.soc.LIMIT_ACCOUNT,
-            accountDefault:false,
-            severityList: [],
-            socFlowList: [],
-            search: {
-                keyword: '',
-                category: 0,
-                status: 0,
-                datetime: {
-                    from: helper.getSubstractDate(2, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-                },
-                severity:'',
-                isExpired: 2
-            },
-            dashboard: {
-                all: 0,
-                expired: 0,
-                unhandled: 0,
-                mine: 0
-            },
-            relatedListOptions: [],
-            deviceListOptions: [],
-            showDeviceListOptions: [],
-            incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm',  'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
-                fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
-                flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
-                dataFields: [],
-                dataContent: [],
-                sort: {
-                    field: 'createDttm',
-                    desc: true
-                },
-                totalCount: 0,
-                currentPage: 0,
-                pageSize: 20,
-                info: {
-                    status: 1,
-                    socType: 1
-                }
-            },
-            accountRoleType: [],
-            loadListType: 1,
-            attach: null,
-            contextAnchor: null,
-            currentData: {},
-        };
+    this.state = {
+      INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
+        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+      }),
+      INCIDENT_ACCIDENT_SUB_LIST: [
+        _.map(_.range(11, 17), el => {
+            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(21, 26), el => {
+            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(31, 33), el => {
+            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(41, 45), el => {
+            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        })
+      ],
+      activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
+      displayPage: 'main', /* main, events, ttps */
+      incidentType: '',
+      toggleType:'',
+      showFilter: false,
+      showChart: true,
+      currentIncident: {},
+      originalIncident: {},
+      accountType:constants.soc.LIMIT_ACCOUNT,
+      accountDefault:false,
+      severityList: [],
+      socFlowList: [],
+      search: {
+        keyword: '',
+        category: 0,
+        status: 0,
+        datetime: {
+          from: helper.getSubstractDate(2, 'month'),
+          to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        },
+        severity:'',
+        isExpired: 2
+      },
+      dashboard: {
+        all: 0,
+        expired: 0,
+        unhandled: 0,
+        mine: 0
+      },
+      relatedListOptions: [],
+      deviceListOptions: [],
+      showDeviceListOptions: [],
+      incident: {
+        dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm',  'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+        fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
+        flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: 'createDttm',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 0,
+        pageSize: 20,
+        info: {
+          status: 1,
+          socType: 1
+        }
+      },
+      notifyEmailList: [],
+      accountRoleType: [],
+      loadListType: 1,
+      attach: null,
+      contextAnchor: null,
+      currentData: {},
+    };
 
-        this.ah = getInstance("chewbacca");
-    }
+    this.ah = getInstance("chewbacca");
+  }
 
-    componentDidMount() {
-        const {baseUrl, locale, sessionRights} = this.context;
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
 
-        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
-        helper.inactivityTime(baseUrl, locale);
+    helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+    helper.inactivityTime(baseUrl, locale);
 
-        let alertDataId = this.getQueryString('alertDataId');
-        let alertData = sessionStorage.getItem(alertDataId);
+    let alertDataId = this.getQueryString('alertDataId');
+    let alertData = sessionStorage.getItem(alertDataId);
 
-        this.checkAccountType();
-        this.setDefaultSearchOptions(alertData, alertDataId);
-    }
+    this.checkAccountType();
+    this.setDefaultSearchOptions(alertData, alertDataId);
+  }
 
-    componentWillUnmount() {
-        helper.clearTimer();
-    }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
 
     setDefaultSearchOptions = (alertData, alertDataId) => {
         const {baseUrl} = this.context;
@@ -454,6 +456,9 @@ class Incident extends Component {
 
             <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadData.bind(this,'currentPage')}/>
 
+            <NotifyDialog ref={ref => {
+                this.notifyDialog = ref
+            }} />
 
             <Menu
                 anchorEl={contextAnchor}
@@ -599,7 +604,7 @@ class Incident extends Component {
                 <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
                 }
                 <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact}>{it('txt-notify')}</Button>
             </div>
             }
 
@@ -1035,31 +1040,33 @@ class Incident extends Component {
 
         let dataFields = {};
         incident.flowFieldsArr.forEach(tempData => {
-            dataFields[tempData] = {
-                hide: tempData === 'id',
-                label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-                sortable: this.checkSortable(tempData),
-                formatter: (value, allValue, i) => {
-                    if (tempData === 'reviewDttm') {
-                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-                    }
-                    else if (tempData === 'status') {
-                        return <span>{it(`action.${value}`)}</span>
-                    }else if (tempData === 'suggestion' || tempData === 'reviewerName'){
-                        let formattedWording = ''
-                        if (value && value.length > 32) {
-                            formattedWording = value.substr(0, 32) + '...';
-                        }else{
-                            formattedWording = value
-                        }
-                        return <span  style={{ whiteSpace: 'pre-wrap',
-                                         wordBreak: 'break-all'}}>{formattedWording}</span>
-                    } else {
-                        return <span style={{ whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-all'}}>{value}</span>
-                    }
+          dataFields[tempData] = {
+            hide: tempData === 'id',
+            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue, i) => {
+              if (tempData === 'reviewDttm') {
+                return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+              } else if (tempData === 'status') {
+                return <span>{it(`action.${value}`)}</span>
+              } else if (tempData === 'suggestion' || tempData === 'reviewerName'){
+                let formattedWording = ''
+
+                if (value && allValue.status === 11) {
+                  return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
                 }
+
+                if (value && value.length > 32) {
+                  formattedWording = value.substr(0, 32) + '...';
+                } else {
+                  formattedWording = value;
+                }
+                return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
+              } else {
+                return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
+              }
             }
+          }
         });
         incident.flowFields = dataFields;
         return <div className='form-group normal'>
@@ -2658,6 +2665,10 @@ class Incident extends Component {
         this.incidentReview.open(incidentId, reviewType)
     }
 
+    openNotifyDialog() {
+      this.notifyDialog.open(this.state.incident.info.id, this.state.notifyEmailList)
+    }
+
     uploadAttachment() {
         const {baseUrl} = this.context
         let {incident, attach} = this.state
@@ -3063,34 +3074,33 @@ class Incident extends Component {
         })
     }
 
-    notifyContact() {
-        const {baseUrl, contextRoot} = this.context
-        const {incident} = this.state
+    notifyContact = () => {
+      const {baseUrl} = this.context;
+      const {incident} = this.state;
+      const requestData = {
+        incidentId: incident.info.id
+      };
 
-        let payload = {
-            incidentId:incident.info.id
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+      ah.one({
+        url: `${baseUrl}/api/soc/_sendEmailList`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        if (data && data.rt) {
+          this.setState({
+            notifyEmailList: data.rt.rows
+          }, () => {
+            this.openNotifyDialog();
+          });
         }
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_notify`,
-            data: JSON.stringify(payload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data.status.includes('success')){
-                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify')+t('notifications.txt-sendSuccess'))
-                }else{
-                    helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message)
+      });
     }
 }
 

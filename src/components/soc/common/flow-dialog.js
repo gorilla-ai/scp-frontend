@@ -102,15 +102,15 @@ class IncidentFlowDialog extends Component {
 
     return (
       <ModalDialog className='incident-tag-modal' style={{width: '1080px'}} title={it('txt-incident-soc-flow')} draggable={true} global={true} closeAction='cancel' actions={actions}>
-      <div className='data-content' style={{minHeight: '26vh'}}>
-        <div className='parent-content'>
-          <div className='main-content basic-form' style={{minHeight: '47vh'}}>
-            <div className='steps-indicator' style={{marginTop: '20vh'}}>
-              {stepTitleList.map(this.showUnitStepIcon)}
+        <div className='data-content' style={{minHeight: '26vh'}}>
+          <div className='parent-content'>
+            <div className='main-content basic-form' style={{minHeight: '47vh'}}>
+              <div className='steps-indicator' style={{marginTop: '20vh'}}>
+                {stepTitleList.map(this.showUnitStepIcon)}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </ModalDialog>
     )
   }

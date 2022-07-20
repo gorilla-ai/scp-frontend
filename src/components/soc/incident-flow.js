@@ -106,7 +106,6 @@ class IncidentFlow extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
-  ryan = () => {}
   checkAccountType = () => {
     const {baseUrl, session} = this.context;
     let requestData = {

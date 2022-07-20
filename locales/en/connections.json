@@ -277,6 +277,7 @@
   "txt-selected-node": "Selected Node",
   "txt-mixName": "Department & Title Management",
   "txt-plsEnterName": "Please enter a name",
+  "txt-plsEnterEmail": "Please enter an Email",
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
   "txt-timeRangeError": "Please check your time range",

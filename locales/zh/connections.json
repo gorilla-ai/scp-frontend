@@ -277,6 +277,7 @@
   "txt-selected-node": "選擇樓層節點",
   "txt-mixName":"部門與職稱管理",
   "txt-plsEnterName": "請輸入名稱",
+  "txt-plsEnterEmail": "請輸入Email",
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
   "txt-timeRangeError": "請檢查時間區間",

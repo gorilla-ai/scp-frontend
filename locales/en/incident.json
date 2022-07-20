@@ -256,7 +256,8 @@
 		"5": "Add",
 		"6": "Edit",
 		"7": "To Analyzer",
-		"10": "Finished"
+		"10": "Finished",
+		"11": "Notify Contact"
 	},
 	"protectType": {
 		"0": "Antivirus Software",
