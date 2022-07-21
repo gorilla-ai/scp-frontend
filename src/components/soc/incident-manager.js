@@ -1392,24 +1392,13 @@ class IncidentManagement extends Component {
                 label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
                 sortable: this.checkSortable(tempData),
                 formatter: (value, allValue, i) => {
-                    if (tempData === 'reviewDttm') {
-                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-                    }
-                    else if (tempData === 'status') {
-                        return <span>{it(`action.${value}`)}</span>
-                    }else if (tempData === 'suggestion' || tempData === 'reviewerName'){
-                        let formattedWording = ''
-                        if (value && value.length > 32) {
-                            formattedWording = value.substr(0, 32) + '...';
-                        }else{
-                            formattedWording = value
-                        }
-                        return <span  style={{ whiteSpace: 'pre-wrap',
-                                         wordBreak: 'break-all'}}>{formattedWording}</span>
-                    } else {
-                        return <span style={{ whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-all'}}>{value}</span>
-                    }
+                  if (tempData === 'reviewDttm') {
+                    return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                  } else if (tempData === 'status') {
+                    return <span>{it(`action.${value}`)}</span>
+                  } else {
+                    return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
+                  }
                 }
             }
         });
