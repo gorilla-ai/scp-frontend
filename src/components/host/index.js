@@ -124,11 +124,13 @@ const HMD_TRIGGER = [
   },
   {
     name: 'File Integrity',
-    cmds: 'getFileIntegrity'
+    cmds: 'getFileIntegrity',
+    stop: 'FileIntegrityThread'
   },
   {
     name: 'Process Monitor',
-    cmds: 'setProcessWhiteList'
+    cmds: 'setProcessWhiteList',
+    stop: 'ProcessMonitorThread'
   },
   {
     name: 'VANS',
@@ -145,6 +147,11 @@ const HMD_TRIGGER = [
   {
     name: 'vansPatchRecord',
     cmds: 'executePatchRecord'
+  },
+  {
+    name: 'Event Tracing',
+    cmds: 'EventTracingThread',
+    stop: 'EventTracingThread'
   }
 ];
 const HOST_SORT_LIST = [
@@ -573,20 +580,28 @@ class HostController extends Component {
         value: 'isVans'
       },
       {
-        name: 'is Applied File Integrity',
+        name: 'Callback Enabled File Integrity',
         value: 'isSnapshot'
       },
       {
-        name: 'is Applied Process Monitor',
+        name: 'Callback Enabled Process Monitor',
         value: 'isProcWhiteList'
       },
       {
-        name: 'Not Applied File Integrity',
+        name: 'Callback Disabled File Integrity',
         value: 'isNotSnapshot'
       },
       {
-        name: 'Not Applied Process Monitor',
+        name: 'Callback Disabled Process Monitor',
         value: 'isNotProcWhiteList'
+      },
+      {
+        name: 'Callback Enabled EventTracing',
+        value: 'eventTracingEnable'
+      },
+      {
+        name: 'Callback Disabled EventTracing',
+        value: 'eventTracingDisable'
       },
       {
         name: t('host.txt-isScanFinished'),
@@ -4204,13 +4219,36 @@ class HostController extends Component {
    */
   getHMDmenu = (val, i) => {
     if (val.cmds === 'executePatch') {
-      return <MenuItem key={i} onClick={this.setVansPatchFrom.bind(this, 'new')}>{t('hmd-scan.txt-vansPatch')}</MenuItem>
+      return (
+        <MenuItem key={i}>
+          <span>{t('hmd-scan.txt-vansPatch')}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.setVansPatchFrom.bind(this, 'new')}>{t('hmd-scan.txt-execute')}</Button>
+        </MenuItem>
+      )
     } else if (val.cmds === 'executePatchRecord') {
-      return <MenuItem key={i} onClick={this.toggleVansPatchGroup}>{t('hmd-scan.txt-vansPatchRecord')}</MenuItem>
+      return (
+        <MenuItem key={i}>
+          <span>{t('hmd-scan.txt-vansPatchRecord')}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleVansPatchGroup}>{t('hmd-scan.txt-execute')}</Button>
+        </MenuItem>
+      )
     } else if (val.cmds === 'compareIOC') {
-      return <MenuItem key={i} onClick={this.toggleYaraRule}>{val.name}</MenuItem>
+      return (
+        <MenuItem key={i}>
+          <span>{val.name}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleYaraRule}>{t('hmd-scan.txt-execute')}</Button>
+        </MenuItem>
+      )
     } else {
-      return <MenuItem key={i} onClick={this.openConfirmModal.bind(this, val)}>{val.name}</MenuItem>
+      return (
+        <MenuItem key={i}>
+          <span>{val.name}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.openConfirmModal.bind(this, 'start', val)}>{t('hmd-scan.txt-execute')}</Button>
+          {(val.name === 'File Integrity' || val.name === 'Process Monitor' || val.name === 'Event Tracing') && 
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.openConfirmModal.bind(this, 'stop', val)}>{t('hmd-scan.txt-terminate')}</Button>
+          }
+        </MenuItem>
+      )
     }
   }
   /**
@@ -4227,29 +4265,43 @@ class HostController extends Component {
   /**
    * Display confirm content
    * @method
+   * @param {string} type - action type ('start' or 'stop')
    * @returns HTML DOM
    */
-  getConfirmContent = () => {
+  getConfirmContent = (type) => {
+    let text = '';
+
+    if (type === 'start') {
+      text = t('txt-confirmProceed');
+    } else if (type === 'stop') {
+      text = t('txt-confirmTerminate');
+    }
+
     return (
       <div className='content'>
-        <span>{t('txt-confirmProceed')}?</span>
+        <span>{text}?</span>
       </div>
     )
   }
   /**
    * Show the confirm modal dialog
    * @method
+   * @param {string} type - action type ('start' or 'stop')
    * @param {object} hmdObj - HMD object
    */
-  openConfirmModal = (hmdObj) => {
+  openConfirmModal = (type, hmdObj) => {
     PopupDialog.prompt({
       id: 'modalWindowSmall',
       confirmText: t('txt-confirm'),
       cancelText: t('txt-cancel'),
-      display: this.getConfirmContent(),
+      display: this.getConfirmContent(type),
       act: (confirmed) => {
         if (confirmed) {
-          this.triggerHmdAll(hmdObj);
+          if (type === 'start') {
+            this.triggerHmdAll(hmdObj);
+          } else if (type === 'stop') {
+            this.stopHmd(hmdObj);
+          }
         }
       }
     });
@@ -4270,6 +4322,18 @@ class HostController extends Component {
         cmds: [hmdObj.cmds]
       }
     };
+
+    if (hmdObj.cmds === 'EventTracingThread') {
+      requestData.cmdJO = {
+        cmds: ['resetTaskConfig'],
+        taskThreads: [
+          {
+            _Name: hmdObj.cmds,
+            _Enable: true
+          }
+        ]
+      };
+    }
 
     if (hmdObj.cmds === 'compareIOC') {
       let pathData = [];
@@ -4307,6 +4371,44 @@ class HostController extends Component {
     if (hmdObj.cmds === 'compareIOC') {
       this.toggleYaraRule();
     }
+  }
+  /**
+   * Stop HMD
+   * @method
+   * @param {object} hmdObj - HMD object
+   */
+  stopHmd = (hmdObj) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/v2/ipdevice/assessment/_search/_retrigger`;
+    const requestData = {
+      cmdJO: {
+        cmds: ['resetTaskConfig'],
+        taskThreads: [
+          {
+            _Name: hmdObj.stop,
+            _Enable: false
+          }
+        ]
+      }
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+    this.handleCloseMenu();
   }
   /**
    * Check yara rule before submit for trigger
@@ -4877,6 +4979,7 @@ class HostController extends Component {
 
                 <Menu
                   anchorEl={contextAnchor}
+                  className='hmd-trigger-menu'
                   keepMounted
                   open={menuType === 'hmdTriggerAll' && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>

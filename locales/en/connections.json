@@ -226,6 +226,7 @@
   "txt-connectionsSuccess": "Connections test successfully",
   "txt-connectionsFail": "Connections test fail",
   "txt-confirmProceed": "Confirm to proceed",
+  "txt-confirmTerminate": "Confirm to terminate",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -961,6 +962,8 @@
     "txt-taskStatusCode-22003": "Registry aberrant",
     "txt-hmdImportExport": "HMD Import/Export",
     "txt-scannerSchedule": "Scanner Schedule",
+    "txt-execute": "Execute",
+    "txt-terminate": "Terminate",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware - Windows",

@@ -226,6 +226,7 @@
   "txt-connectionsSuccess": "連線成功",
   "txt-connectionsFail": "連線失敗",
   "txt-confirmProceed": "確認執行",
+  "txt-confirmTerminate": "確認停用",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -961,6 +962,8 @@
     "txt-taskStatusCode-22003": "檢查登錄失敗",
     "txt-hmdImportExport": "HMD匯出/匯入",
     "txt-scannerSchedule": "掃描排程",
+    "txt-execute": "執行",
+    "txt-terminate": "停用",
     "scan-list": {
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware - Windows",
