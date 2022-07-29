@@ -588,16 +588,16 @@ class HostController extends Component {
         value: 'isProcWhiteList'
       },
       {
+        name: 'Callback Enabled EventTracing',
+        value: 'eventTracingEnable'
+      },
+      {
         name: 'Callback Disabled File Integrity',
         value: 'isNotSnapshot'
       },
       {
         name: 'Callback Disabled Process Monitor',
         value: 'isNotProcWhiteList'
-      },
-      {
-        name: 'Callback Enabled EventTracing',
-        value: 'eventTracingEnable'
       },
       {
         name: 'Callback Disabled EventTracing',
