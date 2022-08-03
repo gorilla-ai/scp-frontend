@@ -476,8 +476,8 @@ class HostController extends Component {
         apiKey: '',
         apiUrl: ''
       },
-      nccstSelectedList: [],
       nccstCheckAll: false,
+      nccstSelectedList: [],
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
@@ -1706,8 +1706,8 @@ class HostController extends Component {
    * @param {object} event - event object
    */
   toggleNCCSTcheckbox = (event) => {
-    let nccstSelectedList = _.cloneDeep(this.state.nccstSelectedList);
     let nccstCheckAll = false;
+    let nccstSelectedList = _.cloneDeep(this.state.nccstSelectedList);
 
     if (event.target.checked) {
       nccstSelectedList.push(event.target.name);
@@ -1721,8 +1721,8 @@ class HostController extends Component {
     }
 
     this.setState({
-      nccstSelectedList,
-      nccstCheckAll
+      nccstCheckAll,
+      nccstSelectedList
     });
   }
   /**
@@ -1786,8 +1786,8 @@ class HostController extends Component {
   toggleReportNCCST = () => {
     this.setState({
       reportNCCSTopen: !this.state.reportNCCSTopen,
-      nccstSelectedList: [],
       nccstCheckAll: false,
+      nccstSelectedList: [],
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
   }

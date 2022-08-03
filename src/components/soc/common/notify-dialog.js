@@ -28,6 +28,7 @@ class NotifyDialog extends Component {
     this.state = {
       open: false,
       incidentId: '',
+      emailCheckAll: false,
       notifyEmailList: [],
       emailSelectedList: [],
       emails: []
@@ -35,7 +36,6 @@ class NotifyDialog extends Component {
   }
   componentDidMount() {
   }
-  ryan = () => {}
   /**
    * Handle dialog open
    * @method
@@ -43,15 +43,33 @@ class NotifyDialog extends Component {
    * @param {array.<string>} notifyEmailList - notify email list
    */
   open = (incidentId, notifyEmailList) => {
-    const emailSelectedList = _.map(notifyEmailList, val => {
-      return val.email;
-    });
-
     this.setState({
       open: true,
       incidentId,
-      notifyEmailList,
-      emailSelectedList
+      notifyEmailList
+    });
+  }
+  /**
+   * Handle email checkbox for all
+   * @method
+   * @param {object} event - event object
+   */
+  toggleEmailcheckAll = (event) => {
+    this.setState({
+      emailCheckAll: !this.state.emailCheckAll
+    }, () => {
+      const {notifyEmailList, emailCheckAll} = this.state;
+      let emailSelectedList = [];
+
+      if (emailCheckAll) {
+        emailSelectedList = notifyEmailList.map(val => {
+          return val.email;
+        });
+      }
+
+      this.setState({
+        emailSelectedList
+      });
     });
   }
   /**
@@ -60,22 +78,26 @@ class NotifyDialog extends Component {
    * @param {object} event - event object
    */
   toggleCheckbox = (event) => {
-    if (event.target.checked) {
-      let emailSelectedList = _.cloneDeep(this.state.emailSelectedList);
-      emailSelectedList.push(event.target.name);
+    const {emailSelectedList, notifyEmailList} = this.state;
+    let emailCheckAll = false;
+    let tempEmailSelectedList = _.cloneDeep(emailSelectedList);
 
-      this.setState({
-        emailSelectedList
-      });
+    if (event.target.checked) {
+      tempEmailSelectedList.push(event.target.name);
     } else {
-      const filteredList = _.filter(this.state.emailSelectedList, val => {
+      tempEmailSelectedList = _.filter(emailSelectedList, val => {
         return val !== event.target.name;
       });
-
-      this.setState({
-        emailSelectedList: filteredList
-      });
     }
+
+    if (tempEmailSelectedList.length === notifyEmailList.length) {
+      emailCheckAll = true;
+    }
+
+    this.setState({
+      emailCheckAll,
+      emailSelectedList: tempEmailSelectedList
+    });
   }
   /**
    * Check if item is already in the selected list
@@ -200,7 +222,7 @@ class NotifyDialog extends Component {
     });
   }
   render() {
-    const {open, notifyEmailList, emails} = this.state;
+    const {open, emailCheckAll, notifyEmailList, emails} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.close},
       confirm: {text: t('txt-confirm'), handler: this.handleNotifySubmit}
@@ -225,6 +247,20 @@ class NotifyDialog extends Component {
                     </tr>
                   </thead>
                   <tbody>
+                    <tr>
+                      <td>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              className='checkbox-ui'
+                              name='emailCheckAll'
+                              checked={emailCheckAll}
+                              onChange={this.toggleEmailcheckAll}
+                              color='primary' />
+                          } />
+                      </td>
+                      <td>{t('txt-selectAll')}</td>
+                    </tr>                      
                     {notifyEmailList.map(this.showEmailAccount)}
                   </tbody>
                 </table>

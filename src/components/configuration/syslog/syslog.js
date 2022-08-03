@@ -683,6 +683,62 @@ class Syslog extends Component {
     });
   }
   /**
+   * Display delete host content
+   * @method
+   * @param {object} value - host data
+   * @returns HTML DOM
+   */
+  getDeleteHostContent = (value) => {
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {value.netProxyHostName}?</span>
+      </div>
+    )
+  }
+  /**
+   * Display delete host modal dialog
+   * @method
+   * @param {object} value - host data
+   */
+  openDeleteHostModal = (value) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deleteHost'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteHostContent(value),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteHostIP(value);
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete host IP
+   * @method
+   * @param {object} value - host data
+   */
+  deleteHostIP = (value) => {
+    const {baseUrl} = this.context;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/log/netproxy/deletehost?id=${value.netProxyHostId}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSyslogData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display main syslog host info
    * @method
    * @param {object} val - syslog data
@@ -732,6 +788,9 @@ class Syslog extends Component {
           <span className='status'>Server {t('txt-status')}: <i className='fg fg-recode' style={{color: status.server.color}} title={status.server.title} /></span>
           <span className='status'>NetProxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
           <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
+          {val.netproxy.logstashStatus === 'INACTIVE' &&
+            <i className='fg fg-trashcan host' onClick={this.openDeleteHostModal.bind(this, val)} title={t('txt-delete')}></i>
+          }
         </header>
         <div className='content-header-btns'>
         </div>
