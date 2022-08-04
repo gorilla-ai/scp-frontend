@@ -138,6 +138,7 @@
 	"txt-incident-expired": "Expired",
 	"txt-incident-unhandled": "Unhandled",
 	"txt-incident-mine": "Mine",
+	"txt-isExpired": "Is Expired",
 	"txt-transfer": "Assign",
 	"txt-analyze": "Assign",
 	"txt-analyze-msg": "Whether to Assign",

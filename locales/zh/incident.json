@@ -139,6 +139,7 @@
 	"txt-incident-expired": "逾期事件單",
 	"txt-incident-unhandled": "未處理事件單",
 	"txt-incident-mine": "我的事件單",
+	"txt-isExpired": "已逾期",
 	"txt-transfer": "交辦分析人員",
 	"txt-analyze": "交辦分析",
 	"txt-analyze-msg": "是否交辦分析",

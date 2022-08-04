@@ -103,7 +103,11 @@ class IncidentManagement extends Component {
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 tagList:[],
-                isExpired: 2
+                isExpired: 2,
+                checkbox: {
+                  isExpired: false,
+                  creator: false
+                }
             },
             severitySelected: [],
             dashboard: {
@@ -278,8 +282,8 @@ class IncidentManagement extends Component {
         const {search, severitySelected, selectedStatus, accountRoleType} = this.state;
 
         if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         search.isExecutor = _.includes(session.roles, 'SOC Executor');
@@ -288,9 +292,17 @@ class IncidentManagement extends Component {
         search.status = selectedStatus;
 
         const requestData = {
-            ...search,
-            severity: severitySelected
+          ...search,
+          severity: severitySelected
         };
+
+        requestData.isExpired = search.checkbox.isExpired ? 1 : 2;
+
+        if (search.checkbox.creator) {
+          requestData.creator = session.accountId;
+        }
+
+        delete requestData.checkbox;
 
         return requestData;
     }
@@ -2191,6 +2203,20 @@ class IncidentManagement extends Component {
     });
   }
   /**
+   * Handle optional checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleOptionalCheckbox = (event) => {
+    const {name, checked} = event.target;
+    let tempSearch = {...this.state.search};
+    tempSearch.checkbox[name] = checked;
+
+    this.setState({
+      search: tempSearch
+    });
+  }
+  /**
    * Display Severity checkbox group
    * @method
    * @param {string} val - severity level
@@ -2224,7 +2250,6 @@ class IncidentManagement extends Component {
     renderFilter = () => {
         const {showFilter, search, severityList} = this.state;
         const {locale} = this.context;
-
         let dateLocale = locale;
 
         if (locale === 'zh') {
@@ -2232,8 +2257,6 @@ class IncidentManagement extends Component {
         }
 
         moment.locale(dateLocale);
-
-        let statusList = ["1","3","4","5","8"]
 
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
@@ -2310,7 +2333,7 @@ class IncidentManagement extends Component {
                     <div className='severity' style={{marginTop: '20px', marginBottom: '20px'}}>
                         <div className='group group-checkbox narrow'>
                             <div className='group-options'>
-                                {statusList.map(this.displayStatusCheckbox)}
+                                {['1','3','4','5','8'].map(this.displayStatusCheckbox)}
                             </div>
                         </div>
                     </div>
@@ -2344,7 +2367,7 @@ class IncidentManagement extends Component {
                                 onChange={this.handleSearchTime.bind(this, 'to')} />
                         </MuiPickersUtilsProvider>
                     </div>
-                    <div className='group'  style={{width: '500px'}}>
+                    <div className='group' style={{width: '500px'}}>
                         <Autocomplete
                             multiple
                             id='tagList'
@@ -2368,6 +2391,34 @@ class IncidentManagement extends Component {
                                     InputProps={{...params.InputProps, type: 'search'}}
                                 />}
                         />
+                    </div>
+                    <div className='severity'>
+                      <div className='group group-checkbox narrow'>
+                        <div className='group-options'>
+                          <div className='option'>
+                            <FormControlLabel
+                              label={it('txt-isExpired')}
+                              control={
+                                <Checkbox
+                                  className='checkbox-ui'
+                                  name='isExpired'
+                                  onChange={this.toggleOptionalCheckbox}
+                                  color='primary' />
+                              } />
+                          </div>
+                          <div className='option'>
+                            <FormControlLabel
+                              label={it('txt-incident-mine')}
+                              control={
+                                <Checkbox
+                                  className='checkbox-ui'
+                                  name='creator'
+                                  onChange={this.toggleOptionalCheckbox}
+                                  color='primary' />
+                              } />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -2974,14 +3025,18 @@ class IncidentManagement extends Component {
     clearFilter = () => {
         this.setState({
             search: {
-                keyword: '',
-                category: 0,
-                status: 0,
-                datetime:{
-                    from: helper.getSubstractDate(1, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-                },
-                isExpired: 2,
+              keyword: '',
+              category: 0,
+              status: 0,
+              datetime:{
+                  from: helper.getSubstractDate(1, 'month'),
+                  to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+              },
+              isExpired: 2,
+              checkbox: {
+                isExpired: false,
+                creator: false
+              },
               tagList:[]
             },
             selectedStatus:[]
