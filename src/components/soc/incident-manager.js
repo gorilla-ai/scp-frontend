@@ -25,6 +25,7 @@ import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
 import NotifyDialog from "./common/notify-dialog";
+import RelatedList from "./common/related-list";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
@@ -86,6 +87,7 @@ class IncidentManagement extends Component {
             toggleType:'',
             showFilter: false,
             showChart: true,
+            relatedListOpen: false,
             currentIncident: {},
             originalIncident: {},
             accountType:constants.soc.LIMIT_ACCOUNT,
@@ -675,7 +677,7 @@ class IncidentManagement extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType} = this.state
+        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType, relatedListOpen} = this.state
         const {session} = this.context
         let insertCheck = false;
         let sendCheck = false;
@@ -722,6 +724,11 @@ class IncidentManagement extends Component {
             <NotifyDialog ref={ref => {
                 this.notifyDialog = ref
             }} />
+
+            {relatedListOpen &&
+              <RelatedList
+                toggleRelatedListModal={this.toggleRelatedListModal} />
+            }
 
             <Menu
                 anchorEl={contextAnchor}
@@ -994,6 +1001,12 @@ class IncidentManagement extends Component {
         this.setState({displayPage: val})
     };
 
+    toggleRelatedListModal = () => {
+      this.setState({
+        relatedListOpen: !this.state.relatedListOpen
+      });
+    }
+
     displayMainPage = () => {
         const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
         const {locale} = this.context;
@@ -1167,6 +1180,7 @@ class IncidentManagement extends Component {
 
             {incidentType === 'ttps' &&
             <div className='group full'>
+                <Button variant='contained' color='primary' className='' onClick={this.toggleRelatedListModal}>{t('txt-upload')}</Button>
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
                 <Autocomplete
                     multiple
