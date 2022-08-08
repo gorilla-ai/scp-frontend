@@ -227,6 +227,7 @@
   "txt-connectionsFail": "Connections test fail",
   "txt-confirmProceed": "Confirm to proceed",
   "txt-confirmTerminate": "Confirm to terminate",
+  "txt-addedList": "Added List",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",

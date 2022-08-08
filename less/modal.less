@@ -2783,3 +2783,66 @@ html[data-theme='dark'] {
     background-color: var(--formGroupBackground);
   }
 }
+#relatedListDialog-content {
+  overflow: hidden;
+  &.content textarea {
+    border: none;
+  }
+  .filter-content {
+    display: flex;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    .keyword {
+      width: 400px;
+      margin-right: 25px;
+      border: none;
+    }
+    .date {
+      margin-top: 5px;
+      margin-right: 15px;
+    }
+    .buttons {
+      margin-top: 3px;
+      .filter {
+        margin-right: 10px;
+      }
+    }
+  }
+  .table-section {
+    display: flex;
+    min-height: 68vh;
+    border-top: 1px solid #ccc;
+    .table-content {
+      height: 65vh;
+      min-width: 80%;
+      overflow-y: auto;
+      table {
+        button:hover:not([disabled]) {
+          background: none;
+        }
+      }
+    }
+    .list-content {
+      height: 65vh;
+      overflow-y: auto;
+      padding-top: 10px;
+      padding-left: 15px;
+      min-width: 200px;
+      border-left: 1px solid #ccc;
+      header {
+        padding: 0;
+        margin-bottom: 15px;
+      }
+      .list {
+        font-size: 10px;
+        margin-bottom: 10px;
+        clear: both;
+      }
+      .remove-icon {
+        float: left;
+        margin-right: 5px;
+        cursor: pointer;
+      }
+    }
+  }
+}

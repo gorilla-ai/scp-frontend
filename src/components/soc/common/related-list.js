@@ -7,9 +7,10 @@ import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } f
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
+import AddIcon from '@material-ui/icons/Add'
 import Button from '@material-ui/core/Button'
+import CancelIcon from '@material-ui/icons/Cancel'
 import IconButton from '@material-ui/core/IconButton'
-import MoreIcon from '@material-ui/icons/More'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -67,20 +68,21 @@ class RelatedList extends Component {
         },
         totalCount: 0,
         currentPage: 1,
-        pageSize: 20,
+        pageSize: 10,
         info: {
           status: 1,
           socType: 1
         }
-      }
+      },
+      incidentList: []
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     this.loadData();
+    this.setIncidentList();
   }
-  ryan = () => {}
   /**
    * Get and set Incident Device table data
    * @method
@@ -138,8 +140,8 @@ class RelatedList extends Component {
 
                 if (val === '_menu') {
                   return (
-                    <IconButton aria-label='more'>
-                      <MoreIcon/>
+                    <IconButton aria-label='Add' className='add-button' onClick={this.handleAddButton.bind(this, allValue)}>
+                      <AddIcon />
                     </IconButton>
                   )
                 } else if (val === 'type') {
@@ -225,7 +227,34 @@ class RelatedList extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  };
+  }
+  /**
+   * Set default incident list
+   * @method
+   */
+  setIncidentList = () => {
+    this.setState({
+      incidentList: this.props.incidentList
+    });
+  }
+  /**
+   * Handle add button in table list
+   * @method
+   * @param {object} allValue - values for related list
+   */
+  handleAddButton = (allValue) => {
+    const {incidentList} = this.state;
+    const id = allValue.id;
+    let tempIncidentList = _.cloneDeep(incidentList);
+
+    if (!_.includes(incidentList, id)) {
+      tempIncidentList.push(id);
+
+      this.setState({
+        incidentList: tempIncidentList
+      });
+    }
+  }
   /**
    * Handle filter input data change
    * @method
@@ -239,7 +268,7 @@ class RelatedList extends Component {
     this.setState({
       search: tempSearch
     });
-  };
+  }
   /**
    * Handle filter input data change
    * @method
@@ -253,7 +282,7 @@ class RelatedList extends Component {
     this.setState({
       search: tempSearch
     });
-  };
+  }
   /**
    * Display filter content
    * @method
@@ -271,8 +300,8 @@ class RelatedList extends Component {
     moment.locale(dateLocale);
 
     return (
-      <div style={{display: 'flex', marginTop: '10px', marginBottom: '15px'}}>
-        <div className='group' style={{width: '400px', marginRight: '25px'}}>
+      <div className='filter-content'>
+        <div className='group' className='keyword'>
           <TextField
             id='keyword'
             name='keyword'
@@ -286,7 +315,7 @@ class RelatedList extends Component {
             value={search.keyword}
             onChange={this.handleSearchKeyword}/>
         </div>
-        <div className='group' style={{marginTop: '5px', marginRight: '15px'}}>
+        <div className='group' className='date'>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
             <KeyboardDateTimePicker
               className='date-time-picker'
@@ -316,13 +345,46 @@ class RelatedList extends Component {
           </MuiPickersUtilsProvider>
         </div>
 
-        <div className='button-group' style={{marginTop: '3px'}}>
-          <Button variant='contained' color='primary' className='filter' onClick={this.loadData}>{t('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+        <div className='button-group' className='buttons'>
+          <Button variant='contained' color='primary' className='btn filter' onClick={this.loadData}>{t('txt-filter')}</Button>
+          <Button variant='outlined' variant='outlined' color='primary' className='standard btn' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
-  };
+  }
+  /**
+   * Handle list remove
+   * @method
+   * @param {string} id - ID of the event
+   * @returns HTML DOM
+   */
+  handleListRemove = (id) => {
+    const {incidentList} = this.state;
+    const index = incidentList.indexOf(id);
+
+    if (index > -1) {
+      let tempIncidentList = _.cloneDeep(incidentList);
+      tempIncidentList.splice(index, 1);
+
+      this.setState({
+        incidentList: tempIncidentList
+      });
+    }
+  }
+  /**
+   * Display list content
+   * @method
+   * @param {object} val - content of the list
+   * @param {number} i - index of the list
+   * @returns HTML DOM
+   */
+  renderList = (val, i) => {
+    return (
+      <div key={i} className='list'>
+        <span className='remove-icon' onClick={this.handleListRemove.bind(this, val)}><CancelIcon /></span> <span>{val}</span>
+      </div>
+    )
+  }
   /**
    * Clear filter input value
    * @method
@@ -337,9 +399,13 @@ class RelatedList extends Component {
         }
       }
     });
-  };
+  }
+  /**
+   * Handle modal confirm
+   * @method
+   */
   handleRelatedConfirm = () => {
-
+    this.props.setIncidentList(this.state.incidentList);
   }
   /**
    * Handle table pagination change
@@ -379,7 +445,9 @@ class RelatedList extends Component {
     });
   }
   render() {
+    const {incident, incidentList} = this.state;
     const tableOptions = {
+      tableBodyHeight: 'auto',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
       },
@@ -405,9 +473,20 @@ class RelatedList extends Component {
         actions={actions}
         closeAction='cancel'>
         {this.renderFilter()}
-        <MuiTableContent
-          data={this.state.incident}
-          tableOptions={tableOptions} />
+
+        <div className='table-section'>
+          <div className='table-content'>
+            <MuiTableContent
+              data={incident}
+              tableOptions={tableOptions}
+              tableHeight='auto' />
+          </div>
+
+          <div className='list-content'>
+            <header>{t('txt-addedList')}</header>
+            {incidentList.map(this.renderList)}
+          </div>
+        </div>
       </ModalDialog>
     )
   }
@@ -416,7 +495,9 @@ class RelatedList extends Component {
 RelatedList.contextType = BaseDataContext;
 
 RelatedList.propTypes = {
-  toggleRelatedListModal: PropTypes.func.isRequired,
+  incidentList: PropTypes.array.isRequired,
+  setIncidentList: PropTypes.func.isRequired,
+  toggleRelatedListModal: PropTypes.func.isRequired
 };
 
 export default RelatedList;

@@ -727,6 +727,8 @@ class IncidentManagement extends Component {
 
             {relatedListOpen &&
               <RelatedList
+                incidentList={incident.info.showFontendRelatedList}
+                setIncidentList={this.setIncidentList}
                 toggleRelatedListModal={this.toggleRelatedListModal} />
             }
 
@@ -1007,6 +1009,21 @@ class IncidentManagement extends Component {
       });
     }
 
+    setIncidentList = (list) => {
+      const tempIncident = {...this.state.incident};
+      tempIncident.info.showFontendRelatedList = list;
+
+      this.setState({
+        incident: tempIncident
+      }, () => {
+        this.toggleRelatedListModal();
+      });
+    }
+
+    showRelatedList = (val, i) => {
+      return <span key={i} className='item'>{val}</span>
+    }
+
     displayMainPage = () => {
         const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
         const {locale} = this.context;
@@ -1180,27 +1197,9 @@ class IncidentManagement extends Component {
 
             {incidentType === 'ttps' &&
             <div className='group full'>
-                <Button variant='contained' color='primary' className='' onClick={this.toggleRelatedListModal}>{t('txt-upload')}</Button>
-                <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
-                <Autocomplete
-                    multiple
-                    id="tags-standard"
-                    size='small'
-                    options={incident.info.differenceWithOptions}
-                    getOptionLabel={(option) => option.text}
-                    // onChange={this.handleDataChange.bind(this, 'relatedList')}
-                    value={incident.info.showFontendRelatedList}
-                    onChange={this.onTagsChange}
-                    disabled={activeContent === 'viewIncident'}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            variant='outlined'
-                            size='small'
-                            fullWidth={true}
-                        />
-                    )}
-                />
+                <label htmlFor='relatedList' style={{float: 'left', marginRight: '10px'}}>{f('incidentFields.relatedList')}</label>
+                <Button variant='contained' color='primary' style={{marginTop: '-8px', marginBottom: '10px'}} onClick={this.toggleRelatedListModal} disabled={activeContent === 'viewIncident'}>{t('txt-query')}</Button>
+                <div className='flex-item'>{incident.info.showFontendRelatedList.map(this.showRelatedList)}</div>
             </div>
             }
 
@@ -1651,9 +1650,9 @@ class IncidentManagement extends Component {
         }
 
         if (incident.info.showFontendRelatedList) {
-            incident.info.relatedList = _.map(incident.info.showFontendRelatedList, el => {
-                return {incidentRelatedId: el.value}
-            })
+            incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
+              return {incidentRelatedId: val}
+            });
         }
 
         if (incident.info.eventList) {
@@ -2050,24 +2049,10 @@ class IncidentManagement extends Component {
         .then(data => {
             let {incident} = this.state;
             let temp = data.rt;
-
-            if (temp.relatedList) {
-                temp.relatedList = _.map(temp.relatedList, el => {
-                    let obj = {
-                        value :el.incidentRelatedId,
-                        text:el.incidentRelatedId
-                    }
-                    return obj
-                })
-            }
-
-
-            let result = _.map(temp.relatedList, function(obj) {
-                return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
-            });
-
             temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
-            temp.showFontendRelatedList = result
+            temp.showFontendRelatedList = _.map(temp.relatedList, val => {
+              return val.incidentRelatedId;
+            });
 
             if (temp.eventList) {
                 temp.eventList = _.map(temp.eventList, el => {
