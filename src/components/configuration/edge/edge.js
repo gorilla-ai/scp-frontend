@@ -269,6 +269,7 @@ class Edge extends Component {
    * @method
    * @param {object} val - group data
    * @param {number} i - index of group name array
+   * @returns HTML DOM
    */
   displayGroupName = (val, i) => {
     return <span key={i} className='item'>{val}</span>

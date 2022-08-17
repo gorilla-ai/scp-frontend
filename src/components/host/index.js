@@ -4266,15 +4266,16 @@ class HostController extends Component {
    * Display confirm content
    * @method
    * @param {string} type - action type ('start' or 'stop')
+   * @param {string} name - action name
    * @returns HTML DOM
    */
-  getConfirmContent = (type) => {
+  getConfirmContent = (type, name) => {
     let text = '';
 
     if (type === 'start') {
-      text = t('txt-confirmProceed');
+      text = t('txt-confirmProceed') + ': ' + name;
     } else if (type === 'stop') {
-      text = t('txt-confirmTerminate');
+      text = t('txt-confirmTerminate') + ': ' + name;
     }
 
     return (
@@ -4294,7 +4295,7 @@ class HostController extends Component {
       id: 'modalWindowSmall',
       confirmText: t('txt-confirm'),
       cancelText: t('txt-cancel'),
-      display: this.getConfirmContent(type),
+      display: this.getConfirmContent(type, hmdObj.name),
       act: (confirmed) => {
         if (confirmed) {
           if (type === 'start') {
