@@ -120,6 +120,7 @@
   "-9113": "Missing scriptFile or executableFile",
   "-9114": "Upload file name is empty",
   "-9115": "Upload file size is empty",
+  "-9116": "Report to nccst fail. Please check your API_URL setting",
 
   "-10222": "Device ID is already exist",
   "-10322": "Unit OID is already exist",
