@@ -3146,6 +3146,7 @@ class HostController extends Component {
         icon: 'edit'
       }
     ];
+    const hbTitle = val.hbDttm ? 'HB Time: ' + helper.getFormattedDate(val.hbDttm, 'local') : '';
     let iconType = '';
     let title = '';
 
@@ -3160,7 +3161,7 @@ class HostController extends Component {
     return (
       <li key={i}>
         <div className='device-alert' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severityLevel] || '#999'}}>
-          <i className='fg fg-host'></i>
+          <i className='fg fg-host' title={hbTitle}></i>
         </div>
         <div className='info'>
           <ul className='c-link' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
