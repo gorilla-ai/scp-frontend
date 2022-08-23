@@ -1439,9 +1439,14 @@ class HostController extends Component {
 
           this.setState({
             safetyScanData: tempSafetyScanData,
-            hmdEventsData,
-            hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
+            hmdEventsData
           });
+
+          if (!_.isEmpty(LAconfig)) {
+            this.setState({
+              hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
+            });
+          }
         }
 
         if (options === 'vansStatus') {
