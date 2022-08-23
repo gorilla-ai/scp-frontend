@@ -633,7 +633,7 @@ class SafetyDetails extends Component {
    */
   getHostTableBody = (val, i) => {
     const {safetyScanType} = this.props;
-    let type = '';    
+    let type = '';
 
     switch (safetyScanType) {
       case 'scanFile':
@@ -703,7 +703,7 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   getCveInfo = (currentSafetyData, val, i) => {
-    const severity = val.severity.toLowerCase();
+    const severity = val.severity ? val.severity.toLowerCase() : '';
 
     return (
       <tr>
@@ -775,7 +775,7 @@ class SafetyDetails extends Component {
                       {this.getBasicInfoContent()}
                     </table>
 
-                    {safetyScanType === 'getVansCpe' &&
+                    {safetyScanType === 'getVansCve' &&
                       <table className='c-table main-table cve'>
                         <tbody>
                           {currentSafetyData.rawJsonObject.rows &&

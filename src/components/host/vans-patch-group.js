@@ -55,7 +55,6 @@ class VansPatchGroup extends Component {
   }
   componentDidMount() {
     this.getVansPatchGroup();
-    this.getVansPatchTable();
   }
   /**
    * Get vans patch group
@@ -89,6 +88,8 @@ class VansPatchGroup extends Component {
       if (data) {
         this.setState({
           vansPatchGroup: data.rows
+        }, () => {
+          this.getVansPatchTable();
         });
       }
       return null;
