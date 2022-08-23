@@ -507,7 +507,7 @@ class HostController extends Component {
       this.setState({
         account: tempAccount
       }, () => {
-        this.getLAconfig();
+        //this.getLAconfig();
         this.getHmdlist();
         this.getSavedQuery();
         this.setLeftNavData();
@@ -1436,7 +1436,7 @@ class HostController extends Component {
           });
 
           if (!_.isEmpty(LAconfig)) {
-            if (data.linkLA.length > 0) {
+            if (data.linkLA && data.linkLA.length > 0) {
               _.forEach(data.linkLA, val => {
                 hmdEventsData[val.id] = val;
               })
@@ -5092,7 +5092,7 @@ class HostController extends Component {
                     <Button variant='contained' color='primary' className='btn filter-btn' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
                     <Button variant='outlined' color='primary' className='standard btn clear-btn' onClick={this.clearHmdFilter}>{t('txt-clear')}</Button>
 
-                    <div className='options-btns'>
+                    {/*<div className='options-btns'>
                       <ToggleButtonGroup
                         id='hmdSafetyContentBtn'
                         value={activeSafetyTab}
@@ -5101,7 +5101,7 @@ class HostController extends Component {
                         <ToggleButton id='hmdSafetyList' value='list'>{t('txt-table')}</ToggleButton>
                         <ToggleButton id='hmdSafetyLA' value='la'>{t('txt-linkAnalysis')}</ToggleButton>
                       </ToggleButtonGroup>
-                    </div>
+                    </div>*/}
 
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
