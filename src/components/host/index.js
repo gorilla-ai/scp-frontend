@@ -1431,19 +1431,19 @@ class HostController extends Component {
           tempSafetyScanData.dataContent = data.hmdScanDistribution;
           tempSafetyScanData.totalCount = data.count;
 
-          if (data.linkLA.length > 0) {
-            _.forEach(data.linkLA, val => {
-              hmdEventsData[val.id] = val;
-            })
-          }
-
           this.setState({
-            safetyScanData: tempSafetyScanData,
-            hmdEventsData
+            safetyScanData: tempSafetyScanData
           });
 
           if (!_.isEmpty(LAconfig)) {
+            if (data.linkLA.length > 0) {
+              _.forEach(data.linkLA, val => {
+                hmdEventsData[val.id] = val;
+              })
+            }
+
             this.setState({
+              hmdEventsData,
               hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
             });
           }
