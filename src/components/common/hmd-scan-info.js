@@ -1499,7 +1499,7 @@ class HMDscanInfo extends Component {
   /**
    * Show the confirm modal dialog
    * @method
-   * @param {string} type - scan type
+   * @param {string} type - scan type ('download', 'compress' or scan type)
    * @param {object | string} [dataResult] - malware detection result or 'getHmdLogs'
    * @param {string} [id] - Task ID or Host ID
    * @param {string} [from] - 'task' or 'host'
@@ -1507,6 +1507,9 @@ class HMDscanInfo extends Component {
   openConfirmModal = (type, dataResult, id, from) => {
     if (type === 'ir' || type === 'yara') {
       this.getTriggerTask(type);
+      return;
+    } else if (type === 'download') {
+      this.handleMalwareBtn(type, dataResult, id, from);
       return;
     }
 
