@@ -168,9 +168,21 @@ class SafetyDetails extends Component {
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
           <td>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</td>
-          <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
-          <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
-          <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
+          <td>
+            {'_IsPE' in currentSafetyData.rawJsonObject &&
+              <span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span>
+            }
+          </td>
+          <td>
+            {'_IsPEextension' in currentSafetyData.rawJsonObject &&
+              <span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span>
+            }
+          </td>
+          <td>
+            {'_IsVerifyTrust' in currentSafetyData.rawJsonObject &&
+              <span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span>
+            }
+          </td>
         </tr>
       )
     } else if (safetyScanType === 'gcbDetection') {
@@ -423,15 +435,27 @@ class SafetyDetails extends Component {
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-isPEfile')}</span></td>
-            <td><span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span></td>
+            <td>
+              {'_IsPE' in currentSafetyData.rawJsonObject &&
+                <span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span>
+              }
+            </td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-isPEextension')}</span></td>
-            <td><span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span></td>
+            <td>
+              {'_IsPEextension' in currentSafetyData.rawJsonObject &&
+                <span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}</span>
+              }
+            </td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-isSignature')}</span></td>
-            <td><span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span></td>
+            <td>
+              {'_IsVerifyTrust' in currentSafetyData.rawJsonObject &&
+                <span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}</span>
+              }
+            </td>
           </tr>
         </tbody>
       )

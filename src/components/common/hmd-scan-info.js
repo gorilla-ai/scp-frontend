@@ -1700,7 +1700,7 @@ class HMDscanInfo extends Component {
     } else if (from === 'host') {
       const requestData = {
         hostId: id,
-        cmds: [dataResult],
+        cmds: [dataResult]
       };
 
       this.ah.one({

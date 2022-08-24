@@ -443,7 +443,7 @@ class HostController extends Component {
       selectedTreeID: '',
       floorMapType: '',
       safetyScanData: {
-        dataContent: [],
+        dataContent: null,
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
@@ -2976,6 +2976,8 @@ class HostController extends Component {
               });
             }
           });
+        } else {
+          helper.showPopupMsg(t('txt-notFound'));
         }
 
         if (data[1]) {
