@@ -2332,8 +2332,12 @@ class HostController extends Component {
       activeTab: newTab
     }, () => {
       if (newTab === 'safetyScan') {
+        let tempSafetyScanData = {...this.state.safetyScanData};
+        tempSafetyScanData.dataContent = [];
+
         this.setState({
-          currentHostModule: 'malware'
+          currentHostModule: 'malware',
+          safetyScanData: tempSafetyScanData
         });
       } else if (newTab === 'vansCharts') {
         this.getVansChartsData();

@@ -244,12 +244,16 @@ class SafetyDetails extends Component {
         </tr>
       )
     } else if (safetyScanType === 'getVansCve') {
-      const severity = currentSafetyData.rawJsonObject.severity.toLowerCase();
+      const severity = currentSafetyData.rawJsonObject.severity ? currentSafetyData.rawJsonObject.severity.toLowerCase() : '';
 
       return (
         <tr>
           <td>{currentSafetyData.primaryKeyValue}</td>
-          <td><span className={severity}>{t('txt-' + severity)}</span></td>
+          <td>
+            {severity &&
+              <span className={severity}>{t('txt-' + severity)}</span>
+            }
+          </td>
         </tr>
       )
     }
@@ -576,12 +580,10 @@ class SafetyDetails extends Component {
         </tbody>
       )
     } else if (safetyScanType === 'getVansCve') {
-      let severity = '';
+      const severity = currentSafetyData.rawJsonObject.severity ? currentSafetyData.rawJsonObject.severity.toLowerCase() : '';
       let color = '';
 
-      if (currentSafetyData.rawJsonObject.severity) {
-        severity = currentSafetyData.rawJsonObject.severity.toLowerCase();
-
+      if (severity) {
         if (severity === 'high') {
           color = '#CC2943';
         } else if (severity === 'medium') {
@@ -595,7 +597,11 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>{t('txt-severity')}</span></td>
-            <td><span style={{color}}>{t('txt-' + severity)}</span></td>
+            <td>
+              {severity &&
+                <span style={{color}}>{t('txt-' + severity)}</span>
+              }
+            </td>
           </tr>
           {currentSafetyData.rawJsonObject.description.description_data.length > 0 &&
             <tr>
@@ -732,7 +738,10 @@ class SafetyDetails extends Component {
     return (
       <tr>
         <td className='name'>
-          <span>{val.id}</span><span className={severity}>{t('txt-' + severity)}</span>
+          <span>{val.id}</span>
+          {severity &&
+            <span className={severity}>{t('txt-' + severity)}</span>
+          }
         </td>
         <td>
           <div>{this.getFormattedLength(val.description.description_data[0].value, 70)}</div>
