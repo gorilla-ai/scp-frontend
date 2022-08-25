@@ -121,6 +121,7 @@
   "-9114": "Upload file name is empty",
   "-9115": "Upload file size is empty",
   "-9116": "Report to nccst fail",
+  "-9117": "Account Incorrect SOC identity",
 
   "-10222": "Device ID is already exist",
   "-10322": "Unit OID is already exist",
