@@ -166,8 +166,12 @@ class SafetyDetails extends Component {
     if (safetyScanType === 'scanFile') {
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
+          <td>
+            {currentSafetyData.rawJsonObject._FileInfo &&
+              <span>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</span>
+            }
+          </td>
           <td>
             {'_IsPE' in currentSafetyData.rawJsonObject &&
               <span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}</span>
@@ -196,30 +200,34 @@ class SafetyDetails extends Component {
 
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{policyContent}</td>
-          <td>{currentSafetyData.rawJsonObject._Type}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
+          <td><span>{policyContent}</span></td>
+          <td><span>{currentSafetyData.rawJsonObject._Type}</span></td>
         </tr>
       )
     } else if (safetyScanType === 'getFileIntegrity') {
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
+          <td><span>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</span></td>
         </tr>
       )
     } else if (safetyScanType === 'getEventTraceResult') {
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{currentSafetyData.rawJsonObject.message ? this.getFormattedLength(currentSafetyData.rawJsonObject.message, 80) : NOT_AVAILABLE}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
+          <td><span>{currentSafetyData.rawJsonObject.message ? this.getFormattedLength(currentSafetyData.rawJsonObject.message, 80) : NOT_AVAILABLE}</span></td>
         </tr>
       )
     } else if (safetyScanType === 'getProcessMonitorResult') {
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{currentSafetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
+          <td>
+            {currentSafetyData.rawJsonObject._ProcessInfo &&
+              <span>{currentSafetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath}</span>
+            }
+          </td>
         </tr>
       )
     } else if (safetyScanType === 'getVansCpe') {
@@ -236,11 +244,11 @@ class SafetyDetails extends Component {
 
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
-          <td>{typeText}</td>
-          <td>{currentSafetyData.rawJsonObject.vendor}</td>
-          <td>{currentSafetyData.rawJsonObject.product}</td>
-          <td>{currentSafetyData.rawJsonObject.version}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
+          <td><span>{typeText}</span></td>
+          <td><span>{currentSafetyData.rawJsonObject.vendor}</span></td>
+          <td><span>{currentSafetyData.rawJsonObject.product}</span></td>
+          <td><span>{currentSafetyData.rawJsonObject.version}</span></td>
         </tr>
       )
     } else if (safetyScanType === 'getVansCve') {
@@ -248,7 +256,7 @@ class SafetyDetails extends Component {
 
       return (
         <tr>
-          <td>{currentSafetyData.primaryKeyValue}</td>
+          <td><span>{currentSafetyData.primaryKeyValue}</span></td>
           <td>
             {severity &&
               <span className={severity}>{t('txt-' + severity)}</span>
@@ -266,9 +274,7 @@ class SafetyDetails extends Component {
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
-    return (
-      <li key={i}>{val}</li>
-    )
+    return <li key={i}>{val}</li>
   }
   /**
    * Display file path for Yara Scan and Process Monitor
@@ -278,27 +284,21 @@ class SafetyDetails extends Component {
    */
   displayFilePath = (safetyData) => {
     let filePathList = [];
-    let displayInfo = '';
+    let displayInfo = NOT_AVAILABLE;
 
-    _.forEach(safetyData.rawJsonObject._ProcessInfo._ModulesInfo, val => {
-      if (val._FileInfo && val._FileInfo._Filepath) {
-        filePathList.push(val._FileInfo._Filepath);
-      }
-    })
+    if (safetyData.rawJsonObject._ProcessInfo) {
+      _.forEach(safetyData.rawJsonObject._ProcessInfo._ModulesInfo, val => {
+        if (val._FileInfo && val._FileInfo._Filepath) {
+          filePathList.push(val._FileInfo._Filepath);
+        }
+      })
+    }
 
     if (filePathList.length > 0) {
       displayInfo = filePathList.map(this.displayIndividualFile);
-    } else {
-      displayInfo = NOT_AVAILABLE;
     }
 
-    return (
-      <div>
-        <ul>
-          {displayInfo}
-        </ul>
-      </div>
-    )
+    return <ul>{displayInfo}</ul>
   }
   /**
    * Display individual connection for Yara Scan and Process Monitor
@@ -326,22 +326,22 @@ class SafetyDetails extends Component {
    */
   displayConnections = (safetyData) => {
     let connectionsList = [];
-    let displayInfo = '';
+    let displayInfo = NOT_AVAILABLE;
 
-    _.forEach(safetyData.rawJsonObject._ProcessInfo._ConnectionList, val => {
-      connectionsList.push({
-        destIp: val._DstIP,
-        destPort: val._DstPort,
-        protocol: val._ProtocolType,
-        srcIp: val._SrcIP,
-        srcPort: val._SrcPort
-      });
-    })
+    if (safetyData.rawJsonObject._ProcessInfo) {
+      _.forEach(safetyData.rawJsonObject._ProcessInfo._ConnectionList, val => {
+        connectionsList.push({
+          destIp: val._DstIP,
+          destPort: val._DstPort,
+          protocol: val._ProtocolType,
+          srcIp: val._SrcIP,
+          srcPort: val._SrcPort
+        });
+      })
+    }
 
     if (connectionsList.length > 0) {
       displayInfo = connectionsList.map(this.displayIndividualConnection);
-    } else {
-      displayInfo = NOT_AVAILABLE;
     }
 
     return (
@@ -431,11 +431,15 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>Hash Value (MD5)</span></td>
-            <td>{currentSafetyData.primaryKeyValue}</td>
+            <td><span>{currentSafetyData.primaryKeyValue}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-fileSize')}</span></td>
-            <td>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</td>
+            <td>
+              {currentSafetyData.rawJsonObject._FileInfo &&
+                <span>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}</span>
+              }
+            </td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-isPEfile')}</span></td>
@@ -476,15 +480,15 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>CCE-ID</span></td>
-            <td>{currentSafetyData.primaryKeyValue}</td>
+            <td><span>{currentSafetyData.primaryKeyValue}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-originalFactory')}</span></td>
-            <td>{policyContent}</td>
+            <td><span>{policyContent}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-systemType')}</span></td>
-            <td>{currentSafetyData.rawJsonObject._Type}</td>
+            <td><span>{currentSafetyData.rawJsonObject._Type}</span></td>
           </tr>
         </tbody>
       )
@@ -493,11 +497,11 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>MD5</span></td>
-            <td>{currentSafetyData.primaryKeyValue}</td>
+            <td><span>{currentSafetyData.primaryKeyValue}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-suspiciousFilePathExample')}</span></td>
-            <td>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</td>
+            <td><span>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}</span></td>
           </tr>
         </tbody>
       )
@@ -506,11 +510,11 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>{t('host.txt-eventCode')}</span></td>
-            <td>{currentSafetyData.primaryKeyValue}</td>
+            <td><span>{currentSafetyData.primaryKeyValue}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-eventDescExample')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.message || NOT_AVAILABLE}</td>
+            <td><span>{currentSafetyData.rawJsonObject.message || NOT_AVAILABLE}</span></td>
           </tr>
         </tbody>
       )
@@ -547,31 +551,31 @@ class SafetyDetails extends Component {
         <tbody>
           <tr>
             <td><span className='blue-color'>CPE ID</span></td>
-            <td>{currentSafetyData.primaryKeyValue}</td>
+            <td><span>{currentSafetyData.primaryKeyValue}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-type')}</span></td>
-            <td>{typeText}</td>
+            <td><span>{typeText}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-vendor')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.vendor}</td>
+            <td><span>{currentSafetyData.rawJsonObject.vendor}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-product')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.product}</td>
+            <td><span>{currentSafetyData.rawJsonObject.product}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-version')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.version}</td>
+            <td><span>{currentSafetyData.rawJsonObject.version}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-update')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.update}</td>
+            <td><span>{currentSafetyData.rawJsonObject.update}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-edition')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.edition}</td>
+            <td><span>{currentSafetyData.rawJsonObject.edition}</span></td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-language')}</span></td>
@@ -583,14 +587,12 @@ class SafetyDetails extends Component {
       const severity = currentSafetyData.rawJsonObject.severity ? currentSafetyData.rawJsonObject.severity.toLowerCase() : '';
       let color = '';
 
-      if (severity) {
-        if (severity === 'high') {
-          color = '#CC2943';
-        } else if (severity === 'medium') {
-          color = '#CC7B29';
-        } else if (severity === 'low') {
-          color = '#29CC7A';
-        }
+      if (severity === 'high') {
+        color = '#CC2943';
+      } else if (severity === 'medium') {
+        color = '#CC7B29';
+      } else if (severity === 'low') {
+        color = '#29CC7A';
       }
 
       return (
@@ -603,31 +605,45 @@ class SafetyDetails extends Component {
               }
             </td>
           </tr>
-          {currentSafetyData.rawJsonObject.description.description_data.length > 0 &&
-            <tr>
-              <td><span className='blue-color'>{t('txt-description')}</span></td>
-              <td>{currentSafetyData.rawJsonObject.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</td>
-            </tr>
-          }
-          {currentSafetyData.rawJsonObject.cpeRecordDTOs && currentSafetyData.rawJsonObject.cpeRecordDTOs.length > 0 &&
-            <tr>
-              <td><span className='blue-color'>CPE ID</span></td>
-              <td><ul>{currentSafetyData.rawJsonObject.cpeRecordDTOs.map(this.displayVansContent.bind(this, 'cpeID'))}</ul></td>
-            </tr>
-          }
-          {currentSafetyData.rawJsonObject.referenceData && currentSafetyData.rawJsonObject.referenceData.reference_data.length > 0 &&
-            <tr>
-              <td><span className='blue-color'>{t('txt-reference')}</span></td>
-              <td><ul>{currentSafetyData.rawJsonObject.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}</ul></td>
-            </tr>
-          }
+          <tr>
+            <td><span className='blue-color'>{t('txt-description')}</span></td>
+            <td>
+              {currentSafetyData.rawJsonObject.description && currentSafetyData.rawJsonObject.description.description_data.length > 0 &&
+                <span>{currentSafetyData.rawJsonObject.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</span>
+              }
+            </td>
+          </tr>
+          <tr>
+            <td><span className='blue-color'>CPE ID</span></td>
+            <td>
+              {currentSafetyData.rawJsonObject.cpeRecordDTOs && currentSafetyData.rawJsonObject.cpeRecordDTOs.length > 0 &&
+                <ul>{currentSafetyData.rawJsonObject.cpeRecordDTOs.map(this.displayVansContent.bind(this, 'cpeID'))}</ul>
+              }
+            </td>
+          </tr>
+          <tr>
+            <td><span className='blue-color'>{t('txt-reference')}</span></td>
+            <td>
+              {currentSafetyData.rawJsonObject.referenceData && currentSafetyData.rawJsonObject.referenceData.reference_data.length > 0 &&
+                <ul>{currentSafetyData.rawJsonObject.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}</ul>
+              }
+            </td>
+          </tr>
           <tr>
             <td><span className='blue-color'>{t('hmd-scan.txt-publishedDate')}</span></td>
-            <td>{helper.getFormattedDate(currentSafetyData.rawJsonObject.publishedDate, 'local')}</td>
+            <td>
+              {currentSafetyData.rawJsonObject.publishedDate &&
+                <span>{helper.getFormattedDate(currentSafetyData.rawJsonObject.publishedDate, 'local')}</span>
+              }
+            </td>
           </tr>
           <tr>
             <td><span className='blue-color'>{t('hmd-scan.txt-lastModifiedDate')}</span></td>
-            <td>{helper.getFormattedDate(currentSafetyData.rawJsonObject.lastModifiedDate, 'local')}</td>
+            <td>
+              {currentSafetyData.rawJsonObject.lastModifiedDate &&
+                <span>{helper.getFormattedDate(currentSafetyData.rawJsonObject.lastModifiedDate, 'local')}</span>
+              }
+            </td>
           </tr>
         </tbody>
       )
@@ -636,18 +652,18 @@ class SafetyDetails extends Component {
   /**
    * Display Vans individual data
    * @method
-   * @param {string} type - content type ('cpeID', desc' or 'ref')
+   * @param {string} type - content type (desc', 'cpeID' or 'ref')
    * @param {object} val - individual vans data
    * @param {number} i - index of the vans data
    * @returns HTML DOM
    */
   displayVansContent = (type, val, i) => {
-    if (type === 'cpeID' && val.name) {
-      return <li key={i}>{val.name}</li>
-    }
-
     if (type === 'desc' && val.value) {
       return <div key={i} className='desc'>{val.value}</div>
+    }
+
+    if (type === 'cpeID' && val.name) {
+      return <li key={i}>{val.name}</li>
     }
 
     if (type === 'ref' && val.url) {
@@ -706,10 +722,10 @@ class SafetyDetails extends Component {
           <td>{val.hostIdObj._GpoValue || NOT_AVAILABLE}</td>
         }
         {safetyScanType === 'getFileIntegrity' &&
-          <td>{val.hostIdObj.Md5HashInfo._BaselineMd5Hash || NOT_AVAILABLE}</td>
+          <td>{(val.hostIdObj.Md5HashInfo && val.hostIdObj.Md5HashInfo._BaselineMd5Hash) || NOT_AVAILABLE}</td>
         }
         {safetyScanType === 'getFileIntegrity' &&
-          <td>{val.hostIdObj.Md5HashInfo._RealMd5Hash || NOT_AVAILABLE}</td>
+          <td>{(val.hostIdObj.Md5HashInfo && val.hostIdObj.Md5HashInfo._RealMd5Hash) || NOT_AVAILABLE}</td>
         }
         {safetyScanType === 'getFileIntegrity' &&
           <td>{val.hostIdObj._FileIntegrityResultPath || NOT_AVAILABLE}</td>
@@ -744,10 +760,14 @@ class SafetyDetails extends Component {
           }
         </td>
         <td>
-          <div>{this.getFormattedLength(val.description.description_data[0].value, 70)}</div>
+          {val.description && val.description.description_data[0] &&
+            <span>{this.getFormattedLength(val.description.description_data[0].value, 70)}</span>
+          }
         </td>
         <td className='host'>
-          <span>{t('host.txt-hostCount')}: {currentSafetyData.hostIdArraySize}</span> 
+          {currentSafetyData.hostIdArraySize &&
+            <span>{t('host.txt-hostCount')}: {currentSafetyData.hostIdArraySize}</span> 
+          }
         </td>
         <td className='info'>
           <span onClick={this.props.getHostInfo.bind(this, val, currentSafetyData, 'safetyPage')}>{t('host.txt-viewInfo')}</span>
