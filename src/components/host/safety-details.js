@@ -579,7 +579,7 @@ class SafetyDetails extends Component {
           </tr>
           <tr>
             <td><span className='blue-color'>{t('host.txt-language')}</span></td>
-            <td>{currentSafetyData.rawJsonObject.language}</td>
+            <td><span>{currentSafetyData.rawJsonObject.language}</span></td>
           </tr>
         </tbody>
       )
