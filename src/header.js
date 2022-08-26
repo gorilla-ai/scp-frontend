@@ -46,7 +46,6 @@ class Header extends Component {
         department: [],
         title: []
       },
-      ownerList: [],
       currentAccountData: {},
       formData: {
         oldPwd: '',
@@ -72,7 +71,7 @@ class Header extends Component {
   componentDidMount() {
     this.setTheme();
     this.getTitleData();
-    this.getOwnerData();
+    //this.getOwnerData();
   }
   /**
    * Set site theme
@@ -158,47 +157,6 @@ class Header extends Component {
         this.setState({
           list: tempList
         });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set owner data
-   * @method
-   */
-  getOwnerData = () => {
-    const {baseUrl} = this.context;
-    const requestData = {
-      sort: 'ownerID',
-      order: 'asc'
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/owner/_search`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        if (data.rows.length > 0) {
-          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
-          let ownerList = [];
-
-          _.forEach(sortedOwnerList, val => {
-            ownerList.push({
-              value: val.ownerUUID,
-              text: val.ownerName
-            });
-          })
-
-          this.setState({
-            ownerList
-          });
-        }
       }
       return null;
     })
@@ -556,7 +514,7 @@ class Header extends Component {
   render() {
     const {contextRoot, language, session, sessionRights} = this.context;
     const {companyName, productName} = this.props;
-    const {contextAnchor, showChangePassword, list, ownerList} = this.state;
+    const {contextAnchor, showChangePassword, list} = this.state;
     let showLanguage = '';
 
     if (language === 'zh') {
@@ -637,7 +595,6 @@ class Header extends Component {
         <AccountEdit
           ref={ref => { this.editor = ref }}
           list={list}
-          ownerList={ownerList}
           onDone={this.showPopup} />
       </div>
     )
