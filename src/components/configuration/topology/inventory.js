@@ -74,12 +74,13 @@ const FORM_VALIDATION = {
     msg: ''
   },
   newOwnerName: {
-    valid: true,
-    msg: ''
+    valid: true
   },
   newOwnerID: {
-    valid: true,
-    msg: ''
+    valid: true
+  },
+  existingOwnerName: {
+    valid: true
   },
   csvColumnsIp: {
     valid: true
@@ -298,7 +299,8 @@ class NetworkInventory extends Component {
     const url = `${baseUrl}/api/owner/_search`;
     const requestData = {
       sort: 'ownerID',
-      order: 'asc'
+      order: 'asc',
+      getOwnerDataOnly: true
     };
 
     this.ah.one({
@@ -2057,10 +2059,6 @@ class NetworkInventory extends Component {
         this.handleCloseMenu();
       }
 
-      if (!currentDeviceData.ownerUUID && ownerList[0]) {
-        this.getOwnerInfo(ownerList[0].value);
-      }
-
       if (_.isEmpty(ownerList)) {
         ownerType = 'new';
       }
@@ -2715,33 +2713,48 @@ class NetworkInventory extends Component {
           }
         }
 
-        if (activeSteps === 3 && ownerType === 'new') {
-          let validate = true;
+        if (activeSteps === 3) {
+          if (ownerType === 'new') {
+            let validate = true;
 
-          if (addIP.newOwnerName) {
-            tempFormValidation.newOwnerName.valid = true;
-            tempFormValidation.newOwnerName.msg = '';
-          } else {
-            tempFormValidation.newOwnerName.valid = false;
-            tempFormValidation.newOwnerName.msg = t('txt-required');
-            validate = false;
-          }
+            if (addIP.newOwnerName) {
+              tempFormValidation.newOwnerName.valid = true;
+            } else {
+              tempFormValidation.newOwnerName.valid = false;
+              validate = false;
+            }
 
-          if (addIP.newOwnerID) {
-            tempFormValidation.newOwnerID.valid = true;
-            tempFormValidation.newOwnerID.msg = '';
-          } else {
-            tempFormValidation.newOwnerID.valid = false;
-            tempFormValidation.newOwnerID.msg = t('txt-required');
-            validate = false;
-          }
+            if (addIP.newOwnerID) {
+              tempFormValidation.newOwnerID.valid = true;
+            } else {
+              tempFormValidation.newOwnerID.valid = false;
+              validate = false;
+            }
 
-          this.setState({
-            formValidation: tempFormValidation
-          });
+            this.setState({
+              formValidation: tempFormValidation
+            });
 
-          if (!validate) {
-            return;
+            if (!validate) {
+              return;
+            }
+          } else if (ownerType === 'existing') {
+            let validate = true;
+
+            if (addIP.ownerUUID) {
+              tempFormValidation.existingOwnerName.valid = true;
+            } else {
+              tempFormValidation.existingOwnerName.valid = false;
+              validate = false;
+            }
+
+            this.setState({
+              formValidation: tempFormValidation
+            });
+
+            if (!validate) {
+              return;
+            }
           }
         }
 
@@ -2929,8 +2942,7 @@ class NetworkInventory extends Component {
    * @param {object} event - event object
    */
   handleOwnerTypeChange = (event) => {
-    const {addIP} = this.state;
-    const tempAddIP = {...addIP};
+    let tempAddIP = {...this.state.addIP};
     tempAddIP.newDepartment = {};
     tempAddIP.newTitle = {};
 
@@ -2938,7 +2950,11 @@ class NetworkInventory extends Component {
       ownerType: event.target.value,
       addIP: tempAddIP
     }, () => {
-      this.getOwnerInfo(addIP.ownerUUID);
+      const {ownerType, addIP} = this.state;
+
+      if (ownerType === 'existing' && addIP.ownerUUID) {
+        this.getOwnerInfo(addIP.ownerUUID);
+      }
     });
   }
   /**
@@ -2950,12 +2966,12 @@ class NetworkInventory extends Component {
   getOwnerInfo = (event, from) => {
     const {baseUrl} = this.context;
     const {departmentList, titleList} = this.state;
-    const value = event.target ? event.target.value : event;
+    const ownerUUID = event.target ? event.target.value : event;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
-      url: `${baseUrl}/api/u1/owner?uuid=${value}`,
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -3434,7 +3450,7 @@ class NetworkInventory extends Component {
                         size='small'
                         required
                         error={!formValidation.newOwnerName.valid}
-                        helperText={formValidation.newOwnerName.msg}
+                        helperText={formValidation.newOwnerName.valid ? '' : t('txt-required')}
                         value={addIP.newOwnerName || ''}
                         onChange={this.handleAddIpChange} />
                     </div>
@@ -3448,7 +3464,7 @@ class NetworkInventory extends Component {
                         size='small'
                         required
                         error={!formValidation.newOwnerID.valid}
-                        helperText={formValidation.newOwnerID.msg}
+                        helperText={formValidation.newOwnerID.valid ? '' : t('txt-required')}
                         value={addIP.newOwnerID || ''}
                         onChange={this.handleAddIpChange} />
                     </div>
@@ -3482,6 +3498,9 @@ class NetworkInventory extends Component {
                         variant='outlined'
                         fullWidth
                         size='small'
+                        required
+                        error={!formValidation.existingOwnerName.valid}
+                        helperText={formValidation.existingOwnerName.valid ? '' : t('txt-required')}
                         value={addIP.ownerUUID || ''}
                         onChange={this.getOwnerInfo}>
                         {ownerListDropDown}
