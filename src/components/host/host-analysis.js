@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
@@ -20,6 +20,52 @@ import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SAFETY_SCAN_LIST = [
+  {
+    type: 'yara',
+    path: 'ScanResult'
+  },
+  {
+    type: 'scanFile',
+    path: 'scanFileResult'
+  },
+  {
+    type: 'importGcbAndGcbDetection',
+    path: 'GCBResult'
+  },
+  {
+    type: 'ir',
+    path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
+  },
+  {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
+  },
+  {
+    type: '_ExecutePatch',
+    path: '_ExecutePatchResult'
+  }
+];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -49,9 +95,12 @@ class HostAnalysis extends Component {
         safety: false,
         network: false
       },
+      activeScanType: 'dashboard', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      safetyScanList: [],
       modalViewMoreOpen: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
+      showSafetyScan: false,
       showVansNotes: false
     };
 
@@ -61,6 +110,7 @@ class HostAnalysis extends Component {
   }
   componentDidMount() {
     this.hmdTypeChecking();
+    this.setSafetyScanList();
     this.checkVansNotes();
   }
   componentWillUnmount() {
@@ -84,6 +134,48 @@ class HostAnalysis extends Component {
 
     this.setState({
       showContent: tempShowshowContent
+    });
+  }
+  /**
+   * Set safety scan list
+   * @method
+   */
+  setSafetyScanList = () => {
+    const {location} = this.props;
+    let safetyScanList = [];
+
+    {/*<li className='child' onClick={this.getContent.bind(this, 'info')}><span className={cx({'active': showContent.info})}>{t('alert.txt-ipBasicInfo')}</span></li>*/}
+
+    safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}>{t('txt-dashboard')}</li>);
+
+    _.forEach(SAFETY_SCAN_LIST, val => { //Create list
+      if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
+        safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, val.type)}>{t('hmd-scan.scan-list.txt-' + val.type)}</li>);
+      }
+    });
+
+    if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+      safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, 'edr')}>EDR</li>);
+      safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, 'settings')}>{t('txt-settings')}</li>);
+    }
+
+    this.setState({
+      safetyScanList
+    });
+  }
+  /**
+   * Set active tab based on scan type
+   * @method
+   * @param {string} activeScanType - active scan type
+   */
+  setActiveScanType = (activeScanType) => {
+    this.setState({
+      showContent: {
+        info: false,
+        safety: true,
+        network: false
+      },
+      activeScanType
     });
   }
   /**
@@ -196,6 +288,7 @@ class HostAnalysis extends Component {
    */
   displaySafetyScanContent = () => {
     const {assessmentDatetime, hostCreateTime, hostData, eventInfo, openHmdType} = this.props;
+    const {activeScanType} = this.state;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -203,6 +296,7 @@ class HostAnalysis extends Component {
       return (
         <HMDscanInfo
           page='host'
+          activeScanType={activeScanType}
           assessmentDatetime={assessmentDatetime}
           hostCreateTime={hostCreateTime}
           currentDeviceData={hostData}
@@ -220,11 +314,22 @@ class HostAnalysis extends Component {
     }
   }
   /**
+   * Toggle safety scan content on/off
+   * @method
+   */
+  toggleSafetyScan = () => {
+    this.setState({
+      showSafetyScan: !this.state.showSafetyScan,
+      showVansNotes: false
+    });
+  }
+  /**
    * Toggle Vans note content on/off
    * @method
    */
   toggleVansNotes = () => {
     this.setState({
+      showSafetyScan: false,
       showVansNotes: !this.state.showVansNotes
     });
   }
@@ -235,7 +340,7 @@ class HostAnalysis extends Component {
    */
   displayHostAnalysisData = () => {
     const {hostData, assessmentDatetime, vansDeviceStatusList} = this.props;
-    const {showContent, showVansNotes} = this.state;
+    const {showContent, safetyScanList, showSafetyScan, showVansNotes} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
     const hostName = hostData.hostName || NOT_AVAILABLE;
@@ -273,6 +378,21 @@ class HostAnalysis extends Component {
         <div className='main-content'>
           <div className='nav'>
             <ul>
+              <li className='header'>
+                <span className='name'>{t('host.txt-hostInfo')}</span>
+              </li>
+
+              <li className='header' onClick={this.toggleSafetyScan}>
+                <span className='name'>{t('alert.txt-safetyScan')}</span>
+                <i className={`fg fg-arrow-${showSafetyScan ? 'bottom' : 'top'}`}></i>
+              </li>
+
+              {showSafetyScan &&
+                <React.Fragment>
+                  <ul className='scan-list'>{safetyScanList}</ul>
+                </React.Fragment>
+              }
+
               <li className='header'>
                 <span className='name'>{t('host.txt-hostInfo')}</span>
               </li>
@@ -564,4 +684,4 @@ HostAnalysis.propTypes = {
   getVansStatus: PropTypes.func.isRequired
 };
 
-export default HostAnalysis;
+export default withRouter(HostAnalysis);

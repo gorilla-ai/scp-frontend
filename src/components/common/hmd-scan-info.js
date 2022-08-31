@@ -168,6 +168,10 @@ class HMDscanInfo extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.setState({
+      activeTab: this.props.activeScanType
+    });
+
     this.loadInitialData();
   }
   componentDidUpdate(prevProps) {
@@ -185,6 +189,12 @@ class HMDscanInfo extends Component {
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
       this.setState({
         activeTab: 'dashboard'
+      });
+    }
+
+    if (!prevProps || (this.props.activeScanType !== prevProps.activeScanType)) {
+      this.setState({
+        activeTab: this.props.activeScanType
       });
     }
 
@@ -228,7 +238,7 @@ class HMDscanInfo extends Component {
    * @method
    */
   loadInitialContent = () => {
-    const {location, currentDeviceData} = this.props;
+    const {location} = this.props;
     let buttonGroupList = [];
 
     buttonGroupList.push(<ToggleButton value='dashboard'>{t('txt-dashboard')}</ToggleButton>);
@@ -604,9 +614,6 @@ class HMDscanInfo extends Component {
    * @param {string} activeTab - active scan type
    */
   toggleScanType = (event, activeTab) => {
-    const {baseUrl} = this.context;
-    const {currentDeviceData} = this.props;
-
     if (!activeTab) {
       return;
     }
@@ -2614,13 +2621,13 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-info'>
-        <ToggleButtonGroup
+        {/*<ToggleButtonGroup
           className='hmd-btns-group'
           value={activeTab}
           exclusive
           onChange={this.toggleScanType}>
           {buttonGroupList}
-        </ToggleButtonGroup>
+        </ToggleButtonGroup>*/}
 
         <div className='info-content'>
           {activeTab === 'dashboard' &&
@@ -2715,6 +2722,7 @@ HMDscanInfo.contextType = BaseDataContext;
 
 HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
+  activeScanType: PropTypes.string,
   currentDeviceData: PropTypes.object.isRequired,
   eventInfo: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
