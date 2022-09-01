@@ -90,17 +90,12 @@ class HostAnalysis extends Component {
     super(props);
 
     this.state = {
-      showContent: {
-        info: false,
-        safety: false,
-        network: false
-      },
-      activeScanType: 'dashboard', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      activeTab: 'hostInfo', //'hostInfo', 'safetyScan' or 'networkBehavior'
+      activeScanType: '', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
       safetyScanList: [],
       modalViewMoreOpen: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
-      showSafetyScan: false,
       showVansNotes: false
     };
 
@@ -110,8 +105,6 @@ class HostAnalysis extends Component {
   }
   componentDidMount() {
     this.hmdTypeChecking();
-    this.setSafetyScanList();
-    this.checkVansNotes();
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
@@ -124,59 +117,15 @@ class HostAnalysis extends Component {
    */
   hmdTypeChecking = () => {
     const {openHmdType} = this.props;
-    let tempShowshowContent = {...this.state.showContent};
 
-    if (openHmdType) {
-      tempShowshowContent.safety = true;
+    if (openHmdType && typeof openHmdType === 'string') {
+      this.setState({
+        activeTab: 'safetyScan',
+        activeScanType: openHmdType.replace('Result', '')
+      });
     } else {
-      tempShowshowContent.info = true;
+      this.checkVansNotes();
     }
-
-    this.setState({
-      showContent: tempShowshowContent
-    });
-  }
-  /**
-   * Set safety scan list
-   * @method
-   */
-  setSafetyScanList = () => {
-    const {location} = this.props;
-    let safetyScanList = [];
-
-    {/*<li className='child' onClick={this.getContent.bind(this, 'info')}><span className={cx({'active': showContent.info})}>{t('alert.txt-ipBasicInfo')}</span></li>*/}
-
-    safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}>{t('txt-dashboard')}</li>);
-
-    _.forEach(SAFETY_SCAN_LIST, val => { //Create list
-      if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
-        safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, val.type)}>{t('hmd-scan.scan-list.txt-' + val.type)}</li>);
-      }
-    });
-
-    if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
-      safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, 'edr')}>EDR</li>);
-      safetyScanList.push(<li className='child' onClick={this.setActiveScanType.bind(this, 'settings')}>{t('txt-settings')}</li>);
-    }
-
-    this.setState({
-      safetyScanList
-    });
-  }
-  /**
-   * Set active tab based on scan type
-   * @method
-   * @param {string} activeScanType - active scan type
-   */
-  setActiveScanType = (activeScanType) => {
-    this.setState({
-      showContent: {
-        info: false,
-        safety: true,
-        network: false
-      },
-      activeScanType
-    });
   }
   /**
    * Show / not show default Vans notes
@@ -192,35 +141,56 @@ class HostAnalysis extends Component {
     }
   }
   /**
-   * Set corresponding content based on content type
+   * Set active tab
    * @method
-   * @param {string} type - the content type
+   * @param {string} activeTab - active tab
    */
-  getContent = (type) => {
-    this.setState({
-      showContent: {
-        info: false,
-        safety: false,
-        network: false
-      }
-    }, () => {
-      let tempShowContent = {...this.state.showContent};
+  setActiveTab = (activeTab) => {
+    const {activeScanType} = this.state;
 
-      switch (type) {
-        case 'info':
-          tempShowContent.info = true;
-          break;
-        case 'safety':
-          tempShowContent.safety = true;
-          break;
-        case 'network':
-          tempShowContent.network = true;
-          break;
+    if (activeTab === 'safetyScan') {
+      if (activeScanType === '') {
+        this.setState({
+          activeScanType: 'dashboard'
+        });
       }
-
+    } else {
       this.setState({
-        showContent: tempShowContent
+        activeScanType: ''
       });
+    }
+
+    this.setState({
+      activeTab,
+      showVansNotes: false
+    });
+  }
+  /**
+   * Set active tab based on scan type
+   * @method
+   * @param {string} activeScanType - active scan type
+   */
+  setActiveScanType = (activeScanType) => {
+    this.setState({
+      activeTab: 'safetyScan',
+      activeScanType
+    });
+  }
+  /**
+   * Toggle Vans note content on/off
+   * @method
+   */
+  toggleVansNotes = () => {
+    this.setState({
+      showVansNotes: !this.state.showVansNotes
+    }, () => {
+      const {activeTab, showVansNotes} = this.state;
+
+      if (activeTab === 'safetyScan' && showVansNotes) {
+        this.setState({
+          activeTab: ''
+        });
+      }
     });
   }
   /**
@@ -287,7 +257,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {assessmentDatetime, hostCreateTime, hostData, eventInfo, openHmdType} = this.props;
+    const {assessmentDatetime, hostCreateTime, hostData, eventInfo} = this.props;
     const {activeScanType} = this.state;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
@@ -301,7 +271,6 @@ class HostAnalysis extends Component {
           hostCreateTime={hostCreateTime}
           currentDeviceData={hostData}
           eventInfo={eventInfo}
-          openHmdType={openHmdType}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
@@ -314,24 +283,20 @@ class HostAnalysis extends Component {
     }
   }
   /**
-   * Toggle safety scan content on/off
+   * Set safety scan list
    * @method
+   * @param {object} val - safety scan data
+   * @param {number} i - index of the safety scan array
+   * @returns HTML DOM
    */
-  toggleSafetyScan = () => {
-    this.setState({
-      showSafetyScan: !this.state.showSafetyScan,
-      showVansNotes: false
-    });
-  }
-  /**
-   * Toggle Vans note content on/off
-   * @method
-   */
-  toggleVansNotes = () => {
-    this.setState({
-      showSafetyScan: false,
-      showVansNotes: !this.state.showVansNotes
-    });
+  setSafetyScanList = (val, i) => {
+    if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
+      return (
+        <li key={val.type} className='child' onClick={this.setActiveScanType.bind(this, val.type)}>
+          <span className={cx({'active': this.state.activeScanType === val.type})}>{t('hmd-scan.scan-list.txt-' + val.type)}</span>
+        </li>
+      )
+    }
   }
   /**
    * Display Host Analysis content
@@ -339,8 +304,8 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
-    const {hostData, assessmentDatetime, vansDeviceStatusList} = this.props;
-    const {showContent, safetyScanList, showSafetyScan, showVansNotes} = this.state;
+    const {hostData, assessmentDatetime, vansDeviceStatusList, location} = this.props;
+    const {activeTab, activeScanType, safetyScanList, showVansNotes} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
     const hostName = hostData.hostName || NOT_AVAILABLE;
@@ -378,27 +343,35 @@ class HostAnalysis extends Component {
         <div className='main-content'>
           <div className='nav'>
             <ul>
-              <li className='header'>
-                <span className='name'>{t('host.txt-hostInfo')}</span>
+              <li className='header' onClick={this.setActiveTab.bind(this, 'hostInfo')}>
+                <span className={cx('name', {'active': activeTab === 'hostInfo'})}>{t('host.txt-hostInfo')}</span>
               </li>
 
-              <li className='header' onClick={this.toggleSafetyScan}>
-                <span className='name'>{t('alert.txt-safetyScan')}</span>
-                <i className={`fg fg-arrow-${showSafetyScan ? 'bottom' : 'top'}`}></i>
+              <li className='header' onClick={this.setActiveTab.bind(this, 'safetyScan')}>
+                <span className={cx('name', {'active': activeTab === 'safetyScan'})}>{t('alert.txt-safetyScan')}</span>
+                <i className={`fg fg-arrow-${activeTab === 'safetyScan' ? 'bottom' : 'top'}`}></i>
               </li>
 
-              {showSafetyScan &&
+              {activeTab === 'safetyScan' &&
                 <React.Fragment>
-                  <ul className='scan-list'>{safetyScanList}</ul>
+                  <ul className='scan-list'>
+                    <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
+                    {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+
+                    {(location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
+                      <React.Fragment>
+                        <li className='child' onClick={this.setActiveScanType.bind(this, 'edr')}><span className={cx({'active': activeScanType === 'edr'})}>EDR</span></li>
+                        <li className='child' onClick={this.setActiveScanType.bind(this, 'settings')}><span className={cx({'active': activeScanType === 'settings'})}>{t('txt-settings')}</span></li>
+                      </React.Fragment>
+                    }
+                  </ul>
                 </React.Fragment>
               }
 
-              <li className='header'>
-                <span className='name'>{t('host.txt-hostInfo')}</span>
+              <li className='header' onClick={this.setActiveTab.bind(this, 'networkBehavior')}>
+                <span className={cx('name', {'active': activeTab === 'networkBehavior'})}>{t('txt-networkBehavior')}</span>
               </li>
-              <li className='child' onClick={this.getContent.bind(this, 'info')}><span className={cx({'active': showContent.info})}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li className='child' onClick={this.getContent.bind(this, 'safety')}><span className={cx({'active': showContent.safety})}>{t('alert.txt-safetyScanInfo')}</span></li>
-              <li className='child' onClick={this.getContent.bind(this, 'network')}><span className={cx({'active': showContent.network})}>{t('txt-networkBehavior')}</span></li>
+
               <li className='header' onClick={this.toggleVansNotes}>
                 <span className='name'>{t('host.txt-vansNotes')}</span>
                 <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i>
@@ -414,15 +387,15 @@ class HostAnalysis extends Component {
             }
           </div>
           <div className='content'>
-            {showContent.info &&
+            {activeTab === 'hostInfo' &&
               this.displayInfoContent()
             }
 
-            {showContent.safety &&
+            {activeScanType &&
               this.displaySafetyScanContent()
             }
 
-            {showContent.network &&
+            {activeTab === 'networkBehavior' &&
               <NetworkBehavior
                 page='host'
                 ipType='srcIp'

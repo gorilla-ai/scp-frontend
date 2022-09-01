@@ -10,8 +10,6 @@ import cx from 'classnames'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
 import Button from '@material-ui/core/Button'
-import ToggleButton from '@material-ui/lab/ToggleButton'
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -110,7 +108,6 @@ class HMDscanInfo extends Component {
 
     this.state = {
       activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
-      buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
       activeRuleHeader: false,
@@ -168,10 +165,6 @@ class HMDscanInfo extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.setState({
-      activeTab: this.props.activeScanType
-    });
-
     this.loadInitialData();
   }
   componentDidUpdate(prevProps) {
@@ -194,7 +187,14 @@ class HMDscanInfo extends Component {
 
     if (!prevProps || (this.props.activeScanType !== prevProps.activeScanType)) {
       this.setState({
-        activeTab: this.props.activeScanType
+        activeTab: this.props.activeScanType,
+        activePath: null,
+        activeRuleHeader: false,
+        activeRule: [],
+        activeDLL: false,
+        activeConnections: false,
+        activeExecutableInfo: false,
+        disabledBtn: false
       });
     }
 
@@ -214,8 +214,7 @@ class HMDscanInfo extends Component {
    * @method
    */
   loadInitialData = () => {
-    this.hmdTypeChecking();
-    this.loadInitialContent();
+    this.setActiveTab();
     this.loadRadarCharts();
     this.loadHMDdata();
     this.loadSettingsData();
@@ -224,38 +223,9 @@ class HMDscanInfo extends Component {
    * Set active HMD tab
    * @method
    */
-  hmdTypeChecking = () => {
-    const {openHmdType} = this.props;
-
-    if (openHmdType && typeof openHmdType === 'string') {
-      this.setState({
-        activeTab: openHmdType.replace('Result', '')
-      });
-    }
-  }
-  /**
-   * Set sync status and button group list
-   * @method
-   */
-  loadInitialContent = () => {
-    const {location} = this.props;
-    let buttonGroupList = [];
-
-    buttonGroupList.push(<ToggleButton value='dashboard'>{t('txt-dashboard')}</ToggleButton>);
-
-    _.forEach(SAFETY_SCAN_LIST, val => { //Create list for Button group
-      if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
-        buttonGroupList.push(<ToggleButton value={val.type}>{t('hmd-scan.scan-list.txt-' + val.type)}</ToggleButton>);
-      }
-    });
-
-    if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
-      buttonGroupList.push(<ToggleButton value='edr'>EDR</ToggleButton>);
-      buttonGroupList.push(<ToggleButton value='settings'>{t('txt-settings')}</ToggleButton>);
-    }
-
+  setActiveTab = () => {
     this.setState({
-      buttonGroupList
+      activeTab: this.props.activeScanType
     });
   }
   /**
@@ -812,15 +782,17 @@ class HMDscanInfo extends Component {
     let connectionsList = [];
     let displayInfo = '';
 
-    _.forEach(val._ProcessInfo._ConnectionList, val2 => {
-      connectionsList.push({
-        destIp: val2._DstIP,
-        destPort: val2._DstPort,
-        protocol: val2._ProtocolType,
-        srcIp: val2._SrcIP,
-        srcPort: val2._SrcPort
-      });
-    })
+    if (val._ProcessInfo) {
+      _.forEach(val._ProcessInfo._ConnectionList, val2 => {
+        connectionsList.push({
+          destIp: val2._DstIP,
+          destPort: val2._DstPort,
+          protocol: val2._ProtocolType,
+          srcIp: val2._SrcIP,
+          srcPort: val2._SrcPort
+        });
+      })
+    }
 
     if (connectionsList.length > 0) {
       displayInfo = connectionsList.map(this.displayIndividualConnection);
@@ -871,7 +843,7 @@ class HMDscanInfo extends Component {
 
       if (info._ProcessInfo && info._ProcessInfo._ExecutableInfo[val].length > 0) {
         _.forEach(info._ProcessInfo._ExecutableInfo[val], val => {
-          signatureList = <ul className='signature-list padding'><li><span className='blue-color'>{t('hmd-scan.signature._CertificateType')}</span>: {val._CertificateType}</li><li><span className='blue-color'>{t('hmd-scan.signature._IssuerName')}</span>: {val._IssuerName}</li><li><span className='blue-color'>{t('hmd-scan.signature._SerialNumber')}</span>: {val._SerialNumber}</li><li><span className='blue-color'>{t('hmd-scan.signature._SubjectName')}</span>: {val._SubjectName}</li></ul>;
+          signatureList = <ul className='signature-list padding'><li><span className='blue-color'>{t('hmd-scan.signature._CertificateType')}</span>: {val._CertificateType || NOT_AVAILABLE}</li><li><span className='blue-color'>{t('hmd-scan.signature._IssuerName')}</span>: {val._IssuerName || NOT_AVAILABLE}</li><li><span className='blue-color'>{t('hmd-scan.signature._SerialNumber')}</span>: {val._SerialNumber || NOT_AVAILABLE}</li><li><span className='blue-color'>{t('hmd-scan.signature._SubjectName')}</span>: {val._SubjectName || NOT_AVAILABLE}</li></ul>;
         })
       }
 
@@ -1947,7 +1919,7 @@ class HMDscanInfo extends Component {
     const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
 
     if (!val.taskResponseDttm) {
-      return;
+      return <div>{NOT_AVAILABLE}</div>
     }
 
     return (
@@ -1958,7 +1930,7 @@ class HMDscanInfo extends Component {
               <span className='assessment-info'><i className='fg fg-info' title={assessmentInfo}></i></span>
             }
             {activeTab === 'importGcbAndGcbDetection' &&
-              <span>{t('hmd-scan.txt-testType')}: {t('hmd-scan.txt-' + val.taskName)}</span>
+              <span>{t('hmd-scan.txt-testType')}: {val.taskName ? t('hmd-scan.txt-' + val.taskName) : NOT_AVAILABLE}</span>
             }
             <span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
             <span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1989,7 +1961,7 @@ class HMDscanInfo extends Component {
     const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
 
     if (!val.taskResponseDttm) {
-      return;
+      return <div>{NOT_AVAILABLE}</div>
     }
 
     return (
@@ -2104,7 +2076,7 @@ class HMDscanInfo extends Component {
         }
 
         {dataCount === 0 &&
-          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
+          <div className='empty-msg' style={{marginTop: '15px'}}>{NOT_AVAILABLE}</div>
         }
       </div>
     )
@@ -2585,7 +2557,6 @@ class HMDscanInfo extends Component {
     const {currentDeviceData} = this.props;
     const {
       activeTab,
-      buttonGroupList,
       dashboardInfo,
       hmdInfo,
       settingsActiveContent
@@ -2621,14 +2592,6 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-info'>
-        {/*<ToggleButtonGroup
-          className='hmd-btns-group'
-          value={activeTab}
-          exclusive
-          onChange={this.toggleScanType}>
-          {buttonGroupList}
-        </ToggleButtonGroup>*/}
-
         <div className='info-content'>
           {activeTab === 'dashboard' &&
             <div className='dashboard-wrapper'>
@@ -2732,7 +2695,6 @@ HMDscanInfo.propTypes = {
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
-  openHmdType: PropTypes.string,
   assessmentDatetime: PropTypes.object
 };
 
