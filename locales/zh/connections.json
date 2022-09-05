@@ -966,6 +966,7 @@
     "txt-execute": "執行",
     "txt-terminate": "停用",
     "scan-list": {
+      "txt-dashboard": "Dashboard",
       "txt-yara": "Yara Scan",
       "txt-scanFile": "Malware - Windows",
       "txt-scanFileLinux": "Malware - Linux",
@@ -976,7 +977,9 @@
       "txt-procMonitor": "Process Monitor",
       "txt-ftpUpload": "FTP上傳",
       "txt-_Vans": "VANS",
-      "txt-_ExecutePatch": "VANS Patch"
+      "txt-_ExecutePatch": "VANS Patch",
+      "txt-edr": "EDR",
+      "txt-settings": "設定"
     },
     "ir-type": {
       "txt-quick": "快速採證",

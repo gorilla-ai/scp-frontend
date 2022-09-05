@@ -2252,7 +2252,7 @@ class HMDscanInfo extends Component {
     const {settingsActiveContent} = this.state;
 
     return (
-      <div key={i} className='settings-group'>
+      <div key={i} className={cx('settings-group', {'border': i > 0})}>
         {settingsActiveContent === 'viewMode' &&
           this.getTriggerBtnInfo(val.type)
         }
@@ -2554,7 +2554,7 @@ class HMDscanInfo extends Component {
     )
   }
   render() {
-    const {currentDeviceData} = this.props;
+    const {activeScanType, currentDeviceData} = this.props;
     const {
       activeTab,
       dashboardInfo,
@@ -2592,6 +2592,7 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-info'>
+        <div className='header-title'>{t('hmd-scan.scan-list.txt-' + activeScanType)}</div>
         <div className='info-content'>
           {activeTab === 'dashboard' &&
             <div className='dashboard-wrapper'>

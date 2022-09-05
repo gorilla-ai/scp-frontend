@@ -926,6 +926,10 @@ html[data-theme='dark'] {
         position: relative;
         overflow: hidden;
         .button-group {
+          overflow: hidden;
+          margin: 15px 0 0 0;
+          padding-bottom: 15px;
+          border-bottom: 2px solid var(--primaryBorder);
           .btn {
             float: right;
             padding: .3em .5em;
@@ -948,7 +952,6 @@ html[data-theme='dark'] {
           }
         }
         .settings-wrapper {
-          margin-top: 60px;
           overflow-y: auto;
           header {
             float: left;
@@ -956,7 +959,9 @@ html[data-theme='dark'] {
           }
           .settings-group {
             position: relative;
-            border-top: 2px solid var(--primaryBorder);
+            &.border {
+              border-top: 2px solid var(--primaryBorder);
+            }
             .info {
               position: absolute;
               top: 0;
@@ -1318,6 +1323,11 @@ html[data-theme='dark'] {
     padding: 0;
     margin-top: 0;
     border: none;
+    .header-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: var(--primaryContentHeader);
+    }
     .info-content {
       .table {
         width: 100%;

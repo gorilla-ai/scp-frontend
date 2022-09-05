@@ -90,12 +90,13 @@ class HostAnalysis extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'hostInfo', //'hostInfo', 'safetyScan' or 'networkBehavior'
+      activeTab: 'hostInfo', //'hostInfo' or 'networkBehavior'
       activeScanType: '', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
       safetyScanList: [],
       modalViewMoreOpen: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
+      showSafetyScan: false,
       showVansNotes: false
     };
 
@@ -104,7 +105,7 @@ class HostAnalysis extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.hmdTypeChecking();
+    this.setDefaultLeftMenu();
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
@@ -115,53 +116,32 @@ class HostAnalysis extends Component {
    * Set active left navigation
    * @method
    */
-  hmdTypeChecking = () => {
-    const {openHmdType} = this.props;
+  setDefaultLeftMenu = () => {
+    const {hostData, openHmdType} = this.props;
 
     if (openHmdType && typeof openHmdType === 'string') {
       this.setState({
-        activeTab: 'safetyScan',
-        activeScanType: openHmdType.replace('Result', '')
+        activeTab: '',
+        activeScanType: openHmdType.replace('Result', ''),
+        showSafetyScan: true
       });
     } else {
-      this.checkVansNotes();
-    }
-  }
-  /**
-   * Show / not show default Vans notes
-   * @method
-   */
-  checkVansNotes = () => {
-    const {hostData} = this.props;
-
-    if (hostData.annotationObj && (hostData.annotationObj.status || hostData.annotationObj.annotation)) {
-      this.setState({
-        showVansNotes: true
-      });
+      if (hostData.annotationObj && (hostData.annotationObj.status || hostData.annotationObj.annotation)) {
+        this.setState({
+          showVansNotes: true
+        });
+      }
     }
   }
   /**
    * Set active tab
    * @method
-   * @param {string} activeTab - active tab
+   * @param {string} activeTab - active tab ('hostInfo' or 'networkBehavior')
    */
   setActiveTab = (activeTab) => {
-    const {activeScanType} = this.state;
-
-    if (activeTab === 'safetyScan') {
-      if (activeScanType === '') {
-        this.setState({
-          activeScanType: 'dashboard'
-        });
-      }
-    } else {
-      this.setState({
-        activeScanType: ''
-      });
-    }
-
     this.setState({
       activeTab,
+      showSafetyScan: false,
       showVansNotes: false
     });
   }
@@ -172,8 +152,26 @@ class HostAnalysis extends Component {
    */
   setActiveScanType = (activeScanType) => {
     this.setState({
-      activeTab: 'safetyScan',
       activeScanType
+    });
+  }
+  /**
+   * Toggle Safety scan content on/off
+   * @method
+   */
+  toggleSafetyScan = () => {
+    this.setState({
+      activeTab: '',
+      showSafetyScan: !this.state.showSafetyScan,
+      showVansNotes: false
+    }, () => {
+      const {activeScanType, showSafetyScan} = this.state;
+
+      if (activeScanType === '' && showSafetyScan) {
+        this.setState({
+          activeScanType: 'dashboard'
+        });
+      }
     });
   }
   /**
@@ -182,15 +180,8 @@ class HostAnalysis extends Component {
    */
   toggleVansNotes = () => {
     this.setState({
+      showSafetyScan: false,
       showVansNotes: !this.state.showVansNotes
-    }, () => {
-      const {activeTab, showVansNotes} = this.state;
-
-      if (activeTab === 'safetyScan' && showVansNotes) {
-        this.setState({
-          activeTab: ''
-        });
-      }
     });
   }
   /**
@@ -305,14 +296,14 @@ class HostAnalysis extends Component {
    */
   displayHostAnalysisData = () => {
     const {hostData, assessmentDatetime, vansDeviceStatusList, location} = this.props;
-    const {activeTab, activeScanType, safetyScanList, showVansNotes} = this.state;
+    const {activeTab, activeScanType, safetyScanList, showSafetyScan, showVansNotes} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
     const hostName = hostData.hostName || NOT_AVAILABLE;
     const system = hostData.system || NOT_AVAILABLE;
     const ownerName = hostData.ownerObj ? hostData.ownerObj.ownerName : NOT_AVAILABLE;
     const version = hostData.version || NOT_AVAILABLE;
-    
+
     return (
       <div>
         <table className='c-table main-table align-center with-border'>
@@ -347,12 +338,12 @@ class HostAnalysis extends Component {
                 <span className={cx('name', {'active': activeTab === 'hostInfo'})}>{t('host.txt-hostInfo')}</span>
               </li>
 
-              <li className='header' onClick={this.setActiveTab.bind(this, 'safetyScan')}>
-                <span className={cx('name', {'active': activeTab === 'safetyScan'})}>{t('alert.txt-safetyScan')}</span>
-                <i className={`fg fg-arrow-${activeTab === 'safetyScan' ? 'bottom' : 'top'}`}></i>
+              <li className='header' onClick={this.toggleSafetyScan}>
+                <span className={cx('name', {'active': showSafetyScan})}>{t('alert.txt-safetyScan')}</span>
+                <i className={`fg fg-arrow-${showSafetyScan ? 'bottom' : 'top'}`}></i>
               </li>
 
-              {activeTab === 'safetyScan' &&
+              {showSafetyScan &&
                 <React.Fragment>
                   <ul className='scan-list'>
                     <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
@@ -373,7 +364,7 @@ class HostAnalysis extends Component {
               </li>
 
               <li className='header' onClick={this.toggleVansNotes}>
-                <span className='name'>{t('host.txt-vansNotes')}</span>
+                <span className={cx('name', {'active': showVansNotes})}>{t('host.txt-vansNotes')}</span>
                 <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i>
               </li>
             </ul>
