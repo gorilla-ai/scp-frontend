@@ -1080,6 +1080,10 @@ html[data-theme='dark'] {
     & > .nav {
       min-width: 230px;
       border-right: 1px solid var(--primaryBorder);
+      ul.scan-list {
+        height: 340px;
+        overflow-y: auto;
+      }
       ul li {
         overflow: hidden;
         color: var(--mainListColor);
@@ -1093,9 +1097,16 @@ html[data-theme='dark'] {
           background-color: var(--mainListHover);
         }
         &.header {
-          cursor: text;
+          cursor: pointer;
           &:hover {
             background-color: var(--mainListHover);
+          }
+          &.active {
+            font-weight: bold;
+            color: var(--primaryContentHeader);
+          }
+          i.fg {
+            float: right;
           }
           .name {
             float: left;
@@ -1353,6 +1364,14 @@ html[data-theme='dark'] {
   }
 }
 #dashboardModalDialog-content {
+  max-height: 685px;
+  .main-content > .nav {
+    height: 498px;
+    overflow-y: auto;
+    ul.scan-list {
+      margin-right: 5px;
+    }
+  }
   .scan-info {
     .info-content {
       min-height: 41vh;
@@ -1372,10 +1391,6 @@ html[data-theme='dark'] {
       i.fg {
         float: right;
       }
-    }
-    ul.scan-list {
-      height: 340px;
-      overflow-y: auto;
     }
     .vans-notes {
       overflow: hidden;

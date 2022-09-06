@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
@@ -30,6 +30,52 @@ import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SAFETY_SCAN_LIST = [
+  {
+    type: 'yara',
+    path: 'ScanResult'
+  },
+  {
+    type: 'scanFile',
+    path: 'scanFileResult'
+  },
+  {
+    type: 'importGcbAndGcbDetection',
+    path: 'GCBResult'
+  },
+  {
+    type: 'ir',
+    path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
+  },
+  {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
+  },
+  {
+    type: '_ExecutePatch',
+    path: '_ExecutePatchResult'
+  }
+];
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -55,6 +101,9 @@ class AlertDetails extends Component {
     super(props);
 
     this.state = {
+      activeScanType: '', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      showSafetyScanSrc: false,
+      showSafetyScanDesc: false,
       alertType: '', //'alert', 'pot_attack' or 'syslog'
       toggleJson: 1, //false or 1
       showContent: {
@@ -885,6 +934,13 @@ class AlertDetails extends Component {
           break;
       }
 
+      if (type !== 'srcSafety' && type !== 'destSafety') {
+        this.setState({
+          showSafetyScanSrc: false,
+          showSafetyScanDesc: false
+        })
+      }
+
       this.setState({
         showContent: tempShowContent
       });
@@ -1053,13 +1109,93 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Set active tab based on scan type
+   * @method
+   * @param {string} activeScanType - active scan type
+   */
+  setActiveScanType = (activeScanType) => {
+    this.setState({
+      activeScanType
+    });
+  }
+  /**
+   * Toggle Safety scan content on/off
+   * @method
+   * @param {string} type - scan content type ('src' or 'desc')
+   */
+  toggleSafetyScan = (type) => {
+    if (type === 'src') {
+      this.setState({
+        showSafetyScanSrc: !this.state.showSafetyScanSrc
+      }, () => {
+        const {activeScanType, showSafetyScanSrc} = this.state;
+
+        if (showSafetyScanSrc) {
+          this.getContent('srcSafety');
+
+          if (activeScanType === '') {
+            this.setState({
+              activeScanType: 'dashboard'
+            });
+          }
+        }
+      });
+    } else if (type === 'desc') {
+      this.setState({
+        showSafetyScanDesc: !this.state.showSafetyScanDesc
+      }, () => {
+        const {activeScanType, showSafetyScanSrc} = this.state;
+
+        if (showSafetyScanSrc) {
+          this.getContent('destSafety');
+
+          if (activeScanType === '') {
+            this.setState({
+              activeScanType: 'dashboard'
+            });
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Set safety scan list
+   * @method
+   * @param {object} val - safety scan data
+   * @param {number} i - index of the safety scan array
+   * @returns HTML DOM
+   */
+  setSafetyScanList = (val, i) => {
+    if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
+      return (
+        <li key={val.type} className='child' onClick={this.setActiveScanType.bind(this, val.type)}>
+          <span className={cx({'active': this.state.activeScanType === val.type})}>{t('hmd-scan.scan-list.txt-' + val.type)}</span>
+        </li>
+      )
+    }
+  }
+  /**
+   * Set default list for left nav
+   * @method
+   * @param {string} type - button navigation type ('previous' or 'next')
+   */
+  setDefaultLeftNav = (type) => {
+    this.setState({
+      activeScanType: 'dashboard',
+      showSafetyScanSrc: false,
+      showSafetyScanDesc: false
+    }, () => {
+      this.props.showAlertData(type);
+    });
+  }
+  /**
    * Display Alert information in dialog box
    * @method
    * @returns HTML DOM
    */
   displayAlertData = () => {
-    const {alertDetails, alertData, currentPage, pageSize, totalPageCount, fromPage} = this.props;
-    const {alertType, showContent, alertPayload, showRedirectMenu} = this.state;
+    const {alertDetails, alertData, currentPage, pageSize, totalPageCount, fromPage, location} = this.props;
+    const {activeScanType, alertType, showSafetyScanSrc, showSafetyScanDesc, showContent, alertPayload, showRedirectMenu} = this.state;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
     const firstItemCheck = alertDetails.currentIndex === 0;
     const lastItemCheck = alertDetails.currentIndex + 1 === alertDetails.currentLength;
@@ -1107,23 +1243,81 @@ class AlertDetails extends Component {
         <div className='main-content'>
           <div className='nav'>
             <ul>
-              <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-ruleAnalysis')}</span></li>
-              <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
-              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}</span></li>
-              <li className='header'>
+              <li className='header' onClick={this.getContent.bind(this, 'rule')}>
+                <span className={cx({'active': showContent.rule})}>{t('alert.txt-ruleAnalysis')}</span>
+              </li>
+
+              {alertType === 'pot_attack' &&
+                <li className='header' onClick={this.getContent.bind(this, 'attack')}>
+                  <span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span>
+                </li>
+              }
+
+              <li className='header' onClick={this.getContent.bind(this, 'json')}>
+                <span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}</span>
+              </li>
+
+              <li className='header' style={{borderBottom: 'none', cursor: 'text'}}>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
                 <span className='ip'>{this.getIpPortData('srcIp')}</span>
               </li>
-              <li className='child' onClick={this.getContent.bind(this, 'srcIp')}><span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li className='child' onClick={this.getContent.bind(this, 'srcSafety')}><span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
-              <li className='child' onClick={this.getContent.bind(this, 'srcNetwork')}><span className={cx({'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span></li>
-              <li className='header'>
+
+              {this.getIpPortData('srcIp') !== NOT_AVAILABLE &&
+                <React.Fragment>
+                  <li className='header' onClick={this.getContent.bind(this, 'srcIp')}>
+                    <span className={cx('name', {'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span>
+                  </li>
+
+                  <li className='header' onClick={this.toggleSafetyScan.bind(this,'src')}>
+                    <span className={cx('name', {'active': showSafetyScanSrc})}>{t('alert.txt-safetyScan')}</span>
+                    <i className={`fg fg-arrow-${showSafetyScanSrc ? 'bottom' : 'top'}`}></i>
+                  </li>
+
+                  {showSafetyScanSrc &&
+                    <React.Fragment>
+                      <ul className='scan-list'>
+                        <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
+                        {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+                      </ul>
+                    </React.Fragment>
+                  }
+
+                  <li className='header' onClick={this.getContent.bind(this, 'srcNetwork')}>
+                    <span className={cx('name', {'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span>
+                  </li>
+                </React.Fragment>
+              }
+
+              <li className='header' style={{borderBottom: 'none', cursor: 'text'}}>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
                 <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
-              <li className='child' onClick={this.getContent.bind(this, 'destIp')}><span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li className='child' onClick={this.getContent.bind(this, 'destSafety')}><span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
-              <li className='child' onClick={this.getContent.bind(this, 'destNetwork')}><span className={cx({'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span></li>
+
+              {this.getIpPortData('destIp') !== NOT_AVAILABLE &&
+                <React.Fragment>
+                  <li className='header' onClick={this.getContent.bind(this, 'destIp')}>
+                    <span className={cx('name', {'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span>
+                  </li>
+
+                  <li className='header' onClick={this.toggleSafetyScan.bind(this,'desc')}>
+                    <span className={cx('name', {'active': showSafetyScanDesc})}>{t('alert.txt-safetyScan')}</span>
+                    <i className={`fg fg-arrow-${showSafetyScanDesc ? 'bottom' : 'top'}`}></i>
+                  </li>
+
+                  {showSafetyScanDesc &&
+                    <React.Fragment>
+                      <ul className='scan-list'>
+                        <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
+                        {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+                      </ul>
+                    </React.Fragment>
+                  }
+
+                  <li className='header' onClick={this.getContent.bind(this, 'destNetwork')}>
+                    <span className={cx('name', {'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span>
+                  </li>
+                </React.Fragment>
+              }
             </ul>
           </div>
           <div className='content'>
@@ -1203,8 +1397,8 @@ class AlertDetails extends Component {
         {alertDetails.currentLength > 0 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button id='navigationPrevious' variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
-              <Button id='navigationNext' variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
+              <Button id='navigationPrevious' variant='outlined' color='primary' onClick={this.setDefaultLeftNav.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
+              <Button id='navigationNext' variant='outlined' color='primary' onClick={this.setDefaultLeftNav.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}</span>
           </div>
@@ -2208,12 +2402,13 @@ class AlertDetails extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (ipType) => {
-    const {ipDeviceInfo, eventInfo} = this.state;
+    const {activeScanType, ipDeviceInfo, eventInfo} = this.state;
 
     if (ipDeviceInfo[ipType].isHmd) {
       return (
         <HMDscanInfo
           page='threats'
+          activeScanType={activeScanType}
           ipType={ipType}
           currentDeviceData={ipDeviceInfo[ipType]}
           eventInfo={eventInfo}
@@ -2354,4 +2549,4 @@ AlertDetails.propTypes = {
   fromPage: PropTypes.string.isRequired
 };
 
-export default AlertDetails;
+export default withRouter(AlertDetails);

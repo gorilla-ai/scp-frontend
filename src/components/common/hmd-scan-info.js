@@ -1530,13 +1530,13 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='info'>
-        {activeTab !== 'settings' &&
+        {activeTab && activeTab !== 'settings' &&
           <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('hmd-scan.txt-refresh')}</Button>
         }
-        {activeTab === 'eventTracing' &&
+        {activeTab && activeTab === 'eventTracing' &&
           <Button variant='contained' color='primary' className='btn' onClick={this.redirectSyslog}>{t('hmd-scan.txt-viewMore')}</Button>
         }
-        {activeTab !== 'eventTracing' && activeTab !== 'edr' &&
+        {activeTab && activeTab !== 'eventTracing' && activeTab !== 'edr' &&
           <div>
             <Button variant='contained' color='primary' className='btn' onClick={this.openConfirmModal.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
             <div className='last-update'>
