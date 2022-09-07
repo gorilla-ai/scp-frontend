@@ -1133,6 +1133,10 @@ class AlertDetails extends Component {
         if (showSafetyScanSrc) {
           this.getContent('srcSafety');
 
+          this.setState({
+            showSafetyScanDesc: false
+          });
+
           if (activeScanType === '') {
             this.setState({
               activeScanType: 'dashboard'
@@ -1144,10 +1148,14 @@ class AlertDetails extends Component {
       this.setState({
         showSafetyScanDesc: !this.state.showSafetyScanDesc
       }, () => {
-        const {activeScanType, showSafetyScanSrc} = this.state;
+        const {activeScanType, showSafetyScanDesc} = this.state;
 
-        if (showSafetyScanSrc) {
+        if (showSafetyScanDesc) {
           this.getContent('destSafety');
+
+          this.setState({
+            showSafetyScanSrc: false
+          });
 
           if (activeScanType === '') {
             this.setState({
@@ -1262,62 +1270,54 @@ class AlertDetails extends Component {
                 <span className='ip'>{this.getIpPortData('srcIp')}</span>
               </li>
 
-              {this.getIpPortData('srcIp') !== NOT_AVAILABLE &&
+              <li className='header' onClick={this.getContent.bind(this, 'srcIp')}>
+                <span className={cx('name', {'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span>
+              </li>
+
+              <li className='header' onClick={this.toggleSafetyScan.bind(this, 'src')}>
+                <span className={cx('name', {'active': showSafetyScanSrc})}>{t('alert.txt-safetyScan')}</span>
+                <i className={`fg fg-arrow-${showSafetyScanSrc ? 'bottom' : 'top'}`}></i>
+              </li>
+
+              {showSafetyScanSrc &&
                 <React.Fragment>
-                  <li className='header' onClick={this.getContent.bind(this, 'srcIp')}>
-                    <span className={cx('name', {'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span>
-                  </li>
-
-                  <li className='header' onClick={this.toggleSafetyScan.bind(this,'src')}>
-                    <span className={cx('name', {'active': showSafetyScanSrc})}>{t('alert.txt-safetyScan')}</span>
-                    <i className={`fg fg-arrow-${showSafetyScanSrc ? 'bottom' : 'top'}`}></i>
-                  </li>
-
-                  {showSafetyScanSrc &&
-                    <React.Fragment>
-                      <ul className='scan-list'>
-                        <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
-                        {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
-                      </ul>
-                    </React.Fragment>
-                  }
-
-                  <li className='header' onClick={this.getContent.bind(this, 'srcNetwork')}>
-                    <span className={cx('name', {'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span>
-                  </li>
+                  <ul className='scan-list'>
+                    <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
+                    {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+                  </ul>
                 </React.Fragment>
               }
+
+              <li className='header' onClick={this.getContent.bind(this, 'srcNetwork')}>
+                <span className={cx('name', {'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span>
+              </li>
 
               <li className='header' style={{borderBottom: 'none', cursor: 'text'}}>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
                 <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
 
-              {this.getIpPortData('destIp') !== NOT_AVAILABLE &&
+              <li className='header' onClick={this.getContent.bind(this, 'destIp')}>
+                <span className={cx('name', {'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span>
+              </li>
+
+              <li className='header' onClick={this.toggleSafetyScan.bind(this, 'desc')}>
+                <span className={cx('name', {'active': showSafetyScanDesc})}>{t('alert.txt-safetyScan')}</span>
+                <i className={`fg fg-arrow-${showSafetyScanDesc ? 'bottom' : 'top'}`}></i>
+              </li>
+
+              {showSafetyScanDesc &&
                 <React.Fragment>
-                  <li className='header' onClick={this.getContent.bind(this, 'destIp')}>
-                    <span className={cx('name', {'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span>
-                  </li>
-
-                  <li className='header' onClick={this.toggleSafetyScan.bind(this,'desc')}>
-                    <span className={cx('name', {'active': showSafetyScanDesc})}>{t('alert.txt-safetyScan')}</span>
-                    <i className={`fg fg-arrow-${showSafetyScanDesc ? 'bottom' : 'top'}`}></i>
-                  </li>
-
-                  {showSafetyScanDesc &&
-                    <React.Fragment>
-                      <ul className='scan-list'>
-                        <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
-                        {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
-                      </ul>
-                    </React.Fragment>
-                  }
-
-                  <li className='header' onClick={this.getContent.bind(this, 'destNetwork')}>
-                    <span className={cx('name', {'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span>
-                  </li>
+                  <ul className='scan-list'>
+                    <li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}><span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}</span></li>
+                    {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+                  </ul>
                 </React.Fragment>
               }
+
+              <li className='header' onClick={this.getContent.bind(this, 'destNetwork')}>
+                <span className={cx('name', {'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span>
+              </li>
             </ul>
           </div>
           <div className='content'>
