@@ -2800,16 +2800,20 @@ html[data-theme='dark'] {
 }
 #notifyDialog {
   .existing-email {
-    max-height: 500px;
+    max-height: 480px;
     overflow-y: auto;
   }
-  .user-email {
+  .user-email,
+  .user-phone {
     label {
       display: block;
       margin-bottom: 5px;
     }
-    padding: 10px 15px 15px 15px;
+    padding: 10px 15px 5px 15px;
     background-color: var(--formGroupBackground);
+  }
+  .user-phone {
+    padding-bottom: 15px;
   }
 }
 #relatedListDialog-content {

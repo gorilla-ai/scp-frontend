@@ -28,14 +28,18 @@ class NotifyDialog extends Component {
     this.state = {
       open: false,
       incidentId: '',
+      phoneCheckAll: false,
       emailCheckAll: false,
       notifyEmailList: [],
+      phoneSelectedList: [],
       emailSelectedList: [],
+      phones: [],
       emails: []
     };
   }
   componentDidMount() {
   }
+  ryan = () => {}
   /**
    * Handle dialog open
    * @method
@@ -47,6 +51,29 @@ class NotifyDialog extends Component {
       open: true,
       incidentId,
       notifyEmailList
+    });
+  }
+  /**
+   * Handle phone checkbox for all
+   * @method
+   * @param {object} event - event object
+   */
+  togglePhonecheckAll = (event) => {
+    this.setState({
+      phoneCheckAll: !this.state.phoneCheckAll
+    }, () => {
+      const {notifyEmailList, phoneCheckAll} = this.state;
+      let phoneSelectedList = [];
+
+      if (phoneCheckAll) {
+        phoneSelectedList = notifyEmailList.map(val => {
+          return val.phone;
+        });
+      }
+
+      this.setState({
+        phoneSelectedList
+      });
     });
   }
   /**
@@ -75,47 +102,78 @@ class NotifyDialog extends Component {
   /**
    * Handle checkbox check/uncheck
    * @method
+   * @param {string} type - contact type ('phone' or 'email')
    * @param {object} event - event object
    */
-  toggleCheckbox = (event) => {
-    const {emailSelectedList, notifyEmailList} = this.state;
-    let emailCheckAll = false;
-    let tempEmailSelectedList = _.cloneDeep(emailSelectedList);
+  toggleCheckbox = (type, event) => {
+    const {notifyEmailList, phoneSelectedList, emailSelectedList} = this.state;
 
-    if (event.target.checked) {
-      tempEmailSelectedList.push(event.target.name);
-    } else {
-      tempEmailSelectedList = _.filter(emailSelectedList, val => {
-        return val !== event.target.name;
+    if (type === 'phone') {
+      let phoneCheckAll = false;
+      let tempPhoneSelectedList = _.cloneDeep(phoneSelectedList);
+
+      if (event.target.checked) {
+        tempPhoneSelectedList.push(event.target.name);
+      } else {
+        tempPhoneSelectedList = _.filter(phoneSelectedList, val => {
+          return val !== event.target.name;
+        });
+      }
+
+      if (tempPhoneSelectedList.length === notifyEmailList.length) {
+        phoneCheckAll = true;
+      }
+
+      this.setState({
+        phoneCheckAll,
+        phoneSelectedList: tempPhoneSelectedList
+      });
+    } else if (type === 'email') {
+      let emailCheckAll = false;
+      let tempEmailSelectedList = _.cloneDeep(emailSelectedList);
+
+      if (event.target.checked) {
+        tempEmailSelectedList.push(event.target.name);
+      } else {
+        tempEmailSelectedList = _.filter(emailSelectedList, val => {
+          return val !== event.target.name;
+        });
+      }
+
+      if (tempEmailSelectedList.length === notifyEmailList.length) {
+        emailCheckAll = true;
+      }
+
+      this.setState({
+        emailCheckAll,
+        emailSelectedList: tempEmailSelectedList
       });
     }
-
-    if (tempEmailSelectedList.length === notifyEmailList.length) {
-      emailCheckAll = true;
-    }
-
-    this.setState({
-      emailCheckAll,
-      emailSelectedList: tempEmailSelectedList
-    });
   }
   /**
    * Check if item is already in the selected list
    * @method
+   * @param {string} type - contact type ('phone' or 'email')
    * @param {string} val - checked item name
    * @returns boolean true/false
    */
-  checkSelectedItem = (val) => {
-    return _.includes(this.state.emailSelectedList, val);
+  checkSelectedItem = (type, val) => {
+    const {phoneSelectedList, emailSelectedList} = this.state;
+
+    if (type === 'phone') {
+      return _.includes(phoneSelectedList, val);
+    } else if (type === 'email') {
+      return _.includes(emailSelectedList, val);
+    }
   }
   /**
-   * Display checkbox for account list
+   * Display checkbox for contact list
    * @method
    * @param {object} val - individual account
    * @param {number} i - index of the account
    * @returns HTML DOM
    */
-  showEmailAccount = (val, i) => {
+  showEmailPhoneAccount = (val, i) => {
     return (
       <tr key={i}>
         <td>
@@ -124,14 +182,27 @@ class NotifyDialog extends Component {
             control={
               <Checkbox
                 className='checkbox-ui'
+                name={val.phone}
+                checked={this.checkSelectedItem('phone', val.phone)}
+                onChange={this.toggleCheckbox.bind(this, 'phone')}
+                color='primary' />
+            } />
+        </td>
+        <td>
+          <FormControlLabel
+            key={i}
+            control={
+              <Checkbox
+                className='checkbox-ui'
                 name={val.email}
-                checked={this.checkSelectedItem(val.email)}
-                onChange={this.toggleCheckbox}
+                checked={this.checkSelectedItem('email', val.email)}
+                onChange={this.toggleCheckbox.bind(this, 'email')}
                 color='primary' />
             } />
         </td>
         <td>{val.account}</td>
         <td>{`${val.email} (${val.sourceText})`}</td>
+        <td>{`${val.phone}`}</td>
       </tr>
     )
   }
@@ -144,6 +215,41 @@ class NotifyDialog extends Component {
     this.setState({
       emails: newEmails
     });
+  }
+  /**
+   * Handle phone input change
+   * @method
+   * @param {array} newPhones - new phones list
+   */
+  handlePhoneChange = (newPhones) => {
+    this.setState({
+      phones: newPhones
+    });
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {function} removePhone - function to remove phone
+   * @param {number} index - index of the phones list array
+   */
+  deletePhone = (removePhone, index) => {
+    removePhone(index);
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {string} phone - individual phone
+   * @param {number} index - index of the phones list array
+   * @param {function} removePhone - function to remove phone
+   * @returns HTML DOM
+   */
+  getPhoneLabel = (phone, index, removePhone) => {
+    return (
+      <div data-tag key={index}>
+        {email}
+        <span data-tag-handle onClick={this.deletePhone.bind(this, removePhone, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
   }
   /**
    * Handle email delete
@@ -162,7 +268,7 @@ class NotifyDialog extends Component {
    * @param {function} removeEmail - function to remove email
    * @returns HTML DOM
    */
-  getLabel = (email, index, removeEmail) => {
+  getEamilLabel = (email, index, removeEmail) => {
     return (
       <div data-tag key={index}>
         {email}
@@ -176,21 +282,25 @@ class NotifyDialog extends Component {
    */
   handleNotifySubmit = () => {
     const {baseUrl, session} = this.context;
-    const {incidentId, emailSelectedList, emails} = this.state;
-    const emailList = _.concat(emailSelectedList, emails);
+    const {incidentId, phoneSelectedList, emailSelectedList, phones, emails} = this.state;
+    const smsPhoneNumberList = _.concat(phoneSelectedList, phones);
+    const sendMailList = _.concat(emailSelectedList, emails);
 
-    if (emailList.length === 0) {
-      helper.showPopupMsg(t('txt-plsEnterEmail'));
+    if (smsPhoneNumberList.length === 0 && sendMailList.length === 0) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-plsEnterPhoneEmail'));
       return;
     }
 
     const requestData = {
       incidentId,
       userId: session.accountId,
-      sendMailList: emailList
+      smsPhoneNumberList,
+      sendMailList
     };
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    return;
 
     ah.one({
       url: `${baseUrl}/api/soc/_notify`,
@@ -209,7 +319,7 @@ class NotifyDialog extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message)
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   /**
@@ -222,7 +332,7 @@ class NotifyDialog extends Component {
     });
   }
   render() {
-    const {open, emailCheckAll, notifyEmailList, emails} = this.state;
+    const {open, phoneCheckAll, emailCheckAll, notifyEmailList, phones, emails} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.close},
       confirm: {text: t('txt-confirm'), handler: this.handleNotifySubmit}
@@ -242,12 +352,25 @@ class NotifyDialog extends Component {
                   <thead>
                     <tr>
                       <th></th>
+                      <th></th>
                       <th>{t('txt-account')}</th>
                       <th>{t('soar.txt-email')}</th>
+                      <th>{t('soar.txt-cellPhone')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
+                      <td>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              className='checkbox-ui'
+                              name='phoneCheckAll'
+                              checked={phoneCheckAll}
+                              onChange={this.togglePhonecheckAll}
+                              color='primary' />
+                          } />
+                      </td>
                       <td>
                         <FormControlLabel
                           control={
@@ -261,7 +384,7 @@ class NotifyDialog extends Component {
                       </td>
                       <td>{t('txt-selectAll')}</td>
                     </tr>                      
-                    {notifyEmailList.map(this.showEmailAccount)}
+                    {notifyEmailList.map(this.showEmailPhoneAccount)}
                   </tbody>
                 </table>
               </div>
@@ -270,7 +393,14 @@ class NotifyDialog extends Component {
                 <ReactMultiEmail
                   emails={emails}
                   onChange={this.handleEmailChange}
-                  getLabel={this.getLabel} />
+                  getLabel={this.getEamilLabel} />
+              </div>
+              <div className='user-phone'>
+                <label>{t('notifications.txt-recipientPhone')}</label>
+                <ReactMultiEmail
+                  emails={phones}
+                  onChange={this.handlePhoneChange}
+                  getLabel={this.getPhoneLabel} />
               </div>
             </div>
           </div>
