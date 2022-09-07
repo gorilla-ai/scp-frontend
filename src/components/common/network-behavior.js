@@ -40,40 +40,10 @@ class NetworkBehavior extends Component {
     super(props);
 
     this.state = {
-      activeNetworkBehavior: 'threats', //'threats', 'connections', 'dns' or 'syslog'
+      activeNetworkBehavior: 'threats', //'threats' or 'syslog'
       networkBehavior: {
         threats: {
           fields: ['severity', 'count'],
-          srcIp: {
-            totalCount: 0,
-            data: []
-          },
-          destIp: {
-            totalCount: 0,
-            data: []
-          }
-        },
-        connections: {
-          fields: ['destIp', 'destPort', 'count'],
-          sort: {
-            field: 'destIp',
-            desc: true
-          },
-          srcIp: {
-            totalCount: 0,
-            data: []
-          },
-          destIp: {
-            totalCount: 0,
-            data: []
-          }
-        },
-        dns: {
-          fields: ['destIp', 'destPort', 'count'],
-          sort: {
-            field: 'destIp',
-            desc: true
-          },
           srcIp: {
             totalCount: 0,
             data: []
@@ -341,46 +311,6 @@ class NetworkBehavior extends Component {
         }
 
         tempFields = {};
-        networkBehavior.connections.fields.forEach(tempData => {
-          tempFields[tempData] = {
-            label: t(`txt-${tempData}`),
-            sortable: true,
-            formatter: (value, allValue, i) => {
-              return <span>{value}</span>
-            }
-          }
-        })
-
-        tempNetworkBehavior.connections.fieldsData = tempFields;
-        tempNetworkBehavior.dns.fieldsData = tempFields;
-
-        if (ipType === 'srcIp') {
-          tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
-
-          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
-          }
-
-          tempNetworkBehavior.dns.srcIp.totalCount = data[2].data.counts;
-
-          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
-          }
-        } else if (ipType === 'destIp') {
-          tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
-
-          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
-          }
-
-          tempNetworkBehavior.dns.destIp.totalCount = data[2].data.counts;
-
-          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
-          }
-        }
-
-        tempFields = {};
         networkBehavior.syslog.fields.forEach(tempData => {
           tempFields[tempData] = {
             label: t(`txt-${tempData}`),
@@ -420,7 +350,7 @@ class NetworkBehavior extends Component {
   /**
    * Get aggregated network behavior data
    * @method
-   * @param {string} type - network behavior type ('threats', 'connections', 'dns' or 'syslog')
+   * @param {string} type - network behavior type ('threats' or 'syslog')
    * @param {object | array.<object>} data - network behavior data
    */
   getNetworkBehaviorData = (type, data) => {
@@ -435,16 +365,6 @@ class NetworkBehavior extends Component {
               count: helper.numberWithCommas(val2.doc_count)
             });
           }
-        })
-      })
-    } else if (type === 'connections' || type === 'dns') {
-      _.forEach(data, val => {
-        _.forEach(val.destPort.buckets, val2 => {
-          tempData.push({
-            destIp: val.key,
-            destPort: val2.key,
-            count: helper.numberWithCommas(val.doc_count)
-          });
         })
       })
     } else if (type === 'syslog') {
@@ -512,10 +432,6 @@ class NetworkBehavior extends Component {
  
     if (activeNetworkBehavior === 'threats') {
       linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
-    } else if (activeNetworkBehavior === 'connections') {
-      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=connections&lng=${language}`;
-    } else if (activeNetworkBehavior === 'dns') {
-      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=dns&lng=${language}`;
     } else if (activeNetworkBehavior === 'syslog') {
       linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
     }
@@ -525,7 +441,7 @@ class NetworkBehavior extends Component {
   /**
    * Handle table sort for network behavior
    * @method
-   * @param {string} type - network behavior type ('threats', 'connections', 'dns' or 'syslog')
+   * @param {string} type - network behavior type ('threats' or 'syslog')
    * @param {object} sort - sort data object
    */
   handleNetworkBehaviorTableSort = (type, sort) => {
@@ -571,8 +487,6 @@ class NetworkBehavior extends Component {
           exclusive
           onChange={this.toggleNetworkBtn}>
           <ToggleButton id='networkBehaviorThreats' value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
-          <ToggleButton id='networkBehaviorConnections' value='connections'>{t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'}</ToggleButton>
-          <ToggleButton id='networkBehaviorDns' value='dns'>{t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'}</ToggleButton>
           <ToggleButton id='networkBehaviorSyslog' value='syslog'>{t('txt-syslog-en') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
         </ToggleButtonGroup>
 

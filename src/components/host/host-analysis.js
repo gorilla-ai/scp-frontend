@@ -141,6 +141,7 @@ class HostAnalysis extends Component {
   setActiveTab = (activeTab) => {
     this.setState({
       activeTab,
+      activeScanType: '',
       showSafetyScan: false,
       showVansNotes: false
     });

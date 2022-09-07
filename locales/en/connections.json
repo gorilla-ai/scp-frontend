@@ -971,6 +971,7 @@
       "txt-scanFile": "Malware - Windows",
       "txt-scanFileLinux": "Malware - Linux",
       "txt-importGcbAndGcbDetection": "GCB",
+      "txt-gcb": "GCB",
       "txt-ir": "IR",
       "txt-eventTracing": "Event Tracing",
       "txt-fileIntegrity": "File Integrity",

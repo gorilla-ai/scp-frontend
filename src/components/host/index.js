@@ -4394,6 +4394,7 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/v2/ipdevice/assessment/_search/_retrigger`;
     const requestData = {
+      ...this.getHostSafetyRequestData(),
       cmdJO: {
         cmds: ['resetTaskConfig'],
         taskThreads: [
