@@ -120,6 +120,7 @@
 	"txt-accidentTitle": "事故分類與異常原因",
 	"txt-notifyUnit": "額外通知聯絡人列表",
 	"txt-notify": "通知聯絡人",
+	"txt-notifySendSuccess": "通知聯絡人寄送成功",
 	"txt-reason": "異常原因",
 	"txt-reasonDescr": "事故發生原因",
 	"txt-accidentClassification": "事故分類",

@@ -717,6 +717,7 @@
   },
 
   "notifications": {
+    "txt-sendEmails": "寄信",
     "txt-testEmails": "寄信測試",
     "txt-settings": "通知設定",
     "txt-sync": "同步情資",
@@ -741,6 +742,7 @@
     "txt-notifyEmail": "通知郵件信箱",
     "txt-emailInvalid": "請輸入正確的email",
     "txt-sendSuccess": "寄送成功",
+    "txt-sendFailed": "以下通知寄出失敗",
     "lineBot": {
       "txt-lineBotSettings": "Line 通知設定",
       "txt-channelAccessToken": "Channel Access Token",

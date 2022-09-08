@@ -7,6 +7,7 @@ import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
@@ -39,7 +40,6 @@ class NotifyDialog extends Component {
   }
   componentDidMount() {
   }
-  ryan = () => {}
   /**
    * Handle dialog open
    * @method
@@ -186,7 +186,8 @@ class NotifyDialog extends Component {
                 checked={this.checkSelectedItem('phone', val.phone)}
                 onChange={this.toggleCheckbox.bind(this, 'phone')}
                 color='primary' />
-            } />
+            }
+            disabled={val.phone === ''} />
         </td>
         <td>
           <FormControlLabel
@@ -198,7 +199,8 @@ class NotifyDialog extends Component {
                 checked={this.checkSelectedItem('email', val.email)}
                 onChange={this.toggleCheckbox.bind(this, 'email')}
                 color='primary' />
-            } />
+            }
+            disabled={val.email === ''} />
         </td>
         <td>{val.account}</td>
         <td>{`${val.email} (${val.sourceText})`}</td>
@@ -246,7 +248,7 @@ class NotifyDialog extends Component {
   getPhoneLabel = (phone, index, removePhone) => {
     return (
       <div data-tag key={index}>
-        {email}
+        {phone}
         <span data-tag-handle onClick={this.deletePhone.bind(this, removePhone, index)}> <span className='font-bold'>x</span></span>
       </div>
     )
@@ -277,6 +279,33 @@ class NotifyDialog extends Component {
     )
   }
   /**
+   * Display list for contact failed
+   * @method
+   * @param {object} val - individual contact
+   * @param {number} i - index of the contact
+   * @returns HTML DOM
+   */
+  showList = (val, i) => {
+    return <li key={i} style={{fontWeight: 'bold'}}>{val}</li>
+  }
+  /**
+   * Display contact failed list
+   * @method
+   * @param {array.<string>} failedList - contact failed list
+   * @returns HTML DOM
+   */
+  showFailedList = (failedList) => {
+    return (
+      <React.Fragment>
+        <div>{it('txt-notifySendSuccess')}</div>
+        <div style={{margin: '15px 0 5px 0'}}>{t('notifications.txt-sendFailed')}:</div>
+        <ul style={{maxHeight: '200px', overflowY: 'auto'}}>
+          {failedList.map(this.showList)}
+        </ul>
+      </React.Fragment>
+    )
+  }
+  /**
    * Handle notify email submit
    * @method
    */
@@ -300,8 +329,6 @@ class NotifyDialog extends Component {
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    return;
-
     ah.one({
       url: `${baseUrl}/api/soc/_notify`,
       data: JSON.stringify(requestData),
@@ -310,8 +337,19 @@ class NotifyDialog extends Component {
     })
     .then(data => {
       if (data && data.rt) {
-        if (data.status.includes('success')){
-          helper.showPopupMsg('', it('txt-notify'), it('txt-notify') + t('notifications.txt-sendSuccess'));
+        if (data.ret === 0) {
+          const failedList = data.rt.failedList;
+
+          if (failedList.length === 0) {
+            helper.showPopupMsg('', it('txt-notify'), it('txt-notifySendSuccess'));
+          } else {
+            PopupDialog.alert({
+              id: 'modalWindowSmall',
+              title: it('txt-notify'),
+              confirmText: t('txt-ok'),
+              display: this.showFailedList(failedList)
+            });
+          }
         } else {
           helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'));
         }
@@ -328,7 +366,9 @@ class NotifyDialog extends Component {
    */
   close = () => {
     this.setState({
-      open: false
+      open: false,
+      phoneSelectedList: [],
+      emailSelectedList: []
     });
   }
   render() {
@@ -351,8 +391,8 @@ class NotifyDialog extends Component {
                 <table className='c-table main-table'>
                   <thead>
                     <tr>
-                      <th></th>
-                      <th></th>
+                      <th>{t('notifications.sms.txt-textMsg')}</th>
+                      <th>{t('notifications.txt-sendEmails')}</th>
                       <th>{t('txt-account')}</th>
                       <th>{t('soar.txt-email')}</th>
                       <th>{t('soar.txt-cellPhone')}</th>
@@ -400,6 +440,7 @@ class NotifyDialog extends Component {
                 <ReactMultiEmail
                   emails={phones}
                   onChange={this.handlePhoneChange}
+                  validateEmail={phone => true}
                   getLabel={this.getPhoneLabel} />
               </div>
             </div>
