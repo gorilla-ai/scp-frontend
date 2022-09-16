@@ -77,7 +77,8 @@ class SoarFlow extends Component {
         link: null
       },
       activeElementType: '', //'node' or 'link'
-      activeElement: {}
+      activeElement: {},
+      sourceLogs: []
     };
 
     this.reactFlowWrapper = React.createRef();
@@ -468,6 +469,24 @@ class SoarFlow extends Component {
     this.handleCloseMenu();
   }
   /**
+   * Set source logs
+   * @method
+   * @param {array.<object>} sourceLogs - source logs from user test
+   */
+  setSourceLogs = (sourceLogs) => {
+    let updatedSourceLogs = sourceLogs;
+
+    if (sourceLogs.length === 1 && sourceLogs[0].log === '') {
+      updatedSourceLogs = [];
+    }
+
+    this.setState({
+      sourceLogs: updatedSourceLogs
+    }, () => {
+      this.closeDialog();
+    });
+  }
+  /**
    * Close dialog
    * @method
    */
@@ -496,7 +515,8 @@ class SoarFlow extends Component {
       soarRule: {
         name: '',
         aggFieldId: ''
-      }
+      },
+      sourceLogs: []
     }, () => {
       if (options === 'table') {
         this.props.toggleContent(options, 'refresh');
@@ -740,7 +760,8 @@ class SoarFlow extends Component {
       linkEditable,
       contextAnchor,
       activeElementType,
-      activeElement
+      activeElement,
+      sourceLogs
     } = this.state;
 
     return (
@@ -752,6 +773,7 @@ class SoarFlow extends Component {
             activeElementType={activeElementType}
             activeElement={activeElement}
             soarParam={soarParam}
+            sourceLogs={sourceLogs}
             confirmSoarFlowData={this.confirmSoarFlowData}
             closeDialog={this.closeDialog} />
         }
@@ -765,6 +787,8 @@ class SoarFlow extends Component {
             soarIndividualData={soarIndividualData}
             activeElementType={activeElementType}
             activeElement={activeElement}
+            sourceLogs={sourceLogs}
+            setSourceLogs={this.setSourceLogs}
             confirmSoarFlowData={this.confirmSoarFlowData}
             closeDialog={this.closeDialog} />
         }

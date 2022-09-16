@@ -743,12 +743,7 @@ class NetworkInventory extends Component {
    */
   checkSortable = (field) => {
     const unSortableFields = ['netproxyIp', 'owner', 'areaName', 'seatName', '_menu'];
-
-    if (_.includes(unSortableFields, field)) {
-      return false;
-    } else {
-      return true;
-    }
+    return !_.includes(unSortableFields, field);
   }
   /**
    * Toggle batch updates for row checkbox

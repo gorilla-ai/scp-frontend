@@ -474,7 +474,7 @@ class Notifications extends Component {
     const {activeContent, emails} = this.state;
 
     return (
-      <div className='form-group normal long' key={val.type}>
+      <div key={val.type} className='form-group normal long'>
         <header>{val.headerText}</header>
         <div className='group'>
           <label>{t('notifications.txt-recipientEmail')}</label>
@@ -594,7 +594,11 @@ class Notifications extends Component {
         <div className='group full'>
           <label style={{fontSize: '14px'}}>{t('notifications.sms.txt-recipients')}</label>
           {activeContent === 'viewMode' &&
-            <div className='flex-item'>{smsProvider.data.recipientNumberList.map(this.displayListItem)}</div>
+            <div className='flex-item'>
+              {smsProvider.data.recipientNumberLis && smsProvider.data.recipientNumberLis.length > 0 &&
+                smsProvider.data.recipientNumberList.map(this.displayListItem)
+              }
+            </div>
           }
           {activeContent === 'editMode' &&
             <ChipInput

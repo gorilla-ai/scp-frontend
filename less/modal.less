@@ -2563,9 +2563,25 @@ html[data-theme='dark'] {
   }
 }
 #soarSettingsDialog-content {
-  width: 370px;
+  .view-logs-btn {
+    float: right;
+    padding: 0 10px;
+  }
+  .form-settings {
+    display: flex;
+    clear: both;
+    .view-logs {
+      min-width: 500px;
+      .textarea-autosize {
+        cursor: text;
+        background-color: #eee;
+        overflow-y: auto;
+      }
+    }
+  }
   .soar-form {
-    margin: 10px;
+    min-width: 330px;
+    margin: 0px 10px;
     .c-multi > .group {
       position: relative;
       width: 100%;
@@ -2610,10 +2626,17 @@ html[data-theme='dark'] {
         .fg-add {
           top: 15px;
         }
+        .fg-close {
+          left: 225px;
+        }
+        .fg-add {
+          left: 260px;
+        }
         .request-headers {
+          display: block;
+          width: 210px;
           margin-left: 10px;
           margin-top: 15px;
-          margin-bottom: -5px;
           .request-header,
           .request-field {
             margin-bottom: 15px;

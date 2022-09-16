@@ -611,6 +611,8 @@
     "txt-node": "Node",
     "txt-action": "Action",
     "txt-defaultLink": "Link",
+    "txt-showLogs": "View Logs",
+    "txt-hideLogs": "Hide Logs",
     "txt-adapterSettings": "Adapter $t(txt-settings)",
     "txt-nodeSettings": "Node $t(txt-settings)",
     "txt-actionSettings": "Action $t(txt-settings)",

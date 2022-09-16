@@ -611,6 +611,8 @@
     "txt-node": "節點",
     "txt-action": "執行",
     "txt-defaultLink": "連結",
+    "txt-showLogs": "檢視Logs",
+    "txt-hideLogs": "隱藏Logs",
     "txt-adapterSettings": "事件來源$t(txt-settings)",
     "txt-nodeSettings": "節點$t(txt-settings)",
     "txt-actionSettings": "執行$t(txt-settings)",

@@ -15,7 +15,6 @@ import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PieChart from 'react-chart/build/src/components/pie'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import ReactJson from 'react-json-view'
 

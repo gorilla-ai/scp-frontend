@@ -6,10 +6,8 @@ import cx from 'classnames'
 import { ReactMultiEmail } from 'react-multi-email'
 
 import MenuItem from '@material-ui/core/MenuItem'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../common/context'

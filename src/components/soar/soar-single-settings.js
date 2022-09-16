@@ -4,11 +4,7 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import Button from '@material-ui/core/Button'
-import Checkbox from '@material-ui/core/Checkbox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import MenuItem from '@material-ui/core/MenuItem'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
-import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
@@ -32,7 +28,8 @@ class SoarSingleSettings extends Component {
     super(props);
 
     this.state = {
-      newSoarFlow: []
+      newSoarFlow: [],
+      viewLogs: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -122,21 +119,63 @@ class SoarSingleSettings extends Component {
     }
   }
   /**
+   * Toggle view logs on/off
+   * @method
+   */
+  toggleViewLogs = () => {
+    this.setState({
+      viewLogs: !this.state.viewLogs
+    });
+  }
+  /**
+   * Display the source logs content
+   * @method
+   * @param {object} val - content of the source logs
+   * @param {number} i - index of the source logs
+   * @returns HTML DOM
+   */
+  showSourceLogs = (val, i) => {
+    return (
+      <div key={i}>
+        <TextareaAutosize
+          className='textarea-autosize'
+          rows={10}
+          value={val.log}
+          disabled={true} />
+      </div>
+    )
+  }
+  /**
    * Display settings content
    * @method
    * @returns HTML DOM
    */
   displaySettings = () => {
-    const {soarColumns, activeElementType, activeElement, soarParam} = this.props;
+    const {soarColumns, activeElementType, activeElement, soarParam, sourceLogs} = this.props;
+    const {viewLogs} = this.state;
+    const logStatus = viewLogs ? 'hide' : 'show';
 
     return (
-      <SoarForm
-        from='soarFlow'
-        soarColumns={soarColumns}
-        activeElementType={activeElementType}
-        activeElement={activeElement}
-        soarParam={soarParam}
-        setSoarFlowData={this.setSoarFlowData} />
+      <div>
+        {sourceLogs.length > 0 &&
+          <Button variant='contained' color='primary' className='view-logs-btn' onClick={this.toggleViewLogs}>{t(`soar.txt-${logStatus}Logs`)}</Button>
+        }
+        <div className='form-settings'>
+          <SoarForm
+            from='soarFlow'
+            soarColumns={soarColumns}
+            activeElementType={activeElementType}
+            activeElement={activeElement}
+            soarParam={soarParam}
+            setSoarFlowData={this.setSoarFlowData} />
+          {viewLogs &&
+            <div className='group view-logs'>
+              <label>Logs</label>
+              {sourceLogs.map(this.showSourceLogs)}
+            </div>
+          }
+        </div>
+      </div>
     )
   }
   render() {
@@ -171,6 +210,7 @@ SoarSingleSettings.propTypes = {
   activeElementType: PropTypes.string.isRequired,
   activeElement: PropTypes.object.isRequired,
   soarParam: PropTypes.object.isRequired,
+  sourceLogs: PropTypes.string.isRequired,
   confirmSoarFlowData: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };
