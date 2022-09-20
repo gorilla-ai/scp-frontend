@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import _ from 'lodash'
-import cx from 'classnames'
 
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
@@ -29,7 +27,7 @@ class SearchFilter extends Component {
     });
   }
   render() {
-    const {queryType, activeTab, value} = this.props;
+    const {queryType, value} = this.props;
     const formStatus = queryType === 'query' ? true : false;
     const conditionList = ['Must', 'Must Not', 'Either'];
     const filterList = _.map(conditionList, (val, i) => {

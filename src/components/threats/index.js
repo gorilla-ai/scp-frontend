@@ -3115,7 +3115,7 @@ class ThreatsController extends Component {
 
     return (
       <QueryOpenSave
-        activeTab={activeTab}
+        page={activeTab}
         type={queryModalType}
         moduleWithSOC={moduleWithSOC}
         account={account}

@@ -16,12 +16,12 @@ class FilterInput extends Component {
     super(props);
   }
   render() {
-    const {activeTab, queryType, logFields, filterData, inline} = this.props;
+    const {page, queryType, logFields, filterData, inline} = this.props;
     let data = {};
 
     if (queryType === 'query') {
       data = {
-        activeTab,
+        page,
         queryType,
         logFields
       };
@@ -37,10 +37,10 @@ class FilterInput extends Component {
     } else {
       let defaultFilter = {};
 
-      if (activeTab === 'logs') {
+      if (page === 'logs') {
         if (logFields.length > 0) {
           data = {
-            activeTab,
+            page,
             logFields
           };
 
@@ -52,7 +52,7 @@ class FilterInput extends Component {
         }
       } else {
         data = {
-          activeTab
+          page
         };
 
         defaultFilter = {
@@ -78,7 +78,7 @@ class FilterInput extends Component {
 }
 
 FilterInput.propTypes = {
-  activeTab: PropTypes.string.isRequired,
+  page: PropTypes.string.isRequired,
   filterData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired,
   setFilterData: PropTypes.func

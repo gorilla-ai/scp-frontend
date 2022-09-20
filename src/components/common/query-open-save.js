@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -18,7 +19,6 @@ import {BaseDataContext} from './context'
 import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
-import Switch from "@material-ui/core/Switch";
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -92,7 +92,7 @@ class QueryOpenSave extends Component {
       formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
-    it = global.chewbaccaI18n.getFixedT(null, "incident");
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
@@ -285,7 +285,7 @@ class QueryOpenSave extends Component {
    */
   handleQueryAction = () => {
     const {pattern, patternCheckbox, publicCheckbox} = this.state;
-    const {activeTab, type, filterData, queryData, queryDataPublic, markData, moduleWithSOC} = this.props;
+    const {page, type, filterData, queryData, queryDataPublic, markData, moduleWithSOC} = this.props;
 
     if (type === 'open' || type === 'publicOpen') {
       if (type === 'open') {
@@ -297,10 +297,10 @@ class QueryOpenSave extends Component {
         this.props.setQueryData(tempQueryData, 'setQuery');
 
         if (queryData.query) {
-          if (activeTab === 'hostList') {
+          if (page === 'hostList') {
             this.props.setFilterData(queryData.query);
           } else {
-            if (activeTab === 'logs') {
+            if (page === 'logs') {
               let formattedMarkData = [];
 
               _.forEach(queryData.query.search, val => {
@@ -325,7 +325,7 @@ class QueryOpenSave extends Component {
         this.props.setQueryData(tempQueryDataPublic, 'setQuery');
 
         if (queryDataPublic.query) {
-          if (activeTab === 'logs') {
+          if (page === 'logs') {
             let formattedMarkData = [];
 
             _.forEach(queryDataPublic.query.search, val => {
@@ -342,7 +342,7 @@ class QueryOpenSave extends Component {
       }
     } else if (type === 'save' || type === 'publicSave') {
       const {baseUrl} = this.context;
-      const {activeTab, account, queryData, queryDataPublic, notifyEmailData} = this.props;
+      const {page, account, queryData, queryDataPublic, notifyEmailData} = this.props;
       const {newQueryName, soc, socTemplateEnable, formValidation} = this.state;
       let tempFormValidation = {...formValidation};
       let tempFilterData = [];
@@ -353,7 +353,7 @@ class QueryOpenSave extends Component {
       let requestType = '';
       let validate = true;
 
-      if (activeTab !== 'hostList') {
+      if (page !== 'hostList') {
         _.forEach(filterData, val => {
           if (val.query) {
             tempFilterData.push({
@@ -432,7 +432,7 @@ class QueryOpenSave extends Component {
         return;
       }
 
-      if (type === 'save' && activeTab === 'logs') { //Form validation
+      if (type === 'save' && page === 'logs') { //Form validation
         if (patternCheckbox) {
           if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
             this.setState({
@@ -454,7 +454,7 @@ class QueryOpenSave extends Component {
         }
       }
 
-      if (activeTab === 'hostList') {
+      if (page === 'hostList') {
         url = `${baseUrl}/api/account/host/queryText`;
 
         Object.keys(filterData).map(val => {
@@ -474,12 +474,12 @@ class QueryOpenSave extends Component {
             }
           }
         });
-      } else if (activeTab === 'alert') {
+      } else if (page === 'alert') {
         url = `${baseUrl}/api/account/alert/queryText`;
         queryText = {
           filter: filterData
         };
-      } else if (activeTab === 'logs') {
+      } else if (page === 'logs') {
         let markDataArr = [];
         url = `${baseUrl}/api/v1/account/syslog/queryText`;
 
@@ -508,7 +508,7 @@ class QueryOpenSave extends Component {
           accountId = 'IsPublic';
           queryName = queryDataPublic.inputName;
         } else if (type === 'save') {
-          if (activeTab === 'alert') {
+          if (page === 'alert') {
             if (publicCheckbox) {
               accountId = 'Default';
               queryName = queryData.inputName;
@@ -542,7 +542,7 @@ class QueryOpenSave extends Component {
           queryId = queryDataPublic.id;
           accountId = 'IsPublic';
         } else if (type === 'save') {
-          if (activeTab === 'alert') {
+          if (page === 'alert') {
             if (publicCheckbox) {
               accountId = 'Default';
             } else {
@@ -561,7 +561,7 @@ class QueryOpenSave extends Component {
         };
 
         if (type === 'save' && patternCheckbox) {
-          if (activeTab !== 'alert') {
+          if (page !== 'alert') {
             requestData.patternId = queryData.patternId;
           }
         }
@@ -569,11 +569,11 @@ class QueryOpenSave extends Component {
         requestType = 'PATCH';
       }
 
-      if (type === 'save' && activeTab === 'alert') {
+      if (type === 'save' && page === 'alert') {
         requestData.emailList = notifyEmailData;
       }
 
-      if (type === 'save' && activeTab === 'logs') {
+      if (type === 'save' && page === 'logs') {
         if (patternCheckbox) {
           requestData.emailList = notifyEmailData;
 
@@ -618,10 +618,10 @@ class QueryOpenSave extends Component {
                 limitQuery: soc.limitQuery,
                 creator: account.id
               };
-              if (activeTab === 'alert') {
+              if (page === 'alert') {
                 socRequestBody.severity = soc.severity;
               }
-              if (activeTab === 'logs') {
+              if (page === 'logs') {
                 socRequestBody.severity = pattern.severity;
               }
               if (this.state.socTemplateEnable) {
@@ -684,7 +684,7 @@ class QueryOpenSave extends Component {
                 })
               }
             } else {
-              if (this.state.socTemplateEnable && (activeTab === 'alert' || activeTab === 'logs')) {
+              if (this.state.socTemplateEnable && (page === 'alert' || page === 'logs')) {
                 let socRequestBody = {
                   id: data.id,
                   title: soc.title,
@@ -695,11 +695,11 @@ class QueryOpenSave extends Component {
                   creator: account.id
                 };
 
-                if (activeTab === 'alert') {
+                if (page === 'alert') {
                   socRequestBody.severity = soc.severity;
                 }
 
-                if (activeTab === 'logs') {
+                if (page === 'logs') {
                   socRequestBody.severity = pattern.severity;
                 }
 
@@ -842,7 +842,7 @@ class QueryOpenSave extends Component {
    */
   deleteFilterQuery = () => {
     const {baseUrl} = this.context;
-    const {activeTab, type, queryData, queryDataPublic} = this.props;
+    const {page, type, queryData, queryDataPublic} = this.props;
     let queryId = '';
     let url = '';
 
@@ -858,9 +858,9 @@ class QueryOpenSave extends Component {
       queryId = queryDataPublic.id;
     }
 
-    if (activeTab === 'alert') {
+    if (page === 'alert') {
       url = `${baseUrl}/api/account/alert/queryText?id=${queryId}`;
-    } else if (activeTab === 'logs') {
+    } else if (page === 'logs') {
       url = `${baseUrl}/api/v1/account/syslog/queryText?id=${queryId}`;
     } else {
       url = `${baseUrl}/api/account/event/queryText?id=${queryId}`;
@@ -898,7 +898,7 @@ class QueryOpenSave extends Component {
             tempQueryData.query = newQueryList[0].queryText;
             tempQueryData.emailList = newQueryList[0].emailList;
 
-            if (activeTab === 'logs') {
+            if (page === 'logs') {
               tempQueryData.patternId = '';
               tempQueryData.pattern = {
                 name: '',
@@ -968,12 +968,12 @@ class QueryOpenSave extends Component {
    * @returns FilterInput component
    */
   displayFilterQuery = (value, index) => {
-    const {activeTab, logFields} = this.props;
+    const {page, logFields} = this.props;
 
     return (
       <FilterInput
         key={index}
-        activeTab={activeTab}
+        page={page}
         logFields={logFields}
         queryType='query'
         filterData={[{
@@ -1041,12 +1041,12 @@ class QueryOpenSave extends Component {
    * @returns MarkInput component
    */
   displayMarkSearch = (value, index) => {
-    const {activeTab, logFields} = this.props;
+    const {page, logFields} = this.props;
 
     return (
       <MarkInput
         key={index}
-        activeTab={activeTab}
+        page={page}
         logFields={logFields}
         queryType='query'
         markData={[{
@@ -1062,7 +1062,7 @@ class QueryOpenSave extends Component {
    * @param {object} event - event object
    */
   handleQueryChange = (fieldType, event, comboValue) => {
-    const {activeTab, type, queryData, queryDataPublic} = this.props;
+    const {page, type, queryData, queryDataPublic} = this.props;
     const {queryList, activeQuery, newQueryName, pattern} = this.state;
     let tempQueryData = {...queryData};
     let tempQueryDataPublic = {...queryDataPublic};
@@ -1115,7 +1115,7 @@ class QueryOpenSave extends Component {
             let formattedQueryText = [];
             tempQueryData.name = val.name;
 
-            if (activeTab === 'hostList') {
+            if (page === 'hostList') {
               tempQueryData.query = val.queryText;
             } else {
               _.forEach(val.queryText.filter, val => {
@@ -1130,7 +1130,7 @@ class QueryOpenSave extends Component {
 
               tempQueryData.query.filter = formattedQueryText;
 
-              if (activeTab === 'logs') {
+              if (page === 'logs') {
                 tempQueryData.query.search = val.queryText.search;
               }
 
@@ -1175,7 +1175,7 @@ class QueryOpenSave extends Component {
         })
         this.props.setQueryData(tempQueryData);
 
-        if (activeTab !== 'hostList') {
+        if (page !== 'hostList') {
           this.setState({
             pattern: tempPattern,
             patternCheckbox,
@@ -1217,7 +1217,7 @@ class QueryOpenSave extends Component {
 
             tempQueryDataPublic.query.filter = formattedQueryText;
 
-            if (activeTab === 'logs') {
+            if (page === 'logs') {
               tempQueryDataPublic.query.search = val.queryText.search;
             }
             return false;
@@ -1412,20 +1412,20 @@ class QueryOpenSave extends Component {
    * @returns ReactMultiEmail component
    */
   displayEmailInput = () => {
-    const {activeTab, notifyEmailData} = this.props;
+    const {page, notifyEmailData} = this.props;
     const {patternCheckbox} = this.state;
 
     return (
       <div>
         <label>{t('notifications.txt-notifyEmail')}</label>
-        {(activeTab === 'hostList' || activeTab === 'alert' || (activeTab === 'logs' && patternCheckbox)) &&
+        {(page === 'hostList' || page === 'alert' || (page === 'logs' && patternCheckbox)) &&
           <ReactMultiEmail
             id='reactMultiEmail'
             emails={notifyEmailData}
             onChange={this.props.setNotifyEmailData}
             getLabel={this.getLabel} />
         }
-        {activeTab === 'logs' && !patternCheckbox &&
+        {page === 'logs' && !patternCheckbox &&
           <TextField
             className='email-disabled'
             variant='outlined'
@@ -1897,7 +1897,7 @@ class QueryOpenSave extends Component {
    */
   displayQueryContent = (type) => {
     const {locale, sessionRights} = this.context;
-    const {activeTab, queryData, queryDataPublic, filterData, markData, moduleWithSOC} = this.props;
+    const {page, queryData, queryDataPublic, filterData, markData, moduleWithSOC} = this.props;
     const {queryList, activeQuery, formValidation} = this.state;
     let displayQueryList = [];
     let tempFilterData = [];
@@ -1912,11 +1912,11 @@ class QueryOpenSave extends Component {
           return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
         });
 
-        if (activeTab === 'logs' && !_.isEmpty(queryData.query)) {
+        if (page === 'logs' && !_.isEmpty(queryData.query)) {
           queryDataList = queryData.query.filter;
           queryDataMark = queryData.query.search;
         } else {
-          if (activeTab === 'hostList') {
+          if (page === 'hostList') {
             queryDataList = queryData.query;
           } else {
             queryDataList = queryData.query.filter;
@@ -1927,7 +1927,7 @@ class QueryOpenSave extends Component {
           return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
         });
 
-        if (activeTab === 'logs' && !_.isEmpty(queryDataPublic.query)) {
+        if (page === 'logs' && !_.isEmpty(queryDataPublic.query)) {
           queryDataList = queryDataPublic.query.filter;
           queryDataMark = queryDataPublic.query.search;
         } else {
@@ -1946,10 +1946,10 @@ class QueryOpenSave extends Component {
             onChange={this.handleQueryChange.bind(this, 'id')} />
 
           <div className='filter-group' style={this.getQueryColor('filter', queryDataList)}>
-            {activeTab === 'hostList' && queryDataList &&
+            {page === 'hostList' && queryDataList &&
               Object.keys(queryDataList).map(this.displayHostQuery.bind(this, queryDataList))
             }
-            {activeTab !== 'hostList' && queryDataList && queryDataList.length > 0 &&
+            {page !== 'hostList' && queryDataList && queryDataList.length > 0 &&
               queryDataList.map(this.displayFilterQuery)
             }
           </div>
@@ -1960,22 +1960,22 @@ class QueryOpenSave extends Component {
             }
           </div>
 
-          {activeTab === 'alert' && queryData.emailList.length > 0 && type === 'open' &&
+          {page === 'alert' && queryData.emailList.length > 0 && type === 'open' &&
             <div className='email-list'>
               <label>{t('notifications.txt-notifyEmail')}</label>
               <div className='flex-item'>{queryData.emailList.map(this.displayEmail)}</div>
             </div>
           }
 
-          {type === 'open' && activeTab === 'logs' && queryData.patternId &&
+          {type === 'open' && page === 'logs' && queryData.patternId &&
             this.getQueryAlertContent(type)
           }
 
-          {activeTab === 'logs' && queryData.patternId && moduleWithSOC && type === 'open' &&
+          {page === 'logs' && queryData.patternId && moduleWithSOC && type === 'open' &&
             this.getQueryWithSOCByLog(type)
           }
 
-          {activeTab === 'alert' && moduleWithSOC && type === 'open' &&
+          {page === 'alert' && moduleWithSOC && type === 'open' &&
             this.getQueryWithSOC(type)
           }
 
@@ -1993,7 +1993,7 @@ class QueryOpenSave extends Component {
       let textFieldValue = '';
       let hostFilterEmpty = true;
 
-      if (activeTab === 'hostList') {
+      if (page === 'hostList') {
         _.forEach(filterData, (val, key) => {
           if (val.length > 0) {
             hostFilterEmpty = false;
@@ -2081,13 +2081,13 @@ class QueryOpenSave extends Component {
             }
           </div>
 
-          {activeTab === 'hostList' && !hostFilterEmpty &&
+          {page === 'hostList' && !hostFilterEmpty &&
             <div className='filter-group'>
               {Object.keys(filterData).map(this.displayHostQuery.bind(this, filterData))}
             </div>
           }
 
-          {activeTab !== 'hostList' && tempFilterData.length > 0 &&
+          {page !== 'hostList' && tempFilterData.length > 0 &&
             <div className='filter-group'>
               {tempFilterData.map(this.displayFilterQuery)}
             </div>
@@ -2099,19 +2099,19 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {type === 'save' && activeTab === 'alert' &&
+          {type === 'save' && page === 'alert' &&
             this.displayEmailInput()
           }
 
-          {type === 'save' && activeTab === 'logs' &&
+          {type === 'save' && page === 'logs' &&
             this.getQueryAlertContent(type)
           }
 
-          {activeTab === 'logs' && moduleWithSOC  && type === 'save' &&
+          {page === 'logs' && moduleWithSOC  && type === 'save' &&
             this.getQueryWithSOCByLog(type)
           }
 
-          {activeTab === 'alert' && moduleWithSOC && type === 'save' &&
+          {page === 'alert' && moduleWithSOC && type === 'save' &&
             this.getQueryWithSOC(type)
           }
         </div>
@@ -2119,7 +2119,7 @@ class QueryOpenSave extends Component {
     }
   }
   render() {
-    const {activeTab, type, queryData, queryDataPublic, filterData} = this.props;
+    const {page, type, queryData, queryDataPublic, filterData} = this.props;
     const titleText = t(`events.connections.txt-${type}Query`);
     let actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
@@ -2144,7 +2144,7 @@ class QueryOpenSave extends Component {
     if (type === 'save' || type === 'publicSave') {
       let showEmptyQeuryMsg = false;
 
-      if (activeTab === 'hostList') {
+      if (page === 'hostList') {
         let filterEmpty = true;
 
         _.forEach(filterData, (val, key) => {
@@ -2190,7 +2190,7 @@ class QueryOpenSave extends Component {
 QueryOpenSave.contextType = BaseDataContext;
 
 QueryOpenSave.propTypes = {
-  activeTab: PropTypes.string.isRequired,
+  page: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   account: PropTypes.object.isRequired,
   filterData: PropTypes.array.isRequired,

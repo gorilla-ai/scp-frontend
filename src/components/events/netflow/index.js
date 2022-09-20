@@ -2861,7 +2861,7 @@ class Netflow extends Component {
 
     return (
       <QueryOpenSave
-        activeTab={activeTab}
+        page={activeTab}
         type={type}
         account={account}
         filterData={filterData}

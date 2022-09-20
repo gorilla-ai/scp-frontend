@@ -1133,7 +1133,7 @@ class HostController extends Component {
 
     return (
       <QueryOpenSave
-        activeTab={activeTab}
+        page='hostList'
         type={queryModalType}
         account={account}
         queryData={queryData}
