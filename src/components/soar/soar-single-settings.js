@@ -138,7 +138,7 @@ class SoarSingleSettings extends Component {
     return (
       <div key={i}>
         <TextareaAutosize
-          className='textarea-autosize'
+          className='textarea-autosize disabled'
           rows={10}
           value={val.log}
           disabled={true} />
@@ -157,9 +157,7 @@ class SoarSingleSettings extends Component {
 
     return (
       <div>
-        {sourceLogs.length > 0 &&
-          <Button variant='contained' color='primary' className='view-logs-btn' onClick={this.toggleViewLogs}>{t(`soar.txt-${logStatus}Logs`)}</Button>
-        }
+        <Button variant='contained' color='primary' className='view-logs-btn' onClick={this.toggleViewLogs} disabled={!sourceLogs || sourceLogs.length === 0}>{t(`soar.txt-${logStatus}Logs`)}</Button>
         <div className='form-settings'>
           <SoarForm
             from='soarFlow'

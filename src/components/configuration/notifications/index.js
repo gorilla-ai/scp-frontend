@@ -833,7 +833,7 @@ class Notifications extends Component {
     };
     let accountName = 'N/A';
 
-    if (lineBotSettings.qrcodeLink.includes('sid/L/')) {
+    if (lineBotSettings.qrcodeLink && lineBotSettings.qrcodeLink.includes('sid/L/')) {
       const tempSpiltAccountNameArray =  lineBotSettings.qrcodeLink.split("sid/L/");
       const tmpNameArray = tempSpiltAccountNameArray[1].split(".");
       accountName = '@'+ tmpNameArray[0];
