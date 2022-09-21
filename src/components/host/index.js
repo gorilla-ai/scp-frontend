@@ -669,6 +669,7 @@ class HostController extends Component {
   /**
    * Get and set host sort list
    * @method
+   * @returns HTML DOM
    */
   getHostSortList = () => {
     const hostSortList = _.map(HOST_SORT_LIST, (val, i) => {
@@ -1054,6 +1055,7 @@ class HostController extends Component {
    * Build device search list format
    * @method
    * @param {object} filterData - filter data to be set
+   * @returns searchList array
    */
   getDeviceSearchList = (list) => {
     const searchList = _.map(list, val => {
@@ -1220,6 +1222,7 @@ class HostController extends Component {
   /**
    * Get Host and Safety Scan request data
    * @method
+   * @returns requestData object
    */
   getHostSafetyRequestData = () => {
     const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
@@ -2892,6 +2895,7 @@ class HostController extends Component {
    * Get Event Tracing request data
    * @method
    * @param {string} ipDeviceUUID - IP Device UUID
+   * @returns requestData object
    */
   getRequestData = (ipDeviceUUID) => {
     const {assessmentDatetime} = this.state;
@@ -3324,6 +3328,7 @@ class HostController extends Component {
    * Display secondary info for safety scan table
    * @method
    * @param {object} safetyData - active safety scan data
+   * @returns HTML DOM
    */
   getSecondaryContent = (safetyData) => {
     const {locale} = this.context;
@@ -3476,6 +3481,7 @@ class HostController extends Component {
    * Display common info for safety scan table
    * @method
    * @param {object} safetyData - active safety scan data
+   * @returns HTML DOM
    */
   getCommonContent = (safetyData) => {
     return (
@@ -3691,7 +3697,7 @@ class HostController extends Component {
    * Determine checkbox disabled status
    * @method
    * @param {string} id - department tree ID
-   * @returns true/false
+   * @returns boolean true/false
    */
   checkboxDisabled = (id) => {
     const {account, limitedDepartment} = this.state;
@@ -3809,6 +3815,7 @@ class HostController extends Component {
   /**
    * Handle upload HMD setup file
    * @method
+   * @returns ModalDialog component
    */
   uploadFileDialog = () => {
     const actions = {
@@ -4112,6 +4119,7 @@ class HostController extends Component {
    * @method
    * @param {string} val - individual patch item
    * @param {number} i - index of the patch item
+   * @returns HTML DOM
    */
   showPatchItem = (val, i) => {
     return (
@@ -4228,6 +4236,7 @@ class HostController extends Component {
    * @method
    * @param {string} val - individual HMD data
    * @param {number} i - index of the HMD data
+   * @returns MenuItem component
    */
   getHMDmenu = (val, i) => {
     if (val.cmds === 'executePatch') {
@@ -4465,6 +4474,7 @@ class HostController extends Component {
   /**
    * Get and set safety scan list
    * @method
+   * @returns safetyScanList array
    */
   getSafetyScanList = () => {
     const safetyScanList = _.map(SAFETY_SCAN_LIST, (val, i) => {
@@ -4672,6 +4682,7 @@ class HostController extends Component {
   /**
    * Check NCCST button disabled status
    * @method
+   * @returns boolean true/false
    */
   checkNCCSTdisabled = () => {
     const {sessionRights} = this.context;

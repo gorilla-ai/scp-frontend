@@ -615,6 +615,7 @@ class Edge extends Component {
   /**
    * Show filter if search keyword or selection is present
    * @method
+   * @returns boolean true/false
    */
   checkFilterStatus = () => {
     const {edgeSearch} = this.state;

@@ -151,7 +151,7 @@ class SearchOptions extends Component {
   /**
    * Display date range
    * @method
-   * @returns DateTimePicker component
+   * @returns MuiPickersUtilsProvider component
    */
   showDataRange = () => {
     const {locale} = this.context;
@@ -235,7 +235,7 @@ class SearchOptions extends Component {
   /**
    * Display date picker
    * @method
-   * @returns DatePicker component
+   * @returns MuiPickersUtilsProvider component
    */
   showDatePicker = () => {
     const {locale} = this.context;

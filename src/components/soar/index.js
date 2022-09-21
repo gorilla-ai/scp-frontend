@@ -400,6 +400,7 @@ class SoarController extends Component {
    * @method
    * @param {string} val - individual Soar name
    * @param {number} i - index of the Soar name
+   * @returns MenuItem component
    */
   getAddSoarMenu = (val, i) => {
     return <MenuItem key={i} onClick={this.handleAddSoarMenu.bind(this, val)}>{t('soar.txt-' + val)}</MenuItem>

@@ -2163,6 +2163,7 @@ class ThreatsController extends Component {
    * @param {string} currentTreeName - current tree node name
    * @param {number} count - tree node length
    * @param {string} [query] - search query
+   * @returns HTML DOM
    */
   getTreeLabel = (name, currentTreeName, count, query) => {
     const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
@@ -2285,7 +2286,7 @@ class ThreatsController extends Component {
    * Show severity level for private tree data
    * @method
    * @param {string} severity - severity info
-   * @returns object display property
+   * @returns display property object
    */
   showSeverity = (severity) => {
     if (!severity) {
@@ -2820,7 +2821,6 @@ class ThreatsController extends Component {
    * @param {string} newTab - content type ('table' or 'statistics')
    */
   handleSubTabChange = (event, newTab) => {
-
     if (newTab === 'trackTreats'){
       this.setState({
         showFilter: false,
@@ -2865,7 +2865,7 @@ class ThreatsController extends Component {
   /**
    * Display alert table data
    * @method
-   * @returns Alert component
+   * @returns Threats component
    */
   renderTabContent = () => {
     const {activeTab, currentTableID} = this.state;

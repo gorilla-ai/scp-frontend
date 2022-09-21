@@ -156,6 +156,7 @@ class SoarFlow extends Component {
    * @method
    * @param {string} type - node type
    * @param {string} [options] - option for 'component'
+   * @returns string text
    */
   getNodeText = (type, options) => {
     let component = '';

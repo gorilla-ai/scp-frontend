@@ -245,6 +245,7 @@ class MultiOperator extends Component {
    * @param {string} operator - soar operator
    * @param {string} key - key of the form data
    * @param {number} i - index of the form data
+   * @returns HTML DOM
    */
   displayForm = (operator, key, i) => {
     const {actionTypeList, severityTypeList, requestTypeList, enableTypeList} = this.state;

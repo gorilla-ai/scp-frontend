@@ -948,6 +948,7 @@ class AlertDetails extends Component {
   /**
    * Display Download File link and encode option
    * @method
+   * @returns HTML DOM
    */
   getDownloadFileContent = () => {
     const {alertData} = this.props;
@@ -964,6 +965,7 @@ class AlertDetails extends Component {
   /**
    * Display encode and encode option
    * @method
+   * @returns HTML DOM
    */
   getEncodeContent = () => {
     return (
@@ -1511,7 +1513,7 @@ class AlertDetails extends Component {
    * Display bar chart
    * @method
    * @param {string} dataType - 'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'
-   * @returns BarChart component
+   * @returns HTML DOM
    */
   displayBarChart = (dataType) => {
     const {
@@ -1808,7 +1810,6 @@ class AlertDetails extends Component {
   /**
    * Toggle encode dialog on/off
    * @method
-   * @returns HTML DOM
    */
   openEncodeDialog = () => {
     const {modalEncodeOpen} = this.state;
@@ -1976,7 +1977,7 @@ class AlertDetails extends Component {
   /**
    * Get Alert details list width
    * @method
-   * @returns {string} - list width
+   * @returns width text
    */
   getListWidth = () => {
     const {locale} = this.context;
@@ -1992,7 +1993,7 @@ class AlertDetails extends Component {
    * @method
    * @param {string} item - key item
    * @param {string} data - data associated with the key
-   * @returns - valid data in string or false
+   * @returns valid data in string or boolean false
 
    */
   checkLocationData = (item, data) => {

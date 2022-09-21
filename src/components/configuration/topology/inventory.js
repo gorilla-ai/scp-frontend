@@ -1086,6 +1086,7 @@ class NetworkInventory extends Component {
    * Display seat info
    * @method
    * @param {object} seatData - current seat data
+   * @returns HTML DOM
    */
   renderSeatInfo = (seatData) => {
     return (
@@ -1716,6 +1717,7 @@ class NetworkInventory extends Component {
    * Get Event Tracing request data
    * @method
    * @param {string} ipDeviceUUID - IP Device UUID
+   * @returns requestData object
    */
   getRequestData = (ipDeviceUUID) => {
     let datetime = {
@@ -3795,7 +3797,7 @@ class NetworkInventory extends Component {
   /**
    * Display add seat contnt
    * @method
-   * @returns HTML DOM
+   * @returns TextField component
    */
   displayAddSeat = () => {
     const {addSeat, editSeat, addSeatType, formValidation} = this.state;

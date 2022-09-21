@@ -262,6 +262,7 @@ class SoarForm extends Component {
    * @param {string} operator - soar operator
    * @param {string} key - key of the form data
    * @param {number} i - index of the form data
+   * @returns HTML DOM
    */
   displayForm = (operator, key, i) => {
     const {from, soarColumns, activeElementType, activeElement} = this.props;
@@ -392,6 +393,7 @@ class SoarForm extends Component {
    * @method
    * @param {string} operator - soar operator
    * @param {string} operatorList - soar operator list
+   * @returns HTML DOM
    */
   displayDropDownSelection = (operator, operatorList) => {
     const {from, soarParam} = this.props;
@@ -425,6 +427,7 @@ class SoarForm extends Component {
   /**
    * Display name/group form
    * @method
+   * @returns HTML DOM
    */
   displayNameGroupForm = () => {
     const {activeElement} = this.props;

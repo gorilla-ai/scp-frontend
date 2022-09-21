@@ -66,7 +66,7 @@ class Config extends Component {
    * Determine the current active path
    * @method
    * @param {object} frame - menu to be toggled
-   * @returns boolean value
+   * @returns boolean true/false
    */
   getActiveFrame = (frame) => {
     const path = window.location.pathname;

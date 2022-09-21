@@ -131,7 +131,7 @@ class IrSelections extends Component {
    * @method
    * @param {object} val - individual IR type
    * @param {number} i - index of the IR type
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   showCheckboxList = (val, i) => {
     const {currentDeviceData} = this.props;

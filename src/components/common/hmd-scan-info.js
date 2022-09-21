@@ -1715,6 +1715,7 @@ class HMDscanInfo extends Component {
    * @method
    * @param {string} type - button type ('download' or 'compress')
    * @param {object} dataResult - malware detection result
+   * @returns boolean true/false
    */
   checkMalwareCompress = (type, dataResult) => {
     if (type === 'compress' && dataResult.length === 0) {
@@ -2282,7 +2283,7 @@ class HMDscanInfo extends Component {
    * @param {boolean} required - required field or not
    * @param {string} type - value type
    * @param {array.<object>} listData - list data
-   * @returns parsed list or boolean
+   * @returns parsed list or boolean true/false
    */
   getSavedSettings = (required, type, listData) => {
     let tempFormValidation = {...this.state.formValidation};

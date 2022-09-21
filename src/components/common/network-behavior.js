@@ -351,6 +351,7 @@ class NetworkBehavior extends Component {
    * @method
    * @param {string} type - network behavior type ('threats' or 'syslog')
    * @param {object | array.<object>} data - network behavior data
+   * @returns tempData array
    */
   getNetworkBehaviorData = (type, data) => {
     let tempData = [];

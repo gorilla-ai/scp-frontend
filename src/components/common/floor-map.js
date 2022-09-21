@@ -430,6 +430,7 @@ class FloorMap extends Component {
   /**
    * Display Add Floor content
    * @method
+   * @returns HTML DOM
    */
   displayAddFloor = () => {
     const {floorPlan, currentMap, previewFloorMap, floorNameError} = this.state;
@@ -606,6 +607,7 @@ class FloorMap extends Component {
    * Clear floor plan data
    * @method
    * @param {string} actionType - action type to be cleared ('clear' or 'edit')
+   * @returns data object
    */
   clearFloorPlanData = (type) => {
     return {
