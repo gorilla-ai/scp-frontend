@@ -64,7 +64,7 @@ class VansRow extends Component {
    * Check child element
    * @method
    * @param {object} child - vans child data
-   * @returns css cursor pointer
+   * @returns CSS property object
    */
   checkChildNode = (child) => {
     if (child && child.length > 0) {

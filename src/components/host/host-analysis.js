@@ -188,7 +188,7 @@ class HostAnalysis extends Component {
   /**
    * Display basic info
    * @method
-   * @returns PrivateDetails component
+   * @returns HTML DOM
    */
   displayInfoContent = () => {
     const {baseUrl, contextRoot} = this.context;

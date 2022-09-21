@@ -249,7 +249,7 @@ class Login extends Component {
    * Display forgot password content
    * @method
    * @param {string} type - dialog type ('account', 'token' or 'password')
-   * @returns HTML DOM
+   * @returns TextField component
    */
   displayForgotPasswordContent = (type) => {
     const {forgotPassword, formValidation} = this.state;
@@ -616,7 +616,6 @@ class Login extends Component {
 
     return (
       <div id='g-login' className='c-center global c-flex fdc'>
-
         {openFindAccountDialog &&
           this.forgotPasswordDialog('account')
         }

@@ -498,7 +498,7 @@ class EsManage extends Component {
   /**
    * Open import index modal dialog
    * @method
-   * @returns HTML DOM
+   * @returns ModalDialog component
    */
   importIndexDialog = () => {
     const actions = {

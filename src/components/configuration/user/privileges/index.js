@@ -219,7 +219,7 @@ class Roles extends Component {
    * Display role privilege data
    * @method
    * @param {array} value - role list
-   * @returns HTML DOM
+   * @returns permitList array
    */
   displayPermit = (value) => {
     const permitList = _.map(value, (val, i) => {

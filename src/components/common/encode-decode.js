@@ -110,6 +110,7 @@ class EncodeDecode extends Component {
   /**
    * Display encode/decode content
    * @method
+   * @returns HTML DOM
    */
   displayEncodeDecode = () => {
     const {dropDownList, encodeType, originalText, formattedText} = this.state;

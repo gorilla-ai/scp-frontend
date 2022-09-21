@@ -168,7 +168,7 @@ class Header extends Component {
    * Determine the active page
    * @method
    * @param {string} tab - page sections ('dashboard', 'host', 'threats', 'events', soc', 'soar', 'configuration' and 'account')
-   * @returns true/false boolean value
+   * @returns boolean true/false
    */
   getActiveTab = (tab) => {
     const activeRoute = this.props.location.pathname;
@@ -370,7 +370,7 @@ class Header extends Component {
   /**
    * Show password reset dialog
    * @method
-   * @returns ModalDialog
+   * @returns ModalDialog component
    */
   showChangePasswordDialog = () => {
     const actions = {

@@ -307,7 +307,7 @@ class AccountEdit extends Component {
    * @method
    * @param {object} val - individual privilege
    * @param {number} i - index of the privilege
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   showPrivilegesList = (val, i) => {
     const {id} = this.state;
@@ -408,7 +408,7 @@ class AccountEdit extends Component {
   /**
    * Set content width
    * @method
-   * @returns content width
+   * @returns CSS property object
    */
   getContentWidth = () => {
     const {showPrivileges} = this.state;

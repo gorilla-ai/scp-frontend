@@ -517,7 +517,7 @@ class AccountList extends Component {
   /**
    * Show password reset dialog
    * @method
-   * @returns ModalDialog
+   * @returns ModalDialog component
    */
   showNewPasswordDialog = () => {
     const actions = {
@@ -781,6 +781,7 @@ class AccountList extends Component {
   /**
    * Check admin role
    * @method
+   * @returns boolean true/false
    */
   checkAdmin = () => {
     const {session} = this.context;

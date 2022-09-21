@@ -166,7 +166,7 @@ class ManageGroup extends Component {
   /**
    * Display add group content
    * @method
-   * @returns HTML DOM
+   * @returns TextField component
    */
   displayAddGroup = () => {
     const {groupName, formValidation} = this.state;

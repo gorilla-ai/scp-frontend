@@ -31,7 +31,7 @@ class VansPicChart extends Component {
    * @method
    * @param {object} val - vans data
    * @param {number} i - index of the vans data
-   * @returns PieChart component
+   * @returns HTML DOM
    */
   displayVansPieChart = (val, i) => {
     const {vansPieChartData} = this.props;

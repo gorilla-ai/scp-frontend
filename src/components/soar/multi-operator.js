@@ -399,14 +399,14 @@ class MultiOperator extends Component {
   /**
    * Show corresponding form group
    * @method
-   * @returns HTML DOM
+   * @returns SOAR columns array contains HTML DOM
    */
   showFormGroup = () => {
     const {soarActiveOperator} = this.state;
 
     if (soarActiveOperator) {
       return Object.keys(this.props.soarColumns.spec[soarActiveOperator]).map(this.displayForm.bind(this, soarActiveOperator));
-    }    
+    }
   }
   render() {
     const {activeElementType, activeElement} = this.props;

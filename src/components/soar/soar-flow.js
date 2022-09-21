@@ -650,7 +650,7 @@ class SoarFlow extends Component {
    * @method
    * @param {string} val - edge type
    * @param {number} i - index of the edge type
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   showEdgeTypeOptions = (val, i) => {
     return (

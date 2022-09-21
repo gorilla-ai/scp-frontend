@@ -410,7 +410,7 @@ class VansNotes extends Component {
   /**
    * Get vans notes height
    * @method
-   * @returns CSS height
+   * @returns CSS property object
    */
   getHeight = () => {
     const {currentType} = this.props;

@@ -414,8 +414,7 @@ class ThreatIntelligence extends Component {
   /**
    * Get see example margin
    * @method
-   * @returns {string} - width
-
+   * @returns width in px
    */
   getMarginWidth = () => {
     const {locale} = this.context;
@@ -598,7 +597,7 @@ class ThreatIntelligence extends Component {
   /**
    * Display add threats content
    * @method
-   * @returns MultiInput component
+   * @returns HTML DOM
    */
   displayAddThreatsContent = () => {
     const {autoDetectType, addThreats} = this.state;
@@ -638,7 +637,7 @@ class ThreatIntelligence extends Component {
   /**
    * Open add threats modal dialog
    * @method
-   * @returns HTML DOM
+   * @returns ModalDialog component
    */
   addThreatsDialog = () => {
     const actions = {
@@ -1170,6 +1169,7 @@ class ThreatIntelligence extends Component {
    * Show pie chart
    * @method
    * @param {array.<object>} indicatorsData - indicators data
+   * @returns HTML DOM
    */
   showPieChart = (indicatorsData) => {
     return (
@@ -1228,6 +1228,7 @@ class ThreatIntelligence extends Component {
    * Show bar chart
    * @method
    * @param {array.<object>} indicatorsData - indicators data
+   * @returns HTML DOM
    */
   showBarChart = (indicatorsData) => {
     return (
@@ -1277,6 +1278,7 @@ class ThreatIntelligence extends Component {
    * Show line chart
    * @method
    * @param {array.<object>} indicatorsData - indicators data
+   * @returns HTML DOM
    */
   showLineChart = (indicatorsData) => {
     return (

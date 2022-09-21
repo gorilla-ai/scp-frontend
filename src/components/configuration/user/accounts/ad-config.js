@@ -114,6 +114,7 @@ class AdConfig extends Component {
   /**
    * Display AD config content
    * @method
+   * @returns HTML DOM
    */
   displayADcontent = () => {
     const {adConfig} = this.state;

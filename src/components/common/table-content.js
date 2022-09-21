@@ -37,7 +37,7 @@ class TableContent extends Component {
   /**
    * Get table height
    * @method
-   * @returns object with height value
+   * @returns CSS property object
    */
   getTableHight = () => {
     const {tableHeight} = this.props;

@@ -68,7 +68,7 @@ class ExportCharts extends Component {
    * @method
    * @param {object} val - content of the service name list
    * @param {number} i - index of the service name list
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   displayServiceName = (val, i) => {
     return (

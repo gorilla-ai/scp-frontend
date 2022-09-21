@@ -125,9 +125,9 @@ class Threats extends Component {
     }
   }
   /**
-   * Display loading icon or table content
+   * Display table content
    * @method
-   * @returns HTML DOM
+   * @returns MuiTableContent component
    */
   renderTableContent = () => {
     const {mainContentData} = this.props;
@@ -138,6 +138,11 @@ class Threats extends Component {
         tableOptions={mainContentData.tableOptions} />
     )
   }
+  /**
+   * Display table content
+   * @method
+   * @returns MuiTableContent component
+   */
   renderTrackTableContent = () => {
     const {mainContentData} = this.props;
 

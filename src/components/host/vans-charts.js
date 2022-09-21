@@ -41,6 +41,7 @@ class VansCharts extends Component {
    * @method
    * @param {object} val - individual child data
    * @param {number} i - index of the child data
+   * @returns VansRow component
    */
   setVansRowsData = (val, i) => {
     return (

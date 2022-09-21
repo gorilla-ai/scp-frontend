@@ -248,6 +248,7 @@ class License extends Component {
   /**
    * Upload offline file
    * @method
+   * @returns ModalDialog component
    */
   uploadOfflineFile = () => {
     const actions = {

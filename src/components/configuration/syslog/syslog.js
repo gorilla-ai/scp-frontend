@@ -451,6 +451,7 @@ class Syslog extends Component {
   /**
    * Display list of SSH accounts
    * @method
+   * @returns HTML DOM
    */
   displaySshAccount = () => {
     const {sshDataFieldArr, sshData} = this.state;
@@ -498,6 +499,7 @@ class Syslog extends Component {
   /**
    * Show SSH account dialog
    * @method
+   * @returns ModalDialog component
    */
   showSshAccountDialog = () => {
     const actions = {
@@ -530,7 +532,7 @@ class Syslog extends Component {
   /**
    * Display add SSH account content
    * @method
-   * @returns HTML DOM
+   * @returns TextField component
    */
   displayAddSshAccount = () => {
     const {sshAccountName, formValidation} = this.state;
@@ -637,6 +639,7 @@ class Syslog extends Component {
    * @method
    * @param {object} val - pattern data
    * @param {number} i - index of pattern name array
+   * @returns HTML DOM
    */
   displayPatternName = (val, i) => {
     return <span key={i} className='item'>{val.patternName}</span>
@@ -1588,6 +1591,7 @@ class Syslog extends Component {
   /**
    * Display export charts content
    * @method
+   * @returns HTML DOM
    */
   displayExportCharts = () => {
     const {locale} = this.context;
@@ -1916,6 +1920,7 @@ class Syslog extends Component {
   /**
    * Display edit host name content
    * @method
+   * @returns HTML DOM
    */
   displayEditHostName = () => {
     return (
@@ -2231,6 +2236,7 @@ class Syslog extends Component {
   /**
    * Display edit hosts content
    * @method
+   * @returns HTML DOM
    */
   displayEditHosts = () => {
     const {editHostsType, editHosts, formValidation} = this.state;
@@ -2267,6 +2273,7 @@ class Syslog extends Component {
   /**
    * Display edit hosts modal dialog
    * @method
+   * @returns ModalDialog component
    */
   modalEditHosts = () => {
     const actions = {
@@ -2544,7 +2551,7 @@ class Syslog extends Component {
    * @method
    * @param {object} val - content of the syslogPatternConfig
    * @param {number} i - index of the syslogPatternConfig pattern list
-   * @returns Syslog Config component
+   * @returns SyslogConfig component
    */
   getSyslogConfig = (val, i) => {
     const {showPatternLeftNav, configRelationships, syslogPatternConfig, activePatternName} = this.state;
@@ -2656,7 +2663,7 @@ class Syslog extends Component {
    * @method
    * @param {object} val - content of the syslogPatternConfig
    * @param {number} i - index of the syslogPatternConfig pattern list
-   * @returns Syslog Config component
+   * @returns HTML DOM
    */
   getPatternItem = (val, i) => {
     const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor} = this.state;

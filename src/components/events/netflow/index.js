@@ -559,7 +559,7 @@ class Netflow extends Component {
    * Hide certain columns for the table
    * @method
    * @param {string} field - field name
-   * @returns true/false boolean
+   * @returns boolean true/false
    */
   checkDisplayFields = (field) => {
     if (field === '_tableMenu_') {
@@ -679,7 +679,7 @@ class Netflow extends Component {
    * Construct project URL
    * @method
    * @param {string} projectID - project ID
-   * @returns project URL
+   * @returns projectIDstring URL
    */
   getProjectURL = (projectID) => {
     let projectIDstring = '';
@@ -1813,6 +1813,7 @@ class Netflow extends Component {
    * @method
    * @param {string} dialogType - 'table' or 'json'
    * @param {string} navType - 'previous' or 'next'
+   * @returns HTML DOM
    */
   displayNavigationBtn = (dialogType, navType) => {
     const { currentPage, currentTableIndex, currentLength } = this.state;
@@ -1924,6 +1925,7 @@ class Netflow extends Component {
   /**
    * Display table data content in modal dialog
    * @method
+   * @returns ModalDialog component
    */
   tableDialog = () => {
     const { activeTab } = this.state;
@@ -2594,7 +2596,7 @@ class Netflow extends Component {
   /**
    * Check for File type and grid view
    * @method
-   * @returns true/false boolean
+   * @returns boolean true/false
    */
   fileImageGrid = () => {
     return (this.state.activeTab === 'file' && this.state.displayType === 'grid') ? true : false;
@@ -2602,7 +2604,7 @@ class Netflow extends Component {
   /**
    * Get default page size based on events type
    * @method
-   * @returns true/false boolean
+   * @returns page size
    */
   getPageSize = () => {
     const { pageSize, pageSizeGrid } = this.state;

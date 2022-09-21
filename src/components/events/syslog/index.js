@@ -550,7 +550,7 @@ class SyslogController extends Component {
    * Hide certain columns for the table
    * @method
    * @param {string} field - field name
-   * @returns true/false boolean
+   * @returns boolean true/false
    */
   checkDisplayFields = (field) => {
     return _.includes(this.state.account.fields, field);
@@ -688,6 +688,7 @@ class SyslogController extends Component {
    * Get custom field name
    * @method
    * @param {string} field - field name
+   * @returns field name
    */
   getCustomFieldName = (field) => {
     const {account} = this.state;
@@ -894,6 +895,7 @@ class SyslogController extends Component {
    * @param {string} currentTreeName - current tree node name
    * @param {number} count - tree node length
    * @param {string} [query] - search query
+   * @returns HTML DOM
    */
   getTreeLabel = (name, currentTreeName, count, query) => {
     const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
@@ -1515,6 +1517,7 @@ class SyslogController extends Component {
    * @method
    * @param {string} dialogType - 'table' or 'json'
    * @param {string} navType - 'previous' or 'next'
+   * @returns HTML DOM
    */
   displayNavigationBtn = (dialogType, navType) => {
     const {currentTableIndex, currentLength, syslogData} = this.state;
@@ -1626,6 +1629,7 @@ class SyslogController extends Component {
   /**
    * Display table data content in modal dialog
    * @method
+   * @returns ModalDialog component
    */
   tableDialog = () => {
     const title = t('txt-syslog-en') + ' ' + t('events.connections.txt-fieldsSettings');
@@ -2214,8 +2218,8 @@ class SyslogController extends Component {
    * @method
    * @returns QueryOpenSave component
    */
-
   queryDialog = () => {
+    const {sessionRights} = this.context;
     const {
       activeTab,
       account,
@@ -2226,29 +2230,26 @@ class SyslogController extends Component {
       queryModalType,
       notifyEmailData
     } = this.state;
-    const {sessionRights} = this.context;
-    let moduleWithSOC = false
-    if (sessionRights.Module_Soc) {
-      moduleWithSOC = true
-    }
+    const moduleWithSOC = sessionRights.Module_Soc ? true : false;
+
     return (
-        <QueryOpenSave
-            page={activeTab}
-            type={queryModalType}
-            moduleWithSOC={moduleWithSOC}
-            account={account}
-            filterData={filterData}
-            markData={markData}
-            queryData={queryData}
-            queryDataPublic={queryDataPublic}
-            notifyEmailData={notifyEmailData}
-            setFilterData={this.setFilterData}
-            setMarkData={this.setMarkData}
-            setQueryData={this.setQueryData}
-            setNotifyEmailData={this.setNotifyEmailData}
-            getSavedQuery={this.getSavedQuery}
-            getPublicSavedQuery={this.getPublicSavedQuery}
-            closeDialog={this.closeDialog}/>
+      <QueryOpenSave
+        page={activeTab}
+        type={queryModalType}
+        moduleWithSOC={moduleWithSOC}
+        account={account}
+        filterData={filterData}
+        markData={markData}
+        queryData={queryData}
+        queryDataPublic={queryDataPublic}
+        notifyEmailData={notifyEmailData}
+        setFilterData={this.setFilterData}
+        setMarkData={this.setMarkData}
+        setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
+        getSavedQuery={this.getSavedQuery}
+        getPublicSavedQuery={this.getPublicSavedQuery}
+        closeDialog={this.closeDialog}/>
     )
   }
   /**
@@ -2347,6 +2348,7 @@ class SyslogController extends Component {
    * Get table chart field
    * @method
    * @param {string} field - field name
+   * @returns field name
    */
   getTableField = (field) => {
     if (field === 'key') {

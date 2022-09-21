@@ -421,6 +421,7 @@ class DashboardOverview extends Component {
    * @method
    * @param {object} val - alert data
    * @param {number} i - index of the alert info data
+   * @returns HTML DOM
    */
   displayAlertInfo = (val, i) => {
     if (val.srcCountry && val.destCountry) {
@@ -441,6 +442,7 @@ class DashboardOverview extends Component {
    * @method
    * @param {object} val - threats data
    * @param {number} i - index of the threats count data
+   * @returns HTML DOM
    */
   displayThreatsCount = (val, i) => {
     return (
@@ -524,9 +526,10 @@ class DashboardOverview extends Component {
   }
   /**
    * Display attack table
+   * @method
    * @param {string} val - attack data
    * @param {number} i - index of the attack data
-   * @method
+   * @returns HTML DOM
    */
   displayAttackCount = (val, i) => {
     const {selectedAttackData} = this.state;
@@ -555,6 +558,7 @@ class DashboardOverview extends Component {
    * Get country attack content
    * @method
    * @param {string} countryCode - selected country code from user
+   * @returns HTML DOM
    */
   displayCountryAttackContent = (countryCode) => {
     const {countryTopList, selectedAttackData} = this.state;

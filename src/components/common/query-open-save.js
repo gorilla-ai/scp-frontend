@@ -1409,7 +1409,7 @@ class QueryOpenSave extends Component {
   /**
    * Display React Email input
    * @method
-   * @returns ReactMultiEmail component
+   * @returns HTML DOM
    */
   displayEmailInput = () => {
     const {page, notifyEmailData} = this.props;
@@ -1548,7 +1548,6 @@ class QueryOpenSave extends Component {
       </div>
     )
   }
-
   getQueryWithSOC = (type) => {
     const {queryData} = this.props;
     const {soc, severityList, socTemplateEnable, pattern, formValidation} = this.state;
@@ -1706,7 +1705,6 @@ class QueryOpenSave extends Component {
         </div>
     )
   }
-
   getQueryWithSOCByLog = (type) => {
     const {queryData} = this.props;
     const {soc, socTemplateEnable, pattern, formValidation} = this.state;
@@ -1864,7 +1862,7 @@ class QueryOpenSave extends Component {
    * @method
    * @param {string} type - query type ('filter' or 'mark')
    * @param {object} queryDataList - query data list
-   * @returns css display
+   * @returns CSS property object
    */
   getQueryColor = (type, queryDataList) => {
     if (!queryDataList || (queryDataList && queryDataList.length === 0) || _.isEmpty(queryDataList)) {

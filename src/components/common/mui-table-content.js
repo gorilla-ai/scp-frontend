@@ -35,7 +35,6 @@ class MuiTableContent extends Component {
   /**
    * Get and set table data
    * @method
-   * @returns ModalDialog component
    */
   loadTableContent = (prevProps) => {
     const {data} = this.props;
@@ -49,7 +48,7 @@ class MuiTableContent extends Component {
   /**
    * Get set table height to auto
    * @method
-   * @returns css property
+   * @returns CSS property object
    */
   getTableHeight = () => {
     const {tableHeight} = this.props;

@@ -314,7 +314,7 @@ class AutoSettings extends Component {
   /**
    * Display AD/LDAP test query content
    * @method
-   * @returns HTML DOM
+   * @returns DataTable component or HTML DOM
    */
   getADtestContent = () => {
     const {adTableData} = this.state;
@@ -383,7 +383,7 @@ class AutoSettings extends Component {
   /**
    * Display Netflow test query content
    * @method
-   * @returns HTML DOM
+   * @returns DataTable component or HTML DOM
    */
   getNetflowTestContent = () => {
     const {netFlowTableData} = this.state;

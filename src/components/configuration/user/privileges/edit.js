@@ -241,7 +241,7 @@ class PrivilegeEdit extends Component {
    * @method
    * @param {string} val - checkbox group
    * @param {number} i - index of the checkbox group
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   getRoleList = (val, i) => {
     const {name, privilegeid} = this.state;

@@ -1501,7 +1501,7 @@ class HostController extends Component {
    * @param {string} type - filter type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
    * @param {object} val - individual filter data
    * @param {number} i - index of the filter data
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   getCheckboxItem = (type, val, i) => {
     return (
@@ -1747,7 +1747,7 @@ class HostController extends Component {
    * @method
    * @param {object} val - individual CPE data
    * @param {number} i - index of the ICPE data
-   * @returns HTML DOM
+   * @returns FormControlLabel component
    */
   showNccstCheckboxList = (val, i) => {
     return (

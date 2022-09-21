@@ -785,6 +785,7 @@ class NetworkInventory extends Component {
    * Handle batch updates confirm
    * @method
    * @param {string} ipDeviceUUID - IP device UUID
+   * @returns boolean true/false
    */
   checkBatchUpdates = (ipDeviceUUID) => {
     const selectedDepartmentIndex = _.findIndex(this.state.batchUpdatesList, { 'ipDeviceUUID': ipDeviceUUID });
@@ -3028,7 +3029,7 @@ class NetworkInventory extends Component {
   /**
    * Get owner type for radio group
    * @method
-   * @returns owner type array
+   * @returns ownerType array
    */
   getOwnerType = () => {
     const {ownerList} = this.state;

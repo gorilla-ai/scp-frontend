@@ -49,6 +49,7 @@ class Statistics extends Component {
   /**
    * Show pie chart
    * @method
+   * @returns HTML DOM
    */
   showPieChart = () => {
     const {mainContentData} = this.props;
@@ -101,6 +102,7 @@ class Statistics extends Component {
   /**
    * Show bar chart
    * @method
+   * @returns HTML DOM
    */
   showBarChart = () => {
     const {mainContentData} = this.props;
@@ -144,6 +146,7 @@ class Statistics extends Component {
   /**
    * Show table chart
    * @method
+   * @returns HTML DOM
    */
   showTableChart = () => {
     const {mainContentData} = this.props;

@@ -441,7 +441,7 @@ class AccountList extends Component {
   /**
    * Show password reset dialog
    * @method
-   * @returns ModalDialog
+   * @returns ModalDialog component
    */
   showNewPasswordDialog = () => {
     const actions = {

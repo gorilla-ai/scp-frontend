@@ -295,6 +295,7 @@ class ResetPwd extends Component {
   /**
    * Reset form data
    * @method
+   * @returns data object
    */
   clearData = () => {
     return {
