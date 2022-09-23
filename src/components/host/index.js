@@ -358,6 +358,8 @@ class HostController extends Component {
       saveQueryOpen: false,
       uploadFileOpen: false,
       importCsvOpen: false,
+      importFilterType: '', //'ip' or 'scanInfo'
+      scanInfoScore: '',
       LAconfig: {},
       hmdFile: {},
       notifyEmailData: [],
@@ -375,7 +377,7 @@ class HostController extends Component {
         openFlag: false
       },
       popOverAnchor: null,
-      activeFilter: '',
+      activeFilter: '', //Same as FILTER_LIST
       showLeftNav: true,
       assessmentDatetime: {
         from: '',
@@ -394,7 +396,7 @@ class HostController extends Component {
       vansPieChartOpen: false,
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
-      menuType: '', //hmdTriggerAll' or 'hmdDownload
+      menuType: '', //'hmdTriggerAll' or 'hmdDownload'
       vansDeviceStatusList: [],
       vansHmdStatusList: [],
       severityList: null,
@@ -451,7 +453,7 @@ class HostController extends Component {
       currentSafetyData: {},
       hmdEventsData: {},
       hmdLAdata: {},
-      safetyScanType: '', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe', or 'getVansCve'
+      safetyScanType: '', //'scanFile', 'gcbDetection', 'getFileIntegrity', 'getEventTraceResult', 'getProcessMonitorResult', 'getVansCpe' or 'getVansCve'
       savedCpeData: {},
       fromSafetyPage: '',
       eventInfo: {
@@ -1058,13 +1060,7 @@ class HostController extends Component {
    * @returns searchList array
    */
   getDeviceSearchList = (list) => {
-    const searchList = _.map(list, val => {
-      return {
-        input: val
-      };
-    });
-
-    return searchList;
+    return _.map(list, val => ({ input: val }));
   }
   /**
    * Set filter data
@@ -2548,7 +2544,7 @@ class HostController extends Component {
    */
   renderFilter = () => {
     const {locale} = this.context;
-    const {queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
+    const {scanInfoScore, queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -2640,7 +2636,22 @@ class HostController extends Component {
                     props={data}
                     onChange={this.setDeviceSearch.bind(this, activeFilter)} />
                   {activeFilter === 'ip' &&
-                    <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport}>{t('network-inventory.txt-batchUploadIp')}</Button>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'ip')}>{t('network-inventory.txt-batchUpload')}</Button>
+                  }
+                  {activeFilter === 'scanInfo' &&
+                    <React.Fragment>
+                      <TextField
+                        id='scanInfoBatch'
+                        className='number'
+                        name='scanInfoScore'
+                        label={t('host.txt-cveScore')}
+                        type='number'
+                        variant='outlined'
+                        size='small'
+                        value={scanInfoScore}
+                        onChange={this.handleDataChange} />
+                      <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'scanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
+                    </React.Fragment>
                   }
                 </React.Fragment>
               }
@@ -2666,6 +2677,8 @@ class HostController extends Component {
     tempQueryData.openFlag = false;
 
     this.setState({
+      importFilterType: '',
+      scanInfoScore: '',
       queryData: tempQueryData,
       deviceSearch: _.cloneDeep(DEVICE_SEARCH),
       deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST)
@@ -3885,10 +3898,12 @@ class HostController extends Component {
   /**
    * Toggle CSV import dialog on/off
    * @method
+   * @param {string} [importFilterType] - Import filter type ('ip' or 'scanInfo')
    */
-  toggleCsvImport = () => {
+  toggleCsvImport = (importFilterType) => {
     this.setState({
-      importCsvOpen : !this.state.importCsvOpen
+      importCsvOpen : !this.state.importCsvOpen,
+      importFilterType
     });
 
     this.handlePopoverClose();
@@ -3899,42 +3914,78 @@ class HostController extends Component {
    * @param {array.<array>} csvData - upload CSV data
    */
   confirmCsvImport = (csvData) => {
-    let tempDeviceSearchList = {...this.state.deviceSearchList};
-    let validData = true;
-    let validIpFormat = true;
-    let formattedData = [];
+    const {baseUrl} = this.context;
+    const {importFilterType} = this.state;
 
-    if (csvData.length > 0) {
-      _.forEach(csvData, val => {
-        if (val.length > 1) { //Check CSV column count
-          validData = false;
-          return;
-        }
+    if (importFilterType === 'ip') {
+      let validData = true;
+      let validIpFormat = true;
+      let formattedData = [];
 
-        _.forEach(val, val2 => {
-          if (!IP_PATTERN.test(val2)) { //Check IP format
-            validIpFormat = false;
+      if (csvData.length > 0) {
+        _.forEach(csvData, val => {
+          if (val.length > 1) { //Check CSV column count
+            validData = false;
             return;
           }
 
-          formattedData.push({
-            input: val2
-          });
+          _.forEach(val, val2 => {
+            if (!IP_PATTERN.test(val2)) { //Check IP format
+              validIpFormat = false;
+              return;
+            }
+
+            formattedData.push({
+              input: val2
+            });
+          })
         })
+      }
+
+      if (!validData) {
+        helper.showPopupMsg(t('host.txt-csvFileError'));
+        return;
+      }
+
+      if (!validIpFormat) {
+        helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
+        return;
+      }
+
+      this.setDeviceSearch(importFilterType, formattedData);
+    } else if (importFilterType === 'scanInfo') {
+      const {scanInfoScore} = this.state;
+      console.log(scanInfoScore);
+
+      if (!csvData) {
+        this.toggleCsvImport();
+        return;
+      }
+
+      let formData = new FormData();
+      formData.append('file', csvData);
+      formData.append('score', scanInfoScore);
+
+      this.ah.one({
+        url: `${baseUrl}/api/hmd/uploadNistCpe`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
+      .then(data => {
+        if (data) {
+          const formattedData = _.map(data, val => ({ input: val }));
+
+          this.setDeviceSearch(importFilterType, formattedData);
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
       })
     }
 
-    if (!validData) {
-      helper.showPopupMsg(t('host.txt-csvFileError'));
-      return;
-    }
-
-    if (!validIpFormat) {
-      helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
-      return;
-    }
-
-    this.setDeviceSearch('ip', formattedData);
     this.toggleCsvImport();
   }
   /**
@@ -4708,6 +4759,7 @@ class HostController extends Component {
       saveQueryOpen,
       uploadFileOpen,
       importCsvOpen,
+      importFilterType,
       LAconfig,
       assessmentDatetime,
       frMotpOpen,
@@ -4783,6 +4835,7 @@ class HostController extends Component {
 
         {importCsvOpen &&
           <ImportFile
+            importFilterType={importFilterType}
             toggleCsvImport={this.toggleCsvImport}
             confirmCsvImport={this.confirmCsvImport} />
         }

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import _ from 'lodash'
 import jschardet from 'jschardet'
 import XLSX from 'xlsx'
 
@@ -21,43 +20,11 @@ class ImportFile extends Component {
     super(props);
 
     this.state = {
-      csvData: []
+      csvData: [],
+      file: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-  }
-  /**
-   * Handle CSV batch upload
-   * @method
-   * @param {object} file - file uploaded by the user
-   */
-  parseCSVfile = async (file) => {
-    if (file) {
-      this.handleFileChange(file, await this.checkEncode(file));
-    }
-  }
-  /**
-   * Check file encoding
-   * @method
-   * @param {object} file - file uploaded by the user
-   * @returns promise of the file reader
-   */
-  checkEncode = async (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      const rABS = !!reader.readAsBinaryString;
-
-      reader.onload = async (e) => {
-        resolve(jschardet.detect(e.target.result));
-      }
-      reader.onerror = error => reject(error);
-
-      if (rABS) {
-        reader.readAsBinaryString(file);
-      } else {
-        reader.readAsArrayBuffer(file);
-      }
-    });
   }
   /**
    * Handle file change and set the file
@@ -98,11 +65,70 @@ class ImportFile extends Component {
       reader.readAsArrayBuffer(file);
     }
   }
+  /**
+   * Check file encoding
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @returns promise of the file reader
+   */
+  checkEncode = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      const rABS = !!reader.readAsBinaryString;
+
+      reader.onload = async (e) => {
+        resolve(jschardet.detect(e.target.result));
+      }
+      reader.onerror = error => reject(error);
+
+      if (rABS) {
+        reader.readAsBinaryString(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }
+  /**
+   * Handle CSV batch upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  handleCSVfile = (file) => {
+    const {importFilterType} = this.props;
+
+    if (importFilterType === 'ip') {
+      this.parseCSVfile(file);
+    } else if (importFilterType === 'scanInfo') {
+      this.setState({
+        file
+      });
+    }
+  }
+  /**
+   * Handle CSV batch upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  parseCSVfile = async (file) => {
+    if (file) {
+      this.handleFileChange(file, await this.checkEncode(file));
+    }
+  }
   render() {
-    const titleText = t('network-inventory.txt-batchUploadIp');
+    const {importFilterType} = this.props;
+    const {csvData, file} = this.state;
+    const titleText = t('network-inventory.txt-batchUpload');
+    let uploadFile = '';
+
+    if (importFilterType === 'ip') {
+      uploadFile = csvData;
+    } else if (importFilterType === 'scanInfo') {
+      uploadFile = file;
+    }
+
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleCsvImport},
-      confirm: {text: t('txt-confirm'), handler: this.props.confirmCsvImport.bind(this, this.state.csvData)}
+      confirm: {text: t('txt-confirm'), handler: this.props.confirmCsvImport.bind(this, uploadFile)}
     };
 
     return (
@@ -119,13 +145,14 @@ class ImportFile extends Component {
             fileType='csv'
             supportText={titleText}
             btnText={t('txt-upload')}
-            handleFileChange={this.parseCSVfile} />
+            handleFileChange={this.handleCSVfile} />
       </ModalDialog>
     )
   }
 }
 
 ImportFile.propTypes = {
+  importFilterType: PropTypes.string.isRequired,
   toggleCsvImport: PropTypes.func.isRequired,
   confirmCsvImport: PropTypes.func.isRequired
 };

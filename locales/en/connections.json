@@ -377,6 +377,7 @@
     "txt-deviceMap": "Device Map",
     "txt-safetyScan": "Safety Scan",
     "txt-vans": "VANS",
+    "txt-cveScore": "Score",
     "txt-safetyScanType": "Safety Scan Type",
     "txt-export-cpe": "Export CPE",
     "txt-report-nccst": "Report NCCST",
