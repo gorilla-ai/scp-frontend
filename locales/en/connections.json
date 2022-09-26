@@ -974,6 +974,8 @@
     "txt-scannerSchedule": "Scanner Schedule",
     "txt-execute": "Execute",
     "txt-terminate": "Terminate",
+    "txt-serverSystem": "Server",
+    "txt-pcSystem": "PC",
     "scan-list": {
       "txt-dashboard": "Dashboard",
       "txt-yara": "Yara Scan",

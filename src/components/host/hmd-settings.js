@@ -9,6 +9,7 @@ import _ from 'lodash'
 import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardTimePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
+import { ReactMultiEmail } from 'react-multi-email'
 
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
@@ -30,7 +31,7 @@ import ProductRegex from './product-regex'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
+//const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -98,6 +99,20 @@ const FORM_VALIDATION = {
     valid: true
   }
 };
+const FIELD_ENABLE = {
+  server: false,
+  pc: false,
+  scanFiles: false,
+  scanFilesLinux: false,
+  gcb: false,
+  processMonitor: false,
+  ftpUpload: false,
+  vansSoftware: false,
+  frMotp: false,
+  nccst: false,
+  security: false,
+  scannerSchedule: false
+};
 
 let t = null;
 let et = null;
@@ -118,6 +133,10 @@ class HMDsettings extends Component {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
+      originalServerOs: '',
+      serverOs: [],
+      originalPcOs: '',
+      pcOs: [],
       originalScanFiles: [],
       scanFiles: {
         includePath: [{
@@ -211,18 +230,7 @@ class HMDsettings extends Component {
       scannerSchedule: '',
       hmdFile: '',
       activeSettings: '',
-      fieldEnable: {
-        scanFiles: false,
-        scanFilesLinux: false,
-        gcb: false,
-        processMonitor: false,
-        ftpUpload: false,
-        vansSoftware: false,
-        frMotp: false,
-        nccst: false,
-        security: false,
-        scannerSchedule: false
-      },
+      fieldEnable: _.cloneDeep(FIELD_ENABLE),
       formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
@@ -242,13 +250,14 @@ class HMDsettings extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
+  ryan = () => {}
   /**
    * Get and set HMD settings data
    * @method
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp', 'hmd.scanner.schedule'];
+    const scanType = ['hmd.server.os', 'hmd.pc.os', 'hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp', 'hmd.scanner.schedule'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -256,16 +265,30 @@ class HMDsettings extends Component {
         url: `${baseUrl}/api/common/config?configId=${val}`,
         type: 'GET'
       });
-    })  
+    })
 
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        if (!_.isEmpty(data[0]) && !_.isEmpty(data[1])) {
-          const scanIncludePath = data[0].value.split(',');
-          const scanExcludePath = data[1].value.split(',');
-          const scanIncludePathLinux = data[2].value.split(',');
-          const scanExcludePathLinux = data[3].value.split(',');
+        // if (data[0]) {
+        //   this.setState({
+        //     originalServerOs: ['Linux', 'Windows Server'],
+        //     serverOs: ['Linux', 'Windows Server']
+        //   });
+        // }
+
+        this.setState({
+          originalServerOs: ['Linux', 'Windows Server'],
+          serverOs: ['Linux', 'Windows Server'],
+          originalPcOs: ['Windows 10', 'Windows NT'],
+          pcOs: ['Windows 10', 'Windows NT']
+        });
+
+        if (!_.isEmpty(data[2]) && !_.isEmpty(data[3])) {
+          const scanIncludePath = data[2].value.split(',');
+          const scanExcludePath = data[3].value.split(',');
+          const scanIncludePathLinux = data[4].value.split(',');
+          const scanExcludePathLinux = data[5].value.split(',');
           let scanFiles = {
             includePath: [],
             excludePath: []
@@ -316,10 +339,10 @@ class HMDsettings extends Component {
           });
         }
 
-        const winIncludePath = data[4].value.split(',');
-        const winExcludePath = data[5].value.split(',');
-        const linIncludePath = data[6].value.split(',');
-        const linExcludePath = data[7].value.split(',');
+        const winIncludePath = data[6].value.split(',');
+        const winExcludePath = data[7].value.split(',');
+        const linIncludePath = data[8].value.split(',');
+        const linExcludePath = data[9].value.split(',');
         let scanFilesDefault = {
           includePath: [],
           excludePath: []
@@ -366,46 +389,46 @@ class HMDsettings extends Component {
           scanFilesLinuxDefault
         });
 
-        if (data[8] && data[8].value) {
-          this.setState({
-            originalGcbVersion: _.cloneDeep(data[8].value),
-            gcbVersion: data[8].value
-          });
-        }
-
-        if (data[9] && data[9].value) {
-          this.setState({
-            originalPmInterval: _.cloneDeep(data[9].value),
-            pmInterval: Number(data[9].value)
-          });
-        }
-
         if (data[10] && data[10].value) {
           this.setState({
-            originalFtpIp: _.cloneDeep(data[10].value),
-            ftpIp: data[10].value
+            originalGcbVersion: _.cloneDeep(data[10].value),
+            gcbVersion: data[10].value
           });
         }
 
         if (data[11] && data[11].value) {
           this.setState({
-            originalFtpUrl: _.cloneDeep(data[11].value),
-            ftpUrl: data[11].value
+            originalPmInterval: _.cloneDeep(data[11].value),
+            pmInterval: Number(data[11].value)
           });
         }
 
         if (data[12] && data[12].value) {
           this.setState({
-            originalFtpAccount: _.cloneDeep(data[12].value),
-            ftpAccount: data[12].value
+            originalFtpIp: _.cloneDeep(data[12].value),
+            ftpIp: data[12].value
+          });
+        }
+
+        if (data[13] && data[13].value) {
+          this.setState({
+            originalFtpUrl: _.cloneDeep(data[13].value),
+            ftpUrl: data[13].value
+          });
+        }
+
+        if (data[14] && data[14].value) {
+          this.setState({
+            originalFtpAccount: _.cloneDeep(data[14].value),
+            ftpAccount: data[14].value
           });
         }
 
         const nccstSettings = {
-          unitOID: data[13].value,
-          unitName: data[14].value,
-          apiKey: data[15].value,
-          apiUrl: data[16].value
+          unitOID: data[15].value,
+          unitName: data[16].value,
+          apiKey: data[17].value,
+          apiUrl: data[18].value
         };
 
         this.setState({
@@ -413,7 +436,7 @@ class HMDsettings extends Component {
           nccstSettings
         });
 
-        const parsedCpeData = JSON.parse(data[17].value);
+        const parsedCpeData = JSON.parse(data[19].value);
         let cpeData = [];
       
         _.forEach(parsedCpeData, (val, index) => {
@@ -437,14 +460,14 @@ class HMDsettings extends Component {
           cpeData
         });
 
-        const parsedFrMotpData = JSON.parse(data[18].value);
+        const parsedFrMotpData = JSON.parse(data[20].value);
         const frMotp = {
           ip: parsedFrMotpData.ip,
           apiKey: parsedFrMotpData.apiKey,
           enable: parsedFrMotpData.enable
         };
 
-        const scannerSchedule = moment(data[19].value).local().format('YYYY-MM-DDTHH:mm:ss')
+        const scannerSchedule = moment(data[21].value).local().format('YYYY-MM-DDTHH:mm:ss')
 
         this.setState({
           originalFrMotpSettings: _.cloneDeep(frMotp),
@@ -487,10 +510,12 @@ class HMDsettings extends Component {
    * Toggle content type
    * @method
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
-   * @param {string} [options] - option for field type
+   * @param {string} [activeSettings] - option for field type
    */
-  toggleContent = (type, options) => {
+  toggleContent = (type, activeSettings) => {
     const {
+      originalServerOs,
+      originalPcOs,
       originalScanFiles,
       originalScanFilesLinux,
       originalGcbVersion,
@@ -509,19 +534,21 @@ class HMDsettings extends Component {
 
     if (type === 'editMode') {
       let tempFieldEnable = {...fieldEnable};
-      tempFieldEnable[options] = true;
+      tempFieldEnable[activeSettings] = true;
 
       this.setState({
-        activeSettings: options,
+        activeSettings,
         fieldEnable: tempFieldEnable
       });
     } else if (type === 'save') {
-      this.handleScanFilesConfirm();
+      this.handleSettingsConfirm();
       return;
     } else if (type === 'cancel') {
       showPage = 'viewMode';
 
       this.setState({
+        serverOs: _.cloneDeep(originalServerOs),
+        pcOs: _.cloneDeep(originalPcOs),
         scanFiles: _.cloneDeep(originalScanFiles),
         scanFilesLinux: _.cloneDeep(originalScanFilesLinux),
         gcbVersion: _.cloneDeep(originalGcbVersion),
@@ -664,18 +691,24 @@ class HMDsettings extends Component {
     }
   }
   /**
-   * Handle scan files confirm
+   * Handle settings confirm
    * @method
    */
-  handleScanFilesConfirm = () => {
+  handleSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, scannerSchedule, activeSettings, fieldEnable, formValidation} = this.state;
+    const {serverOs, pcOs, scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, scannerSchedule, activeSettings, fieldEnable, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let tempFormValidation = {...formValidation};
     let validate = true;
     let requestData = {};
 
-    if (activeSettings === 'scanFiles') {
+    if (activeSettings === 'server') {
+      console.log(serverOs);
+      return;
+    } else if (activeSettings === 'pc') {
+      console.log(pcOs);
+      return;
+    } else if (activeSettings === 'scanFiles') {
       let parsedIncludePath = [];
       let parsedExcludePath = [];
 
@@ -992,11 +1025,11 @@ class HMDsettings extends Component {
               msg = t('txt-required');
             }
 
-            if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
-              validate = false;
-              cpeValid = false;
-              msg = t('txt-checkFormat');
-            }
+            // if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+            //   validate = false;
+            //   cpeValid = false;
+            //   msg = t('txt-checkFormat');
+            // }
 
             cpeList.push({
               cpe: val2.cpe,
@@ -1087,16 +1120,7 @@ class HMDsettings extends Component {
       ftpPassword: '',
       connectionsStatus: '',
       activeSettings: '',
-      fieldEnable: {
-        scanFiles: false,
-        gcb: false,
-        processMonitor: false,
-        ftpUpload: false,
-        vansSoftware: false,
-        frMotp: false,
-        nccst: false,
-        security: false
-      },
+      fieldEnable: _.cloneDeep(FIELD_ENABLE),
       formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
@@ -1403,11 +1427,94 @@ class HMDsettings extends Component {
       });
     }
   }
+  /**
+   * Handle server input change
+   * @method
+   * @param {array} newPhones - new server list
+   */
+  handleServerChange = (newServer) => {
+    this.setState({
+      serverOs: newServer
+    });
+  }
+  /**
+   * Handle server delete
+   * @method
+   * @param {function} removeServer - function to remove server
+   * @param {number} index - index of the server list array
+   */
+  deleteServer = (removeServer, index) => {
+    removeServer(index);
+  }
+  /**
+   * Handle server delete
+   * @method
+   * @param {string} server - individual server
+   * @param {number} index - index of the server list array
+   * @param {function} removeServer - function to remove server
+   * @returns HTML DOM
+   */
+  getServerLabel = (server, index, removeServer) => {
+    return (
+      <div data-tag key={index}>
+        {server}
+        <span data-tag-handle onClick={this.deleteServer.bind(this, removeServer, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+
+  /**
+   * Handle PC input change
+   * @method
+   * @param {array} newPhones - new PC list
+   */
+  handlePcChange = (newPC) => {
+    this.setState({
+      pcOs: newPC
+    });
+  }
+  /**
+   * Handle PC delete
+   * @method
+   * @param {function} removePC - function to remove PC
+   * @param {number} index - index of the PC list array
+   */
+  deletePC = (removePC, index) => {
+    removePC(index);
+  }
+  /**
+   * Handle PC delete
+   * @method
+   * @param {string} pc - individual PC
+   * @param {number} index - index of the PC list array
+   * @param {function} removePC - function to remove PC
+   * @returns HTML DOM
+   */
+  getPcLabel = (pc, index, removePC) => {
+    return (
+      <div data-tag key={index}>
+        {pc}
+        <span data-tag-handle onClick={this.deletePC.bind(this, removePC, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+  /**
+   * Show OS list
+   * @method
+   * @param {string} val - OS list
+   * @param {string} i - index of the OS list
+   * @returns HTML DOM
+   */
+  showOsList = (val, i) => {
+    return <span key={i} className='flex-item'>{val}</span>
+  }
   render() {
     const {locale} = this.context;
     const {
-      datetimeExport,
       activeContent,
+      datetimeExport,
+      serverOs,
+      pcOs,
       gcbVersion,
       pmInterval,
       ftpIp,
@@ -1466,6 +1573,58 @@ class HMDsettings extends Component {
           }
 
           <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.server})}>
+              <header>{t('hmd-scan.txt-serverOs')}</header>
+              <div className='header-btn-group'>
+                {activeContent === 'viewMode' &&
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'server')}>{t('txt-edit')}</Button>
+                }
+              </div>
+              {!fieldEnable.server &&
+                <div className='group'>
+                  {serverOs.length > 0 &&
+                    <div className='flex-item'>{serverOs.map(this.showOsList)}</div>
+                  }
+                  {serverOs.length === 0 &&
+                    <div>{NOT_AVAILABLE}</div>
+                  }
+                </div>
+              }
+              {fieldEnable.server &&
+                <ReactMultiEmail
+                  emails={serverOs}
+                  onChange={this.handleServerChange}
+                  validateEmail={server => true}
+                  getLabel={this.getServerLabel} />
+              }
+            </div>
+
+            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.pc})}>
+              <header>{t('hmd-scan.txt-pcOs')}</header>
+              <div className='header-btn-group'>
+                {activeContent === 'viewMode' &&
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'pc')}>{t('txt-edit')}</Button>
+                }
+              </div>
+              {!fieldEnable.pc &&
+                <div className='group'>
+                  {pcOs.length > 0 &&
+                    <div className='flex-item'>{pcOs.map(this.showOsList)}</div>
+                  }
+                  {pcOs.length === 0 &&
+                    <div>{NOT_AVAILABLE}</div>
+                  }
+                </div>
+              }
+              {fieldEnable.pc &&
+                <ReactMultiEmail
+                  emails={pcOs}
+                  onChange={this.handlePcChange}
+                  validateEmail={pc => true}
+                  getLabel={this.getPcLabel} />
+              }
+            </div>
+
             <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFiles})}>
               <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
               <div className='header-btn-group'>

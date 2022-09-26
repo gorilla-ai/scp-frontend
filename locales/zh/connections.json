@@ -974,6 +974,8 @@
     "txt-scannerSchedule": "掃描排程",
     "txt-execute": "執行",
     "txt-terminate": "停用",
+    "txt-serverOs": "Server使用系統",
+    "txt-pcOs": "PC使用系統",
     "scan-list": {
       "txt-dashboard": "Dashboard",
       "txt-yara": "Yara Scan",
