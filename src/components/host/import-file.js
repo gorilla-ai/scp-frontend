@@ -98,7 +98,7 @@ class ImportFile extends Component {
 
     if (importFilterType === 'ip') {
       this.parseCSVfile(file);
-    } else if (importFilterType === 'scanInfo') {
+    } else if (importFilterType === 'safetyScanInfo') {
       this.setState({
         file
       });
@@ -122,7 +122,7 @@ class ImportFile extends Component {
 
     if (importFilterType === 'ip') {
       uploadFile = csvData;
-    } else if (importFilterType === 'scanInfo') {
+    } else if (importFilterType === 'safetyScanInfo') {
       uploadFile = file;
     }
 
