@@ -358,8 +358,8 @@ class HostController extends Component {
       saveQueryOpen: false,
       uploadFileOpen: false,
       importCsvOpen: false,
-      importFilterType: '', //'ip' or 'scanInfo'
-      scanInfoScore: '',
+      importFilterType: '', //'ip' or 'safetyScanInfo'
+      safetyScanInfoScore: '',
       LAconfig: {},
       hmdFile: {},
       notifyEmailData: [],
@@ -2532,7 +2532,7 @@ class HostController extends Component {
    */
   renderFilter = () => {
     const {locale} = this.context;
-    const {scanInfoScore, queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
+    const {safetyScanInfoScore, queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -2626,19 +2626,19 @@ class HostController extends Component {
                   {activeFilter === 'ip' &&
                     <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'ip')}>{t('network-inventory.txt-batchUpload')}</Button>
                   }
-                  {activeFilter === 'scanInfo' &&
+                  {activeFilter === 'safetyScanInfo' &&
                     <React.Fragment>
                       <TextField
-                        id='scanInfoBatch'
+                        id='safetyScanInfoBatch'
                         className='number'
-                        name='scanInfoScore'
+                        name='safetyScanInfoScore'
                         label={t('host.txt-cveScore')}
                         type='number'
                         variant='outlined'
                         size='small'
-                        value={scanInfoScore}
+                        value={safetyScanInfoScore}
                         onChange={this.handleDataChange} />
-                      <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'scanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
+                      <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'safetyScanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
                     </React.Fragment>
                   }
                 </React.Fragment>
@@ -2666,7 +2666,7 @@ class HostController extends Component {
 
     this.setState({
       importFilterType: '',
-      scanInfoScore: '',
+      safetyScanInfoScore: '',
       queryData: tempQueryData,
       deviceSearch: _.cloneDeep(DEVICE_SEARCH),
       deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST)
@@ -3878,7 +3878,7 @@ class HostController extends Component {
   /**
    * Toggle CSV import dialog on/off
    * @method
-   * @param {string} [importFilterType] - Import filter type ('ip' or 'scanInfo')
+   * @param {string} [importFilterType] - Import filter type ('ip' or 'safetyScanInfo')
    */
   toggleCsvImport = (importFilterType) => {
     this.setState({
@@ -3895,7 +3895,7 @@ class HostController extends Component {
    */
   confirmCsvImport = (csvData) => {
     const {baseUrl} = this.context;
-    const {importFilterType, scanInfoScore} = this.state;
+    const {importFilterType, safetyScanInfoScore} = this.state;
 
     if (importFilterType === 'ip') {
       let validData = true;
@@ -3933,7 +3933,7 @@ class HostController extends Component {
       }
 
       this.setDeviceSearch(importFilterType, formattedData);
-    } else if (importFilterType === 'scanInfo') {
+    } else if (importFilterType === 'safetyScanInfo') {
       if (!csvData) {
         this.toggleCsvImport();
         return;
@@ -3941,7 +3941,7 @@ class HostController extends Component {
 
       let formData = new FormData();
       formData.append('file', csvData);
-      formData.append('score', scanInfoScore);
+      formData.append('score', safetyScanInfoScore);
 
       this.ah.one({
         url: `${baseUrl}/api/hmd/uploadNistCpe`,
