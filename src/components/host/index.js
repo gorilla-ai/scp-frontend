@@ -59,7 +59,7 @@ import YaraRule from '../common/yara-rule'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'scanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttmArray'];
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'safetyScanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttmArray'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -266,7 +266,7 @@ const DEVICE_SEARCH = {
   system: [{
     input: ''
   }],
-  scanInfo: [{
+  safetyScanInfo: [{
     input: ''
   }],
   status: [{
@@ -275,10 +275,6 @@ const DEVICE_SEARCH = {
   annotation: [{
     input: ''
   }],
-  theLatestTaskResponseDttmArray: {
-    from: '',
-    to: ''
-  },
   userName: [{
     input: ''
   }],
@@ -288,7 +284,11 @@ const DEVICE_SEARCH = {
   version: [{
     condition: '=',
     input: ''
-  }]
+  }],
+  theLatestTaskResponseDttmArray: {
+    from: '',
+    to: ''
+  }
 };
 const DEVICE_SEARCH_LIST = {
   ip: [],
@@ -296,13 +296,13 @@ const DEVICE_SEARCH_LIST = {
   hostName: [],
   deviceType: [],
   system: [],
-  scanInfo: [],
+  safetyScanInfo: [],
   status: [],
   annotation: [],
-  theLatestTaskResponseDttmArray: {},
   userName: [],
   groups: [],
-  version: []
+  version: [],
+  theLatestTaskResponseDttmArray: {}
 };
 const FORM_VALIDATION = {
   frMotp: {
@@ -889,12 +889,6 @@ class HostController extends Component {
       ...this.getHostSafetyRequestData()
     };
 
-    if (deviceSearchList.scanInfo.length > 0) {
-      requestData.hmdScanDistribution = {
-        primaryKeyValueArray: deviceSearchList.scanInfo
-      };
-    }
-
     if (activeTab === 'deviceMap' && currentFloor) {
       requestData.areaUUID = currentFloor;
     }
@@ -1068,19 +1062,13 @@ class HostController extends Component {
    * @param {object} filterData - filter data to be set
    */
   setFilterData = (filterData) => {
-    const {deviceSearch, deviceSearchList} = this.state;
-    let tempDeviceSearch = {...deviceSearch};
-    let tempDeviceSearchList = {...deviceSearchList};
+    let tempDeviceSearch =  _.cloneDeep(DEVICE_SEARCH);
+    let tempDeviceSearchList = _.cloneDeep(DEVICE_SEARCH_LIST);
 
     Object.keys(filterData).map(val => {
       const type = val.replace('Array', '');
 
-      if (type === 'hmdScanDistribution') {
-        if (filterData[type].primaryKeyValueArray.length > 0) {
-          tempDeviceSearch.scanInfo = this.getDeviceSearchList(filterData[type].primaryKeyValueArray);
-          tempDeviceSearchList.scanInfo = filterData[type].primaryKeyValueArray;
-        }
-      } else if (type === 'annotationObj') {
+      if (type === 'annotationObj') {
         if (filterData[type].statusArray.length > 0) {
           tempDeviceSearch.status = this.getDeviceSearchList(filterData[type].statusArray);
           tempDeviceSearchList.status = filterData[type].statusArray;
@@ -1221,7 +1209,7 @@ class HostController extends Component {
    * @returns requestData object
    */
   getHostSafetyRequestData = () => {
-    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch} = this.state;
+    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch, safetyScanType} = this.state;
     const responseDatetime = {
       from: deviceSearch.theLatestTaskResponseDttmArray.from,
       to: deviceSearch.theLatestTaskResponseDttmArray.to
@@ -1280,6 +1268,18 @@ class HostController extends Component {
       requestData.systemArray = deviceSearchList.system;
     }
 
+    if (deviceSearchList.safetyScanInfo.length > 0) {
+      let safetyScanInfo = deviceSearchList.safetyScanInfo;
+
+      if (safetyScanType === 'getFileIntegrity') {
+        safetyScanInfo = _.map(deviceSearchList.safetyScanInfo, val => {
+          return val.replace(/\\/g, '\\\\');
+        });
+      }
+
+      requestData.safetyScanInfoArray = safetyScanInfo;
+    }
+
     if (deviceSearchList.status.length > 0 || deviceSearchList.annotation.length > 0) {
       requestData.annotationObj = {
         statusArray: deviceSearchList.status,
@@ -1292,12 +1292,6 @@ class HostController extends Component {
         disStatus: hmdSearch.status.value,
         disAnnotation: hmdSearch.annotation
       };
-    }
-
-    if (responseDatetime.from && responseDatetime.to) {
-      const searchTimeFrom =  moment(responseDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      const searchTimeTo = moment(responseDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      requestData.theLatestTaskResponseDttmArray = [searchTimeFrom, searchTimeTo];
     }
 
     if (deviceSearchList.userName.length > 0) {
@@ -1327,6 +1321,12 @@ class HostController extends Component {
           version
         }
       });
+    }
+
+    if (responseDatetime.from && responseDatetime.to) {
+      const searchTimeFrom =  moment(responseDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      const searchTimeTo = moment(responseDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.theLatestTaskResponseDttmArray = [searchTimeFrom, searchTimeTo];
     }
 
     return requestData;
@@ -1384,18 +1384,6 @@ class HostController extends Component {
           taskName: safetyScanType
         };
       }
-    }
-
-    if (deviceSearchList.scanInfo.length > 0) {
-      let scanInfo = deviceSearchList.scanInfo;
-
-      if (safetyScanType === 'getFileIntegrity') {
-        scanInfo = _.map(deviceSearchList.scanInfo, val => {
-          return val.replace(/\\/g, '\\\\');
-        });
-      }
-
-      requestData.hmdScanDistribution.primaryKeyValueArray = scanInfo;
     }
 
     this.ah.one({
@@ -3519,16 +3507,8 @@ class HostController extends Component {
   getHostInfo = (safetyData, cpeData, from) => {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
-    let keyValue = '';
-
-    if (from === 'showAvailableHost') {
-      keyValue = safetyData;
-    } else {
-      keyValue = safetyData.primaryKeyValue || safetyData.id;
-    }
-
     const requestData = {
-      primaryKeyValue: keyValue,
+      primaryKeyValue: from === 'showAvailableHost' ? safetyData : safetyData.primaryKeyValue || safetyData.id,
       exactStartDttm: safetyData.startTimeString,
       hostIdObj: safetyData.hostIdObj
     };
@@ -3915,7 +3895,7 @@ class HostController extends Component {
    */
   confirmCsvImport = (csvData) => {
     const {baseUrl} = this.context;
-    const {importFilterType} = this.state;
+    const {importFilterType, scanInfoScore} = this.state;
 
     if (importFilterType === 'ip') {
       let validData = true;
@@ -3954,9 +3934,6 @@ class HostController extends Component {
 
       this.setDeviceSearch(importFilterType, formattedData);
     } else if (importFilterType === 'scanInfo') {
-      const {scanInfoScore} = this.state;
-      console.log(scanInfoScore);
-
       if (!csvData) {
         this.toggleCsvImport();
         return;
@@ -4619,12 +4596,20 @@ class HostController extends Component {
     )
   }
   /**
-   * Export CPE data
+   * Handle download button
    * @method
+   * @param {string} type - download type ('hostList' or 'cpe')
    */
-  exportCPE = () => {
+  downloadBtn = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/v2/hmd/vans/_export`;
+    let url = '';
+
+    if (type === 'hostList') {
+      url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/_export`;
+    } else if (type === 'cpe') {
+      url = `${baseUrl}${contextRoot}/api/v2/hmd/vans/_export`;
+    }
+
     const dataOptions = {
       ...this.getHostSafetyRequestData(),
       hmdScanDistribution: {
@@ -5176,7 +5161,8 @@ class HostController extends Component {
 
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
-                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCPE}>{t('host.txt-export-cpe')}</Button>
+                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
+                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'cpe')}>{t('host.txt-export-cpe')}</Button>
                         {safetyScanData.dataContent &&
                           <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
                         }

@@ -459,11 +459,7 @@ class QueryOpenSave extends Component {
 
         Object.keys(filterData).map(val => {
           if (filterData[val].length > 0) {
-            if (val === 'scanInfo') {
-              queryText.hmdScanDistribution = {
-                primaryKeyValueArray: filterData.scanInfo
-              };
-            } else if (val === 'status' || val === 'annotation') {
+            if (val === 'status' || val === 'annotation') {
               queryText.annotationObj = {
                 statusArray: filterData.status,
                 annotationArray: filterData.annotation
@@ -996,12 +992,7 @@ class QueryOpenSave extends Component {
     let label = '';
     let value = '';
 
-    if (type === 'hmdScanDistribution') {
-      if (queryDataList[key].primaryKeyValueArray.length > 0) {
-        label = t('ipFields.scanInfo');
-        value = queryDataList[key].primaryKeyValueArray.join(', ');
-      }
-    } else if (type === 'annotationObj') {
+    if (type === 'annotationObj') {
       if (queryDataList[key].statusArray.length > 0) {
         label = t('ipFields.status');
         value = queryDataList[key].statusArray.join(', ');
