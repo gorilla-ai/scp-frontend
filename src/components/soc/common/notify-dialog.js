@@ -219,6 +219,31 @@ class NotifyDialog extends Component {
     });
   }
   /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getEamilLabel = (email, index, removeEmail) => {
+    return (
+      <div data-tag key={index}>
+        {email}
+        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+  /**
    * Handle phone input change
    * @method
    * @param {array} newPhones - new phones list
@@ -254,38 +279,13 @@ class NotifyDialog extends Component {
     )
   }
   /**
-   * Handle email delete
-   * @method
-   * @param {function} removeEmail - function to remove email
-   * @param {number} index - index of the emails list array
-   */
-  deleteEmail = (removeEmail, index) => {
-    removeEmail(index);
-  }
-  /**
-   * Handle email delete
-   * @method
-   * @param {string} email - individual email
-   * @param {number} index - index of the emails list array
-   * @param {function} removeEmail - function to remove email
-   * @returns HTML DOM
-   */
-  getEamilLabel = (email, index, removeEmail) => {
-    return (
-      <div data-tag key={index}>
-        {email}
-        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
-  }
-  /**
    * Display list for contact failed
    * @method
    * @param {object} val - individual contact
    * @param {number} i - index of the contact
    * @returns HTML DOM
    */
-  showList = (val, i) => {
+  displayFailedList = (val, i) => {
     return <li key={i} style={{fontWeight: 'bold'}}>{val}</li>
   }
   /**
@@ -300,7 +300,7 @@ class NotifyDialog extends Component {
         <div>{it('txt-notifySendSuccess')}</div>
         <div style={{margin: '15px 0 5px 0'}}>{t('notifications.txt-sendFailed')}:</div>
         <ul style={{maxHeight: '200px', overflowY: 'auto'}}>
-          {failedList.map(this.showList)}
+          {failedList.map(this.displayFailedList)}
         </ul>
       </React.Fragment>
     )
