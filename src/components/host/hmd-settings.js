@@ -243,7 +243,7 @@ class HMDsettings extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        if (data[0]) {
+        if (data[0] && data[0].value) {
           const serverOs = _.map(data[0].value, val => ({ path: val }));
 
           this.setState({
@@ -252,7 +252,7 @@ class HMDsettings extends Component {
           });
         }
 
-        if (data[1]) {
+        if (data[1] && data[1].value) {
           const pcOs = _.map(data[1].value, val => ({ path: val }));
 
           this.setState({
@@ -401,29 +401,31 @@ class HMDsettings extends Component {
           });
         }
 
-        const parsedCpeData = JSON.parse(data[15].value);
-        let cpeData = [];
-      
-        _.forEach(parsedCpeData, (val, index) => {
-          cpeData.push({
-            header: val.cpeHeader,
-            validate: true,
-            msg: '',
-            list: _.map(val.cpeArray, val2 => {
-              return {
-                cpe: val2,
-                validate: true,
-                msg: ''
-              }
-            }),
-            index
-          });
-        })
+        if (data[15] && data[15].value) {
+          const parsedCpeData = JSON.parse(data[15].value);
+          let cpeData = [];
+        
+          _.forEach(parsedCpeData, (val, index) => {
+            cpeData.push({
+              header: val.cpeHeader,
+              validate: true,
+              msg: '',
+              list: _.map(val.cpeArray, val2 => {
+                return {
+                  cpe: val2,
+                  validate: true,
+                  msg: ''
+                }
+              }),
+              index
+            });
+          })
 
-        this.setState({
-          originalCpeData: _.cloneDeep(cpeData),
-          cpeData
-        });
+          this.setState({
+            originalCpeData: _.cloneDeep(cpeData),
+            cpeData
+          });
+        }
 
         const parsedFrMotpData = JSON.parse(data[16].value);
         const frMotp = {
@@ -432,7 +434,7 @@ class HMDsettings extends Component {
           enable: parsedFrMotpData.enable
         };
 
-        const scannerSchedule = moment(data[171717].value).local().format('YYYY-MM-DDTHH:mm:ss')
+        const scannerSchedule = moment(data[17].value).local().format('YYYY-MM-DDTHH:mm:ss')
 
         this.setState({
           originalFrMotpSettings: _.cloneDeep(frMotp),
