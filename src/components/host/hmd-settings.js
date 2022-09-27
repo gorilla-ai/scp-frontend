@@ -26,12 +26,11 @@ import CpeHeader from './cpe-header'
 import FileUpload from '../common/file-upload'
 import helper from '../common/helper'
 import InputPath from '../common/input-path'
-import ProductRegex from './product-regex'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-//const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
+const CPE_PATTERN = /cpe:2\.3:[aho](?::(?:[a-zA-Z0-9!"#$%&'()*+,\\\-_.\/;<=>?@\[\]^`{|}~]|\\:)+){10}$/;
 const MALWARE_DETECTION = ['includePath', 'excludePath'];
 const NOT_AVAILABLE = 'N/A';
 const PRODUCT_REGEX = [
@@ -107,9 +106,7 @@ const FIELD_ENABLE = {
   gcb: false,
   processMonitor: false,
   ftpUpload: false,
-  vansSoftware: false,
   frMotp: false,
-  nccst: false,
   security: false,
   scannerSchedule: false
 };
@@ -133,10 +130,14 @@ class HMDsettings extends Component {
         from: helper.getStartDate('day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
-      originalServerOs: '',
-      serverOs: [],
-      originalPcOs: '',
-      pcOs: [],
+      originalServerOs: [],
+      serverOs: [{
+        path: ''
+      }],
+      originalPcOs: [],
+      pcOs: [{
+        path: ''
+      }],
       originalScanFiles: [],
       scanFiles: {
         includePath: [{
@@ -182,21 +183,6 @@ class HMDsettings extends Component {
       originalFtpAccount: '',
       ftpAccount: '',
       ftpPassword: '',
-      originalProductRegex: [],
-      productRegexData: [{
-        regexp: '',
-        part: '',
-        vendor: '',
-        product: '',
-        version: '',
-        update: '',
-        edition: '',
-        language: '',
-        sw_edition: '',
-        target_sw: '',
-        target_hw: '',
-        other: ''
-      }],
       originalCpeData: [],
       cpeData: [{
         header: '',
@@ -209,22 +195,12 @@ class HMDsettings extends Component {
         }],
         index: 0
       }],
-      cpeInputTest: '',
-      cpe23Uri: '',
-      cpeConvertResult: '',
       connectionsStatus: '',
       originalFrMotpSettings: '',
       frMotp: {
         enable: true,
         ip: '',
         apiKey: ''
-      },
-      originalNccstSettings: '',
-      nccstSettings: {
-        unitOID: '',
-        unitName: '',
-        apiKey: '',
-        apiUrl: ''
       },
       originalScannerSchedule: '',
       scannerSchedule: '',
@@ -245,19 +221,17 @@ class HMDsettings extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.getSettingsInfo();
-    //this.getProductRegexInfo();
   }
   componentWillUnmount() {
     helper.clearTimer();
   }
-  ryan = () => {}
   /**
    * Get and set HMD settings data
    * @method
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.server.os', 'hmd.pc.os', 'hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'vans.oid', 'vans.unit_name', 'vans.api_key', 'vans.api_url', 'hmd.export.kbid.items', 'hmd.frmotp', 'hmd.scanner.schedule'];
+    const scanType = ['hmd.server.os', 'hmd.pc.os', 'hmd.scanFile.windows.path', 'hmd.scanFile.windows.exclude.path', 'hmd.scanFile.linux.path', 'hmd.scanFile.linux.exclude.path', 'hmd.scanFile.windows.path.default', 'hmd.scanFile.windows.exclude.path.default', 'hmd.scanFile.linux.path.default', 'hmd.scanFile.linux.exclude.path.default', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec', 'hmd.sftp.ip', 'hmd.sftp.uploadPath', 'hmd.sftp.account', 'hmd.export.kbid.items', 'hmd.frmotp', 'hmd.scanner.schedule'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -270,19 +244,23 @@ class HMDsettings extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        // if (data[0]) {
-        //   this.setState({
-        //     originalServerOs: ['Linux', 'Windows Server'],
-        //     serverOs: ['Linux', 'Windows Server']
-        //   });
-        // }
+        if (data[0]) {
+          const serverOs = _.map(data[0].value, val => ({ path: val }));
 
-        this.setState({
-          originalServerOs: ['Linux', 'Windows Server'],
-          serverOs: ['Linux', 'Windows Server'],
-          originalPcOs: ['Windows 10', 'Windows NT'],
-          pcOs: ['Windows 10', 'Windows NT']
-        });
+          this.setState({
+            originalServerOs: serverOs,
+            serverOs
+          });
+        }
+
+        if (data[1]) {
+          const pcOs = _.map(data[1].value, val => ({ path: val }));
+
+          this.setState({
+            originalPcOs: pcOs,
+            pcOs
+          });
+        }
 
         if (!_.isEmpty(data[2]) && !_.isEmpty(data[3])) {
           const scanIncludePath = data[2].value.split(',');
@@ -424,19 +402,7 @@ class HMDsettings extends Component {
           });
         }
 
-        const nccstSettings = {
-          unitOID: data[15].value,
-          unitName: data[16].value,
-          apiKey: data[17].value,
-          apiUrl: data[18].value
-        };
-
-        this.setState({
-          originalNccstSettings: _.cloneDeep(nccstSettings),
-          nccstSettings
-        });
-
-        const parsedCpeData = JSON.parse(data[19].value);
+        const parsedCpeData = JSON.parse(data[15].value);
         let cpeData = [];
       
         _.forEach(parsedCpeData, (val, index) => {
@@ -460,44 +426,20 @@ class HMDsettings extends Component {
           cpeData
         });
 
-        const parsedFrMotpData = JSON.parse(data[20].value);
+        const parsedFrMotpData = JSON.parse(data[16].value);
         const frMotp = {
           ip: parsedFrMotpData.ip,
           apiKey: parsedFrMotpData.apiKey,
           enable: parsedFrMotpData.enable
         };
 
-        const scannerSchedule = moment(data[21].value).local().format('YYYY-MM-DDTHH:mm:ss')
+        const scannerSchedule = moment(data[171717].value).local().format('YYYY-MM-DDTHH:mm:ss')
 
         this.setState({
           originalFrMotpSettings: _.cloneDeep(frMotp),
           frMotp,
           originalScannerSchedule: scannerSchedule,
           scannerSchedule
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set product regex data
-   * @method
-   */
-  getProductRegexInfo = () => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/productRegex`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          originalProductRegex: _.cloneDeep(data),
-          productRegexData: data
         });
       }
       return null;
@@ -523,10 +465,8 @@ class HMDsettings extends Component {
       originalFtpIp,
       originalFtpUrl,
       originalFtpAccount,
-      originalProductRegex,
       originalCpeData,
       originalFrMotpSettings,
-      originalNccstSettings,
       originalScannerSchedule,
       fieldEnable
     } = this.state;
@@ -556,10 +496,8 @@ class HMDsettings extends Component {
         ftpIp: _.cloneDeep(originalFtpIp),
         ftpUrl: _.cloneDeep(originalFtpUrl),
         ftpAccount: _.cloneDeep(originalFtpAccount),
-        productRegexData: _.cloneDeep(originalProductRegex),
         cpeData: _.cloneDeep(originalCpeData),
         frMotp: _.cloneDeep(originalFrMotpSettings),
-        nccstSettings: _.cloneDeep(originalNccstSettings),
         scannerSchedule: _.cloneDeep(originalScannerSchedule)
       });
 
@@ -691,23 +629,280 @@ class HMDsettings extends Component {
     }
   }
   /**
+   * Handle GCB version change
+   * @method
+   * @param {object} event - event object
+   */
+  handleGcbVersionChange = (event) => {
+    this.setState({
+      gcbVersion: event.target.value
+    });
+  }
+  /**
+   * Handle input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+
+    if (event.target.name === 'ftpIp' || event.target.name === 'ftpAccount' || event.target.name === 'ftpPassword') {
+      this.setState({
+        connectionsStatus: ''
+      });
+    }
+  }
+  /**
+   * Handle check connections button
+   * @method
+   */
+  checkConnectionsStatus = () => {
+    const {baseUrl} = this.context;
+    const {ftpIp, ftpAccount, ftpPassword, formValidation} = this.state;
+    const url = `${baseUrl}/api/hmd/isSftpConnected`;
+    const requestData = {
+      ip: ftpIp,
+      account: ftpAccount,
+      password: ftpPassword
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (ftpIp) {
+      if (IP_PATTERN.test(ftpIp)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.ip.valid = false;
+      tempFormValidation.ip.msg = t('txt-required');
+      validate = false;
+    }
+
+    if (ftpAccount) {
+      tempFormValidation.account.valid = true;
+    } else {
+      tempFormValidation.account.valid = false;
+      validate = false;
+    }
+
+    if (ftpPassword) {
+      tempFormValidation.password.valid = true;
+    } else {
+      tempFormValidation.password.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          connectionsStatus: data.rt
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle FR-MOTP data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleFrMotpChange = (event) => {
+    const type = event.target.name === 'enable' ? 'checked' : 'value';
+    let tempFrMotp = {...this.state.frMotp};
+    tempFrMotp[event.target.name] = event.target[type];
+
+    this.setState({
+      frMotp: tempFrMotp
+    });
+  }
+  /**
+   * Handle FR-MOTP connections test
+   * @method
+   */
+  handleConnectionsTest = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/common/fr-motp/connect/_test`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-connectionsSuccess'));
+      } else {
+        helper.showPopupMsg(t('txt-connectionsFail'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetimeExport = {...this.state.datetimeExport};
+    tempDatetimeExport[type] = newDatetime;
+
+    this.setState({
+      datetimeExport: tempDatetimeExport
+    });
+  }
+  /**
+   * Set new time
+   * @method
+   * @param {object} newTime - new datetime object
+   */
+  handleScannerTimeChange = (newTime) => {
+    this.setState({
+      scannerSchedule: newTime
+    });
+  }
+  /**
+   * Handle HMD upload input value change
+   * @method
+   * @param {object} value - input data to be set
+   */
+  handleFileChange = (value) => {
+    this.setState({
+      hmdFile: value
+    });
+  }
+  /**
+   * Handle HMD export
+   * @method
+   */
+  handleFileExport = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {datetimeExport} = this.state;
+    const startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const url = `${baseUrl}${contextRoot}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${startDttm}&endDttm=${endDttm}`;
+
+    downloadLink(url);
+  }
+  /**
+   * Handle HMD file import
+   * @method
+   */
+  handleFileImport = () => {
+    const {baseUrl} = this.context;
+    const {hmdFile} = this.state;
+    let formData = new FormData();
+    formData.append('file', hmdFile);
+
+    if (!hmdFile) return;
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-uploadSuccess'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get default file path
+   * @method
+   * @param {string} type - scan file type ('scanFiles' or 'scanFilesLinux')
+   */
+  getDefaultScanFile = (type) => {
+    const {scanFilesDefault, scanFilesLinuxDefault} = this.state;
+
+    if (type === 'scanFiles') {
+      this.setState({
+        scanFiles: scanFilesDefault
+      });
+    } else if (type === 'scanFilesLinux') {
+      this.setState({
+        scanFilesLinux: scanFilesLinuxDefault
+      });
+    }
+  }
+  /**
+   * Show OS list
+   * @method
+   * @param {string} val - OS list
+   * @param {string} i - index of the OS list
+   * @returns HTML DOM
+   */
+  showOsList = (val, i) => {
+    return <span key={i} className='flex-item'>{val.path}</span>
+  }
+  /**
+   * Set path data
+   * @method
+   * @param {string} type - path type ('serverOs' or 'pcOs')
+   * @param {array} osData - OS data to be set
+   */
+  setOSlist = (type, osData) => {
+    this.setState({
+      [type]: osData
+    });
+  }
+  /**
    * Handle settings confirm
    * @method
    */
   handleSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {serverOs, pcOs, scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, nccstSettings, scannerSchedule, activeSettings, fieldEnable, formValidation} = this.state;
+    const {serverOs, pcOs, scanFiles, scanFilesLinux, gcbVersion, pmInterval, ftpIp, ftpUrl, ftpAccount, ftpPassword, cpeData, frMotp, scannerSchedule, activeSettings, fieldEnable, formValidation} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let tempFormValidation = {...formValidation};
     let validate = true;
     let requestData = {};
 
     if (activeSettings === 'server') {
-      console.log(serverOs);
-      return;
+      requestData = {
+        configId: 'hmd.server.os',
+        value: _.map(serverOs, val => val.path)
+      };
     } else if (activeSettings === 'pc') {
-      console.log(pcOs);
-      return;
+      requestData = {
+        configId: 'hmd.pc.os',
+        value: _.map(pcOs, val => val.path)
+      };
     } else if (activeSettings === 'scanFiles') {
       let parsedIncludePath = [];
       let parsedExcludePath = [];
@@ -924,61 +1119,11 @@ class HMDsettings extends Component {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
       return;
-    } else if (activeSettings === 'vansSoftware') {
-      this.handleHmdProductRegex();
-      return;
     } else if (activeSettings === 'frMotp') {
       requestData = {
         configId: 'hmd.frmotp',
         value: JSON.stringify(frMotp)
       };
-    } else if (activeSettings === 'nccst') {
-      const scanType = [
-        {
-          type: 'vans.oid',
-          value: nccstSettings.unitOID
-        },
-        {
-          type: 'vans.unit_name',
-          value: nccstSettings.unitName
-        },
-        {
-          type: 'vans.api_key',
-          value: nccstSettings.apiKey
-        },
-        {
-          type: 'vans.api_url',
-          value: nccstSettings.apiUrl
-        }
-      ];
-      let apiArr = [];
-
-      _.forEach(scanType, val => {
-        const requestData = {
-          configId: val.type,
-          value: val.value
-        };
-
-        apiArr.push({
-          url,
-          data: JSON.stringify(requestData),
-          type: 'POST',
-          contentType: 'text/plain'
-        });
-      })
-
-      this.ah.all(apiArr)
-      .then(data => {
-        if (data) {
-          this.getSettingsInfo();
-          this.clearData();
-        }
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-      return;
     } else if (activeSettings === 'security') {
       let tempCpeData = [];
       let cpeValid = true;
@@ -1025,11 +1170,11 @@ class HMDsettings extends Component {
               msg = t('txt-required');
             }
 
-            // if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
-            //   validate = false;
-            //   cpeValid = false;
-            //   msg = t('txt-checkFormat');
-            // }
+            if (val2.cpe && !CPE_PATTERN.test(val2.cpe)) { //Check CPE format
+              validate = false;
+              cpeValid = false;
+              msg = t('txt-checkFormat');
+            }
 
             cpeList.push({
               cpe: val2.cpe,
@@ -1089,29 +1234,6 @@ class HMDsettings extends Component {
     })
   }
   /**
-   * Handle HMD product regex confirm
-   * @method
-   */
-  handleHmdProductRegex = () => {
-    const {baseUrl} = this.context;
-    const requestData = {
-      productRegex: this.state.productRegexData
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/productRegex`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    }, {showProgress: false})
-    .then(data => {
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Clear validations data
    * @method
    */
@@ -1123,390 +1245,6 @@ class HMDsettings extends Component {
       fieldEnable: _.cloneDeep(FIELD_ENABLE),
       formValidation: _.cloneDeep(FORM_VALIDATION)
     });
-  }
-  /**
-   * Handle GCB version change
-   * @method
-   * @param {object} event - event object
-   */
-  handleGcbVersionChange = (event) => {
-    this.setState({
-      gcbVersion: event.target.value
-    });
-  }
-  /**
-   * Handle input data change
-   * @method
-   * @param {object} event - event object
-   */
-  handleDataChange = (event) => {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-
-    if (event.target.name === 'ftpIp' || event.target.name === 'ftpAccount' || event.target.name === 'ftpPassword') {
-      this.setState({
-        connectionsStatus: ''
-      });
-    }
-  }
-  /**
-   * Handle input data change for NCCST
-   * @method
-   * @param {object} event - event object
-   */
-  handleNccstDataChange = (event) => {
-    let tempNccstSettings = {...this.state.nccstSettings};
-    tempNccstSettings[event.target.name] = event.target.value;
-
-    this.setState({
-      nccstSettings: tempNccstSettings
-    });
-  }
-  /**
-   * Handle check connections button
-   * @method
-   */
-  checkConnectionsStatus = () => {
-    const {baseUrl} = this.context;
-    const {ftpIp, ftpAccount, ftpPassword, formValidation} = this.state;
-    const url = `${baseUrl}/api/hmd/isSftpConnected`;
-    const requestData = {
-      ip: ftpIp,
-      account: ftpAccount,
-      password: ftpPassword
-    };
-    let tempFormValidation = {...formValidation};
-    let validate = true;
-
-    if (ftpIp) {
-      if (IP_PATTERN.test(ftpIp)) {
-        tempFormValidation.ip.valid = true;
-        tempFormValidation.ip.msg = '';
-      } else {
-        tempFormValidation.ip.valid = false;
-        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
-        validate = false;
-      }
-    } else {
-      tempFormValidation.ip.valid = false;
-      tempFormValidation.ip.msg = t('txt-required');
-      validate = false;
-    }
-
-    if (ftpAccount) {
-      tempFormValidation.account.valid = true;
-    } else {
-      tempFormValidation.account.valid = false;
-      validate = false;
-    }
-
-    if (ftpPassword) {
-      tempFormValidation.password.valid = true;
-    } else {
-      tempFormValidation.password.valid = false;
-      validate = false;
-    }
-
-    this.setState({
-      formValidation: tempFormValidation
-    });
-
-    if (!validate) {
-      return;
-    }
-
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          connectionsStatus: data.rt
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Set Product Regex data
-   * @method
-   * @param {array} productRegexData - product regex data
-   */
-  setProductRegexData = (productRegexData) => {
-    this.setState({
-      productRegexData
-    });
-  }
-  /**
-   * Handle CPE convert test button
-   * @method
-   */
-  handleCPEconvertTest = () => {
-    const {baseUrl} = this.context;
-    const {productRegexData, cpeInputTest} = this.state;
-    const url = `${baseUrl}/api/hmd/productRegex/_test`;
-    let requestData = {
-      productRegex: productRegexData,
-      cpe23Uri: cpeInputTest
-    };
-
-    if (cpeInputTest === '' || productRegexData.length === 0) {
-      return;
-    }
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          cpe23Uri: data.cpe23Uri,
-          cpeConvertResult: data.match
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get CPE content
-   * @method
-   * @returns CPE content
-   */
-  showCpeResult = () => {
-    const {cpeConvertResult} = this.state;
-
-    if (cpeConvertResult !== '') {
-      return cpeConvertResult ? t('txt-pass') : t('txt-fail');
-    }
-  }
-  /**
-   * Handle FR-MOTP data change
-   * @method
-   * @param {object} event - event object
-   */
-  handleFrMotpChange = (event) => {
-    const type = event.target.name === 'enable' ? 'checked' : 'value';
-    let tempFrMotp = {...this.state.frMotp};
-    tempFrMotp[event.target.name] = event.target[type];
-
-    this.setState({
-      frMotp: tempFrMotp
-    });
-  }
-  /**
-   * Handle FR-MOTP connections test
-   * @method
-   */
-  handleConnectionsTest = () => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/common/fr-motp/connect/_test`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-connectionsSuccess'));
-      } else {
-        helper.showPopupMsg(t('txt-connectionsFail'));
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Set new datetime
-   * @method
-   * @param {string} type - date type ('from' or 'to')
-   * @param {object} newDatetime - new datetime object
-   */
-  handleDateChange = (type, newDatetime) => {
-    let tempDatetimeExport = {...this.state.datetimeExport};
-    tempDatetimeExport[type] = newDatetime;
-
-    this.setState({
-      datetimeExport: tempDatetimeExport
-    });
-  }
-  /**
-   * Set new time
-   * @method
-   * @param {object} newTime - new datetime object
-   */
-  handleScannerTimeChange = (newTime) => {
-    this.setState({
-      scannerSchedule: newTime
-    });
-  }
-  /**
-   * Handle HMD upload input value change
-   * @method
-   * @param {object} value - input data to be set
-   */
-  handleFileChange = (value) => {
-    this.setState({
-      hmdFile: value
-    });
-  }
-  /**
-   * Handle HMD export
-   * @method
-   */
-  handleFileExport = () => {
-    const {baseUrl, contextRoot} = this.context;
-    const {datetimeExport} = this.state;
-    const startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const url = `${baseUrl}${contextRoot}/api/hmd/dbsync/ipdeviceAndtask/_export?startDttm=${startDttm}&endDttm=${endDttm}`;
-
-    downloadLink(url);
-  }
-  /**
-   * Handle HMD file import
-   * @method
-   */
-  handleFileImport = () => {
-    const {baseUrl} = this.context;
-    const {hmdFile} = this.state;
-    let formData = new FormData();
-    formData.append('file', hmdFile);
-
-    if (!hmdFile) return;
-
-    ah.one({
-      url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import`,
-      data: formData,
-      type: 'POST',
-      processData: false,
-      contentType: false
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        helper.showPopupMsg(t('txt-uploadSuccess'));
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get default file path
-   * @method
-   * @param {string} type - scan file type ('scanFiles' or 'scanFilesLinux')
-   */
-  getDefaultScanFile = (type) => {
-    const {scanFilesDefault, scanFilesLinuxDefault} = this.state;
-
-    if (type === 'scanFiles') {
-      this.setState({
-        scanFiles: scanFilesDefault
-      });
-    } else if (type === 'scanFilesLinux') {
-      this.setState({
-        scanFilesLinux: scanFilesLinuxDefault
-      });
-    }
-  }
-  /**
-   * Handle server input change
-   * @method
-   * @param {array} newPhones - new server list
-   */
-  handleServerChange = (newServer) => {
-    this.setState({
-      serverOs: newServer
-    });
-  }
-  /**
-   * Handle server delete
-   * @method
-   * @param {function} removeServer - function to remove server
-   * @param {number} index - index of the server list array
-   */
-  deleteServer = (removeServer, index) => {
-    removeServer(index);
-  }
-  /**
-   * Handle server delete
-   * @method
-   * @param {string} server - individual server
-   * @param {number} index - index of the server list array
-   * @param {function} removeServer - function to remove server
-   * @returns HTML DOM
-   */
-  getServerLabel = (server, index, removeServer) => {
-    return (
-      <div data-tag key={index}>
-        {server}
-        <span data-tag-handle onClick={this.deleteServer.bind(this, removeServer, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
-  }
-
-  /**
-   * Handle PC input change
-   * @method
-   * @param {array} newPhones - new PC list
-   */
-  handlePcChange = (newPC) => {
-    this.setState({
-      pcOs: newPC
-    });
-  }
-  /**
-   * Handle PC delete
-   * @method
-   * @param {function} removePC - function to remove PC
-   * @param {number} index - index of the PC list array
-   */
-  deletePC = (removePC, index) => {
-    removePC(index);
-  }
-  /**
-   * Handle PC delete
-   * @method
-   * @param {string} pc - individual PC
-   * @param {number} index - index of the PC list array
-   * @param {function} removePC - function to remove PC
-   * @returns HTML DOM
-   */
-  getPcLabel = (pc, index, removePC) => {
-    return (
-      <div data-tag key={index}>
-        {pc}
-        <span data-tag-handle onClick={this.deletePC.bind(this, removePC, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
-  }
-  /**
-   * Show OS list
-   * @method
-   * @param {string} val - OS list
-   * @param {string} i - index of the OS list
-   * @returns HTML DOM
-   */
-  showOsList = (val, i) => {
-    return <span key={i} className='flex-item'>{val}</span>
   }
   render() {
     const {locale} = this.context;
@@ -1521,13 +1259,8 @@ class HMDsettings extends Component {
       ftpUrl,
       ftpAccount,
       ftpPassword,
-      productRegexData,
-      cpeInputTest,
-      cpe23Uri,
-      cpeConvertResult,
       connectionsStatus,
       frMotp,
-      nccstSettings,
       scannerSchedule,
       cpeData,
       fieldEnable,
@@ -1591,11 +1324,14 @@ class HMDsettings extends Component {
                 </div>
               }
               {fieldEnable.server &&
-                <ReactMultiEmail
-                  emails={serverOs}
-                  onChange={this.handleServerChange}
-                  validateEmail={server => true}
-                  getLabel={this.getServerLabel} />
+                <MultiInput
+                  base={InputPath}
+                  inline={true}
+                  defaultItemValue={{
+                    path: ''
+                  }}
+                  value={serverOs}
+                  onChange={this.setOSlist.bind(this, 'serverOs')} />
               }
             </div>
 
@@ -1617,11 +1353,14 @@ class HMDsettings extends Component {
                 </div>
               }
               {fieldEnable.pc &&
-                <ReactMultiEmail
-                  emails={pcOs}
-                  onChange={this.handlePcChange}
-                  validateEmail={pc => true}
-                  getLabel={this.getPcLabel} />
+                <MultiInput
+                  base={InputPath}
+                  inline={true}
+                  defaultItemValue={{
+                    path: ''
+                  }}
+                  value={pcOs}
+                  onChange={this.setOSlist.bind(this, 'pcOs')} />
               }
             </div>
 
@@ -1833,69 +1572,6 @@ class HMDsettings extends Component {
               }
             </div>
 
-            <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.vansSoftware})}>
-              <header>{t('network-inventory.txt-VansProductRegex')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <React.Fragment>
-                    <Button variant='contained' color='primary' onClick={this.getProductRegexInfo}>{t('txt-load')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'vansSoftware')}>{t('txt-edit')}</Button>
-                  </React.Fragment>
-                }
-              </div>
-              <div className='group full multi product-regex-group'>
-                <MultiInput
-                  id='hmdSettingsProductRegex'
-                  className='ip-range-group'
-                  base={ProductRegex}
-                  props={data}
-                  defaultItemValue={{
-                    regexp: '',
-                    part: '',
-                    vendor: '',
-                    product: '',
-                    version: '',
-                    update: '',
-                    edition: '',
-                    language: '',
-                    sw_edition: '',
-                    target_sw: '',
-                    target_hw: '',
-                    other: ''
-                  }}
-                  value={productRegexData}
-                  onChange={this.setProductRegexData}
-                  disabled={!fieldEnable.vansSoftware} />
-              </div>
-            </div>
-
-            <div className='form-group normal'>
-              <header>{t('network-inventory.txt-CPEconvertTest')}</header>
-              <div className='header-btn-group'>
-              </div>
-              <div className='group full'>
-                <label></label>
-                <TextField
-                  name='cpeInputTest'
-                  label={t('network-inventory.txt-CPEinputTest')}
-                  className='cpe-input-test'
-                  variant='outlined'
-                  size='small'
-                  value={cpeInputTest}
-                  onChange={this.handleDataChange} />
-                <Button variant='contained' color='primary' className='convert-test' onClick={this.handleCPEconvertTest}>{t('network-inventory.txt-CPEconvertTest')}</Button>
-                <TextField
-                  name='cpeConvertResult'
-                  label={t('network-inventory.txt-CPEconvertResult')}
-                  className='cpe-convert-result'
-                  variant='outlined'
-                  size='small'
-                  value={cpe23Uri || ''}
-                  disabled={true} />
-                <div className='convert-result-text' style={{color: cpeConvertResult ? '#22ac38' : '#d10d25'}}>{this.showCpeResult()}</div>
-              </div>
-            </div>
-
             <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.frMotp})}>
               <header>FR-MOTP</header>
               <div className='header-btn-group'>
@@ -1940,63 +1616,6 @@ class HMDsettings extends Component {
                   value={frMotp.apiKey}
                   onChange={this.handleFrMotpChange}
                   disabled={!fieldEnable.frMotp} />
-              </div>
-            </div>
-
-            <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.nccst})}>
-              <header>{t('network-inventory.txt-reportNCCST')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'nccst')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <div className='group'>
-                <TextField
-                  id='nccstSettingsUnitOID'
-                  name='unitOID'
-                  label={t('network-inventory.txt-unitOID')}
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={nccstSettings.unitOID}
-                  onChange={this.handleNccstDataChange}
-                  disabled={!fieldEnable.nccst} />
-              </div>
-              <div className='group'>
-                <TextField
-                  id='nccstSettingsUnitName'
-                  name='unitName'
-                  label={t('network-inventory.txt-unitName')}
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={nccstSettings.unitName}
-                  onChange={this.handleNccstDataChange}
-                  disabled={!fieldEnable.nccst} />
-              </div>
-              <div className='group full'>
-                <TextField
-                  id='nccstSettingsApiKey'
-                  name='apiKey'
-                  label={t('network-inventory.txt-apiKey')}
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={nccstSettings.apiKey}
-                  onChange={this.handleNccstDataChange}
-                  disabled={!fieldEnable.nccst} />
-              </div>
-              <div className='group full'>
-                <TextField
-                  id='nccstSettingsApiUrl'
-                  name='apiUrl'
-                  label={t('network-inventory.txt-apiUrl')}
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={nccstSettings.apiUrl}
-                  onChange={this.handleNccstDataChange}
-                  disabled={!fieldEnable.nccst} />
               </div>
             </div>
 

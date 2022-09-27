@@ -6,8 +6,7 @@ import TextField from '@material-ui/core/TextField'
 
 import helper from './helper'
 
-let t = null;
-let et = null;
+let t = null
 
 /**
  * Input Path
@@ -19,11 +18,7 @@ class InputPath extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-    };
-
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    et = global.chewbaccaI18n.getFixedT(null, 'errors');
   }
   /**
    * Set data input
@@ -69,6 +64,9 @@ class InputPath extends Component {
 }
 
 InputPath.propTypes = {
+  scanType: PropTypes.string,
+  listType: PropTypes.string,
+  formValidation: PropTypes.object,
   value: PropTypes.object.isRequired
 };
 
