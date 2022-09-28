@@ -403,6 +403,8 @@ class HostController extends Component {
       hmdStatusList: null,
       scanStatusList: null,
       departmentList: null,
+      originalSystemList: [],
+      systemList: null,
       netProxyTree: {},
       privateMaskedIPtree: {},
       hostCreateTime: '',
@@ -515,6 +517,7 @@ class HostController extends Component {
         this.setLeftNavData();
         this.getFloorPlan();
         this.getVansStatus();
+        this.getSystemList();
       });
     }
   }
@@ -829,6 +832,65 @@ class HostController extends Component {
             vansHmdStatusList: list
           });
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get system list
+   * @method
+   */
+  getSystemList = () => {
+    const {baseUrl} = this.context;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.server.os`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.pc.os`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        let systemList = [];
+
+        if (data[0] && data[0].value) {
+          systemList.push({
+            name: 'Server',
+            checked: false,
+            children: _.map(data[0].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        if (data[1] && data[1].value) {
+          systemList.push({
+            name: 'PC',
+            checked: false,
+            children: _.map(data[1].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        this.setState({
+          originalSystemList: _.cloneDeep(systemList),
+          systemList
+        });
       }
       return null;
     })
@@ -2532,7 +2594,7 @@ class HostController extends Component {
    */
   renderFilter = () => {
     const {locale} = this.context;
-    const {safetyScanInfoScore, queryData, popOverAnchor, activeFilter, showFilter, vansDeviceStatusList, deviceSearch} = this.state;
+    const {safetyScanInfoScore, queryData, popOverAnchor, activeFilter, showFilter, systemList, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -2586,6 +2648,14 @@ class HostController extends Component {
               horizontal: 'left',
             }}>
             <div className='content'>
+              {activeFilter === 'system' &&
+                <TreeView
+                  className='tree-view'
+                  defaultCollapseIcon={<ExpandMoreIcon />}
+                  defaultExpandIcon={<ChevronRightIcon />}>
+                  {systemList.map(this.getSystemTreeItem)}
+                </TreeView>
+              }
               {activeFilter === 'theLatestTaskResponseDttmArray' &&
                 <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                   <KeyboardDateTimePicker
@@ -2615,7 +2685,7 @@ class HostController extends Component {
                     onChange={this.setDateTimePickerChange.bind(this, 'to')} />
                 </MuiPickersUtilsProvider>
               }
-              {activeFilter !== 'theLatestTaskResponseDttmArray' &&
+              {activeFilter !== 'theLatestTaskResponseDttmArray' && activeFilter !== 'system' &&
                 <React.Fragment>
                   <MultiInput
                     base={HostFilter}
@@ -2668,6 +2738,7 @@ class HostController extends Component {
       importFilterType: '',
       safetyScanInfoScore: '',
       queryData: tempQueryData,
+      systemList: _.cloneDeep(this.state.originalSystemList),
       deviceSearch: _.cloneDeep(DEVICE_SEARCH),
       deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST)
     });
@@ -3733,6 +3804,95 @@ class HostController extends Component {
         label={this.getDepartmentTreeLabel(val)}>
         {val.children && val.children.length > 0 &&
           val.children.map(this.getDepartmentTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
+   * Handle system checkbox check/uncheck
+   * @method
+   * @param {object} tree - system tree data
+   * @param {object} event - event object
+   */
+  toggleSystemCheckbox = (tree, event) => {
+    const {systemList, deviceSearchList} = this.state;
+    let tempSystemList = _.cloneDeep(systemList);
+    let tempDeviceSearchList = {...deviceSearchList};
+    let systemSelected = [];
+
+    if (tree.children) { //Handle tree header check/uncheck
+      const targetIndex = _.findIndex(systemList, {'name':  tree.name});
+      tempSystemList[targetIndex].checked = event.target.checked;
+      tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
+        return {
+          ...val,
+          checked: event.target.checked
+        };
+      })
+    } else { //Handle tree children check/uncheck
+      let parentIndex = '';
+      let childrenIndex = '';
+      let parentChecked = true;
+
+      _.forEach(systemList, (val, i) => {
+        _.forEach(val.children, (val2, j) => {
+          if (tree.name === val2.name) {
+            parentIndex = i;
+            childrenIndex = j;
+            return false;
+          }
+        })
+      })
+      tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
+
+      _.forEach(tempSystemList[parentIndex].children, val => {
+        if (!val.checked) {
+          parentChecked = false;
+          return false;
+        }
+      })
+      tempSystemList[parentIndex].checked = parentChecked;
+    }
+
+    _.forEach(tempSystemList, val => {
+      _.forEach(val.children, val2 => {
+        if (val2.checked) {
+          systemSelected.push(val2.name);
+        }
+      })
+    })
+
+    tempDeviceSearchList.system = systemSelected;
+
+    this.setState({
+      systemList: tempSystemList,
+      deviceSearchList: tempDeviceSearchList
+    });
+  }
+  /**
+   * Display system tree content
+   * @method
+   * @param {object} tree - system tree data
+   * @returns HTML DOM
+   */
+  getSystemTreeLabel = (tree) => {
+    return <span><Checkbox checked={tree.checked} onChange={this.toggleSystemCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
+  }
+  /**
+   * Display system tree item
+   * @method
+   * @param {object} val - system tree data
+   * @param {number} i - index of the system tree data
+   * @returns TreeItem component
+   */
+  getSystemTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.name}
+        nodeId={val.name}
+        label={this.getSystemTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getSystemTreeItem)
         }
       </TreeItem>
     )

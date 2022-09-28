@@ -852,6 +852,7 @@ class SoarFlow extends Component {
                         soarCondition={soarCondition}
                         soarFlow={soarFlow}
                         soarParam={soarParam}
+                        soarIndividualData={soarIndividualData}
                         setSoarConditionData={this.setSoarConditionData} />
                     </div>
                   </aside>

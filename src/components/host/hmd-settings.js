@@ -897,12 +897,12 @@ class HMDsettings extends Component {
     if (activeSettings === 'server') {
       requestData = {
         configId: 'hmd.server.os',
-        value: _.map(serverOs, val => val.path)
+        value: _.uniq(_.map(serverOs, val => val.path))
       };
     } else if (activeSettings === 'pc') {
       requestData = {
         configId: 'hmd.pc.os',
-        value: _.map(pcOs, val => val.path)
+        value: _.uniq(_.map(pcOs, val => val.path))
       };
     } else if (activeSettings === 'scanFiles') {
       let parsedIncludePath = [];

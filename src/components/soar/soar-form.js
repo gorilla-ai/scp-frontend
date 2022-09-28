@@ -396,11 +396,17 @@ class SoarForm extends Component {
    * @returns HTML DOM
    */
   displayDropDownSelection = (operator, operatorList) => {
-    const {from, soarParam} = this.props;
+    const {from, soarParam, soarIndividualData} = this.props;
     let formDisabled = operator === 'soarNodeAdapterOperator' ? true : false; //always disabled for adapter operator
 
-    if (from === 'soarCondition' && soarParam) {
-      formDisabled = true; //For SOAR condition in left nav
+    if (from === 'soarCondition') { //For SOAR condition in left nav
+      if (soarParam) {
+        formDisabled = true;
+      }
+
+      if (soarIndividualData && soarIndividualData.flow[0].adapter_type === 'scp') {
+        formDisabled = true;
+      }
     }
 
     return (
@@ -546,6 +552,7 @@ SoarForm.propTypes = {
   soarCondition: PropTypes.object,
   soarFlow: PropTypes.array,
   soarParam: PropTypes.object.isRequired,
+  soarIndividualData: PropTypes.object,
   activeElement: PropTypes.object,
   setSoarConditionData: PropTypes.func,
   setSoarFlowData: PropTypes.func
