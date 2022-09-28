@@ -115,6 +115,7 @@
   "-9106": "Import failure",
   "-9107": "SMS testing failure",
   "-9108": "SMS insufficient balance failure",
+  "-9019": "File not found",
   "-9110": "FR-MOTP connect test failure",
   "-9111": "FR-MOTP verification failure",
   "-9113": "Missing scriptFile or executableFile",

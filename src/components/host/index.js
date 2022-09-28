@@ -356,12 +356,14 @@ class HostController extends Component {
       showFilter: false,
       openQueryOpen: false,
       saveQueryOpen: false,
-      uploadFileOpen: false,
+      uploadHmdFileOpen: false,
+      uploadCpeFileOpen: false,
       importCsvOpen: false,
       importFilterType: '', //'ip' or 'safetyScanInfo'
       safetyScanInfoScore: '',
       LAconfig: {},
       hmdFile: {},
+      cpeFile: {},
       notifyEmailData: [],
       queryModalType: '',
       queryData: {
@@ -440,7 +442,6 @@ class HostController extends Component {
       },
       hostData: {},
       hostDeviceList: [],
-      hitCveList: [],
       currentDeviceData: {},
       assignedDevice: '',
       hostSort: 'ip-asc',
@@ -474,14 +475,13 @@ class HostController extends Component {
       vansTableType: 'assessment', //'assessment' or 'hmd'
       vansPieChartData: {},
       showLoadingIcon: false,
+      uploadedCPE: false,
       hmdVansConfigurations: {
         oid: '',
         unitName: '',
         apiKey: '',
         apiUrl: ''
       },
-      nccstCheckAll: false,
-      nccstSelectedList: [],
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
@@ -1411,7 +1411,7 @@ class HostController extends Component {
   /**
    * Get and set safety scan data
    * @method
-   * @param {string} [options] - option for 'hitCVE' or 'vansStatus'
+   * @param {string} [options] - option for vansStatus'
    */
   getSafetyScanData = (options) => {
     const {baseUrl} = this.context;
@@ -1456,46 +1456,38 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        if (options === 'hitCVE') {
-          this.setState({
-            hitCveList: data.hmdScanDistribution
-          }, () => {
-            this.toggleReportNCCST();
-          });
-        } else {
-          let tempSafetyScanData = {...safetyScanData};
-          let hmdEventsData = {};
+        let tempSafetyScanData = {...safetyScanData};
+        let hmdEventsData = {};
 
-          if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
-            tempSafetyScanData.dataContent = [];
-            tempSafetyScanData.totalCount = 0;
-
-            this.setState({
-              safetyScanData: tempSafetyScanData
-            });
-            helper.showPopupMsg(t('txt-notFound'));
-            return;
-          }
-
-          tempSafetyScanData.dataContent = data.hmdScanDistribution;
-          tempSafetyScanData.totalCount = data.count;
+        if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
+          tempSafetyScanData.dataContent = [];
+          tempSafetyScanData.totalCount = 0;
 
           this.setState({
             safetyScanData: tempSafetyScanData
           });
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
 
-          if (!_.isEmpty(LAconfig)) {
-            if (data.linkLA && data.linkLA.length > 0) {
-              _.forEach(data.linkLA, val => {
-                hmdEventsData[val.id] = val;
-              })
-            }
+        tempSafetyScanData.dataContent = data.hmdScanDistribution;
+        tempSafetyScanData.totalCount = data.count;
 
-            this.setState({
-              hmdEventsData,
-              hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
-            });
+        this.setState({
+          safetyScanData: tempSafetyScanData
+        });
+
+        if (!_.isEmpty(LAconfig)) {
+          if (data.linkLA && data.linkLA.length > 0) {
+            _.forEach(data.linkLA, val => {
+              hmdEventsData[val.id] = val;
+            })
           }
+
+          this.setState({
+            hmdEventsData,
+            hmdLAdata: analyze(hmdEventsData, LAconfig, {analyzeGis: false})
+          });
         }
 
         if (options === 'vansStatus') {
@@ -1755,93 +1747,13 @@ class HostController extends Component {
     });
   }
   /**
-   * Handle checkbox for NCCST list
-   * @method
-   * @param {object} event - event object
-   */
-  toggleNCCSTcheckbox = (event) => {
-    let nccstCheckAll = false;
-    let nccstSelectedList = _.cloneDeep(this.state.nccstSelectedList);
-
-    if (event.target.checked) {
-      nccstSelectedList.push(event.target.name);
-    } else {
-      const index = nccstSelectedList.indexOf(event.target.name);
-      nccstSelectedList.splice(index, 1);
-    }
-
-    if (nccstSelectedList.length === this.state.hitCveList.length) {
-      nccstCheckAll = true;
-    }
-
-    this.setState({
-      nccstCheckAll,
-      nccstSelectedList
-    });
-  }
-  /**
-   * Check if item is already in the selected list
-   * @method
-   * @param {string} val - checked item name
-   * @returns boolean true/false
-   */
-  checkNccstSelectedItem = (val) => {
-    return _.includes(this.state.nccstSelectedList, val);
-  }
-  /**
-   * Display checkbox for NCCST list
-   * @method
-   * @param {object} val - individual CPE data
-   * @param {number} i - index of the ICPE data
-   * @returns FormControlLabel component
-   */
-  showNccstCheckboxList = (val, i) => {
-    return (
-      <FormControlLabel
-        key={i}
-        label={val.primaryKeyValue}
-        control={
-          <Checkbox
-            className='checkbox-ui'
-            name={val.primaryKeyValue}
-            checked={this.checkNccstSelectedItem(val.primaryKeyValue)}
-            onChange={this.toggleNCCSTcheckbox}
-            color='primary' />
-        } />
-    )
-  }
-  /**
-   * Handle NCCST checkbox for all
-   * @method
-   * @param {object} event - event object
-   */
-  toggleNCCSTcheckAll = (event) => {
-    this.setState({
-      nccstCheckAll: !this.state.nccstCheckAll
-    }, () => {
-      const {hitCveList, nccstCheckAll} = this.state;
-      let nccstSelectedList = [];
-
-      if (nccstCheckAll) {
-        nccstSelectedList = hitCveList.map(val => {
-          return val.primaryKeyValue;
-        });
-      }
-
-      this.setState({
-        nccstSelectedList
-      });
-    });
-  }
-  /**
    * Toggle NCCST list modal dialog on/off
    * @method
    */
   toggleReportNCCST = () => {
     this.setState({
       reportNCCSTopen: !this.state.reportNCCSTopen,
-      nccstCheckAll: false,
-      nccstSelectedList: [],
+      uploadedCPE: false,
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
   }
@@ -1865,10 +1777,15 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displayNCCSTform = () => {
-    const {hmdVansConfigurations, vansFormValidation} = this.state;
+    const {uploadedCPE, hmdVansConfigurations, vansFormValidation} = this.state;
 
     return (
       <div className='vans-config-form'>
+        <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
+        {uploadedCPE &&
+          <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedCpe')}</Button>
+        }
+
         <div className='group'>
           <TextField
             id='vansConfigOID'
@@ -1929,41 +1846,6 @@ class HostController extends Component {
     )
   }
   /**
-   * Display NCCST list content
-   * @method
-   * @returns HTML DOM
-   */
-  displayNCCSTlist = () => {
-    const {hitCveList, nccstCheckAll} = this.state;
-
-    if (hitCveList.length === 0) {
-      return (
-        <div>
-          {this.displayNCCSTform()}
-          <div className='align-center'>{t('host.txt-report-noCpe')}</div>
-        </div>
-      )
-    } else {
-      return (
-        <div>
-          <div className='message'>{t('host.txt-report-withCpe')}</div>
-          {this.displayNCCSTform()}
-          <FormControlLabel
-            control={
-              <Checkbox
-                className='checkbox-ui'
-                name='nccstCheckAll'
-                checked={nccstCheckAll}
-                onChange={this.toggleNCCSTcheckAll}
-                color='primary' />
-            }
-            label={t('txt-selectAll')} />
-          {hitCveList.map(this.showNccstCheckboxList)}
-        </div>
-      )
-    }
-  }
-  /**
    * Show NCCST list modal dialog
    * @method
    * @returns ModalDialog component
@@ -1983,7 +1865,7 @@ class HostController extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayNCCSTlist()}
+        {this.displayNCCSTform()}
       </ModalDialog>
     )
   }
@@ -1993,12 +1875,8 @@ class HostController extends Component {
    */
   confirmNCCSTlist = () => {
     const {baseUrl} = this.context;
-    const {hitCveList, hmdVansConfigurations, nccstSelectedList, nccstCheckAll, vansFormValidation} = this.state;
+    const {hmdVansConfigurations, vansFormValidation} = this.state;
     const url = `${baseUrl}/api/v2/hmd/vans/_report`;
-    const cveListArr = _.map(hitCveList, val => {
-      return val.primaryKeyValue;
-    });
-    let uncheckList = [];
     let tempVansFormValidation = {...vansFormValidation};
     let validate = true;
 
@@ -2038,17 +1916,12 @@ class HostController extends Component {
       return;
     }
 
-    if (!nccstCheckAll) {
-      uncheckList = nccstSelectedList.length === 0 ? cveListArr : _.difference(cveListArr, nccstSelectedList);
-    }
-
     const requestData = {
       ...this.getHostSafetyRequestData(),
       hmdScanDistribution: {
         taskName: 'getVans',
         primaryKeyName: 'cpe23Uri'
       },
-      uncheckList,
       hmdVansConfigurations: {
         oid: hmdVansConfigurations.oid,
         unit_name: hmdVansConfigurations.unitName,
@@ -3947,12 +3820,12 @@ class HostController extends Component {
     });
   }
   /**
-   * Toggle Import Threats dialog on/off
+   * Toggle HMD file upload dialog on/off
    * @method
    */
-  toggleUploadFile = () => {
+  toggleHmdUploadFile = () => {
     this.setState({
-      uploadFileOpen: !this.state.uploadFileOpen
+      uploadHmdFileOpen: !this.state.uploadHmdFileOpen
     });
   }
   /**
@@ -3970,17 +3843,17 @@ class HostController extends Component {
    * @method
    * @returns ModalDialog component
    */
-  uploadFileDialog = () => {
+  uploadHmdFileDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadFile},
-      confirm: {text: t('txt-confirm'), handler: this.confirmFileUpload}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleHmdUploadFile},
+      confirm: {text: t('txt-confirm'), handler: this.confirmHmdFileUpload}
     };
     const title = t('hmd-scan.txt-uploadHMDfile');
     const fileTitle = t('hmd-scan.txt-hmdSetupFile') + '(.zip)';
 
     return (
       <ModalDialog
-        id='importThreatsDialog'
+        id='hmdFileUploadDialog'
         className='modal-dialog'
         title={title}
         draggable={true}
@@ -3997,10 +3870,10 @@ class HostController extends Component {
     )
   }
   /**
-   * Handle file upload confirm
+   * Handle HMD file upload confirm
    * @method
    */
-  confirmFileUpload = () => {
+  confirmHmdFileUpload = () => {
     const {baseUrl} = this.context;
     const {hmdFile} = this.state;
     let formData = new FormData();
@@ -4027,13 +3900,115 @@ class HostController extends Component {
           hmdFile: {}
         });
 
-        this.toggleUploadFile();
+        this.toggleHmdUploadFile();
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Toggle CPE file upload dialog on/off
+   * @method
+   */
+  toggleCpeUploadFile = () => {
+    this.setState({
+      uploadCpeFileOpen: !this.state.uploadCpeFileOpen
+    });
+  }
+  /**
+   * Handle CPE setup file upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  getCpeSetupFile = (file) => {
+    this.setState({
+      cpeFile: file
+    });
+  }
+  /**
+   * Handle upload CPE setup file
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadCpeFileDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleCpeUploadFile},
+      confirm: {text: t('txt-confirm'), handler: this.confirmCpeFileUpload}
+    };
+    const title = t('host.txt-uploadMergedCpe');
+
+    return (
+      <ModalDialog
+        id='cpeFileUploadDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <FileUpload
+          id='fileUpload'
+          fileType='csv'
+          supportText={title}
+          btnText={t('txt-upload')}
+          handleFileChange={this.getCpeSetupFile} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle CPE file upload confirm
+   * @method
+   */
+  confirmCpeFileUpload = () => {
+    const {baseUrl} = this.context;
+    const {cpeFile} = this.state;
+    const requestData = {
+      ...this.getHostSafetyRequestData()
+    };
+    let formData = new FormData();
+    formData.append('file', cpeFile);
+    formData.append('payload', JSON.stringify(requestData));    
+
+    if (!cpeFile.name) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/cpeFile/merge/_upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-uploadSuccess'));
+
+        this.setState({
+          cpeFile: {},
+          uploadedCPE: data
+        });
+
+        this.toggleCpeUploadFile();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle CPE download button
+   * @method
+   */
+  cpeDownload = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/hmd/cpeFile/merge/_download`;
+    window.open(url, '_blank');
   }
   /**
    * Toggle CSV import dialog on/off
@@ -4902,7 +4877,8 @@ class HostController extends Component {
       showFilter,
       openQueryOpen,
       saveQueryOpen,
-      uploadFileOpen,
+      uploadHmdFileOpen,
+      uploadCpeFileOpen,
       importCsvOpen,
       importFilterType,
       LAconfig,
@@ -4974,8 +4950,8 @@ class HostController extends Component {
           this.queryDialog()
         }
 
-        {uploadFileOpen &&
-          this.uploadFileDialog()
+        {uploadHmdFileOpen &&
+          this.uploadHmdFileDialog()
         }
 
         {importCsvOpen &&
@@ -5058,6 +5034,10 @@ class HostController extends Component {
 
         {reportNCCSTopen &&
           this.showNCCSTlist()
+        }
+
+        {uploadCpeFileOpen &&
+          this.uploadCpeFileDialog()
         }
 
         <div className='sub-header'>
@@ -5196,7 +5176,7 @@ class HostController extends Component {
                       <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
                     }
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleUploadFile}>{t('hmd-scan.txt-uploadHMDfile')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleHmdUploadFile}>{t('hmd-scan.txt-uploadHMDfile')}</Button>
                   </div>
                 }
 
@@ -5324,7 +5304,7 @@ class HostController extends Component {
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'cpe')}>{t('host.txt-export-cpe')}</Button>
                         {safetyScanData.dataContent &&
-                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getSafetyScanData.bind(this, 'hitCVE')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
+                          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
                         }
                       </div>
                     }
