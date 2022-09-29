@@ -105,11 +105,16 @@ const SCAN_RESULT = [
     result: '_VansResult'
   }
 ];
+const YARA_SCAN = {
+  name: 'Yara Scan',
+  cmds: 'compareIOC'
+};
 const HMD_TRIGGER = [
   {
-    name: 'Yara Scan',
-    cmds: 'compareIOC'
+    name: 'HMD Upgrade',
+    type: 'hmdUpgrade'
   },
+  YARA_SCAN,
   {
     name: 'Malware',
     cmds: 'scanFile'
@@ -523,6 +528,8 @@ class HostController extends Component {
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
+      this.getSystemList();
+      this.toggleFilter();
       this.toggleContent('hostContent');
     }
   }
@@ -1751,8 +1758,26 @@ class HostController extends Component {
    * @method
    */
   toggleReportNCCST = () => {
+    const {baseUrl} = this.context;
+    const {reportNCCSTopen} = this.state;
+
+    if (!reportNCCSTopen) {
+      this.ah.one({
+        url: `${baseUrl}/api/hmd/cpeFile/merge/_delete`,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+
     this.setState({
-      reportNCCSTopen: !this.state.reportNCCSTopen,
+      reportNCCSTopen: !reportNCCSTopen,
       uploadedCPE: false,
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
@@ -4483,7 +4508,11 @@ class HostController extends Component {
       act: (confirmed) => {
         if (confirmed) {
           if (type === 'start') {
-            this.triggerHmdAll(hmdObj);
+            if (hmdObj.type === 'hmdUpgrade') {
+              this.handleHmdUpgrade(hmdObj);
+            } else {
+              this.triggerHmdAll(hmdObj);
+            }
           } else if (type === 'stop') {
             this.stopHmd(hmdObj);
           }
@@ -4491,6 +4520,35 @@ class HostController extends Component {
       }
     });
     this.handleCloseMenu();
+  }
+  /**
+   * Handle HMD upgrade action
+   * @method
+   * @param {object} hmdObj - HMD object
+   */
+  handleHmdUpgrade = (hmdObj) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/v2/ipdevice/assessment/_search/_retrigger/upgrade`;
+    const requestData = {
+      ...this.getHostSafetyRequestData()
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
   }
   /**
    * Handle trigger button for HMD trigger all
@@ -4616,7 +4674,7 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        this.triggerHmdAll(HMD_TRIGGER[0], yaraRule);
+        this.triggerHmdAll(YARA_SCAN, yaraRule);
       }
       return null;
     })

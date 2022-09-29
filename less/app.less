@@ -4066,7 +4066,59 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
+#hostFilterPopover {
+  .content {
+    width: auto;
+    min-width: 300px;
+    padding: 15px 10px 5px 10px;
+    color: var(--chartTextColor);
+    border-bottom: 1px solid var(--primaryBorder);
+    background-color: var(--primaryContentBackground);
+    overflow: hidden;
+    .number {
+      display: block;
+      width: 90px;
+      margin-bottom: 10px;
+    }
+    .group {
+      margin-bottom: 10px;
+      textarea,
+      .combo-box {
+        width: 100%;
+      }
+      textarea {
+        padding: 5px;
+      }
+    }
+    .fg-add {
+      color: #fff;
+      background-color: var(--formCheckRadioColor) !important;
+    }
+    .date-time-picker {
+      float: left;
+      width: 135px;
+      margin-bottom: 5px;
+      input {
+        padding: 10px 0px 10px 15px;
+      }
+    }
+    .between {
+      float: left;
+      margin-top: 8px;
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+    .MuiIconButton-root {
+      color: var(--primaryTextColor) !important;
+      &:hover {
+        background-color: rgba(0, 0, 0, 0) !important;
+      }
+    }
+    .filter {
+      margin-bottom: 5px;
+    }
+  }
+}
 @media only screen and (min-width: 1350px) {
   #app-container {
     .privateIp-info {
@@ -4076,7 +4128,6 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
 @media only screen and (max-width: 1350px) {
   #app-container {
     .statistic .chart-group {
@@ -4092,7 +4143,6 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
 @media only screen and (max-width: 1165px) {
   #app-container {
     .datepicker {
@@ -4100,7 +4150,6 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
 @media only screen and (max-width: 850px) {
   #app-container {
     .search-btns {
@@ -4108,7 +4157,6 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
 .uif-dashboard {
   .layout-hoc {
     background-color: white;
@@ -4122,14 +4170,12 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
 .incident-tag-square {
   width: 20px;
   height: 20px;
   border-radius: 3px;
   margin-right: 3px;
 }
-
 .incident-tag-modal {
   .dialog {
     width: 500px;
@@ -4151,14 +4197,12 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
 .incident-review {
   .dialog {
     width: 600px;
     min-height: 400px;
   }
 }
-
 .incident-comment {
   .dialog {
     width: 600px;
@@ -4180,9 +4224,6 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
-
-
-
 .incident-statistics {
   display: flex;
   justify-content: center;
@@ -4224,7 +4265,6 @@ button.standard:hover:not([disabled]) {
 
   }
 */}
-
 .hmd-trigger-menu {
   ul {
     li {
