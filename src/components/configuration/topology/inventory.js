@@ -143,7 +143,7 @@ class NetworkInventory extends Component {
       showAllSeats: false,
       deviceSearchArea: '',
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'netproxyIp', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
+        dataFieldsArr: ['ip', 'mac', 'hbDttm', 'netproxyIp', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
         dataFields: [],
         dataContent: null,
         ipListArr: [],
@@ -962,20 +962,18 @@ class NetworkInventory extends Component {
                   return allValue;
                 }
 
-                if (val === 'owner') {
+                if (val === 'hbDttm' && value) {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                } else if (val === 'owner') {
                   if (allValue.ownerObj) {
                     return <span>{allValue.ownerObj.ownerName}</span>
                   } else {
                     return <span>{value}</span>
                   }
-                } else if (val === 'areaName') {
-                  if (allValue.areaObj) {
-                    return <span>{allValue.areaObj.areaName}</span>
-                  }
-                } else if (val === 'seatName') {
-                  if (allValue.seatObj) {
-                    return <span>{allValue.seatObj.seatName}</span>
-                  }
+                } else if (val === 'areaName' && allValue.areaObj) {
+                  return <span>{allValue.areaObj.areaName}</span>
+                } else if (val === 'seatName' && allValue.seatObj) {
+                  return <span>{allValue.seatObj.seatName}</span>
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>

@@ -1178,6 +1178,7 @@
   },
   "payloadsFields": {
     "timestamp": "Date",
+    "hbDttm": "HB Time",
     "vpnName": "VPN Name",
     "channel": "Channel",
     "attacksCount": "Attacks Count",
