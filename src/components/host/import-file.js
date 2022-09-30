@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import jschardet from 'jschardet'
 import XLSX from 'xlsx'
 
+import TextField from '@material-ui/core/TextField'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import FileUpload from '../common/file-upload'
@@ -20,11 +21,22 @@ class ImportFile extends Component {
     super(props);
 
     this.state = {
+      safetyScanInfoScore: '',
       csvData: [],
       file: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  /**
+   * Set input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
   }
   /**
    * Handle file change and set the file
@@ -116,7 +128,7 @@ class ImportFile extends Component {
   }
   render() {
     const {importFilterType} = this.props;
-    const {csvData, file} = this.state;
+    const {safetyScanInfoScore, csvData, file} = this.state;
     const titleText = t('network-inventory.txt-batchUpload');
     let uploadFile = '';
 
@@ -128,7 +140,7 @@ class ImportFile extends Component {
 
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleCsvImport},
-      confirm: {text: t('txt-confirm'), handler: this.props.confirmCsvImport.bind(this, uploadFile)}
+      confirm: {text: t('txt-confirm'), handler: this.props.confirmCsvImport.bind(this, uploadFile, safetyScanInfoScore)}
     };
 
     return (
@@ -140,6 +152,18 @@ class ImportFile extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
+        {importFilterType === 'safetyScanInfo' &&
+          <TextField
+            id='safetyScanInfoBatch'
+            className='number'
+            name='safetyScanInfoScore'
+            label={t('host.txt-cveScore')}
+            type='number'
+            variant='outlined'
+            size='small'
+            value={safetyScanInfoScore}
+            onChange={this.handleDataChange} />
+        }
           <FileUpload
             id='csvFileInput'
             fileType='csv'

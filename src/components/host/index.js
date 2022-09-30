@@ -2492,7 +2492,7 @@ class HostController extends Component {
    */
   renderFilter = () => {
     const {locale} = this.context;
-    const {safetyScanInfoScore, queryData, popOverAnchor, activeFilter, showFilter, systemList, vansDeviceStatusList, deviceSearch} = this.state;
+    const {queryData, popOverAnchor, activeFilter, showFilter, systemList, vansDeviceStatusList, deviceSearch} = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -2595,19 +2595,7 @@ class HostController extends Component {
                     <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'ip')}>{t('network-inventory.txt-batchUpload')}</Button>
                   }
                   {activeFilter === 'safetyScanInfo' &&
-                    <React.Fragment>
-                      <TextField
-                        id='safetyScanInfoBatch'
-                        className='number'
-                        name='safetyScanInfoScore'
-                        label={t('host.txt-cveScore')}
-                        type='number'
-                        variant='outlined'
-                        size='small'
-                        value={safetyScanInfoScore}
-                        onChange={this.handleDataChange} />
-                      <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'safetyScanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
-                    </React.Fragment>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'safetyScanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
                   }
                 </React.Fragment>
               }
@@ -2634,7 +2622,6 @@ class HostController extends Component {
 
     this.setState({
       importFilterType: '',
-      safetyScanInfoScore: '',
       queryData: tempQueryData,
       systemList: _.cloneDeep(this.state.originalSystemList),
       deviceSearch: _.cloneDeep(DEVICE_SEARCH),
@@ -4052,10 +4039,11 @@ class HostController extends Component {
    * Handle CSV import confirm 
    * @method
    * @param {array.<array>} csvData - upload CSV data
+   * @param {string} [safetyScanInfoScore] - safety scan score
    */
-  confirmCsvImport = (csvData) => {
+  confirmCsvImport = (csvData, safetyScanInfoScore) => {
     const {baseUrl} = this.context;
-    const {importFilterType, safetyScanInfoScore} = this.state;
+    const {importFilterType} = this.state;
 
     if (importFilterType === 'ip') {
       let validData = true;
