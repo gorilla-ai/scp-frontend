@@ -386,6 +386,7 @@
     "txt-report-nccst-fail": "Report Failed",
     "txt-uploadMergedCpe": "Upload CPE",
     "txt-downloadMergedCpe": "Download CPE",
+    "txt-vansRecord": "Vans Record",
     "txt-vansConfigOID": "Unit OID",
     "txt-vansConfigUnitName": "Unit Name",
     "txt-vansConfigApiKey": "API Key",

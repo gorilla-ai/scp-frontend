@@ -386,6 +386,7 @@
     "txt-report-nccst-fail": "回報失敗",
     "txt-uploadMergedCpe": "上傳合併CPE",
     "txt-downloadMergedCpe": "下載合併CPE",
+    "txt-vansRecord": "回報歷程",
     "txt-vansConfigOID": "機關OID",
     "txt-vansConfigUnitName": "機關名稱",
     "txt-vansConfigApiKey": "API Key",

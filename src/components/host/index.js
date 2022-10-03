@@ -1797,6 +1797,92 @@ class HostController extends Component {
     });
   }
   /**
+   * Display Vans record data
+   * @method
+   * @param {string} val - vans record data
+   * @param {number} i - index of the vans record data
+   * @returns HTML DOM
+   */
+  showVansRecordRow = (val, i) => {
+    return (
+      <tr key={i}>
+        <td><span>{val}</span></td>
+      </tr>
+    )
+  }
+  /**
+   * Display Vans record data
+   * @method
+   * @param {string} key - vans record type ('Server' or 'PC')
+   * @param {object} vansRecord - vans record data
+   * @returns HTML DOM
+   */
+  showVansRecordTable = (key, vansRecord) => {
+    return (
+      <table key={key} className='c-table' style={{width: '100%', marginTop: '10px', marginBottom: '10px'}}>
+        <tbody>
+          <tr>
+            <th>{key}</th>
+          </tr>
+          {vansRecord[key].length > 0 &&
+            vansRecord[key].map(this.showVansRecordRow)
+          }
+          {vansRecord[key].length === 0 &&
+            <tr><td><span>{NOT_AVAILABLE}</span></td></tr>
+          }
+        </tbody>
+      </table>
+    )
+  }
+  /**
+   * Display Vans record content
+   * @method
+   * @returns HTML DOM
+   */
+  showVansRecordContent = (vansRecord) => {
+    return (
+      <div>
+        {
+          Object.keys(vansRecord).map(key =>
+            this.showVansRecordTable(key, vansRecord)
+          )
+        }
+      </div>
+    )
+  }
+  /**
+   * Get Vans Record
+   * @method
+   */
+  getVansRecord = () => {
+    const {baseUrl} = this.context;
+    const {filterNav} = this.state;
+    const requestData = {
+      departmentArray: filterNav.departmentSelected
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/vans/report/record`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          title: t('host.txt-vansRecord'),
+          confirmText: t('txt-close'),
+          display: this.showVansRecordContent(data)
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display NCCST form content
    * @method
    * @returns HTML DOM
@@ -1810,7 +1896,7 @@ class HostController extends Component {
         {uploadedCPE &&
           <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedCpe')}</Button>
         }
-
+        <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
         <div className='group'>
           <TextField
             id='vansConfigOID'
