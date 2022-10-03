@@ -4536,7 +4536,7 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    helper.showPopupMsg(t('txt-requestSent'));
+    PopupDialog.alertId('hostHmdAction', t('txt-requestSent'));
   }
   /**
    * Handle trigger button for HMD trigger all
@@ -4596,7 +4596,7 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    helper.showPopupMsg(t('txt-requestSent'));
+    PopupDialog.alertId('hostHmdAction', t('txt-requestSent'));
     this.handleCloseMenu();
 
     if (hmdObj.cmds === 'compareIOC') {
@@ -4639,7 +4639,7 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    helper.showPopupMsg(t('txt-requestSent'));
+    PopupDialog.alertId('hostHmdAction', t('txt-requestSent'));
     this.handleCloseMenu();
   }
   /**

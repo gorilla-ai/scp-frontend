@@ -557,6 +557,8 @@ button.standard:hover:not([disabled]) {
   tbody td {
     text-align: left;
     padding-left: 30px;
+    white-space: pre-wrap;
+    word-break: break-all;
   }
   &.align-center {
     thead th,
@@ -3979,7 +3981,6 @@ button.standard:hover:not([disabled]) {
       th, td {
         padding: 10px !important;
         border: 1px solid var(--primaryBorder) !important;
-        white-space: pre-wrap;
       }
     }
   }
@@ -4112,6 +4113,15 @@ button.standard:hover:not([disabled]) {
     .filter {
       margin-bottom: 5px;
     }
+  }
+}
+#hostHmdAction {
+  .content {
+    text-align: center;
+    margin-top: 25px;
+  }
+  footer {
+    text-align: center;
   }
 }
 @media only screen and (min-width: 1350px) {
