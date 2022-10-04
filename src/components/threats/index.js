@@ -400,10 +400,21 @@ class ThreatsController extends Component {
 
     if (alertsParam.from && alertsParam.to) {
       const page = alertsParam.page;
+      let filterData = [];
       let query = 'srcIp: "' + alertsParam.sourceIP + '"';
 
       if (page === 'host') {
-        query = alertsParam.sourceIP;
+        filterData.push({
+          condition: 'must',
+          query: alertsParam.sourceIP
+        });
+
+        if (alertsParam.severityName) {
+          filterData.push({
+            condition: 'must',
+            query: alertsParam.severityName
+          });
+        }
       }
 
       this.setState({
@@ -411,10 +422,7 @@ class ThreatsController extends Component {
           from: alertsParam.from,
           to: alertsParam.to
         },
-        filterData: [{
-          condition: 'must',
-          query
-        }],
+        filterData,
         showFilter: true
       });
     }

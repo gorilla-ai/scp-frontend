@@ -2735,31 +2735,32 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   handleSeverityClick = (hmd, val, safetyScanInfo) => {
-    if (hmd) {
-      let name = val.severity_type_name;
+    let name = val.severity_type_name;
 
+    if (hmd) {
       if (name === 'gcbResult' || name === 'importGcbResult') {
         name = 'importGcbAndGcbDetectionResult';
       }
 
       this.getIPdeviceInfo(safetyScanInfo, 'toggle', name);
     } else {
-      this.redirectNewPage(safetyScanInfo.ip, val.taskResponseDttm);
+      this.redirectNewPage(safetyScanInfo.ip, this.getReadableName(name));
     }
   }
   /**
    * Redirect to Threats page
    * @method
-   * @param {string} ip - Source IP for the Host
-   * @param {string} taskResponseDttm - task response datetime
+   * @param {string} ip - source IP for the Host
+   * @param {string} name - severity type name
    */
-  redirectNewPage = (ip, taskResponseDttm) => {
+  redirectNewPage = (safetyScanInfo, name) => {
     const {baseUrl, contextRoot, language} = this.context;
+    const {assessmentDatetime} = this.state;
     const dateTime = {
-      from: moment(taskResponseDttm).local().format('YYYY-MM-DD') + ' 00:00:00',
-      to: helper.getFormattedDate(taskResponseDttm, 'local')
+      from: helper.getFormattedDate(assessmentDatetime.from, 'local'),
+      to: helper.getFormattedDate(assessmentDatetime.to, 'local')
     };
-    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${dateTime.from}&to=${dateTime.to}&sourceIP=${ip}&page=host&lng=${language}`;
+    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${dateTime.from}&to=${dateTime.to}&sourceIP=${ip}&severityName=${name}&page=host&lng=${language}`;
 
     window.open(linkUrl, '_blank');
   }
