@@ -404,7 +404,7 @@ class SoarForm extends Component {
         formDisabled = true;
       }
 
-      if (soarIndividualData && soarIndividualData.flow[0].adapter_type === 'scp') {
+      if (!_.isEmpty(soarIndividualData) && soarIndividualData.flow[0].adapter_type === 'scp') {
         formDisabled = true;
       }
     }
