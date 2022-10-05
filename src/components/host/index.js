@@ -2753,7 +2753,7 @@ class HostController extends Component {
    * @param {string} ip - source IP for the Host
    * @param {string} name - severity type name
    */
-  redirectNewPage = (safetyScanInfo, name) => {
+  redirectNewPage = (ip, name) => {
     const {baseUrl, contextRoot, language} = this.context;
     const {assessmentDatetime} = this.state;
     const dateTime = {
