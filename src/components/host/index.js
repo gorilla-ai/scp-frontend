@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
+import { Link } from 'react-router-dom'
 import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
@@ -2522,7 +2523,6 @@ class HostController extends Component {
     return (
       <div key={i} className='group'>
         <TextField
-          id='deviceSearchIP'
           name={val}
           label={t('ipFields.' + val)}
           variant='outlined'
@@ -2606,7 +2606,7 @@ class HostController extends Component {
       dateLocale += '-tw';
     }
 
-    moment.locale(dateLocale);    
+    moment.locale(dateLocale);
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -5175,6 +5175,7 @@ class HostController extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
+            <Button variant='outlined' color='primary'><Link to='/SCP/host/cpe'>{t('host.txt-cpePage')}</Link></Button>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.exportSecurityDiagnostic} title={t('txt-exportSecurityDiagnostic')}><i className='fg fg-file-csv'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>

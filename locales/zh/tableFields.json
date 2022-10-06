@@ -737,5 +737,22 @@
     "productState": "啟用狀態",
     "productStatus": "更新狀態",
     "timestamp": "最後更新時間"
+  },
+  "hostCpeFields": {
+    "id": "ID",
+    "part": "Part",
+    "vendor": "Vendor",
+    "product": "Product",
+    "version": "Version",
+    "update": "Update",
+    "edition": "Edition",
+    "language": "Language",
+    "swEdition": "SW Edition",
+    "targetSw": "Target SW",
+    "targetHw": "Target HW",
+    "other": "Others",
+    "cpe23uri": "Cpe23Uri",
+    "productCpename": "Product Name",
+    "isMatched": "isMatched"
   }
 }

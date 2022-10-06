@@ -374,6 +374,7 @@
 
   "host": {
     "txt-hostList": "Host List",
+    "txt-cpePage": "CPE",
     "txt-deviceMap": "Device Map",
     "txt-safetyScan": "Safety Scan",
     "txt-vans": "VANS",

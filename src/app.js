@@ -22,6 +22,7 @@ import EdgeManagement from './components/configuration/edge/edge'
 import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
 import Host from './components/host/index'
+import HostCpe from './components/host/cpe'
 import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/incident'
@@ -114,6 +115,12 @@ const DashboardMapsComp = () => (
 const HostComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Host />
+  </BaseDataContext.Provider>
+);
+
+const HostCpeComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <HostCpe />
   </BaseDataContext.Provider>
 );
 
@@ -317,6 +324,7 @@ const Main = () => (
       {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/host' component={HostComp} />
+      <Route exact path='/SCP/host/cpe' component={HostCpeComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
