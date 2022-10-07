@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import Button from '@material-ui/core/Button'
@@ -17,7 +18,14 @@ import MuiTableContent from '../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'other', 'cpe23uri', 'productCpename', 'isMatched'];
+const FILTER_LIST = ['part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'productCpename', 'isMatched', 'cpe23uri'];
+const EDIT_LIST_PART1 = ['part', 'vendor', 'product', 'version', 'update', 'edition'];
+const EDIT_LIST_PART2 = ['language', 'swEdition', 'targetSw', 'targetHw', 'other', 'productCpename'];
+const FORM_VALIDATION = {
+  cpe23uri: {
+    valid: true
+  }
+};
 
 let t = null;
 let f = null;
@@ -33,7 +41,8 @@ class Cpe extends Component {
     super(props);
 
     this.state = {
-    	showFilter: false,
+      showFilter: false,
+      cpeEditOpen: false,
       account: {
         id: '',
         login: false,
@@ -41,11 +50,13 @@ class Cpe extends Component {
         logsLocale: ''
       },
       originalFilterData: {},
-      filterData: {},
+      filterData: {
+        isMatched: 'all'
+      },
       contextAnchor: null,
       currentCpeData: {},
       cpeData: {
-        dataFieldsArr: ['_menu', 'id', 'part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'cpe23uri', 'productCpename', 'isMatched'],
+        dataFieldsArr: ['_menu', 'part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'cpe23uri', 'productCpename', 'isMatched'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -55,7 +66,8 @@ class Cpe extends Component {
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
-      }
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -77,31 +89,28 @@ class Cpe extends Component {
       this.setState({
         account: tempAccount
       }, () => {
-      	this.getFilterData();
+        this.getFilterData();
         this.loadCpe();
       });
     }
   }
-  ryan = () => {}
   /**
    * Construct filter data
    * @method
    */
   getFilterData = () => {
-  	let filterData = {};
+    let tempFilterData = _.cloneDeep(this.state.filterData);
 
-  	_.forEach(FILTER_LIST, val => {
-  		if (val === 'isMatched') {
-  			filterData[val] = 'all';
-  		} else {
-  			filterData[val] = '';
-  		}
-  	})
+    _.forEach(FILTER_LIST, val => {
+      if (val !== 'isMatched') {
+        tempFilterData[val] = '';
+      }
+    })
 
-  	this.setState({
-  		originalFilterData: _.cloneDeep(filterData),
-  		filterData
-  	});
+    this.setState({
+      originalFilterData: _.cloneDeep(tempFilterData),
+      filterData: tempFilterData
+    });
   }
   /**
    * Load CPE data
@@ -113,13 +122,19 @@ class Cpe extends Component {
     const {filterData, cpeData} = this.state;
     const page = fromPage === 'currentPage' ? cpeData.currentPage : 0;
     const url = `${baseUrl}/api/hmd/cpe/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
-    let requestData = {
-    	...filterData
-    };
+    let requestData = {};
 
-    if (filterData.isMatched === 'all') {
-    	requestData.isMatched = '';
-    }
+    Object.keys(filterData).map(val => {
+      if (val === 'isMatched') {
+        if (filterData[val] !== 'all') {
+          requestData.isMatched = filterData[val];
+        }
+      } else {
+        if (filterData[val]) {
+          requestData[val] = filterData[val];
+        }
+      }
+    });
 
     this.ah.one({
       url,
@@ -163,7 +178,7 @@ class Cpe extends Component {
                     </div>
                   )
                 } else if (val === 'isMatched') {
-                	return <span>{value.toString()}</span>
+                  return <span>{value.toString()}</span>
                 } else {
                   return <span>{value}</span>
                 }
@@ -194,15 +209,38 @@ class Cpe extends Component {
   /**
    * Handle filter click
    * @method
+   * @param {string} type - form type ('filter' or 'edit')
    * @param {object} event - event object
    */
-  handleDataChange = (event) => {
-    let tempFilterData = {...this.state.filterData};
-    tempFilterData[event.target.name] = event.target.value;  
+  handleDataChange = (type, event) => {
+    const {filterData, currentCpeData} = this.state;
 
-    this.setState({
-      filterData: tempFilterData
-    });
+    if (type === 'filter') {
+      let tempFilterData = {...filterData};
+      tempFilterData[event.target.name] = event.target.value;  
+
+      this.setState({
+        filterData: tempFilterData
+      });
+    } else if (type === 'edit') {
+      let tempCurrentCpeData = {...currentCpeData};
+      tempCurrentCpeData[event.target.name] = event.target.value;  
+
+      this.setState({
+        currentCpeData: tempCurrentCpeData
+      });
+    }
+  }
+  /**
+   * Check form group type
+   * @method
+   * @param {string} type - group type
+   * @returns CSS property object
+   */
+  checkFormGroup = (type) => {
+    if (type === 'cpe23uri') {
+      return {width: '50%'};
+    }
   }
   /**
    * Display filter form
@@ -216,35 +254,35 @@ class Cpe extends Component {
 
     if (val === 'isMatched') {
       return (
-      	<div key={i} className='group'>
-	        <TextField
-	          name='isMatched'
-	          label={f('hostCpeFields.' + val)}
-	          select
-	          variant='outlined'
-	          fullWidth
-	          size='small'
-	          value={filterData.isMatched}
-	          onChange={this.handleDataChange}>
-	          <MenuItem value='all'>{t('txt-all')}</MenuItem>
-	          <MenuItem value={true}>True</MenuItem>
-	          <MenuItem value={false}>False</MenuItem>
-	        </TextField>
+        <div key={i} className='group'>
+          <TextField
+            name='isMatched'
+            label={f('hostCpeFields.' + val)}
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={filterData.isMatched}
+            onChange={this.handleDataChange.bind(this, 'filter')}>
+            <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+            <MenuItem value={true}>True</MenuItem>
+            <MenuItem value={false}>False</MenuItem>
+          </TextField>
         </div>
       )
     } else {
       return (
-	      <div key={i} className='group'>
-	        <TextField
-	          name={val}
-	          label={f('hostCpeFields.' + val)}
-	          variant='outlined'
-	          fullWidth
-	          size='small'
-	          value={filterData[val]}
-	          onChange={this.handleDataChange} />
-	      </div>
-	    )
+        <div key={i} className='group' style={this.checkFormGroup(val)}>
+          <TextField
+            name={val}
+            label={f('hostCpeFields.' + val)}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={filterData[val]}
+            onChange={this.handleDataChange.bind(this, 'filter')} />
+        </div>
+      )
     }
   }
   /**
@@ -253,10 +291,8 @@ class Cpe extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter} = this.state;
-
     return (
-      <div className={cx('main-filter', {'active': showFilter})}>
+      <div className={cx('main-filter', {'active': this.state.showFilter})}>
         <div className='filter-section config host'>
           {FILTER_LIST.map(this.showFilterForm)}
         </div>
@@ -273,7 +309,7 @@ class Cpe extends Component {
    */
   clearFilter = () => {
     this.setState({
-    	filterData: _.cloneDeep(this.state.originalFilterData)
+      filterData: _.cloneDeep(this.state.originalFilterData)
     });
   }
   /**
@@ -317,31 +353,29 @@ class Cpe extends Component {
    * Display content message
    * @method
    * @param {string} type - action type ('delete')
-   * @param {string} id - selected account ID
    * @returns HTML DOM
    */
-  getCpeMsgContent = (type, id) => {
-    const msg = t('txt-delete-msg') + ': ' + id;
-
-    return (
-      <div className='content delete'>
-        <span>{msg}?</span>
-      </div>
-    )
+  getCpeMsgContent = (type) => {
+    if (type === 'delete') {
+      return (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}?</span>
+        </div>
+      )
+    }
   }
   /**
    * Display modal dialog
    * @method
    * @param {string} type - action type ('delete')
-   * @param {string} id - selected CPE ID
    */
-  showDialog = (type, id) => {
+  showDialog = (type) => {
     PopupDialog.prompt({
       title: t('txt-delete'),
       id: 'modalWindowSmall',
       confirmText: t('txt-ok'),
       cancelText: t('txt-cancel'),
-      display: this.getCpeMsgContent(type, id),
+      display: this.getCpeMsgContent(type),
       act: (confirmed) => {
         if (confirmed) {
           this.cpeAction(type);
@@ -371,7 +405,7 @@ class Cpe extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', c('txt-error'), err.message);
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -395,8 +429,157 @@ class Cpe extends Component {
       contextAnchor: null
     });
   }
+  /**
+   * Toggle CPE edit dialog on/off
+   * @method
+   */
+  toggleCpeEdit = () => {
+    this.setState({
+      cpeEditOpen: !this.state.cpeEditOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Display edit form
+   * @method
+   * @param {string} val - edit data
+   * @param {number} i - index of the edit data
+   * @returns HTML DOM
+   */
+  showEditForm = (val, i) => {
+    return (
+      <div key={i} className='group'>
+        <TextField
+          name={val}
+          label={f('hostCpeFields.' + val)}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={this.state.currentCpeData[val]}
+          onChange={this.handleDataChange.bind(this, 'edit')} />
+      </div>
+    )
+  }
+  /**
+   * Display CPE edit content
+   * @method
+   * @returns HTML DOM
+   */
+  displayCpeEdit = () => {
+    const {currentCpeData, formValidation} = this.state;
+
+    return (
+      <div className='cpe-form'>
+        <div className='group-flex'>
+          <div className='group-parent'>
+            {EDIT_LIST_PART1.map(this.showEditForm)}
+          </div>
+          <div className='group-parent'>
+            {EDIT_LIST_PART2.map(this.showEditForm)}
+          </div>
+        </div>
+        <div className='group cpe'>
+          <TextField
+            name='cpe23uri'
+            label={f('hostCpeFields.cpe23uri')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.cpe23uri.valid}
+            helperText={formValidation.cpe23uri.valid ? '' : t('txt-required')}
+            value={currentCpeData.cpe23uri}
+            onChange={this.handleDataChange.bind(this, 'edit')} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Open CPE edit dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showCpeEdit = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeCpeEditDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleCpeEditConfirm}
+    };
+
+    return (
+      <ModalDialog
+        id='cpeEditDialog'
+        className='modal-dialog'
+        title={t('txt-edit')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayCpeEdit()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle CPE edit confirm
+   * @method
+   */
+  handleCpeEditConfirm = () => {
+    const {baseUrl} = this.context;
+    const {currentCpeData, formValidation} = this.state;
+    const url = `${baseUrl}/api/hmd/cpe`;
+    const requestData = {
+      ...currentCpeData
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (currentCpeData.cpe23uri) {
+      tempFormValidation.cpe23uri.valid = true;
+    } else {
+      tempFormValidation.cpe23uri.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    delete requestData.createDttm; //Remove createDttm property
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.loadCpe();
+        this.closeCpeEditDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close CPE edit dialog
+   * @method
+   */
+  closeCpeEditDialog = () => {
+    this.setState({
+      cpeEditOpen: false,
+      currentCpeData: {},
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    });
+  }
   render() {
-  	const {showFilter, contextAnchor, currentCpeData, cpeData} = this.state;
+    const {showFilter, cpeEditOpen, contextAnchor, currentCpeData, cpeData} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -411,13 +594,16 @@ class Cpe extends Component {
 
     return (
       <div>
+        {cpeEditOpen &&
+          this.showCpeEdit()
+        }
         <Menu
           anchorEl={contextAnchor}
           keepMounted
           open={Boolean(contextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem id='cpeMenuEdit'>{t('txt-edit')}</MenuItem>
-          <MenuItem id='cpeMenuDelete' onClick={this.showDialog.bind(this, 'delete', currentCpeData.id)}>{t('txt-delete')}</MenuItem>
+          <MenuItem id='cpeMenuEdit' onClick={this.toggleCpeEdit}>{t('txt-edit')}</MenuItem>
+          <MenuItem id='cpeMenuDelete' onClick={this.showDialog.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
         </Menu>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
