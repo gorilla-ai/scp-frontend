@@ -1771,10 +1771,6 @@ class HMDscanInfo extends Component {
     let yaraRuleList = [];
     let header = t('hmd-scan.txt-suspiciousFilePath');
 
-    if (!val.taskResponseDttm) {
-      return;
-    }
-
     if (activeTab === 'yara') {
       dataResult = this.sortedRuleList(val.ScanResult);
       scanPath = this.displayScanProcessPath.bind(this, i);
@@ -1794,6 +1790,8 @@ class HMDscanInfo extends Component {
       scanPath = this.displayVansPath.bind(this, i);
       header = t('hmd-scan.txt-vulnerabilityInfo');
     }
+
+    if (!val.taskResponseDttm) return;
 
     return (
       <div key={i} className='scan-section'>
@@ -1927,9 +1925,7 @@ class HMDscanInfo extends Component {
     const {activeTab} = this.state;
     const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
 
-    if (!val.taskResponseDttm) {
-      return <div>{NOT_AVAILABLE}</div>
-    }
+    if (!val.taskResponseDttm) return;
 
     return (
       <div key={i} className='scan-section'>
@@ -1969,9 +1965,7 @@ class HMDscanInfo extends Component {
     const {hostCreateTime} = this.props;
     const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
 
-    if (!val.taskResponseDttm) {
-      return <div>{NOT_AVAILABLE}</div>
-    }
+    if (!val.taskResponseDttm) return;
 
     return (
       <div key={i} className='scan-section'>
