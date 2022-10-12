@@ -530,7 +530,7 @@ class HostController extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
       this.getSystemList();
-      this.toggleFilter();
+      this.toggleFilter('off');
       this.toggleContent('hostContent');
     }
   }
@@ -1738,7 +1738,7 @@ class HostController extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='confirm'>
+        closeAction='cancel'>
         {this.displayHostDeviceList()}
       </ModalDialog>
     )
@@ -2277,8 +2277,16 @@ class HostController extends Component {
   /**
    * Toggle filter content on/off
    * @method
+   * @param {string} [options] - options for turning off filter
    */
-  toggleFilter = () => {
+  toggleFilter = (options) => {
+    if (options === 'off') {
+      this.setState({
+        showFilter: false
+      });
+      return;
+    }
+
     this.setState({
       showFilter: !this.state.showFilter
     });
