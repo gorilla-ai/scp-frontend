@@ -381,6 +381,7 @@
     "txt-cveScore": "分數",
     "txt-safetyScanType": "安全掃描類型",
     "txt-downloadHostList": "下載弱點主機清單",
+    "txt-deviceNotAvailable": "主機不存在",
     "txt-export-cpe": "匯出CPE",
     "txt-report-nccst": "回報NCCST",
     "txt-report-nccst-success": "回報成功",

@@ -381,6 +381,7 @@
     "txt-cveScore": "Score",
     "txt-safetyScanType": "Safety Scan Type",
     "txt-downloadHostList": "Downlaod Host List",
+    "txt-deviceNotAvailable": "Device is not available",
     "txt-export-cpe": "Export CPE",
     "txt-report-nccst": "Report NCCST",
     "txt-report-nccst-success": "Report Success",

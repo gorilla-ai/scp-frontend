@@ -1644,12 +1644,16 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        this.setState({
-          hostDeviceOpen: true,
-          hostDeviceList: data.rows,
-          currentDeviceData: data.rows[0],
-          assignedDevice: data.rows[0].ip
-        });
+        if (data.rows.length > 0) {
+          this.setState({
+            hostDeviceOpen: true,
+            hostDeviceList: data.rows,
+            currentDeviceData: data.rows[0],
+            assignedDevice: data.rows[0].ip
+          });
+        } else {
+          helper.showPopupMsg(t('host.txt-deviceNotAvailable'));
+        }
       }
       return null;
     })
