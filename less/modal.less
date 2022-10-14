@@ -1084,6 +1084,7 @@ html[data-theme='dark'] {
     }
     & > .nav {
       min-width: 230px;
+      max-width: 300px;
       border-right: 1px solid var(--primaryBorder);
       ul.scan-list {
         height: 340px;
@@ -1120,6 +1121,7 @@ html[data-theme='dark'] {
             float: right;
             color: #2db142;
             font-weight: normal;
+            word-break: break-all;
           }
         }
         &.child {
@@ -1372,7 +1374,7 @@ html[data-theme='dark'] {
   max-height: 685px;
   .main-content > .nav {
     height: 498px;
-    overflow-y: auto;
+    overflow: auto;
     ul.scan-list {
       margin-right: 5px;
     }
