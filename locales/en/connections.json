@@ -473,7 +473,14 @@
     "txt-parentDept": "Parent Department",
     "txt-frMotpMsg": "Please enter FR-MOTP code",
     "txt-patchSuccess": "Patch Success",
-    "txt-csvFileError": "CSV column error"
+    "txt-csvFileError": "CSV column error",
+    "txt-nccstCode-0101": "上傳成功",
+    "txt-nccstCode-0301": "API KEY錯誤",
+    "txt-nccstCode-0303": "機關OID錯誤或上傳使用之IP未通過審核",
+    "txt-nccstCode-0401": "缺少必要參數",
+    "txt-nccstCode-0402": "機關名稱欄位錯誤",
+    "txt-nccstCode-0403": "資產/KBID數量欄位錯誤",
+    "txt-nccstCode-0404": "CPE/KBID格式錯誤"
   },
 
   "alert": {

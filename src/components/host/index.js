@@ -2054,14 +2054,8 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        const status = data.Message;
+        helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
 
-        if (status && status === 'A-S-0101') {
-          helper.showPopupMsg(t('host.txt-report-nccst-success'));
-        } else {
-          helper.showPopupMsg(t('host.txt-report-nccst-fail'));
-        }
-        
         this.toggleReportNCCST();
       }
       return null;
