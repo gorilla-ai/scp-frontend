@@ -480,7 +480,11 @@
     "txt-nccstCode-0401": "缺少必要參數",
     "txt-nccstCode-0402": "機關名稱欄位錯誤",
     "txt-nccstCode-0403": "資產/KBID數量欄位錯誤",
-    "txt-nccstCode-0404": "CPE/KBID格式錯誤"
+    "txt-nccstCode-0404": "CPE/KBID格式錯誤",
+    "txt-nccstCode-0405": "重複新增相同資產/KBID",
+    "txt-nccstCode-0406": "發生非預期錯誤",
+    "txt-nccstCode-0407": "上傳數量超過限制",
+    "txt-nccstCode-0408": "此機關尚有資料解析中"
   },
 
   "alert": {

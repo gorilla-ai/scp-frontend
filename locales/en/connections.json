@@ -474,13 +474,17 @@
     "txt-frMotpMsg": "Please enter FR-MOTP code",
     "txt-patchSuccess": "Patch Success",
     "txt-csvFileError": "CSV column error",
-    "txt-nccstCode-0101": "上傳成功",
-    "txt-nccstCode-0301": "API KEY錯誤",
-    "txt-nccstCode-0303": "機關OID錯誤或上傳使用之IP未通過審核",
-    "txt-nccstCode-0401": "缺少必要參數",
-    "txt-nccstCode-0402": "機關名稱欄位錯誤",
-    "txt-nccstCode-0403": "資產/KBID數量欄位錯誤",
-    "txt-nccstCode-0404": "CPE/KBID格式錯誤"
+    "txt-nccstCode-0101": "Upload success",
+    "txt-nccstCode-0301": "API KEY error",
+    "txt-nccstCode-0303": "OID error or the IP used for uploading is not approved",
+    "txt-nccstCode-0401": "Missing required param",
+    "txt-nccstCode-0402": "Unit name error",
+    "txt-nccstCode-0403": "Assets/KBIDs error",
+    "txt-nccstCode-0404": "CPE/KBID format error",
+    "txt-nccstCode-0405": "Repeat the same Asset/KBID",
+    "txt-nccstCode-0406": "An unexpected error occurred error",
+    "txt-nccstCode-0407": "The number of uploads exceeds limit",
+    "txt-nccstCode-0408": "This agency still has data under analysis"
   },
 
   "alert": {
