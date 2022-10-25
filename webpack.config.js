@@ -1,6 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({
     filename: '../css/vendor.css',
@@ -37,7 +39,7 @@ var cfg = {
     devtool: 'source-map',
     output: {
         path: path.resolve(__dirname, 'build/js'),
-        filename: '[name].js'
+        filename: '[name].[hash].js'
     },
     module: {
         rules: [
@@ -92,18 +94,65 @@ var cfg = {
         //     /* chunkName= */"vendor", 
         //     /* filename= */"vendor.js"
         // )
-        extractCSS
+        new BundleAnalyzerPlugin(),
+        extractCSS,
+        new HtmlWebpackPlugin({
+          template: 'index.html',
+          filename: 'index.html',
+        })
     ],
     optimization: {
-        splitChunks: {
-            cacheGroups: {
-                vendor: {
-                    name: 'vendor',
-                    chunks: 'all',
-                    test: /[\\/]node_modules[\\/]/
-                }
-            }
-        }
+      // splitChunks: {
+      //   chunks: 'all',
+      //   minSize: 450000,
+      //   //minRemainingSize: 0,
+      //   maxSize: 900000,
+      //   minChunks: 1,
+      //   maxAsyncRequests: 30,
+      //   maxInitialRequests: 30,
+      //   automaticNameDelimiter: '~',
+      //   enforceSizeThreshold: 50000,
+      //   cacheGroups: {
+      //     vendors: {
+      //       test: /[\\/]node_modules[\\/]/,
+      //       priority: -10,
+      //       reuseExistingChunk: true
+      //     },
+      //     default: {
+      //       minChunks: 2,
+      //       priority: -20,
+      //       reuseExistingChunk: true
+      //     }
+      //   }
+      // },
+      // runtimeChunk: {
+      //   name: (entrypoint) => `runtime~${entrypoint.name}`,
+      // }
+
+        // splitChunks: {
+        //     cacheGroups: {
+        //         defaultVendors: {
+        //             name: 'vendor',
+        //             chunks: 'all',
+        //             test: /[\\/]node_modules[\\/]/
+        //         }
+        //     }
+        // }
+
+        // splitChunks: {
+        //     cacheGroups: {
+        //         vendor: {
+        //             name: 'vendor',
+        //             chunks: 'all',
+        //             test: /[\\/]node_modules[\\/]((?!react).*)[\\/]/
+        //         },
+        //         react: {
+        //             name: 'react',
+        //             chunks: 'all',
+        //             test: /[\\/]node_modules[\\/]((react).*)[\\/]/
+        //         }
+        //     }
+        // }
     }
 };
 

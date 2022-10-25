@@ -11,20 +11,8 @@
     "url": "http://ivs.duckdns.org:10080/web-ui/chewbacca-app-ui"
   },
   "scripts": {
-    "clean": "grunt clean",
-    "clean-all": "grunt clean-all",
-    "build-webpack-watch": "webpack --progress --watch",
-    "build-webpack-dev": "webpack --progress",
-    "build-webpack-prod": "NODE_ENV=production webpack -p --progress",
-    "build-watch": "grunt",
-    "build-dev": "grunt dev",
-    "build-prod": "grunt prod",
-    "lint": "eslint \"src/**/*.js\" > lint.log",
-    "lint-fix": "./node_modules/eslint/bin/eslint.js --fix \"src/**/*.js\" > lint.log",
-    "start": "babel-node server.js",
-    "start-watch": "nodemon --watch server.js --watch src/server --exec babel-node server.js",
-    "doc": "jsdoc -r src -R README.md -p -c jsdoc.json -d docs",
-    "test": "jest"
+    "build": "webpack --progress --config webpack.config.js",
+    "watch": "webpack-dev-server --hot --inline --progress --colors --watch-poll"
   },
   "author": "",
   "license": "ISC",
@@ -51,6 +39,7 @@
     "formidable": "^1.2.1",
     "graceful-fs": "^4.2.6",
     "html-to-image": "^1.3.20",
+    "html-webpack-plugin": "^5.3.1",
     "jest": "^23.6.0",
     "jquery": "^3.3.1",
     "jschardet": "^2.1.1",
@@ -101,6 +90,8 @@
     "styled-components": "^5.2.0",
     "underscore.string": "^3.2.1",
     "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
+    "webpack-bundle-analyzer": "^4.6.1",
+    "webpack-cli": "^4.7.0",
     "widget-builder": "git+ssh://git@git.gorilla-technology.com:scrd01/widget-builder.git#react-v16-merge",
     "xlsx": "^0.15.4"
   },
@@ -130,12 +121,12 @@
     "grunt-contrib-less": "^1.4.1",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-env": "^0.4.4",
-    "grunt-webpack": "^3.1.1",
+    "grunt-webpack": "^5.0.0",
     "json-loader": "^0.5.7",
     "less-loader": "^4.1.0",
     "style-loader": "^0.20.3",
     "url-loader": "^1.0.1",
-    "webpack": "^4.6.0",
-    "webpack-dev-server": "^3.1.3"
+    "webpack": "^5.37.0",
+    "webpack-dev-server": "^3.11.2"
   }
 }
