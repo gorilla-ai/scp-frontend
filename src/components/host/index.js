@@ -4501,17 +4501,6 @@ class HostController extends Component {
     }
   }
   /**
-   * Check HMD type
-   * @method
-   * @param {string} type - HMD type
-   * @returns CSS property object
-   */
-  checkHMDtype = (type) => {
-    if (type === 'importGcb') {
-      return {display: 'none'};
-    }
-  }
-  /**
    * Get HMD test menu
    * @method
    * @param {string} val - individual HMD data
@@ -4542,7 +4531,7 @@ class HostController extends Component {
       )
     } else {
       return (
-        <MenuItem key={i} style={this.checkHMDtype(val.cmds)}>
+        <MenuItem key={i} style={val.cmds === 'importGcb' ? {display: 'none'} : null}>
           <span>{val.name}</span>
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.openConfirmModal.bind(this, 'start', val)}>{t('hmd-scan.txt-execute')}</Button>
           {(val.name === 'File Integrity' || val.name === 'Process Monitor' || val.name === 'Event Tracing') && 
