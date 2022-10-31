@@ -391,6 +391,7 @@ class HostController extends Component {
         from: '',
         to: ''
       },
+      requestSentOpen: false,
       frMotpOpen: false,
       vansPatchOpen: false,
       vansPatchGroupOpen: false,
@@ -2860,6 +2861,10 @@ class HostController extends Component {
 
     if (val.doc_count === 0 || val.doc_count > 0) {
       status = val.doc_count;
+
+      if (val.severity_type_name === 'gcbResult') {
+        status = val.FailCnt;
+      }
     } else {
       if (val.taskStatus === 'Failure') {
         status = t('hmd-scan.txt-taskFailure');
@@ -4629,7 +4634,9 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    PopupDialog.alertId('hostHmdAction', t('txt-requestSent'));
+    this.setState({
+      requestSentOpen: true
+    });
   }
   /**
    * Handle trigger button for HMD trigger all
@@ -4689,7 +4696,10 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    PopupDialog.alertId('hostHmdAction', t('txt-requestSent'));
+    this.setState({
+      requestSentOpen: true
+    });
+
     this.handleCloseMenu();
 
     if (hmdObj.cmds === 'compareIOC') {
@@ -4732,7 +4742,10 @@ class HostController extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    PopupDialog.alertId('hostHmdAction', t('txt-requestSent'));
+    this.setState({
+      requestSentOpen: true
+    });
+
     this.handleCloseMenu();
   }
   /**
@@ -4895,6 +4908,37 @@ class HostController extends Component {
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   /**
+   * Display request sent dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  requestSentDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.confirmRequestSent}
+    };
+
+    return (
+      <ModalDialog
+        id='requestSentDialog'
+        className='modal-dialog'
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+          <div className='msg'>{t('txt-requestSent')}</div>
+      </ModalDialog>
+    )
+  }
+  /**
+   * Confirm request sent
+   * @method
+   */
+  confirmRequestSent = () => {
+    this.setState({
+      requestSentOpen: false
+    });
+  }
+  /**
    * Display FR-MOTP dialog content
    * @method
    * @returns HTML DOM
@@ -5022,6 +5066,7 @@ class HostController extends Component {
       importFilterType,
       LAconfig,
       assessmentDatetime,
+      requestSentOpen,
       frMotpOpen,
       vansPatchOpen,
       vansPatchGroupOpen,
@@ -5124,6 +5169,10 @@ class HostController extends Component {
             patchInfo={patchInfo}
             toggleVansPatch={this.toggleVansPatch}
             toggleFrMotp={this.toggleFrMotp} />
+        }
+
+        {requestSentOpen &&
+          this.requestSentDialog()
         }
 
         {frMotpOpen &&
