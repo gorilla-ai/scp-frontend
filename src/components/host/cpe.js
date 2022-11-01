@@ -548,7 +548,9 @@ class Cpe extends Component {
       return;
     }
 
-    delete requestData.createDttm; //Remove createDttm property
+    //Remove date property
+    delete requestData.createDttm;
+    delete requestData.updateDttm;
 
     this.ah.one({
       url,
