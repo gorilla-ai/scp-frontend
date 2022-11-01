@@ -581,65 +581,70 @@ class IncidentManagement extends Component {
     };
 
     loadDashboard = () => {
-        const {baseUrl, session} = this.context
+      const {baseUrl, session} = this.context;
+      let req = {
+        accountRoleType :this.state.accountRoleType
+      };
 
-        let req = {
-            accountRoleType :this.state.accountRoleType
-        }
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+      ah.all([{
+        url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`,
+        data: JSON.stringify(req),
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json'
+      }])
+      .then(data => {
+        const dashboard = {
+          expired: data[0].rt.rows[0].expireCount,
+          unhandled: data[0].rt.rows[0].dealCount,
+          mine: data[0].rt.rows[0].myCount
+        };
 
-        ah.all([
-            {
-                url: `${baseUrl}/api/soc/statistic/_search?creator=${session.accountId}`,
-                data: JSON.stringify(req),
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json'
-            }
-        ])
-        .then(data => {
-            let dashboard = {
-                expired: data[0].rt.rows[0].expireCount,
-                unhandled: data[0].rt.rows[0].dealCount,
-                mine: data[0].rt.rows[0].myCount,
-            }
-
-            this.setState({dashboard})
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
+        this.setState({
+          dashboard
+        });
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
-
     loadCondition = (from,type) => {
-        const {session} = this.context
-        let fromSearch = from
-        if (from === 'button'){
-            fromSearch = 'search'
-        }
-        let search = {
-            subStatus:0,
-            keyword: '',
-            category: 0,
-            isExpired: 2,
-            accountRoleType: this.state.accountRoleType,
-            isExecutor : _.includes(session.roles, 'SOC Executor'),
-        }
-        if (type === 'expired') {
-            this.setState({loadListType: 0})
-            search.status = 0
-            search.isExpired = 1;
-            this.loadWithoutDateTimeData(fromSearch,search)
-        }else if (type === 'mine') {
-            this.setState({loadListType: 2})
-            search.status = 0
-            search.creator = session.accountId
-            this.loadWithoutDateTimeData(fromSearch,search)
-        }else{
+      const {session} = this.context;
+      let fromSearch = from;
+      let search = {
+        subStatus:0,
+        keyword: '',
+        category: 0,
+        isExpired: 2,
+        accountRoleType: this.state.accountRoleType,
+        isExecutor : _.includes(session.roles, 'SOC Executor'),
+      };
 
-        }
-        this.clearFilter()
+      if (from === 'button'){
+        fromSearch = 'search'
+      }
+
+      if (type === 'expired') {
+        this.setState({
+          loadListType: 0
+        });
+
+        search.status = 0;
+        search.isExpired = 1;
+        this.loadWithoutDateTimeData(fromSearch,search);
+      } else if (type === 'mine') {
+        this.setState({
+          loadListType: 2
+        });
+
+        search.status = 0;
+        search.creator = session.accountId;
+        this.loadWithoutDateTimeData(fromSearch,search);
+      }
+
+      this.clearFilter()
     }
 
     /**
@@ -649,32 +654,31 @@ class IncidentManagement extends Component {
      * @param {object} event - event object
      */
     handleOpenMenu = (data, event) => {
-        this.setState({
-            contextAnchor: event.currentTarget,
-            currentData: data
-        });
+      this.setState({
+        contextAnchor: event.currentTarget,
+        currentData: data
+      });
     }
     /**
      * Handle close menu
      * @method
      */
     handleCloseMenu = () => {
-        this.setState({
-            contextAnchor: null,
-            currentData: {}
-        });
+      this.setState({
+        contextAnchor: null,
+        currentData: {}
+      });
     }
-
-
     handleRowMouseOver = (index, allValue, evt) => {
-        let tempIncident = {...this.state.incident};
-        tempIncident['dataContent'] = _.map(tempIncident['dataContent'], el => {
-            return {...el, _menu: el.id === allValue.id}
-        });
-        this.setState({incident: tempIncident})
+      let tempIncident = {...this.state.incident};
+      tempIncident['dataContent'] = _.map(tempIncident['dataContent'], el => {
+        return {...el, _menu: el.id === allValue.id};
+      });
+
+      this.setState({
+        incident: tempIncident
+      });
     };
-
-
     /* ------------------ View ------------------- */
     render() {
       const {session} = this.context;
@@ -846,7 +850,6 @@ class IncidentManagement extends Component {
       if (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor)) {
         closeCheck = true;
         deleteCheck = true;
-        // publishCheck = true
       }
 
       if (incident.info.status === constants.soc.INCIDENT_STATUS_UNREVIEWED) {
