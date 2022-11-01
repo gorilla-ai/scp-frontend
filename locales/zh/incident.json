@@ -91,6 +91,7 @@
 	"txt-incident-event": "資安監控",
 	"txt-incident-related": "關聯分析",
 	"txt-incident-health": "健康狀態統計",
+	"txt-tempSaveRetrive": "有暫存是否還原",
 	"txt-export-all": "以PDF匯出列表中所有事件單",
 	"txt-export-all-word": "以Word匯出列表中所有事件單",
 	"txt-addIncident-events": "新增資安監控事件單",

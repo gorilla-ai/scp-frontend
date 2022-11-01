@@ -90,6 +90,7 @@
 	"txt-incident-event": "Security Monitoring",
 	"txt-incident-related": "Correlation Analysis",
 	"txt-incident-health": "Health Status Statistic",
+	"txt-tempSaveRetrive": "Retrive temporary saved data",
 	"txt-export-all": "Export Incidents by PDF in Search List",
 	"txt-export-all-word": "Export Incidents by Word in Search List",
 	"txt-addIncident-events": "Add Security Monitoring Incident",
