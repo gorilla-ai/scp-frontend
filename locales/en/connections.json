@@ -994,7 +994,7 @@
     "scan-list": {
       "txt-dashboard": "Dashboard",
       "txt-yara": "Yara Scan",
-      "txt-scanFile": "Malware - Windows",
+      "txt-scanFile": "Malware",
       "txt-scanFileLinux": "Malware - Linux",
       "txt-importGcbAndGcbDetection": "GCB",
       "txt-gcb": "GCB",

@@ -455,7 +455,7 @@
     "configId": "Config ID",
     "configSource": "Config Source",
     "msg": "Message",
-    "_eventDttm_": "Received Event Time",
+    "_eventDttm_": "Event Datetime",
     "LoghostIp": "Received Host",
     "Source": "Event Source",
     "matchFlag": "Match Flag",

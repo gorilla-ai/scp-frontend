@@ -455,7 +455,7 @@
     "configId": "設定檔代碼",
     "configSource": "設定檔名稱",
     "msg": "訊息",
-    "_eventDttm_": "事件接收時間",
+    "_eventDttm_": "事件時間",
     "LoghostIp": "事件接收主機",
     "Source": "事件來源",
     "matchFlag": "比對旗幟",
