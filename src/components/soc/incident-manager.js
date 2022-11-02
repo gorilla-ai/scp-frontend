@@ -83,20 +83,20 @@ class IncidentManagement extends Component {
       activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
       displayPage: 'main', /* main, events, ttps */
       incidentType: '',
-      toggleType:'',
+      toggleType: '',
       showFilter: false,
       showChart: true,
       relatedListOpen: false,
       isAnalyze: '',
-      tempSaveData: {},
+      tempSavedData: {},
       currentIncident: {},
       originalIncident: {},
-      accountType:constants.soc.LIMIT_ACCOUNT,
+      accountType: constants.soc.LIMIT_ACCOUNT,
       accountDefault: false,
       severityList: [],
       socFlowList: [],
-      selectedStatus:[],
-      tagList:[],
+      selectedStatus: [],
+      tagList: [],
       search: {
         keyword: '',
         category: 0,
@@ -105,7 +105,7 @@ class IncidentManagement extends Component {
           from: helper.getSubstractDate(1, 'month'),
           to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         },
-        tagList:[],
+        tagList: [],
         isExpired: 2,
         checkbox: {
           isExpired: false,
@@ -141,8 +141,8 @@ class IncidentManagement extends Component {
         }
       },
       notifyEmailList: [],
-      accountRoleType:[],
-      loadListType:2,
+      accountRoleType: [],
+      loadListType: 2,
       attach: null,
       contextAnchor: null,
       currentData: {},
@@ -165,7 +165,6 @@ class IncidentManagement extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
-  ryan = () => {}
   setDefaultSearchOptions = (alertData, alertDataId) => {
     const {baseUrl, session} = this.context;
     const severityList = _.map(SEVERITY_TYPE, (val, i) => {
@@ -229,7 +228,7 @@ class IncidentManagement extends Component {
   checkAccountType = () => {
     const {baseUrl, session} = this.context;
     const requestData = {
-      account:session.accountId
+      account: session.accountId
     };
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -340,7 +339,7 @@ class IncidentManagement extends Component {
                 if (val === '_menu') {
                   return (
                     <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, allValue)}>
-                      <MoreIcon/>
+                      <MoreIcon />
                     </IconButton>
                   )
                 } else if (val === 'type') {
@@ -372,7 +371,7 @@ class IncidentManagement extends Component {
                       if (value === constants.soc.INCIDENT_STATUS_EXECUTOR_CLOSE) {
                         return <span>{it('status.8')}</span>
                       } else if (allValue.flowData.currentEntity) {
-                        status = allValue.flowData.currentEntity[allValue.id].entityName
+                        status = allValue.flowData.currentEntity[allValue.id].entityName;
                       }
                     }
                   } else if (value === constants.soc.INCIDENT_STATUS_DELETED) {
@@ -430,7 +429,7 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  };
+  }
   /**
    * Get and set Incident Device table data
    * @method
@@ -441,8 +440,8 @@ class IncidentManagement extends Component {
     const {incident} = this.state;
     const sort = incident.sort.desc ? 'desc' : 'asc';
     const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
-    searchPayload.account = session.accountId
-    searchPayload.status = this.state.selectedStatus
+    searchPayload.account = session.accountId;
+    searchPayload.status = this.state.selectedStatus;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -479,7 +478,7 @@ class IncidentManagement extends Component {
                     return (
                       <div className='table-menu active'>
                         <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, allValue)}>
-                          <MoreIcon/>
+                          <MoreIcon />
                         </IconButton>
                       </div>
                     )
@@ -524,7 +523,7 @@ class IncidentManagement extends Component {
                 } else if (val === 'updateDttm') {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 } else if (val === 'tag') {
-                  const tags = _.map(allValue.tagList, 'tag.tag')
+                  const tags = _.map(allValue.tagList, 'tag.tag');
 
                   return (
                     <div>
@@ -532,7 +531,7 @@ class IncidentManagement extends Component {
                           _.map(allValue.tagList, el => {
                             return (
                               <div style={{display: 'flex', marginRight: '30px'}}>
-                                <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
+                                <div className='incident-tag-square' style={{backgroundColor: el.tag.color}} />
                                 &nbsp;{el.tag.tag}
                               </div>
                             )
@@ -572,10 +571,10 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  };
+  }
   loadDashboard = () => {
     const {baseUrl, session} = this.context;
-    let req = {
+    const req = {
       accountRoleType :this.state.accountRoleType
     };
 
@@ -616,28 +615,29 @@ class IncidentManagement extends Component {
     };
 
     if (from === 'button') {
-      fromSearch = 'search'
+      fromSearch = 'search';
     }
 
     if (type === 'expired') {
+      search.status = 0;
+      search.isExpired = 1;
+
       this.setState({
         loadListType: 0
       });
 
-      search.status = 0;
-      search.isExpired = 1;
       this.loadWithoutDateTimeData(fromSearch,search);
     } else if (type === 'mine') {
+      search.status = 0;
+      search.creator = session.accountId;
+
       this.setState({
         loadListType: 2
       });
 
-      search.status = 0;
-      search.creator = session.accountId;
       this.loadWithoutDateTimeData(fromSearch,search);
     }
-
-    this.clearFilter()
+    this.clearFilter();
   }
   /**
    * Handle open menu
@@ -670,12 +670,24 @@ class IncidentManagement extends Component {
     this.setState({
       incident: tempIncident
     });
-  };
-/**
- * Set input data change
- * @method
- * @param {string} formType - form Type ('events' or 'ttps')
- */
+  }
+  /**
+   * Display temp saved message
+   * @method
+   * @returns HTML DOM
+   */
+  getTempSavedMsg = () => {
+    return (
+      <div className='content'>
+        <span>{it('txt-tempSaveRestore')}?</span>
+      </div>
+    )
+  }
+  /**
+   * Check if user has temp saved data
+   * @method
+   * @param {string} formType - form Type ('events' or 'ttps')
+   */
   checkTempSave = (formType) => {
     const {baseUrl, session} = this.context;
     const isAnalyze = formType === 'ttps';
@@ -683,6 +695,10 @@ class IncidentManagement extends Component {
       accountId: session.accountId,
       isAnalyze
     };
+
+    this.setState({
+      isAnalyze
+    });
 
     this.ah.one({
       url: `${baseUrl}/api/soc/temporary/search`,
@@ -694,8 +710,23 @@ class IncidentManagement extends Component {
       if (_.isEmpty(data)) {
         this.toggleContent('addIncident', formType);
       } else {
-        this.setState({
-          tempSaveData: data
+        PopupDialog.prompt({
+          id: 'modalWindowSmall',
+          confirmText: it('txt-restore'),
+          cancelText: it('txt-abandon'),
+          display: this.getTempSavedMsg(),
+          act: (confirmed) => {
+            if (confirmed) {
+              this.setState({
+                tempSavedData: data
+              }, () => {
+                this.toggleContent('addIncident', formType, data.contentJson);
+              });
+            } else {
+              this.deleteTempSavedData(data.id);
+              this.toggleContent('addIncident', formType);
+            }
+          }
         });
       }
       return null;
@@ -703,10 +734,27 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Delete temp saved data
+   * @method
+   * @param {string} id - temp saved ID
+   */
+  deleteTempSavedData = (id) => {
+    const {baseUrl} = this.context;
 
-    this.setState({
-      isAnalyze
-    });
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/temporary?id=${id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /* ------------------ View ------------------- */
   render() {
@@ -721,7 +769,8 @@ class IncidentManagement extends Component {
       contextAnchor,
       currentData,
       accountType,
-      relatedListOpen
+      relatedListOpen,
+      loadListType
     } = this.state;
     let insertCheck = false;
     let sendCheck = false;
@@ -751,20 +800,20 @@ class IncidentManagement extends Component {
     return (
       <div>
         <IncidentComment ref={ref => { this.incidentComment=ref }} />
-        {this.state.loadListType === 0 &&
+        {loadListType === 0 &&
           <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />
         }
-        {this.state.loadListType === 1 &&
+        {loadListType === 1 &&
           <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','unhandled')} />
         }
-        {this.state.loadListType === 2 &&
+        {loadListType === 2 &&
           <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','mine')} />
         }
-        {this.state.loadListType === 3 &&
+        {loadListType === 3 &&
           <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
         }
 
-        <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}}/>
+        <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}} />
         <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
 
         <NotifyDialog ref={ref => {
@@ -806,12 +855,12 @@ class IncidentManagement extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
-            <button className={cx('', {'active': showChart})} onClick={this.toggleChart} title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
+            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter' /></button>
+            <button className={cx('', {'active': showChart})} onClick={this.toggleChart} title={it('txt-statistics')}><i className='fg fg-chart-columns' /></button>
             {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-              <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
+              <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler' /></button>
             }
-            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
+            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report' /></button>
           </div>
         </div>
 
@@ -927,7 +976,7 @@ class IncidentManagement extends Component {
           {it(`txt-${activeContent}-${incidentType}`)}
 
           {activeContent !== 'addIncident' &&
-            <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red'}}>{incident.info.id}</span>
+            <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red', marginLeft: '5px'}}>{incident.info.id}</span>
               <div style={{display: 'flex', marginLeft: '10px'}}>
               {
                 _.map(tmpTagList, el => {
@@ -1024,19 +1073,19 @@ class IncidentManagement extends Component {
           <footer>
             <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
             <Button variant='contained' color='primary' onClick={this.handleSubmit.bind(this, 'save')}>{t('txt-save')}</Button>
-            <Button variant='contained' color='primary' onClick={this.handleSubmit.bind(this, 'tempSave')}>{t('txt-tempSave')}</Button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.handleSubmit.bind(this, 'tempSave')}>{t('txt-tempSave')}</Button>
           </footer>
         }
         {activeContent === 'addIncident' &&
           <footer>
             <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
             <Button variant='contained' color='primary' onClick={this.handleSubmit.bind(this, 'save')}>{t('txt-save')}</Button>
-            <Button variant='contained' color='primary' onClick={this.handleSubmit.bind(this, 'tempSave')}>{t('txt-tempSave')}</Button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.handleSubmit.bind(this, 'tempSave')}>{t('txt-tempSave')}</Button>
           </footer>
         }
       </div>
     )
-  };
+  }
   handleIncidentPageChange = (val) => {
     this.setState({
       displayPage: val
@@ -1076,7 +1125,7 @@ class IncidentManagement extends Component {
         <header>
           <div className='text'>{t('edge-management.txt-basicInfo')}</div>
           {activeContent !== 'addIncident' &&
-          <span className='msg'>{f('incidentFields.updateDttm')}{helper.getFormattedDate(incident.info.updateDttm, 'local')}</span>
+            <span className='msg'>{f('incidentFields.updateDttm')}{helper.getFormattedDate(incident.info.updateDttm, 'local')}</span>
           }
         </header>
 
@@ -1085,41 +1134,41 @@ class IncidentManagement extends Component {
         <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
         <div className='group full'>
-            <label htmlFor='title'>{f('incidentFields.title')}</label>
-            <TextField
-              id='title'
-              name='title'
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleDataChangeMui}
-              value={incident.info.title}
-              helperText={it('txt-required')}
-              required
-              error={!(incident.info.title || '')}
-              disabled={activeContent === 'viewIncident'}/>
+          <label htmlFor='title'>{f('incidentFields.title')}</label>
+          <TextField
+            id='title'
+            name='title'
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.title}
+            helperText={it('txt-required')}
+            required
+            error={!(incident.info.title || '')}
+            disabled={activeContent === 'viewIncident'} />
         </div>
         <div className='group'>
-            <label htmlFor='category'>{f('incidentFields.category')}</label>
-            <TextField
-              id='category'
-              name='category'
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleDataChangeMui}
-              helperText={it('txt-required')}
-              required
-              select
-              value={incident.info.category}
-              error={!(incident.info.category || '')}
-              disabled={activeContent === 'viewIncident'}>
-              {
-                _.map(_.range(1, 9), el => {
-                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                })
-              }
-            </TextField>
+          <label htmlFor='category'>{f('incidentFields.category')}</label>
+          <TextField
+            id='category'
+            name='category'
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            onChange={this.handleDataChangeMui}
+            helperText={it('txt-required')}
+            required
+            select
+            value={incident.info.category}
+            error={!(incident.info.category || '')}
+            disabled={activeContent === 'viewIncident'}>
+            {
+              _.map(_.range(1, 9), el => {
+                return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+              })
+            }
+          </TextField>
         </div>
         <div className='group'>
           <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
@@ -1134,9 +1183,8 @@ class IncidentManagement extends Component {
             helperText={it('txt-required')}
             error={!(incident.info.reporter || '')}
             value={incident.info.reporter}
-            disabled={activeContent === 'viewIncident'}/>
+            disabled={activeContent === 'viewIncident'} />
         </div>
-
         <div className='group'>
           <label htmlFor='reporter'>{f('incidentFields.flowId')}</label>
           <TextField
@@ -1153,7 +1201,6 @@ class IncidentManagement extends Component {
             {socFlowList}
           </TextField>
         </div>
-
         <div className='group'>
           <label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
           <TextField
@@ -1176,9 +1223,8 @@ class IncidentManagement extends Component {
             }
           </TextField>
         </div>
-
         <div className='group severity-level' style={{width: '25vh', paddingTop: '27px'}}>
-          <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incident.info.severity]}}/>
+          <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incident.info.severity]}} />
           <TextField
             id='severityLevel'
             name='severity'
@@ -1193,7 +1239,6 @@ class IncidentManagement extends Component {
             {severityList}
           </TextField>
         </div>
-
         <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
           <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
@@ -1211,7 +1256,6 @@ class IncidentManagement extends Component {
               onChange={this.handleDataChange.bind(this, 'expireDttm')} />
           </MuiPickersUtilsProvider>
         </div>
-
         {incidentType === 'ttps' &&
           <div className='group full'>
             <label htmlFor='description'>{f('incidentFields.description')}</label>
@@ -1229,10 +1273,9 @@ class IncidentManagement extends Component {
               name='description'
               error={!(incident.info.description || '')}
               value={incident.info.description}
-              disabled={activeContent === 'viewIncident'}/>
+              disabled={activeContent === 'viewIncident'} />
           </div>
          }
-
         {incidentType === 'ttps' &&
           <div className='group full'>
             <label htmlFor='relatedList' style={{float: 'left', marginRight: '10px'}}>{f('incidentFields.relatedList')}</label>
@@ -1299,28 +1342,25 @@ class IncidentManagement extends Component {
       confirmText: t('txt-confirm'),
       cancelText: t('txt-cancel'),
       display: <div className='c-form content'>
-          <div>
-              <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}
-                         onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
-          </div>
-          <div>
-              <label>{it('txt-fileMemo')}</label>
-              <TextareaAutosize id='comment'
-                                className='textarea-autosize' rows={3} />
-          </div>
+        <div>
+          <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}} onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
+        </div>
+        <div>
+          <label>{it('txt-fileMemo')}</label>
+          <TextareaAutosize id='comment' className='textarea-autosize' rows={3} />
+        </div>
       </div>,
       act: (confirmed, data) => {
+        if (confirmed) {
+          let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
 
-          if (confirmed) {
-              let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-
-              if (flag.test(data.file.name)) {
-              } else {
-                  this.uploadAttachmentByModal(data.file, data.comment)
-              }
+          if (flag.test(data.file.name)) {
+          } else {
+            this.uploadAttachmentByModal(data.file, data.comment);
           }
+        }
       }
-    })
+    });
   }
   handleDownloadAll = () => {
     const {baseUrl, contextRoot} = this.context;
@@ -1330,116 +1370,105 @@ class IncidentManagement extends Component {
     downloadLink(url);
   }
   displayAttached = () => {
-      const {activeContent, incidentType, incident, attach} = this.state;
-      let dataFields = {};
-      incident.fileFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-              label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
-              sortable: this.checkSortable(tempData),
-              formatter: (value, allValue, i) => {
-                  if (tempData === 'fileSize') {
-                      return <span>{this.formatBytes(value)}</span>
-                  }
-                  else if (tempData === 'fileDttm') {
-                      return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-                  }
-                  else if (tempData === 'fileMemo') {
-                      if (incident.info.attachmentDescription) {
-                          const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
+    const {activeContent, incidentType, incident, attach} = this.state;
+    let dataFields = {};
+    incident.fileFieldsArr.forEach(tempData => {
+      dataFields[tempData] = {
+        label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
+        sortable: this.checkSortable(tempData),
+        formatter: (value, allValue, i) => {
+          if (tempData === 'fileSize') {
+            return <span>{this.formatBytes(value)}</span>
+          } else if (tempData === 'fileDttm') {
+            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+          } else if (tempData === 'fileMemo') {
+            if (incident.info.attachmentDescription) {
+              const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName});
+              let formattedWording = '';
 
-                          let formattedWording = ''
-
-                          if (target) {
-                              if (target.fileMemo && target.fileMemo.length > 32) {
-                                  formattedWording = target.fileMemo.substr(0, 32) + '...';
-                              } else {
-                                  formattedWording = target.fileMemo
-                              }
-                          }
-
-                          return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
-                      }
-                  }
-                  else if (tempData === 'action') {
-                      let isShow = true
-
-                      if (incident.info.status === 3 || incident.info.status === 4) {
-                          if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
-                              isShow = false
-                          }
-                      }
-
-                      return <div>
-                          <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
-                          {
-                              isShow &&
-                              <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
-                          }
-                      </div>
-                  }
-                  else {
-                      return <span>{value}</span>
-                  }
+              if (target) {
+                if (target.fileMemo && target.fileMemo.length > 32) {
+                  formattedWording = target.fileMemo.substr(0, 32) + '...';
+                } else {
+                  formattedWording = target.fileMemo;
+                }
               }
-          }
-      });
+              return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
+            }
+          } else if (tempData === 'action') {
+            let isShow = true;
 
-      incident.fileFields = dataFields;
+            if (incident.info.status === 3 || incident.info.status === 4) {
+              if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
+                isShow = false;
+              }
+            }
 
-      return <div className='form-group normal'>
-          <header>
-              <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
-          </header>
-          {
-              activeContent === 'addIncident' &&
-              <div className='group'>
-                  <FileInput
-                      id='attach'
-                      name='file'
-                      className='file-input'
-                      validate={{ max:20 ,t: this.getErrorMsg}}
-                      onChange={this.handleAttachChange}
-                      btnText={t('txt-selectFile')} />
-              </div>
+            return <div>
+              <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
+              {isShow &&
+                <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+              }
+            </div>
+          } else {
+            return <span>{value}</span>
           }
-          {
-              activeContent === 'addIncident' &&
-              <div className='group'>
-                  <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
-                  <TextareaAutosize
-                      id='fileMemo'
-                      name='fileMemo'
-                      className='textarea-autosize'
-                      onChange={this.handleDataChangeMui}
-                      value={incident.info.fileMemo}
-                      rows={2} />
-              </div>
+        }
+      }
+    });
+
+    incident.fileFields = dataFields;
+
+    return <div className='form-group normal'>
+      <header>
+        <div className='text'>{it('txt-attachedFile')}<span style={{color:'red', 'fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
+      </header>
+      {activeContent === 'addIncident' &&
+        <div className='group'>
+          <FileInput
+            id='attach'
+            name='file'
+            className='file-input'
+            validate={{max:20, t: this.getErrorMsg}}
+            onChange={this.handleAttachChange}
+            btnText={t('txt-selectFile')} />
+        </div>
+      }
+      {activeContent === 'addIncident' &&
+        <div className='group'>
+          <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
+          <TextareaAutosize
+            id='fileMemo'
+            name='fileMemo'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.fileMemo}
+            rows={2} />
+        </div>
+      }
+      {activeContent !== 'addIncident' &&
+        <div className='group'>
+          <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+          {incident.info.attachmentDescription &&
+            <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
           }
-          {
-              activeContent !== 'addIncident' &&
-              <div className='group'>
-                  <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
-                  {incident.info.attachmentDescription &&
-                      <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
-                  }
-              </div>
-          }
-          {
-              _.size(incident.info.fileList) > 0 &&
-              <div className='group full'>
-                  <DataTable
-                      style={{width: '100%'}}
-                      className='main-table full'
-                      fields={incident.fileFields}
-                      data={incident.info.fileList} />
-              </div>
-          }
-      </div>
+        </div>
+      }
+      {_.size(incident.info.fileList) > 0 &&
+        <div className='group full'>
+          <DataTable
+            style={{width: '100%'}}
+            className='main-table full'
+            fields={incident.fileFields}
+            data={incident.info.fileList} />
+        </div>
+      }
+    </div>
   }
   displayFlow = () => {
     const {activeContent, incidentType, incident} = this.state;
-
     let dataFields = {};
+
     incident.flowFieldsArr.forEach(tempData => {
       dataFields[tempData] = {
         hide: tempData === 'id',
@@ -1475,94 +1504,95 @@ class IncidentManagement extends Component {
     )
   }
   displayNoticePage = () => {
-      const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
+    const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST, incidentType, incident} = this.state;
 
-      return <div className='form-group normal'>
-          <header>
-              <div className='text'>{it('txt-accidentTitle')}</div>
-          </header>
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-accidentTitle')}</div>
+        </header>
 
+        <div className='group'>
+          <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
+          <TextField
+            id='accidentCatogory'
+            name='accidentCatogory'
+            select
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentCatogory}
+            disabled={activeContent === 'viewIncident'}>
+            {INCIDENT_ACCIDENT_LIST}
+          </TextField>
+        </div>
+        {incident.info.accidentCatogory === '5' &&
           <div className='group'>
-              <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
-              <TextField
-                  id='accidentCatogory'
-                  name='accidentCatogory'
-                  select
-                  variant='outlined'
-                  fullWidth={true}
-                  size='small'
-                  onChange={this.handleDataChangeMui}
-                  value={incident.info.accidentCatogory}
-                  disabled={activeContent === 'viewIncident'}>
-                  {INCIDENT_ACCIDENT_LIST}
-              </TextField>
+            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
+            <TextField
+              id='accidentAbnormal'
+              name='accidentAbnormal'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              onChange={this.handleDataChangeMui}
+              value={incident.info.accidentAbnormalOther}
+              disabled={activeContent === 'viewIncident'} />
           </div>
-          {incident.info.accidentCatogory === '5' &&
-              <div className='group'>
-                  <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-                  <TextField
-                      id='accidentAbnormal'
-                      name='accidentAbnormal'
-                      variant='outlined'
-                      fullWidth={true}
-                      size='small'
-                      onChange={this.handleDataChangeMui}
-                      value={incident.info.accidentAbnormalOther}
-                      disabled={activeContent === 'viewIncident'}/>
-              </div>
-          }
-          {incident.info.accidentCatogory !== '5' &&
+        }
+        {incident.info.accidentCatogory !== '5' &&
           <div className='group'>
-              <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-              <TextField
-                  id='accidentAbnormal'
-                  name='accidentAbnormal'
-                  select
-                  variant='outlined'
-                  fullWidth={true}
-                  size='small'
-                  onChange={this.handleDataChangeMui}
-                  value={incident.info.accidentAbnormal}
-                  disabled={activeContent === 'viewIncident'}>
-                  {INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
-              </TextField>
+            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
+            <TextField
+              id='accidentAbnormal'
+              name='accidentAbnormal'
+              select
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              onChange={this.handleDataChangeMui}
+              value={incident.info.accidentAbnormal}
+              disabled={activeContent === 'viewIncident'}>
+              {INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
+            </TextField>
           </div>
-          }
-
-          <div className='group full'>
-              <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
-              <TextareaAutosize
-                  id='accidentDescription'
-                  name='accidentDescription'
-                  className='textarea-autosize'
-                  onChange={this.handleDataChangeMui}
-                  value={incident.info.accidentDescription}
-                  rows={3}
-                  disabled={activeContent === 'viewIncident'}/>
-          </div>
-          <div className='group full'>
-              <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
-              <TextareaAutosize
-                  id='accidentReason'
-                  name='accidentReason'
-                  className='textarea-autosize'
-                  onChange={this.handleDataChangeMui}
-                  value={incident.info.accidentReason}
-                  rows={3}
-                  disabled={activeContent === 'viewIncident'}/>
-          </div>
-          <div className='group full'>
-              <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
-              <TextareaAutosize
-                  id='accidentInvestigation'
-                  name='accidentInvestigation'
-                  className='textarea-autosize'
-                  onChange={this.handleDataChangeMui}
-                  value={incident.info.accidentInvestigation}
-                  rows={3}
-                  disabled={activeContent === 'viewIncident'}/>
-          </div>
+        }
+        <div className='group full'>
+          <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
+          <TextareaAutosize
+            id='accidentDescription'
+            name='accidentDescription'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentDescription}
+            rows={3}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
+          <TextareaAutosize
+            id='accidentReason'
+            name='accidentReason'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentReason}
+            rows={3}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
+          <TextareaAutosize
+            id='accidentInvestigation'
+            name='accidentInvestigation'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentInvestigation}
+            rows={3}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
       </div>
+    )
   }
   handleConnectContactChange = (val) => {
     let temp = {...this.state.incident};
@@ -1573,26 +1603,34 @@ class IncidentManagement extends Component {
     });
   }
   displayConnectUnit = () => {
-      const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
+    const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
 
-      return <div className='form-group normal'>
-          <header>
-              <div className='text'>{it('txt-notifyUnit')}</div>
-          </header>
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-notifyUnit')}</div>
+        </header>
 
-          <div className='group full multi'>
-              <MultiInput
-                  id='incidentEvent'
-                  className='incident-group'
-                  base={NotifyContact}
-                  defaultItemValue={{title: '', name: '', phone:'', email:''}}
-                  value={incident.info.notifyList}
-                  props={{activeContent: activeContent}}
-                  onChange={this.handleConnectContactChange}
-                  readOnly={activeContent === 'viewIncident'}/>
-
-          </div>
+        <div className='group full multi'>
+          <MultiInput
+            id='incidentEvent'
+            className='incident-group'
+            base={NotifyContact}
+            defaultItemValue={{
+              title: '',
+              name: '',
+              phone: '',
+              email: ''
+            }}
+            value={incident.info.notifyList}
+            props={{
+              activeContent
+            }}
+            onChange={this.handleConnectContactChange}
+            readOnly={activeContent === 'viewIncident'} />
+        </div>
       </div>
+    )
   }
   handleEventsChange = (val) => {
     let temp = {...this.state.incident};
@@ -1603,38 +1641,48 @@ class IncidentManagement extends Component {
     });
   }
   displayEventsPage = () => {
-      const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
-      const {locale} = this.context;
+    const {locale} = this.context;
+    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
+    const now = new Date();
+    const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
 
-      const now = new Date();
-      const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-incident-events')}</div>
+        </header>
 
-      return <div className='form-group normal'>
-          <header>
-              <div className='text'>{it('txt-incident-events')}</div>
-          </header>
+        <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-          <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                  onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+        <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
 
-          <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                  onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
-
-
-          <div className='group full multi'>
-              <MultiInput
-                  id='incidentEvent'
-                  className='incident-group'
-                  base={Events}
-                  defaultItemValue={{description: '', deviceId: '', time: {from: nowTime, to: nowTime}, frequency: 1}}
-                  value={incident.info.eventList}
-                  props={{activeContent: activeContent, locale: locale, deviceListOptions: deviceListOptions , showDeviceListOptions:showDeviceListOptions}}
-                  onChange={this.handleEventsChange}
-                  readOnly={activeContent === 'viewIncident'}/>
-
-          </div>
+        <div className='group full multi'>
+          <MultiInput
+            id='incidentEvent'
+            className='incident-group'
+            base={Events}
+            defaultItemValue={{
+              description: '',
+              deviceId: '',
+              time: {
+                from: nowTime,
+                to: nowTime
+              },
+              frequency: 1
+            }}
+            value={incident.info.eventList}
+            props={{
+              activeContent,
+              locale,
+              deviceListOptions,
+              showDeviceListOptions: showDeviceListOptions
+            }}
+            onChange={this.handleEventsChange}
+            readOnly={activeContent === 'viewIncident'} />
+        </div>
       </div>
-  };
+    )
+  }
   handleTtpsChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.ttpList = val;
@@ -1642,34 +1690,35 @@ class IncidentManagement extends Component {
     this.setState({
       incident: temp
     });
-  };
+  }
   displayTtpPage = () => {
-      const {activeContent, incident} = this.state;
+    const {activeContent, incident} = this.state;
 
-      return <div className='form-group normal'>
-          <header>
-              <div
-                  className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
-              </div>
-          </header>
-
-          <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                  onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
-
-          <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                  onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
-
-          <div className='group full multi'>
-              <MultiInput
-                  id='incidentTtp'
-                  className='incident-group'
-                  base={Ttps}
-                  value={incident.info.ttpList}
-                  props={{activeContent: activeContent}}
-                  onChange={this.handleTtpsChange}
-                  readOnly={activeContent === 'viewIncident'}/>
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
           </div>
+        </header>
+
+        <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+
+        <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+
+        <div className='group full multi'>
+          <MultiInput
+            id='incidentTtp'
+            className='incident-group'
+            base={Ttps}
+            value={incident.info.ttpList}
+            props={{
+              activeContent
+            }}
+            onChange={this.handleTtpsChange}
+            readOnly={activeContent === 'viewIncident'} />
+        </div>
       </div>
+    )
   }
   /**
    * Handle submit button
@@ -1678,7 +1727,7 @@ class IncidentManagement extends Component {
    */
   handleSubmit = (type) => {
     const {baseUrl, contextRoot, session} = this.context;
-    const {activeContent, attach, isAnalyze} = this.state;
+    const {activeContent, tempSavedData, attach, isAnalyze} = this.state;
     let incident = {...this.state.incident};
 
     if (type === 'save' && !this.checkRequired(incident.info)) {
@@ -1740,7 +1789,43 @@ class IncidentManagement extends Component {
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    if (type === 'tempSave') {
+    if (type === 'save') {
+      let requestData = {
+       ...incident.info 
+      };
+
+      if (tempSavedData.id) {
+        requestData.incidentTemporaryId = tempSavedData.id;
+      }
+
+      ah.one({
+        url: `${baseUrl}/api/soc`,
+        data: JSON.stringify(requestData),
+        type: activeContent === 'addIncident' ? 'POST' : 'PATCH',
+        contentType: 'application/json',
+        dataType: 'json'
+      }).then(data => {
+        if (data.ret === 0) {
+          incident.info.id = data.rt.id;
+          incident.info.updateDttm = data.rt.updateDttm;
+          incident.info.status = data.rt.status;
+
+          this.setState({
+            originalIncident: _.cloneDeep(incident)
+          }, () => {
+            if (attach) {
+              this.uploadAttachment();
+            }
+            this.getIncident(incident.info.id);
+            this.toggleContent('cancel');
+          });
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
+    } else if (type === 'tempSave') {
       const requestData = {
         accountId: session.accountId,
         isAnalyze,
@@ -1755,43 +1840,14 @@ class IncidentManagement extends Component {
         dataType: 'json'
       }).then(data => {
         if (data.ret === 0) {
-          this.toggleContent('cancel');
+          this.toggleContent('tableList');
         }
         return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       });
-    }
-
-    if (type === 'save') {
-      ah.one({
-        url: `${baseUrl}/api/soc`,
-        data: JSON.stringify(incident.info),
-        type: activeContent === 'addIncident' ? 'POST' : 'PATCH',
-        contentType: 'application/json',
-        dataType: 'json'
-      }).then(data => {
-        incident.info.id = data.rt.id;
-        incident.info.updateDttm = data.rt.updateDttm;
-        incident.info.status = data.rt.status;
-
-        this.setState({
-          originalIncident: _.cloneDeep(incident)
-        }, () => {
-          if (attach) {
-            this.uploadAttachment();
-          }
-
-          this.getIncident(incident.info.id);
-          this.toggleContent('cancel');
-        });
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      });
-    }
+    }    
   }
   checkRequired(incident) {
       const {incidentType} = this.state;
@@ -1915,7 +1971,6 @@ class IncidentManagement extends Component {
 
               return false
           }
-
 
           if (!incident.ttpList) {
               PopupDialog.alert({
@@ -2110,8 +2165,8 @@ class IncidentManagement extends Component {
           return {
             ...el,
             time: {
-                from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+              from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+              to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
             }
           };
         })
@@ -2148,7 +2203,7 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  };
+  }
   refreshIncidentAttach = (id) => {
     const {baseUrl} = this.context;
     const {activeContent, incidentType, incident, relatedListOptions} = this.state;
@@ -2312,7 +2367,7 @@ class IncidentManagement extends Component {
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')} />
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group' style={{width: '60vh'}}>
@@ -2327,7 +2382,7 @@ class IncidentManagement extends Component {
               multiline
               rowsMax={3}
               value={search.keyword}
-              onChange={this.handleSearchMui}/>
+              onChange={this.handleSearchMui} />
           </div>
           <div className='group'>
             <TextField
@@ -2342,9 +2397,9 @@ class IncidentManagement extends Component {
               value={search.category}
               onChange={this.handleSearchMui}>
               {
-                  _.map(_.range(0, 9), el => {
-                      return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                  })
+                _.map(_.range(0, 9), el => {
+                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                })
               }
             </TextField>
           </div>
@@ -2408,12 +2463,12 @@ class IncidentManagement extends Component {
               getOptionLabel={(option) => option.tag}
               renderInput={(params) =>
                 <TextField
-                    {...params}
-                    label={it('txt-custom-tag')}
-                    variant='outlined'
-                    fullWidth={true}
-                    size='small'
-                    InputProps={{...params.InputProps, type: 'search'}}
+                  {...params}
+                  label={it('txt-custom-tag')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  InputProps={{...params.InputProps, type: 'search'}}
                 />}
               />
           </div>
@@ -2493,15 +2548,15 @@ class IncidentManagement extends Component {
 
     return (
       <div className={cx('main-filter', {'active': showChart})}>
-        <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
+        <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')} />
         <div className='incident-statistics' id='incident-statistics'>
           <div className='item c-link' onClick={this.loadCondition.bind(this,'button','expired')}>
-            <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
+            <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}} />
             <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
           </div>
 
           <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
-            <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
+            <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}} />
             <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
           </div>
         </div>
@@ -2559,7 +2614,7 @@ class IncidentManagement extends Component {
       confirmText: it('txt-send'),
       cancelText: t('txt-cancel'),
       display: <div className='content delete'>
-          <span>{it('txt-send-msg')}: {id} ?</span>
+        <span>{it('txt-send-msg')}: {id} ?</span>
       </div>,
       act: (confirmed, data) => {
         if (confirmed) {
@@ -2574,6 +2629,7 @@ class IncidentManagement extends Component {
    */
   deleteIncident = (id) => {
     const {baseUrl} = this.context;
+    const {loadListType} = this.state;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -2583,13 +2639,13 @@ class IncidentManagement extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        if (this.state.loadListType === 0) {
+        if (loadListType === 0) {
           this.loadCondition('other','expired');
-        } else if (this.state.loadListType === 1) {
+        } else if (loadListType === 1) {
           this.loadCondition('other','unhandled');
-        } else if (this.state.loadListType === 2) {
+        } else if (loadListType === 2) {
           this.loadCondition('other','mine');
-        } else if (this.state.loadListType === 3) {
+        } else if (loadListType === 3) {
           this.loadData();
         }
       }
@@ -2606,26 +2662,27 @@ class IncidentManagement extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    let temp = {...this.state.incident};
+    const {incident, loadListType} = this.state;
+    let temp = {...incident};
     temp[type] = Number(value);
 
     this.setState({
       incident: temp
     }, () => {
-      if (this.state.loadListType === 0) {
+      if (loadListType === 0) {
         this.loadCondition(type,'expired');
-      } else if (this.state.loadListType === 1) {
+      } else if (loadListType === 1) {
         this.loadCondition(type,'unhandled');
-      } else if (this.state.loadListType === 2) {
+      } else if (loadListType === 2) {
         this.loadCondition(type,'mine');
-      } else if (this.state.loadListType === 3) {
+      } else if (loadListType === 3) {
         this.loadData(type);
       }
     });
   }
-  toggleContent = (type, allValue) => {
+  toggleContent = (type, allValue, savedData) => {
     const {baseUrl, contextRoot} = this.context;
-    const {originalIncident, incident,relatedListOptions} = this.state;
+    const {originalIncident, incident, relatedListOptions, tempSavedData, loadListType} = this.state;
     let tempIncident = {...incident};
     let showPage = type;
 
@@ -2662,7 +2719,7 @@ class IncidentManagement extends Component {
         accidentAbnormal: allValue.accidentAbnormal,
         accidentAbnormalOther: allValue.accidentAbnormalOther,
         severity: allValue.severity,
-        flowTemplateId:allValue.flowTemplateId
+        flowTemplateId: allValue.flowTemplateId
       };
 
       if (!tempIncident.info.socType) {
@@ -2674,37 +2731,43 @@ class IncidentManagement extends Component {
         originalIncident: _.cloneDeep(tempIncident)
       });
     } else if (type === 'addIncident') {
-      tempIncident.info = {
-        id: null,
-        title: null,
-        category: null,
-        reporter: null,
-        description: null,
-        impactAssessment: 4,
-        socType: null,
-        createDttm: null,
-        relatedList: [],
-        showFontendRelatedList:[],
-        differenceWithOptions:relatedListOptions,
-        ttpList: null,
-        eventList: null,
-        notifyList: null,
-        fileMemo: '',
-        tagList: null,
-        historyList: null,
-        creator: null,
-        announceSource: null,
-        expireDttm: null,
-        attachmentDescription: null,
-        accidentCatogory: null,
-        accidentDescription: null,
-        accidentReason: null,
-        accidentInvestigation: null,
-        accidentAbnormal: null,
-        accidentAbnormalOther: null,
-        severity: 'Emergency',
-        flowTemplateId:''
-      };
+      if (!_.isEmpty(savedData)) {
+        tempIncident.info = {
+          ...savedData
+        };
+      } else {
+        tempIncident.info = {
+          id: null,
+          title: null,
+          category: null,
+          reporter: null,
+          description: null,
+          impactAssessment: 4,
+          socType: null,
+          createDttm: null,
+          relatedList: [],
+          showFontendRelatedList:[],
+          differenceWithOptions:relatedListOptions,
+          ttpList: null,
+          eventList: null,
+          notifyList: null,
+          fileMemo: '',
+          tagList: null,
+          historyList: null,
+          creator: null,
+          announceSource: null,
+          expireDttm: null,
+          attachmentDescription: null,
+          accidentCatogory: null,
+          accidentDescription: null,
+          accidentReason: null,
+          accidentInvestigation: null,
+          accidentAbnormal: null,
+          accidentAbnormalOther: null,
+          severity: 'Emergency',
+          flowTemplateId: ''
+        };
+      }
 
       if (!tempIncident.info.socType) {
         tempIncident.info.socType = 1;
@@ -2730,7 +2793,7 @@ class IncidentManagement extends Component {
         title: alertData.Info,
         reporter: alertData.Collector,
         rawData:alertData,
-        severity: alertData._severity_,
+        severity: alertData._severity_
       };
 
       if (tempIncident.info.severity === 'Emergency') {
@@ -2828,26 +2891,26 @@ class IncidentManagement extends Component {
       incident: tempIncident
     }, () => {
       if (showPage === 'tableList' || showPage === 'cancel-add') {
-        if (this.state.loadListType === 0) {
-          this.loadCondition('other','expired');
-        } else if (this.state.loadListType === 1) {
-          this.loadCondition('other','unhandled');
-        } else if (this.state.loadListType === 2) {
-          this.loadCondition('other','mine');
-        } else if (this.state.loadListType === 3) {
+        if (loadListType === 0) {
+          this.loadCondition('other', 'expired');
+        } else if (loadListType === 1) {
+          this.loadCondition('other', 'unhandled');
+        } else if (loadListType === 2) {
+          this.loadCondition('other', 'mine');
+        } else if (loadListType === 3) {
           this.loadData();
         }
         this.loadDashboard();
       }
     })
-  };
+  }
   /**
    *
    * @param {string} id
    */
   auditIncident = (id) => {
     const {baseUrl} = this.context;
-    let tmp = {
+    const tmp = {
       id
     };
 
@@ -2867,14 +2930,15 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
     })
-  };
+  }
   /**
    * Send Incident
    * @param {string} id
    */
   sendIncident = (id) => {
     const {baseUrl} = this.context;
-    let tmp = {
+    const {loadListType} = this.state;
+    const tmp = {
       id
     };
 
@@ -2888,11 +2952,11 @@ class IncidentManagement extends Component {
       dataType: 'json'
     })
     .then(data => {
-      if (this.state.loadListType === 0) {
+      if (loadListType === 0) {
         this.loadCondition('other','expired');
-      } else if (this.state.loadListType === 2) {
+      } else if (loadListType === 2) {
         this.loadCondition('other','mine');
-      } else if (this.state.loadListType === 3) {
+      } else if (loadListType === 3) {
         this.loadData();
       }
       helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
@@ -2902,13 +2966,14 @@ class IncidentManagement extends Component {
     })
 
     this.handleCloseMenu();
-  };
+  }
   /**
    * Open audit finish dialog
    * @method
    * @returns ModalDialog component
    */
   afterAuditDialog = (incidentId) => {
+    const {loadListType} = this.state;
     const titleText = it('txt-send');
     PopupDialog.prompt({
       id: 'afterAuditDialog',
@@ -2920,13 +2985,13 @@ class IncidentManagement extends Component {
         if (confirmed) {
           this.sendIncident(incidentId);
         } else {
-          if (this.state.loadListType === 0) {
+          if (loadListType === 0) {
             this.loadCondition('expired');
-          } else if (this.state.loadListType === 1) {
+          } else if (loadListType === 1) {
             this.loadCondition('unhandled');
-          } else if (this.state.loadListType === 2) {
+          } else if (loadListType === 2) {
             this.loadCondition('mine');
-          } else if (this.state.loadListType === 3) {
+          } else if (loadListType === 3) {
             this.loadData();
           }
         }
@@ -2958,7 +3023,7 @@ class IncidentManagement extends Component {
     this.setState({
       search: tempSearch
     });
-  };
+  }
   handleSearchChange = (event) => {
     let tempSearch = {...this.state.search};
     tempSearch[event.target.name] = event.target.value.trim();
@@ -3098,7 +3163,7 @@ class IncidentManagement extends Component {
     }
 
     if (event.target.name === 'flowTemplateId') {
-      _.forEach(socFlowSourceList , flowVal =>{
+      _.forEach(socFlowSourceList , flowVal => {
         if (flowVal.id === event.target.value) {
           if (flowVal.severity === 'Emergency') {
             temp.info['severity'] = 'Emergency';
@@ -3246,7 +3311,7 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  };
+  }
   /**
    * Handle XML download
    * @param {Example-Type} option
@@ -3259,7 +3324,7 @@ class IncidentManagement extends Component {
     };
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
-  };
+  }
   /**
    * Incident-ID
    * @param {Incident-ID} incidentId
@@ -3296,6 +3361,7 @@ class IncidentManagement extends Component {
    * @param {object} sort - sort data object
    */
   handleTableSort = (field, sort) => {
+    const {loadListType} = this.state;
     let tmpIncident = {...this.state.incident};
     tmpIncident.sort.field = field;
     tmpIncident.sort.desc = sort;
@@ -3303,17 +3369,17 @@ class IncidentManagement extends Component {
     this.setState({
       incident: tmpIncident
     }, () => {
-      if (this.state.loadListType === 0) {
+      if (loadListType === 0) {
         this.loadCondition('other','expired');
-      } else if (this.state.loadListType === 1) {
+      } else if (loadListType === 1) {
         this.loadCondition('other','unhandled');
-      } else if (this.state.loadListType === 2) {
+      } else if (loadListType === 2) {
         this.loadCondition('other','mine');
-      } else if (this.state.loadListType === 3) {
+      } else if (loadListType === 3) {
         this.loadData();
       }
     });
-  };
+  }
   openIncidentComment() {
     this.incidentComment.open();
   }

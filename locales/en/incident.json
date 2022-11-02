@@ -101,6 +101,8 @@
 	"txt-editIncident-ttps": "Edit Correlation Analysis Incident",
 	"txt-sendHealthCsv": "Send Health Status Statistic CSV",
 	"txt-exportHealthCsv": "Export Health Status Statistic CSV",
+	"txt-restore": "Restore",
+	"txt-abandon": "Abandon",
 	"txt-id": "ID: ",
 	"txt-incident-id": "Incident ID: ",
 	"txt-ttp-ets": "ETS",
