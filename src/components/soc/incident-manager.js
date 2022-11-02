@@ -707,28 +707,7 @@ class IncidentManagement extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (_.isEmpty(data)) {
-        this.toggleContent('addIncident', formType);
-      } else {
-        PopupDialog.prompt({
-          id: 'modalWindowSmall',
-          confirmText: it('txt-restore'),
-          cancelText: it('txt-abandon'),
-          display: this.getTempSavedMsg(),
-          act: (confirmed) => {
-            if (confirmed) {
-              this.setState({
-                tempSavedData: data
-              }, () => {
-                this.toggleContent('addIncident', formType, data.contentJson);
-              });
-            } else {
-              this.deleteTempSavedData(data.id);
-              this.toggleContent('addIncident', formType);
-            }
-          }
-        });
-      }
+      this.toggleContent('addIncident', formType, !_.isEmpty(data) ? data : null);
       return null;
     })
     .catch(err => {
@@ -2731,43 +2710,37 @@ class IncidentManagement extends Component {
         originalIncident: _.cloneDeep(tempIncident)
       });
     } else if (type === 'addIncident') {
-      if (!_.isEmpty(savedData)) {
-        tempIncident.info = {
-          ...savedData
-        };
-      } else {
-        tempIncident.info = {
-          id: null,
-          title: null,
-          category: null,
-          reporter: null,
-          description: null,
-          impactAssessment: 4,
-          socType: null,
-          createDttm: null,
-          relatedList: [],
-          showFontendRelatedList:[],
-          differenceWithOptions:relatedListOptions,
-          ttpList: null,
-          eventList: null,
-          notifyList: null,
-          fileMemo: '',
-          tagList: null,
-          historyList: null,
-          creator: null,
-          announceSource: null,
-          expireDttm: null,
-          attachmentDescription: null,
-          accidentCatogory: null,
-          accidentDescription: null,
-          accidentReason: null,
-          accidentInvestigation: null,
-          accidentAbnormal: null,
-          accidentAbnormalOther: null,
-          severity: 'Emergency',
-          flowTemplateId: ''
-        };
-      }
+      tempIncident.info = {
+        id: null,
+        title: null,
+        category: null,
+        reporter: null,
+        description: null,
+        impactAssessment: 4,
+        socType: null,
+        createDttm: null,
+        relatedList: [],
+        showFontendRelatedList:[],
+        differenceWithOptions:relatedListOptions,
+        ttpList: null,
+        eventList: null,
+        notifyList: null,
+        fileMemo: '',
+        tagList: null,
+        historyList: null,
+        creator: null,
+        announceSource: null,
+        expireDttm: null,
+        attachmentDescription: null,
+        accidentCatogory: null,
+        accidentDescription: null,
+        accidentReason: null,
+        accidentInvestigation: null,
+        accidentAbnormal: null,
+        accidentAbnormalOther: null,
+        severity: 'Emergency',
+        flowTemplateId: ''
+      };
 
       if (!tempIncident.info.socType) {
         tempIncident.info.socType = 1;
@@ -2890,6 +2863,34 @@ class IncidentManagement extends Component {
       activeContent: showPage,
       incident: tempIncident
     }, () => {
+      if (showPage === 'addIncident' && !_.isEmpty(savedData)) {
+        PopupDialog.prompt({
+          id: 'modalWindowSmall',
+          confirmText: it('txt-restore'),
+          cancelText: it('txt-abandon'),
+          display: this.getTempSavedMsg(),
+          act: (confirmed) => {
+            if (confirmed) {
+              tempIncident.info = {
+                ...savedData.contentJson
+              };
+
+              if (!tempIncident.info.socType) {
+                tempIncident.info.socType = 1;
+              }
+
+              this.setState({
+                originalIncident: _.cloneDeep(tempIncident),
+                incident: tempIncident,
+                tempSavedData: savedData
+              });
+            } else {
+              this.deleteTempSavedData(savedData.id);
+            }
+          }
+        });
+      }
+
       if (showPage === 'tableList' || showPage === 'cancel-add') {
         if (loadListType === 0) {
           this.loadCondition('other', 'expired');
