@@ -202,7 +202,7 @@ class NetworkOwner extends Component {
   /**
    * Get and set owner data
    * @method
-   * @param {string} fromPage - option for 'currentPage'
+   * @param {string} [fromPage] - option for 'currentPage'
    */
   getOwnerData = (fromPage) => {
     const {baseUrl} = this.context;

@@ -197,7 +197,7 @@ class VansPatchGroup extends Component {
             } else if (val === '_menu') {
               return (
                 <div className='table-menu menu active'>
-                  <i className='fg fg-eye' onClick={this.props.getVansPatchDetails.bind(this, allValue)} title={t('txt-view')}></i>
+                  <i className='fg fg-eye' onClick={this.props.toggleVansPatchDetails.bind(this, allValue)} title={t('txt-view')}></i>
                 </div>
               )
             }
@@ -363,7 +363,7 @@ VansPatchGroup.contextType = BaseDataContext;
 VansPatchGroup.propTypes = {
   limitedDepartment: PropTypes.array.isRequired,
   toggleVansPatchGroup: PropTypes.func.isRequired,
-  getVansPatchDetails: PropTypes.func.isRequired
+  toggleVansPatchDetails: PropTypes.func.isRequired
 };
 
 export default VansPatchGroup;

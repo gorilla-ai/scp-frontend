@@ -439,7 +439,6 @@ class HostController extends Component {
         table: t('host.txt-hostList'),
         statistics: t('host.txt-deviceMap')
       },
-      vansPatchDetails: [],
       activeVansPatch: {},
       hostInfo: {
         dataContent: null,
@@ -4365,8 +4364,15 @@ class HostController extends Component {
   /**
    * Toggle vans patch details modal dialog on/off
    * @method
+   * @param {object} [allValue] - selected Vans data
    */
-  toggleVansPatchDetails = () => {
+  toggleVansPatchDetails = (allValue) => {
+    if (allValue && allValue.groupId) {
+      this.setState({
+        activeVansPatch: allValue
+      });
+    }
+
     this.setState({
       vansPatchDetailsOpen: !this.state.vansPatchDetailsOpen
     });
@@ -4460,40 +4466,6 @@ class HostController extends Component {
     this.setState({
       [event.target.name]: event.target.value
     });
-  }
-  /**
-   * Get vans patch details info
-   * @method
-   * @param {object} allValue - selected Vans data
-   */
-  getVansPatchDetails = (allValue) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/taskinfo/ipdevice`;
-    const requestData = {
-      taskName: 'executePatch',
-      groupId: allValue.groupId
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          vansPatchDetails: data.rows,
-          activeVansPatch: allValue
-        }, () => {
-          this.toggleVansPatchDetails();
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Set VansPatchFrom type
@@ -5090,7 +5062,6 @@ class HostController extends Component {
       leftNavData,
       filterNav,
       hmdSearch,
-      vansPatchDetails,
       activeVansPatch,
       hostInfo,
       hostData,
@@ -5149,12 +5120,11 @@ class HostController extends Component {
           <VansPatchGroup
             limitedDepartment={limitedDepartment}
             toggleVansPatchGroup={this.toggleVansPatchGroup}
-            getVansPatchDetails={this.getVansPatchDetails} />
+            toggleVansPatchDetails={this.toggleVansPatchDetails} />
         }
 
         {vansPatchDetailsOpen &&
           <VansPatchDetails
-            vansPatchDetails={vansPatchDetails}
             activeVansPatch={activeVansPatch}
             toggleVansPatchDetails={this.toggleVansPatchDetails}
             toggleVansPatchSelected={this.toggleVansPatchSelected} />

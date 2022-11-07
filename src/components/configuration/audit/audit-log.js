@@ -75,7 +75,7 @@ class AuditLog extends Component {
   /**
    * Get and set ES table data
    * @method
-   * @param {string} fromPage - option for 'currentPage'
+   * @param {string} [fromPage] - option for 'currentPage'
    */
   getAuditData = (fromPage) => {
     const {baseUrl} = this.context;

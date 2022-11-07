@@ -20,30 +20,10 @@ class MuiTableContent extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      tableData: {}
-    };
-
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
-    this.loadTableContent();
-  }
-  componentDidUpdate(prevProps) {
-    this.loadTableContent(prevProps);
-  }
-  /**
-   * Get and set table data
-   * @method
-   */
-  loadTableContent = (prevProps) => {
-    const {data} = this.props;
 
-    if (!prevProps || (prevProps && !_.isEqual(data.dataContent, prevProps.data.dataContent))) {
-      this.setState({
-        tableData: data
-      });
-    }
   }
   /**
    * Get set table height to auto
@@ -61,7 +41,6 @@ class MuiTableContent extends Component {
   }
   render() {
     const {data, tableOptions, showLoading} = this.props;
-    const {tableData} = this.state;
     const options = {
       tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
       selectableRows: 'none',
@@ -73,9 +52,9 @@ class MuiTableContent extends Component {
       download: false,
       rowsPerPageOptions: [10, 20, 50, 100],
       jumpToPage: true,
-      count: tableData.totalCount,
-      rowsPerPage: tableData.pageSize,
-      page: tableData.currentPage,
+      count: data.totalCount,
+      rowsPerPage: data.pageSize,
+      page: data.currentPage,
       draggableColumns: {
         enabled: true
       },
@@ -115,17 +94,17 @@ class MuiTableContent extends Component {
 
     return (
       <div className='mui-table-content' style={this.getTableHeight()}>
-        {loadingIcon && !tableData.dataContent &&
+        {loadingIcon && !data.dataContent &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
-        {tableData.dataContent && tableData.dataContent.length === 0 &&
+        {data.dataContent && data.dataContent.length === 0 &&
           <div className='no-result'>{t('txt-notFound')}</div>
         }
-        {tableData.dataContent && tableData.dataContent.length > 0 &&
+        {data.dataContent && data.dataContent.length > 0 &&
           <MUIDataTable
             className='mui-data-table'
-            columns={tableData.dataFields}
-            data={tableData.dataContent}
+            columns={data.dataFields}
+            data={data.dataContent}
             options={options} />
         }
       </div>

@@ -106,7 +106,7 @@ class Severity extends Component {
   /**
    * Get and set severity table data
    * @method
-   * @param {string} fromPage - option for 'currentPage'
+   * @param {string} [fromPage] - option for 'currentPage'
    */
   getSeverityMapping = (fromPage) => {
     const {baseUrl} = this.context;

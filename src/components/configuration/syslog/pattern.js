@@ -131,7 +131,7 @@ class Pattern extends Component {
   /**
    * Get and set pattern script data
    * @method
-   * @param {string} fromPage - option for 'currentPage'
+   * @param {string} [fromPage] - option for 'currentPage'
    */
   getPatternScript = (fromPage) => {
     const {baseUrl, session} = this.context;

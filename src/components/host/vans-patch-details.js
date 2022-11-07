@@ -32,7 +32,10 @@ class VansPatchDetails extends Component {
       vansDetails: {
         dataFieldsArr: ['ip', 'hostName', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'isConnected', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
         dataFields: [],
-        dataContent: null
+        dataContent: null,
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
       },
       selectableRows: 'none',
       rowsSelected: []
@@ -43,8 +46,136 @@ class VansPatchDetails extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getVansDetailsTable();
+    this.getVansPatchDetails();
   }
+  /**
+   * Get vans patch details info
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getVansPatchDetails = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {activeVansPatch} = this.props;
+    const {vansDetails} = this.state;
+    const page = fromPage === 'currentPage' ? vansDetails.currentPage : 0;
+    const url = `${baseUrl}/api/hmd/taskinfo/ipdevice?page=${page + 1}&pageSize=${vansDetails.pageSize}`;
+    const requestData = {
+      taskName: 'executePatch',
+      groupId: activeVansPatch.groupId
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempVansDetails = {...vansDetails};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempVansDetails.dataContent = [];
+          tempVansDetails.totalCount = 0;
+
+          this.setState({
+            vansDetails: tempVansDetails
+          });
+          return null;
+        }
+
+        tempVansDetails.dataContent = data.rows;
+        tempVansDetails.totalCount = data.count;
+        tempVansDetails.currentPage = page;
+        tempVansDetails.dataFields = _.map(vansDetails.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f(`vansPatchFields.${val}`),
+            options: {
+              sort: this.checkSortable(val),
+              viewColumns: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempVansDetails.dataContent[dataIndex];
+                const value = tempVansDetails.dataContent[dataIndex][val];
+                const deviceInfo = allValue['ipDeviceDTO'];
+                const vansInfo = allValue['vansPatchDescriptionDTO'];
+
+                if (val === 'ip' || val === 'hostName') {
+                  return <span>{deviceInfo[val]}</span>
+                } else if (val === 'receiveDttm' || val === 'receiveCompleteDttm') {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                } else if (val === 'hbDttm') {
+                  return <span>{helper.getFormattedDate(deviceInfo[val], 'local')}</span>
+                } else if (val === 'isConnected') {
+                  const status = deviceInfo[val] ? t('txt-connected') : t('txt-disconnected');
+                  let color = '';
+                  let backgroundColor = '';
+
+                  if (deviceInfo[val]) {
+                    color = '#fff';
+                    backgroundColor = '#22ac38';
+                  } else {
+                    color = '#000';
+                    backgroundColor = '#d9d9d9';
+                  }
+
+                  return <span className='status-item' style={{color, backgroundColor}}>{status}</span>
+                } else if (val === 'taskStatus') {
+                  let color = '#fff';
+                  let backgroundColor = '';
+
+                  if (value === 'Running') {
+                    backgroundColor = '#ff9802';
+                  } else if (value === 'Complete') {
+                    backgroundColor = '#22ac38';
+                  } else if (value === 'Failure') {
+                    backgroundColor = '#d10d25';
+                  } else if (value === 'NotSupport') {
+                    backgroundColor = '#d10d25';
+                  } else if (value === 'Waiting') {
+                    color = '#000';
+                    backgroundColor = '#d9d9d9';
+                  }
+
+                  return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
+                } else if (val === 'executeStatus') {
+                  let color = '#fff';
+                  let backgroundColor = '';
+
+                  if (value === 'Running') {
+                    backgroundColor = '#ff9802';
+                  } else if (value === 'Complete') {
+                    backgroundColor = '#22ac38';
+                  } else if (value === 'Failure') {
+                    backgroundColor = '#d10d25';
+                  } else if (value === 'NotSupport') {
+                    backgroundColor = '#d10d25';
+                  } else if (value === 'Waiting') {
+                    color = '#000';
+                    backgroundColor = '#d9d9d9';
+                  }
+
+                  return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
+                } else if (val === 'taskStatusDescription') {
+                  if (value !== 0) {
+                    return <span>{t('hmd-scan.txt-taskStatusCode' + value)}</span>
+                  }
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          vansDetails: tempVansDetails
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }  
   /**
    * Check table sort
    * @method
@@ -54,103 +185,22 @@ class VansPatchDetails extends Component {
   checkSortable = (field) => {
     const unSortableFields = ['taskStatusDescription'];
 
-    if (_.includes(unSortableFields, field)) {
-      return false;
-    } else {
-      return true;
-    }
+    return !_.includes(unSortableFields, field);
   }
   /**
-   * Construct Vans Details table
+   * Handle table pagination change
    * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
    */
-  getVansDetailsTable = () => {
-    const {vansPatchDetails} = this.props;
-    const {vansDetails} = this.state;
-    let tempVansRecord = {...vansDetails};
-
-    tempVansRecord.dataContent = vansPatchDetails;
-    tempVansRecord.dataFields = _.map(vansDetails.dataFieldsArr, val => {
-      return {
-        name: val,
-        label: f(`vansPatchFields.${val}`),
-        options: {
-          sort: this.checkSortable(val),
-          viewColumns: true,
-          customBodyRenderLite: (dataIndex) => {
-            const allValue = tempVansRecord.dataContent[dataIndex];
-            const value = tempVansRecord.dataContent[dataIndex][val];
-            const deviceInfo = allValue['ipDeviceDTO'];
-            const vansInfo = allValue['vansPatchDescriptionDTO'];
-
-            if (val === 'ip' || val === 'hostName') {
-              return <span>{deviceInfo[val]}</span>
-            } else if (val === 'receiveDttm' || val === 'receiveCompleteDttm') {
-              return <span>{helper.getFormattedDate(value, 'local')}</span>
-            } else if (val === 'hbDttm') {
-              return <span>{helper.getFormattedDate(deviceInfo[val], 'local')}</span>
-            } else if (val === 'isConnected') {
-              const status = deviceInfo[val] ? t('txt-connected') : t('txt-disconnected');
-              let color = '';
-              let backgroundColor = '';
-
-              if (deviceInfo[val]) {
-                color = '#fff';
-                backgroundColor = '#22ac38';
-              } else {
-                color = '#000';
-                backgroundColor = '#d9d9d9';
-              }
-
-              return <span className='status-item' style={{color, backgroundColor}}>{status}</span>
-            } else if (val === 'taskStatus') {
-              let color = '#fff';
-              let backgroundColor = '';
-
-              if (value === 'Running') {
-                backgroundColor = '#ff9802';
-              } else if (value === 'Complete') {
-                backgroundColor = '#22ac38';
-              } else if (value === 'Failure') {
-                backgroundColor = '#d10d25';
-              } else if (value === 'NotSupport') {
-                backgroundColor = '#d10d25';
-              } else if (value === 'Waiting') {
-                color = '#000';
-                backgroundColor = '#d9d9d9';
-              }
-
-              return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-task' + value)}</span>
-            } else if (val === 'executeStatus') {
-              let color = '#fff';
-              let backgroundColor = '';
-
-              if (value === 'Running') {
-                backgroundColor = '#ff9802';
-              } else if (value === 'Complete') {
-                backgroundColor = '#22ac38';
-              } else if (value === 'Failure') {
-                backgroundColor = '#d10d25';
-              } else if (value === 'NotSupport') {
-                backgroundColor = '#d10d25';
-              } else if (value === 'Waiting') {
-                color = '#000';
-                backgroundColor = '#d9d9d9';
-              }
-
-              return <span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-execute' + value)}</span>
-            } else if (val === 'taskStatusDescription') {
-              if (value !== 0) {
-                return <span>{t('hmd-scan.txt-taskStatusCode' + value)}</span>
-              }
-            }
-          }
-        }
-      };
-    });
+  handlePaginationChange = (type, value) => {
+    let tempVansDetails = {...this.state.vansDetails};
+    tempVansDetails[type] = Number(value);
 
     this.setState({
-      vansDetails: tempVansRecord
+      vansDetails: tempVansDetails
+    }, () => {
+      this.getVansPatchDetails(type);
     });
   }
   /**
@@ -237,15 +287,19 @@ class VansPatchDetails extends Component {
     const {vansDetails, selectableRows, rowsSelected} = this.state;
     const vansInfo = activeVansPatch['vansPatchDescriptionDTO'];
     const tableOptions = {
-      serverSide: false,
       viewColumns: false,
-      pagination: false,
-      tableBodyHeight: '51vh',
+      tableBodyHeight: '35vh',
       draggableColumns: {
         enabled: false
       },
       selectableRows,
       rowsSelected,
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
       onRowSelectionChange: (currentRowsSelected, allRowsSelected, rowsSelected) => {
         this.setState({
           rowsSelected
@@ -337,7 +391,6 @@ class VansPatchDetails extends Component {
 VansPatchDetails.contextType = BaseDataContext;
 
 VansPatchDetails.propTypes = {
-  vansPatchDetails: PropTypes.array.isRequired,
   activeVansPatch: PropTypes.object.isRequired,
   toggleVansPatchDetails: PropTypes.func.isRequired,
   toggleVansPatchSelected: PropTypes.func.isRequired

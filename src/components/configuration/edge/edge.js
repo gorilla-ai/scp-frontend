@@ -306,7 +306,7 @@ class Edge extends Component {
   /**
    * Get and set Edge table data
    * @method
-   * @param {string} fromPage - option for 'currentPage'
+   * @param {string} [fromPage] - option for 'currentPage'
    */
   getEdgeData = (fromPage) => {
     const {baseUrl, contextRoot} = this.context;
