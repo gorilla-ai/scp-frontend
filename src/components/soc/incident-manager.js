@@ -231,8 +231,8 @@ class IncidentManagement extends Component {
     });
   }
   getQueryString(name) {
-    let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    let r = window.location.search.substr(1).match(reg);
+    const reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    const r = window.location.search.substr(1).match(reg);
 
     if (r != null) return unescape(r[2]);
     return null;
@@ -2227,7 +2227,7 @@ class IncidentManagement extends Component {
       type: 'GET'
     })
     .then(data => {
-      let {incident} = this.state;
+      const {incident} = this.state;
       let temp = data.rt;
       temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
       temp.showFontendRelatedList = _.map(temp.relatedList, val => {
@@ -2291,7 +2291,7 @@ class IncidentManagement extends Component {
       type: 'GET'
     })
     .then(data => {
-      let {incident} = this.state;
+      const {incident} = this.state;
       let tempIncident = {...incident};
       let temp = data.rt;
 
