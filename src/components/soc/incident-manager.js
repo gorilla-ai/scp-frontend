@@ -1,41 +1,45 @@
 import React, {Component} from 'react'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import cx from 'classnames'
 import moment from 'moment'
-
-import FileInput from 'react-ui/build/src/components/file-input'
-import MultiInput from 'react-ui/build/src/components/multi-input'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
-import MenuItem from '@material-ui/core/MenuItem'
-import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
-import {BaseDataContext} from '../common/context'
-import SocConfig from '../common/soc-configuration'
-import helper from '../common/helper'
-import Autocomplete from '@material-ui/lab/Autocomplete'
-import Events from './common/events'
-import Ttps from './common/ttps'
-import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
-import DataTable from 'react-ui/build/src/components/table'
 import _ from 'lodash'
+import cx from 'classnames'
 
-import IncidentComment from './common/comment'
-import IncidentTag from './common/tag'
-import IncidentReview from './common/review'
-import NotifyDialog from './common/notify-dialog'
-import RelatedList from './common/related-list'
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
-import NotifyContact from './common/notifyContact'
-import Menu from '@material-ui/core/Menu'
-import constants from '../constant/constant-incidnet'
-import MoreIcon from '@material-ui/icons/More'
-import IconButton from '@material-ui/core/IconButton'
-import IncidentFlowDialog from './common/flow-dialog'
-import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
+import 'moment/locale/zh-tw'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import IconButton from '@material-ui/core/IconButton'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import MoreIcon from '@material-ui/icons/More'
+import TextField from '@material-ui/core/TextField'
+
+import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
+import DataTable from 'react-ui/build/src/components/table'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import Events from './common/events'
+import SocConfig from '../common/soc-configuration'
+import Ttps from './common/ttps'
+
+import constants from '../constant/constant-incidnet'
+import IncidentComment from './common/comment'
+import IncidentFlowDialog from './common/flow-dialog'
+import IncidentTag from './common/tag'
+import IncidentReview from './common/review'
+import NotifyContact from './common/notifyContact'
+import NotifyDialog from './common/notify-dialog'
+import RelatedList from './common/related-list'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
 
 let t = null;
 let f = null;
@@ -52,6 +56,12 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 
+/**
+ * Host
+ * @class
+ * @author Ryan Chen <ryanchen@ns-guard.com>
+ * @summary A react component to show the SOC Incident Management page
+ */
 class IncidentManagement extends Component {
   constructor(props) {
     super(props);
@@ -87,6 +97,7 @@ class IncidentManagement extends Component {
       showFilter: false,
       showChart: true,
       relatedListOpen: false,
+      uploadAttachmentOpen: false,
       isAnalyze: '',
       tempSavedData: {},
       currentIncident: {},
@@ -144,6 +155,7 @@ class IncidentManagement extends Component {
       accountRoleType: [],
       loadListType: 2,
       attach: null,
+      filesName: [],
       contextAnchor: null,
       currentData: {},
     };
@@ -749,6 +761,7 @@ class IncidentManagement extends Component {
       currentData,
       accountType,
       relatedListOpen,
+      uploadAttachmentOpen,
       loadListType
     } = this.state;
     let insertCheck = false;
@@ -804,6 +817,10 @@ class IncidentManagement extends Component {
             incidentList={incident.info.showFontendRelatedList}
             setIncidentList={this.setIncidentList}
             toggleRelatedListModal={this.toggleRelatedListModal} />
+        }
+
+        {uploadAttachmentOpen &&
+          this.uploadAttachmentModal()
         }
 
         <Menu
@@ -1108,9 +1125,9 @@ class IncidentManagement extends Component {
           }
         </header>
 
-        <Button className='last-left' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+        <Button className='last-left' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-        <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
         <div className='group full'>
           <label htmlFor='title'>{f('incidentFields.title')}</label>
@@ -1285,62 +1302,6 @@ class IncidentManagement extends Component {
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
-  handleAttachChange = (val) => {
-    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-
-    if (flag.test(val.name)) {
-      helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'));
-
-      this.setState({
-        attach: null
-      });
-    } else {
-      this.setState({
-        attach: val
-      });
-    }
-  }
-  handleAFChange(file) {
-    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-
-    if (flag.test(file.name)) {
-      helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
-      this.setState({
-        attach: null
-      });
-    }
-  }
-  getErrorMsg = (code, params) => {
-    if (params.code === 'file-too-large') {
-      return it('file-too-large');
-    }
-  }
-  uploadAttachmentModal() {
-    PopupDialog.prompt({
-      title: t('txt-upload'),
-      confirmText: t('txt-confirm'),
-      cancelText: t('txt-cancel'),
-      display: <div className='c-form content'>
-        <div>
-          <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}} onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
-        </div>
-        <div>
-          <label>{it('txt-fileMemo')}</label>
-          <TextareaAutosize id='comment' className='textarea-autosize' rows={3} />
-        </div>
-      </div>,
-      act: (confirmed, data) => {
-        if (confirmed) {
-          let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-
-          if (flag.test(data.file.name)) {
-          } else {
-            this.uploadAttachmentByModal(data.file, data.comment);
-          }
-        }
-      }
-    });
-  }
   handleDownloadAll = () => {
     const {baseUrl, contextRoot} = this.context;
     const {incident} = this.state;
@@ -1348,8 +1309,164 @@ class IncidentManagement extends Component {
 
     downloadLink(url);
   }
+  /**
+   * Handle file upload change
+   * @method
+   * @param {string} [options] - option for 'clear'
+   */
+  handleFileChange = (options) => {
+    const input = document.getElementById('multiMalware');
+    let filesName = [];
+
+    if (options === 'clear') {
+      this.setState({
+        attach: null,
+        filesName: ''
+      });
+      return;
+    }
+
+    if (_.size(input.files) > 0) {
+      const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+      let validate = true;
+
+      _.forEach(input.files, val => {
+        if (flag.test(val.name)) {
+          validate = false;
+          helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
+          return;
+        } else if (val.size > 20000000) {
+          validate = false;
+          helper.showPopupMsg(it('file-too-large'), t('txt-error'));
+          return;
+        } else {
+          filesName.push(val.name);
+        }
+      })
+
+      if (!validate) return;
+
+      this.setState({
+        attach: input.files,
+        filesName: filesName.join(', ')
+      });
+    }
+  }
+  /**
+   * Toggle file upload modal
+   * @method
+   */
+  toggleUploadAttahment = () => {
+    this.setState({
+      uploadAttachmentOpen: !this.state.uploadAttachmentOpen
+    }, () => {
+      if (!this.state.uploadAttachmentOpen) {
+        this.setState({
+          attach: null,
+          filesName: []
+        });
+      }
+    });
+  }
+  /**
+   * Display file upload content
+   * @method
+   * @param {string} type - page type ('page' or 'modal')
+   * @returns HTML DOM
+   */  
+  commonUploadContent = (type) => {
+    const {incident, filesName} = this.state;
+
+    return (
+      <React.Fragment>
+        <div className='group'>
+          <div className='c-file-input clearable file-input' style={type === 'page' ? {width: '95%'} : null}>
+            <input type='file' id='multiMalware' style={{width: 'calc(100% - 25px)'}} multiple onChange={this.handleFileChange} />
+            <button type='button'>{t('txt-selectFile')}</button>
+            <input type='text' className='long-name' readOnly value={filesName} />
+            {filesName.length > 0 &&
+              <i class='c-link inline fg fg-close' onClick={this.handleFileChange.bind(this, 'clear')}></i>
+            }
+          </div>
+        </div>
+        <div className='group'>
+          <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
+          <TextareaAutosize
+            id='fileMemo'
+            name='fileMemo'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.fileMemo}
+            rows={2} />
+        </div>
+      </React.Fragment>
+    )
+  }
+  /**
+   * Handle file upload modal
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadAttachmentModal = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadAttahment},
+      confirm: {text: t('txt-confirm'), handler: this.uploadAttachmentConfirm}
+    };
+
+    return (
+      <ModalDialog
+        id='uploadAttachmentDialog'
+        className='modal-dialog'
+        title={it('txt-attachedFile')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <div className='c-form content'>
+          {this.commonUploadContent('modal')}
+        </div>
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle file upload confirm
+   * @method
+   */
+  uploadAttachmentConfirm = () => {
+    const {baseUrl} = this.context;
+    const {incident, attach, filesName} = this.state;
+
+    if (attach.length > 0) {
+      let formData = new FormData();
+      formData.append('id', incident.info.id);
+      formData.append('file', attach);
+      formData.append('fileMemo', incident.info.fileMemo);
+
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+      ah.one({
+        url: `${baseUrl}/api/soc/attachment/_upload`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
+      .then(data => {
+        this.refreshIncidentAttach(incident.info.id);
+        this.toggleUploadAttahment();
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
+  /**
+   * Display file upload section
+   * @method
+   * @returns HTML DOM
+   */
   displayAttached = () => {
-    const {activeContent, incidentType, incident, attach} = this.state;
+    const {activeContent, incidentType, incident, attach, filesName} = this.state;
     let dataFields = {};
     incident.fileFieldsArr.forEach(tempData => {
       dataFields[tempData] = {
@@ -1372,7 +1489,7 @@ class IncidentManagement extends Component {
                   formattedWording = target.fileMemo;
                 }
               }
-              return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
+              return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
             }
           } else if (tempData === 'action') {
             let isShow = true;
@@ -1398,51 +1515,33 @@ class IncidentManagement extends Component {
 
     incident.fileFields = dataFields;
 
-    return <div className='form-group normal'>
-      <header>
-        <div className='text'>{it('txt-attachedFile')}<span style={{color:'red', 'fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
-      </header>
-      {activeContent === 'addIncident' &&
-        <div className='group'>
-          <FileInput
-            id='attach'
-            name='file'
-            className='file-input'
-            validate={{max:20, t: this.getErrorMsg}}
-            onChange={this.handleAttachChange}
-            btnText={t('txt-selectFile')} />
-        </div>
-      }
-      {activeContent === 'addIncident' &&
-        <div className='group'>
-          <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
-          <TextareaAutosize
-            id='fileMemo'
-            name='fileMemo'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.fileMemo}
-            rows={2} />
-        </div>
-      }
-      {activeContent !== 'addIncident' &&
-        <div className='group'>
-          <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
-          {incident.info.attachmentDescription &&
-            <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
-          }
-        </div>
-      }
-      {_.size(incident.info.fileList) > 0 &&
-        <div className='group full'>
-          <DataTable
-            style={{width: '100%'}}
-            className='main-table full'
-            fields={incident.fileFields}
-            data={incident.info.fileList} />
-        </div>
-      }
-    </div>
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
+        </header>
+        {activeContent === 'addIncident' &&
+          this.commonUploadContent('page')
+        }
+        {activeContent !== 'addIncident' &&
+          <div className='group'>
+            <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.toggleUploadAttahment}>{t('txt-upload')}</Button>
+            {incident.info.attachmentDescription &&
+              <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
+            }
+          </div>
+        }
+        {_.size(incident.info.fileList) > 0 &&
+          <div className='group full'>
+            <DataTable
+              style={{width: '100%'}}
+              className='main-table full'
+              fields={incident.fileFields}
+              data={incident.info.fileList} />
+          </div>
+        }
+      </div>
+    )
   }
   displayFlow = () => {
     const {activeContent, incidentType, incident} = this.state;
@@ -1459,7 +1558,7 @@ class IncidentManagement extends Component {
           } else if (tempData === 'status') {
             return <span>{it(`action.${value}`)}</span>
           } else {
-            return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
+            return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
           }
         }
       }
@@ -1631,9 +1730,9 @@ class IncidentManagement extends Component {
           <div className='text'>{it('txt-incident-events')}</div>
         </header>
 
-        <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-        <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
+        <Button className='last' disabled={incidentType !== 'ttps'} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
 
         <div className='group full multi'>
           <MultiInput
@@ -1680,9 +1779,9 @@ class IncidentManagement extends Component {
           </div>
         </header>
 
-        <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
-        <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+        <Button className='last' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
         <div className='group full multi'>
           <MultiInput
@@ -1826,7 +1925,7 @@ class IncidentManagement extends Component {
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       });
-    }    
+    }
   }
   checkRequired(incident) {
       const {incidentType} = this.state;
@@ -3425,33 +3524,6 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  uploadAttachmentByModal(file, fileMemo) {
-    const {baseUrl} = this.context;
-    let {incident} = this.state;
-
-    if (file) {
-      let formData = new FormData();
-      formData.append('id', incident.info.id);
-      formData.append('file', file);
-      formData.append('fileMemo', fileMemo);
-
-      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-      ah.one({
-        url: `${baseUrl}/api/soc/attachment/_upload`,
-        data: formData,
-        type: 'POST',
-        processData: false,
-        contentType: false
-      })
-      .then(data => {
-        this.refreshIncidentAttach(incident.info.id);
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
   }
   downloadAttachment(allValue) {
     const {baseUrl, contextRoot} = this.context;

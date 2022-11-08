@@ -337,7 +337,7 @@ let f = null;
  * Host
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to handle the business logic for the threats page
+ * @summary A react component to show the Host page
  */
 class HostController extends Component {
   constructor(props) {
