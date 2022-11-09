@@ -1439,7 +1439,11 @@ class IncidentManagement extends Component {
     if (attach.length > 0) {
       let formData = new FormData();
       formData.append('id', incident.info.id);
-      formData.append('file', attach);
+
+      _.forEach(attach, val => {
+        formData.append('file', val);
+      })
+
       formData.append('fileMemo', incident.info.fileMemo);
 
       helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -1919,6 +1923,11 @@ class IncidentManagement extends Component {
       }).then(data => {
         if (data.ret === 0) {
           this.toggleContent('tableList');
+
+          this.setState({ //temp save not support file upload
+            attach: null,
+            filesName: []
+          });
         }
         return null;
       })
@@ -3496,9 +3505,16 @@ class IncidentManagement extends Component {
   uploadAttachment = () => {
     const {baseUrl} = this.context;
     const {incident, attach} = this.state;
+
     let formData = new FormData();
     formData.append('id', incident.info.id);
-    formData.append('file', attach);
+
+    if (attach.length > 0) {
+      _.forEach(attach, val => {
+        formData.append('file', val);
+      })
+    }
+
     formData.append('fileMemo', incident.info.fileMemo);
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
