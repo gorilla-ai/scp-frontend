@@ -30,7 +30,7 @@ class VansPatchDetails extends Component {
 
     this.state = {
       vansDetails: {
-        dataFieldsArr: ['ip', 'hostName', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'isConnected', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
+        dataFieldsArr: ['ip', 'hostName', 'receiveDttm', 'receiveCompleteDttm', 'hbDttm', 'isConnected', 'sendStatus', 'executeStatus', 'taskStatusDescription'],
         dataFields: [],
         dataContent: null,
         totalCount: 0,
@@ -120,7 +120,7 @@ class VansPatchDetails extends Component {
                   }
 
                   return <span className='status-item' style={{color, backgroundColor}}>{status}</span>
-                } else if (val === 'taskStatus') {
+                } else if (val === 'sendStatus') {
                   let color = '#fff';
                   let backgroundColor = '';
 

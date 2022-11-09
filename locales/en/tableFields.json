@@ -685,7 +685,7 @@
     "receiveDttm": "Receive Datetime",
     "receiveCompleteDttm": "Receive Complete Datetime",
     "hbDttm": "Last Connected Datetime",
-    "taskStatus": "Task Status",
+    "sendStatus": "Task Status",
     "executeStatus": "Execute Result",
     "taskStatusDescription": "Task Status Description",
     "deviceCount": "Device Count",

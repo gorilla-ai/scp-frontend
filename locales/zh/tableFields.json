@@ -685,7 +685,7 @@
     "receiveDttm": "接收時間",
     "receiveCompleteDttm": "完成接收時間",
     "hbDttm": "最後上線時間",
-    "taskStatus": "派送狀態",
+    "sendStatus": "派送狀態",
     "executeStatus": "執行結果",
     "taskStatusDescription": "派送狀態說明",
     "deviceCount": "主機數量",
