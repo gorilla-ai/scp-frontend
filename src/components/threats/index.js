@@ -211,7 +211,7 @@ class ThreatsController extends Component {
         trackTreats: t('alert.txt-trackAlertList'),
         statistics: t('alert.txt-statistics')
       },
-      activeSubTab: 'table',
+      activeSubTab: 'table', //'table' or 'trackTreats'
       //Search bar
       searchInput: {
         searchType: 'manual', //'manual' or 'auto'
@@ -286,7 +286,7 @@ class ThreatsController extends Component {
         formattedQuery: '',
         openFlag: false
       },
-      tableType: 'list',
+      tableType: 'list', //'list' or 'select'
       threatsList: [],
       originalThreatsList: [],
       cancelThreatsList: [],
@@ -503,7 +503,7 @@ class ThreatsController extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message)
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   /**
@@ -904,7 +904,7 @@ class ThreatsController extends Component {
         cancelThreatsList: tmpCancelThreatsList
       });
     })
-  };
+  }
   handleSelectDataChangeMui = (allValue, event) => {
     const {threatsData, threatsList} = this.state;
 
@@ -927,7 +927,7 @@ class ThreatsController extends Component {
       threatsData: threatsData,
       threatsList: threatsList
     });
-  };
+  }
   overrideAlertTrack = (trackList) => {
     const {baseUrl} = this.context;
     const {account, trackData} = this.state;
@@ -943,7 +943,7 @@ class ThreatsController extends Component {
     }, {showProgress: false})
     .then(data => {
       if (data) {
-        helper.showPopupMsg('', t('txt-success'),  t('alert.txt-alertTrackOverrideSuccess'));
+        helper.showPopupMsg('', t('txt-success'), t('alert.txt-alertTrackOverrideSuccess'));
       }
     })
     .catch(err => {
@@ -992,9 +992,9 @@ class ThreatsController extends Component {
       confirmText: t('txt-ok'),
       cancelText: t('txt-cancel'),
       display: (
-          <div className='content'>
-            <span>{it('txt-trackedDeleteIncidents-msg')}?</span>
-          </div>
+        <div className='content'>
+          <span>{it('txt-trackedDeleteIncidents-msg')}?</span>
+        </div>
       ),
       act: (confirmed) => {
         if (confirmed) {
@@ -1025,7 +1025,7 @@ class ThreatsController extends Component {
       showFilter: false,
       tableType: option
     }, () => {
-     this.handleSearchSubmit();
+      this.handleSearchSubmit();
     });
   };
   setupIncidentDialog = (makeType) => {
@@ -1380,7 +1380,7 @@ class ThreatsController extends Component {
           }
         });
       } else {
-        helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:'+data.rt.id);
+        helper.showPopupMsg('', t('txt-fail'), it('txt-addIncident-events') + '-' + t('txt-fail') + ' ID:' + data.rt.id);
       }
       return null;
     }).catch(err => {
@@ -1542,11 +1542,11 @@ class ThreatsController extends Component {
     });
   }
   handleAttachChange = (val) => {
-    const flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+    const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
     let temp = {...this.state.incident};
 
     if (flag.test(val.name)) {
-      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'),);
+      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
       temp.info.attach = null;
     } else {
       temp.info.attach = val;
@@ -1557,11 +1557,11 @@ class ThreatsController extends Component {
     });
   }
   handleAFChange(file) {
-    const flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+    const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
     let temp = {...this.state.incident};
 
     if (flag.test(file.name)) {
-      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'),);
+      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
       temp.info.attach = null;
 
       this.setState({
@@ -1722,15 +1722,16 @@ class ThreatsController extends Component {
       activeTab,
       chartIntervalValue,
       threatsData,
+      tableType,
       alertDetails,
       alertPieData,
       alertTableData
     } = this.state;
-    const page = (fromPage === 'currentPage' || this.state.tableType === 'select') ? threatsData.currentPage : 0;
+    const page = (fromPage === 'currentPage' || tableType === 'select') ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
 
-    if (!options || options === 'alertDetails' || this.state.tableType === 'select') {
+    if (!options || options === 'alertDetails' || tableType === 'select') {
       url += threatsData.pageSize;
     } else {
       url += '0&skipHistogram=true';
@@ -1822,7 +1823,7 @@ class ThreatsController extends Component {
           tempThreatsData.currentPage = page;
           let dataFieldsArr = [];
 
-          if (this.state.tableType === 'select') {
+          if (tableType === 'select') {
             dataFieldsArr =  ['select', '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
           } else {
             dataFieldsArr =  [ '_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'];
@@ -1868,7 +1869,7 @@ class ThreatsController extends Component {
                         allValue={allValue}
                         alertLevelColors={ALERT_LEVEL_COLORS}
                         handleOpenQueryMenu={this.handleOpenQueryMenu}
-                        handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                        handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
                     )
                   }
                 }
@@ -2462,7 +2463,7 @@ class ThreatsController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const {threatsData, alertChartsList, trackData} = this.state;
+    const {threatsData, tableType, alertChartsList, trackData} = this.state;
     let tempAlertChartsList = alertChartsList;
     let tempTrackData = {...trackData};
     let tempThreatsData = {...threatsData};
@@ -2474,7 +2475,7 @@ class ThreatsController extends Component {
     tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
 
-    if (this.state.tableType !== 'select') {
+    if (tableType !== 'select') {
       tempThreatsData.currentPage = 1;
       tempThreatsData.oldPage = 1;
       tempThreatsData.pageSize = 20;
@@ -2660,7 +2661,7 @@ class ThreatsController extends Component {
    */
   alertDialog = () => {
     const {sessionRights} = this.context;
-    const {datetime, alertDetails, alertData, threatsData} = this.state;
+    const {datetime, activeSubTab, alertDetails, alertData, threatsData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -2669,7 +2670,7 @@ class ThreatsController extends Component {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
-    if (sessionRights.Module_Soc && this.state.activeSubTab !== 'trackTreats') {
+    if (sessionRights.Module_Soc && activeSubTab !== 'trackTreats') {
       actions = {
         makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
         confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -2833,8 +2834,6 @@ class ThreatsController extends Component {
       this.setState({
         showFilter: false,
         showChart: false
-      },() => {
-        // this.handleSearchSubmit()
       });
     }
 
@@ -2876,7 +2875,7 @@ class ThreatsController extends Component {
    * @returns Threats component
    */
   renderTabContent = () => {
-    const {activeTab, currentTableID} = this.state;
+    const {activeTab, activeSubTab, tableType, currentTableID} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -2904,9 +2903,9 @@ class ThreatsController extends Component {
       pagination: true
     };
 
-    if (this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats') {
+    if (tableType === 'select' && activeSubTab !== 'trackTreats') {
       tableOptions.pagination = false;
-    } else if (this.state.activeSubTab === 'trackTreats') {
+    } else if (activeSubTab === 'trackTreats') {
       tableOptions.pagination = false;
       tableOptions.serverSide = false;
       tableOptions.sort = true;
@@ -2916,7 +2915,9 @@ class ThreatsController extends Component {
 
     const mainContentData = {
       activeTab,
+      activeSubTab,
       tableOptions,
+      currentTableID,
       chartColors: ALERT_LEVEL_COLORS,
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
@@ -2924,9 +2925,7 @@ class ThreatsController extends Component {
       getChartsCSVfile: this.getChartsCSVfile,
       getLeftNavCSVfile: this.getLeftNavCSVfile,
       subTabMenu: this.state.subTabMenu,
-      activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
-      currentTableID: this.state.currentTableID,
       queryModalType: this.state.queryModalType,
       queryData: this.state.queryData,
       queryDataPublic: this.state.queryDataPublic,
@@ -3220,6 +3219,7 @@ class ThreatsController extends Component {
     const {sessionRights} = this.context;
     const {
       datetime,
+      activeSubTab,
       searchInput,
       openQueryOpen,
       saveQueryOpen,
@@ -3233,7 +3233,10 @@ class ThreatsController extends Component {
       showChart,
       showFilter,
       makeIncidentOpen,
-      alertDetailsOpen
+      alertDetailsOpen,
+      tableType,
+      cancelThreatsList,
+      originalThreatsList
     } = this.state;
     let filterDataCount = 0;
 
@@ -3277,38 +3280,38 @@ class ThreatsController extends Component {
           keepMounted
           open={Boolean(incidentAnchor)}
           onClose={this.handleCloseIncidentMenu}>
-          {this.state.cancelThreatsList.length !== 0 &&
-            <MenuItem id='threatsCreateIncidentsMenuItemSelected' onClick={this.setupIncidentDialog.bind(this,'select')}>{it('txt-createIncidents-selected')}</MenuItem>
+          {cancelThreatsList.length !== 0 &&
+            <MenuItem id='threatsCreateIncidentsMenuItemSelected' onClick={this.setupIncidentDialog.bind(this, 'select')}>{it('txt-createIncidents-selected')}</MenuItem>
           }
-            <MenuItem id='threatsCreateIncidentsMenuItemAll' onClick={this.setupIncidentDialog.bind(this,'all')}>{it('txt-createIncident-tracked')}</MenuItem>
+            <MenuItem id='threatsCreateIncidentsMenuItemAll' onClick={this.setupIncidentDialog.bind(this, 'all')}>{it('txt-createIncident-tracked')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'/><span>({filterDataCount})</span></Button>
+            {tableType === 'list' && activeSubTab !== 'trackTreats' &&
+              <Button id='threatsFilterBtn' variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter' /><span>({filterDataCount})</span></Button>
             }
-            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
+            {tableType === 'list' && activeSubTab !== 'trackTreats' &&
+              <Button id='threatsChartBtn' variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns' /></Button>
             }
-            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='threatsDownloadBtn' variant='outlined' color='primary' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-file-csv'/></Button>
+            {tableType === 'list' && activeSubTab !== 'trackTreats' &&
+              <Button id='threatsDownloadBtn' variant='outlined' color='primary' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-file-csv' /></Button>
             }
-            {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this,'select')}><WorkIcon/></Button>
+            {tableType === 'list' && activeSubTab !== 'trackTreats' &&
+              <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this, 'select')}><WorkIcon /></Button>
             }
-            {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this,'list')}><WorkOffIcon/></Button>
+            {tableType === 'select' && activeSubTab !== 'trackTreats' &&
+              <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this, 'list')}><WorkOffIcon /></Button>
             }
-            {this.state.tableType === 'select' && this.state.activeSubTab !== 'trackTreats' &&
-              <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.threatsList.length === 0} onClick={this.showAddTrackDialog.bind(this)}><AddCircleOutlineIcon/></Button>
+            {tableType === 'select' && activeSubTab !== 'trackTreats' &&
+              <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics' || this.state.threatsList.length === 0} onClick={this.showAddTrackDialog}><AddCircleOutlineIcon /></Button>
             }
-            {this.state.activeSubTab === 'trackTreats' &&
-              <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={this.state.activeSubTab !== 'trackTreats' || this.state.activeSubTab === 'statistics' || this.state.cancelThreatsList.length === 0} onClick={this.showDeleteTrackDialog.bind(this)}><RemoveCircleOutlineIcon/></Button>
+            {activeSubTab === 'trackTreats' &&
+              <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={activeSubTab !== 'trackTreats' || activeSubTab === 'statistics' || cancelThreatsList.length === 0} onClick={this.showDeleteTrackDialog}><RemoveCircleOutlineIcon /></Button>
             }
 
-            {this.state.activeSubTab === 'trackTreats' && sessionRights.Module_Soc &&  this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-              <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.originalThreatsList.length === 0} onClick={this.handleOpenIncidentMenu.bind(this)}><AllInboxOutlinedIcon/></Button>
+            {activeSubTab === 'trackTreats' && sessionRights.Module_Soc && this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+              <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={originalThreatsList.length === 0} onClick={this.handleOpenIncidentMenu}><AllInboxOutlinedIcon /></Button>
             }
           </div>
 
@@ -3319,7 +3322,7 @@ class ThreatsController extends Component {
             registerDownload={this.registerDownload}
             getTaskService={this.getTaskService} />
 
-          {this.state.tableType === 'list' && this.state.activeSubTab !== 'trackTreats' &&
+          {tableType === 'list' && activeSubTab !== 'trackTreats' &&
             <SearchOptions
               datetime={datetime}
               searchInput={searchInput}
