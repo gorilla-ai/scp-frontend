@@ -182,17 +182,17 @@ class Threats extends Component {
             </Tabs>
 
             <div className='content-header-btns with-menu'>
-              {mainContentData.activeSubTab === 'table' && mainContentData.tableType === 'select' &&
-                <div>
+              {mainContentData.activeSubTab === 'table' && mainContentData.tableType === 'select' && mainContentData.threatsData.dataContent && mainContentData.threatsData.dataContent.length > 0 &&
+                <React.Fragment>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleThreatsListCheckboxAll.bind(this, 'checked')}>{t('txt-selectAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleThreatsListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
-                </div>
+                </React.Fragment>
               }
-              {mainContentData.activeSubTab === 'trackTreats' &&
-                <div>
+              {mainContentData.activeSubTab === 'trackTreats' && mainContentData.threatsData.dataContent && mainContentData.threatsData.dataContent.length > 0 &&
+                <React.Fragment>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'checked')}>{t('txt-selectAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
-                </div>
+                </React.Fragment>
               }
             </div>
 
