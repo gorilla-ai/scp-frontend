@@ -71,6 +71,7 @@
   "txt-plsSelect": "Please select one",
   "txt-select": "Select",
   "txt-selectAll": "Select All",
+  "txt-deselectAll": "Deselect All",
   "txt-selected": "Selected",
   "txt-deselect": "Deselect",
   "txt-back": "Back",

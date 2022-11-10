@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button'
 import Tab from '@material-ui/core/Tab'
 import Tabs from '@material-ui/core/Tabs'
 
@@ -179,6 +180,21 @@ class Threats extends Component {
               onChange={mainContentData.handleSubTabChange}>
               {tabsMenu}
             </Tabs>
+
+            <div className='content-header-btns with-menu'>
+              {mainContentData.activeSubTab === 'table' && mainContentData.tableType === 'select' &&
+                <div>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleThreatsListCheckboxAll.bind(this, 'checked')}>{t('txt-selectAll')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleThreatsListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
+                </div>
+              }
+              {mainContentData.activeSubTab === 'trackTreats' &&
+                <div>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'checked')}>{t('txt-selectAll')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
+                </div>
+              }
+            </div>
 
             {mainContentData.activeSubTab === 'table' &&
               this.renderTableContent()

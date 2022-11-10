@@ -211,7 +211,7 @@ class ThreatsController extends Component {
         trackTreats: t('alert.txt-trackAlertList'),
         statistics: t('alert.txt-statistics')
       },
-      activeSubTab: 'table', //'table' or 'trackTreats'
+      activeSubTab: 'table', //'table', 'statistics' or 'trackTreats'
       //Search bar
       searchInput: {
         searchType: 'manual', //'manual' or 'auto'
@@ -783,7 +783,7 @@ class ThreatsController extends Component {
                       name='select'
                       checked={allValue.select}
                       onChange={this.handleCancelSelectDataChangeMui.bind(this, allValue)}
-                      color='primary'/>
+                      color='primary' />
                   )
                 }
 
@@ -801,7 +801,7 @@ class ThreatsController extends Component {
                       allValue={allValue}
                       alertLevelColors={ALERT_LEVEL_COLORS}
                       handleOpenQueryMenu={this.handleOpenQueryMenu}
-                      handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}/>
+                      handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
                   )
                 }
               }
@@ -841,30 +841,61 @@ class ThreatsController extends Component {
         name={allSelectTrack}
         checked={allSelectTrack}
         onChange={this.handleAllCancelSelectDataChangeMui}
-        color='primary'/>
+        color='primary' />
     )
   }
+  /**
+   * Handle track list table checkbox
+   * @method
+   * @param {object} allValue - data for the checked item
+   * @param {object} event - event object
+   */
   handleCancelSelectDataChangeMui = (allValue, event) => {
     const {trackData, cancelThreatsList} = this.state;
+    let tempTrackData = {...trackData};
+    let tempCancelThreatsList = _.cloneDeep(cancelThreatsList);    
 
-    _.forEach(trackData.dataContent, data => {
-      if (allValue.id === data.id) {
+    _.forEach(trackData.dataContent, (val, i) => {
+      if (allValue.id === val.id) {
         if (event.target.checked) {
-          cancelThreatsList.push(allValue)
+          tempCancelThreatsList.push(allValue)
         } else {
           const index = cancelThreatsList.indexOf(allValue);
 
           if (index > -1) {
-            cancelThreatsList.splice(index, 1);
+            tempCancelThreatsList.splice(index, 1);
           }
         }
-        data.select = event.target.checked
+        tempTrackData.dataContent[i].select = event.target.checked;
       }
     })
 
     this.setState({
-      trackData: trackData,
-      cancelThreatsList: cancelThreatsList
+      trackData: tempTrackData,
+      cancelThreatsList: tempCancelThreatsList
+    });
+  }
+  /**
+   * Handle checkbox all selections
+   * @method
+   * @param {string} type - checkbox type ('checked' or 'unchecked')
+   */
+  handleTrackListCheckboxAll = (type) => {
+    const {trackData} = this.state;
+    let tempTrackData = {...trackData};
+    let tempCancelThreatsList = [];
+
+    _.forEach(trackData.dataContent, (val, i) => {
+      if (type === 'checked') {
+        tempCancelThreatsList.push(val);
+      }
+
+      tempTrackData.dataContent[i].select = type === 'checked';
+    })
+
+    this.setState({
+      trackData: tempTrackData,
+      cancelThreatsList: tempCancelThreatsList
     });
   }
   handleCancelSelectMapping = (rowSelectIndexList) => {
@@ -905,27 +936,58 @@ class ThreatsController extends Component {
       });
     })
   }
+  /**
+   * Handle threats list table checkbox
+   * @method
+   * @param {object} allValue - data for the checked item
+   * @param {object} event - event object
+   */
   handleSelectDataChangeMui = (allValue, event) => {
     const {threatsData, threatsList} = this.state;
+    let tempThreatsData = {...threatsData};
+    let tempThreatsList = _.cloneDeep(threatsList);
 
-    _.forEach(threatsData.dataContent, data => {
-      if (allValue.id === data.id) {
+    _.forEach(threatsData.dataContent, (val, i) => {
+      if (allValue.id === val.id) {
         if (event.target.checked) {
-          threatsList.push(allValue);
+          tempThreatsList.push(allValue);
         } else {
           const index = threatsList.indexOf(allValue);
 
           if (index > -1) {
-            threatsList.splice(index, 1);
+            tempThreatsList.splice(index, 1);
           }
         }
-        data.select = event.target.checked;
+        tempThreatsData.dataContent[i].select = event.target.checked;
       }
     })
 
     this.setState({
-      threatsData: threatsData,
-      threatsList: threatsList
+      threatsData: tempThreatsData,
+      threatsList: tempThreatsList
+    });
+  }
+  /**
+   * Handle checkbox all selections
+   * @method
+   * @param {string} type - checkbox type ('checked' or 'unchecked')
+   */
+  handleThreatsListCheckboxAll = (type) => {
+    const {threatsData} = this.state;
+    let tempThreatsData = {...threatsData};
+    let tempThreatsList = [];
+
+    _.forEach(threatsData.dataContent, (val, i) => {
+      if (type === 'checked') {
+        tempThreatsList.push(val);
+      }
+
+      tempThreatsData.dataContent[i].select = type === 'checked';
+    })
+
+    this.setState({
+      threatsData: tempThreatsData,
+      threatsList: tempThreatsList
     });
   }
   overrideAlertTrack = (trackList) => {
@@ -1020,10 +1082,15 @@ class ThreatsController extends Component {
       }
     });
   }
-  handleSelectMenu = (option) => {
+  /**
+   * Toggle table type
+   * @method
+   * @param {string} tableType - table type ('list' or 'select')
+   */
+  toggleTableType = (tableType) => {
     this.setState({
       showFilter: false,
-      tableType: option
+      tableType
     }, () => {
       this.handleSearchSubmit();
     });
@@ -1050,7 +1117,7 @@ class ThreatsController extends Component {
 
         _.forEach(data.rt.rows, val => {
           flowSourceList.push(val);
-        });
+        })
 
         this.setState({
           socFlowSourceList: flowSourceList
@@ -1187,7 +1254,7 @@ class ThreatsController extends Component {
       }
     });
   }
-  checkRequired(incident) {
+  checkRequired = (incident) => {
     if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
       PopupDialog.alert({
         title: t('txt-tips'),
@@ -1417,12 +1484,11 @@ class ThreatsController extends Component {
           handleEventsChange={this.handleEventsChange}
           handleConnectContactChange={this.handleConnectContactChange}
           handleAttachChange={this.handleAttachChange}
-          handleAFChange={this.handleAFChange}
-        />
+          handleAFChange={this.handleAFChange} />
       </ModalDialog>
     )
   }
-  uploadAttachment(incidentId) {
+  uploadAttachment = (incidentId) => {
     const {baseUrl} = this.context;
     const {incident} = this.state;
 
@@ -1556,7 +1622,7 @@ class ThreatsController extends Component {
       incident: temp
     });
   }
-  handleAFChange(file) {
+  handleAFChange = (file) => {
     const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
     let temp = {...this.state.incident};
 
@@ -2475,7 +2541,7 @@ class ThreatsController extends Component {
     tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
 
-    if (tableType !== 'select') {
+    if (tableType === 'list') {
       tempThreatsData.currentPage = 1;
       tempThreatsData.oldPage = 1;
       tempThreatsData.pageSize = 20;
@@ -2827,7 +2893,7 @@ class ThreatsController extends Component {
    * Handle content tab change
    * @method
    * @param {object} event - event object
-   * @param {string} newTab - content type ('table' or 'statistics')
+   * @param {string} newTab - content type ('table', 'statistics' or 'trackTreats')
    */
   handleSubTabChange = (event, newTab) => {
     if (newTab === 'trackTreats'){
@@ -2916,6 +2982,7 @@ class ThreatsController extends Component {
     const mainContentData = {
       activeTab,
       activeSubTab,
+      tableType,
       tableOptions,
       currentTableID,
       chartColors: ALERT_LEVEL_COLORS,
@@ -2946,7 +3013,9 @@ class ThreatsController extends Component {
       treeData: this.state.treeData,
       showTreeFilterBtn: this.showTreeFilterBtn,
       mainEventsData: this.state.mainEventsData,
-      soarRedirect: this.soarRedirect
+      soarRedirect: this.soarRedirect,
+      handleThreatsListCheckboxAll: this.handleThreatsListCheckboxAll,
+      handleTrackListCheckboxAll: this.handleTrackListCheckboxAll
     };
 
     return (
@@ -3298,10 +3367,10 @@ class ThreatsController extends Component {
               <Button id='threatsDownloadBtn' variant='outlined' color='primary' onClick={this.handleCSVclick} title={t('txt-exportCSV')}><i className='fg fg-file-csv' /></Button>
             }
             {tableType === 'list' && activeSubTab !== 'trackTreats' &&
-              <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this, 'select')}><WorkIcon /></Button>
+              <Button id='openTrackedIncidents' variant='outlined' color='primary' title={it('txt-openTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.toggleTableType.bind(this, 'select')}><WorkIcon /></Button>
             }
             {tableType === 'select' && activeSubTab !== 'trackTreats' &&
-              <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.handleSelectMenu.bind(this, 'list')}><WorkOffIcon /></Button>
+              <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.toggleTableType.bind(this, 'list')}><WorkOffIcon /></Button>
             }
             {tableType === 'select' && activeSubTab !== 'trackTreats' &&
               <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics' || this.state.threatsList.length === 0} onClick={this.showAddTrackDialog}><AddCircleOutlineIcon /></Button>
