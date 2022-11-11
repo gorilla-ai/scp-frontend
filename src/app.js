@@ -23,14 +23,16 @@ import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
 import Host from './components/host/index'
 import HostCpe from './components/host/cpe'
-import IncidentUnit from './components/soc/incident-unit'
-import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/incident'
-import IncidentISAC from './components/soc/incident-isac'
-import IncidentSOC from './components/soc/incident-soc'
-import IncidentRule from './components/soc/incident-ruleTemplate'
+import IncidentDeviceStep from './components/soc/incident-device-with-step'
 import IncidentFlow from './components/soc/incident-flow'
-import IncidentSearch from "./components/soc/incident-search-list";
+import IncidentISAC from './components/soc/incident-isac'
+import IncidentLog from './components/soc/incident-log'
+import IncidentManagement from './components/soc/incident-manager'
+import IncidentRule from './components/soc/incident-ruleTemplate'
+import IncidentSearch from './components/soc/incident-search-list'
+import IncidentSOC from './components/soc/incident-soc'
+import IncidentUnit from './components/soc/incident-unit'
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
@@ -60,8 +62,6 @@ import 'purecss/build/pure-min.css'
 import 'react-chart/build/css/react-chart.css'
 import 'react-gis/build/css/react-gis.css'
 import 'react-la/build/css/react-la.css'
-import IncidentDeviceStep from "./components/soc/incident-device-with-step";
-import IncidentManagement from "./components/soc/incident-manager";
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
