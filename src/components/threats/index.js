@@ -2941,7 +2941,8 @@ class ThreatsController extends Component {
    * @returns Threats component
    */
   renderTabContent = () => {
-    const {activeTab, activeSubTab, tableType, currentTableID} = this.state;
+    const {sessionRights} = this.context;
+    const {activeTab, activeSubTab, tableType, currentTableID, accountType} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -2985,6 +2986,8 @@ class ThreatsController extends Component {
       tableType,
       tableOptions,
       currentTableID,
+      sessionRights,
+      accountType,
       chartColors: ALERT_LEVEL_COLORS,
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
@@ -3305,7 +3308,8 @@ class ThreatsController extends Component {
       alertDetailsOpen,
       tableType,
       cancelThreatsList,
-      originalThreatsList
+      originalThreatsList,
+      accountType
     } = this.state;
     let filterDataCount = 0;
 
@@ -3379,7 +3383,7 @@ class ThreatsController extends Component {
               <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={activeSubTab !== 'trackTreats' || activeSubTab === 'statistics' || cancelThreatsList.length === 0} onClick={this.showDeleteTrackDialog}><RemoveCircleOutlineIcon /></Button>
             }
 
-            {activeSubTab === 'trackTreats' && sessionRights.Module_Soc && this.state.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+            {activeSubTab === 'trackTreats' && sessionRights.Module_Soc && accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
               <Button id='handleOpenIncidentMenu' variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={originalThreatsList.length === 0} onClick={this.handleOpenIncidentMenu}><AllInboxOutlinedIcon /></Button>
             }
           </div>

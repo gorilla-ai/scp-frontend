@@ -9,6 +9,7 @@ import Tabs from '@material-ui/core/Tabs'
 import DataTable from 'react-ui/build/src/components/table'
 import PieChart from 'react-chart/build/src/components/pie'
 
+import constants from '../constant/constant-incidnet'
 import DataChart from '../common/data-chart'
 import FilterContent from '../common/filter-content'
 import helper from '../common/helper'
@@ -188,7 +189,7 @@ class Threats extends Component {
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleThreatsListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
                 </React.Fragment>
               }
-              {mainContentData.activeSubTab === 'trackTreats' && mainContentData.threatsData.dataContent && mainContentData.threatsData.dataContent.length > 0 &&
+              {mainContentData.activeSubTab === 'trackTreats' && mainContentData.sessionRights.Module_Soc && mainContentData.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
                 <React.Fragment>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'checked')}>{t('txt-selectAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
