@@ -1,11 +1,14 @@
 const path = require('path');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+//const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-const extractCSS = new ExtractTextPlugin({
-    filename: '../css/vendor.css',
-    allChunks: true
-});
+// const extractCSS = new ExtractTextPlugin({
+//     filename: '../css/vendor.css',
+//     allChunks: true
+// });
 
 var cfg = {
     mode: 'development',
@@ -36,7 +39,7 @@ var cfg = {
     },
     devtool: 'source-map',
     output: {
-        path: path.resolve(__dirname, 'build/js'),
+        path: path.resolve(__dirname, 'build/files'),
         filename: '[name].js'
     },
     module: {
@@ -56,11 +59,17 @@ var cfg = {
             //   })
             // },
             {
-                test: /\.css$/,
-                use: extractCSS.extract({
-                    fallback: 'style-loader',
-                    use: 'css-loader',
-                })
+                test: /\.less$/i,
+                use: [
+                  // compiles Less to CSS
+                  'style-loader',
+                  'css-loader',
+                  'less-loader',
+                ],
+            },
+            {
+                test: /\.css$/i,
+                use: [MiniCssExtractPlugin.loader, 'css-loader'],
             },
             {
                 test: /\.(png|woff|woff2|eot|ttf|svg)(\?.+)?$/,
@@ -92,18 +101,40 @@ var cfg = {
         //     /* chunkName= */"vendor", 
         //     /* filename= */"vendor.js"
         // )
-        extractCSS
+        //extractCSS
+        new MiniCssExtractPlugin(),
+        new HtmlWebpackPlugin({
+          template: 'index.html',
+          filename: '../index.html'
+        }),
+        new CleanWebpackPlugin()
     ],
     optimization: {
-        splitChunks: {
-            cacheGroups: {
-                vendor: {
-                    name: 'vendor',
-                    chunks: 'all',
-                    test: /[\\/]node_modules[\\/]/
-                }
-            }
+      splitChunks: {
+        chunks: 'all',
+        minSize: 450000,
+        maxSize: 900000,
+        minChunks: 1,
+        maxAsyncRequests: 30,
+        maxInitialRequests: 30,
+        automaticNameDelimiter: '~',
+        enforceSizeThreshold: 50000,
+        cacheGroups: {
+          vendors: {
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10,
+            reuseExistingChunk: true
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true
+          }
         }
+      },
+      runtimeChunk: {
+        name: (entrypoint) => `runtime~${entrypoint.name}`,
+      }
     }
 };
 
