@@ -189,7 +189,7 @@ class Threats extends Component {
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleThreatsListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>
                 </React.Fragment>
               }
-              {mainContentData.activeSubTab === 'trackTreats' && mainContentData.sessionRights.Module_Soc && mainContentData.accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+              {mainContentData.activeSubTab === 'trackTreats' && mainContentData.sessionRights.Module_Soc && mainContentData.accountType === constants.soc.NONE_LIMIT_ACCOUNT && mainContentData.trackData.dataContent && mainContentData.trackData.dataContent.length > 0 &&
                 <React.Fragment>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'checked')}>{t('txt-selectAll')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={mainContentData.handleTrackListCheckboxAll.bind(this, 'unchecked')}>{t('txt-deselectAll')}</Button>

@@ -259,8 +259,6 @@ class ThreatsController extends Component {
         oldPage: 1,
         pageSize: 10000
       },
-      allSelectTrack: false,
-      allSelectThreat: false,
       //..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
@@ -757,11 +755,17 @@ class ThreatsController extends Component {
     }, {showProgress: false})
     .then(data => {
       if (data) {
-        const tableData = JSON.parse(data.alertTrackSource);
-        let tmpTrackData = trackData;
-        tmpTrackData.trackObj = data;
-        tmpTrackData.dataContent = tableData;
-        tmpTrackData.dataFields = _.map(tmpTrackData.dataFieldsArr, val => {
+        const tableData = _.map(JSON.parse(data.alertTrackSource), val => {
+          return {
+            ...val,
+            select: false
+          };
+        });
+
+        let tempTrackData = {...trackData};
+        tempTrackData.trackObj = data;
+        tempTrackData.dataContent = tableData;
+        tempTrackData.dataFields = _.map(trackData.dataFieldsArr, val => {
           return {
             name: val === 'select' ? '' : val,
             label: f(`alertFields.${val}`),
@@ -811,7 +815,7 @@ class ThreatsController extends Component {
 
         this.setState({
           originalThreatsList: tableData,
-          trackData: tmpTrackData
+          trackData: tempTrackData
         });
       }
     })
@@ -830,19 +834,6 @@ class ThreatsController extends Component {
       chartIntervalList: chartData.chartIntervalList,
       chartIntervalValue: chartData.chartIntervalValue
     });
-  }
-  allSelectedClick = () => {
-    const {allSelectTrack} = this.state;
-
-    return (
-      <Checkbox
-        id='allSelectedClickCheckbox'
-        className='checkbox-ui'
-        name={allSelectTrack}
-        checked={allSelectTrack}
-        onChange={this.handleAllCancelSelectDataChangeMui}
-        color='primary' />
-    )
   }
   /**
    * Handle track list table checkbox
@@ -910,32 +901,6 @@ class ThreatsController extends Component {
       cancelThreatsList: tempList
     });
   }
-  handleAllCancelSelectDataChangeMui = (event) => {
-    const {trackData} = this.state;
-    const checked =  event.target.checked;
-
-    this.setState({
-      allSelectTrack: checked
-    }, () => {
-      let tmpCancelThreatsList = [];
-
-      _.forEach(trackData.dataContent, data => {
-        if (checked) {
-          if (!data.select) {
-            tmpCancelThreatsList.push(data);
-          }
-        } else {
-          tmpCancelThreatsList = [];
-        }
-        data.select = checked;
-      })
-
-      this.setState({
-        trackData: trackData,
-        cancelThreatsList: tmpCancelThreatsList
-      });
-    })
-  }
   /**
    * Handle threats list table checkbox
    * @method
@@ -990,12 +955,26 @@ class ThreatsController extends Component {
       threatsList: tempThreatsList
     });
   }
-  overrideAlertTrack = (trackList) => {
+  overrideAlertTrack = (trackList, options) => {
     const {baseUrl} = this.context;
     const {account, trackData} = this.state;
     const url = `${baseUrl}/api/track/alert/_override?accountId=${account.id}`;
-    let requestData = trackData.trackObj;
-    requestData.alertTrackSourceArray = trackList;
+    let requestData = {
+      account_id: account.id,
+      id: trackData.trackObj.id
+    };
+    let newTrackList = [];
+
+    _.forEach(trackList, val => {
+      let list = {
+        ...val
+      };
+      delete list.select;
+
+      newTrackList.push(list);
+    })
+
+    requestData.alertTrackSourceArray = newTrackList;
 
     this.ah.one({
       url,
@@ -1005,7 +984,15 @@ class ThreatsController extends Component {
     }, {showProgress: false})
     .then(data => {
       if (data) {
-        helper.showPopupMsg('', t('txt-success'), t('alert.txt-alertTrackOverrideSuccess'));
+        if (!options || options !== 'delete') {
+          helper.showPopupMsg('', t('txt-success'), t('alert.txt-alertTrackOverrideSuccess'));
+        }
+
+        this.loadTrackData();
+
+        this.setState({
+          cancelThreatsList: []
+        });
       }
     })
     .catch(err => {
@@ -1025,24 +1012,11 @@ class ThreatsController extends Component {
       ),
       act: (confirmed) => {
         if (confirmed) {
-          const {trackData, originalThreatsList, threatsList} = this.state;
+          const {threatsList, originalThreatsList} = this.state;
+          const uniqThreatsList = _.uniqBy(_.concat(threatsList, originalThreatsList), 'id'); //Remove duplicated list
 
-          _.forEach(threatsList, data => {
-            data.select = false;
-          })
-
-          const tmpTrackList = _.uniqBy(threatsList, function(o) {
-            return o.id;
-          });
-
-          this.overrideAlertTrack(_.unionWith(tmpTrackList, originalThreatsList, _.isEqual));
-
-          this.setState({
-            trackData: trackData,
-            threatsList: []
-          }, () => {
-            this.loadTrackData();
-          });
+          this.overrideAlertTrack(uniqThreatsList);
+          this.handleThreatsListCheckboxAll('unchecked');
         }
       }
     });
@@ -1061,23 +1035,12 @@ class ThreatsController extends Component {
       act: (confirmed) => {
         if (confirmed) {
           const {trackData, cancelThreatsList} = this.state;
-
-          _.forEach(cancelThreatsList, data => {
-            data.select = false;
-          })
-
-          _.forEach(trackData.dataContent, data => {
-            data.select = false;
-          })
-
-          this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList));
-
-          this.setState({
-            trackData: trackData,
-            cancelThreatsList: []
-          }, () => {
-            this.loadTrackData();
+          const trackList = _.filter(trackData.dataContent, val => {
+            return !_.some(cancelThreatsList, val2 => val.id === val2.id);
           });
+
+          this.overrideAlertTrack(trackList, 'delete');
+          this.handleTrackListCheckboxAll('unchecked');
         }
       }
     });
@@ -1341,7 +1304,41 @@ class ThreatsController extends Component {
     }
     return true;
   }
-  handleSubmit = () => {
+  /**
+   * Display add seat modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  handleMakeIncidentDialog = () => {
+    const {selectData, incident} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddIncidentDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleMakeIncidentSubmit}
+    };
+    const titleText = it('txt-addIncident-events');
+
+    return (
+      <ModalDialog
+        id='addSeatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <IncidentEventMake
+          traceAlertData={selectData}
+          remoteIncident={incident}
+          handleDataChange={this.handleDataChange}
+          handleDataChangeMui = {this.handleDataChangeMui}
+          handleEventsChange={this.handleEventsChange}
+          handleConnectContactChange={this.handleConnectContactChange}
+          handleAttachChange={this.handleAttachChange}
+          handleAFChange={this.handleAFChange} />
+      </ModalDialog>
+    )
+  }
+  handleMakeIncidentSubmit = () => {
     const {session, baseUrl} = this.context;
     let incident = {...this.state.incident};
     let selectType = incident.info.selectRowsType;
@@ -1381,6 +1378,8 @@ class ThreatsController extends Component {
 
     incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
+    return;
+
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
@@ -1411,36 +1410,17 @@ class ThreatsController extends Component {
           act: (confirmed) => {
             if (confirmed) {
               const {trackData, cancelThreatsList} = this.state;
-              let emptyList = [];
 
               if (selectType === 'select') {
-                _.forEach(cancelThreatsList, data => {
-                  data.select = false;
-                })
-
-                _.forEach(trackData.dataContent, data => {
-                  data.select = false;
-                })
-
                 this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList));
-
-                this.setState({
-                  trackData: trackData,
-                  cancelThreatsList: []
-                }, () => {
-                  this.loadTrackData();
-                });
               } else {
-                this.overrideAlertTrack(emptyList);
+                let tempTrackData = {...trackData};
+                tempTrackData.dataContent = [];
 
-                let tmpTrackData = trackData;
-                tmpTrackData.dataContent = emptyList;
+                this.overrideAlertTrack([]);
 
                 this.setState({
-                  trackData: tmpTrackData,
-                  cancelThreatsList: []
-                }, () => {
-                  this.loadTrackData();
+                  trackData: tempTrackData
                 });
               }
             }
@@ -1453,40 +1433,6 @@ class ThreatsController extends Component {
     }).catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     });
-  }
-  /**
-   * Display add seat modal dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  handleMakeIncidentDialog = () => {
-    const {selectData, incident} = this.state;
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddIncidentDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleSubmit}
-    };
-    const titleText = it('txt-addIncident-events');
-
-    return (
-      <ModalDialog
-        id='addSeatDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        <IncidentEventMake
-          traceAlertData={selectData}
-          remoteIncident={incident}
-          handleDataChange={this.handleDataChange}
-          handleDataChangeMui = {this.handleDataChangeMui}
-          handleEventsChange={this.handleEventsChange}
-          handleConnectContactChange={this.handleConnectContactChange}
-          handleAttachChange={this.handleAttachChange}
-          handleAFChange={this.handleAFChange} />
-      </ModalDialog>
-    )
   }
   uploadAttachment = (incidentId) => {
     const {baseUrl} = this.context;
@@ -1520,38 +1466,38 @@ class ThreatsController extends Component {
     }
   }
   handleDataChange = (type, value) => {
-    let temp = {...this.state.incident};
-    temp.info[type] = value;
+    let tempIncident = {...this.state.incident};
+    tempIncident.info[type] = value;
 
     if (type === 'impactAssessment') {
-      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
     }
 
     this.setState({
-      incident: temp
+      incident: tempIncident
     });
   }
   handleDataChangeMui = (event) => {
     const {socFlowSourceList, incident} = this.state;
-    let temp = {...incident};
-    temp.info[event.target.name] = event.target.value;
+    let tempIncident = {...incident};
+    tempIncident.info[event.target.name] = event.target.value;
 
     if (event.target.name === 'severity') {
       if (event.target.value === 'Emergency') {
-        temp.info['impactAssessment'] = 4;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+        tempIncident.info['impactAssessment'] = 4;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       } else if (event.target.value === 'Alert') {
-        temp.info['impactAssessment'] = 3;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       } else if (event.target.value === 'Notice') {
-        temp.info['impactAssessment'] = 1;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+        tempIncident.info['impactAssessment'] = 1;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       } else if (event.target.value === 'Warning') {
-        temp.info['impactAssessment'] = 2;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+        tempIncident.info['impactAssessment'] = 2;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       } else if (event.target.value === 'Critical') {
-        temp.info['impactAssessment'] = 3;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       }
     }
 
@@ -1559,85 +1505,85 @@ class ThreatsController extends Component {
       _.forEach(socFlowSourceList , flowVal => {
         if (flowVal.id === event.target.value) {
           if (flowVal.severity === 'Emergency') {
-            temp.info['severity'] = 'Emergency';
-            temp.info['impactAssessment'] = 4;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Emergency';
+            tempIncident.info['impactAssessment'] = 4;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Alert') {
-            temp.info['severity'] = 'Alert';
-            temp.info['impactAssessment'] = 3;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Alert';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Notice') {
-            temp.info['severity'] = 'Notice';
-            temp.info['impactAssessment'] = 1;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Notice';
+            tempIncident.info['impactAssessment'] = 1;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Warning') {
-            temp.info['severity'] = 'Warning';
-            temp.info['impactAssessment'] = 2;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Warning';
+            tempIncident.info['impactAssessment'] = 2;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Critical') {
-            temp.info['severity'] = 'Critical';
-            temp.info['impactAssessment'] = 3;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Critical';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           }
         }
       })
     }
 
     if (event.target.name === 'impactAssessment') {
-      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours');
+      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours');
     }
 
     this.setState({
-      incident: temp
+      incident: tempIncident
     });
   }
   handleEventsChange = (val) => {
-    let temp = {...this.state.incident};
-    temp.info.eventList = val;
+    let tempIncident = {...this.state.incident};
+    tempIncident.info.eventList = val;
 
     this.setState({
-      incident: temp
+      incident: tempIncident
     });
   }
   handleConnectContactChange = (val) => {
-    let temp = {...this.state.incident};
-    temp.info.notifyList = val;
+    let tempIncident = {...this.state.incident};
+    tempIncident.info.notifyList = val;
 
     this.setState({
-      incident: temp
+      incident: tempIncident
     });
   }
   handleAttachChange = (val) => {
     const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
-    let temp = {...this.state.incident};
+    let tempIncident = {...this.state.incident};
 
     if (flag.test(val.name)) {
       helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
-      temp.info.attach = null;
+      tempIncident.info.attach = null;
     } else {
-      temp.info.attach = val;
+      tempIncident.info.attach = val;
     }
 
     this.setState({
-      incident: temp
+      incident: tempIncident
     });
   }
   handleAFChange = (file) => {
     const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
-    let temp = {...this.state.incident};
+    let tempIncident = {...this.state.incident};
 
     if (flag.test(file.name)) {
       helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
-      temp.info.attach = null;
+      tempIncident.info.attach = null;
 
       this.setState({
-        incident: temp
+        incident: tempIncident
       });
     } else {
-      temp.info.attach = file;
+      tempIncident.info.attach = file;
 
       this.setState({
-        incident: temp
+        incident: tempIncident
       });
     }
   }
@@ -1789,6 +1735,7 @@ class ThreatsController extends Component {
       chartIntervalValue,
       threatsData,
       tableType,
+      threatsList,
       alertDetails,
       alertPieData,
       alertTableData
@@ -1850,14 +1797,17 @@ class ThreatsController extends Component {
           tempArray = _.map(tableData, val => { //Re-construct the Alert data
             val._source.id = val._id;
             val._source.index = val._index;
+            val._source.select = false;
 
-            let selectCheck = false;
-            _.forEach(this.state.threatsList, data => {
-              if (val.id === data.id) {
-                selectCheck = true;
-              }
-            })
-            val._source.select = selectCheck;
+            // let selectCheck = false;
+
+            // _.forEach(threatsList, data => {
+            //   if (val.id === data.id) {
+            //     selectCheck = true;
+            //   }
+            // })
+
+            // val._source.select = selectCheck;
             return val._source;
           });
 
@@ -1865,6 +1815,7 @@ class ThreatsController extends Component {
           tempAlertDetails.currentIndex = 0;
           tempAlertDetails.currentLength = tableData.length < threatsData.pageSize ? tableData.length : threatsData.pageSize;
           tempAlertDetails.all = tempArray;
+
           _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
             if (data.event_histogram[val]) {
               _.forEach(data.event_histogram[val].buckets, val2 => {
@@ -3308,6 +3259,7 @@ class ThreatsController extends Component {
       alertDetailsOpen,
       tableType,
       cancelThreatsList,
+      threatsList,
       originalThreatsList,
       accountType
     } = this.state;
@@ -3377,7 +3329,7 @@ class ThreatsController extends Component {
               <Button id='closeTrackedIncidents' variant='outlined' color='primary' title={it('txt-closeTrackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics'} onClick={this.toggleTableType.bind(this, 'list')}><WorkOffIcon /></Button>
             }
             {tableType === 'select' && activeSubTab !== 'trackTreats' &&
-              <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics' || this.state.threatsList.length === 0} onClick={this.showAddTrackDialog}><AddCircleOutlineIcon /></Button>
+              <Button id='showAddTrackDialog' variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={activeSubTab === 'trackTreats' || activeSubTab === 'statistics' || threatsList.length === 0} onClick={this.showAddTrackDialog}><AddCircleOutlineIcon /></Button>
             }
             {activeSubTab === 'trackTreats' &&
               <Button id='showDeleteTrackDialog' variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={activeSubTab !== 'trackTreats' || activeSubTab === 'statistics' || cancelThreatsList.length === 0} onClick={this.showDeleteTrackDialog}><RemoveCircleOutlineIcon /></Button>
