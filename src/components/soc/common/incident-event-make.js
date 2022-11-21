@@ -79,8 +79,6 @@ class IncidentEventMake extends Component {
       currentIncident: {},
       originalIncident: {},
       severityList: [],
-      socFlowList: [],
-      relatedListOptions: [],
       deviceListOptions: [],
       incident: {
         dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'createDttm', 'title', 'reporter', 'srcIPListString', 'dstIPListString'],
@@ -109,110 +107,6 @@ class IncidentEventMake extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {baseUrl} = this.context;
-    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
-    });
-    let flowSourceList = [];
-
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
-      url: `${baseUrl}/api/soc/flow/_search`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
-    }).then(data => {
-      if (data) {
-        let list = _.map(data.rt.rows, val => {
-          flowSourceList.push(val);
-          return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
-        });
-
-        this.setState({
-          socFlowSourceList:flowSourceList,
-          socFlowList:list
-        });
-      }
-    }).catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message)
-    });
-
-    this.setState({
-      severityList,
-    }, () => {
-      this.getOptions()
-    });
-  }
-  getOptions = () => {
-    const {baseUrl, contextRoot} = this.context;
-
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
-      url: `${baseUrl}/api/soc/_search`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
-    })
-    .then(data => {
-      if (data) {
-        const relatedListOptions = _.map(data.rt.rows, val => {
-          let ipContent = '';
-
-          if (val.eventList) {
-            val.eventList = _.map(val.eventList, el => {
-              if (el.eventConnectionList) {
-                el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
-                  ipContent += '(' + it('txt-srcIp') + ': ' + ecl.srcIp + ')';
-                })
-              }
-            })
-          }
-
-          return {
-            value: val.id,
-            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
-          };
-        });
-
-        this.setState({
-          relatedListOptions
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    });
-
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session 
-
-    ah.one({
-      url: `${baseUrl}/api/soc/device/_search`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
-    })
-    .then(data => {
-      if (data) {
-        const deviceListOptions = _.map(data.rt.rows, val => {
-          return {
-            value: val.id,
-            text: val.deviceName
-          };
-        });
-
-        this.setState({
-          deviceListOptions
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   handleOpenMenu = (data, event) => {
     this.setState({
@@ -286,10 +180,10 @@ class IncidentEventMake extends Component {
         </div>
       </div>
     )
-  };
+  }
   displayMainPage = () => {
-    const {incidentType, severityList, socFlowList} = this.state;
-    const {traceAlertData, remoteIncident} = this.props;
+    const {remoteIncident, socFlowList} = this.props;
+    const {incidentType, severityList} = this.state;
     const {locale} = this.context;
     let dateLocale = locale;
 
@@ -509,7 +403,7 @@ class IncidentEventMake extends Component {
     })
   }
   displayAttached = () => {
-    const {traceAlertData, remoteIncident} = this.props;
+    const {remoteIncident} = this.props;
 
     return (
       <div className='form-group normal'>
@@ -544,7 +438,7 @@ class IncidentEventMake extends Component {
   }
   displayNoticePage = () => {
     const {INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST} = this.state;
-    const {traceAlertData, remoteIncident} = this.props;
+    const {remoteIncident} = this.props;
 
     return (
       <div className='form-group normal'>
@@ -633,7 +527,7 @@ class IncidentEventMake extends Component {
   }
   displayConnectUnit = () => {
     const {activeContent} = this.state;
-    const {traceAlertData, remoteIncident} = this.props;
+    const {remoteIncident} = this.props;
 
     return (
       <div className='form-group normal'>
@@ -663,7 +557,7 @@ class IncidentEventMake extends Component {
   }
   displayEventsPage = () => {
     const {incidentType, activeContent, incident, deviceListOptions} = this.state;
-    const {traceAlertData, remoteIncident} = this.props;
+    const {remoteIncident} = this.props;
     const {locale} = this.context;
 
     const now = new Date();
@@ -733,8 +627,8 @@ class IncidentEventMake extends Component {
 IncidentEventMake.contextType = BaseDataContext;
 
 IncidentEventMake.propTypes = {
-  traceAlertData: PropTypes.string.isRequired,
   remoteIncident: PropTypes.string.isRequired,
+  socFlowList: PropTypes.array.isRequired,
   handleDataChange: PropTypes.func.isRequired,
   handleDataChangeMui: PropTypes.func.isRequired,
   handleEventsChange: PropTypes.func.isRequired,

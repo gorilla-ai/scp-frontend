@@ -312,6 +312,7 @@ class ThreatsController extends Component {
         currentLength: ''
       },
       alertData: {},
+      socFlowSourceList: [],
       incident: {
         info: {
           status: 1,
@@ -319,6 +320,7 @@ class ThreatsController extends Component {
           attach: null
         }
       },
+      socFlowList: [],
       loadAlertData: true,
       alertPieData: {},
       alertTableData: {},
@@ -1060,12 +1062,67 @@ class ThreatsController extends Component {
   };
   setupIncidentDialog = (makeType) => {
     const {baseUrl} = this.context;
+    const {originalThreatsList, cancelThreatsList} = this.state;
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
+    const requestData = {
+      threats: makeType === 'select' ? cancelThreatsList : originalThreatsList,
+      TimeZone: utc_offset
+    };
 
-    this.handleCloseIncidentMenu();
+    this.ah.one({
+      url: `${baseUrl}/api/soc/convertThreats/incident`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        let selectRows = [];
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+        if (makeType === 'select') {
+          selectRows = cancelThreatsList;
+        } else if (makeType === 'all') {
+          selectRows = originalThreatsList;
+        }       
 
-    ah.one({
+        let incident = {
+          info: {
+            severity: selectRows[0]._severity_,
+            title: data.title,
+            reporter: data.reporter,
+            rawData: selectRows,
+            selectRowsType: makeType,
+            threatGenerateFileNecessaryInfo: data.threatGenerateFileNecessaryInfo
+          }
+        };
+
+        incident.info.eventList = _.map(data.eventList, val => {
+          return {
+            ...val,
+            time: {
+              from: helper.getFormattedDate(val.startDttm, 'local'),
+              to: helper.getFormattedDate(val.endDttm, 'local')
+            }
+          }
+        });
+
+        this.setState({
+          incident
+        }, () => {
+          this.getFlowSearch();
+        });        
+      }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  getFlowSearch = () => {
+    const {baseUrl} = this.context;
+    const {originalThreatsList, cancelThreatsList, incident} = this.state;
+
+    this.ah.one({
       url: `${baseUrl}/api/soc/flow/_search`,
       data: JSON.stringify({}),
       type: 'POST',
@@ -1074,38 +1131,13 @@ class ThreatsController extends Component {
     })
     .then(data => {
       if (data) {
-        const {originalThreatsList, cancelThreatsList} = this.state;
-        let flowSourceList = [];
-        let selectRows = [];
-
-        _.forEach(data.rt.rows, val => {
-          flowSourceList.push(val);
-        })
-
-        this.setState({
-          socFlowSourceList: flowSourceList
-        });
-
-        if (makeType === 'select') {
-          selectRows = cancelThreatsList;
-        } else if (makeType === 'all') {
-          selectRows = originalThreatsList;
-        }
-
-        let tempIncident = {};
-        tempIncident.info = {
-          severity: selectRows[0]._severity_,
-          title: selectRows[0].Info,
-          reporter: selectRows[0].Source ? selectRows[0].Source : selectRows[0].Collector || selectRows[0].collector,
-          rawData: selectRows,
-          selectRowsType: makeType === 'select' ? 'select' : 'all'
-        };
+        let tempIncident = {...incident};
 
         if (!tempIncident.info.socType) {
           tempIncident.info.socType = 1;
         }
 
-        _.forEach(flowSourceList, val => {
+        _.forEach(data.rows, val => {
           if (val.severity === tempIncident.info.severity) {
             tempIncident.info.flowTemplateId = val.id
 
@@ -1128,82 +1160,23 @@ class ThreatsController extends Component {
           }
         })
 
-        //make incident.info
-        let eventList = [];
-
-        _.forEach(selectRows, eventItem => {
-          const eventNetworkItem = {
-            srcIp: eventItem.ipSrc || eventItem.srcIp || eventItem.ipsrc,
-            srcPort: (parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort) ? parseInt(eventItem.portSrc) || parseInt(eventItem.srcPort) : null),
-            dstIp: eventItem.ipDst || eventItem.dstIp || eventItem.destIp || eventItem.ipdst,
-            dstPort: parseInt(eventItem.destPort) ? parseInt(eventItem.destPort) : null,
-            srcHostname: '',
-            dstHostname: ''
-          };
-          let eventNetworkList = [];
-          eventNetworkList.push(eventNetworkItem);
-
-          let eventListItem = {
-            description: eventItem.Rule || eventItem.trailName || eventItem.__index_name,
-            deviceId: '',
-            frequency: 1,
-            time: {
-              from: helper.getFormattedDate(eventItem._eventDttm_, 'local'),
-              to: helper.getFormattedDate(eventItem._eventDttm_, 'local')
-            },
-            eventConnectionList: eventNetworkList
-          };
-
-          if (eventItem._edgeInfo) {
-            const searchRequestData = {
-              deviceId: eventItem._edgeId ? eventItem._edgeId : eventItem._edgeInfo.agentId
-            };
-
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
-              url: `${baseUrl}/api/soc/device/redirect/_search`,
-              data: JSON.stringify(searchRequestData),
-              type: 'POST',
-              contentType: 'application/json',
-              dataType: 'json'
-            })
-            .then(data => {
-              eventListItem.deviceId = data.rt.device.id;
-            })
-          }
-
-          if (eventItem.LoghostIp) {
-            const searchRequestData = {
-              deviceId: eventItem.LoghostIp
-            };
-
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
-              url: `${baseUrl}/api/soc/device/redirect/_search`,
-              data: JSON.stringify(searchRequestData),
-              type: 'POST',
-              contentType: 'application/json',
-              dataType: 'json'
-            })
-            .then(data => {
-              eventListItem.deviceId = data.rt.device.id;
-            })
-          }
-
-          eventList.push(eventListItem);
-        })
-        tempIncident.info.eventList = eventList;
+        const socFlowList = _.map(data.rows, val => {
+          return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
+        });
+       
 
         this.setState({
           makeIncidentOpen: true,
-          incident: tempIncident
+          socFlowSourceList: data.rows,
+          incident: tempIncident,
+          socFlowList
         });
       }
     }).catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    });
+    })
+
+    this.handleCloseIncidentMenu();
   }
   closeAddIncidentDialog = () => {
     this.setState({
@@ -1310,7 +1283,7 @@ class ThreatsController extends Component {
    * @returns ModalDialog component
    */
   handleMakeIncidentDialog = () => {
-    const {selectData, incident} = this.state;
+    const {incident, socFlowList} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddIncidentDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleMakeIncidentSubmit}
@@ -1327,8 +1300,8 @@ class ThreatsController extends Component {
         actions={actions}
         closeAction='cancel'>
         <IncidentEventMake
-          traceAlertData={selectData}
           remoteIncident={incident}
+          socFlowList={socFlowList}
           handleDataChange={this.handleDataChange}
           handleDataChangeMui = {this.handleDataChangeMui}
           handleEventsChange={this.handleEventsChange}
@@ -1348,11 +1321,11 @@ class ThreatsController extends Component {
     }
 
     if (incident.info.eventList) {
-      incident.info.eventList = _.map(incident.info.eventList, el => {
+      incident.info.eventList = _.map(incident.info.eventList, val => {
         return {
-          ...el,
-          startDttm: moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-          endDttm: moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+          ...val,
+          startDttm: moment(val.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+          endDttm: moment(val.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
         };
       });
     }
@@ -1377,8 +1350,6 @@ class ThreatsController extends Component {
     incident.info.editor = session.accountId;
 
     incident.info.status = INCIDENT_STATUS_UNREVIEWED;
-
-    return;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
