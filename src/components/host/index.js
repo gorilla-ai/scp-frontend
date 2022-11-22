@@ -4109,11 +4109,15 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {cpeFile} = this.state;
     const requestData = {
+      hmdScanDistribution: {
+        taskName: 'getVans',
+        primaryKeyName: 'cpe23Uri'
+      },
       ...this.getHostSafetyRequestData()
     };
     let formData = new FormData();
     formData.append('file', cpeFile);
-    formData.append('payload', JSON.stringify(requestData));    
+    formData.append('payload', JSON.stringify(requestData));
 
     if (!cpeFile.name) {
       return;
