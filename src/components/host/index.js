@@ -491,6 +491,7 @@ class HostController extends Component {
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
+      safetyScanInfoOperator: 'equal',
       formValidation: _.cloneDeep(FORM_VALIDATION),
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION),
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
@@ -1279,7 +1280,7 @@ class HostController extends Component {
    * @returns requestData object
    */
   getHostSafetyRequestData = () => {
-    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch, safetyScanType} = this.state;
+    const {account, activeTab, filterNav, deviceSearch, deviceSearchList, hmdSearch, safetyScanType, safetyScanInfoOperator} = this.state;
     const responseDatetime = {
       from: deviceSearch.theLatestTaskResponseDttmArray.from,
       to: deviceSearch.theLatestTaskResponseDttmArray.to
@@ -1348,6 +1349,7 @@ class HostController extends Component {
       }
 
       requestData.safetyScanInfoArray = safetyScanInfo;
+      requestData.safetyScanInfoOperator = safetyScanInfoOperator;
     }
 
     if (deviceSearchList.status.length > 0 || deviceSearchList.annotation.length > 0) {
@@ -2306,7 +2308,7 @@ class HostController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const {activeTab, deviceSearch, hostInfo, safetyScanData} = this.state;
+    const {activeTab, deviceSearch, hostInfo, safetyScanData, safetyScanInfoOperator} = this.state;
 
     if (activeTab === 'hostList') {
       const responseDatetime = {
@@ -2578,13 +2580,32 @@ class HostController extends Component {
     });
   }
   /**
+   * Handle Safety Scan operator change
+   * @method
+   * @param {object} event - event object
+   */
+  handleScanOperatorChange = (event) => {
+    this.setState({
+      safetyScanInfoOperator: event.target.value
+    });
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
     const {locale} = this.context;
-    const {queryData, popOverAnchor, activeFilter, showFilter, systemList, vansDeviceStatusList, deviceSearch} = this.state;
+    const {
+      queryData,
+      popOverAnchor,
+      activeFilter,
+      showFilter,
+      systemList,
+      vansDeviceStatusList,
+      deviceSearch,
+      safetyScanInfoOperator
+    } = this.state;
     const data = {
       activeFilter,
       vansDeviceStatusList
@@ -2687,7 +2708,20 @@ class HostController extends Component {
                     <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'ip')}>{t('network-inventory.txt-batchUpload')}</Button>
                   }
                   {activeFilter === 'safetyScanInfo' &&
-                    <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'safetyScanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
+                    <div className='safety-scan-filter'>
+                      <TextField
+                        className='scan-operator'
+                        select
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={safetyScanInfoOperator}
+                        onChange={this.handleScanOperatorChange}>
+                        <MenuItem value='equal'>Equal</MenuItem>
+                        <MenuItem value='like'>Like</MenuItem>
+                      </TextField>
+                      <Button variant='contained' color='primary' className='filter' onClick={this.toggleCsvImport.bind(this, 'safetyScanInfo')}>{t('network-inventory.txt-batchUpload')}</Button>
+                    </div>
                   }
                 </React.Fragment>
               }
@@ -2717,7 +2751,8 @@ class HostController extends Component {
       queryData: tempQueryData,
       systemList: _.cloneDeep(this.state.originalSystemList),
       deviceSearch: _.cloneDeep(DEVICE_SEARCH),
-      deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST)
+      deviceSearchList: _.cloneDeep(DEVICE_SEARCH_LIST),
+      safetyScanInfoOperator: 'equal'
     });
   }
   /**
