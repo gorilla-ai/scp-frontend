@@ -690,6 +690,7 @@
     "hbDttm": "Last Connected Datetime",
     "sendStatus": "Task Status",
     "executeStatus": "Execute Result",
+    "taskStatus": "Task Status",
     "taskStatusDescription": "Task Status Description",
     "deviceCount": "Device Count",
     "ip": "IP",
