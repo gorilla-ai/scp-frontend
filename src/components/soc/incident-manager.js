@@ -328,12 +328,12 @@ class IncidentManagement extends Component {
     })
     .then(data => {
       if (data) {
-        let tempEdge = {...incident};
-        tempEdge.dataContent = data.rt.rows;
-        tempEdge.totalCount = data.rt.counts;
-        tempEdge.currentPage = page;
+        let tempIncident = {...incident};
+        tempIncident.dataContent = data.rt.rows;
+        tempIncident.totalCount = data.rt.counts;
+        tempIncident.currentPage = page;
 
-        tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+        tempIncident.dataFields = _.map(incident.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
             label: val === '_menu' ? '' : f(`incidentFields.${val}`),
@@ -341,8 +341,8 @@ class IncidentManagement extends Component {
               filter: true,
               sort: val === 'severity' || val === 'id' || val === 'createDttm' || val === 'updateDttm',
               customBodyRenderLite: (dataIndex, options) => {
-                const allValue = tempEdge.dataContent[dataIndex];
-                let value = tempEdge.dataContent[dataIndex][val];
+                const allValue = tempIncident.dataContent[dataIndex];
+                let value = tempIncident.dataContent[dataIndex][val];
 
                 if (options === 'getAllValue') {
                   return allValue;
@@ -431,7 +431,7 @@ class IncidentManagement extends Component {
         });
 
         this.setState({
-          incident: tempEdge,
+          incident: tempIncident,
           activeContent: 'tableList',
           loadListType: 3
         });
@@ -466,12 +466,12 @@ class IncidentManagement extends Component {
     })
     .then(data => {
       if (data) {
-        let tempEdge = {...incident};
-        tempEdge.dataContent = data.rt.rows;
-        tempEdge.totalCount = data.rt.counts;
-        tempEdge.currentPage = page;
+        let tempIncident = {...incident};
+        tempIncident.dataContent = data.rt.rows;
+        tempIncident.totalCount = data.rt.counts;
+        tempIncident.currentPage = page;
 
-        tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+        tempIncident.dataFields = _.map(incident.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
             label: val === '_menu' ? '' : f(`incidentFields.${val}`),
@@ -479,8 +479,8 @@ class IncidentManagement extends Component {
               filter: true,
               sort: val === 'severity' || val === 'id' || val === 'createDttm' || val === 'updateDttm',
               customBodyRenderLite: (dataIndex, options) => {
-                const allValue = tempEdge.dataContent[dataIndex];
-                let value = tempEdge.dataContent[dataIndex][val];
+                const allValue = tempIncident.dataContent[dataIndex];
+                let value = tempIncident.dataContent[dataIndex][val];
 
                 if (options === 'getAllValue') {
                   return allValue;
@@ -572,7 +572,7 @@ class IncidentManagement extends Component {
         });
 
         this.setState({
-          incident: tempEdge,
+          incident: tempIncident,
           activeContent: 'tableList'
         }, () => {
           this.loadDashboard();
@@ -1105,6 +1105,14 @@ class IncidentManagement extends Component {
   showRelatedList = (val, i) => {
     return <span key={i} className='item'>{val}</span>
   }
+  toggleEstablishDateCheckbox = (event) => {
+    let tempIncident = {...this.state.incident};
+    tempIncident.info.enableEstablishDttm = event.target.checked;
+
+    this.setState({
+      incident: tempIncident
+    });
+  }
   displayMainPage = () => {
     const {locale} = this.context;
     const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
@@ -1142,6 +1150,24 @@ class IncidentManagement extends Component {
             helperText={it('txt-required')}
             required
             error={!(incident.info.title || '')}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='incidentDescription'>{f('incidentFields.incidentDescription')}</label>
+          <TextField
+            id='incidentDescription'
+            onChange={this.handleDataChangeMui}
+            required
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            helperText={it('txt-required')}
+            name='incidentDescription'
+            error={!(incident.info.incidentDescription || '')}
+            value={incident.info.incidentDescription}
             disabled={activeContent === 'viewIncident'} />
         </div>
         <div className='group'>
@@ -1244,34 +1270,77 @@ class IncidentManagement extends Component {
               inputVariant='outlined'
               variant='inline'
               format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
               ampm={false}
               required
               helperText={it('txt-required')}
               value={incident.info.expireDttm}
-              readOnly={activeContent === 'viewIncident' }
+              disabled={activeContent === 'viewIncident'}
               onChange={this.handleDataChange.bind(this, 'expireDttm')} />
           </MuiPickersUtilsProvider>
         </div>
-        {incidentType === 'ttps' &&
-          <div className='group full'>
-            <label htmlFor='description'>{f('incidentFields.description')}</label>
-            <TextField
-              id='description'
-              onChange={this.handleDataChangeMui}
-              required
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              multiline
-              rows={3}
-              rowsMax={3}
-              helperText={it('txt-required')}
-              name='description'
-              error={!(incident.info.description || '')}
-              value={incident.info.description}
-              disabled={activeContent === 'viewIncident'} />
-          </div>
-         }
+        <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
+          <FormControlLabel
+            label={f('incidentFields.establishDate')}
+            control={
+              <Checkbox
+                className='checkbox-ui'
+                checked={incident.info.enableEstablishDttm}
+                onChange={this.toggleEstablishDateCheckbox}
+                color='primary' />
+            }
+            disabled={activeContent === 'viewIncident'} />
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              id='establishDttm'
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              ampm={false}
+              required={false}
+              value={incident.info.establishDttm}
+              disabled={activeContent === 'viewIncident' || !incident.info.enableEstablishDttm}
+              onChange={this.handleDataChange.bind(this, 'establishDttm')} />
+          </MuiPickersUtilsProvider>
+        </div>
+        <div className='group full'>
+          <label htmlFor='attackName'>{f('incidentFields.attackName')}</label>
+          <TextField
+            id='attackName'
+            onChange={this.handleDataChangeMui}
+            required
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            helperText={it('txt-required')}
+            name='attackName'
+            error={!(incident.info.attackName || '')}
+            value={incident.info.attackName}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='description'>{f('incidentFields.description')}</label>
+          <TextField
+            id='description'
+            onChange={this.handleDataChangeMui}
+            required
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            helperText={it('txt-required')}
+            name='description'
+            error={!(incident.info.description || '')}
+            value={incident.info.description}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
         {incidentType === 'ttps' &&
           <div className='group full'>
             <label htmlFor='relatedList' style={{float: 'left', marginRight: '10px'}}>{f('incidentFields.relatedList')}</label>
@@ -1854,6 +1923,12 @@ class IncidentManagement extends Component {
       incident.info.expireDttm = moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     }
 
+    if (incident.info.enableEstablishDttm) {
+      incident.info.establishDttm = moment(incident.info.establishDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    } else {
+      incident.info.establishDttm = '';
+    }
+
     if (!incident.info.creator) {
       incident.info.creator = session.accountId;
     }
@@ -1936,10 +2011,10 @@ class IncidentManagement extends Component {
       });
     }
   }
-  checkRequired(incident) {
+  checkRequired = (incident) => {
     const {incidentType} = this.state;
 
-    if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+    if (!incident.title || !incident.incidentDescription || !incident.category || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validBasic'),
@@ -2773,8 +2848,10 @@ class IncidentManagement extends Component {
       tempIncident.info = {
         id: allValue.id,
         title: allValue.title,
+        incidentDescription: allValue.incidentDescription,
         category: allValue.category,
         reporter: allValue.reporter,
+        attackName: allValue.attackName,
         description: allValue.description,
         impactAssessment: allValue.impactAssessment,
         socType: allValue.socType,
@@ -2793,7 +2870,8 @@ class IncidentManagement extends Component {
         historyList: allValue.historyList,
         creator: allValue.creator,
         announceSource: allValue.announceSource,
-        expireDttm: allValue.expireDttm,
+        expireDttm: helper.getFormattedDate(allValue.expireDttm, 'local'),
+        establishDttm: helper.getFormattedDate(allValue.establishDttm, 'local'),
         attachmentDescription: allValue.attachmentDescription,
         accidentCatogory: allValue.accidentCatogory,
         accidentDescription: allValue.accidentDescription,
@@ -2817,8 +2895,10 @@ class IncidentManagement extends Component {
       tempIncident.info = {
         id: null,
         title: null,
+        incidentDescription: null,
         category: null,
         reporter: null,
+        attackName: null,
         description: null,
         impactAssessment: 4,
         socType: null,
@@ -2835,6 +2915,8 @@ class IncidentManagement extends Component {
         creator: null,
         announceSource: null,
         expireDttm: null,
+        enableEstablishDttm: true,
+        establishDttm: null,
         attachmentDescription: null,
         accidentCatogory: null,
         accidentDescription: null,
@@ -3590,17 +3672,21 @@ class IncidentManagement extends Component {
     payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2});
     payload.basic.table.push({text: incident.title, colSpan: 2});
     payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2});
+    payload.basic.table.push({text: f('incidentFields.incidentDescription'), colSpan: 4});
+    payload.basic.table.push({text: incident.incidentDescription, colSpan: 4});
     payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2});
     payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1});
     payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1});
     payload.basic.table.push({text: incident.reporter, colSpan: 2});
     payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1});
     payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1});
+    payload.basic.table.push({text: helper.getFormattedDate(incident.establishDttm, 'local'), colSpan: 1});
+    payload.basic.table.push({text: f('incidentFields.attackName'), colSpan: 4});
+    payload.basic.table.push({text: incident.attackName, colSpan: 4});
+    payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4});
+    payload.basic.table.push({text: incident.description, colSpan: 4});
 
     if (incidentType === 'ttps') {
-      payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4});
-      payload.basic.table.push({text: incident.description, colSpan: 4});
-
       if (_.size(incident.relatedList) > 0) {
         let value = [];
         _.forEach(incident.relatedList, el => {

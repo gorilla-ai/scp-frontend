@@ -325,6 +325,7 @@ class ThreatsController extends Component {
       alertPieData: {},
       alertTableData: {},
       alertChartsList: [],
+      enableEstablishDttm: '',
       accountType: constants.soc.LIMIT_ACCOUNT
     };
 
@@ -1191,7 +1192,7 @@ class ThreatsController extends Component {
     });
   }
   checkRequired = (incident) => {
-    if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
+    if (!incident.title || !incident.incidentDescription || !incident.category || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validBasic'),
@@ -1278,12 +1279,22 @@ class ThreatsController extends Component {
     return true;
   }
   /**
+   * Toggle establish date checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleEstablishDateCheckbox = (event) => {
+    this.setState({
+      enableEstablishDttm: event.target.checked
+    });
+  }
+  /**
    * Display add seat modal dialog
    * @method
    * @returns ModalDialog component
    */
   handleMakeIncidentDialog = () => {
-    const {incident, socFlowList} = this.state;
+    const {incident, socFlowList, enableEstablishDttm} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddIncidentDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleMakeIncidentSubmit}
@@ -1302,19 +1313,22 @@ class ThreatsController extends Component {
         <IncidentEventMake
           remoteIncident={incident}
           socFlowList={socFlowList}
+          enableEstablishDttm={enableEstablishDttm}
           handleDataChange={this.handleDataChange}
           handleDataChangeMui = {this.handleDataChangeMui}
           handleEventsChange={this.handleEventsChange}
           handleConnectContactChange={this.handleConnectContactChange}
           handleAttachChange={this.handleAttachChange}
-          handleAFChange={this.handleAFChange} />
+          handleAFChange={this.handleAFChange}
+          toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
       </ModalDialog>
     )
   }
   handleMakeIncidentSubmit = () => {
     const {session, baseUrl} = this.context;
+    const {enableEstablishDttm} = this.state;
+    const selectType = incident.info.selectRowsType;
     let incident = {...this.state.incident};
-    let selectType = incident.info.selectRowsType;
 
     if (!this.checkRequired(incident.info)) {
       return;
@@ -1340,6 +1354,12 @@ class ThreatsController extends Component {
 
     if (incident.info.expireDttm) {
       incident.info.expireDttm = moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
+    if (enableEstablishDttm) {
+      incident.info.establishDttm = moment(incident.info.establishDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    } else {
+      incident.info.establishDttm = '';
     }
 
     if (!incident.info.creator) {

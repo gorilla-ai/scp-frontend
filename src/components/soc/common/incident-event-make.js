@@ -11,14 +11,16 @@ import 'moment/locale/zh-tw'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
-import FileInput from 'react-ui/build/src/components/file-input'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
-import MultiInput from 'react-ui/build/src/components/multi-input'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 import DataTable from 'react-ui/build/src/components/table'
+import FileInput from 'react-ui/build/src/components/file-input'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
@@ -101,7 +103,7 @@ class IncidentEventMake extends Component {
       attach: null,
       contextAnchor: null,
       currentData: {},
-      activeSteps: 1,
+      activeSteps: 1
     };
 
     this.ah = getInstance('chewbacca');
@@ -182,7 +184,7 @@ class IncidentEventMake extends Component {
     )
   }
   displayMainPage = () => {
-    const {remoteIncident, socFlowList} = this.props;
+    const {remoteIncident, socFlowList, enableEstablishDttm} = this.props;
     const {incidentType, severityList} = this.state;
     const {locale} = this.context;
     let dateLocale = locale;
@@ -194,7 +196,7 @@ class IncidentEventMake extends Component {
     moment.locale(dateLocale);
 
     return (
-      <div className='form-group normal'>
+      <div className='form-group long' style={{width: '85%'}}>
         <header>
           <div className='text'>{t('edge-management.txt-basicInfo')}</div>
         </header>
@@ -203,7 +205,7 @@ class IncidentEventMake extends Component {
 
         <Button id='nextStep' className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.toggleSteps.bind(this, 'next')} disabled={this.state.activeSteps === 2}>{it('txt-next-page')}</Button>
 
-        <div className='group'>
+        <div className='group full'>
           <label htmlFor='title'>{f('incidentFields.title')}</label>
           <TextField
             id='title'
@@ -216,6 +218,23 @@ class IncidentEventMake extends Component {
             helperText={it('txt-required')}
             required
             error={!(remoteIncident.info.title || '')} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='incidentDescription'>{f('incidentFields.incidentDescription')}</label>
+          <TextField
+            id='incidentDescription'
+            onChange={this.handleDataChangeMui}
+            required
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            helperText={it('txt-required')}
+            name='incidentDescription'
+            error={!(remoteIncident.info.incidentDescription || '')}
+            value={remoteIncident.info.incidentDescription} />
         </div>
         <div className='group'>
           <label htmlFor='category'>{f('incidentFields.category')}</label>
@@ -251,7 +270,7 @@ class IncidentEventMake extends Component {
             value={remoteIncident.info.reporter} />
         </div>
         <div className='group'>
-          <label htmlFor='reporter'>{f('incidentFields.flowId')}</label>
+          <label htmlFor='flowTemplateId'>{f('incidentFields.flowId')}</label>
           <TextField
             id='flowTemplateId'
             name='flowTemplateId'
@@ -266,7 +285,7 @@ class IncidentEventMake extends Component {
           </TextField>
         </div>
 
-        <div className='group' style={{width: '25vh'}}>
+        <div className='group'>
           <label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
           <TextField
             id='impactAssessment'
@@ -289,7 +308,7 @@ class IncidentEventMake extends Component {
           </TextField>
         </div>
 
-        <div className='group severity-level' style={{width: '25vh', paddingTop: '27px'}}>
+        <div className='group severity-level' style={{width: '96.4%'}}>
           <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[remoteIncident.info.severity]}}/>
           <TextField
             id='severityLevel'
@@ -306,7 +325,7 @@ class IncidentEventMake extends Component {
           </TextField>
         </div>
 
-        <div className='group' style={{width: '25vh'}}>
+        <div className='group'>
           <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
             <KeyboardDateTimePicker
@@ -315,6 +334,7 @@ class IncidentEventMake extends Component {
               inputVariant='outlined'
               variant='inline'
               format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
               ampm={false}
               required
               helperText={it('txt-required')}
@@ -323,25 +343,68 @@ class IncidentEventMake extends Component {
           </MuiPickersUtilsProvider>
         </div>
 
-        {incidentType === 'ttps' &&
-          <div className='group full'>
-            <label htmlFor='description'>{f('incidentFields.description')}</label>
-            <TextField
-              id='description'
-              onChange={this.handleDataChangeMui}
-              required
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              multiline
-              rows={4}
-              rowsMax={5}
-              helperText={it('txt-required')}
-              name='description'
-              error={!(remoteIncident.info.description || '')}
-              value={remoteIncident.info.description}/>
-          </div>
-        }
+        <div className='group'>
+          <FormControlLabel
+            label={f('incidentFields.establishDate')}
+            style={{width: '20%'}}
+            control={
+              <Checkbox
+                className='checkbox-ui'
+                checked={enableEstablishDttm}
+                onChange={this.props.toggleEstablishDateCheckbox}
+                color='primary' />
+            } />
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              id='establishDttm'
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              ampm={false}
+              required={false}
+              value={remoteIncident.info.establishDttm}
+              disabled={!enableEstablishDttm}
+              onChange={this.handleDataChange.bind(this, 'establishDttm')} />
+          </MuiPickersUtilsProvider>
+        </div>
+
+        <div className='group full'>
+          <label htmlFor='attackName'>{f('incidentFields.attackName')}</label>
+          <TextField
+            id='attackName'
+            onChange={this.handleDataChangeMui}
+            required
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            helperText={it('txt-required')}
+            name='attackName'
+            error={!(remoteIncident.info.attackName || '')}
+            value={remoteIncident.info.attackName} />
+        </div>
+
+        <div className='group full'>
+          <label htmlFor='description'>{f('incidentFields.description')}</label>
+          <TextField
+            id='description'
+            onChange={this.handleDataChangeMui}
+            required
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            multiline
+            rows={4}
+            rowsMax={5}
+            helperText={it('txt-required')}
+            name='description'
+            error={!(remoteIncident.info.description || '')}
+            value={remoteIncident.info.description}/>
+        </div>
       </div>
     )
   }
@@ -406,7 +469,7 @@ class IncidentEventMake extends Component {
     const {remoteIncident} = this.props;
 
     return (
-      <div className='form-group normal'>
+      <div className='form-group long' style={{width: '85%'}}>
         <header>
           <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em'}}>{it('txt-attachedFileHint')}</span></div>
         </header>
@@ -441,7 +504,7 @@ class IncidentEventMake extends Component {
     const {remoteIncident} = this.props;
 
     return (
-      <div className='form-group normal'>
+      <div className='form-group long' style={{width: '85%'}}>
         <header>
           <div className='text'>{it('txt-accidentTitle')}</div>
         </header>
@@ -530,7 +593,7 @@ class IncidentEventMake extends Component {
     const {remoteIncident} = this.props;
 
     return (
-      <div className='form-group normal'>
+      <div className='form-group long' style={{width: '85%'}}>
         <header>
           <div className='text'>{it('txt-notifyUnit')}</div>
         </header>
@@ -564,7 +627,7 @@ class IncidentEventMake extends Component {
     const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
 
     return (
-      <div className='form-group normal'>
+      <div className='form-group long' style={{width: '85%'}}>
         <header>
           <div className='text'>{it('txt-incident-events')}</div>
         </header>
@@ -634,7 +697,8 @@ IncidentEventMake.propTypes = {
   handleEventsChange: PropTypes.func.isRequired,
   handleConnectContactChange: PropTypes.func.isRequired,
   handleAttachChange: PropTypes.func.isRequired,
-  handleAFChange: PropTypes.func.isRequired
+  handleAFChange: PropTypes.func.isRequired,
+  toggleEstablishDateCheckbox: PropTypes.func.isRequired
 };
 
 export default IncidentEventMake;
