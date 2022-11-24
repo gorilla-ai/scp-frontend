@@ -367,6 +367,10 @@ class IncidentRuleTemplate extends Component {
         let tempData = {...incidentRule};
         tempData.info[event.target.name] = event.target.value;
 
+        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
+            return;
+        }
+
         if (event.target.name === 'severity') {
 
             if (event.target.value === 'Emergency') {
@@ -850,9 +854,11 @@ class IncidentRuleTemplate extends Component {
                             label={f('incidentFields.category')}
                             value={incidentRule.info.category}
                             disabled={activeContent === 'view'}>
-                            {_.map(_.range(1, 9), el => {
-                                return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                            })}
+                            {
+                                _.map(_.range(0, 19), el => {
+                                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                                })
+                            }
                         </TextField>
                     </div>
                     <div className='group full'>

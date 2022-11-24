@@ -626,10 +626,12 @@ class IncidentSearch extends Component {
                     value={incident.info.category}
                     error={!(incident.info.category || '')}
                     disabled={activeContent === 'viewIncident'}>
-                    {_.map(_.range(1, 9), el => {
-                        return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                    })
-                    }</TextField>
+                    {
+                        _.map(_.range(0, 19), el => {
+                            return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                        })
+                    }
+                </TextField>
             </div>
             <div className='group'>
                 <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
@@ -1410,7 +1412,7 @@ class IncidentSearch extends Component {
                             value={search.category}
                             onChange={this.handleSearchMui}>
                             {
-                                _.map(_.range(0, 9), el => {
+                                _.map(_.range(0, 19), el => {
                                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                                 })
                             }
@@ -1890,6 +1892,11 @@ class IncidentSearch extends Component {
     handleSearchMui = (event) => {
         let tempSearch = {...this.state.search};
         tempSearch[event.target.name] = event.target.value;
+
+        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
+          return;
+        }
+
         this.setState({
             search: tempSearch
         });
@@ -1949,9 +1956,12 @@ class IncidentSearch extends Component {
 
     handleDataChangeMui = (event) => {
         const {socFlowSourceList} = this.state;
-        //
         let temp = {...this.state.incident};
         temp.info[event.target.name] = event.target.value;
+
+        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
+          return;
+        }
 
         if (event.target.name === 'severity') {
             if (event.target.value === 'Emergency') {

@@ -1186,7 +1186,7 @@ class IncidentManagement extends Component {
             error={!(incident.info.category || '')}
             disabled={activeContent === 'viewIncident'}>
             {
-              _.map(_.range(1, 9), el => {
+              _.map(_.range(0, 19), el => {
                 return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
               })
             }
@@ -2555,7 +2555,7 @@ class IncidentManagement extends Component {
               value={search.category}
               onChange={this.handleSearchMui}>
               {
-                _.map(_.range(0, 9), el => {
+                _.map(_.range(0, 19), el => {
                   return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                 })
               }
@@ -3257,6 +3257,10 @@ class IncidentManagement extends Component {
     let tempSearch = {...this.state.search};
     tempSearch[event.target.name] = event.target.value;
 
+    if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
+      return;
+    }
+
     this.setState({
       search: tempSearch
     });
@@ -3326,63 +3330,68 @@ class IncidentManagement extends Component {
     });
   }
   handleDataChangeMui = (event) => {
-    const {socFlowSourceList} = this.state;
-    let temp = {...this.state.incident};
-    temp.info[event.target.name] = event.target.value;
+    const {incident, socFlowSourceList} = this.state;
+    const {name, value} = {...event.target};
+    let tempIncident = {...incident};
+    tempIncident.info[name] = value;
 
-    if (event.target.name === 'severity') {
-      if (event.target.value === 'Emergency') {
-        temp.info['impactAssessment'] = 4;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Alert') {
-        temp.info['impactAssessment'] = 3;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Notice') {
-        temp.info['impactAssessment'] = 1;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Warning') {
-        temp.info['impactAssessment'] = 2;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Critical') {
-        temp.info['impactAssessment'] = 3;
-        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+    if (name === 'category' && (value === 0 || value === 9)) {
+      return;
+    }
+
+    if (name === 'severity') {
+      if (value === 'Emergency') {
+        tempIncident.info['impactAssessment'] = 4;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Alert') {
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Notice') {
+        tempIncident.info['impactAssessment'] = 1;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Warning') {
+        tempIncident.info['impactAssessment'] = 2;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Critical') {
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       }
     }
 
-    if (event.target.name === 'flowTemplateId') {
+    if (name === 'flowTemplateId') {
       _.forEach(socFlowSourceList , flowVal => {
-        if (flowVal.id === event.target.value) {
+        if (flowVal.id === value) {
           if (flowVal.severity === 'Emergency') {
-            temp.info['severity'] = 'Emergency';
-            temp.info['impactAssessment'] = 4;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Emergency';
+            tempIncident.info['impactAssessment'] = 4;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Alert') {
-            temp.info['severity'] = 'Alert';
-            temp.info['impactAssessment'] = 3;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Alert';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Notice') {
-            temp.info['severity'] = 'Notice';
-            temp.info['impactAssessment'] = 1;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Notice';
+            tempIncident.info['impactAssessment'] = 1;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Warning') {
-            temp.info['severity'] = 'Warning';
-            temp.info['impactAssessment'] = 2;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Warning';
+            tempIncident.info['impactAssessment'] = 2;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           } else if (flowVal.severity === 'Critical') {
-            temp.info['severity'] = 'Critical';
-            temp.info['impactAssessment'] = 3;
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+            tempIncident.info['severity'] = 'Critical';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
           }
         }
       })
     }
 
-    if (event.target.name === 'impactAssessment') {
-      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours');
+    if (name === 'impactAssessment') {
+      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
     }
 
     this.setState({
-      incident: temp
+      incident: tempIncident
     });
   }
   getOptions = () => {

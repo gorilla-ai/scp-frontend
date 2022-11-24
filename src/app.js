@@ -26,6 +26,7 @@ import HostCpe from './components/host/cpe'
 import Incident from './components/soc/incident'
 import IncidentDeviceStep from './components/soc/incident-device-with-step'
 import IncidentFlow from './components/soc/incident-flow'
+import IncidentReport from './components/soc/incident-report'
 import IncidentISAC from './components/soc/incident-isac'
 import IncidentLog from './components/soc/incident-log'
 import IncidentManagement from './components/soc/incident-manager'
@@ -289,6 +290,12 @@ const incidentFlow = () => (
   </BaseDataContext.Provider>
 );
 
+const incidentReport = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentReport />
+  </BaseDataContext.Provider>
+);
+
 const incidentSearch = () => (
   <BaseDataContext.Provider value={baseData}>
     <IncidentSearch />
@@ -344,16 +351,17 @@ const Main = () => (
       <Route exact path='/SCP/configuration/audit' component={Audit} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
       <Route exact path='/SCP/configuration/product-info' component={productInfo} />
-      <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
-      <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
-      <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
-      <Route exact path='/SCP/soc/incident' component={incident}/>
-      <Route exact path='/SCP/soc/incident-ISAC' component={incidentISAC}/>
-      <Route exact path='/SCP/soc/incident-SOC' component={incidentSOC}/>
-      <Route exact path='/SCP/soc/incident-RuleTemplate' component={incidentRule}/>
-      <Route exact path='/SCP/soc/incident-Flow' component={incidentFlow}/>
-      <Route exact path='/SCP/soc/incident-search' component={incidentSearch}/>
-      <Route exact path='/SCP/soc/incident-management' component={incidentManagement}/>
+      <Route exact path='/SCP/soc/incident-device' component={incidentDevice} />
+      <Route exact path='/SCP/soc/incident-unit' component={incidentUnit} />
+      <Route exact path='/SCP/soc/incident-log' component={incidentLog} />
+      <Route exact path='/SCP/soc/incident' component={incident} />
+      <Route exact path='/SCP/soc/incident-ISAC' component={incidentISAC} />
+      <Route exact path='/SCP/soc/incident-SOC' component={incidentSOC} />
+      <Route exact path='/SCP/soc/incident-rule-template' component={incidentRule} />
+      <Route exact path='/SCP/soc/incident-flow' component={incidentFlow} />
+      <Route exact path='/SCP/soc/incident-report' component={incidentReport} />
+      <Route exact path='/SCP/soc/incident-search' component={incidentSearch} />
+      <Route exact path='/SCP/soc/incident-management' component={incidentManagement} />
     </Switch>
   </main>
 );

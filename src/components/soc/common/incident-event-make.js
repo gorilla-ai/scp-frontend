@@ -250,9 +250,11 @@ class IncidentEventMake extends Component {
             select
             value={remoteIncident.info.category}
             error={!(remoteIncident.info.category || '')}>
-            {_.map(_.range(1, 9), el => {
-              return <MenuItem id={`category.${el}`} value={el}>{it(`category.${el}`)}</MenuItem>
-            })}
+            {
+              _.map(_.range(0, 19), el => {
+                return <MenuItem id={`category.${el}`} value={el}>{it(`category.${el}`)}</MenuItem>
+              })
+            }
           </TextField>
         </div>
         <div className='group'>

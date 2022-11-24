@@ -1470,31 +1470,36 @@ class ThreatsController extends Component {
   }
   handleDataChangeMui = (event) => {
     const {socFlowSourceList, incident} = this.state;
+    const {name, value} = {...event.target};
     let tempIncident = {...incident};
-    tempIncident.info[event.target.name] = event.target.value;
+    tempIncident.info[name] = value;
 
-    if (event.target.name === 'severity') {
-      if (event.target.value === 'Emergency') {
+    if (name === 'category' && (value === 0 || value === 9)) {
+      return;
+    }
+
+    if (name === 'severity') {
+      if (value === 'Emergency') {
         tempIncident.info['impactAssessment'] = 4;
         tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Alert') {
+      } else if (value === 'Alert') {
         tempIncident.info['impactAssessment'] = 3;
         tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Notice') {
+      } else if (value === 'Notice') {
         tempIncident.info['impactAssessment'] = 1;
         tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Warning') {
+      } else if (value === 'Warning') {
         tempIncident.info['impactAssessment'] = 2;
         tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
-      } else if (event.target.value === 'Critical') {
+      } else if (value === 'Critical') {
         tempIncident.info['impactAssessment'] = 3;
         tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
       }
     }
 
-    if (event.target.name === 'flowTemplateId') {
+    if (name === 'flowTemplateId') {
       _.forEach(socFlowSourceList , flowVal => {
-        if (flowVal.id === event.target.value) {
+        if (flowVal.id === value) {
           if (flowVal.severity === 'Emergency') {
             tempIncident.info['severity'] = 'Emergency';
             tempIncident.info['impactAssessment'] = 4;
@@ -1520,8 +1525,8 @@ class ThreatsController extends Component {
       })
     }
 
-    if (event.target.name === 'impactAssessment') {
-      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours');
+    if (name === 'impactAssessment') {
+      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
     }
 
     this.setState({

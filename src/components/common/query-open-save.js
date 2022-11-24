@@ -1279,6 +1279,10 @@ class QueryOpenSave extends Component {
     let tempData = {...this.state.soc};
     tempData[event.target.name] = event.target.value;
 
+    if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
+      return;
+    }
+
     if (event.target.name === 'severity') {
       if (event.target.value === 'Emergency') {
         tempData['impact'] = 4;
@@ -1631,9 +1635,11 @@ class QueryOpenSave extends Component {
                   label={f('incidentFields.category')}
                   value={soc.category}
                   disabled={patternCheckboxDisabled}>
-                  {_.map(_.range(1, 9), el => {
-                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                  })}
+                  {
+                    _.map(_.range(0, 19), el => {
+                      return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                    })
+                  }
                 </TextField>
               </div>
               <div className='top-group' >
@@ -1748,9 +1754,11 @@ class QueryOpenSave extends Component {
                 label={f('incidentFields.category')}
                 value={soc.category}
                 disabled={disabledValue}>
-                {_.map(_.range(1, 9), el => {
-                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                })}
+                {
+                  _.map(_.range(0, 19), el => {
+                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                  })
+                }
               </TextField>
             </div>
             <TextField

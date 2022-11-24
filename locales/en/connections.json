@@ -15,6 +15,7 @@
   "txt-ok": "OK",
   "txt-time": "Time",
   "txt-date": "Date",
+  "txt-dateRange": "Date Range",
   "txt-filter": "Filter",
   "txt-filterQuery": "Filter Query",
   "txt-search": "Search",

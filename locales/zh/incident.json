@@ -27,6 +27,7 @@
 	"txt-incident-soc-management": "政府G-SOC設定",
 	"txt-incident-soc-rule": "自動化模板管理",
 	"txt-incident-soc-flow": "流程管理",
+	"txt-incident-soc-report": "報表管理",
 	"txt-incident-isac-config": "ISAC參數設定",
 	"txt-incident-soc-config": "SOC參數設定",
 	"txt-incident-events": "監控觸發紀錄",
@@ -233,7 +234,7 @@
 	"txt-allSearch": "全部查詢",
 	"txt-flow-msg-na": "無流程狀態可供確認",
 	"category": {
-		"0": "全部",
+		"0": "====== 以下為 NCCST for STIX 1.0 即將棄用 =====",
 		"1": "入侵攻擊類",
 		"2": "惡意程式類",
 		"3": "掃描刺探類",
@@ -241,7 +242,18 @@
 		"5": "阻斷服務類",
 		"6": "政策規則類",
 		"7": "尚需調查類",
-		"8": "系統服務類"
+		"8": "系統服務類",
+		"9": "====== 以下為 NCCST 新版 for STIX 2.0 =====",
+		"10": "惡意內容",
+		"11": "惡意程式",
+		"12": "資訊蒐集",
+		"13": "入侵嘗試",
+		"14": "入侵攻擊",
+		"15": "服務阻斷",
+		"16": "資訊內容安全",
+		"17": "詐欺攻擊",
+		"18": "系統弱點",
+		"19": "其他"
 	},
 	"status": {
 		"0": "全部",

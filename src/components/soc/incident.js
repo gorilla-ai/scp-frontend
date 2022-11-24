@@ -1,40 +1,42 @@
-import React, {Component} from "react"
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
-import cx from "classnames"
-import Moment from 'moment'
+import React, {Component} from 'react'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
 
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import MoreIcon from '@material-ui/icons/More'
+import IconButton from '@material-ui/core/IconButton'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
+
+import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
+import DataTable from 'react-ui/build/src/components/table'
 import FileInput from 'react-ui/build/src/components/file-input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import {BaseDataContext} from "../common/context"
-import SocConfig from "../common/soc-configuration"
-import helper from "../common/helper"
-import Autocomplete from '@material-ui/lab/Autocomplete';
+
+import {BaseDataContext} from '../common/context'
+import SocConfig from '../common/soc-configuration'
+import helper from '../common/helper'
 import Events from './common/events'
 import Ttps from './common/ttps'
-import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
-import DataTable from "react-ui/build/src/components/table";
-import _ from "lodash";
-
 import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
-import MomentUtils from "@date-io/moment";
-import NotifyContact from "./common/notifyContact";
-import Menu from "@material-ui/core/Menu";
-import constants from "../constant/constant-incidnet";
-import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
-import MoreIcon from '@material-ui/icons/More';
-import IconButton from '@material-ui/core/IconButton';
-import IncidentFlowDialog from "./common/flow-dialog";
-import NotifyDialog from "./common/notify-dialog";
-import MuiTableContent from "../common/mui-table-content";
+import NotifyContact from './common/notifyContact'
+import constants from '../constant/constant-incidnet'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
+import IncidentFlowDialog from './common/flow-dialog'
+import NotifyDialog from './common/notify-dialog'
+import MuiTableContent from '../common/mui-table-content'
 
 let t = null;
 let f = null;
@@ -97,7 +99,7 @@ class Incident extends Component {
         status: 0,
         datetime: {
           from: helper.getSubstractDate(2, 'month'),
-          to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         },
         severity:'',
         isExpired: 2
@@ -264,8 +266,8 @@ class Incident extends Component {
             const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
             if (search.datetime) {
-                search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-                search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+                search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+                search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             }
 
             search.accountRoleType = this.state.accountRoleType
@@ -709,10 +711,12 @@ class Incident extends Component {
                     value={incident.info.category}
                     error={!(incident.info.category || '')}
                     disabled={activeContent === 'viewIncident'}>
-                    {_.map(_.range(1, 9), el => {
-                        return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                    })
-                    }</TextField>
+                    {
+                        _.map(_.range(0, 19), el => {
+                            return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                        })
+                    }
+                </TextField>
             </div>
             <div className='group'>
                 <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
@@ -942,7 +946,7 @@ class Incident extends Component {
                         return <span>{this.formatBytes(value)}</span>
                     }
                     else if (tempData === 'fileDttm') {
-                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                        return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
                     }
                     else if (tempData === 'fileMemo') {
                         if (incident.info.attachmentDescription){
@@ -964,7 +968,7 @@ class Incident extends Component {
                     else if (tempData === 'action') {
                         let isShow = true
 
-                        if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
+                        if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
                             isShow = false
                         }
 
@@ -1046,7 +1050,7 @@ class Incident extends Component {
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue, i) => {
               if (tempData === 'reviewDttm') {
-                return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
               } else if (tempData === 'status') {
                 return <span>{it(`action.${value}`)}</span>
               } else {
@@ -1204,7 +1208,7 @@ class Incident extends Component {
         const {locale} = this.context;
 
         const now = new Date();
-        const nowTime = Moment(now).local().format('YYYY-MM-DD HH:mm:ss');
+        const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
 
         return <div className='form-group normal'>
             <header>
@@ -1297,8 +1301,8 @@ class Incident extends Component {
                 })
                 return {
                     ...el,
-                    startDttm: Moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-                    endDttm: Moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+                    startDttm: moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                    endDttm: moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
                 }
             })
         }
@@ -1314,7 +1318,7 @@ class Incident extends Component {
         }
 
         if (incident.info.expireDttm) {
-            incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+            incident.info.expireDttm = moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
         }
 
 
@@ -1695,8 +1699,8 @@ class Incident extends Component {
                     return {
                         ...el,
                         time: {
-                            from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                            to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                            from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                            to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                 })
@@ -1771,8 +1775,8 @@ class Incident extends Component {
                         return {
                             ...el,
                             time: {
-                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                                from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                                to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
                             }
                         }
                     })
@@ -2400,7 +2404,7 @@ class Incident extends Component {
                 status: 0,
                 datetime:{
                     from: helper.getSubstractDate(1, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                    to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 isExpired: 2
             }
@@ -2430,9 +2434,12 @@ class Incident extends Component {
 
     handleDataChangeMui = (event) => {
         const {socFlowSourceList} = this.state;
-        //
         let temp = {...this.state.incident};
         temp.info[event.target.name] = event.target.value;
+
+        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
+          return;
+        }        
 
         if (event.target.name === 'severity'){
             if (event.target.value === 'Emergency'){
@@ -2805,7 +2812,7 @@ class Incident extends Component {
 
         _.forEach(incident.historyList, el => {
             payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1})
-            payload.history.table.push({text: Moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+            payload.history.table.push({text: moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
             payload.history.table.push({text: el.reviewerName, colSpan: 1})
             payload.history.table.push({text: el.suggestion, colSpan: 1})
         })
@@ -2825,7 +2832,7 @@ class Incident extends Component {
             _.forEach(incident.fileList, file => {
                 payload.attachment.table.push({text: file.fileName, colSpan: 1})
                 payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
-                payload.attachment.table.push({text: Moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+                payload.attachment.table.push({text: moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
                 const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
                 payload.attachment.table.push({text: target.fileMemo, colSpan: 1})
             })
@@ -2903,8 +2910,8 @@ class Incident extends Component {
 
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
-            payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
-            payload.eventList.table.push({text: Moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({text: moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({text: moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
             payload.eventList.table.push({text: event.frequency, colSpan: 2})
 
             _.forEach(event.eventConnectionList, conn => {
@@ -2999,8 +3006,8 @@ class Incident extends Component {
         let {search, incident, loadListType, accountRoleType} = this.state
 
         if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         search.accountRoleType = this.state.accountRoleType

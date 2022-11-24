@@ -27,6 +27,7 @@
 	"txt-incident-soc-management": "G-SOC Config",
 	"txt-incident-soc-rule": "Automated Rule Management",
 	"txt-incident-soc-flow": "Flow Template Management",
+	"txt-incident-soc-report": "Report Management",
 	"txt-incident-isac-config": "ISAC Config Settings",
 	"txt-incident-soc-config": "SOC Config Settings",
 	"txt-incident-events": "Incident Events",
@@ -231,7 +232,7 @@
 	"txt-allSearch": "All Search",
 	"txt-flow-msg-na": "No process status to confirm",
 	"category": {
-		"0": "ALL",
+		"0": "====== NCCST for STIX 1.0 (will be abandoned soon) =====",
 		"1": "Intrusion Attack",
 		"2": "Malware",
 		"3": "Scan Spying",
@@ -239,7 +240,18 @@
 		"5": "Network Attack and Defense Drill",
 		"6": "Policy Rule",
 		"7": "Investigated",
-		"8": "System Service"
+		"8": "System Service",
+		"9": "====== New NCCST for STIX 2.0 =====",
+		"10": "Malicious Content",
+		"11": "Malware",
+		"12": "Information Collection",
+		"13": "Intrusion Attempt",
+		"14": "Intrusion Attack",
+		"15": "Network Attack and Defense Drill",
+		"16": "Information Content Security",
+		"17": "Phishing Attack",
+		"18": "System Weakness",
+		"19": "Others"
 	},
 	"status": {
 		"0": "All",
