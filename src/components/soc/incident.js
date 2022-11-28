@@ -712,7 +712,7 @@ class Incident extends Component {
                     error={!(incident.info.category || '')}
                     disabled={activeContent === 'viewIncident'}>
                     {
-                        _.map(_.range(0, 19), el => {
+                        _.map(_.range(0, 20), el => {
                             return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                         })
                     }

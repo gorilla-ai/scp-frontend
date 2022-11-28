@@ -627,7 +627,7 @@ class IncidentSearch extends Component {
                     error={!(incident.info.category || '')}
                     disabled={activeContent === 'viewIncident'}>
                     {
-                        _.map(_.range(0, 19), el => {
+                        _.map(_.range(0, 20), el => {
                             return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                         })
                     }
@@ -1412,7 +1412,7 @@ class IncidentSearch extends Component {
                             value={search.category}
                             onChange={this.handleSearchMui}>
                             {
-                                _.map(_.range(0, 19), el => {
+                                _.map(_.range(0, 20), el => {
                                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                                 })
                             }

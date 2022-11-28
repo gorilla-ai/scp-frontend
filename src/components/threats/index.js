@@ -1470,7 +1470,8 @@ class ThreatsController extends Component {
   }
   handleDataChangeMui = (event) => {
     const {socFlowSourceList, incident} = this.state;
-    const {name, value} = {...event.target};
+    const name = event.target.name;
+    const value = event.target.value;
     let tempIncident = {...incident};
     tempIncident.info[name] = value;
 

@@ -1186,7 +1186,7 @@ class IncidentManagement extends Component {
             error={!(incident.info.category || '')}
             disabled={activeContent === 'viewIncident'}>
             {
-              _.map(_.range(0, 19), el => {
+              _.map(_.range(0, 20), el => {
                 return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
               })
             }
@@ -2555,7 +2555,7 @@ class IncidentManagement extends Component {
               value={search.category}
               onChange={this.handleSearchMui}>
               {
-                _.map(_.range(0, 19), el => {
+                _.map(_.range(0, 20), el => {
                   return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                 })
               }
@@ -3331,7 +3331,8 @@ class IncidentManagement extends Component {
   }
   handleDataChangeMui = (event) => {
     const {incident, socFlowSourceList} = this.state;
-    const {name, value} = {...event.target};
+    const name = event.target.name;
+    const value = event.target.value;
     let tempIncident = {...incident};
     tempIncident.info[name] = value;
 

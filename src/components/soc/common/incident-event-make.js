@@ -251,7 +251,7 @@ class IncidentEventMake extends Component {
             value={remoteIncident.info.category}
             error={!(remoteIncident.info.category || '')}>
             {
-              _.map(_.range(0, 19), el => {
+              _.map(_.range(0, 20), el => {
                 return <MenuItem id={`category.${el}`} value={el}>{it(`category.${el}`)}</MenuItem>
               })
             }
