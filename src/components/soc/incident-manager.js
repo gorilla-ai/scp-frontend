@@ -2023,7 +2023,7 @@ class IncidentManagement extends Component {
       return false;
     }
 
-    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validBasic'),

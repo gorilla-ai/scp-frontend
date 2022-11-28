@@ -232,15 +232,15 @@ class Incident extends Component {
             .then(data => {
                 if (data) {
 
-                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT){
+                    if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
                         this.setState({
                             accountType: constants.soc.LIMIT_ACCOUNT
                         })
-                    }else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT){
+                    } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
                         this.setState({
                             accountType: constants.soc.NONE_LIMIT_ACCOUNT
                         })
-                    }else {
+                    } else {
                         this.setState({
                             accountType: constants.soc.CHECK_ERROR
                         })
@@ -252,147 +252,150 @@ class Incident extends Component {
             });
     }
 
-
     /**
      * Get and set Incident Device table data
      * @method
      * @param {string} fromSearch - option for the 'search'
      */
     loadData = (fromSearch) => {
+      this.setState({
+        activeContent: 'tableList'
+      },() => {
+        const {baseUrl, contextRoot, session} = this.context;
+        const {search, incident} = this.state;
+        const sort = incident.sort.desc ? 'desc' : 'asc';
+        const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
-        this.setState({
-            activeContent: 'tableList'
-        },()=>{
-            const {baseUrl, contextRoot, session} = this.context;
-            const {search, incident} = this.state;
-            const sort = incident.sort.desc ? 'desc' : 'asc';
-            const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
+        if (search.datetime) {
+          search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        }
 
-            if (search.datetime) {
-                search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-                search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            }
+        search.accountRoleType = this.state.accountRoleType
+        search.account = session.accountId
 
-            search.accountRoleType = this.state.accountRoleType
-            search.account = session.accountId
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+        ah.one({
+          url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
+          data: JSON.stringify(search),
+          type: 'POST',
+          contentType: 'application/json',
+          dataType: 'json'
+        })
+        .then(data => {
+          if (data) {
+            let tempEdge = {...incident};
 
-            ah.one({
-                url: `${baseUrl}/api/soc/_searchV3?page=${page + 1}&pageSize=${incident.pageSize}&orders=${incident.sort.field} ${sort}`,
-                data: JSON.stringify(search),
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json'
-            })
-                .then(data => {
-                    if (data) {
-                        let tempEdge = {...incident};
+            if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
+              tempEdge.dataFields = [];
+              tempEdge.dataContent = [];
+              tempEdge.totalCount = 0;
+              tempEdge.currentPage = 1;
+              tempEdge.pageSize = 20;
 
+              this.setState({
+                incident: tempEdge,
+                activeContent: 'tableList'
+              });
+            } else {
+              tempEdge.dataContent = data.rt.rows;
+              tempEdge.totalCount = data.rt.counts;
+              tempEdge.currentPage = page;
 
-                        if (_.isEmpty(data.rt.rows) || data.rt.counts === 0) {
-                            tempEdge.dataFields = [];
-                            tempEdge.dataContent = [];
-                            tempEdge.totalCount = 0;
-                            tempEdge.currentPage = 1;
-                            tempEdge.pageSize = 20;
+              tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
+                return {
+                  name: val === '_menu' ? '' : val,
+                  label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+                  options: {
+                    filter: true,
+                    sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
+                    customBodyRenderLite: (dataIndex, options) => {
+                      const allValue = tempEdge.dataContent[dataIndex];
+                      let value = tempEdge.dataContent[dataIndex][val];
 
-                            this.setState({
-                                incident: tempEdge,
-                                activeContent: 'tableList'
-                            });
+                      if (options === 'getAllValue') {
+                        return allValue;
+                      }
+
+                      if (val === '_menu') {
+                        return (
+                          <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                            <MoreIcon/>
+                          </IconButton>
+                        )
+                      } else if (val === 'type') {
+                        let tmpList = [];
+                        tmpList = allValue.ttpList;
+
+                        if (tmpList.length === 0) {
+                          return <span>{it('txt-incident-event')}</span>
                         } else {
-                            tempEdge.dataContent = data.rt.rows;
-                            tempEdge.totalCount = data.rt.counts;
-                            tempEdge.currentPage = page;
+                          return <span>{it('txt-incident-related')}</span>
+                        }
+                      } else if (val === 'category') {
+                        return <span>{it(`category.${value}`)}</span>
+                      } else if (val === 'status') {
+                        let status = 'N/A'
 
-                            tempEdge.dataFields = _.map(incident.dataFieldsArr, val => {
-                                return {
-                                    name: val === '_menu' ? '' : val,
-                                    label: val === '_menu' ? '' : f(`incidentFields.${val}`),
-                                    options: {
-                                        filter: true,
-                                        sort: val === 'severity' || val === 'id' || val === 'createDttm'  || val === 'updateDttm' ,
-                                        customBodyRenderLite: (dataIndex, options) => {
-                                            const allValue = tempEdge.dataContent[dataIndex];
-                                            let value = tempEdge.dataContent[dataIndex][val];
+                        if (allValue.flowData) {
+                          if (allValue.flowData.finish) {
+                            return <span>{it('status.3')}</span>
+                          }
 
-                                            if (options === 'getAllValue') {
-                                                return allValue;
-                                            }
+                          if (allValue.flowData.currentEntity) {
+                            status = allValue.flowData.currentEntity[allValue.id].entityName
+                          }
+                        }
+                        return <span>{status}</span>
+                      } else if (val === 'createDttm' || val === 'updateDttm') {
+                        return <span>{helper.getFormattedDate(value, 'local')}</span>
+                      } else if (val === 'tag') {
+                        const tags = _.map(allValue.tagList, 'tag.tag')
 
-                                            if (val === '_menu') {
-                                                return <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
-                                                    <MoreIcon/>
-                                                </IconButton>
-                                            } else if (val === 'type') {
-                                                let tmpList = [];
-                                                tmpList = allValue.ttpList;
-                                                if (tmpList.length === 0) {
-                                                    return <span>{it('txt-incident-event')}</span>
-                                                } else {
-                                                    return <span>{it('txt-incident-related')}</span>
-                                                }
-                                            } else if (val === 'category') {
-                                                return <span>{it(`category.${value}`)}</span>
-                                            } else if (val === 'status') {
-                                                let status = 'N/A'
-                                                if (allValue.flowData) {
+                        return (
+                          <div>
+                            {
+                              _.map(allValue.tagList, el => {
+                                return (
+                                  <div style={{display: 'flex', marginRight: '30px'}}>
+                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                      &nbsp;{el.tag.tag}
+                                  </div>
+                                )
+                              })
+                            }
+                          </div>
+                        )
+                      } else if (val === 'severity') {
+                        return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+                      } else if (val === 'srcIPListString' || val === 'dstIPListString') {
+                        let formattedPatternIP = ''
 
-                                                    if (allValue.flowData.finish) {
-                                                        return <span>{it('status.3')}</span>
-                                                    }
-
-                                                    if (allValue.flowData.currentEntity) {
-                                                        status = allValue.flowData.currentEntity[allValue.id].entityName
-                                                    }
-                                                }
-                                                return <span>{status}</span>
-                                            } else if (val === 'createDttm' || val === 'updateDttm') {
-                                                return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                            } else if (val === 'tag') {
-                                                const tags = _.map(allValue.tagList, 'tag.tag')
-
-                                                return <div>
-                                                    {
-                                                        _.map(allValue.tagList, el => {
-                                                            return <div style={{display: 'flex', marginRight: '30px'}}>
-                                                                <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                                                                &nbsp;{el.tag.tag}
-                                                            </div>
-                                                        })
-                                                    }
-                                                </div>
-
-                                            } else if (val === 'severity') {
-                                                return <span className='severity-level'
-                                                             style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
-                                            } else if (val === 'srcIPListString' || val === 'dstIPListString'){
-                                                let formattedPatternIP = ''
-                                                if (value.length > 32) {
-                                                    formattedPatternIP = value.substr(0, 32) + '...';
-                                                }else{
-                                                    formattedPatternIP = value
-                                                }
-                                                return <span>{formattedPatternIP}</span>
-                                            } else {
-                                                return <span>{value}</span>
-                                            }
-                                        }
-                                    }
-                                };
-                            });
-
-                            this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
+                        if (value.length > 32) {
+                          formattedPatternIP = value.substr(0, 32) + '...';
+                        } else {
+                          formattedPatternIP = value
                         }
 
+                        return <span>{formattedPatternIP}</span>
+                      } else {
+                        return <span>{value}</span>
+                      }
                     }
-                    return null
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message)
-                })
-        });
+                  }
+                }
+              });
+
+              this.setState({incident: tempEdge, activeContent: 'tableList', loadListType: 1,})
+            }
+          }
+          return null
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
+      });
     };
 
     /**
@@ -402,31 +405,34 @@ class Incident extends Component {
      * @param {object} event - event object
      */
     handleOpenMenu = (data, event) => {
-        this.setState({
-            contextAnchor: event.currentTarget,
-            currentData: data
-        });
+      this.setState({
+        contextAnchor: event.currentTarget,
+        currentData: data
+      });
     }
     /**
      * Handle close menu
      * @method
      */
     handleCloseMenu = () => {
-        this.setState({
-            contextAnchor: null,
-            currentData: {}
-        });
+      this.setState({
+        contextAnchor: null,
+        currentData: {}
+      });
     }
 
-
     handleRowMouseOver = (index, allValue, evt) => {
-        let tempIncident = {...this.state.incident};
-        tempIncident['dataContent'] = _.map(tempIncident['dataContent'], el => {
-            return {...el, _menu: el.id === allValue.id}
-        });
-        this.setState({incident: tempIncident})
-    };
+      let tempIncident = {...this.state.incident};
 
+      tempIncident['dataContent'] = _.map(tempIncident['dataContent'], el => {
+        return {
+          ...el,
+          _menu: el.id === allValue.id
+        }
+      });
+
+      this.setState({incident: tempIncident})
+    };
 
     /* ------------------ View ------------------- */
     render() {
@@ -445,20 +451,21 @@ class Incident extends Component {
         } = this.state;
         
         let superUserCheck = false;
-        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
-            superUserCheck = true
+
+        if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')) {
+          superUserCheck = true
         }
 
         const tableOptions = {
-            onChangePage: (currentPage) => {
-                this.handlePaginationChange('currentPage', currentPage);
-            },
-            onChangeRowsPerPage: (numberOfRows) => {
-                this.handlePaginationChange('pageSize', numberOfRows);
-            },
-            onColumnSortChange: (changedColumn, direction) => {
-                this.handleTableSort(changedColumn, direction === 'desc');
-            }
+          onChangePage: (currentPage) => {
+            this.handlePaginationChange('currentPage', currentPage);
+          },
+          onChangeRowsPerPage: (numberOfRows) => {
+            this.handlePaginationChange('pageSize', numberOfRows);
+          },
+          onColumnSortChange: (changedColumn, direction) => {
+            this.handleTableSort(changedColumn, direction === 'desc');
+          }
         };
 
         return <div>
@@ -556,7 +563,7 @@ class Incident extends Component {
         }
 
 
-        if (incident.info.flowData.currentEntity[incident.info.id].entityId === incident.info.flowData.firstEntityId){
+        if (incident.info.flowData.currentEntity[incident.info.id].entityId === incident.info.flowData.firstEntityId) {
             returnCheck = false
         }
 
@@ -571,9 +578,9 @@ class Incident extends Component {
 
         let tmpTagList = []
 
-        if(incident.info.tagList && incident.info.tagList.length >= 3){
+        if (incident.info.tagList && incident.info.tagList.length >= 3) {
             tmpTagList = incident.info.tagList.slice(0,3);
-        }else{
+        } else {
             tmpTagList = incident.info.tagList
         }
 
@@ -587,9 +594,9 @@ class Incident extends Component {
                         {
                             _.map(tmpTagList, el => {
                                     let formattedWording = ''
-                                    if (el.tag.tag.length > 6){
+                                    if (el.tag.tag.length > 6) {
                                         formattedWording = el.tag.tag.substr(0, 6) + '...';
-                                    }else{
+                                    } else {
                                         formattedWording = el.tag.tag;
                                     }
                                 return (
@@ -715,6 +722,24 @@ class Incident extends Component {
                     error={!(incident.info.title || '')}
                     disabled={activeContent === 'viewIncident'}/>
             </div>
+            <div className='group full'>
+              <label htmlFor='incidentDescription'>{f('incidentFields.incidentDescription')}</label>
+              <TextField
+                id='incidentDescription'
+                onChange={this.handleDataChangeMui}
+                required
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                multiline
+                rows={3}
+                rowsMax={3}
+                helperText={it('txt-required')}
+                name='incidentDescription'
+                error={!(incident.info.incidentDescription || '')}
+                value={incident.info.incidentDescription}
+                disabled={activeContent === 'viewIncident'} />
+            </div>
             <div className='group'>
                 <label htmlFor='category'>{f('incidentFields.category')}</label>
                 <TextField
@@ -828,24 +853,43 @@ class Incident extends Component {
                 </MuiPickersUtilsProvider>
             </div>
 
-            {incidentType === 'ttps' && <div className='group full'>
-                <label htmlFor='description'>{f('incidentFields.description')}</label>
-                <TextField
-                    id='description'
-                    onChange={this.handleDataChangeMui}
-                    required
-                    variant='outlined'
-                    fullWidth={true}
-                    size='small'
-                    multiline
-                    rows={3}
-                    rowsMax={3}
-                    helperText={it('txt-required')}
-                    name='description'
-                    error={!(incident.info.description || '')}
-                    value={incident.info.description}
-                    disabled={activeContent === 'viewIncident'}/>
-            </div>}
+            <div className='group full'>
+              <label htmlFor='attackName'>{f('incidentFields.attackName')}</label>
+              <TextField
+                id='attackName'
+                onChange={this.handleDataChangeMui}
+                required
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                multiline
+                rows={3}
+                rowsMax={3}
+                helperText={it('txt-required')}
+                name='attackName'
+                error={!(incident.info.attackName || '')}
+                value={incident.info.attackName}
+                disabled={activeContent === 'viewIncident'} />
+            </div>
+
+            <div className='group full'>
+              <label htmlFor='description'>{f('incidentFields.description')}</label>
+              <TextField
+                id='description'
+                onChange={this.handleDataChangeMui}
+                required
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                multiline
+                rows={3}
+                rowsMax={3}
+                helperText={it('txt-required')}
+                name='description'
+                error={!(incident.info.description || '')}
+                value={incident.info.description}
+                disabled={activeContent === 'viewIncident'} />
+            </div>
 
             {incidentType === 'ttps' &&
             <div className='group full'>
@@ -885,7 +929,7 @@ class Incident extends Component {
     }
 
     formatBytes = (bytes, decimals = 2) => {
-        if (bytes === 0 || bytes === '0'){
+        if (bytes === 0 || bytes === '0') {
             return '0 Bytes';
         }
 
@@ -1071,7 +1115,7 @@ class Incident extends Component {
                         return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
                     }
                     else if (tempData === 'fileMemo') {
-                        if (incident.info.attachmentDescription){
+                        if (incident.info.attachmentDescription) {
                             const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
 
                             let formattedWording = ''
@@ -1079,7 +1123,7 @@ class Incident extends Component {
                             if (target) {
                                 if (target.fileMemo && target.fileMemo.length > 32) {
                                     formattedWording = target.fileMemo.substr(0, 32) + '...';
-                                }else{
+                                } else {
                                     formattedWording = target.fileMemo
                                 }
                             }
@@ -1413,11 +1457,11 @@ class Incident extends Component {
             incident.info.eventList = _.map(incident.info.eventList, el => {
 
                 _.forEach(el.eventConnectionList, eventConnectItem=>{
-                   if( eventConnectItem.srcPort === ''){
+                   if ( eventConnectItem.srcPort === '') {
                        eventConnectItem.srcPort = 0
                    }
 
-                   if(  eventConnectItem.dstPort === ''){
+                   if (  eventConnectItem.dstPort === '') {
                        eventConnectItem.dstPort = 0
                    }
                 })
@@ -1497,7 +1541,7 @@ class Incident extends Component {
             return false;
         }
 
-        if (!incident.title || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+        if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-validBasic'),
@@ -1516,31 +1560,30 @@ class Incident extends Component {
             });
 
             return false
-        }
-        else {
+        } else {
 
             let eventCheck = true;
 
-            if (incident.eventList.length <= 0){
+            if (incident.eventList.length <= 0) {
                 PopupDialog.alert({
                     title: t('txt-tips'),
                     display: it('txt-validEvents'),
                     confirmText: t('txt-close')
                 });
                 eventCheck = false;
-            }else{
+            } else {
                 _.forEach(incident.eventList, event => {
-                    if(_.size(event.eventConnectionList)<= 0){
+                    if (_.size(event.eventConnectionList)<= 0) {
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: it('txt-validEvents'),
                             confirmText: t('txt-close')
                         });
                         eventCheck = false
-                    }else{
+                    } else {
                         _.forEach(event.eventConnectionList, eventConnect => {
 
-                            if (!helper.ValidateIP_Address(eventConnect.srcIp) ){
+                            if (!helper.ValidateIP_Address(eventConnect.srcIp) ) {
                                 PopupDialog.alert({
                                     title: t('txt-tips'),
                                     display: t('network-topology.txt-ipValidationFail'),
@@ -1550,7 +1593,7 @@ class Incident extends Component {
                                 return
                             }
 
-                            if (!helper.ValidateIP_Address(eventConnect.dstIp)){
+                            if (!helper.ValidateIP_Address(eventConnect.dstIp)) {
                                 PopupDialog.alert({
                                     title: t('txt-tips'),
                                     display: t('network-topology.txt-ipValidationFail'),
@@ -1560,8 +1603,8 @@ class Incident extends Component {
                                 return
                             }
 
-                            if (eventConnect.dstPort){
-                                if (!helper.ValidatePort(eventConnect.dstPort)){
+                            if (eventConnect.dstPort) {
+                                if (!helper.ValidatePort(eventConnect.dstPort)) {
                                     PopupDialog.alert({
                                         title: t('txt-tips'),
                                         display: t('network-topology.txt-portValidationFail'),
@@ -1572,8 +1615,8 @@ class Incident extends Component {
                                 }
                             }
 
-                            if (eventConnect.srcPort){
-                                if (!helper.ValidatePort(eventConnect.srcPort)){
+                            if (eventConnect.srcPort) {
+                                if (!helper.ValidatePort(eventConnect.srcPort)) {
                                     PopupDialog.alert({
                                         title: t('txt-tips'),
                                         display: t('network-topology.txt-portValidationFail'),
@@ -1590,7 +1633,7 @@ class Incident extends Component {
 
 
 
-            if (!eventCheck){
+            if (!eventCheck) {
                 return false
             }
 
@@ -1642,23 +1685,23 @@ class Incident extends Component {
                         _.forEach(ttp.obsFileList, file => {
                             if (file.fileName && file.fileExtension) {
                                 if (file.md5 || file.sha1 || file.sha256) {
-                                    if (helper.validateInputRuleData('fileHashMd5',file.md5)){
+                                    if (helper.validateInputRuleData('fileHashMd5',file.md5)) {
                                         fileCheck = true
-                                    }else if (helper.validateInputRuleData('fileHashSha1',file.sha1)){
+                                    } else if (helper.validateInputRuleData('fileHashSha1',file.sha1)) {
                                         fileCheck = true
-                                    }else if (helper.validateInputRuleData('fileHashSha256',file.sha256)){
+                                    } else if (helper.validateInputRuleData('fileHashSha256',file.sha256)) {
                                         fileCheck = true
-                                    }else{
+                                    } else {
                                         fileCheck = false
                                         return
                                     }
-                                }else {
+                                } else {
                                     fileCheck = false
                                     return
                                 }
                             }
                         })
-                    }else{
+                    } else {
                         fileCheck = true
                     }
 
@@ -1671,7 +1714,7 @@ class Incident extends Component {
                                 return
                             }
                         })
-                    }else{
+                    } else {
                         urlCheck = true
                     }
 
@@ -1679,7 +1722,7 @@ class Incident extends Component {
                     if (_.size(ttp.obsSocketList) > 0) {
                         _.forEach(ttp.obsSocketList, socket => {
                             if (socket.ip || socket.port) {
-                                if (socket.ip && !helper.ValidateIP_Address(socket.ip)){
+                                if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
                                     PopupDialog.alert({
                                         title: t('txt-tips'),
                                         display: t('network-topology.txt-ipValidationFail'),
@@ -1689,8 +1732,8 @@ class Incident extends Component {
                                     return
                                 }
 
-                                if (socket.port){
-                                    if (!helper.ValidatePort(socket.port)){
+                                if (socket.port) {
+                                    if (!helper.ValidatePort(socket.port)) {
                                         PopupDialog.alert({
                                             title: t('txt-tips'),
                                             display: t('network-topology.txt-portValidationFail'),
@@ -1698,8 +1741,8 @@ class Incident extends Component {
                                         });
                                         socketCheck = false
                                         return
-                                    }else{
-                                        if (!socket.ip){
+                                    } else {
+                                        if (!socket.ip) {
                                             PopupDialog.alert({
                                                 title: t('txt-tips'),
                                                 display: t('network-topology.txt-ipValidationFail'),
@@ -1712,16 +1755,16 @@ class Incident extends Component {
                                     }
                                 }
                                 socketCheck = true
-                            }else {
+                            } else {
                                 socketCheck = false
                                 return
                             }
                         })
-                    }else{
+                    } else {
                         socketCheck = true
                     }
 
-                    if (!fileCheck && !urlCheck && !socketCheck){
+                    if (!fileCheck && !urlCheck && !socketCheck) {
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
@@ -1730,7 +1773,7 @@ class Incident extends Component {
                         statusCheck = false
                     }
 
-                    if (!fileCheck){
+                    if (!fileCheck) {
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: it('txt-checkFileFieldType'),
@@ -1739,7 +1782,7 @@ class Incident extends Component {
                         statusCheck = false
                     }
 
-                    if (!urlCheck){
+                    if (!urlCheck) {
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: it('txt-checkUrlFieldType'),
@@ -1747,7 +1790,7 @@ class Incident extends Component {
                         });
                         statusCheck = false
                     }
-                    if (!socketCheck){
+                    if (!socketCheck) {
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: it('txt-checkIPFieldType'),
@@ -1756,7 +1799,7 @@ class Incident extends Component {
                         statusCheck = false
                     }
 
-                    if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0){
+                    if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0) {
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
@@ -1768,10 +1811,10 @@ class Incident extends Component {
                 })
 
                 let empty = _.filter(incident.ttpList, function (o) {
-                    if (o.infrastructureType === undefined || o.infrastructureType === 0){
+                    if (o.infrastructureType === undefined || o.infrastructureType === 0) {
                         o.infrastructureType = '0'
                     }
-                    if (!o.title || !o.infrastructureType){
+                    if (!o.title || !o.infrastructureType) {
                         statusCheck = false
                     }
                 });
@@ -1844,7 +1887,7 @@ class Incident extends Component {
                     if (tempTtp.infrastructureType === 0) {
                         tempTtp.infrastructureType = '0'
 
-                    }else if (tempTtp.infrastructureType === 1) {
+                    } else if (tempTtp.infrastructureType === 1) {
                         tempTtp.infrastructureType = '1'
 
                     }
@@ -1920,7 +1963,7 @@ class Incident extends Component {
                         if (tempTtp.infrastructureType === 0) {
                             tempTtp.infrastructureType = '0'
 
-                        }else if (tempTtp.infrastructureType === 1) {
+                        } else if (tempTtp.infrastructureType === 1) {
                             tempTtp.infrastructureType = '1'
 
                         }
@@ -2064,8 +2107,7 @@ class Incident extends Component {
                 }
             }
         })
-    };
-
+    }
 
     openReviewModal= (allValue, reviewType) => {
         PopupDialog.prompt({
@@ -2103,7 +2145,7 @@ class Incident extends Component {
                 }
             }
         })
-    };
+    }
 
     /**
      * Handle delete Incident confirm
@@ -2144,7 +2186,7 @@ class Incident extends Component {
             // this.loadData()
             this.loadData(type)
         })
-    };
+    }
 
     toggleContent = (type, allValue) => {
         const {baseUrl, contextRoot} = this.context;
@@ -2157,8 +2199,10 @@ class Incident extends Component {
             tempIncident.info = {
                 id: allValue.id,
                 title: allValue.title,
+                incidentDescription: allValue.incidentDescription,
                 category: allValue.category,
                 reporter: allValue.reporter,
+                attackName: allValue.attackName,
                 description: allValue.description,
                 impactAssessment: allValue.impactAssessment,
                 socType: allValue.socType,
@@ -2200,8 +2244,10 @@ class Incident extends Component {
             tempIncident.info = {
                 id: null,
                 title: null,
+                incidentDescription: null,
                 category: null,
                 reporter: null,
+                attackName: null,
                 description: null,
                 impactAssessment: 4,
                 socType: null,
@@ -2229,15 +2275,17 @@ class Incident extends Component {
                 flowTemplateId: '',
                 flowData: {}
             };
+
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
             }
+
             this.setState({
                 showFilter: false,
                 originalIncident: _.cloneDeep(tempIncident),
                 incidentType: allValue,
                 displayPage: 'main'
-            })
+            });
         } else if (type === 'tableList') {
             tempIncident.info = _.cloneDeep(incident.info)
         } else if (type === 'cancel-add') {
@@ -2255,15 +2303,15 @@ class Incident extends Component {
                 severity: alertData._severity_,
             };
 
-            if (tempIncident.info.severity === 'Emergency'){
+            if (tempIncident.info.severity === 'Emergency') {
                 tempIncident.info['impactAssessment'] = 4
-            }else  if (tempIncident.info.severity === 'Alert'){
+            } else  if (tempIncident.info.severity === 'Alert') {
                 tempIncident.info['impactAssessment'] = 3
-            }else  if (tempIncident.info.severity === 'Notice'){
+            } else  if (tempIncident.info.severity === 'Notice') {
                 tempIncident.info['impactAssessment'] = 1
-            }else  if (tempIncident.info.severity === 'Warning'){
+            } else  if (tempIncident.info.severity === 'Warning') {
                 tempIncident.info['impactAssessment'] = 2
-            }else  if (tempIncident.info.severity === 'Critical'){
+            } else  if (tempIncident.info.severity === 'Critical') {
                 tempIncident.info['impactAssessment'] = 3
             }
 
@@ -2324,14 +2372,14 @@ class Incident extends Component {
         } else if (type === 'audit') {
         } else if (type === 'download') {
             this.getIncidentSTIXFile(allValue.id);
-        } else if(type === 'refreshAttach'){
+        } else if (type === 'refreshAttach') {
             tempIncident.info.attachmentDescription = allValue.attachmentDescription;
             tempIncident.info.fileList = allValue.fileList;
             tempIncident.info.fileMemo =  allValue.fileMemo;
             this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
-            if (this.state.activeContent === 'editIncident'){
+            if (this.state.activeContent === 'editIncident') {
                 showPage = 'editIncident'
-            }else{
+            } else {
                 showPage = 'viewIncident'
             }
         }
@@ -2572,45 +2620,45 @@ class Incident extends Component {
           return;
         }        
 
-        if (event.target.name === 'severity'){
-            if (event.target.value === 'Emergency'){
+        if (event.target.name === 'severity') {
+            if (event.target.value === 'Emergency') {
                 temp.info['impactAssessment'] = 4
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Alert'){
+            } else  if (event.target.value === 'Alert') {
                 temp.info['impactAssessment'] = 3
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Notice'){
+            } else  if (event.target.value === 'Notice') {
                 temp.info['impactAssessment'] = 1
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Warning'){
+            } else  if (event.target.value === 'Warning') {
                 temp.info['impactAssessment'] = 2
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }else  if (event.target.value === 'Critical'){
+            } else  if (event.target.value === 'Critical') {
                 temp.info['impactAssessment'] = 3
                 temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
             }
         }
 
-        if (event.target.name === 'flowTemplateId'){
+        if (event.target.name === 'flowTemplateId') {
             _.forEach(socFlowSourceList , flowVal =>{
-                if (flowVal.id === event.target.value){
-                    if (flowVal.severity === 'Emergency'){
+                if (flowVal.id === event.target.value) {
+                    if (flowVal.severity === 'Emergency') {
                         temp.info['severity'] = 'Emergency'
                         temp.info['impactAssessment'] = 4
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Alert'){
+                    } else  if (flowVal.severity === 'Alert') {
                         temp.info['severity'] = 'Alert'
                         temp.info['impactAssessment'] = 3
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Notice'){
+                    } else  if (flowVal.severity === 'Notice') {
                         temp.info['severity'] = 'Notice'
                         temp.info['impactAssessment'] = 1
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Warning'){
+                    } else  if (flowVal.severity === 'Warning') {
                         temp.info['severity'] = 'Warning'
                         temp.info['impactAssessment'] = 2
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }else  if (flowVal.severity === 'Critical'){
+                    } else  if (flowVal.severity === 'Critical') {
                         temp.info['severity'] = 'Critical'
                         temp.info['impactAssessment'] = 3
                         temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
@@ -2880,17 +2928,20 @@ class Incident extends Component {
         payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2})
         payload.basic.table.push({text: incident.title, colSpan: 2})
         payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.incidentDescription'), colSpan: 4});
+        payload.basic.table.push({text: incident.incidentDescription, colSpan: 4});
         payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2})
         payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1})
         payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1})
         payload.basic.table.push({text: incident.reporter, colSpan: 2})
         payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
         payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
+        payload.basic.table.push({text: f('incidentFields.attackName'), colSpan: 4});
+        payload.basic.table.push({text: incident.attackName, colSpan: 4});
+        payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4});
+        payload.basic.table.push({text: incident.description, colSpan: 4});        
 
         if (incidentType === 'ttps') {
-            payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
-            payload.basic.table.push({text: incident.description, colSpan: 4})
-
             if (_.size(incident.relatedList) > 0) {
                 let value = []
                 _.forEach(incident.relatedList, el => {
