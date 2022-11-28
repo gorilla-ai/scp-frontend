@@ -101,6 +101,7 @@ class IncidentEventMake extends Component {
         }
       },
       attach: null,
+      filesName: [],
       contextAnchor: null,
       currentData: {},
       activeSteps: 1
@@ -423,52 +424,54 @@ class IncidentEventMake extends Component {
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
-  getErrorMsg = (code, params) => {
-    if (params.code === 'file-too-large') {
-      return it('file-too-large')
-    }
-  }
-  uploadAttachmentModal = () => {
-    PopupDialog.prompt({
-      title: t('txt-upload'),
-      confirmText: t('txt-confirm'),
-      cancelText: t('txt-cancel'),
-      display: (
-        <div className='c-form content'>
-          <div>
-            <FileInput
-              id='attach'
-              name='file'
-              validate={{
-                max: 20,
-                t: this.getErrorMsg
-              }}
-              onChange={this.handleAFChange}
-              btnText={t('txt-selectFile')} />
-          </div>
-          <div>
-            <label>{it('txt-fileMemo')}</label>
-            <TextareaAutosize
-              id='comment'
-              className='textarea-autosize'
-              rows={3} />
-          </div>
-        </div>
-      ),
-      act: (confirmed, data) => {
-        if (confirmed) {
-          let flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+  /**
+   * Handle file upload change
+   * @method
+   * @param {string} [options] - option for 'clear'
+   */
+  handleFileChange = (options) => {
+    const input = document.getElementById('multiMalware');
+    let filesName = [];
 
-          if (flag.test(data.file.name)) {
-          } else {
-            this.uploadAttachmentByModal(data.file, data.comment);
-          }
+    if (options === 'clear') {
+      this.setState({
+        filesName: ''
+      });
+
+      this.props.handleAttachChange(options);
+      return;
+    }
+
+    if (_.size(input.files) > 0) {
+      const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+      let validate = true;
+
+      _.forEach(input.files, val => {
+        if (flag.test(val.name)) {
+          validate = false;
+          helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
+          return;
+        } else if (val.size > 20000000) {
+          validate = false;
+          helper.showPopupMsg(it('file-too-large'), t('txt-error'));
+          return;
+        } else {
+          filesName.push(val.name);
         }
-      }
-    })
+      })
+
+      if (!validate) return;
+
+      this.setState({
+        filesName: filesName.join(', ')
+      });
+
+      this.props.handleAttachChange(input.files);
+    }
   }
   displayAttached = () => {
     const {remoteIncident} = this.props;
+    const {filesName} = this.state;
 
     return (
       <div className='form-group long' style={{width: '85%'}}>
@@ -477,16 +480,14 @@ class IncidentEventMake extends Component {
         </header>
 
         <div className='group'>
-          <FileInput
-            id='attach'
-            name='file'
-            className='file-input'
-            validate={{
-              max: 20,
-              t: this.getErrorMsg
-            }}
-            onChange={this.handleAttachChange}
-            btnText={t('txt-selectFile')} />
+          <div className='c-file-input clearable file-input' style={{width: '99.5%'}}>
+            <input type='file' id='multiMalware' style={{width: 'calc(100% - 25px)'}} multiple onChange={this.handleFileChange} />
+            <button type='button'>{t('txt-selectFile')}</button>
+            <input type='text' className='long-name' readOnly value={filesName} />
+            {filesName.length > 0 &&
+              <i class='c-link inline fg fg-close' onClick={this.handleFileChange.bind(this, 'clear')}></i>
+            }
+          </div>
         </div>
         <div className='group'>
           <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>

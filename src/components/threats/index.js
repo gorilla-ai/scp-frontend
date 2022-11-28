@@ -1441,7 +1441,11 @@ class ThreatsController extends Component {
     if (incident.info.attach) {
       let formData = new FormData();
       formData.append('id', incidentId);
-      formData.append('file', incident.info.attach);
+
+      _.forEach(incident.info.attach, val => {
+        formData.append('file', val);
+      })
+
       formData.append('fileMemo', incident.info.fileMemo);
 
       helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -1559,16 +1563,9 @@ class ThreatsController extends Component {
       incident: tempIncident
     });
   }
-  handleAttachChange = (val) => {
-    const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+  handleAttachChange = (files) => {
     let tempIncident = {...this.state.incident};
-
-    if (flag.test(val.name)) {
-      helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
-      tempIncident.info.attach = null;
-    } else {
-      tempIncident.info.attach = val;
-    }
+    tempIncident.info.attach = files === 'clear' ? null : files;
 
     this.setState({
       incident: tempIncident

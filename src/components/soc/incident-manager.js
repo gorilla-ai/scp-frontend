@@ -67,7 +67,7 @@ class IncidentManagement extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     it = global.chewbaccaI18n.getFixedT(null, 'incident');
     at = global.chewbaccaI18n.getFixedT(null, 'account');
@@ -1503,7 +1503,7 @@ class IncidentManagement extends Component {
    */
   uploadAttachmentConfirm = () => {
     const {baseUrl} = this.context;
-    const {incident, attach, filesName} = this.state;
+    const {incident, attach} = this.state;
 
     if (attach.length > 0) {
       let formData = new FormData();

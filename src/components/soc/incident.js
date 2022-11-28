@@ -21,6 +21,7 @@ import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
 import DataTable from 'react-ui/build/src/components/table'
 import FileInput from 'react-ui/build/src/components/file-input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
@@ -87,6 +88,7 @@ class Incident extends Component {
       toggleType:'',
       showFilter: false,
       showChart: true,
+      uploadAttachmentOpen: false,
       currentIncident: {},
       originalIncident: {},
       accountType:constants.soc.LIMIT_ACCOUNT,
@@ -135,6 +137,7 @@ class Incident extends Component {
       accountRoleType: [],
       loadListType: 1,
       attach: null,
+      filesName: [],
       contextAnchor: null,
       currentData: {},
     };
@@ -427,8 +430,20 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData, accountType} = this.state
-        const {session} = this.context
+        const {session} = this.context;
+        const {
+          activeContent,
+          baseUrl,
+          contextRoot,
+          showFilter,
+          showChart,
+          uploadAttachmentOpen,
+          incident, 
+          contextAnchor,
+          currentData,
+          accountType
+        } = this.state;
+        
         let superUserCheck = false;
         if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')){
             superUserCheck = true
@@ -461,6 +476,10 @@ class Incident extends Component {
             <NotifyDialog ref={ref => {
                 this.notifyDialog = ref
             }} />
+
+            {uploadAttachmentOpen &&
+              this.uploadAttachmentModal()
+            }
 
             <Menu
                 anchorEl={contextAnchor}
@@ -879,63 +898,166 @@ class Incident extends Component {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    handleAttachChange = (val) => {
-        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-        if (flag.test(val.name)){
-            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
-            this.setState({attach: null})
-        }else{
-            this.setState({attach: val})
-        }
-    }
+    /**
+     * Handle file upload change
+     * @method
+     * @param {string} [options] - option for 'clear'
+     */
+    handleFileChange = (options) => {
+      const input = document.getElementById('multiMalware');
+      let filesName = [];
 
-    handleAFChange(file) {
-        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+      if (options === 'clear') {
+        this.setState({
+          attach: null,
+          filesName: ''
+        });
+        return;
+      }
 
-        if (flag.test(file.name)){
-            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
-            this.setState({attach: null})
-        }
-    }
+      if (_.size(input.files) > 0) {
+        const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+        let validate = true;
 
-    getErrorMsg = (code, params) => {
-        if (params.code === 'file-too-large') {
-            return it('file-too-large')
-        }
-    }
-
-    uploadAttachmentModal() {
-        PopupDialog.prompt({
-            title: t('txt-upload'),
-            confirmText: t('txt-confirm'),
-            cancelText: t('txt-cancel'),
-            display: <div className='c-form content'>
-                <div>
-                    <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}
-                               onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
-                </div>
-                <div>
-                    <label>{it('txt-fileMemo')}</label>
-                    <TextareaAutosize id='comment'
-                                      className='textarea-autosize' rows={3} />
-                </div>
-            </div>,
-            act: (confirmed, data) => {
-
-                if (confirmed) {
-                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
-
-                    if (flag.test(data.file.name)){
-                    }else{
-                        this.uploadAttachmentByModal(data.file, data.comment)
-                    }
-                }
-            }
+        _.forEach(input.files, val => {
+          if (flag.test(val.name)) {
+            validate = false;
+            helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
+            return;
+          } else if (val.size > 20000000) {
+            validate = false;
+            helper.showPopupMsg(it('file-too-large'), t('txt-error'));
+            return;
+          } else {
+            filesName.push(val.name);
+          }
         })
+
+        if (!validate) return;
+
+        this.setState({
+          attach: input.files,
+          filesName: filesName.join(', ')
+        });
+      }
+    }
+    /**
+     * Toggle file upload modal
+     * @method
+     */
+    toggleUploadAttahment = () => {
+      this.setState({
+        uploadAttachmentOpen: !this.state.uploadAttachmentOpen
+      }, () => {
+        if (!this.state.uploadAttachmentOpen) {
+          this.setState({
+            attach: null,
+            filesName: []
+          });
+        }
+      });
+    }
+
+    /**
+     * Display file upload content
+     * @method
+     * @param {string} type - page type ('page' or 'modal')
+     * @returns HTML DOM
+     */  
+    commonUploadContent = (type) => {
+      const {incident, filesName} = this.state;
+
+      return (
+        <React.Fragment>
+          <div className='group'>
+            <div className='c-file-input clearable file-input' style={type === 'page' ? {width: '95%'} : null}>
+              <input type='file' id='multiMalware' style={{width: 'calc(100% - 25px)'}} multiple onChange={this.handleFileChange} />
+              <button type='button'>{t('txt-selectFile')}</button>
+              <input type='text' className='long-name' readOnly value={filesName} />
+              {filesName.length > 0 &&
+                <i class='c-link inline fg fg-close' onClick={this.handleFileChange.bind(this, 'clear')}></i>
+              }
+            </div>
+          </div>
+          <div className='group'>
+            <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
+            <TextareaAutosize
+              id='fileMemo'
+              name='fileMemo'
+              className='textarea-autosize'
+              onChange={this.handleDataChangeMui}
+              value={incident.info.fileMemo}
+              rows={2} />
+          </div>
+        </React.Fragment>
+      )
+    }
+    /**
+     * Handle file upload modal
+     * @method
+     * @returns ModalDialog component
+     */
+    uploadAttachmentModal = () => {
+      const actions = {
+        cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadAttahment},
+        confirm: {text: t('txt-confirm'), handler: this.uploadAttachmentConfirm}
+      };
+
+      return (
+        <ModalDialog
+          id='uploadAttachmentDialog'
+          className='modal-dialog'
+          title={it('txt-attachedFile')}
+          draggable={true}
+          global={true}
+          actions={actions}
+          closeAction='cancel'>
+          <div className='c-form content'>
+            {this.commonUploadContent('modal')}
+          </div>
+        </ModalDialog>
+      )
+    }
+
+    /**
+     * Handle file upload confirm
+     * @method
+     */
+    uploadAttachmentConfirm = () => {
+      const {baseUrl} = this.context;
+      const {incident, attach} = this.state;
+
+      if (attach.length > 0) {
+        let formData = new FormData();
+        formData.append('id', incident.info.id);
+
+        _.forEach(attach, val => {
+          formData.append('file', val);
+        })
+
+        formData.append('fileMemo', incident.info.fileMemo);
+
+        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+        ah.one({
+          url: `${baseUrl}/api/soc/attachment/_upload`,
+          data: formData,
+          type: 'POST',
+          processData: false,
+          contentType: false
+        })
+        .then(data => {
+          this.refreshIncidentAttach(incident.info.id);
+          this.toggleUploadAttahment();
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+      }
     }
 
     displayAttached = () => {
-        const {activeContent, incidentType, incident, attach} = this.state;
+        const {activeContent, incidentType, incident, attach, filesName} = this.state;
         let dataFields = {};
         incident.fileFieldsArr.forEach(tempData => {
             dataFields[tempData] = {
@@ -996,14 +1118,14 @@ class Incident extends Component {
             {
                 activeContent === 'addIncident' &&
                 <div className='group'>
-                    <FileInput
-                        id='attach'
-                        name='file'
-                        className='file-input'
-                        validate={{ max:20 ,t: this.getErrorMsg}}
-                        onChange={this.handleAttachChange}
-                        btnText={t('txt-selectFile')}
-                    />
+                  <div className='c-file-input clearable file-input' style={type === 'page' ? {width: '95%'} : null}>
+                    <input type='file' id='multiMalware' style={{width: 'calc(100% - 25px)'}} multiple onChange={this.handleFileChange} />
+                    <button type='button'>{t('txt-selectFile')}</button>
+                    <input type='text' className='long-name' readOnly value={filesName} />
+                    {filesName.length > 0 &&
+                      <i class='c-link inline fg fg-close' onClick={this.handleFileChange.bind(this, 'clear')}></i>
+                    }
+                  </div>
                 </div>
             }
             {
@@ -1022,7 +1144,7 @@ class Incident extends Component {
             {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
-                    <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+                    <Button variant='contained' color='primary' className='upload' onClick={this.toggleUploadAttahment}>{t('txt-upload')}</Button>
                 </div>
             }
             {
@@ -2698,34 +2820,6 @@ class Incident extends Component {
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
-    }
-
-    uploadAttachmentByModal(file, fileMemo) {
-        const {baseUrl} = this.context
-        let {incident} = this.state
-
-        if (file) {
-            let formData = new FormData()
-            formData.append('id', incident.info.id)
-            formData.append('file', file)
-            formData.append('fileMemo', fileMemo)
-
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
-                url: `${baseUrl}/api/soc/attachment/_upload`,
-                data: formData,
-                type: 'POST',
-                processData: false,
-                contentType: false
-            })
-            .then(data => {
-                this.refreshIncidentAttach(incident.info.id)
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-        }
     }
 
     downloadAttachment(allValue) {
