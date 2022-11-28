@@ -2014,7 +2014,16 @@ class IncidentManagement extends Component {
   checkRequired = (incident) => {
     const {incidentType} = this.state;
 
-    if (!incident.title || !incident.incidentDescription || !incident.category || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+    if (!incident.category || incident.category === 0 || incident.category === 9) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validCategory'),
+        confirmText: t('txt-close')
+      });
+      return false;
+    }
+
+    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validBasic'),

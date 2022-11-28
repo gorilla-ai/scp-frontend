@@ -158,6 +158,7 @@
 	"txt-validTechniqueInfa": "Please check the Technique & Infrastructure Type",
 	"txt-validTTPs": "Please check the is enter correct TTPs values or not",
 	"txt-validEvents": "Please check the is enter correct Incident Events values or not",
+	"txt-validCategory": "Please check the is enter correct Category values or not",
 	"txt-validBasic": "Please check the is enter correct Incident Basic Info values or not",
 	"txt-portValidationFail": "Please check the correct port number",
 	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",

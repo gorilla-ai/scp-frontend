@@ -1192,7 +1192,16 @@ class ThreatsController extends Component {
     });
   }
   checkRequired = (incident) => {
-    if (!incident.title || !incident.incidentDescription || !incident.category || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType) {
+    if (!incident.category || incident.category === 0 || incident.category === 9) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validCategory'),
+        confirmText: t('txt-close')
+      });
+      return false;
+    }
+
+    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.impactAssessment || !incident.socType) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validBasic'),
@@ -1327,7 +1336,6 @@ class ThreatsController extends Component {
   handleMakeIncidentSubmit = () => {
     const {session, baseUrl} = this.context;
     const {enableEstablishDttm} = this.state;
-    const selectType = incident.info.selectRowsType;
     let incident = {...this.state.incident};
 
     if (!this.checkRequired(incident.info)) {
@@ -1401,6 +1409,7 @@ class ThreatsController extends Component {
           act: (confirmed) => {
             if (confirmed) {
               const {trackData, cancelThreatsList} = this.state;
+              const selectType = incident.info.selectRowsType;
 
               if (selectType === 'select') {
                 this.overrideAlertTrack(_.xorBy(trackData.dataContent, cancelThreatsList));

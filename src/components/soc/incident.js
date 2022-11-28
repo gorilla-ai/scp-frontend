@@ -1366,7 +1366,16 @@ class Incident extends Component {
     checkRequired(incident) {
         const {incidentType} = this.state;
 
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+        if (!incident.category || incident.category === 0 || incident.category === 9) {
+            PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-validCategory'),
+                confirmText: t('txt-close')
+            });
+            return false;
+        }
+
+        if (!incident.title || !incident.reporter || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-validBasic'),
