@@ -110,6 +110,13 @@ class IncidentEventMake extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    });
+
+    this.setState({
+      severityList
+    });
   }
   handleOpenMenu = (data, event) => {
     this.setState({
@@ -322,8 +329,7 @@ class IncidentEventMake extends Component {
             variant='outlined'
             size='small'
             onChange={this.handleDataChangeMui}
-            value={remoteIncident.info.severity}
-            disabled={true}>
+            value={remoteIncident.info.severity}>
             {severityList}
           </TextField>
         </div>

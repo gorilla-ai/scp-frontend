@@ -2896,6 +2896,12 @@ class IncidentManagement extends Component {
         tempIncident.info.socType = 1;
       }
 
+      if (allValue.establishDttm) {
+        tempIncident.info.enableEstablishDttm = true;
+      } else {
+        tempIncident.info.enableEstablishDttm = false;
+      }
+
       this.setState({
         showFilter: false,
         originalIncident: _.cloneDeep(tempIncident)
