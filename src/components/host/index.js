@@ -390,7 +390,7 @@ class HostController extends Component {
       activeFilter: '', //Same as FILTER_LIST
       showLeftNav: true,
       datetimeExport: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-      trackHostFile: '',
+      trackHostFile: null,
       assessmentDatetime: {
         from: '',
         to: ''
@@ -3982,7 +3982,10 @@ class HostController extends Component {
    */
   toggleTrackHostList = () => {
     this.setState({
-      trackHostListOpen: !this.state.trackHostListOpen
+      activeTrackHostTab: 'date',
+      trackHostListOpen: !this.state.trackHostListOpen,
+      datetimeExport: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+      trackHostFile: null,
     });
   }
   /**
