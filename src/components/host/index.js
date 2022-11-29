@@ -5,7 +5,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import { MuiPickersUtilsProvider, KeyboardDateTimePicker, KeyboardTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker, KeyboardDatePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -363,8 +363,10 @@ class HostController extends Component {
       openQueryOpen: false,
       saveQueryOpen: false,
       uploadHmdFileOpen: false,
+      trackHostListOpen: false,
       uploadCpeFileOpen: false,
       importCsvOpen: false,
+      activeTrackHostTab: 'date', //'date' or 'file'
       importFilterType: '', //'ip' or 'safetyScanInfo'
       safetyScanInfoScore: '',
       LAconfig: {},
@@ -387,6 +389,8 @@ class HostController extends Component {
       popOverAnchor: null,
       activeFilter: '', //Same as FILTER_LIST
       showLeftNav: true,
+      datetimeExport: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+      trackHostFile: '',
       assessmentDatetime: {
         from: '',
         to: ''
@@ -3973,6 +3977,15 @@ class HostController extends Component {
     });
   }
   /**
+   * Toggle track host list
+   * @method
+   */
+  toggleTrackHostList = () => {
+    this.setState({
+      trackHostListOpen: !this.state.trackHostListOpen
+    });
+  }
+  /**
    * Handle HMD setup file upload
    * @method
    * @param {object} file - file uploaded by the user
@@ -4051,6 +4064,150 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Toggle track host list tab
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - track type ('date' or 'file')
+   */
+  toggleHostListType = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      activeTrackHostTab: type
+    });
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (newDatetime) => {
+    this.setState({
+      datetimeExport: newDatetime
+    });
+  }
+  /**
+   * Handle track host file upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  getTrackHostFile = (file) => {
+    this.setState({
+      trackHostFile: file
+    });
+  }
+  /**
+   * Display track host list content
+   * @method
+   * @returns HTML DOM
+   */
+  displayTrackHostListContent = () => {
+    const {locale} = this.context;
+    const {activeTrackHostTab, datetimeExport} = this.state;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      <div className='track-host-content'>
+        <div className='options-btns'>
+          <ToggleButtonGroup
+            id='trackHostListBtn'
+            value={activeTrackHostTab}
+            exclusive
+            onChange={this.toggleHostListType}>
+            <ToggleButton id='trackHostListDate' value='date'>{t('txt-selectDate')}</ToggleButton>
+            <ToggleButton id='trackHostListFile' value='file'>{t('host.txt-uploadHostList')}</ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+
+        {activeTrackHostTab === 'date' &&
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDatePicker
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD'
+              maxDate={moment().local().format('YYYY-MM-DDTHH:mm:ss')}
+              minDate={helper.getSubstractDate(1, 'month')}
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              value={datetimeExport}
+              onChange={this.handleDateChange} />
+          </MuiPickersUtilsProvider>
+        }
+        {activeTrackHostTab === 'file' &&
+          <FileUpload
+            id='fileUploadHost'
+            fileType='csv'
+            btnText={t('txt-upload')}
+            handleFileChange={this.getTrackHostFile} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Handle track host list
+   * @method
+   * @returns ModalDialog component
+   */
+  trackHostListDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleTrackHostList},
+      confirm: {text: t('host.txt-downloadTrackList'), handler: this.confirmTrackHostList}
+    };
+    const title = t('host.txt-trackHostList');
+
+    return (
+      <ModalDialog
+        id='trackHostListDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayTrackHostListContent()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle track host list confirm
+   * @method
+   */
+  confirmTrackHostList = () => {
+    const {baseUrl} = this.context;
+    const {activeTrackHostTab, datetimeExport, trackHostFile} = this.state;
+    const url = `${baseUrl}/api/hmd/ipdevice/vans/diff/_export`;
+    let requestData = {
+      hmdScanDistribution: {
+        taskName: 'getVans',
+        primaryKeyName: 'cpe23Uri'
+      }
+    };
+
+    if (activeTrackHostTab === 'date') {
+      const dateTimeFrom = moment(datetimeExport).format('YYYY-MM-DD') + 'T00:00:00';
+      const dateTimeTo = moment(datetimeExport).format('YYYY-MM-DD') + 'T23:59:59';
+      requestData.diffDate = {
+        from: moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+      downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    } else if (activeTrackHostTab === 'file') {
+      downloadWithForm(url, {
+        payload: JSON.stringify(requestData),
+        file: trackHostFile
+      });
+    }
   }
   /**
    * Toggle CPE file upload dialog on/off
@@ -5074,6 +5231,7 @@ class HostController extends Component {
       uploadHmdFileOpen,
       uploadCpeFileOpen,
       importCsvOpen,
+      trackHostListOpen,
       importFilterType,
       LAconfig,
       assessmentDatetime,
@@ -5146,6 +5304,10 @@ class HostController extends Component {
 
         {uploadHmdFileOpen &&
           this.uploadHmdFileDialog()
+        }
+
+        {trackHostListOpen &&
+          this.trackHostListDialog()
         }
 
         {importCsvOpen &&
@@ -5500,6 +5662,7 @@ class HostController extends Component {
                     {safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
+                        <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList}>{t('host.txt-trackHostList')}</Button>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'cpe')}>{t('host.txt-export-cpe')}</Button>
                         {safetyScanData.dataContent &&
                           <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
