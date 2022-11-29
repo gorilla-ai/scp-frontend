@@ -3988,7 +3988,7 @@ class IncidentManagement extends Component {
 
 IncidentManagement.contextType = BaseDataContext;
 IncidentManagement.propTypes = {
-    // nodeBaseUrl: PropTypes.string.isRequired
+  
 };
 
 export default IncidentManagement;

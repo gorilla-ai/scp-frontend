@@ -10,6 +10,8 @@ import 'moment/locale/zh-tw'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import MoreIcon from '@material-ui/icons/More'
@@ -64,11 +66,11 @@ class Incident extends Component {
   constructor(props) {
     super(props);
 
-    t = global.chewbaccaI18n.getFixedT(null, "connections");
-    f = chewbaccaI18n.getFixedT(null, "tableFields");
-    et = global.chewbaccaI18n.getFixedT(null, "errors");
-    it = global.chewbaccaI18n.getFixedT(null, "incident");
-    at = global.chewbaccaI18n.getFixedT(null, "account");
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+    at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
       INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
@@ -148,7 +150,7 @@ class Incident extends Component {
       currentData: {},
     };
 
-    this.ah = getInstance("chewbacca");
+    this.ah = getInstance('chewbacca');
   }
 
   componentDidMount() {
@@ -320,7 +322,7 @@ class Incident extends Component {
 
                     if (val === '_menu') {
                       return (
-                        <IconButton aria-label="more" onClick={this.handleOpenMenu.bind(this, allValue)}>
+                        <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, allValue)}>
                           <MoreIcon/>
                         </IconButton>
                       )
@@ -574,6 +576,29 @@ class Incident extends Component {
       displayPage: val
     });
   }
+  toggleEstablishDateCheckbox = (event) => {
+    let tempIncident = {...this.state.incident};
+    tempIncident.info.enableEstablishDttm = event.target.checked;
+
+    this.setState({
+      incident: tempIncident
+    });
+  }
+  /**
+   * Display related list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderRelatedList = (params) => {
+    return (
+      <TextField
+        {...params}
+        variant='outlined'
+        size='small'
+        fullWidth={true} />
+    )
+  }
   displayMainPage = () => {
     const {locale} = this.context;
     const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
@@ -739,7 +764,32 @@ class Incident extends Component {
               onChange={this.handleDataChange.bind(this, 'expireDttm')} />
           </MuiPickersUtilsProvider>
         </div>
-
+        <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
+          <FormControlLabel
+            label={f('incidentFields.establishDate')}
+            control={
+              <Checkbox
+                className='checkbox-ui'
+                checked={incident.info.enableEstablishDttm}
+                onChange={this.toggleEstablishDateCheckbox}
+                color='primary' />
+            }
+            disabled={activeContent === 'viewIncident'} />
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              id='establishDttm'
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              ampm={false}
+              required={false}
+              value={incident.info.establishDttm}
+              disabled={activeContent === 'viewIncident' || !incident.info.enableEstablishDttm}
+              onChange={this.handleDataChange.bind(this, 'establishDttm')} />
+          </MuiPickersUtilsProvider>
+        </div>
         <div className='group full'>
           <label htmlFor='attackName'>{f('incidentFields.attackName')}</label>
           <TextField
@@ -783,20 +833,14 @@ class Incident extends Component {
             <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
             <Autocomplete
               multiple
-              id="tags-standard"
+              id='tags-standard'
               size='small'
               options={incident.info.differenceWithOptions}
               getOptionLabel={(option) => option.text}
               value={incident.info.showFontendRelatedList}
               onChange={this.onTagsChange}
               disabled={activeContent === 'viewIncident'}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant='outlined'
-                  size='small'
-                  fullWidth={true} />
-              )} />
+              renderInput={this.renderRelatedList} />
           </div>
         }
       </div>
@@ -1371,6 +1415,12 @@ class Incident extends Component {
 
     if (incident.info.expireDttm) {
       incident.info.expireDttm = moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
+    if (incident.info.enableEstablishDttm) {
+      incident.info.establishDttm = moment(incident.info.establishDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    } else {
+      incident.info.establishDttm = '';
     }
 
     if (!incident.info.creator) {
@@ -2093,7 +2143,8 @@ class Incident extends Component {
         historyList: allValue.historyList,
         creator: allValue.creator,
         announceSource: allValue.announceSource,
-        expireDttm: allValue.expireDttm,
+        expireDttm: helper.getFormattedDate(allValue.expireDttm, 'local'),
+        establishDttm: helper.getFormattedDate(allValue.establishDttm, 'local'),
         attachmentDescription: allValue.attachmentDescription,
         accidentCatogory: allValue.accidentCatogory,
         accidentDescription: allValue.accidentDescription,
@@ -2108,6 +2159,12 @@ class Incident extends Component {
 
       if (!tempIncident.info.socType) {
         tempIncident.info.socType = 1
+      }
+
+      if (allValue.establishDttm) {
+        tempIncident.info.enableEstablishDttm = true;
+      } else {
+        tempIncident.info.enableEstablishDttm = false;
       }
 
       this.setState({
@@ -2138,6 +2195,8 @@ class Incident extends Component {
         creator: null,
         announceSource: null,
         expireDttm: null,
+        enableEstablishDttm: true,
+        establishDttm: null,
         attachmentDescription: null,
         accidentCatogory: null,
         accidentDescription: null,
@@ -2784,25 +2843,26 @@ class Incident extends Component {
     const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
     let payload = {};
 
-    payload.id = incident.id
-    payload.header = `${it('txt-incident-id')}${incident.id}`
+    payload.id = incident.id;
+    payload.header = `${it('txt-incident-id')}${incident.id}`;
     // basic
-    payload.basic = {}
-    payload.basic.cols = 4
-    payload.basic.header = `${t('edge-management.txt-basicInfo')}    ${f('incidentFields.updateDttm')}  ${helper.getFormattedDate(incident.updateDttm, 'local')}`
-    payload.basic.table = []
-    payload.basic.table.push({text: f('incidentFields.title'), colSpan: 2})
-    payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2})
-    payload.basic.table.push({text: incident.title, colSpan: 2})
-    payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2})
+    payload.basic = {};
+    payload.basic.cols = 4;
+    payload.basic.header = `${t('edge-management.txt-basicInfo')}    ${f('incidentFields.updateDttm')}  ${helper.getFormattedDate(incident.updateDttm, 'local')}`;
+    payload.basic.table = [];
+    payload.basic.table.push({text: f('incidentFields.title'), colSpan: 2});
+    payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2});
+    payload.basic.table.push({text: incident.title, colSpan: 2});
+    payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2});
     payload.basic.table.push({text: f('incidentFields.incidentDescription'), colSpan: 4});
     payload.basic.table.push({text: incident.incidentDescription, colSpan: 4});
-    payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2})
-    payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1})
-    payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1})
-    payload.basic.table.push({text: incident.reporter, colSpan: 2})
-    payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
-    payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
+    payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2});
+    payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1});
+    payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1});
+    payload.basic.table.push({text: incident.reporter, colSpan: 2});
+    payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1});
+    payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1});
+    payload.basic.table.push({text: helper.getFormattedDate(incident.establishDttm, 'local'), colSpan: 1});
     payload.basic.table.push({text: f('incidentFields.attackName'), colSpan: 4});
     payload.basic.table.push({text: incident.attackName, colSpan: 4});
     payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4});
@@ -2822,188 +2882,192 @@ class Incident extends Component {
     }
 
     // history
-    payload.history = {}
-    payload.history.cols = 4
-    payload.history.header = it('txt-flowTitle')
-    payload.history.table = []
-    payload.history.table.push({text: f(`incidentFields.status`), colSpan: 1})
-    payload.history.table.push({text: f(`incidentFields.reviewDttm`), colSpan: 1})
-    payload.history.table.push({text: f(`incidentFields.reviewerName`), colSpan: 1})
-    payload.history.table.push({text: f(`incidentFields.suggestion`), colSpan: 1})
+    payload.history = {};
+    payload.history.cols = 4;
+    payload.history.header = it('txt-flowTitle');
+    payload.history.table = [];
+    payload.history.table.push({text: f(`incidentFields.status`), colSpan: 1});
+    payload.history.table.push({text: f(`incidentFields.reviewDttm`), colSpan: 1});
+    payload.history.table.push({text: f(`incidentFields.reviewerName`), colSpan: 1});
+    payload.history.table.push({text: f(`incidentFields.suggestion`), colSpan: 1});
 
     _.forEach(incident.historyList, el => {
-      payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1})
-      payload.history.table.push({text: moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
-      payload.history.table.push({text: el.reviewerName, colSpan: 1})
-      payload.history.table.push({text: el.suggestion, colSpan: 1})
+      payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1});
+      payload.history.table.push({text: moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1});
+      payload.history.table.push({text: el.reviewerName, colSpan: 1});
+      payload.history.table.push({text: el.suggestion, colSpan: 1});
     })
 
 
     // attach
     if (_.size(incident.fileList) > 0) {
-      payload.attachment = {}
-      payload.attachment.cols = 4
-      payload.attachment.header = it('txt-attachedFile')
-      payload.attachment.table = []
-      payload.attachment.table.push({text: f(`incidentFields.fileName`), colSpan: 1})
-      payload.attachment.table.push({text: f(`incidentFields.fileSize`), colSpan: 1})
-      payload.attachment.table.push({text: f(`incidentFields.fileDttm`), colSpan: 1})
-      payload.attachment.table.push({text: f(`incidentFields.fileMemo`), colSpan: 1})
+      payload.attachment = {};
+      payload.attachment.cols = 4;
+      payload.attachment.header = it('txt-attachedFile');
+      payload.attachment.table = [];
+      payload.attachment.table.push({text: f(`incidentFields.fileName`), colSpan: 1});
+      payload.attachment.table.push({text: f(`incidentFields.fileSize`), colSpan: 1});
+      payload.attachment.table.push({text: f(`incidentFields.fileDttm`), colSpan: 1});
+      payload.attachment.table.push({text: f(`incidentFields.fileMemo`), colSpan: 1});
 
       _.forEach(incident.fileList, file => {
-        payload.attachment.table.push({text: file.fileName, colSpan: 1})
-        payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
-        payload.attachment.table.push({text: moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
-        const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
-        payload.attachment.table.push({text: target.fileMemo, colSpan: 1})
+        payload.attachment.table.push({text: file.fileName, colSpan: 1});
+        payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1});
+        payload.attachment.table.push({text: moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1});
+        const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName});
+        payload.attachment.table.push({text: target.fileMemo, colSpan: 1});
       })
     }
 
     //  Contact list
-    payload.notifyList = {}
-    payload.notifyList.cols = 8
-    payload.notifyList.header = it('txt-notifyUnit')
-    payload.notifyList.table = []
+    payload.notifyList = {};
+    payload.notifyList.cols = 8;
+    payload.notifyList.header = it('txt-notifyUnit');
+    payload.notifyList.table = [];
 
     _.forEach(incident.notifyList, notify => {
-      payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2})
-      payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2})
-      payload.notifyList.table.push({text: f('incidentFields.phone'), colSpan: 2})
-      payload.notifyList.table.push({text: f('incidentFields.email'), colSpan: 2})
-      payload.notifyList.table.push({text: notify.title, colSpan: 2})
-      payload.notifyList.table.push({text: notify.name, colSpan: 2})
-      payload.notifyList.table.push({text: notify.phone, colSpan: 2})
-      payload.notifyList.table.push({text: notify.email, colSpan: 2})
+      payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2});
+      payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2});
+      payload.notifyList.table.push({text: f('incidentFields.phone'), colSpan: 2});
+      payload.notifyList.table.push({text: f('incidentFields.email'), colSpan: 2});
+      payload.notifyList.table.push({text: notify.title, colSpan: 2});
+      payload.notifyList.table.push({text: notify.name, colSpan: 2});
+      payload.notifyList.table.push({text: notify.phone, colSpan: 2});
+      payload.notifyList.table.push({text: notify.email, colSpan: 2});
     })
 
-
     // accident
-    payload.accident = {}
-    payload.accident.cols = 4
-    payload.accident.header = it('txt-accidentTitle')
-    payload.accident.table = []
-    payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
-    payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
+    payload.accident = {};
+    payload.accident.cols = 4;
+    payload.accident.header = it('txt-accidentTitle');
+    payload.accident.table = [];
+    payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2});
+    payload.accident.table.push({text: it('txt-reason'), colSpan: 2});
 
     if (incident.accidentCatogory) {
-      payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
+      payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2});
     } else {
-      payload.accident.table.push({text: ' ', colSpan: 2})
+      payload.accident.table.push({text: ' ', colSpan: 2});
     }
 
     if (!incident.accidentCatogory) {
-      payload.accident.table.push({text: ' ', colSpan: 2})
+      payload.accident.table.push({text: ' ', colSpan: 2});
     } else if (incident.accidentCatogory === '5') {
-      payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2})
+      payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2});
     } else {
-      payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2})
+      payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2});
     }
 
-    payload.accident.table.push({text: it('txt-accidentDescr'), colSpan: 4})
-    payload.accident.table.push({text: incident.accidentDescription, colSpan: 4})
-    payload.accident.table.push({text: it('txt-reasonDescr'), colSpan: 4})
-    payload.accident.table.push({text: incident.accidentReason, colSpan: 4})
-    payload.accident.table.push({text: it('txt-accidentInvestigation'), colSpan: 4})
-    payload.accident.table.push({text: incident.accidentInvestigation, colSpan: 4})
+    payload.accident.table.push({text: it('txt-accidentDescr'), colSpan: 4});
+    payload.accident.table.push({text: incident.accidentDescription, colSpan: 4});
+    payload.accident.table.push({text: it('txt-reasonDescr'), colSpan: 4});
+    payload.accident.table.push({text: incident.accidentReason, colSpan: 4});
+    payload.accident.table.push({text: it('txt-accidentInvestigation'), colSpan: 4});
+    payload.accident.table.push({text: incident.accidentInvestigation, colSpan: 4});
 
 
     //  event list
-    payload.eventList = {}
-    payload.eventList.cols = 6
-    payload.eventList.header = it('txt-incident-events')
-    payload.eventList.table = []
+    payload.eventList = {};
+    payload.eventList.cols = 6;
+    payload.eventList.header = it('txt-incident-events');
+    payload.eventList.table = [];
 
     _.forEach(incident.eventList, event => {
-      payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3})
-      payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
-      payload.eventList.table.push({text: event.description, colSpan: 3})
-      const target = _.find(showDeviceListOptions, {value: event.deviceId})
+      payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3});
+      payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3});
+      payload.eventList.table.push({text: event.description, colSpan: 3});
+
+      const target = _.find(showDeviceListOptions, {value: event.deviceId});
 
       if (target) {
-        payload.eventList.table.push({text: target.text, colSpan: 3})
+        payload.eventList.table.push({text: target.text, colSpan: 3});
       } else {
-        payload.eventList.table.push({text: '', colSpan: 3})
+        payload.eventList.table.push({text: '', colSpan: 3});
       }
 
-      payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
-      payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
-      payload.eventList.table.push({text: moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
-      payload.eventList.table.push({text: moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
-      payload.eventList.table.push({text: event.frequency, colSpan: 2})
+      payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4});
+      payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2});
+      payload.eventList.table.push({text: moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2});
+      payload.eventList.table.push({text: moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2});
+      payload.eventList.table.push({text: event.frequency, colSpan: 2});
 
       _.forEach(event.eventConnectionList, conn => {
-        payload.eventList.table.push({text: f('incidentFields.srcIp'), colSpan: 2})
-        payload.eventList.table.push({text: f('incidentFields.srcPort'), colSpan: 2})
-        payload.eventList.table.push({text: f('incidentFields.srcHostname'), colSpan: 2})
-        payload.eventList.table.push({text: conn.srcIp, colSpan: 2})
-        payload.eventList.table.push({text: conn.srcPort, colSpan: 2})
-        payload.eventList.table.push({text: conn.srcHostname, colSpan: 2})
-        payload.eventList.table.push({text: f('incidentFields.dstIp'), colSpan: 2})
-        payload.eventList.table.push({text: f('incidentFields.dstPort'), colSpan: 2})
-        payload.eventList.table.push({text: f('incidentFields.dstHostname'), colSpan: 2})
-        payload.eventList.table.push({text: conn.dstIp, colSpan: 2})
-        payload.eventList.table.push({text: conn.dstPort, colSpan: 2})
-        payload.eventList.table.push({text: conn.dstHostname, colSpan: 2})
+        payload.eventList.table.push({text: f('incidentFields.srcIp'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.srcPort'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.srcHostname'), colSpan: 2});
+        payload.eventList.table.push({text: conn.srcIp, colSpan: 2});
+        payload.eventList.table.push({text: conn.srcPort, colSpan: 2});
+        payload.eventList.table.push({text: conn.srcHostname, colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.dstIp'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.dstPort'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.dstHostname'), colSpan: 2});
+        payload.eventList.table.push({text: conn.dstIp, colSpan: 2});
+        payload.eventList.table.push({text: conn.dstPort, colSpan: 2});
+        payload.eventList.table.push({text: conn.dstHostname, colSpan: 2});
       })
     })
 
     // ttps
     if (_.size(incident.ttpList) > 0) {
-      payload.ttps = {}
-      payload.ttps.cols = 4
-      payload.ttps.header = it('txt-incident-ttps')
-      payload.ttps.table = []
+      payload.ttps = {};
+      payload.ttps.cols = 4;
+      payload.ttps.header = it('txt-incident-ttps');
+      payload.ttps.table = [];
     }
 
     _.forEach(incident.ttpList, ttp => {
-      payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2})
-      payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2})
-      payload.ttps.table.push({text: ttp.title, colSpan: 2})
-      payload.ttps.table.push({text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA' , colSpan: 2})
+      payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2});
+      payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2});
+      payload.ttps.table.push({text: ttp.title, colSpan: 2});
+      payload.ttps.table.push({text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA' , colSpan: 2});
 
       if (_.size(ttp.etsList) > 0) {
-        payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4})
+        payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4});
+
         _.forEach(ttp.etsList, ets => {
-          payload.ttps.table.push({text: f('incidentFields.cveId'), colSpan: 2})
-          payload.ttps.table.push({text: f('incidentFields.etsDescription'), colSpan: 2})
-          payload.ttps.table.push({text: ets.cveId || '', colSpan: 2})
-          payload.ttps.table.push({text: ets.description || '', colSpan: 2})
+          payload.ttps.table.push({text: f('incidentFields.cveId'), colSpan: 2});
+          payload.ttps.table.push({text: f('incidentFields.etsDescription'), colSpan: 2});
+          payload.ttps.table.push({text: ets.cveId || '', colSpan: 2});
+          payload.ttps.table.push({text: ets.description || '', colSpan: 2});
         })
       }
 
       if (_.size(ttp.obsFileList) > 0) {
-        payload.ttps.table.push({text: it('txt-ttp-obs-file'), colSpan: 4})
+        payload.ttps.table.push({text: it('txt-ttp-obs-file'), colSpan: 4});
+
         _.forEach(ttp.obsFileList, obsFile => {
-          payload.ttps.table.push({text: f('incidentFields.fileName'), colSpan: 2})
-          payload.ttps.table.push({text: f('incidentFields.fileExtension'), colSpan: 2})
-          payload.ttps.table.push({text: obsFile.fileName, colSpan: 2})
-          payload.ttps.table.push({text: obsFile.fileExtension, colSpan: 2})
-          payload.ttps.table.push({text: 'MD5', colSpan: 2})
-          payload.ttps.table.push({text: 'SHA1', colSpan: 2})
-          payload.ttps.table.push({text: obsFile.md5, colSpan: 2})
-          payload.ttps.table.push({text: obsFile.sha1, colSpan: 2})
-          payload.ttps.table.push({text: 'SHA256', colSpan: 4})
-          payload.ttps.table.push({text: obsFile.sha256, colSpan: 4})
+          payload.ttps.table.push({text: f('incidentFields.fileName'), colSpan: 2});
+          payload.ttps.table.push({text: f('incidentFields.fileExtension'), colSpan: 2});
+          payload.ttps.table.push({text: obsFile.fileName, colSpan: 2});
+          payload.ttps.table.push({text: obsFile.fileExtension, colSpan: 2});
+          payload.ttps.table.push({text: 'MD5', colSpan: 2});
+          payload.ttps.table.push({text: 'SHA1', colSpan: 2});
+          payload.ttps.table.push({text: obsFile.md5, colSpan: 2});
+          payload.ttps.table.push({text: obsFile.sha1, colSpan: 2});
+          payload.ttps.table.push({text: 'SHA256', colSpan: 4});
+          payload.ttps.table.push({text: obsFile.sha256, colSpan: 4});
         })
       }
 
       if (_.size(ttp.obsUriList) > 0) {
-        payload.ttps.table.push({text: it('txt-ttp-obs-uri'), colSpan: 4})
+        payload.ttps.table.push({text: it('txt-ttp-obs-uri'), colSpan: 4});
+
         _.forEach(ttp.obsUriList, obsUri => {
-          payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2})
-          payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2})
-          payload.ttps.table.push({text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'), colSpan: 2})
-          payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2})
+          payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2});
+          payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2});
+          payload.ttps.table.push({text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'), colSpan: 2});
+          payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2});
         })
       }
 
       if (_.size(ttp.obsSocketList) > 0) {
-        payload.ttps.table.push({text: it('txt-ttp-obs-socket'), colSpan: 4})
+        payload.ttps.table.push({text: it('txt-ttp-obs-socket'), colSpan: 4});
+
         _.forEach(ttp.obsSocketList, obsSocket => {
-          payload.ttps.table.push({text: 'IP', colSpan: 2})
-          payload.ttps.table.push({text: 'Port', colSpan: 2})
-          payload.ttps.table.push({text: obsSocket.ip, colSpan: 2})
-          payload.ttps.table.push({text: obsSocket.port, colSpan: 2})
+          payload.ttps.table.push({text: 'IP', colSpan: 2});
+          payload.ttps.table.push({text: 'Port', colSpan: 2});
+          payload.ttps.table.push({text: obsSocket.ip, colSpan: 2});
+          payload.ttps.table.push({text: obsSocket.port, colSpan: 2});
         })
       }
     })
@@ -3151,7 +3215,7 @@ class Incident extends Component {
           <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
         </Menu>
 
-        <div className="sub-header">
+        <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
             {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
@@ -3194,6 +3258,7 @@ class Incident extends Component {
 
 Incident.contextType = BaseDataContext;
 Incident.propTypes = {
+
 };
 
 export default Incident;
