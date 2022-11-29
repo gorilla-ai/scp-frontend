@@ -1106,7 +1106,7 @@ class ThreatsController extends Component {
               from: helper.getFormattedDate(val.startDttm, 'local'),
               to: helper.getFormattedDate(val.endDttm, 'local')
             }
-          }
+          };
         });
 
         this.setState({
@@ -1164,7 +1164,6 @@ class ThreatsController extends Component {
         const socFlowList = _.map(data.rows, val => {
           return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
         });
-       
 
         this.setState({
           makeIncidentOpen: true,
