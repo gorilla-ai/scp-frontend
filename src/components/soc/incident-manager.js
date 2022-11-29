@@ -1513,7 +1513,7 @@ class IncidentManagement extends Component {
         formData.append('file', val);
       })
 
-      formData.append('fileMemo', incident.info.fileMemo);
+      formData.append('fileMemo', incident.info.fileMemo || '');
 
       helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -3622,7 +3622,7 @@ class IncidentManagement extends Component {
       })
     }
 
-    formData.append('fileMemo', incident.info.fileMemo);
+    formData.append('fileMemo', incident.info.fileMemo || '');
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 

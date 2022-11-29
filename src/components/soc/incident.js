@@ -948,7 +948,7 @@ class Incident extends Component {
         formData.append('file', val);
       })
 
-      formData.append('fileMemo', incident.info.fileMemo);
+      formData.append('fileMemo', incident.info.fileMemo || '');
 
       helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -2717,7 +2717,7 @@ class Incident extends Component {
     let formData = new FormData();
     formData.append('id', incident.info.id);
     formData.append('file', attach);
-    formData.append('fileMemo', incident.info.fileMemo);
+    formData.append('fileMemo', incident.info.fileMemo || '');
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
