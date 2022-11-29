@@ -427,100 +427,6 @@ class Incident extends Component {
       incident: tempIncident
     });
   }
-  render() {
-    const {session} = this.context;
-    const {
-      activeContent,
-      baseUrl,
-      contextRoot,
-      showFilter,
-      showChart,
-      uploadAttachmentOpen,
-      incident, 
-      contextAnchor,
-      currentData,
-      accountType
-    } = this.state;
-    
-    let superUserCheck = false;
-
-    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')) {
-      superUserCheck = true;
-    }
-
-    const tableOptions = {
-      onChangePage: (currentPage) => {
-        this.handlePaginationChange('currentPage', currentPage);
-      },
-      onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('pageSize', numberOfRows);
-      },
-      onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort(changedColumn, direction === 'desc');
-      }
-    };
-
-    return (
-      <div>
-        <IncidentComment ref={ref => {this.incidentComment = ref}} />
-        <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this,'currentPage')} />
-        <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}} />
-        <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadData.bind(this,'currentPage')} />
-        <NotifyDialog ref={ref => {this.notifyDialog = ref}} />
-
-        {uploadAttachmentOpen &&
-          this.uploadAttachmentModal()
-        }
-
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
-          <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
-          <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
-        </Menu>
-
-        <div className="sub-header">
-          <div className='secondary-btn-group right'>
-            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
-            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-              <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
-            }
-            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
-
-          <div className='parent-content'>
-            {this.renderFilter()}
-
-            {activeContent === 'tableList' &&
-              <div className='main-content'>
-                <header className='main-header'>{it('txt-incident-sign')}</header>
-                <div className='content-header-btns with-menu '>
-                  {activeContent === 'viewIncident' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-                  }
-                </div>
-                <MuiTableContent
-                  data={incident}
-                  tableOptions={tableOptions}
-                  showLoading={true} />
-              </div>
-            }
-
-            {(activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
-              this.displayEditContent()
-            }
-          </div>
-        </div>
-      </div>
-    )
-  }
   /**
    * Display edit Incident content
    * @method
@@ -785,7 +691,7 @@ class Incident extends Component {
             disabled={true}>
             {
               _.map(_.range(1, 5), el => {
-                  return  <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
               })
             }
           </TextField>
@@ -1135,12 +1041,12 @@ class Incident extends Component {
           <div className='group'>
             <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
             <TextareaAutosize
-                id='fileMemo'
-                name='fileMemo'
-                className='textarea-autosize'
-                onChange={this.handleDataChangeMui}
-                value={incident.info.fileMemo}
-                rows={2} />
+              id='fileMemo'
+              name='fileMemo'
+              className='textarea-autosize'
+              onChange={this.handleDataChangeMui}
+              value={incident.info.fileMemo}
+              rows={2} />
           </div>
         }
         {activeContent !== 'addIncident' &&
@@ -1185,17 +1091,17 @@ class Incident extends Component {
 
     return (
       <div className='form-group normal'>
-          <header>
-            <div className='text'>{it('txt-flowTitle')}</div>
-          </header>
+        <header>
+          <div className='text'>{it('txt-flowTitle')}</div>
+        </header>
 
-          <div className='group full'>
-            <DataTable
-              style={{width: '100%'}}
-              className='main-table full'
-              fields={incident.flowFields}
-              data={incident.info.historyList} />
-          </div>
+        <div className='group full'>
+          <DataTable
+            style={{width: '100%'}}
+            className='main-table full'
+            fields={incident.flowFields}
+            data={incident.info.historyList} />
+        </div>
       </div>
     )
   }
@@ -3102,78 +3008,63 @@ class Incident extends Component {
     return payload;
   }
   exportPdf() {
-      const {baseUrl, contextRoot} = this.context
-      const {incident} = this.state
-      downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.state;
+
+    downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))});
   }
 
   exportAll() {
-      const {baseUrl, contextRoot, session} = this.context
-      let {search, incident, loadListType, accountRoleType} = this.state
+    const {baseUrl, contextRoot, session} = this.context;
+    const {search, incident, loadListType, accountRoleType} = this.state;
 
-      if (search.datetime) {
-          search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-          search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      }
+    if (search.datetime) {
+      search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
 
-      search.accountRoleType = this.state.accountRoleType
-      search.account = session.accountId
+    search.accountRoleType = this.state.accountRoleType;
+    search.account = session.accountId;
 
+    let payload = {
+      subStatus: 0,
+      keyword: '',
+      category: 0,
+      isExpired: 2,
+      accountRoleType:search.accountRoleType,
+    };
 
-      let payload = {
-          subStatus: 0,
-          keyword: '',
-          category: 0,
-          isExpired: 2,
-          accountRoleType:search.accountRoleType,
-      }
+    if (loadListType === 0) {
+      payload.status = 0;
+      payload.isExpired = 1;
+    } else if (loadListType === 1) {
 
+    } else if (loadListType === 2) {
+      payload.creator = session.accountId;
+    } else if (loadListType === 3) {
+      payload = search;
+    }
 
-      if (loadListType === 0) {
-          payload.status = 0
-          payload.isExpired = 1
-      }
-      else if (loadListType === 1) {
-          // if (payload.accountRoleType === constants.soc.SOC_Executor) {
-          //     payload.status = 2
-          //     payload.subStatus = 6
-          // }
-          // else if (payload.accountRoleType === constants.soc.SOC_Super) {
-          //     payload.status = 7
-          // }
-          // else {
-          //     payload.status = 1
-          // }
-      }
-      else if (loadListType === 2) {
-          // payload.status = 0
-          payload.creator = session.accountId
-      }
-      else if (loadListType === 3) {
-          payload = search
-      }
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+    ah.one({
+      url: `${baseUrl}/api/soc/_searchV3`,
+      data: JSON.stringify(payload),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      const payload = _.map(data.rt.rows, el => {
+        return this.toPdfPayload(el)
+      });
 
-      ah.one({
-          url: `${baseUrl}/api/soc/_searchV3`,
-          data: JSON.stringify(payload),
-          type: 'POST',
-          contentType: 'application/json',
-          dataType: 'json'
-      })
-      .then(data => {
-          let payload = _.map(data.rt.rows, el => {
-              return this.toPdfPayload(el)
-          })
-
-          downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
-      })
-      .catch(err => {
-          helper.showPopupMsg('', t('txt-error'), err.message)
-      })
+      downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)});
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
-
   notifyContact = () => {
     const {baseUrl} = this.context;
     const {incident} = this.state;
@@ -3202,11 +3093,104 @@ class Incident extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message)
     });
   }
+  render() {
+    const {session} = this.context;
+    const {
+      activeContent,
+      baseUrl,
+      contextRoot,
+      showFilter,
+      showChart,
+      uploadAttachmentOpen,
+      incident, 
+      contextAnchor,
+      currentData,
+      accountType
+    } = this.state;
+    
+    let superUserCheck = false;
+
+    if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')) {
+      superUserCheck = true;
+    }
+
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      <div>
+        <IncidentComment ref={ref => {this.incidentComment = ref}} />
+        <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this,'currentPage')} />
+        <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}} />
+        <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadData.bind(this,'currentPage')} />
+        <NotifyDialog ref={ref => {this.notifyDialog = ref}} />
+
+        {uploadAttachmentOpen &&
+          this.uploadAttachmentModal()
+        }
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
+          <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
+          <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
+        </Menu>
+
+        <div className="sub-header">
+          <div className='secondary-btn-group right'>
+            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
+            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+              <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
+            }
+            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
+          </div>
+        </div>
+
+        <div className='data-content'>
+          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
+
+          <div className='parent-content'>
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &&
+              <div className='main-content'>
+                <header className='main-header'>{it('txt-incident-sign')}</header>
+                <div className='content-header-btns with-menu '>
+                  {activeContent === 'viewIncident' &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                  }
+                </div>
+                <MuiTableContent
+                  data={incident}
+                  tableOptions={tableOptions}
+                  showLoading={true} />
+              </div>
+            }
+
+            {(activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
+              this.displayEditContent()
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
 
 Incident.contextType = BaseDataContext;
 Incident.propTypes = {
-    // nodeBaseUrl: PropTypes.string.isRequired
 };
 
-export default Incident
+export default Incident;
