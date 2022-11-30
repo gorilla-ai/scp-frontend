@@ -4751,6 +4751,23 @@ class HostController extends Component {
     }
   }
   /**
+   * Check NCCST button disabled status
+   * @method
+   * @returns boolean true/false
+   */
+  checkNCCSTdisabled = () => {
+    const {sessionRights} = this.context;
+    const {safetyScanData} = this.state;
+    let disabled = true;
+
+    if (safetyScanData.dataContent && (sessionRights.Module_Config || sessionRights.Module_Account)) {
+      if (safetyScanData.dataContent.length > 0) {
+        disabled = false;
+      }
+    }
+    return disabled;
+  }
+  /**
    * Get safety scan menu
    * @method
    * @param {string} val - individual safety scan menu
@@ -4765,9 +4782,7 @@ class HostController extends Component {
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'cpe')}>{t('host.txt-export-cpe')}</Button>
-          {this.state.safetyScanData.dataContent &&
-            <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
-          }
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
         </MenuItem>
       )
     }
@@ -5260,23 +5275,6 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Check NCCST button disabled status
-   * @method
-   * @returns boolean true/false
-   */
-  checkNCCSTdisabled = () => {
-    const {sessionRights} = this.context;
-    const {safetyScanData} = this.state;
-    let disabled = true;
-
-    if (sessionRights.Module_Config || sessionRights.Module_Account) {
-      if (safetyScanData.dataContent.length > 0) {
-        disabled = false;
-      }
-    }
-    return disabled;
   }
   render() {
     const {contextRoot, language, session, sessionRights} = this.context;
