@@ -4187,9 +4187,9 @@ class HostController extends Component {
    * @method
    */
   confirmTrackHostList = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {activeTrackHostTab, datetimeExport, trackHostFile} = this.state;
-    const url = `${baseUrl}/api/hmd/ipdevice/vans/diff/_export`;
+    const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/_export`;
     let requestData = {
       hmdScanDistribution: {
         taskName: 'getVans',
