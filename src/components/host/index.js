@@ -160,6 +160,12 @@ const HMD_TRIGGER = [
     stop: 'EventTracingThread'
   }
 ];
+const SAFETY_SCAN_MENU = [
+  {
+    name: 'VANS - CPE',
+    value: 'vans'
+  }
+];
 const HOST_SORT_LIST = [
   {
     name: 'ip',
@@ -389,7 +395,7 @@ class HostController extends Component {
       popOverAnchor: null,
       activeFilter: '', //Same as FILTER_LIST
       showLeftNav: true,
-      datetimeExport: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+      datetimeExport: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DDTHH:mm:ss')),
       trackHostFile: null,
       assessmentDatetime: {
         from: '',
@@ -409,7 +415,7 @@ class HostController extends Component {
       vansPieChartOpen: false,
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
-      menuType: '', //'hmdTriggerAll' or 'hmdDownload'
+      menuType: '', //'hmdTriggerAll', 'safetyScan' or 'hmdDownload'
       vansDeviceStatusList: [],
       vansHmdStatusList: [],
       severityList: null,
@@ -1792,6 +1798,8 @@ class HostController extends Component {
       uploadedCPE: false,
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set input data change
@@ -3948,7 +3956,7 @@ class HostController extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {string} type - menu type ('hmdTriggerAll' or 'hmdDownload')
+   * @param {string} type - menu type ('hmdTriggerAll', 'safetyScan' or 'hmdDownload')
    * @param {object} event - event object
    */
   handleOpenMenu = (type, event) => {
@@ -3982,11 +3990,13 @@ class HostController extends Component {
    */
   toggleTrackHostList = () => {
     this.setState({
-      activeTrackHostTab: 'date',
       trackHostListOpen: !this.state.trackHostListOpen,
-      datetimeExport: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-      trackHostFile: null,
+      activeTrackHostTab: 'date',
+      datetimeExport: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DDTHH:mm:ss')),
+      trackHostFile: null
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle HMD setup file upload
@@ -4138,8 +4148,8 @@ class HostController extends Component {
               inputVariant='outlined'
               variant='inline'
               format='YYYY-MM-DD'
-              maxDate={moment().local().format('YYYY-MM-DDTHH:mm:ss')}
-              minDate={helper.getSubstractDate(1, 'month')}
+              maxDate={helper.getSubstractDate(1, 'day')}
+              minDate={helper.getSubstractDate(1, 'month', helper.getSubstractDate(1, 'day'))}
               invalidDateMessage={t('txt-invalidDateMessage')}
               maxDateMessage={t('txt-maxDateMessage')}
               minDateMessage={t('txt-minDateMessage')}
@@ -4206,10 +4216,33 @@ class HostController extends Component {
       };
       downloadWithForm(url, {payload: JSON.stringify(requestData)});
     } else if (activeTrackHostTab === 'file') {
-      downloadWithForm(url, {
-        payload: JSON.stringify(requestData),
-        file: trackHostFile
-      });
+      // downloadWithForm(url, {
+      //   payload: JSON.stringify(requestData),
+      //   file: trackHostFile
+      // });
+
+      let formData = new FormData();
+      formData.append('payload', JSON.stringify(requestData));
+      formData.append('file', trackHostFile);
+
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+      this.ah.one({
+        url,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
+      .then(data => {
+        if (data) {
+          this.toggleTrackHostList();
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
   }
   /**
@@ -4718,6 +4751,28 @@ class HostController extends Component {
     }
   }
   /**
+   * Get safety scan menu
+   * @method
+   * @param {string} val - individual safety scan menu
+   * @param {number} i - index of the safety scan menu
+   * @returns MenuItem component
+   */
+  getSafetyScanMenu = (val, i) => {
+    if (val.value === 'vans') {
+      return (
+        <MenuItem key={i} className='safety-scan-menu'>
+          <span className='header'>{val.name}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'cpe')}>{t('host.txt-export-cpe')}</Button>
+          {this.state.safetyScanData.dataContent &&
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
+          }
+        </MenuItem>
+      )
+    }
+  }
+  /**
    * Handle HMD download button
    * @method
    * @param {string} type - download type ('windows' or 'linux')
@@ -5077,6 +5132,8 @@ class HostController extends Component {
     };
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+
+    this.handleCloseMenu();
   }
   /**
    * Display request sent dialog
@@ -5535,6 +5592,7 @@ class HostController extends Component {
                 {activeTab !== 'vansCharts' &&
                   <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'safetyScan')}>{t('host.txt-safetyScan')}</Button>
                     {adminPrivilege &&
                       <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
                     }
@@ -5550,6 +5608,14 @@ class HostController extends Component {
                   open={menuType === 'hmdTriggerAll' && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>
                   {HMD_TRIGGER.map(this.getHMDmenu)}
+                </Menu>
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={menuType === 'safetyScan' && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  {SAFETY_SCAN_MENU.map(this.getSafetyScanMenu)}
                 </Menu>
 
                 <Menu
@@ -5662,7 +5728,7 @@ class HostController extends Component {
                       </ToggleButtonGroup>
                     </div>*/}
 
-                    {safetyScanType === 'getVansCpe' &&
+                    {/*{safetyScanType === 'getVansCpe' &&
                       <div className='safety-btns'>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
                         <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList}>{t('host.txt-trackHostList')}</Button>
@@ -5671,7 +5737,7 @@ class HostController extends Component {
                           <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
                         }
                       </div>
-                    }
+                    }*/}
 
                     {activeSafetyTab === 'list' &&
                       <div className='table-content'>
