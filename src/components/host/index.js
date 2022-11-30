@@ -4232,7 +4232,7 @@ class HostController extends Component {
         contentType: false
       })
       .then(data => {
-        helper.downloadWithBlob('Ipdevice_VANS_Diff_timestamp.zip', data);
+        helper.downloadWithBlob('Ipdevice_VANS_Diff_timestamp.xlsx', data);
         this.toggleTrackHostList();
         return null;
       })

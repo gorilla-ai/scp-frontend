@@ -59,7 +59,7 @@ const helper = {
     }
   },
   downloadWithBlob: function(fileName, data) {
-    const url = window.URL.createObjectURL(new Blob([data]));
+    const url = window.URL.createObjectURL(new Blob([data], {type: 'application/octet-binary'}));
     const link = document.createElement('a');
     let filename = fileName;
     filename = decodeURI(filename);
