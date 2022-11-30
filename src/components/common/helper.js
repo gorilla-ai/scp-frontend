@@ -58,6 +58,18 @@ const helper = {
       }
     }
   },
+  downloadWithBlob: function(fileName, data) {
+    const url = window.URL.createObjectURL(new Blob([data]));
+    const link = document.createElement('a');
+    let filename = fileName;
+    filename = decodeURI(filename);
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    window.URL.revokeObjectURL(url);
+    link.remove();
+  },
   formatBytes(bytes, decimals = 0) {
     if (bytes === 0 || bytes === '0') {
       return '0 Bytes';

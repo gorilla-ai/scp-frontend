@@ -4145,6 +4145,7 @@ class HostController extends Component {
         {activeTrackHostTab === 'date' &&
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
             <KeyboardDatePicker
+              className='picker'
               inputVariant='outlined'
               variant='inline'
               format='YYYY-MM-DD'
@@ -4161,6 +4162,7 @@ class HostController extends Component {
           <FileUpload
             id='fileUploadHost'
             fileType='csv'
+            supportText={t('host.txt-hostList2') + '(.xlsx)'}
             btnText={t('txt-upload')}
             handleFileChange={this.getTrackHostFile} />
         }
@@ -4216,18 +4218,13 @@ class HostController extends Component {
       };
       downloadWithForm(url, {payload: JSON.stringify(requestData)});
     } else if (activeTrackHostTab === 'file') {
-      // downloadWithForm(url, {
-      //   payload: JSON.stringify(requestData),
-      //   file: trackHostFile
-      // });
-
       let formData = new FormData();
       formData.append('payload', JSON.stringify(requestData));
       formData.append('file', trackHostFile);
 
       helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-      this.ah.one({
+      ah.one({
         url,
         data: formData,
         type: 'POST',
@@ -4235,9 +4232,8 @@ class HostController extends Component {
         contentType: false
       })
       .then(data => {
-        if (data) {
-          this.toggleTrackHostList();
-        }
+        helper.downloadWithBlob('Ipdevice_VANS_Diff_timestamp.zip', data);
+        this.toggleTrackHostList();
         return null;
       })
       .catch(err => {
@@ -4757,13 +4753,10 @@ class HostController extends Component {
    */
   checkNCCSTdisabled = () => {
     const {sessionRights} = this.context;
-    const {safetyScanData} = this.state;
     let disabled = true;
 
-    if (safetyScanData.dataContent && (sessionRights.Module_Config || sessionRights.Module_Account)) {
-      if (safetyScanData.dataContent.length > 0) {
-        disabled = false;
-      }
+    if (sessionRights.Module_Config || sessionRights.Module_Account) {
+      disabled = false;
     }
     return disabled;
   }
@@ -5601,7 +5594,7 @@ class HostController extends Component {
 
                 <Menu
                   anchorEl={contextAnchor}
-                  className='hmd-trigger-menu'
+                  className='trigger-menu hmd'
                   keepMounted
                   open={menuType === 'hmdTriggerAll' && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>
@@ -5610,6 +5603,7 @@ class HostController extends Component {
 
                 <Menu
                   anchorEl={contextAnchor}
+                  className='trigger-menu safety'
                   keepMounted
                   open={menuType === 'safetyScan' && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>

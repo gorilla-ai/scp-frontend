@@ -3088,15 +3088,24 @@ button.standard:hover:not([disabled]) {
           }
         }
         .soc-content {
-          display: flex;
-          height: 20%;
-          justify-content: center;
-          align-items: center;
-          label {
-            margin-right: 10px;
+          margin-top: 40px;
+          .header {
+            font-size: 20px;
+            color: var(--primaryContentHeader);
+            text-align: center;
+            margin: 20px 0;
           }
-          .between {
-            margin-top: 0;
+          .soc-item {
+            display: flex;
+            height: 20%;
+            justify-content: center;
+            align-items: center;
+            label {
+              margin-right: 10px;
+            }
+            .between {
+              margin-top: 0;
+            }
           }
         }
         .events-syslog-statistics {
@@ -4191,7 +4200,6 @@ button.standard:hover:not([disabled]) {
   .dashboard-item {
     width: 100%;
     height: 100%;
-
     div {
       height: 100%;
     }
@@ -4234,13 +4242,10 @@ button.standard:hover:not([disabled]) {
   .dialog {
     width: 600px;
     min-height: 400px;
-
     .content {
       display: flex;
-
       .left {
         width: 30%;
-
         select {
           width: 100%;
         }
@@ -4254,7 +4259,6 @@ button.standard:hover:not([disabled]) {
 .incident-statistics {
   display: flex;
   justify-content: center;
-
   .item {
     color: #fff;
     width: 220px;
@@ -4264,7 +4268,6 @@ button.standard:hover:not([disabled]) {
     opacity: 0.6;
     background-color: #000;
     border-radius: 5px;
-    
     .fg-checkbox-fill {
       float: left;
       margin-right: 20px;
@@ -4274,35 +4277,9 @@ button.standard:hover:not([disabled]) {
     }
     .threats {
       float: left;
-
       span {
         display: block;
         font-size: 28px;
-      }
-    }
-  }
-
-/*  .block {
-    width: 30%;
-    margin: 10px 30px;
-    padding: 10px;
-    border: 1px #555555 solid;
-    border-radius: 5px;
-    text-align: center;
-
-  }
-*/}
-.hmd-trigger-menu {
-  ul {
-    li {
-      display: flex;
-      cursor: auto;
-      span {
-        width: 155px;
-      }
-      button {
-        width: 70px;
-        margin-right: 15px;
       }
     }
   }

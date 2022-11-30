@@ -152,6 +152,7 @@
   "txt-networkBehavior": "Network Behavior",
   "txt-executableInfo": "Executable Info",
   "txt-logSource": "Log Source",
+  "txt-logReport": "Log Report",
   "txt-indicator": "Indicator",
   "txt-online": "Online",
   "txt-offline": "Offline",

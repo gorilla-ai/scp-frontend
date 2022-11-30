@@ -365,6 +365,7 @@ html[data-theme='dark'] {
       display: block;
       color: var(--primaryContentHeader);
       margin-bottom: 5px;
+      text-align: left;
     }
     input,
     select,
@@ -2905,14 +2906,37 @@ html[data-theme='dark'] {
 #trackHostListDialog-dialog {
   width: 360px;
   .track-host-content {
-    text-align: center;
+    min-height: 175px;
     padding: 15px 10px;
+    text-align: center;
     .options-btns {
-      margin-bottom: 30px;
+      margin-bottom: 25px;
+    }
+    .picker {
+      margin-top: 15px;
     }
   }
   footer {
     text-align: center;
+  }
+}
+.trigger-menu {
+  ul li {
+    cursor: auto;
+  }
+  &.hmd {
+    ul {
+      li {
+        display: flex;
+        span {
+          width: 155px;
+        }
+        button {
+          width: 70px;
+          margin-right: 15px;
+        }
+      }
+    }
   }
 }
 .MuiPopover-root {

@@ -37,7 +37,7 @@ class IncidentReport extends Component {
     this.state = {
       accountType: constants.soc.LIMIT_ACCOUNT,
       datetime: {
-        from: helper.getSubstractDate(1, 'month'),
+        from: helper.getSubstractDate(1, 'day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       }
     };
@@ -153,36 +153,40 @@ class IncidentReport extends Component {
           <div className='parent-content'>
             <div className='main-content' style={{height: '84vh'}}>
               <header className='main-header'>{it('txt-incident-soc-report')}</header>
+
               <div className='soc-content'>
-                <label>{t('txt-dateRange')}</label>
-                <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                  <KeyboardDateTimePicker
-                    id='incidentReportDateTimePickerFrom'
-                    className='date-time-picker'
-                    inputVariant='outlined'
-                    variant='inline'
-                    format='YYYY-MM-DD HH:mm'
-                    invalidDateMessage={t('txt-invalidDateMessage')}
-                    maxDateMessage={t('txt-maxDateMessage')}
-                    minDateMessage={t('txt-minDateMessage')}
-                    ampm={false}
-                    value={datetime.from}
-                    onChange={this.handleDateChange.bind(this, 'from')} />
-                  <div className='between'>~</div>
-                  <KeyboardDateTimePicker
-                    id='incidentReportDateTimePickerTo'
-                    className='date-time-picker'
-                    inputVariant='outlined'
-                    variant='inline'
-                    format='YYYY-MM-DD HH:mm'
-                    invalidDateMessage={t('txt-invalidDateMessage')}
-                    maxDateMessage={t('txt-maxDateMessage')}
-                    minDateMessage={t('txt-minDateMessage')}
-                    ampm={false}
-                    value={datetime.to}
-                    onChange={this.handleDateChange.bind(this, 'to')} />
-                </MuiPickersUtilsProvider>
-                <Button variant='contained' color='primary' onClick={this.handleExportConfirm}>{t('txt-export')}</Button>
+                <div className='header'>{t('txt-logReport')}</div>
+                <div className='soc-item'>
+                  <label>{t('txt-dateRange')}:</label>
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                      id='incidentReportDateTimePickerFrom'
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      ampm={false}
+                      value={datetime.from}
+                      onChange={this.handleDateChange.bind(this, 'from')} />
+                    <div className='between'>~</div>
+                    <KeyboardDateTimePicker
+                      id='incidentReportDateTimePickerTo'
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      ampm={false}
+                      value={datetime.to}
+                      onChange={this.handleDateChange.bind(this, 'to')} />
+                  </MuiPickersUtilsProvider>
+                  <Button variant='contained' color='primary' onClick={this.handleExportConfirm}>{t('txt-export')}</Button>
+                </div>
               </div>
             </div>
           </div>
