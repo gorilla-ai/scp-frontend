@@ -1068,7 +1068,7 @@ class ThreatsController extends Component {
     const utc_offset = timezone._offset / 60; //Convert minute to hour
     const requestData = {
       threats: makeType === 'select' ? cancelThreatsList : originalThreatsList,
-      TimeZone: utc_offset
+      timeZone: utc_offset
     };
 
     this.ah.one({
