@@ -4201,6 +4201,8 @@ class HostController extends Component {
   confirmTrackHostList = () => {
     const {baseUrl, contextRoot} = this.context;
     const {activeTrackHostTab, datetimeExport, trackHostFile} = this.state;
+    const url = `${baseUrl}/api/hmd/ipdevice/vans/diff`;
+    let formData = new FormData();
     let requestData = {
       hmdScanDistribution: {
         taskName: 'getVans',
@@ -4209,42 +4211,39 @@ class HostController extends Component {
     };
 
     if (activeTrackHostTab === 'date') {
-      const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff`;
       const dateTimeFrom = moment(datetimeExport).format('YYYY-MM-DD') + 'T00:00:00';
       const dateTimeTo = moment(datetimeExport).format('YYYY-MM-DD') + 'T23:59:59';
       requestData.diffDate = {
         from: moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
         to: moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
-      downloadWithForm(url, {payload: JSON.stringify(requestData)});
+      formData.append('payload', JSON.stringify(requestData));
     } else if (activeTrackHostTab === 'file') {
-      const url = `${baseUrl}/api/hmd/ipdevice/vans/diff`;
-      let formData = new FormData();
       formData.append('payload', JSON.stringify(requestData));
       formData.append('file', trackHostFile);
-
-      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-      this.ah.one({
-        url,
-        data: formData,
-        type: 'POST',
-        processData: false,
-        contentType: false
-      })
-      .then(data => {
-        if (data) {
-          const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/download?fileName=${data.fileName}`;
-          window.open(url, '_blank');
-
-          this.toggleTrackHostList();
-        }
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/download?fileName=${data.fileName}`;
+        window.open(url, '_blank');
+
+        this.toggleTrackHostList();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })    
   }
   /**
    * Toggle CPE file upload dialog on/off
@@ -4310,8 +4309,8 @@ class HostController extends Component {
       ...this.getHostSafetyRequestData()
     };
     let formData = new FormData();
-    formData.append('file', cpeFile);
     formData.append('payload', JSON.stringify(requestData));
+    formData.append('file', cpeFile);
 
     if (!cpeFile.name) {
       return;
