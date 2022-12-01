@@ -4201,7 +4201,6 @@ class HostController extends Component {
   confirmTrackHostList = () => {
     const {baseUrl, contextRoot} = this.context;
     const {activeTrackHostTab, datetimeExport, trackHostFile} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/_export`;
     let requestData = {
       hmdScanDistribution: {
         taskName: 'getVans',
@@ -4210,6 +4209,7 @@ class HostController extends Component {
     };
 
     if (activeTrackHostTab === 'date') {
+      const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/_export`;
       const dateTimeFrom = moment(datetimeExport).format('YYYY-MM-DD') + 'T00:00:00';
       const dateTimeTo = moment(datetimeExport).format('YYYY-MM-DD') + 'T23:59:59';
       requestData.diffDate = {
@@ -4218,6 +4218,7 @@ class HostController extends Component {
       };
       downloadWithForm(url, {payload: JSON.stringify(requestData)});
     } else if (activeTrackHostTab === 'file') {
+      const url = `${baseUrl}/api/hmd/ipdevice/vans/diff/_export`;
       let formData = new FormData();
       formData.append('payload', JSON.stringify(requestData));
       formData.append('file', trackHostFile);
