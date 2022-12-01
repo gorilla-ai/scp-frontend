@@ -4237,7 +4237,7 @@ class HostController extends Component {
           const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/download?fileName=${data.fileName}`;
           window.open(url, '_blank');
 
-          this.toggleTrackHostList();          
+          this.toggleTrackHostList();
         }
         return null;
       })
