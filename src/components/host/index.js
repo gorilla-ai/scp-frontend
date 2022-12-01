@@ -4209,7 +4209,7 @@ class HostController extends Component {
     };
 
     if (activeTrackHostTab === 'date') {
-      const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/_export`;
+      const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff`;
       const dateTimeFrom = moment(datetimeExport).format('YYYY-MM-DD') + 'T00:00:00';
       const dateTimeTo = moment(datetimeExport).format('YYYY-MM-DD') + 'T23:59:59';
       requestData.diffDate = {
@@ -4218,14 +4218,14 @@ class HostController extends Component {
       };
       downloadWithForm(url, {payload: JSON.stringify(requestData)});
     } else if (activeTrackHostTab === 'file') {
-      const url = `${baseUrl}/api/hmd/ipdevice/vans/diff/_export`;
+      const url = `${baseUrl}/api/hmd/ipdevice/vans/diff`;
       let formData = new FormData();
       formData.append('payload', JSON.stringify(requestData));
       formData.append('file', trackHostFile);
 
       helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-      ah.one({
+      this.ah.one({
         url,
         data: formData,
         type: 'POST',
@@ -4233,8 +4233,12 @@ class HostController extends Component {
         contentType: false
       })
       .then(data => {
-        helper.downloadWithBlob('Ipdevice_VANS_Diff_timestamp.xlsx', data);
-        this.toggleTrackHostList();
+        if (data) {
+          const url = `${baseUrl}${contextRoot}/api/hmd/ipdevice/vans/diff/download?fileName=${data.fileName}`;
+          window.open(url, '_blank');
+
+          this.toggleTrackHostList();          
+        }
         return null;
       })
       .catch(err => {
