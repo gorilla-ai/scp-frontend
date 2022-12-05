@@ -4836,9 +4836,9 @@ class HostController extends Component {
       return (
         <MenuItem key={i} className='safety-scan-menu'>
           <span className='header'>{val.name}</span>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList')}>{t('host.txt-downloadHostList')}</Button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList', type)}>{t('host.txt-downloadHostList')}</Button>
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'cpe')}>{t('txt-export') + ' CPE'}</Button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'report', type)}>{t('txt-export') + ' CPE'}</Button>
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
         </MenuItem>
       )
