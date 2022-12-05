@@ -4784,12 +4784,12 @@ class HostController extends Component {
     return disabled;
   }
   /**
-   * Handle download button
+   * Handle safety scan download button
    * @method
    * @param {string} type - download type ('hostList' or 'report')
    * @param {string} safetyScanType - scan type
    */
-  downloadBtn = (type, safetyScanType) => {
+  handleSafetyScanBtn = (type, safetyScanType) => {
     const {baseUrl, contextRoot} = this.context;
     let url = '';
     let requestData = {
@@ -4831,26 +4831,27 @@ class HostController extends Component {
    */
   getSafetyScanMenu = (val, i) => {
     const type = val.value;
+    let name = val.name;
 
     if (type === 'getVansCpe') {
-      return (
-        <MenuItem key={i} className='safety-scan-menu'>
-          <span className='header'>{val.name}</span>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList', type)}>{t('host.txt-downloadHostList')}</Button>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'report', type)}>{t('txt-export') + ' CPE'}</Button>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
-        </MenuItem>
-      )
-    } else {
-      return (
-        <MenuItem key={i} className='safety-scan-menu'>
-          <span className='header'>{val.name}</span>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'hostList', type)}>{t('host.txt-downloadHostList')}</Button>
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.downloadBtn.bind(this, 'report', type)}>{t('txt-export') + ' ' + val.name}</Button>
-        </MenuItem>
-      )
+      name = 'CPE';
+    } else if (type === 'getVansCve') {
+      name = 'CVE';
     }
+
+    return (
+      <MenuItem key={i} className='safety-scan-menu'>
+        <span className='header'>{val.name}</span>
+        <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'hostList', type)}>{t('host.txt-downloadHostList')}</Button>
+        {type === 'getVansCpe' &&
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
+        }
+        <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'report', type)}>{t('txt-export') + ' ' + name}</Button>
+        {type === 'getVansCpe' &&
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
+        }
+      </MenuItem>
+    )
   }
   /**
    * Handle HMD download button
