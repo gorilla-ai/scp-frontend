@@ -390,7 +390,6 @@
     "txt-trackHostList": "弱點修復追蹤",
     "txt-downloadTrackList": "下載追蹤清單",
     "txt-deviceNotAvailable": "主機不存在",
-    "txt-export-cpe": "匯出CPE",
     "txt-report-nccst": "回報NCCST",
     "txt-report-nccst-success": "回報成功",
     "txt-report-nccst-fail": "回報失敗",
