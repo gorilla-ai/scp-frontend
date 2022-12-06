@@ -1238,7 +1238,8 @@
   },
   "ipFields": {
     "timestamp": "日期",
-    "hbDttm": "HB Time",
+    "hmdVersion": "HMD版本",
+    "hbDttm": "Heartbeat時間",
     "seat": "座位",
     "seatName": "座位名稱",
     "areaName": "區域名稱",

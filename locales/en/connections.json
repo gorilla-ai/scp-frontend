@@ -1238,6 +1238,8 @@
   },
   "ipFields": {
     "timestamp": "Date",
+    "hmdVersion": "HMD Version",
+    "hbDttm": "Heartbeat Time",
     "seat": "Seat",
     "seatName": "Seat Name",
     "areaName": "Area Name",

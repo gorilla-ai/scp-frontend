@@ -143,7 +143,7 @@ class NetworkInventory extends Component {
       showAllSeats: false,
       deviceSearchArea: '',
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hbDttm', 'netproxyIp', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
+        dataFieldsArr: ['ip', 'mac', 'hmdVersion', 'hbDttm', 'netproxyIp', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
         dataFields: [],
         dataContent: null,
         ipListArr: [],
