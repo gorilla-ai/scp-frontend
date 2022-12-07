@@ -150,6 +150,7 @@
 	"txt-analyze-success": "Assign Success",
 	"txt-analyze-fail": "Assign Fail",
 	"txt-day": "Day",
+	"txt-monthlyReport": "Monthly Report",
 	"file-too-large": "Upload file over limit，limit is 20MB",
 	"txt-checkRequiredFieldType": "Please enter the correct format value",
 	"txt-checkFileFieldType": "Please check the is enter correct malicious file format values or not",

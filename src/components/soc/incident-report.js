@@ -3,7 +3,7 @@ import moment from 'moment'
 import momentTimezone from 'moment-timezone'
 import _ from 'lodash'
 
-import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -39,7 +39,8 @@ class IncidentReport extends Component {
       datetime: {
         from: helper.getSubstractDate(1, 'day'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      }
+      },
+      monthlyReportDate: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     };
 
     this.ah = getInstance('chewbacca');
@@ -104,30 +105,52 @@ class IncidentReport extends Component {
     });
   }
   /**
+   * Set new datetime for monthly report
+   * @method
+   * @param {object} newDatetime - new datetime object
+   */
+  handleMonthlyDateChange = (newDatetime) => {
+    this.setState({
+      monthlyReportDate: newDatetime
+    });
+  }
+  /**
    * Handle export button confirm
    * @method
+   * @param {string} type - datetime type ('logs' or 'monthly')
    */
-  handleExportConfirm = () => {
+  handleExportConfirm = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const {datetime} = this.state;
+    const {datetime, monthlyReportDate} = this.state;
     const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
     const utc_offset = timezone._offset / 60; //Convert minute to hour
-    const url = `${baseUrl}${contextRoot}/api/soc/daily/_export`;
-    const dateTime = {
-      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };    
-    const requestData = {
-      startDttm: dateTime.from,
-      endDttm: dateTime.to,
-      timeZone: utc_offset
-    };
+    let url = '';
+    let requestData = {};
+
+    if (type === 'logs') {
+      const dateTime = {
+        from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+      url = `${baseUrl}${contextRoot}/api/soc/daily/_export`;  
+      requestData = {
+        startDttm: dateTime.from,
+        endDttm: dateTime.to,
+        timeZone: utc_offset
+      };
+    } else if (type === 'monthly') {
+      url = `${baseUrl}${contextRoot}/api/soc/monthly/_export`;
+      requestData = {
+        startDttm:moment(monthlyReportDate).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        timeZone: utc_offset
+      };
+    }
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   render() {
     const {baseUrl, contextRoot, locale, session} = this.context;
-    const {accountType, datetime} = this.state;
+    const {accountType, datetime, monthlyReportDate} = this.state;
     let dateLocale = locale;
 
     if (locale === 'zh') {
@@ -151,12 +174,11 @@ class IncidentReport extends Component {
             accountType={accountType} />
 
           <div className='parent-content'>
-            <div className='main-content' style={{height: '84vh'}}>
+            <div className='main-content basic-form'>
               <header className='main-header'>{it('txt-incident-soc-report')}</header>
-
-              <div className='soc-content'>
-                <div className='header'>{t('txt-logReport')}</div>
-                <div className='soc-item'>
+              <div className='form-group normal long'>
+                <header>{t('txt-logReport')}</header>
+                <div className='group'>
                   <label>{t('txt-dateRange')}:</label>
                   <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                     <KeyboardDateTimePicker
@@ -185,9 +207,30 @@ class IncidentReport extends Component {
                       value={datetime.to}
                       onChange={this.handleDateChange.bind(this, 'to')} />
                   </MuiPickersUtilsProvider>
-                  <Button variant='contained' color='primary' onClick={this.handleExportConfirm}>{t('txt-export')}</Button>
+                  <Button variant='contained' color='primary' onClick={this.handleExportConfirm.bind(this, 'logs')}>{t('txt-export')}</Button>
                 </div>
               </div>
+
+              {/*<div className='form-group normal long'>
+                <header>{it('txt-monthlyReport')}</header>
+                <div className='group'>
+                  <label>{t('txt-date')}:</label>
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDatePicker
+                      id='incidentReportMonthly'
+                      className='date-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      value={monthlyReportDate}
+                      onChange={this.handleMonthlyDateChange} />
+                  </MuiPickersUtilsProvider>
+                  <Button variant='contained' color='primary' onClick={this.handleExportConfirm.bind(this, 'monthly')}>{t('txt-export')}</Button>
+                </div>
+              </div>*/}
             </div>
           </div>
         </div>
