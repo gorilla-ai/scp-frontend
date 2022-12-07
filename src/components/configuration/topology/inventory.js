@@ -742,7 +742,7 @@ class NetworkInventory extends Component {
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const unSortableFields = ['netproxyIp', 'owner', 'areaName', 'seatName', '_menu'];
+    const unSortableFields = ['hmdVersion', 'netproxyIp', 'owner', 'areaName', 'seatName', '_menu'];
     return !_.includes(unSortableFields, field);
   }
   /**
