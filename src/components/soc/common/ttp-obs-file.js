@@ -6,16 +6,19 @@ import Input from 'react-ui/build/src/components/input'
 
 import TextField from '@material-ui/core/TextField'
 
-let t = null
-let et = null
-let f = null
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
+
+let t = null;
+let et = null;
+let f = null;
 
 class TtpObsFile extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-  	et = global.chewbaccaI18n.getFixedT(null, 'errors')
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  	et = global.chewbaccaI18n.getFixedT(null, 'errors');
   	f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 	}
 	componentDidMount() {

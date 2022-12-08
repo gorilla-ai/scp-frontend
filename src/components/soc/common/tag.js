@@ -2,22 +2,25 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
+import Select from 'react-select'
+
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-import TextField from '@material-ui/core/TextField'
-import {BaseDataContext} from '../../common/context'
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import helper from '../../common/helper'
+
 import Checkbox from '@material-ui/core/Checkbox'
-
-import Select from 'react-select'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import TextField from '@material-ui/core/TextField'
 
-let t = null
-let et = null
-let it = null
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+let it = null;
 
 const RAINBOW = ['#cc2943', '#cc7b29', '#e3ea2d', '#52d94a', '#29b0cc', '#d95798', '#9857d9']
 
@@ -29,7 +32,7 @@ const INIT = {
     originalSelectedTags: [],
     mapping: [],
     id: null
-}
+};
 
 
 class IncidentTag extends Component {

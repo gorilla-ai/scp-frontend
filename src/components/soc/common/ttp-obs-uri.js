@@ -1,11 +1,15 @@
 import React, { Component } from 'react'
 import _ from 'lodash'
+
 import TextField from '@material-ui/core/TextField'
 import MenuItem from '@material-ui/core/MenuItem'
 
-let t = null
-let et = null
-let f = null
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
+
+let t = null;
+let et = null;
+let f = null;
 
 class TtpObsUri extends Component {
 	constructor(props) {

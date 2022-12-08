@@ -6,17 +6,19 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import Form from 'react-ui/build/src/components/form'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
+
 import MenuItem from '@material-ui/core/MenuItem'
-import {BaseDataContext} from '../../common/context'
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import helper from '../../common/helper'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
-import {TextareaAutosize} from '@material-ui/core'
 
-let t = null
-let et = null
-let it = null
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
 
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+let it = null;
 
 const INIT = {
 	open: false,
@@ -25,19 +27,17 @@ const INIT = {
 	comments: [],
 	selected: 'none',
 	comment: ''
-}
-
-
+};
 
 class IncidentReview extends Component {
 	constructor(props) {
 		super(props)
 
-			t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors');
-    	it = global.chewbaccaI18n.getFixedT(null, 'incident');
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  	et = global.chewbaccaI18n.getFixedT(null, 'errors');
+  	it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
-    	this.state = _.cloneDeep(INIT)
+  	this.state = _.cloneDeep(INIT)
 	}
 	componentDidMount() {
 	}

@@ -1,20 +1,24 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import moment from 'moment'
+
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
 
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
-import EventConnections from './event-connections'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
-import MomentUtils from '@date-io/moment'
-import moment from 'moment'
-import Autocomplete from '@material-ui/lab/Autocomplete'
+
+import {BaseDataContext} from '../../common/context'
+import EventConnections from './event-connections'
+import helper from '../../common/helper'
 
 let t = null;
 let et = null;

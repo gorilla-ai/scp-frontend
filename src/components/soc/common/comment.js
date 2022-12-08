@@ -9,18 +9,24 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
-import {BaseDataContext} from '../../common/context'
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import helper from '../../common/helper'
+import Drawer from '@material-ui/core/Drawer'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
-import MenuItem from '@material-ui/core/MenuItem';
-import {Drawer, List, ListItem, ListItemIcon, ListItemText, TextareaAutosize, withStyles} from '@material-ui/core'
+import {withStyles} from '@material-ui/core'
 
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
 
-let t = null
-let et = null
-let it = null
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+let t = null;
+let et = null;
+let it = null;
 
 const INIT = {
 	open: false,
@@ -33,9 +39,9 @@ class IncidentComment extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors')
-    	it = global.chewbaccaI18n.getFixedT(null, 'incident')
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    	et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    	it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
     	this.state = _.cloneDeep(INIT)
 	}

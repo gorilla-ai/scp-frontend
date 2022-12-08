@@ -1,10 +1,13 @@
 import React, { Component } from 'react'
+
 import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 
-let t = null
-let et = null
-let f = null
+let t = null;
+let et = null;
+let f = null;
 
 class TtpObsSocket extends Component {
 	constructor(props) {

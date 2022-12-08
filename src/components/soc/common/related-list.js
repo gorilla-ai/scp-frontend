@@ -7,13 +7,13 @@ import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } f
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
 import AddIcon from '@material-ui/icons/Add'
 import Button from '@material-ui/core/Button'
 import CancelIcon from '@material-ui/icons/Cancel'
 import IconButton from '@material-ui/core/IconButton'
 import TextField from '@material-ui/core/TextField'
-
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import constants from '../../constant/constant-incidnet'

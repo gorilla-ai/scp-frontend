@@ -1,19 +1,21 @@
 import React, { Component } from 'react'
-
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import {BaseDataContext} from '../common/context'
-import SocConfig from '../common/soc-configuration'
-import helper from '../common/helper'
+import _ from 'lodash'
 import cx from 'classnames'
 import moment from 'moment'
-import MenuItem from '@material-ui/core/MenuItem'
-import TextField from '@material-ui/core/TextField'
+
 import Button from '@material-ui/core/Button'
-import constants from '../constant/constant-incidnet'
-import _ from 'lodash';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline'
 import HighlightOffIcon from '@material-ui/icons/HighlightOff'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from '../common/context'
+import constants from '../constant/constant-incidnet'
+import helper from '../common/helper'
 import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
+import SocConfig from '../common/soc-configuration'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;

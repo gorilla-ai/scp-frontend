@@ -3,11 +3,11 @@ import _ from 'lodash'
 
 import { ReactMultiEmail } from 'react-multi-email'
 
-import Checkbox from '@material-ui/core/Checkbox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'

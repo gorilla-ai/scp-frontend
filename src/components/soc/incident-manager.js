@@ -1,10 +1,9 @@
 import React, { Component } from 'react'
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -18,28 +17,29 @@ import MenuItem from '@material-ui/core/MenuItem'
 import MoreIcon from '@material-ui/icons/More'
 import TextField from '@material-ui/core/TextField'
 
-import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
 import DataTable from 'react-ui/build/src/components/table'
+import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
-import helper from '../common/helper'
-import Events from './common/events'
-import SocConfig from '../common/soc-configuration'
-import Ttps from './common/ttps'
-
 import constants from '../constant/constant-incidnet'
+import Events from './common/events'
+import helper from '../common/helper'
 import IncidentComment from './common/comment'
 import IncidentFlowDialog from './common/flow-dialog'
-import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
+import IncidentTag from './common/tag'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
 import NotifyContact from './common/notifyContact'
 import NotifyDialog from './common/notify-dialog'
 import RelatedList from './common/related-list'
-import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
+import SocConfig from '../common/soc-configuration'
+import Ttps from './common/ttps'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
@@ -3988,7 +3988,7 @@ class IncidentManagement extends Component {
 
 IncidentManagement.contextType = BaseDataContext;
 IncidentManagement.propTypes = {
-  
+
 };
 
 export default IncidentManagement;
