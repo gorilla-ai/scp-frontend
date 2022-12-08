@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import cx from 'classnames'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'

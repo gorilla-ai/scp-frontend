@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import cx from 'classnames'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PieChart from 'react-chart/build/src/components/pie'

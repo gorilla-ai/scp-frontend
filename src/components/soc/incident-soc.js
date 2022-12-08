@@ -1,25 +1,25 @@
-import React, {Component} from 'react'
-import {withRouter} from 'react-router'
+import React, { Component } from 'react'
+import { withRouter } from 'react-router'
 
-import {ReactMultiEmail} from 'react-multi-email';
+import {ReactMultiEmail} from 'react-multi-email'
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import Config from '../common/configuration'
 import helper from '../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import 'react-multi-email/style.css';
-import SocConfig from "../common/soc-configuration";
-import Switch from "@material-ui/core/Switch";
-import constants from "../constant/constant-incidnet";
+import 'react-multi-email/style.css'
+import SocConfig from '../common/soc-configuration'
+import Switch from '@material-ui/core/Switch'
+import constants from '../constant/constant-incidnet'
 
 let t = null;
 let it = null;

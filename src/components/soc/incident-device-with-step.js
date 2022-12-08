@@ -1,34 +1,33 @@
-import React, {Component} from "react";
+import React, { Component } from 'react'
 
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper";
-import {BaseDataContext} from "../common/context";
-import SocConfig from "../common/soc-configuration";
-import helper from "../common/helper";
-import cx from "classnames";
-import PopupDialog from "react-ui/build/src/components/popup-dialog";
-import TableContent from "../common/table-content";
-import {downloadWithForm} from "react-ui/build/src/utils/download";
-import {Link} from "react-router-dom";
-// import Checkbox from "react-ui/build/src/components/checkbox";
-import Checkbox from '@material-ui/core/Checkbox';
-import SelecTableContent from "../common/selectable-content";
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import CheckIcon from '@material-ui/icons/Check';
-import CloseIcon from '@material-ui/icons/Close';
-import Button from "@material-ui/core/Button";
-import constants from "../constant/constant-incidnet";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Radio from "@material-ui/core/Radio";
-import _ from "lodash";
-import FileInput from "react-ui/build/src/components/file-input";
-import Gis from "react-gis";
-import queryString from "query-string";
-import Manage from "../configuration/topology/manage";
-import Switch from "@material-ui/core/Switch";
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {BaseDataContext} from '../common/context'
+import SocConfig from '../common/soc-configuration'
+import helper from '../common/helper'
+import cx from 'classnames'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TableContent from '../common/table-content'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+import {Link} from 'react-router-dom'
+import Checkbox from '@material-ui/core/Checkbox'
+import SelecTableContent from '../common/selectable-content'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import CheckIcon from '@material-ui/icons/Check'
+import CloseIcon from '@material-ui/icons/Close'
+import Button from '@material-ui/core/Button'
+import constants from '../constant/constant-incidnet'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Radio from '@material-ui/core/Radio'
+import _ from 'lodash'
+import FileInput from 'react-ui/build/src/components/file-input'
+import Gis from 'react-gis'
+import queryString from 'query-string'
+import Manage from '../configuration/topology/manage'
+import Switch from '@material-ui/core/Switch'
 
 import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
@@ -48,10 +47,10 @@ class IncidentDeviceStep extends Component {
     constructor(props) {
         super(props);
 
-        t = global.chewbaccaI18n.getFixedT(null, "connections");
-        f = chewbaccaI18n.getFixedT(null, "tableFields");
-        et = global.chewbaccaI18n.getFixedT(null, "errors");
-        it = global.chewbaccaI18n.getFixedT(null, "incident");
+        t = global.chewbaccaI18n.getFixedT(null, 'connections');
+        f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+        et = global.chewbaccaI18n.getFixedT(null, 'errors');
+        it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
         this.state = {
             activeContent: 'tableList', //'tableList', 'viewDevice' or 'editDevice'
@@ -180,7 +179,7 @@ class IncidentDeviceStep extends Component {
             isSlave: ''
         };
 
-        this.ah = getInstance("chewbacca");
+        this.ah = getInstance('chewbacca');
     }
 
     componentDidMount() {
@@ -613,7 +612,7 @@ class IncidentDeviceStep extends Component {
 
                 this.setState({
                     healthStatistic: tempStatistic,
-                    activeContent: "sendList",
+                    activeContent: 'sendList',
                 });
             }
             return null;
@@ -691,7 +690,7 @@ class IncidentDeviceStep extends Component {
                 <Manage
                     handleCloseManage={this.handleCloseManage} />
                 }
-                <div className="sub-header">
+                <div className='sub-header'>
                     <div className='secondary-btn-group right'>
                         <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     </div>
@@ -2527,7 +2526,7 @@ class IncidentDeviceStep extends Component {
             sendList.push(tmp)
         })
         let requestData = {
-            "columns": sendList
+            columns: sendList
         };
         downloadWithForm(url, {payload: JSON.stringify(requestData)});
 

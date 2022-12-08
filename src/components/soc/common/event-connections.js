@@ -3,10 +3,11 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Input from 'react-ui/build/src/components/input'
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import helper from "../../common/helper";
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button'
+import helper from '../../common/helper'
+
 let t = null
 let et = null
 let f = null
@@ -15,9 +16,9 @@ class EventConnections extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors')
-    	f = chewbaccaI18n.getFixedT(null, "tableFields");
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  	et = global.chewbaccaI18n.getFixedT(null, 'errors');
+  	f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 	}
 	componentDidMount() {
 	}

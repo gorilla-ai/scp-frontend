@@ -1,5 +1,5 @@
-import React, {Component} from 'react'
-import {withRouter} from 'react-router'
+import React, { Component } from 'react'
+import { withRouter } from 'react-router'
 
 import {ReactMultiEmail} from 'react-multi-email';
 

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import _ from 'lodash'
 import i18n from 'i18next'
 import PropTypes from 'prop-types'

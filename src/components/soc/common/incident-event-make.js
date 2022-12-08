@@ -1,8 +1,7 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import cx from 'classnames'
 import queryString from 'query-string'
 
 import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import _ from 'lodash'
 import cx from 'classnames'
 import i18n from 'i18next'

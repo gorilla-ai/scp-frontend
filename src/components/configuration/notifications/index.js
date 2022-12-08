@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 
 import ChipInput from 'material-ui-chip-input'

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
-import { NavLink, Link, Route } from 'react-router-dom'
-import { withRouter } from 'react-router'
+import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 import _ from 'lodash'

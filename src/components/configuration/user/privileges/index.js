@@ -1,7 +1,6 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import i18n from 'i18next'
 import PropTypes from 'prop-types'
-import cx from 'classnames'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button'

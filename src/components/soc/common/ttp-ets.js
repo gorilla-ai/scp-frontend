@@ -4,8 +4,9 @@ import _ from 'lodash'
 
 import Input from 'react-ui/build/src/components/input'
 import Textarea from 'react-ui/build/src/components/textarea'
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
 let t = null
 let et = null
 let f = null
@@ -14,9 +15,9 @@ class TtpEts extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors')
-    	f = chewbaccaI18n.getFixedT(null, "tableFields");
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  	et = global.chewbaccaI18n.getFixedT(null, 'errors');
+  	f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 	}
 	componentDidMount() {
 	}

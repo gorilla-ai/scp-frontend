@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import cx from 'classnames'
 
 import License from '../../../license'
 

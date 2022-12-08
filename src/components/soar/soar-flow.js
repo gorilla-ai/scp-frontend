@@ -1,8 +1,6 @@
 import React, { Component, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { withRouter } from 'react-router'
 import _ from 'lodash'
-import cx from 'classnames'
 
 import ReactFlow, {
   ReactFlowProvider,

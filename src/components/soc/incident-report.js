@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import moment from 'moment'
 import momentTimezone from 'moment-timezone'
 import _ from 'lodash'

@@ -1,10 +1,7 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
-import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import cx from 'classnames'
 
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'

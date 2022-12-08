@@ -1,23 +1,23 @@
-import React, {Component} from "react";
+import React, { Component } from 'react'
 
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper";
-import {BaseDataContext} from "../common/context";
-import SocConfig from "../common/soc-configuration";
-import helper from "../common/helper";
-import cx from "classnames";
-import moment from "moment";
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from "@material-ui/core/Button";
-import constants from "../constant/constant-incidnet";
-import _ from "lodash";
-import MuiTableContent from "../common/mui-table-content";
-import FilterInput from "../common/filter-input";
-import {Switch} from "@material-ui/core";
-import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
-import HighlightOffIcon from "@material-ui/icons/HighlightOff";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {BaseDataContext} from '../common/context'
+import SocConfig from '../common/soc-configuration'
+import helper from '../common/helper'
+import cx from 'classnames'
+import moment from 'moment'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button'
+import constants from '../constant/constant-incidnet'
+import _ from 'lodash'
+import MuiTableContent from '../common/mui-table-content'
+import FilterInput from '../common/filter-input'
+import {Switch} from '@material-ui/core'
+import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline'
+import HighlightOffIcon from '@material-ui/icons/HighlightOff'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
 
 let t = null;
 let f = null;
@@ -44,10 +44,10 @@ class IncidentRuleTemplate extends Component {
     constructor(props) {
         super(props);
 
-        t = global.chewbaccaI18n.getFixedT(null, "connections");
-        f = global.chewbaccaI18n.getFixedT(null, "tableFields");
-        et = global.chewbaccaI18n.getFixedT(null, "errors");
-        it = global.chewbaccaI18n.getFixedT(null, "incident");
+        t = global.chewbaccaI18n.getFixedT(null, 'connections');
+        f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+        et = global.chewbaccaI18n.getFixedT(null, 'errors');
+        it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
         this.state = {
             activeContent: 'tableList', //tableList, viewItem, editItem
@@ -99,7 +99,7 @@ class IncidentRuleTemplate extends Component {
             }
         };
 
-        this.ah = getInstance("chewbacca");
+        this.ah = getInstance('chewbacca');
     }
 
     componentDidMount() {
@@ -564,7 +564,7 @@ class IncidentRuleTemplate extends Component {
 
         return (
             <div>
-                <div className="sub-header">
+                <div className='sub-header'>
                     <div className='secondary-btn-group right'>
                         <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
                                 title={t('txt-filter')}><i className='fg fg-filter'/></button>

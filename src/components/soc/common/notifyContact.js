@@ -1,5 +1,5 @@
-import React, {Component} from 'react'
-import TextField from '@material-ui/core/TextField';
+import React, { Component } from 'react'
+import TextField from '@material-ui/core/TextField'
 
 let t = null
 let et = null
@@ -11,11 +11,11 @@ class NotifyContact extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-		et = global.chewbaccaI18n.getFixedT(null, 'errors')
-		f = chewbaccaI18n.getFixedT(null, "tableFields");
-		it = global.chewbaccaI18n.getFixedT(null, "incident");
-		at = global.chewbaccaI18n.getFixedT(null, "account");
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+		et = global.chewbaccaI18n.getFixedT(null, 'errors');
+		f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+		it = global.chewbaccaI18n.getFixedT(null, 'incident');
+		at = global.chewbaccaI18n.getFixedT(null, 'account');
 	}
 
 	componentDidMount() {

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import moment from 'moment'
 import _ from 'lodash'

@@ -1,5 +1,4 @@
 import React, { Component, useRef } from 'react'
-import { withRouter } from 'react-router'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'

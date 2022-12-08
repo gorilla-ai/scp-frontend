@@ -1,40 +1,39 @@
-import React, {Component} from "react"
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
-import cx from "classnames"
-import Moment from 'moment'
+import React, { Component } from 'react'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import cx from 'classnames'
 import moment from 'moment'
 
 import FileInput from 'react-ui/build/src/components/file-input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import {BaseDataContext} from "../common/context"
-import SocConfig from "../common/soc-configuration"
-import helper from "../common/helper"
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button'
+import {BaseDataContext} from '../common/context'
+import SocConfig from '../common/soc-configuration'
+import helper from '../common/helper'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import Events from './common/events'
 import Ttps from './common/ttps'
-import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
-import DataTable from "react-ui/build/src/components/table";
-import _ from "lodash";
+import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
+import DataTable from 'react-ui/build/src/components/table'
+import _ from 'lodash'
 
 import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
-import MomentUtils from "@date-io/moment";
-import NotifyContact from "./common/notifyContact";
-import Menu from "@material-ui/core/Menu";
-import constants from "../constant/constant-incidnet";
-import MuiTableContent from "../common/mui-table-content";
-import MoreIcon from '@material-ui/icons/More';
-import IconButton from '@material-ui/core/IconButton';
-import SearchOptions from "../common/search-options";
-import IncidentFlowDialog from "./common/flow-dialog";
-import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import NotifyContact from './common/notifyContact'
+import Menu from '@material-ui/core/Menu'
+import constants from '../constant/constant-incidnet'
+import MuiTableContent from '../common/mui-table-content'
+import MoreIcon from '@material-ui/icons/More'
+import IconButton from '@material-ui/core/IconButton'
+import SearchOptions from '../common/search-options'
+import IncidentFlowDialog from './common/flow-dialog'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
 
 let t = null;
 let f = null;
@@ -55,11 +54,11 @@ class IncidentSearch extends Component {
     constructor(props) {
         super(props);
 
-        t = global.chewbaccaI18n.getFixedT(null, "connections");
-        f = chewbaccaI18n.getFixedT(null, "tableFields");
-        et = global.chewbaccaI18n.getFixedT(null, "errors");
-        it = global.chewbaccaI18n.getFixedT(null, "incident");
-        at = global.chewbaccaI18n.getFixedT(null, "account");
+        t = global.chewbaccaI18n.getFixedT(null, 'connections');
+        f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+        et = global.chewbaccaI18n.getFixedT(null, 'errors');
+        it = global.chewbaccaI18n.getFixedT(null, 'incident');
+        at = global.chewbaccaI18n.getFixedT(null, 'account');
 
         this.state = {
             INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
@@ -97,7 +96,7 @@ class IncidentSearch extends Component {
                 status: 0,
                 datetime: {
                     from: helper.getSubstractDate(1, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                    to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 severity: '',
                 isExpired: 2
@@ -136,7 +135,7 @@ class IncidentSearch extends Component {
             currentData: {},
         };
 
-        this.ah = getInstance("chewbacca");
+        this.ah = getInstance('chewbacca');
     }
 
     componentDidMount() {
@@ -257,8 +256,8 @@ class IncidentSearch extends Component {
         const page = fromSearch === 'currentPage' ? incident.currentPage : 0;
 
         if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         search.isExecutor = _.includes(session.roles, 'SOC Executor')
@@ -298,7 +297,7 @@ class IncidentSearch extends Component {
                                     }
 
                                     if (val === '_menu') {
-                                        return <IconButton aria-label="more"
+                                        return <IconButton aria-label='more'
                                                            onClick={this.handleOpenMenu.bind(this, allValue)}>
                                             <MoreIcon/>
                                         </IconButton>
@@ -439,7 +438,7 @@ class IncidentSearch extends Component {
                 }
             </Menu>
 
-            <div className="sub-header">
+            <div className='sub-header'>
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
@@ -526,7 +525,7 @@ class IncidentSearch extends Component {
                                     )
                                 })
                             }
-                            {incident.info.tagList && incident.info.tagList.length >= 3 && "..."}
+                            {incident.info.tagList && incident.info.tagList.length >= 3 && '...'}
                         </div>
                     </div>
                 }
@@ -747,7 +746,7 @@ class IncidentSearch extends Component {
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
                 <Autocomplete
                     multiple
-                    id="tags-standard"
+                    id='tags-standard'
                     size='small'
                     options={incident.info.differenceWithOptions}
                     getOptionLabel={(option) => option.text}
@@ -859,7 +858,7 @@ class IncidentSearch extends Component {
                     if (tempData === 'fileSize') {
                         return <span>{this.formatBytes(value)}</span>
                     } else if (tempData === 'fileDttm') {
-                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                        return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
                     } else if (tempData === 'fileMemo') {
                         if (incident.info.attachmentDescription) {
                             const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
@@ -881,7 +880,7 @@ class IncidentSearch extends Component {
                         let isShow = true
 
                         if (incident.info.status === 3 || incident.info.status === 4) {
-                            if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
+                            if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
                                 isShow = false
                             }
                         }
@@ -967,7 +966,7 @@ class IncidentSearch extends Component {
                 sortable: this.checkSortable(tempData),
                 formatter: (value, allValue, i) => {
                     if (tempData === 'reviewDttm') {
-                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                        return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
                     } else if (tempData === 'status') {
                         return <span>{it(`action.${value}`)}</span>
                     } else if (tempData === 'suggestion' || tempData === 'reviewerName') {
@@ -1139,7 +1138,7 @@ class IncidentSearch extends Component {
         const {locale} = this.context;
 
         const now = new Date();
-        const nowTime = Moment(now).local().format('YYYY-MM-DD HH:mm:ss');
+        const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
 
         return <div className='form-group normal'>
             <header>
@@ -1249,8 +1248,8 @@ class IncidentSearch extends Component {
                         return {
                             ...el,
                             time: {
-                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                                from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                                to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
                             }
                         }
                     })
@@ -1327,8 +1326,8 @@ class IncidentSearch extends Component {
                         return {
                             ...el,
                             time: {
-                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                                from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                                to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
                             }
                         }
                     })
@@ -1926,7 +1925,7 @@ class IncidentSearch extends Component {
                 status: 0,
                 datetime: {
                     from: helper.getSubstractDate(1, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                    to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 isExpired: 2
             }
@@ -2335,7 +2334,7 @@ class IncidentSearch extends Component {
 
         _.forEach(incident.historyList, el => {
             payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1})
-            payload.history.table.push({text: Moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+            payload.history.table.push({text: moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
             payload.history.table.push({text: el.reviewerName, colSpan: 1})
             payload.history.table.push({text: el.suggestion, colSpan: 1})
         })
@@ -2356,7 +2355,7 @@ class IncidentSearch extends Component {
                 payload.attachment.table.push({text: file.fileName, colSpan: 1})
                 payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
                 payload.attachment.table.push({
-                    text: Moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'),
+                    text: moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'),
                     colSpan: 1
                 })
                 const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
@@ -2433,11 +2432,11 @@ class IncidentSearch extends Component {
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
             payload.eventList.table.push({
-                text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
+                text: moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
                 colSpan: 2
             })
             payload.eventList.table.push({
-                text: Moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
+                text: moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
                 colSpan: 2
             })
             payload.eventList.table.push({text: event.frequency, colSpan: 2})
@@ -2540,8 +2539,8 @@ class IncidentSearch extends Component {
         let {search, incident, loadListType, accountRoleType} = this.state
 
         if (search.datetime) {
-            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         search.isExecutor = _.includes(session.roles, 'SOC Executor')

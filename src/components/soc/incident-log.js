@@ -1,21 +1,20 @@
-import React, {Component} from "react";
+import React, { Component } from 'react'
 
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper";
-import {BaseDataContext} from "../common/context";
-import SocConfig from "../common/soc-configuration";
-import helper from "../common/helper";
-import cx from "classnames";
-import Moment from "moment";
-import moment from "moment";
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from "@material-ui/core/Button";
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
-import MomentUtils from "@date-io/moment";
-import constants from "../constant/constant-incidnet";
-import _ from "lodash";
-import MuiTableContent from "../common/mui-table-content";
-import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {BaseDataContext} from '../common/context'
+import SocConfig from '../common/soc-configuration'
+import helper from '../common/helper'
+import cx from 'classnames'
+import moment from 'moment'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button';
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import constants from '../constant/constant-incidnet'
+import _ from 'lodash'
+import MuiTableContent from '../common/mui-table-content'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
 
 let t = null;
 let f = null;
@@ -32,10 +31,10 @@ class IncidentLog extends Component {
     constructor(props) {
         super(props);
 
-        t = global.chewbaccaI18n.getFixedT(null, "connections");
-        f = global.chewbaccaI18n.getFixedT(null, "tableFields");
-        et = global.chewbaccaI18n.getFixedT(null, "errors");
-        it = global.chewbaccaI18n.getFixedT(null, "incident");
+        t = global.chewbaccaI18n.getFixedT(null, 'connections');
+        f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+        et = global.chewbaccaI18n.getFixedT(null, 'errors');
+        it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
         this.state = {
             activeContent: 'tableList', //tableList, viewDevice, editDevice
@@ -47,7 +46,7 @@ class IncidentLog extends Component {
                 dttmType: 'createdDttm',
                 datetime: {
                     from: helper.getSubstractDate(1, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                    to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
             },
             accountType:constants.soc.LIMIT_ACCOUNT,
@@ -70,7 +69,7 @@ class IncidentLog extends Component {
             }
         };
 
-        this.ah = getInstance("chewbacca");
+        this.ah = getInstance('chewbacca');
     }
 
     componentDidMount() {
@@ -159,8 +158,8 @@ class IncidentLog extends Component {
         requestData.account = session.accountId;
 
         if (logSearch.datetime) {
-            requestData.startDttm =   Moment(logSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            requestData.endDttm =   Moment(logSearch.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.startDttm =   moment(logSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.endDttm =   moment(logSearch.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         this.ah.one({
@@ -286,7 +285,7 @@ class IncidentLog extends Component {
         return (
             <div>
 
-                <div className="sub-header">
+                <div className='sub-header'>
                     <div className='secondary-btn-group right'>
 
                         <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
@@ -627,7 +626,7 @@ class IncidentLog extends Component {
                 dttmType: 'createdDttm',
                 datetime: {
                     from: helper.getSubstractDate(1, 'month'),
-                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                    to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
             },
         });

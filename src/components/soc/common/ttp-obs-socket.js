@@ -1,6 +1,6 @@
-import React, {Component} from 'react'
-import TextField from '@material-ui/core/TextField';
-import helper from "../../common/helper";
+import React, { Component } from 'react'
+import TextField from '@material-ui/core/TextField'
+import helper from '../../common/helper'
 
 let t = null
 let et = null
@@ -10,9 +10,9 @@ class TtpObsSocket extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-		et = global.chewbaccaI18n.getFixedT(null, 'errors')
-		f = chewbaccaI18n.getFixedT(null, "tableFields");
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+		et = global.chewbaccaI18n.getFixedT(null, 'errors');
+		f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 	}
 
 	componentDidMount() {

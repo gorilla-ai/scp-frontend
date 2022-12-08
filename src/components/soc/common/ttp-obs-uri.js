@@ -1,7 +1,7 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import _ from 'lodash'
-import TextField from "@material-ui/core/TextField";
-import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField'
+import MenuItem from '@material-ui/core/MenuItem'
 
 let t = null
 let et = null
@@ -11,9 +11,9 @@ class TtpObsUri extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-		et = global.chewbaccaI18n.getFixedT(null, 'errors')
-		f = chewbaccaI18n.getFixedT(null, "tableFields");
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+		et = global.chewbaccaI18n.getFixedT(null, 'errors');
+		f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 	}
 
 	componentDidMount() {

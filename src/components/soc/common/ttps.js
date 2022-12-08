@@ -11,10 +11,10 @@ import TtpObsFile from './ttp-obs-file'
 import TtpObsUri from './ttp-obs-uri'
 import TtpObsSocket from './ttp-obs-socket'
 import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
 
 let t = null
@@ -26,10 +26,10 @@ class Ttps extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors')
-    	f = chewbaccaI18n.getFixedT(null, "tableFields");
-    	it = global.chewbaccaI18n.getFixedT(null, "incident")
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  	et = global.chewbaccaI18n.getFixedT(null, 'errors');
+  	f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+  	it = global.chewbaccaI18n.getFixedT(null, 'incident');
 	}
 	componentDidMount() {
 	}

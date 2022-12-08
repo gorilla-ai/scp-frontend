@@ -1,20 +1,19 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import cx from "classnames"
 
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-import TextField from '@material-ui/core/TextField';
-import {BaseDataContext} from "../../common/context"
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
-import helper from "../../common/helper"
-import Checkbox from '@material-ui/core/Checkbox';
+import TextField from '@material-ui/core/TextField'
+import {BaseDataContext} from '../../common/context'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import helper from '../../common/helper'
+import Checkbox from '@material-ui/core/Checkbox'
 
 import Select from 'react-select'
-import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 
 let t = null
 let et = null
@@ -37,9 +36,9 @@ class IncidentTag extends Component {
 	constructor(props) {
 		super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors')
-    	it = global.chewbaccaI18n.getFixedT(null, "incident")
+		t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    	et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    	it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
     	this.state = _.cloneDeep(INIT)
 	}

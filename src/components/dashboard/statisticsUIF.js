@@ -1,9 +1,7 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import moment from 'moment'
-import cx from 'classnames'
 import _ from 'lodash'
 
 import * as htmlToImage from 'html-to-image'

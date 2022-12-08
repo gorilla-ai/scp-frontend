@@ -1,10 +1,8 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import cx from 'classnames'
 import queryString from 'query-string'
 
 import BarChart from 'react-chart/build/src/components/bar'

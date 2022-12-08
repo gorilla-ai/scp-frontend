@@ -8,13 +8,13 @@ import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import EventConnections from './event-connections'
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
-import MomentUtils from "@date-io/moment";
-import moment from "moment";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button'
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import moment from 'moment'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 
 let t = null;
 let et = null;
@@ -27,8 +27,8 @@ class Events extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
-    f = chewbaccaI18n.getFixedT(null, "tableFields");
-    it = global.chewbaccaI18n.getFixedT(null, "incident");
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
   }
   componentDidMount() {
   }

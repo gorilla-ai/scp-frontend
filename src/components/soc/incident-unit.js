@@ -1,29 +1,27 @@
-import React, {Component} from "react";
+import React, { Component } from 'react'
 
-import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper";
-import {BaseDataContext} from "../common/context";
-import SocConfig from "../common/soc-configuration";
-import helper from "../common/helper";
-import cx from "classnames";
-import PopupDialog from "react-ui/build/src/components/popup-dialog";
-import TableContent from "../common/table-content";
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import _ from "lodash";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import constants from "../constant/constant-incidnet";
-import 'react-sortable-tree/style.css';
-import SortableTree from 'react-sortable-tree';
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {BaseDataContext} from '../common/context'
+import SocConfig from '../common/soc-configuration'
+import helper from '../common/helper'
+import cx from 'classnames'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TableContent from '../common/table-content'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button'
+import _ from 'lodash'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import constants from '../constant/constant-incidnet'
+import 'react-sortable-tree/style.css'
+import SortableTree from 'react-sortable-tree'
 
-import ModalDialog from "react-ui/build/src/components/modal-dialog";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-import Manage from "../configuration/topology/manage";
-import MuiTableContent from "../common/mui-table-content";
-import MuiTableContentWithoutLoading from "../common/mui-table-content-withoutloading";
-
-// import FileExplorerTheme from 'react-sortable-tree-theme-full-node-drag';
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
+import Manage from '../configuration/topology/manage'
+import MuiTableContent from '../common/mui-table-content'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
 
 let t = null;
 let f = null;
@@ -40,10 +38,10 @@ class IncidentUnit extends Component {
     constructor(props) {
         super(props);
 
-        t = global.chewbaccaI18n.getFixedT(null, "connections");
-        f = chewbaccaI18n.getFixedT(null, "tableFields");
-        et = global.chewbaccaI18n.getFixedT(null, "errors");
-        it = global.chewbaccaI18n.getFixedT(null, "incident");
+        t = global.chewbaccaI18n.getFixedT(null, 'connections');
+        f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+        et = global.chewbaccaI18n.getFixedT(null, 'errors');
+        it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
         this.state = {
             activeContent: 'tableList', //tableList, viewDevice, editDevice
@@ -86,7 +84,7 @@ class IncidentUnit extends Component {
             unitList:[]
         };
 
-        this.ah = getInstance("chewbacca");
+        this.ah = getInstance('chewbacca');
     }
 
     componentDidMount() {
@@ -373,46 +371,46 @@ class IncidentUnit extends Component {
         let info = '';
         switch (value) {
             case 0:
-                info = "能源";
+                info = '能源';
                 break;
             case 1:
-                info = "水資源";
+                info = '水資源';
                 break;
             case 2:
-                info = "通訊傳播";
+                info = '通訊傳播';
                 break;
             case 3:
-                info = "交通";
+                info = '交通';
                 break;
             case 4:
-                info = "金融";
+                info = '金融';
                 break;
             case 5:
-                info = "緊急救援及醫院";
+                info = '緊急救援及醫院';
                 break;
             case 6:
-                info = "中央及地方政府";
+                info = '中央及地方政府';
                 break;
             case 7:
-                info = "科學園區與工業區";
+                info = '科學園區與工業區';
                 break;
             case 8:
-                info = "臺北區域聯防中心";
+                info = '臺北區域聯防中心';
                 break;
             case 9:
-                info = "新北區域聯防中心";
+                info = '新北區域聯防中心';
                 break;
             case 10:
-                info = "桃園區域聯防中心";
+                info = '桃園區域聯防中心';
                 break;
             case 11:
-                info = "臺中區域聯防中心";
+                info = '臺中區域聯防中心';
                 break;
             case 12:
-                info = "臺南區域聯防中心";
+                info = '臺南區域聯防中心';
                 break;
             case 13:
-                info = "高雄區域聯防中心";
+                info = '高雄區域聯防中心';
                 break;
         }
         return info;
@@ -462,7 +460,7 @@ class IncidentUnit extends Component {
                     handleCloseManage={this.toggleManageDialog} />
                 }
 
-                <div className="sub-header">
+                <div className='sub-header'>
                     <div className='secondary-btn-group right'>
                         <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
                                 title={t('txt-filter')}><i className='fg fg-filter'/></button>
@@ -750,7 +748,7 @@ class IncidentUnit extends Component {
                         <label htmlFor='accountListOptions'>{f('incidentFields.relatedAccountList')}</label>
                         <Autocomplete
                             multiple
-                            id="tags-standard"
+                            id='tags-standard'
                             size='small'
                             options={incidentUnit.info.differenceWithOptions}
                             getOptionLabel={(option) => option.text}

@@ -1,10 +1,10 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from '@material-ui/pickers'
+import { KeyboardDateTimePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -67,7 +67,7 @@ class Incident extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     it = global.chewbaccaI18n.getFixedT(null, 'incident');
     at = global.chewbaccaI18n.getFixedT(null, 'account');
