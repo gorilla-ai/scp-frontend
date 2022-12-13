@@ -1,22 +1,29 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import cx from 'classnames'
 
 import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
+import DataTable from 'react-ui/build/src/components/table'
+import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 import {BaseDataContext} from '../../common/context'
+import Events from './events'
 import helper from '../../common/helper'
+import NotifyContact from './notifyContact'
+import Ttps from './ttps'
 
 import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -34,6 +41,12 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 
+/**
+ * IncidentForm
+ * @class
+ * @author Ryan Chen <ryanchen@ns-guard.com>
+ * @summary A react component to show the SOC Incident form
+ */
 class IncidentForm extends Component {
   constructor(props) {
     super(props)
@@ -45,27 +58,22 @@ class IncidentForm extends Component {
     at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
-      showSteps: 'main', //'main' or 'events'
+
     };
   }
   componentDidMount() {
 
   }
   ryan = () => {}
-  /**
-   * Toggle steps
-   * @method
-   * @param {string} step - step to show ('main' or 'events')
-   */
-  toggleSteps = (step) => {
-    this.setState({
-      showSteps: step
-    });
-  }
   showRelatedList = (val, i) => {
     return <span key={i} className='item'>{val}</span>
   }
-  render() {
+  /**
+   * Display main section
+   * @method
+   * @returns HTML DOM
+   */
+  displayMain = () => {
     const {locale} = this.context;
     const {activeContent, incidentType, incident, severityList, socFlowList} = this.props;
     const {showSteps} = this.state;
@@ -86,9 +94,9 @@ class IncidentForm extends Component {
           }
         </header>
 
-        <Button className='last-left' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.toggleSteps.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled={true}>{it('txt-prev-page')}</Button>
 
-        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.toggleSteps.bind(this, 'events')}>{it('txt-next-page')}</Button>
+        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
         <div className='group full'>
           <label htmlFor='title'>{f('incidentFields.title')}</label>
@@ -298,8 +306,510 @@ class IncidentForm extends Component {
           <div className='group full'>
             <label htmlFor='relatedList' style={{float: 'left', marginRight: '10px'}}>{f('incidentFields.relatedList')}</label>
             <Button variant='contained' color='primary' style={{marginTop: '-8px', marginBottom: '10px'}} onClick={this.props.toggleRelatedListModal} disabled={activeContent === 'viewIncident'}>{t('txt-query')}</Button>
-            <div className='flex-item'>{incident.info.showFontendRelatedList.map(this.props.showRelatedList)}</div>
+            <div className='flex-item'>{incident.info.showFontendRelatedList.map(this.showRelatedList)}</div>
           </div>
+        }
+      </div>
+    )    
+  }
+  /**
+   * Display notice section
+   * @method
+   * @returns HTML DOM
+   */
+  displayNotice = () => {
+    const {activeContent, incidentAccidentList, incidentAccidentSubList, incidentType, incident} = this.props;
+
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-accidentTitle')}</div>
+        </header>
+
+        <div className='group'>
+          <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
+          <TextField
+            id='accidentCatogory'
+            name='accidentCatogory'
+            select
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentCatogory}
+            disabled={activeContent === 'viewIncident'}>
+            {incidentAccidentList}
+          </TextField>
+        </div>
+        {incident.info.accidentCatogory === '5' &&
+          <div className='group'>
+            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
+            <TextField
+              id='accidentAbnormal'
+              name='accidentAbnormal'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              onChange={this.handleDataChangeMui}
+              value={incident.info.accidentAbnormalOther}
+              disabled={activeContent === 'viewIncident'} />
+          </div>
+        }
+        {incident.info.accidentCatogory !== '5' &&
+          <div className='group'>
+            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
+            <TextField
+              id='accidentAbnormal'
+              name='accidentAbnormal'
+              select
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              onChange={this.handleDataChangeMui}
+              value={incident.info.accidentAbnormal}
+              disabled={activeContent === 'viewIncident'}>
+              {incidentAccidentSubList[incident.info.accidentCatogory - 1]}
+            </TextField>
+          </div>
+        }
+        <div className='group full'>
+          <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
+          <TextareaAutosize
+            id='accidentDescription'
+            name='accidentDescription'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentDescription}
+            rows={3}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
+          <TextareaAutosize
+            id='accidentReason'
+            name='accidentReason'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentReason}
+            rows={3}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+        <div className='group full'>
+          <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
+          <TextareaAutosize
+            id='accidentInvestigation'
+            name='accidentInvestigation'
+            className='textarea-autosize'
+            onChange={this.handleDataChangeMui}
+            value={incident.info.accidentInvestigation}
+            rows={3}
+            disabled={activeContent === 'viewIncident'} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Format file size to readable format
+   * @method
+   * @returns numbers to represent bytes
+   */
+  formatBytes = (bytes, decimals = 2) => {
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    if (bytes === 0 || bytes === '0') {
+      return '0 Bytes';
+    }
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', '_menu', 'action', 'tag'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Handle attachment download
+   * @method
+   * @param {objet} allValue - data from table
+   */
+  downloadAttachment = (allValue) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`;
+
+    downloadLink(url);
+  }
+  /**
+   * Handle all attachment download
+   * @method
+   */
+  handleDownloadAll = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download/all?id=${incident.info.id}`
+
+    downloadLink(url);
+  }
+  /**
+   * Handle attachment delete
+   * @method
+   * param {objet} allValue - data from table
+   */
+  deleteAttachment = (allValue) => {
+    const {baseUrl} = this.context;
+    let {incident} = this.state;
+
+    PopupDialog.prompt({
+      title: t('txt-delete'),
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}: {allValue.fileName}?</span>
+        </div>
+      ),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+          ah.one({
+            url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
+            type: 'DELETE'
+          })
+          .then(data => {
+            if (data.ret === 0) {
+              this.props.refreshIncidentAttach(incident.info.id);
+            }
+          })
+          .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+          })
+        }
+      }
+    });
+  }
+  /**
+   * Display file upload content
+   * @method
+   * @param {string} type - page type ('page' or 'modal')
+   * @returns HTML DOM
+   */  
+  commonUploadContent = (type) => {
+    const {incident, filesName} = this.props;
+
+    return (
+      <React.Fragment>
+        <div className='group'>
+          <div className='c-file-input clearable file-input' style={type === 'page' ? {width: '95%'} : null}>
+            <input type='file' id='multiMalware' style={{width: 'calc(100% - 25px)'}} multiple onChange={this.props.handleFileChange} />
+            <button type='button'>{t('txt-selectFile')}</button>
+            <input type='text' className='long-name' readOnly value={filesName} />
+            {filesName.length > 0 &&
+              <i class='c-link inline fg fg-close' onClick={this.props.handleFileChange.bind(this, 'clear')}></i>
+            }
+          </div>
+        </div>
+        <div className='group'>
+          <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
+          <TextareaAutosize
+            id='fileMemo'
+            name='fileMemo'
+            className='textarea-autosize'
+            onChange={this.props.handleDataChangeMui}
+            value={incident.info.fileMemo}
+            rows={2} />
+        </div>
+      </React.Fragment>
+    )
+  }
+  /**
+   * Display file upload section
+   * @method
+   * @returns HTML DOM
+   */
+  displayAttached = () => {
+    const {activeContent, incidentType, incident, attach, filesName} = this.props;
+    let dataFields = {};
+
+    incident.fileFieldsArr.forEach(tempData => {
+      dataFields[tempData] = {
+        label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
+        sortable: this.checkSortable(tempData),
+        formatter: (value, allValue, i) => {
+          if (tempData === 'fileSize') {
+            return <span>{this.formatBytes(value)}</span>
+          } else if (tempData === 'fileDttm') {
+            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+          } else if (tempData === 'fileMemo') {
+            if (incident.info.attachmentDescription) {
+              const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName});
+              let formattedWording = '';
+
+              if (target) {
+                if (target.fileMemo && target.fileMemo.length > 32) {
+                  formattedWording = target.fileMemo.substr(0, 32) + '...';
+                } else {
+                  formattedWording = target.fileMemo;
+                }
+              }
+              return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
+            }
+          } else if (tempData === 'action') {
+            let isShow = true;
+
+            if (incident.info.status === 3 || incident.info.status === 4) {
+              if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
+                isShow = false;
+              }
+            }
+
+            return <div>
+              <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
+              {isShow &&
+                <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+              }
+            </div>
+          } else {
+            return <span>{value}</span>
+          }
+        }
+      }
+    });
+
+    incident.fileFields = dataFields;
+
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
+        </header>
+        {activeContent === 'addIncident' &&
+          this.commonUploadContent('page')
+        }
+        {activeContent !== 'addIncident' &&
+          <div className='group'>
+            {/*<Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.toggleUploadAttahment}>{t('txt-upload')}</Button>*/}
+            {incident.info.attachmentDescription &&
+              <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
+            }
+          </div>
+        }
+        {_.size(incident.info.fileList) > 0 &&
+          <div className='group full'>
+            <DataTable
+              style={{width: '100%'}}
+              className='main-table full'
+              fields={incident.fileFields}
+              data={incident.info.fileList} />
+          </div>
+        }
+      </div>
+    )
+  }
+  /**
+   * Display connect unit section
+   * @method
+   * @returns HTML DOM
+   */
+  displayConnectUnit = () => {
+    const {activeContent, incidentAccidentList, incidentAccidentSubList, incidentType, incident} = this.props;
+
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-notifyUnit')}</div>
+        </header>
+
+        <div className='group full multi'>
+          <MultiInput
+            id='incidentEvent'
+            className='incident-group'
+            base={NotifyContact}
+            defaultItemValue={{
+              title: '',
+              name: '',
+              phone: '',
+              email: ''
+            }}
+            value={incident.info.notifyList}
+            props={{
+              activeContent
+            }}
+            onChange={this.props.handleConnectContactChange}
+            readOnly={activeContent === 'viewIncident'} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display flow section
+   * @method
+   * @returns HTML DOM
+   */
+  displayFlow = () => {
+    const {activeContent, incidentType, incident} = this.props;
+    let dataFields = {};
+
+    incident.flowFieldsArr.forEach(tempData => {
+      dataFields[tempData] = {
+        hide: tempData === 'id',
+        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+        sortable: this.checkSortable(tempData),
+        formatter: (value, allValue, i) => {
+          if (tempData === 'reviewDttm') {
+            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+          } else if (tempData === 'status') {
+            return <span>{it(`action.${value}`)}</span>
+          } else {
+            return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
+          }
+        }
+      }
+    });
+    incident.flowFields = dataFields;
+
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-flowTitle')}</div>
+        </header>
+
+        <div className='group full'>
+          <DataTable
+            style={{width: '100%'}}
+            className='main-table full'
+            fields={incident.flowFields}
+            data={incident.info.historyList} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display events section
+   * @method
+   * @returns HTML DOM
+   */
+  displayEvents = () => {
+    const {locale} = this.context;
+    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.props;
+    const now = new Date();
+    const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
+
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-incident-events')}</div>
+        </header>
+
+        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+
+        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentType !== 'ttps'}>{it('txt-next-page')}</Button>
+
+        <div className='group full multi'>
+          <MultiInput
+            id='incidentEvent'
+            className='incident-group'
+            base={Events}
+            defaultItemValue={{
+              description: '',
+              deviceId: '',
+              time: {
+                from: nowTime,
+                to: nowTime
+              },
+              frequency: 1
+            }}
+            value={incident.info.eventList}
+            props={{
+              activeContent,
+              locale,
+              deviceListOptions,
+              showDeviceListOptions
+            }}
+            onChange={this.props.handleEventsChange}
+            readOnly={activeContent === 'viewIncident'} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display TTP section
+   * @method
+   * @returns HTML DOM
+   */
+  displayTtp = () => {
+    const {activeContent, incident} = this.props;
+
+    return (
+      <div className='form-group normal'>
+        <header>
+          <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
+          </div>
+        </header>
+
+        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+
+        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')} disabled={true}>{it('txt-next-page')}</Button>
+
+        <div className='group full multi'>
+          <MultiInput
+            id='incidentTtp'
+            className='incident-group'
+            base={Ttps}
+            value={incident.info.ttpList}
+            props={{
+              activeContent
+            }}
+            onChange={this.props.handleTtpsChange}
+            readOnly={activeContent === 'viewIncident'} />
+        </div>
+      </div>
+    )
+  }
+  render() {
+    const {displayPage, activeContent} = this.props;
+
+    return (
+      <div>
+        {displayPage === 'main' &&
+          this.displayMain()
+        }
+
+        {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
+          this.displayNotice()
+        }
+
+        {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
+          this.displayAttached()
+        }
+
+        {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
+          this.displayConnectUnit()
+        }
+
+        {activeContent !== 'addIncident' &&  displayPage === 'main' &&
+          this.displayFlow()
+        }
+
+        {displayPage === 'events' &&
+          this.displayEvents()
+        }
+
+        {displayPage === 'ttps' &&
+          this.displayTtp()
         }
       </div>
     )
@@ -308,7 +818,27 @@ class IncidentForm extends Component {
 
 IncidentForm.contextType = BaseDataContext;
 IncidentForm.propTypes = {
-
+  activeContent: PropTypes.string.isRequired,
+  displayPage: PropTypes.string.isRequired,
+  incident: PropTypes.object.isRequired,
+  severityList: PropTypes.array.isRequired,
+  incidentType: PropTypes.string.isRequired,
+  socFlowList: PropTypes.array.isRequired,
+  attach: PropTypes.array.isRequired,
+  filesName: PropTypes.array.isRequired,
+  deviceListOptions: PropTypes.array.isRequired,
+  showDeviceListOptions: PropTypes.array.isRequired,
+  incidentAccidentList: PropTypes.array.isRequired,
+  incidentAccidentSubList: PropTypes.array.isRequired,
+  handleDataChange: PropTypes.func.isRequired,
+  handleDataChangeMui: PropTypes.func.isRequired,
+  handleFileChange: PropTypes.func.isRequired,
+  toggleRelatedListModal: PropTypes.func.isRequired,
+  refreshIncidentAttach: PropTypes.func.isRequired,
+  handleConnectContactChange: PropTypes.func.isRequired,
+  handleIncidentPageChange: PropTypes.func.isRequired,
+  handleEventsChange: PropTypes.func.isRequired,
+  handleTtpsChange: PropTypes.func.isRequired
 };
 
 export default IncidentForm;

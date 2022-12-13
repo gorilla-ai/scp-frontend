@@ -26,7 +26,6 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 import {BaseDataContext} from '../common/context'
 import constants from '../constant/constant-incidnet'
-import Events from './common/events'
 import helper from '../common/helper'
 import IncidentComment from './common/comment'
 import IncidentFlowDialog from './common/flow-dialog'
@@ -34,11 +33,9 @@ import IncidentForm from './common/incident-form'
 import IncidentReview from './common/review'
 import IncidentTag from './common/tag'
 import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
-import NotifyContact from './common/notifyContact'
 import NotifyDialog from './common/notify-dialog'
 import RelatedList from './common/related-list'
 import SocConfig from '../common/soc-configuration'
-import Ttps from './common/ttps'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -58,7 +55,7 @@ const ALERT_LEVEL_COLORS = {
 };
 
 /**
- * Host
+ * IncidentManagement
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component to show the SOC Incident Management page
@@ -74,23 +71,6 @@ class IncidentManagement extends Component {
     at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
-      INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
-        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-      }),
-      INCIDENT_ACCIDENT_SUB_LIST: [
-        _.map(_.range(11, 17), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        }),
-        _.map(_.range(21, 26), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        }),
-        _.map(_.range(31, 33), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        }),
-        _.map(_.range(41, 45), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        })
-      ],
       activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
       displayPage: 'main', /* main, events, ttps */
       incidentType: '',
@@ -159,6 +139,23 @@ class IncidentManagement extends Component {
       filesName: [],
       contextAnchor: null,
       currentData: {},
+      incidentAccidentList: _.map(_.range(1, 6), el => {
+        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+      }),
+      incidentAccidentSubList: [
+        _.map(_.range(11, 17), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(21, 26), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(31, 33), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(41, 45), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        })
+      ]
     };
 
     this.ah = getInstance('chewbacca');
@@ -748,167 +745,28 @@ class IncidentManagement extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  /* ------------------ View ------------------- */
-  render() {
-    const {session} = this.context;
-    const {
-      activeContent,
-      baseUrl,
-      contextRoot,
-      showFilter,
-      showChart,
-      incident, 
-      contextAnchor,
-      currentData,
-      accountType,
-      relatedListOpen,
-      uploadAttachmentOpen,
-      loadListType
-    } = this.state;
-    let insertCheck = false;
-    let sendCheck = false;
-
-    if (_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor)) {
-      insertCheck = true;
-    }
-
-    if ((_.includes(this.state.accountRoleType,constants.soc.SOC_Super) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))
-        || (_.includes(this.state.accountRoleType,constants.soc.SOC_Ciso) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))
-        || (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))) {
-        sendCheck = true;
-    }
-
-    const tableOptions = {
-      onChangePage: (currentPage) => {
-        this.handlePaginationChange('currentPage', currentPage);
-      },
-      onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('pageSize', numberOfRows);
-      },
-      onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort(changedColumn, direction === 'desc');
-      }
-    };
-
-    return (
-      <div>
-        <IncidentComment ref={ref => { this.incidentComment=ref }} />
-        {loadListType === 0 &&
-          <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />
-        }
-        {loadListType === 1 &&
-          <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','unhandled')} />
-        }
-        {loadListType === 2 &&
-          <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','mine')} />
-        }
-        {loadListType === 3 &&
-          <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
-        }
-
-        <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}} />
-        <IncidentReview ref={ref => { this.incidentReview=ref }} loadTab={'manager'} onLoad={this.getIncident.bind(this)} />
-
-        <NotifyDialog ref={ref => {
-          this.notifyDialog = ref
-        }} />
-
-        {relatedListOpen &&
-          <RelatedList
-            incidentList={incident.info.showFontendRelatedList}
-            setIncidentList={this.setIncidentList}
-            toggleRelatedListModal={this.toggleRelatedListModal} />
-        }
-
-        {uploadAttachmentOpen &&
-          this.uploadAttachmentModal()
-        }
-
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
-          <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
-          <MenuItem onClick={this.exportPdfFromTable.bind(this, currentData)}>{t('txt-export')}</MenuItem>
-
-          {currentData.status === constants.soc.INCIDENT_STATUS_DELETED &&
-            <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'restart')}>{it('txt-restart')}</MenuItem>
-          }
-          {_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
-            <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'delete')}>{it('txt-delete')}</MenuItem>
-          }
-          {!(currentData.flowData && currentData.flowData.finish) &&
-            <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
-          }
-          {sendCheck &&
-            <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
-          }
-          {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED &&
-            <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
-          }
-        </Menu>
-
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter' /></button>
-            <button className={cx('', {'active': showChart})} onClick={this.toggleChart} title={it('txt-statistics')}><i className='fg fg-chart-columns' /></button>
-            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
-              <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler' /></button>
-            }
-            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report' /></button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
-
-          <div className='parent-content'>
-            {this.renderStatistics()}
-            {this.renderFilter()}
-
-            {activeContent === 'tableList' &&
-              <div className='main-content'>
-                <header className='main-header'>{it('txt-incident')}</header>
-                <div className='content-header-btns with-menu '>
-                  {activeContent === 'viewIncident' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-                  }
-                  {_.size(incident.dataContent) > 0 &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
-                  }
-                  {_.size(incident.dataContent) > 0 &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAllByWord.bind(this)}>{it('txt-export-all-word')}</Button>
-                  }
-                  {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'events')}>{it('txt-addIncident-events')}</Button>
-                  }
-                  {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'ttps')}>{it('txt-addIncident-ttps')}</Button>
-                  }
-                </div>
-                <MuiTableContentWithoutLoading
-                  data={incident}
-                  tableOptions={tableOptions} />
-              </div>
-            }
-            {(activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
-              this.displayEditContent()
-            }
-          </div>
-        </div>
-      </div>
-    )
-  }
   /**
    * Display edit Incident content
    * @method
    * @returns HTML DOM
    */
-  displayEditContent = () => {
+  displayFormContent = () => {
     const {session} = this.context;
-    const {activeContent, severityList, incidentType, incident, toggleType, socFlowList, displayPage} = this.state;
+    const {
+      activeContent,
+      severityList,
+      incidentType,
+      incident,
+      toggleType,
+      socFlowList,
+      displayPage,
+      attach,
+      filesName,
+      deviceListOptions,
+      showDeviceListOptions,
+      incidentAccidentList,
+      incidentAccidentSubList
+    } = this.state;
     let editCheck = false;
     let drawCheck = false;
     let submitCheck = false;
@@ -1042,35 +900,28 @@ class IncidentManagement extends Component {
         }
 
         <div className='auto-settings' style={{height: '70vh'}}>
-          {displayPage === 'main' &&
-            <IncidentForm
-              activeContent={activeContent}
-              incident={incident}
-              severityList={severityList}
-              incidentType={incidentType}
-              socFlowList={socFlowList}
-              handleDataChange={this.handleDataChange}
-              handleDataChangeMui={this.handleDataChangeMui}
-              toggleRelatedListModal={this.toggleRelatedListModal} />
-          }
-          {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-            this.displayNoticePage()
-          }
-          {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-            this.displayAttached()
-          }
-          {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-            this.displayConnectUnit()
-          }
-          {activeContent !== 'addIncident' &&  displayPage === 'main' &&
-            this.displayFlow()
-          }
-          {displayPage === 'events' &&
-            this.displayEventsPage()
-          }
-          {displayPage === 'ttps' &&
-            this.displayTtpPage()
-          }
+          <IncidentForm
+            activeContent={activeContent}
+            displayPage={displayPage}
+            incident={incident}
+            severityList={severityList}
+            incidentType={incidentType}
+            socFlowList={socFlowList}
+            attach={attach}
+            filesName={filesName}
+            deviceListOptions={deviceListOptions}
+            showDeviceListOptions={showDeviceListOptions}
+            incidentAccidentList={incidentAccidentList}
+            incidentAccidentSubList={incidentAccidentSubList}
+            handleDataChange={this.handleDataChange}
+            handleDataChangeMui={this.handleDataChangeMui}
+            handleFileChange={this.handleFileChange}
+            toggleRelatedListModal={this.toggleRelatedListModal}
+            refreshIncidentAttach={this.refreshIncidentAttach}
+            handleConnectContactChange={this.handleConnectContactChange}
+            handleIncidentPageChange={this.handleIncidentPageChange}
+            handleEventsChange={this.handleEventsChange}
+            handleTtpsChange={this.handleTtpsChange} />
         </div>
 
         {activeContent === 'editIncident' &&
@@ -1111,9 +962,6 @@ class IncidentManagement extends Component {
       this.toggleRelatedListModal();
     });
   }
-  showRelatedList = (val, i) => {
-    return <span key={i} className='item'>{val}</span>
-  }
   toggleEstablishDateCheckbox = (event) => {
     let tempIncident = {...this.state.incident};
     tempIncident.info.enableEstablishDttm = event.target.checked;
@@ -1141,13 +989,6 @@ class IncidentManagement extends Component {
     }
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  }
-  handleDownloadAll = () => {
-    const {baseUrl, contextRoot} = this.context;
-    const {incident} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download/all?id=${incident.info.id}`
-
-    downloadLink(url);
   }
   /**
    * Handle file upload change
@@ -1304,218 +1145,6 @@ class IncidentManagement extends Component {
       })
     }
   }
-  /**
-   * Display file upload section
-   * @method
-   * @returns HTML DOM
-   */
-  displayAttached = () => {
-    const {activeContent, incidentType, incident, attach, filesName} = this.state;
-    let dataFields = {};
-    incident.fileFieldsArr.forEach(tempData => {
-      dataFields[tempData] = {
-        label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
-        sortable: this.checkSortable(tempData),
-        formatter: (value, allValue, i) => {
-          if (tempData === 'fileSize') {
-            return <span>{this.formatBytes(value)}</span>
-          } else if (tempData === 'fileDttm') {
-            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-          } else if (tempData === 'fileMemo') {
-            if (incident.info.attachmentDescription) {
-              const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName});
-              let formattedWording = '';
-
-              if (target) {
-                if (target.fileMemo && target.fileMemo.length > 32) {
-                  formattedWording = target.fileMemo.substr(0, 32) + '...';
-                } else {
-                  formattedWording = target.fileMemo;
-                }
-              }
-              return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
-            }
-          } else if (tempData === 'action') {
-            let isShow = true;
-
-            if (incident.info.status === 3 || incident.info.status === 4) {
-              if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
-                isShow = false;
-              }
-            }
-
-            return <div>
-              <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
-              {isShow &&
-                <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
-              }
-            </div>
-          } else {
-            return <span>{value}</span>
-          }
-        }
-      }
-    });
-
-    incident.fileFields = dataFields;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
-        </header>
-        {activeContent === 'addIncident' &&
-          this.commonUploadContent('page')
-        }
-        {activeContent !== 'addIncident' &&
-          <div className='group'>
-            <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.toggleUploadAttahment}>{t('txt-upload')}</Button>
-            {incident.info.attachmentDescription &&
-              <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
-            }
-          </div>
-        }
-        {_.size(incident.info.fileList) > 0 &&
-          <div className='group full'>
-            <DataTable
-              style={{width: '100%'}}
-              className='main-table full'
-              fields={incident.fileFields}
-              data={incident.info.fileList} />
-          </div>
-        }
-      </div>
-    )
-  }
-  displayFlow = () => {
-    const {activeContent, incidentType, incident} = this.state;
-    let dataFields = {};
-
-    incident.flowFieldsArr.forEach(tempData => {
-      dataFields[tempData] = {
-        hide: tempData === 'id',
-        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-        sortable: this.checkSortable(tempData),
-        formatter: (value, allValue, i) => {
-          if (tempData === 'reviewDttm') {
-            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-          } else if (tempData === 'status') {
-            return <span>{it(`action.${value}`)}</span>
-          } else {
-            return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
-          }
-        }
-      }
-    });
-    incident.flowFields = dataFields;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-flowTitle')}</div>
-        </header>
-
-        <div className='group full'>
-          <DataTable
-            style={{width: '100%'}}
-            className='main-table full'
-            fields={incident.flowFields}
-            data={incident.info.historyList} />
-        </div>
-      </div>
-    )
-  }
-  displayNoticePage = () => {
-    const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST, incidentType, incident} = this.state;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-accidentTitle')}</div>
-        </header>
-
-        <div className='group'>
-          <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
-          <TextField
-            id='accidentCatogory'
-            name='accidentCatogory'
-            select
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentCatogory}
-            disabled={activeContent === 'viewIncident'}>
-            {INCIDENT_ACCIDENT_LIST}
-          </TextField>
-        </div>
-        {incident.info.accidentCatogory === '5' &&
-          <div className='group'>
-            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-            <TextField
-              id='accidentAbnormal'
-              name='accidentAbnormal'
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleDataChangeMui}
-              value={incident.info.accidentAbnormalOther}
-              disabled={activeContent === 'viewIncident'} />
-          </div>
-        }
-        {incident.info.accidentCatogory !== '5' &&
-          <div className='group'>
-            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-            <TextField
-              id='accidentAbnormal'
-              name='accidentAbnormal'
-              select
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleDataChangeMui}
-              value={incident.info.accidentAbnormal}
-              disabled={activeContent === 'viewIncident'}>
-              {INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
-            </TextField>
-          </div>
-        }
-        <div className='group full'>
-          <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
-          <TextareaAutosize
-            id='accidentDescription'
-            name='accidentDescription'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentDescription}
-            rows={3}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-        <div className='group full'>
-          <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
-          <TextareaAutosize
-            id='accidentReason'
-            name='accidentReason'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentReason}
-            rows={3}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-        <div className='group full'>
-          <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
-          <TextareaAutosize
-            id='accidentInvestigation'
-            name='accidentInvestigation'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentInvestigation}
-            rows={3}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-      </div>
-    )
-  }
   handleConnectContactChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.notifyList = val;
@@ -1523,36 +1152,6 @@ class IncidentManagement extends Component {
     this.setState({
       incident: temp
     });
-  }
-  displayConnectUnit = () => {
-    const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-notifyUnit')}</div>
-        </header>
-
-        <div className='group full multi'>
-          <MultiInput
-            id='incidentEvent'
-            className='incident-group'
-            base={NotifyContact}
-            defaultItemValue={{
-              title: '',
-              name: '',
-              phone: '',
-              email: ''
-            }}
-            value={incident.info.notifyList}
-            props={{
-              activeContent
-            }}
-            onChange={this.handleConnectContactChange}
-            readOnly={activeContent === 'viewIncident'} />
-        </div>
-      </div>
-    )
   }
   handleEventsChange = (val) => {
     let temp = {...this.state.incident};
@@ -1562,49 +1161,6 @@ class IncidentManagement extends Component {
       incident: temp
     });
   }
-  displayEventsPage = () => {
-    const {locale} = this.context;
-    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
-    const now = new Date();
-    const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-incident-events')}</div>
-        </header>
-
-        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
-
-        <Button className='last' disabled={incidentType !== 'ttps'} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
-
-        <div className='group full multi'>
-          <MultiInput
-            id='incidentEvent'
-            className='incident-group'
-            base={Events}
-            defaultItemValue={{
-              description: '',
-              deviceId: '',
-              time: {
-                from: nowTime,
-                to: nowTime
-              },
-              frequency: 1
-            }}
-            value={incident.info.eventList}
-            props={{
-              activeContent,
-              locale,
-              deviceListOptions,
-              showDeviceListOptions: showDeviceListOptions
-            }}
-            onChange={this.handleEventsChange}
-            readOnly={activeContent === 'viewIncident'} />
-        </div>
-      </div>
-    )
-  }
   handleTtpsChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.ttpList = val;
@@ -1612,35 +1168,6 @@ class IncidentManagement extends Component {
     this.setState({
       incident: temp
     });
-  }
-  displayTtpPage = () => {
-    const {activeContent, incident} = this.state;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
-          </div>
-        </header>
-
-        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
-
-        <Button className='last' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
-
-        <div className='group full multi'>
-          <MultiInput
-            id='incidentTtp'
-            className='incident-group'
-            base={Ttps}
-            value={incident.info.ttpList}
-            props={{
-              activeContent
-            }}
-            onChange={this.handleTtpsChange}
-            readOnly={activeContent === 'viewIncident'} />
-        </div>
-      </div>
-    )
   }
   /**
    * Handle submit button
@@ -2513,9 +2040,11 @@ class IncidentManagement extends Component {
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.id}?</span>
-      </div>,
+      display: (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}: {allValue.id}?</span>
+        </div>
+      ),
       act: (confirmed, data) => {
         if (confirmed) {
           this.deleteIncident(allValue.id);
@@ -2530,9 +2059,11 @@ class IncidentManagement extends Component {
       title: it(`txt-${reviewType}`),
       confirmText: t('txt-confirm'),
       cancelText: t('txt-cancel'),
-      display: <div className='content delete'>
-        <span>{it(`txt-${reviewType}-msg`)}: {allValue.id}?</span>
-      </div>,
+      display: (
+        <div className='content delete'>
+          <span>{it(`txt-${reviewType}-msg`)}: {allValue.id}?</span>
+        </div>
+      ),
       act: (confirmed, data) => {
         if (confirmed) {
           this.openIncidentReview(allValue.id, reviewType);
@@ -2551,9 +2082,11 @@ class IncidentManagement extends Component {
       id: 'modalWindowSmall',
       confirmText: it('txt-send'),
       cancelText: t('txt-cancel'),
-      display: <div className='content delete'>
-        <span>{it('txt-send-msg')}: {id} ?</span>
-      </div>,
+      display: (
+        <div className='content delete'>
+          <span>{it('txt-send-msg')}: {id} ?</span>
+        </div>
+      ),
       act: (confirmed, data) => {
         if (confirmed) {
           this.sendIncident(id);
@@ -3415,44 +2948,6 @@ class IncidentManagement extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  downloadAttachment(allValue) {
-    const {baseUrl, contextRoot} = this.context;
-    const {incident} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`;
-
-    downloadLink(url);
-  }
-  deleteAttachment(allValue) {
-    const {baseUrl} = this.context;
-    let {incident} = this.state;
-
-    PopupDialog.prompt({
-      title: t('txt-delete'),
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: <div className='content delete'>
-          <span>{t('txt-delete-msg')}: {allValue.fileName}?</span>
-      </div>,
-      act: (confirmed, data) => {
-        if (confirmed) {
-          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-          ah.one({
-            url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
-            type: 'DELETE'
-          })
-          .then(data => {
-            if (data.ret === 0) {
-              this.refreshIncidentAttach(incident.info.id);
-            }
-          })
-          .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message);
-          })
-        }
-      }
-    });
-  }
   toPdfPayload(incident) {
     const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
     let payload = {};
@@ -3754,6 +3249,163 @@ class IncidentManagement extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     });
+  }
+  render() {
+    const {session} = this.context;
+    const {
+      activeContent,
+      baseUrl,
+      contextRoot,
+      showFilter,
+      showChart,
+      incident, 
+      contextAnchor,
+      currentData,
+      accountType,
+      relatedListOpen,
+      uploadAttachmentOpen,
+      loadListType
+    } = this.state;
+    let insertCheck = false;
+    let sendCheck = false;
+
+    if (_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor)) {
+      insertCheck = true;
+    }
+
+    if ((_.includes(this.state.accountRoleType,constants.soc.SOC_Super) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))
+        || (_.includes(this.state.accountRoleType,constants.soc.SOC_Ciso) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))
+        || (_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && ((currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) || ((currentData.flowData && currentData.flowData.finish) && (currentData.status === constants.soc.INCIDENT_STATUS_UNREVIEWED))))) {
+        sendCheck = true;
+    }
+
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      <div>
+        <IncidentComment ref={ref => { this.incidentComment = ref }} />
+
+        {loadListType === 0 &&
+          <IncidentTag ref={ref => { this.incidentTag = ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />
+        }
+
+        {loadListType === 1 &&
+          <IncidentTag ref={ref => { this.incidentTag = ref }} onLoad={this.loadCondition.bind(this,'button','unhandled')} />
+        }
+
+        {loadListType === 2 &&
+          <IncidentTag ref={ref => { this.incidentTag = ref }} onLoad={this.loadCondition.bind(this,'button','mine')} />
+        }
+
+        {loadListType === 3 &&
+          <IncidentTag ref={ref => { this.incidentTag = ref }} onLoad={this.loadData} />
+        }
+
+        <IncidentFlowDialog ref={ref => { this.incidentFlowDialog = ref }} />
+        <IncidentReview ref={ref => { this.incidentReview = ref }} loadTab={'manager'} onLoad={this.getIncident} />
+        <NotifyDialog ref={ref => { this.notifyDialog = ref }} />
+
+        {relatedListOpen &&
+          <RelatedList
+            incidentList={incident.info.showFontendRelatedList}
+            setIncidentList={this.setIncidentList}
+            toggleRelatedListModal={this.toggleRelatedListModal} />
+        }
+
+        {uploadAttachmentOpen &&
+          this.uploadAttachmentModal()
+        }
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
+          <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
+          <MenuItem onClick={this.exportPdfFromTable.bind(this, currentData)}>{t('txt-export')}</MenuItem>
+
+          {currentData.status === constants.soc.INCIDENT_STATUS_DELETED &&
+            <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'restart')}>{it('txt-restart')}</MenuItem>
+          }
+
+          {_.includes(this.state.accountRoleType,constants.soc.SOC_Executor) && currentData.status !== constants.soc.INCIDENT_STATUS_DELETED &&
+            <MenuItem onClick={this.openReviewModal.bind(this, currentData, 'delete')}>{it('txt-delete')}</MenuItem>
+          }
+
+          {!(currentData.flowData && currentData.flowData.finish) &&
+            <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
+          }
+
+          {sendCheck &&
+            <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
+          }
+
+          {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED &&
+            <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+          }
+        </Menu>
+
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter' /></button>
+            <button className={cx('', {'active': showChart})} onClick={this.toggleChart} title={it('txt-statistics')}><i className='fg fg-chart-columns' /></button>
+            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
+              <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler' /></button>
+            }
+            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report' /></button>
+          </div>
+        </div>
+
+        <div className='data-content'>
+          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
+
+          <div className='parent-content'>
+            {this.renderStatistics()}
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &&
+              <div className='main-content'>
+                <header className='main-header'>{it('txt-incident')}</header>
+                <div className='content-header-btns with-menu '>
+                  {activeContent === 'viewIncident' &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                  }
+                  {_.size(incident.dataContent) > 0 &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
+                  }
+                  {_.size(incident.dataContent) > 0 &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAllByWord.bind(this)}>{it('txt-export-all-word')}</Button>
+                  }
+                  {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'events')}>{it('txt-addIncident-events')}</Button>
+                  }
+                  {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'ttps')}>{it('txt-addIncident-ttps')}</Button>
+                  }
+                </div>
+                <MuiTableContentWithoutLoading
+                  data={incident}
+                  tableOptions={tableOptions} />
+              </div>
+            }
+            {(activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
+              this.displayFormContent()
+            }
+          </div>
+        </div>
+      </div>
+    )
   }
 }
 
