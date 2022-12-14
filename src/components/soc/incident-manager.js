@@ -2309,7 +2309,7 @@ class IncidentManagement extends Component {
   }
   getIncident = (id, type) => {
     const {baseUrl} = this.context;
-    const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+    const {activeContent, incidentType, incident, relatedListOptions, showDeviceListOptions} = this.state;
 
     this.handleCloseMenu();
 
@@ -2320,7 +2320,8 @@ class IncidentManagement extends Component {
       type: 'GET'
     })
     .then(data => {
-      const {incident} = this.state;
+      let tempIncident = {...incident};
+      let tempShowDeviceListOptions = _.cloneDeep(showDeviceListOptions);
       let temp = data.rt;
       temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
       temp.showFontendRelatedList = _.map(temp.relatedList, val => {
@@ -2357,12 +2358,28 @@ class IncidentManagement extends Component {
 
       let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
       let toggleType = type;
-      incident.info = temp;
+      tempIncident.info = temp;
+
+      let deviceListIDs = [];
+
+      _.forEach(showDeviceListOptions, val => {
+        deviceListIDs.push(val.value);
+      });
+
+      _.forEach(temp.eventDeviceList, val => {
+        if (!_.includes(deviceListIDs, val.id)) {
+          tempShowDeviceListOptions.push({
+            value: val.id,
+            text: val.deviceName
+          });
+        }
+      })
 
       this.setState({
-        incident,
+        incident: tempIncident,
         incidentType,
-        toggleType
+        toggleType,
+        showDeviceListOptions: tempShowDeviceListOptions
       }, () => {
         this.toggleContent('viewIncident', temp);
       });
