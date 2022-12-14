@@ -69,7 +69,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isNoVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
 const SCAN_RESULT = [
   {
     name: 'Yara Scan',
@@ -900,6 +900,7 @@ class HostController extends Component {
           systemList.push({
             name: 'Server',
             checked: false,
+            type: 'server',
             children: _.map(data[0].value, val => {
               return {
                 name: val,
@@ -913,6 +914,7 @@ class HostController extends Component {
           systemList.push({
             name: 'PC',
             checked: false,
+            type: 'pc',
             children: _.map(data[1].value, val => {
               return {
                 name: val,
@@ -921,6 +923,12 @@ class HostController extends Component {
             })
           });
         }
+
+        systemList.push({
+          name: t('host.txt-noSystemDetected'),
+          checked: false,
+          type: 'noSystem'
+        });
 
         this.setState({
           originalSystemList: _.cloneDeep(systemList),
@@ -3865,51 +3873,71 @@ class HostController extends Component {
     const {systemList, deviceSearchList} = this.state;
     let tempSystemList = _.cloneDeep(systemList);
     let tempDeviceSearchList = {...deviceSearchList};
-    let systemSelected = [];
 
-    if (tree.children) { //Handle tree header check/uncheck
-      const targetIndex = _.findIndex(systemList, {'name':  tree.name});
-      tempSystemList[targetIndex].checked = event.target.checked;
-      tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
-        return {
-          ...val,
-          checked: event.target.checked
-        };
-      })
-    } else { //Handle tree children check/uncheck
-      let parentIndex = '';
-      let childrenIndex = '';
-      let parentChecked = true;
+    if (tree.type === 'server' || tree.type === 'pc' || !tree.type) {
+      let systemSelected = [];
 
-      _.forEach(systemList, (val, i) => {
-        _.forEach(val.children, (val2, j) => {
-          if (tree.name === val2.name) {
-            parentIndex = i;
-            childrenIndex = j;
+      if (tree.children) { //Handle tree header check/uncheck
+        const targetIndex = _.findIndex(systemList, {'name':  tree.name});
+        tempSystemList[targetIndex].checked = event.target.checked;
+        tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
+          return {
+            ...val,
+            checked: event.target.checked
+          };
+        })
+      } else { //Handle tree children check/uncheck
+        let parentIndex = '';
+        let childrenIndex = '';
+        let parentChecked = true;
+
+        _.forEach(systemList, (val, i) => {
+          _.forEach(val.children, (val2, j) => {
+            if (tree.name === val2.name) {
+              parentIndex = i;
+              childrenIndex = j;
+              return false;
+            }
+          })
+        })
+        tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
+
+        _.forEach(tempSystemList[parentIndex].children, val => {
+          if (!val.checked) {
+            parentChecked = false;
             return false;
           }
         })
-      })
-      tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
+        tempSystemList[parentIndex].checked = parentChecked;
+      }
 
-      _.forEach(tempSystemList[parentIndex].children, val => {
-        if (!val.checked) {
-          parentChecked = false;
-          return false;
-        }
+      const index = tempDeviceSearchList.system.indexOf('noExist');
+
+      if (index > -1) {
+        systemSelected.push('noExist');
+      }
+
+      _.forEach(tempSystemList, val => {
+        _.forEach(val.children, val2 => {
+          if (val2.checked) {
+            systemSelected.push(val2.name);
+          }
+        })
       })
-      tempSystemList[parentIndex].checked = parentChecked;
+
+      tempDeviceSearchList.system = systemSelected;
     }
 
-    _.forEach(tempSystemList, val => {
-      _.forEach(val.children, val2 => {
-        if (val2.checked) {
-          systemSelected.push(val2.name);
-        }
-      })
-    })
+    if (tree.type === 'noSystem') {
+      tempSystemList[2].checked = event.target.checked;
 
-    tempDeviceSearchList.system = systemSelected;
+      if (event.target.checked) {
+        tempDeviceSearchList.system.push('noExist');
+      } else {
+        const index = tempDeviceSearchList.system.indexOf('noExist');
+        tempDeviceSearchList.system.splice(index, 1);
+      }
+    }
 
     this.setState({
       systemList: tempSystemList,
@@ -3923,7 +3951,16 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getSystemTreeLabel = (tree) => {
-    return <span><Checkbox checked={tree.checked} onChange={this.toggleSystemCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
+    return (
+      <span>
+        <Checkbox
+          name={tree.name}
+          checked={tree.checked}
+          onChange={this.toggleSystemCheckbox.bind(this, tree)}
+          color='primary' />
+          {tree.name}
+      </span>
+    )
   }
   /**
    * Display system tree item
