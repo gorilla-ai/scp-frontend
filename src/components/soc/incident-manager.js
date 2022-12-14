@@ -3456,7 +3456,7 @@ class IncidentManagement extends Component {
 
     ah.one({
       url: `${baseUrl}/api/soc/device/_search`,
-      data: JSON.stringify({use:'1',account:session.accountId}),
+      data: JSON.stringify({use:'1'}),
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json'
@@ -3483,7 +3483,7 @@ class IncidentManagement extends Component {
 
     ah.one({
       url: `${baseUrl}/api/soc/device/_search`,
-      data: JSON.stringify({use:'2', account:session.accountId}),
+      data: JSON.stringify({use:'2'}),
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json'
