@@ -320,13 +320,10 @@ class IncidentDeviceStep extends Component {
     getDeviceUsableList = (type, allValue) => {
         const {baseUrl, contextRoot, session} = this.context;
         const {defenseRange} = this.state;
-        const requestData = {
-            accountId: session.accountId
-        };
 
         this.ah.one({
             url: `${baseUrl}/api/soc/deviceSlave/usable`,
-            data: JSON.stringify(requestData),
+            data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
@@ -2546,13 +2543,10 @@ class IncidentDeviceStep extends Component {
 
     getSlaveList = () => {
         const {baseUrl, session} = this.context;
-        const requestData = {
-            accountId: session.accountId
-        };
 
         this.ah.one({
             url: `${baseUrl}/api/soc/deviceSlave/slaveList`,
-            data: JSON.stringify(requestData),
+            data: JSON.stringify({}),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
