@@ -398,10 +398,7 @@ class IncidentDeviceStep extends Component {
 
         if (deviceSearch.keyword) {
             requestData.keyword = deviceSearch.keyword;
-
         }
-
-        requestData.account = session.accountId;
 
         this.ah.one({
             url,
@@ -491,11 +488,9 @@ class IncidentDeviceStep extends Component {
 
         if (this.state.setType === 'send'){
             requestData.isGovernment = true;
-        }else{
+        } else {
             // requestData.isGovernment = false;
         }
-
-        requestData.account = session.accountId;
 
         this.ah.one({
             url,

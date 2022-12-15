@@ -402,6 +402,9 @@
     "txt-vansConfigApiUrl": "API URL",
     "txt-noSystemDetected": "未偵測到作業系統",
     "txt-hostInfo": "主機資訊",
+    "txt-safetyScanRecord": "安全掃描紀錄",
+    "txt-executionStatus": "執行狀態",
+    "txt-createTime": "建立時間",
     "txt-viewInfo": "查看內容",
     "txt-hostList2": "主機清單",
     "txt-hostAnalysis": "主機分析資訊",
@@ -493,7 +496,11 @@
     "txt-nccstCode-0405": "重複新增相同資產/KBID",
     "txt-nccstCode-0406": "發生非預期錯誤",
     "txt-nccstCode-0407": "上傳數量超過限制",
-    "txt-nccstCode-0408": "此機關尚有資料解析中"
+    "txt-nccstCode-0408": "此機關尚有資料解析中",
+    "txt-Running": "執行中",
+    "txt-Complete": "成功",
+    "txt-Failure": "失敗",
+    "txt-NotSupport": "未支援"
   },
 
   "alert": {

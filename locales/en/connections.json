@@ -385,6 +385,7 @@
     "txt-vans": "VANS",
     "txt-cveScore": "Score",
     "txt-safetyScanType": "Safety Scan Type",
+    "txt-uploadHostList": "Upload Host List",
     "txt-downloadHostList": "Downlaod Host List",
     "txt-trackHostList": "Track Host List",
     "txt-downloadTrackList": "Download Track List",
@@ -401,6 +402,9 @@
     "txt-vansConfigApiUrl": "API URL",
     "txt-noSystemDetected": "No system is detected",
     "txt-hostInfo": "Host Info",
+    "txt-safetyScanRecord": "Safety Scan Record",
+    "txt-executionStatus": "Execution Status",
+    "txt-createTime": "Create Time",
     "txt-viewInfo": "View Info",
     "txt-hostList2": "Host",
     "txt-hostAnalysis": "Host Analysis Info",
@@ -492,7 +496,11 @@
     "txt-nccstCode-0405": "Repeat the same Asset/KBID",
     "txt-nccstCode-0406": "An unexpected error occurred error",
     "txt-nccstCode-0407": "The number of uploads exceeds limit",
-    "txt-nccstCode-0408": "This agency still has data under analysis"
+    "txt-nccstCode-0408": "This agency still has data under analysis",
+    "txt-Running": "Running",
+    "txt-Complete": "Complete",
+    "txt-Failure": "Failure",
+    "txt-NotSupport": "Not Support"
   },
 
   "alert": {

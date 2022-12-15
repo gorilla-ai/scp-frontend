@@ -4,6 +4,8 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import InfiniteScroll from 'react-infinite-scroll-component'
+
 import {downloadLink} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -97,7 +99,10 @@ class HostAnalysis extends Component {
       modalYaraRuleOpen: false,
       modalIRopen: false,
       showSafetyScan: false,
-      showVansNotes: false
+      showVansNotes: false,
+      safetyScanRecord: [],
+      scrollCount: 1,
+      hasMore: true
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -106,6 +111,7 @@ class HostAnalysis extends Component {
   }
   componentDidMount() {
     this.setDefaultLeftMenu();
+    this.setInitialSaftyRecordData();
   }
   componentWillUnmount() {
     if (this.props.activeTab === 'safetyScan') {
@@ -134,9 +140,18 @@ class HostAnalysis extends Component {
     }
   }
   /**
+   * Set initial safety scan record data
+   * @method
+   */
+  setInitialSaftyRecordData = () => {
+    this.setState({
+      safetyScanRecord: this.props.hostData.safetyScanInfoExecuteRecord
+    });
+  }
+  /**
    * Set active tab
    * @method
-   * @param {string} activeTab - active tab ('hostInfo' or 'networkBehavior')
+   * @param {string} activeTab - active tab ('hostInfo', 'safetyScanRecord' or 'networkBehavior')
    */
   setActiveTab = (activeTab) => {
     this.setState({
@@ -246,7 +261,7 @@ class HostAnalysis extends Component {
   /**
    * Display safety scan info
    * @method
-   * @returns HMDscanInfo component
+   * @returns HTML DOM or HMDscanInfo component
    */
   displaySafetyScanContent = () => {
     const {assessmentDatetime, hostCreateTime, hostData, eventInfo} = this.props;
@@ -289,6 +304,100 @@ class HostAnalysis extends Component {
         </li>
       )
     }
+  }
+  /**
+   * Load device data
+   * @method
+   */
+  loadMoreContent = () => {
+    const {baseUrl} = this.context;
+    const {hostData, assessmentDatetime} = this.props;
+    const {safetyScanRecord, scrollCount} = this.state;
+    let tempScrollCount = scrollCount;
+    tempScrollCount++;
+
+    const url = `${baseUrl}/api/v3/ipdevice?uuid=${hostData.ipDeviceUUID}&page=${tempScrollCount}&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`;
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data && data.safetyScanInfoExecuteRecord) {
+        if (data.safetyScanInfoExecuteRecord.length > 0) {
+          this.setState({
+            safetyScanRecord: _.concat(safetyScanRecord, data.safetyScanInfoExecuteRecord),
+            scrollCount: tempScrollCount,
+            hasMore: true
+          });
+        } else {
+          this.setState({
+            hasMore: false
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display HMD more table
+   * @method
+   * @param {object} val - host data
+   * @param {number} i - index of the hostInfo array
+   * @returns HTML DOM
+   */
+  displayScanRecordContent = (val, i) => {
+
+
+    return (
+      <tr key={i}>
+        <td>{val.taskName}</td>
+        <td>{t('host.txt-' + val.taskStatus)}</td>
+        <td>{helper.getFormattedDate(val.taskCreateDttm, 'local')}</td>
+        <td>{helper.getFormattedDate(val.taskResponseDttm, 'local')}</td>
+      </tr>
+    )
+  }
+  /**
+   * Display safety scan record
+   * @method
+   * @returns HTML DOM
+   */
+  displaySafetyScanRecord = () => {
+    const {safetyScanRecord, hasMore} = this.state;
+
+    return (
+      <div>
+        {safetyScanRecord.length > 0 &&
+          <InfiniteScroll
+            dataLength={safetyScanRecord.length}
+            next={this.loadMoreContent}
+            hasMore={hasMore}
+            height={530}>
+            <table className='c-table main-table'>
+              <thead>
+                <tr>
+                  <th>{t('host.txt-safetyScanType')}</th>
+                  <th>{t('host.txt-executionStatus')}</th>
+                  <th>{t('host.txt-createTime')}</th>
+                  <th>{t('hmd-scan.txt-responseTime')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safetyScanRecord.map(this.displayScanRecordContent)}
+              </tbody>
+            </table>
+          </InfiniteScroll>
+        }
+
+        {safetyScanRecord.length === 0 &&
+          <div className='empty-msg'>{NOT_AVAILABLE}</div>
+        }
+      </div>
+    )
   }
   /**
    * Display Host Analysis content
@@ -360,6 +469,10 @@ class HostAnalysis extends Component {
                 </React.Fragment>
               }
 
+              <li className='header' onClick={this.setActiveTab.bind(this, 'safetyScanRecord')}>
+                <span className={cx('name', {'active': activeTab === 'safetyScanRecord'})}>{t('host.txt-safetyScanRecord')}</span>
+              </li>
+
               <li className='header' onClick={this.setActiveTab.bind(this, 'networkBehavior')}>
                 <span className={cx('name', {'active': activeTab === 'networkBehavior'})}>{t('txt-networkBehavior')}</span>
               </li>
@@ -385,6 +498,10 @@ class HostAnalysis extends Component {
 
             {activeScanType &&
               this.displaySafetyScanContent()
+            }
+
+            {activeTab === 'safetyScanRecord' &&
+              this.displaySafetyScanRecord()
             }
 
             {activeTab === 'networkBehavior' &&
