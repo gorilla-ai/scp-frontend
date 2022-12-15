@@ -1319,7 +1319,7 @@ class ThreatsController extends Component {
         actions={actions}
         closeAction='cancel'>
         <IncidentEventMake
-          remoteIncident={incident}
+          incident={incident}
           socFlowList={socFlowList}
           enableEstablishDttm={enableEstablishDttm}
           handleDataChange={this.handleDataChange}

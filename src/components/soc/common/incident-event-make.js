@@ -46,24 +46,6 @@ class IncidentEventMake extends Component {
       originalIncident: {},
       severityList: [],
       deviceListOptions: [],
-      incident: {
-        dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'createDttm', 'title', 'reporter', 'srcIPListString', 'dstIPListString'],
-        fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
-        flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
-        dataFields: {},
-        dataContent: [],
-        sort: {
-          field: 'createDttm',
-          desc: true
-        },
-        totalCount: 0,
-        currentPage: 1,
-        pageSize: 20,
-        info: {
-          status: 1,
-          socType: 1
-        }
-      },
       attach: null,
       filesName: [],
       contextAnchor: null,
@@ -144,7 +126,7 @@ class IncidentEventMake extends Component {
   }
   displayEditContent = () => {
     const {session} = this.context
-    const {remoteIncident, socFlowList, enableEstablishDttm} = this.props;
+    const {incident, socFlowList, enableEstablishDttm} = this.props;
     const {
       activeSteps,
       incidentType,
@@ -162,7 +144,7 @@ class IncidentEventMake extends Component {
           <IncidentForm
             from='threats'
             activeSteps={activeSteps}
-            incident={remoteIncident}
+            incident={incident}
             severityList={severityList}
             incidentType={incidentType}
             socFlowList={socFlowList}
@@ -256,7 +238,7 @@ class IncidentEventMake extends Component {
 IncidentEventMake.contextType = BaseDataContext;
 
 IncidentEventMake.propTypes = {
-  remoteIncident: PropTypes.string.isRequired,
+  incident: PropTypes.string.isRequired,
   socFlowList: PropTypes.array.isRequired,
   enableEstablishDttm: PropTypes.string.isRequired,
   handleDataChange: PropTypes.func.isRequired,
