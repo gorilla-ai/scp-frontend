@@ -58,15 +58,36 @@ class IncidentForm extends Component {
     at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
-
     };
   }
   componentDidMount() {
-
   }
-  ryan = () => {}
   showRelatedList = (val, i) => {
     return <span key={i} className='item'>{val}</span>
+  }
+  /**
+   * Get classname for form group
+   * @method
+   * @returns class name
+   */
+  getClassName = () => {
+    const {from} = this.props;
+
+    if (from === 'soc') {
+      return 'form-group normal';
+    } else if (from === 'threats') {
+      return 'form-group long';
+    }
+  }
+  /**
+   * Get classname for form group
+   * @method
+   * @returns CSS property object
+   */
+  getStyle = () => {
+    if (this.props.from === 'threats') {
+      return { width: '85%' };
+    }
   }
   /**
    * Display main section
@@ -75,28 +96,57 @@ class IncidentForm extends Component {
    */
   displayMain = () => {
     const {locale} = this.context;
-    const {activeContent, incidentType, incident, severityList, socFlowList} = this.props;
+    const {
+      from,
+      activeContent,
+      activeSteps,
+      incidentType,
+      incident,
+      severityList,
+      socFlowList,
+      enableEstablishDttm
+    } = this.props;
     const {showSteps} = this.state;
+    let establishDttm = '';
+    let disabledEstablishDttm = '';
     let dateLocale = locale;
+
+    if (from === 'soc') {
+      establishDttm = incident.info.enableEstablishDttm;
+      disabledEstablishDttm = (activeContent === 'viewIncident' || !incident.info.enableEstablishDttm);
+    } else if (from === 'threats') {
+      establishDttm = enableEstablishDttm;
+      disabledEstablishDttm = !enableEstablishDttm;
+    }
 
     if (locale === 'zh') {
       dateLocale += '-tw';
     }
 
-    moment.locale(dateLocale);    
+    moment.locale(dateLocale);
 
     return (
-      <div className='form-group normal'>
+      <div className={this.getClassName()} style={this.getStyle()}>
         <header>
           <div className='text'>{t('edge-management.txt-basicInfo')}</div>
-          {activeContent !== 'addIncident' &&
+          {activeContent && activeContent !== 'addIncident' &&
             <span className='msg'>{f('incidentFields.updateDttm')}{helper.getFormattedDate(incident.info.updateDttm, 'local')}</span>
           }
         </header>
 
-        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled={true}>{it('txt-prev-page')}</Button>
+        {from === 'soc' &&
+          <React.Fragment>
+            <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled={true}>{it('txt-prev-page')}</Button>
+            <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+          </React.Fragment>  
+        }
 
-        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+        {from === 'threats' &&
+          <React.Fragment>
+            <Button id='previousStep' className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
+            <Button id='nextStep' className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
+          </React.Fragment>
+        }
 
         <div className='group full'>
           <label htmlFor='title'>{f('incidentFields.title')}</label>
@@ -246,7 +296,7 @@ class IncidentForm extends Component {
             control={
               <Checkbox
                 className='checkbox-ui'
-                checked={incident.info.enableEstablishDttm}
+                checked={establishDttm}
                 onChange={this.toggleEstablishDateCheckbox}
                 color='primary' />
             }
@@ -262,7 +312,7 @@ class IncidentForm extends Component {
               ampm={false}
               required={false}
               value={incident.info.establishDttm}
-              disabled={activeContent === 'viewIncident' || !incident.info.enableEstablishDttm}
+              disabled={disabledEstablishDttm}
               onChange={this.props.handleDataChange.bind(this, 'establishDttm')} />
           </MuiPickersUtilsProvider>
         </div>
@@ -321,7 +371,7 @@ class IncidentForm extends Component {
     const {activeContent, incidentAccidentList, incidentAccidentSubList, incidentType, incident} = this.props;
 
     return (
-      <div className='form-group normal'>
+      <div className={this.getClassName()} style={this.getStyle()}>
         <header>
           <div className='text'>{it('txt-accidentTitle')}</div>
         </header>
@@ -541,83 +591,95 @@ class IncidentForm extends Component {
    * @returns HTML DOM
    */
   displayAttached = () => {
-    const {activeContent, incidentType, incident, attach, filesName} = this.props;
+    const {from, activeContent, incidentType, incident, attach, filesName} = this.props;
     let dataFields = {};
 
-    incident.fileFieldsArr.forEach(tempData => {
-      dataFields[tempData] = {
-        label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
-        sortable: this.checkSortable(tempData),
-        formatter: (value, allValue, i) => {
-          if (tempData === 'fileSize') {
-            return <span>{this.formatBytes(value)}</span>
-          } else if (tempData === 'fileDttm') {
-            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-          } else if (tempData === 'fileMemo') {
-            if (incident.info.attachmentDescription) {
-              const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName});
-              let formattedWording = '';
+    if (from === 'soc') {
+      incident.fileFieldsArr.forEach(tempData => {
+        dataFields[tempData] = {
+          label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
+          sortable: this.checkSortable(tempData),
+          formatter: (value, allValue, i) => {
+            if (tempData === 'fileSize') {
+              return <span>{this.formatBytes(value)}</span>
+            } else if (tempData === 'fileDttm') {
+              return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+            } else if (tempData === 'fileMemo') {
+              if (incident.info.attachmentDescription) {
+                const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName});
+                let formattedWording = '';
 
-              if (target) {
-                if (target.fileMemo && target.fileMemo.length > 32) {
-                  formattedWording = target.fileMemo.substr(0, 32) + '...';
-                } else {
-                  formattedWording = target.fileMemo;
+                if (target) {
+                  if (target.fileMemo && target.fileMemo.length > 32) {
+                    formattedWording = target.fileMemo.substr(0, 32) + '...';
+                  } else {
+                    formattedWording = target.fileMemo;
+                  }
+                }
+                return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
+              }
+            } else if (tempData === 'action') {
+              let isShow = true;
+
+              if (incident.info.status === 3 || incident.info.status === 4) {
+                if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
+                  isShow = false;
                 }
               }
-              return <span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
-            }
-          } else if (tempData === 'action') {
-            let isShow = true;
 
-            if (incident.info.status === 3 || incident.info.status === 4) {
-              if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
-                isShow = false;
-              }
+              return (
+                <div>
+                  <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
+                  {isShow &&
+                    <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+                  }
+                </div>
+              )
+            } else {
+              return <span>{value}</span>
             }
-
-            return <div>
-              <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
-              {isShow &&
-                <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
-              }
-            </div>
-          } else {
-            return <span>{value}</span>
           }
         }
-      }
-    });
+      });
 
-    incident.fileFields = dataFields;
+      incident.fileFields = dataFields;
 
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
-        </header>
-        {activeContent === 'addIncident' &&
-          this.commonUploadContent('page')
-        }
-        {activeContent !== 'addIncident' &&
-          <div className='group'>
-            {/*<Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.toggleUploadAttahment}>{t('txt-upload')}</Button>*/}
-            {incident.info.attachmentDescription &&
-              <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
-            }
-          </div>
-        }
-        {_.size(incident.info.fileList) > 0 &&
-          <div className='group full'>
-            <DataTable
-              style={{width: '100%'}}
-              className='main-table full'
-              fields={incident.fileFields}
-              data={incident.info.fileList} />
-          </div>
-        }
-      </div>
-    )
+      return (
+        <div className='form-group normal'>
+          <header>
+            <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
+          </header>
+          {activeContent === 'addIncident' &&
+            this.commonUploadContent('page')
+          }
+          {activeContent !== 'addIncident' &&
+            <div className='group'>
+              {incident.info.attachmentDescription &&
+                <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
+              }
+            </div>
+          }
+          {_.size(incident.info.fileList) > 0 &&
+            <div className='group full'>
+              <DataTable
+                style={{width: '100%'}}
+                className='main-table full'
+                fields={incident.fileFields}
+                data={incident.info.fileList} />
+            </div>
+          }
+        </div>
+      )
+    } else if (from === 'threats') {
+      return (
+        <div className='form-group long' style={{width: '85%'}}>
+          <header>
+            <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em'}}>{it('txt-attachedFileHint')}</span></div>
+          </header>
+          {this.commonUploadContent()}
+        </div>
+      )
+    }
   }
   /**
    * Display connect unit section
@@ -625,10 +687,10 @@ class IncidentForm extends Component {
    * @returns HTML DOM
    */
   displayConnectUnit = () => {
-    const {activeContent, incidentAccidentList, incidentAccidentSubList, incidentType, incident} = this.props;
+    const {activeContent, incident} = this.props;
 
     return (
-      <div className='form-group normal'>
+      <div className={this.getClassName()} style={this.getStyle()}>
         <header>
           <div className='text'>{it('txt-notifyUnit')}</div>
         </header>
@@ -704,19 +766,45 @@ class IncidentForm extends Component {
    */
   displayEvents = () => {
     const {locale} = this.context;
-    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.props;
+    const {from, incidentType, activeContent, activeSteps, incident, deviceListOptions, showDeviceListOptions} = this.props;
     const now = new Date();
     const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
+    let propsData = {};
+
+    if (from === 'soc') {
+      propsData = {
+        activeContent,
+        locale,
+        deviceListOptions,
+        showDeviceListOptions
+      };
+    } else if (from === 'threats') {
+      propsData = {
+        activeContent,
+        locale,
+        deviceListOptions        
+      };
+    }    
 
     return (
-      <div className='form-group normal'>
+      <div className={this.getClassName()} style={this.getStyle()}>
         <header>
           <div className='text'>{it('txt-incident-events')}</div>
         </header>
 
-        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+        {from === 'soc' &&
+          <React.Fragment>
+            <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+            <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentType !== 'ttps'}>{it('txt-next-page')}</Button>
+          </React.Fragment>  
+        }
 
-        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentType !== 'ttps'}>{it('txt-next-page')}</Button>
+        {from === 'threats' &&
+          <React.Fragment>
+            <Button id='previousStep' className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
+            <Button id='nextStep' className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
+          </React.Fragment>
+        }
 
         <div className='group full multi'>
           <MultiInput
@@ -733,12 +821,7 @@ class IncidentForm extends Component {
               frequency: 1
             }}
             value={incident.info.eventList}
-            props={{
-              activeContent,
-              locale,
-              deviceListOptions,
-              showDeviceListOptions
-            }}
+            props={propsData}
             onChange={this.props.handleEventsChange}
             readOnly={activeContent === 'viewIncident'} />
         </div>
@@ -750,7 +833,7 @@ class IncidentForm extends Component {
    * @method
    * @returns HTML DOM
    */
-  displayTtp = () => {
+  displayTTP = () => {
     const {activeContent, incident} = this.props;
 
     return (
@@ -780,46 +863,76 @@ class IncidentForm extends Component {
     )
   }
   render() {
-    const {displayPage, activeContent} = this.props;
+    const {from, displayPage, activeContent, activeSteps} = this.props;
 
     return (
-      <div>
-        {displayPage === 'main' &&
-          this.displayMain()
+      <React.Fragment>
+        {from === 'soc' &&
+          <div>
+            {displayPage === 'main' &&
+              this.displayMain()
+            }
+
+            {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
+              this.displayNotice()
+            }
+
+            {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
+              this.displayAttached()
+            }
+
+            {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
+              this.displayConnectUnit()
+            }
+
+            {activeContent !== 'addIncident' &&  displayPage === 'main' &&
+              this.displayFlow()
+            }
+
+            {displayPage === 'events' &&
+              this.displayEvents()
+            }
+
+            {displayPage === 'ttps' &&
+              this.displayTTP()
+            }
+          </div>
         }
 
-        {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-          this.displayNotice()
-        }
+        {from === 'threats' &&
+          <div>
+            {activeSteps === 1 &&
+              this.displayMain()
+            }
 
-        {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-          this.displayAttached()
-        }
+            {activeSteps === 1 &&
+              this.displayNotice()
+            }
 
-        {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-          this.displayConnectUnit()
-        }
+            {activeSteps === 1 &&
+              this.displayAttached()
+            }
 
-        {activeContent !== 'addIncident' &&  displayPage === 'main' &&
-          this.displayFlow()
-        }
+            {activeSteps === 1 &&
+              this.displayConnectUnit()
+            }
 
-        {displayPage === 'events' &&
-          this.displayEvents()
+            {activeSteps === 2 &&
+              this.displayEvents()
+            }
+          </div>
         }
-
-        {displayPage === 'ttps' &&
-          this.displayTtp()
-        }
-      </div>
+      </React.Fragment>
     )
   }
 }
 
 IncidentForm.contextType = BaseDataContext;
 IncidentForm.propTypes = {
-  activeContent: PropTypes.string.isRequired,
-  displayPage: PropTypes.string.isRequired,
+  from: PropTypes.string.isRequired,
+  activeContent: PropTypes.string,
+  activeSteps: PropTypes.number,
+  displayPage: PropTypes.string,
   incident: PropTypes.object.isRequired,
   severityList: PropTypes.array.isRequired,
   incidentType: PropTypes.string.isRequired,
@@ -827,18 +940,20 @@ IncidentForm.propTypes = {
   attach: PropTypes.array.isRequired,
   filesName: PropTypes.array.isRequired,
   deviceListOptions: PropTypes.array.isRequired,
-  showDeviceListOptions: PropTypes.array.isRequired,
+  showDeviceListOptions: PropTypes.array,
   incidentAccidentList: PropTypes.array.isRequired,
   incidentAccidentSubList: PropTypes.array.isRequired,
+  enableEstablishDttm: PropTypes.string,
   handleDataChange: PropTypes.func.isRequired,
   handleDataChangeMui: PropTypes.func.isRequired,
   handleFileChange: PropTypes.func.isRequired,
-  toggleRelatedListModal: PropTypes.func.isRequired,
-  refreshIncidentAttach: PropTypes.func.isRequired,
   handleConnectContactChange: PropTypes.func.isRequired,
-  handleIncidentPageChange: PropTypes.func.isRequired,
+  handleIncidentPageChange: PropTypes.func,
   handleEventsChange: PropTypes.func.isRequired,
-  handleTtpsChange: PropTypes.func.isRequired
+  handleTtpsChange: PropTypes.func,
+  toggleRelatedListModal: PropTypes.func,
+  refreshIncidentAttach: PropTypes.func,
+  toggleSteps: PropTypes.func
 };
 
 export default IncidentForm;

@@ -901,6 +901,7 @@ class IncidentManagement extends Component {
 
         <div className='auto-settings' style={{height: '70vh'}}>
           <IncidentForm
+            from='soc'
             activeContent={activeContent}
             displayPage={displayPage}
             incident={incident}
@@ -916,12 +917,12 @@ class IncidentManagement extends Component {
             handleDataChange={this.handleDataChange}
             handleDataChangeMui={this.handleDataChangeMui}
             handleFileChange={this.handleFileChange}
-            toggleRelatedListModal={this.toggleRelatedListModal}
-            refreshIncidentAttach={this.refreshIncidentAttach}
             handleConnectContactChange={this.handleConnectContactChange}
             handleIncidentPageChange={this.handleIncidentPageChange}
             handleEventsChange={this.handleEventsChange}
-            handleTtpsChange={this.handleTtpsChange} />
+            handleTtpsChange={this.handleTtpsChange}
+            toggleRelatedListModal={this.toggleRelatedListModal}
+            refreshIncidentAttach={this.refreshIncidentAttach} />
         </div>
 
         {activeContent === 'editIncident' &&
