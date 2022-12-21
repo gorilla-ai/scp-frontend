@@ -427,12 +427,13 @@ const helper = {
             tempQueryData.patternId = '';
             tempQueryData.pattern = {
               name: '',
+              aggColumn: '',
               periodMin: '',
               threshold: '',
               severity: 'Emergency'
             };
 
-            tempQueryData.soc={
+            tempQueryData.soc = {
               id:'',
               severity: 'Emergency',
               limitQuery: 10,
@@ -448,6 +449,10 @@ const helper = {
 
             if (data[0].patternName) {
               tempQueryData.pattern.name = data[0].patternName;
+            }
+
+            if (data[0].aggColumn) {
+              tempQueryData.pattern.aggColumn = data[0].aggColumn;
             }
 
             if (data[0].periodMin) {

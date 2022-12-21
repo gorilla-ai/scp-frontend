@@ -69,6 +69,7 @@ class QueryOpenSave extends Component {
       newQueryName: true,
       pattern: {
         name: '',
+        aggColumn: '',
         periodMin: 10,
         threshold: 1,
         severity: 'Emergency'
@@ -101,6 +102,7 @@ class QueryOpenSave extends Component {
   componentDidMount() {
     this.setQueryList();
     this.setSeverityList();
+    this.setPatternData();
   }
   /**
    * Set query list
@@ -152,6 +154,17 @@ class QueryOpenSave extends Component {
     this.setState({
       severityList,
       periodMinList
+    });
+  }
+  /**
+   * Set pattern data
+   * @method
+   */
+  setPatternData = () => {
+    this.setState({
+      pattern: {
+        ...this.props.queryData.pattern
+      }
     });
   }
   getQuerySOCValue = (activeQuery) => {
@@ -570,6 +583,8 @@ class QueryOpenSave extends Component {
       }
 
       if (type === 'save' && page === 'logs') {
+        requestData.aggColumn = pattern.aggColumn;
+
         if (patternCheckbox) {
           requestData.emailList = notifyEmailData;
 
@@ -898,6 +913,7 @@ class QueryOpenSave extends Component {
               tempQueryData.patternId = '';
               tempQueryData.pattern = {
                 name: '',
+                aggColumn: '',
                 periodMin: 10,
                 threshold: 1,
                 severity: ''
@@ -909,6 +925,10 @@ class QueryOpenSave extends Component {
 
               if (newQueryList[0].patternName) {
                 tempQueryData.pattern.name = newQueryList[0].patternName;
+              }
+
+              if (newQueryList[0].aggColumn) {
+                tempQueryData.pattern.name = newQueryList[0].aggColumn;
               }
 
               if (newQueryList[0].periodMin) {
@@ -1071,6 +1091,7 @@ class QueryOpenSave extends Component {
         tempQueryData.patternId = '';
         tempQueryData.pattern = {
           name: '',
+          aggColumn: '',
           periodMin: 10,
           threshold: 1,
           severity: ''
@@ -1132,6 +1153,11 @@ class QueryOpenSave extends Component {
               if (val.patternName) {
                 tempQueryData.pattern.name = val.patternName;
                 tempPattern.name = val.patternName;
+              }
+
+              if (val.aggColumn) {
+                tempQueryData.pattern.aggColumn = val.aggColumn;
+                tempPattern.aggColumn = val.aggColumn;
               }
 
               if (val.periodMin) {
@@ -1445,20 +1471,20 @@ class QueryOpenSave extends Component {
     let patternCheckboxChecked = '';
     let patternCheckboxDisabled = '';
     let publicCheckboxChecked = '';
-    let disabledValue = '';
+    let disabledStatus = '';
 
     if (type === 'open') {
       severityType = queryData.pattern.severity;
       patternCheckboxChecked = true;
       patternCheckboxDisabled = true;
       publicCheckboxChecked = dialogOpenType === 'change' ? publicCheckbox : queryData.isPublic;
-      disabledValue = true;
+      disabledStatus = true;
     } else if (type === 'save') {
       severityType = pattern.severity;
       patternCheckboxChecked = patternCheckbox;
       patternCheckboxDisabled = false;
       publicCheckboxChecked = publicCheckbox;
-      disabledValue = !patternCheckbox;
+      disabledStatus = !patternCheckbox;
     }
 
     return (
@@ -1487,9 +1513,19 @@ class QueryOpenSave extends Component {
                 size='small'
                 value={severityType}
                 onChange={this.handleDataChange}
-                disabled={disabledValue}>
+                disabled={disabledStatus}>
                 {severityList}
               </TextField>
+              <TextField
+                className='add-column'
+                name='aggColumn'
+                label={t('events.connections.txt-addColumn')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={pattern.aggColumn}
+                onChange={this.handleDataChange}
+                disabled={disabledStatus} />
             </div>
             <FormControlLabel
               label={t('events.connections.txt-public')}
@@ -1501,7 +1537,7 @@ class QueryOpenSave extends Component {
                   onChange={this.togglePublicCheckbox}
                   color='primary' />
               }
-              disabled={disabledValue} />
+              disabled={disabledStatus} />
           </div>
           <div className='period'>
             <span className='support-text'>{t('events.connections.txt-patternQuery1')}</span>
@@ -1513,7 +1549,7 @@ class QueryOpenSave extends Component {
               required
               value={pattern.periodMin}
               onChange={this.handleDataChange}
-              disabled={disabledValue}>
+              disabled={disabledStatus}>
               {periodMinList}
             </TextField>
             <span className='support-text'>{t('events.connections.txt-patternQuery2')}</span>
@@ -1527,7 +1563,7 @@ class QueryOpenSave extends Component {
               InputProps={{inputProps: { min: 1, max: 1000 }}}
               value={pattern.threshold}
               onChange={this.handleDataChange}
-              disabled={disabledValue} />
+              disabled={disabledStatus} />
             <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
           </div>
           {type === 'open' && queryData.emailList.length > 0 &&
@@ -1646,6 +1682,7 @@ class QueryOpenSave extends Component {
                 <FormControlLabel
                   style={{width: '100%'}}
                   label={t('events.connections.txt-enableSOCScript')}
+                  className='soc-script'
                   control={
                     <Switch
                       checked={soc.status}
@@ -1707,10 +1744,10 @@ class QueryOpenSave extends Component {
     const {soc, socTemplateEnable, pattern, formValidation} = this.state;
     let tempPattern = {...pattern};
     let tempSocTemplateEnable = socTemplateEnable;
-    let disabledValue = true;
+    let disabledStatus = true;
 
     if (type === 'open') {
-      disabledValue = true;
+      disabledStatus = true;
 
       if (queryData.soc) {
         if (queryData.soc.id) {
@@ -1721,7 +1758,7 @@ class QueryOpenSave extends Component {
       }
     } else if (type === 'save') {
       if (this.state.patternCheckbox && this.state.publicCheckbox) {
-        disabledValue  = false;
+        disabledStatus  = false;
       }
     }
 
@@ -1735,7 +1772,7 @@ class QueryOpenSave extends Component {
               onChange={this.toggleSOCSwitchFromLog}
               color='primary' />
           }
-          disabled={disabledValue} />
+          disabled={disabledStatus} />
 
         {tempSocTemplateEnable &&
         <div className='group severity-section'>
@@ -1753,7 +1790,7 @@ class QueryOpenSave extends Component {
                 select
                 label={f('incidentFields.category')}
                 value={soc.category}
-                disabled={disabledValue}>
+                disabled={disabledStatus}>
                 {
                   _.map(_.range(0, 20), el => {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
@@ -1818,7 +1855,7 @@ class QueryOpenSave extends Component {
               error={!formValidation.title.valid}
               helperText={formValidation.title.msg}
               onChange={this.handleSeverityWithSOCChange}
-              disabled={disabledValue}>
+              disabled={disabledStatus}>
             </TextField>
           </div>
           <div className='top-group' style={{width: '100%'}}>
@@ -1833,7 +1870,7 @@ class QueryOpenSave extends Component {
               error={!formValidation.eventDescription.valid}
               helperText={formValidation.eventDescription.msg}
               onChange={this.handleSeverityWithSOCChange}
-              disabled={disabledValue}>
+              disabled={disabledStatus}>
             </TextField>
           </div>
         </div>

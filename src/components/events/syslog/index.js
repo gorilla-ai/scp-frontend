@@ -139,6 +139,7 @@ class SyslogController extends Component {
         formattedQuery: '',
         pattern: {
           name: '',
+          aggColumn: '',
           periodMin: '',
           threshold: '',
           severity: ''
@@ -2109,6 +2110,7 @@ class SyslogController extends Component {
           tempQueryData.emailList = queryData.list[0].emailList;
           tempQueryData.patternId = queryData.list[0].patternId;
           tempQueryData.pattern.name = queryData.list[0].patternName;
+          tempQueryData.pattern.aggColumn = queryData.list[0].aggColumn;
           tempQueryData.pattern.periodMin = queryData.list[0].periodMin;
           tempQueryData.pattern.severity = queryData.list[0].severity;
           tempQueryData.pattern.threshold = queryData.list[0].threshold;

@@ -584,6 +584,7 @@
       "txt-publicOpenQuery": "Open Public Query Filter",
       "txt-publicSaveQuery": "Save Public Query Filter",
       "txt-addSoarFlow": "Add Flow",
+      "txt-addColumn": "Add Column",
       "txt-querySaved": "Query Filter Saved",
       "txt-queryName": "Query Filter Name",
       "txt-addQuery": "Add New Query",
