@@ -3035,9 +3035,10 @@ class ThreatsController extends Component {
    * @param {string} type - type of query menu ('open', 'save', 'publicOpen' or 'publicSave')
    */
   openQuery = (type) => {
+    const {queryData, queryDataPublic} = this.state;
+
     if (type === 'open' || type === 'publicOpen') {
       if (type === 'open') {
-        const {queryData} = this.state;
         let tempQueryData = {...queryData};
 
         if (queryData.list.length > 0) {
@@ -3052,7 +3053,6 @@ class ThreatsController extends Component {
           openQueryOpen: true
         });
       } else if (type === 'publicOpen') {
-        const {queryDataPublic} = this.state;
         let tempQueryDataPublic = {...queryDataPublic};
 
         if (tempQueryDataPublic.list.length > 0) {
