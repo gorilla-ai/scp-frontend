@@ -500,7 +500,8 @@
     "txt-Running": "Running",
     "txt-Complete": "Complete",
     "txt-Failure": "Failure",
-    "txt-NotSupport": "Not Support"
+    "txt-NotSupport": "Not Support",
+    "txt-Waiting": "Waiting"
   },
 
   "alert": {

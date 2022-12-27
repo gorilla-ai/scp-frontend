@@ -350,8 +350,6 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayScanRecordContent = (val, i) => {
-
-
     return (
       <tr key={i}>
         <td>{val.taskName}</td>

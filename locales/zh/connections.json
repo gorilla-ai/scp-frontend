@@ -500,7 +500,8 @@
     "txt-Running": "執行中",
     "txt-Complete": "成功",
     "txt-Failure": "失敗",
-    "txt-NotSupport": "未支援"
+    "txt-NotSupport": "未支援",
+    "txt-Waiting": "等待中"
   },
 
   "alert": {
