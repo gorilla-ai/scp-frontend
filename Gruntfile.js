@@ -18,7 +18,7 @@ module.exports = function(grunt) {
                 BABEL_ENV : 'production'
             }
         },
-        webpack: {
+        webpack: { 
             options: webpackConfig,
             watch: {
                 watch: true,
@@ -97,23 +97,23 @@ module.exports = function(grunt) {
                 }
             }
         },
-        // concat: {
-        //     css: {
-        //         src: ['build/css-temp/**/*.css'],
-        //         dest: "build/css/app.css"
-        //     }
-        // },
+        concat: {
+            css: {
+                src: ['build/css-temp/**/*.css'],
+                dest: "build/css/app.css"
+            }
+        },
         watch: {
             locale: {
                 files: ['locales/**/*.json'],
                 tasks: ['build-locales']
             },
             styles: {
-                files: ['less/**/*.less', '../chewbacca-ui/less/**/*.less'], // which files to watch
-                tasks: ['build-less'],
-                options: {
-                    nospawn: true
-                }
+              files: ['less/**/*.less', '../chewbacca-ui/less/**/*.less'], // which files to watch
+              tasks: ['build-less'],
+              options: {
+                nospawn: true
+              }
             }
         }
     });
@@ -128,7 +128,7 @@ module.exports = function(grunt) {
         fse.removeSync('build/css-temp');
     });
     grunt.registerTask('build-less', function() {
-        grunt.task.run('less'); //'concat:css', 'clean-less'
+        grunt.task.run('less', 'concat:css', 'clean-less'); //'concat:css', 'clean-less'
     });
     grunt.registerTask('build-locales', function() {
         console.log('checking locale files...')
@@ -156,4 +156,4 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['webpack:watch', 'build-less', /*'eslint',*/'build-locales', 'watch'])
     grunt.registerTask('dev', ['webpack:dev', 'build-less', /*'eslint',*/'build-locales'])
     grunt.registerTask('prod', ['env:prod','webpack:prod', 'build-less', /*'eslint',*/'build-locales'])
-};
+}; 
