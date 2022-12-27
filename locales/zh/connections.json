@@ -1285,7 +1285,8 @@
     "netproxyIp": "NetProxy IP",
     "netproxyName": "NetProxy名稱",
     "latestTime": "最後掃描時間",
-    "theLatestTaskResponseDttmArray": "最後回報主機時間"
+    "theLatestTaskResponseDttmArray": "最後回報主機時間",
+    "undoneTask": "未完成任務"
   },
   "syslogFields": {
     "port": "接收Port",

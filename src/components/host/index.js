@@ -60,7 +60,7 @@ import YaraRule from '../common/yara-rule'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'safetyScanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttmArray'];
+const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'safetyScanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttmArray', 'undoneTask'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -316,6 +316,10 @@ const DEVICE_SEARCH = {
   theLatestTaskResponseDttmArray: {
     from: '',
     to: ''
+  },
+  undoneTask: {
+    name: 'all',
+    dttm: ''
   }
 };
 const DEVICE_SEARCH_LIST = {
@@ -329,8 +333,7 @@ const DEVICE_SEARCH_LIST = {
   annotation: [],
   userName: [],
   groups: [],
-  version: [],
-  theLatestTaskResponseDttmArray: {}
+  version: []
 };
 const FORM_VALIDATION = {
   frMotp: {
@@ -1433,6 +1436,14 @@ class HostController extends Component {
       const searchTimeFrom =  moment(responseDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       const searchTimeTo = moment(responseDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       requestData.theLatestTaskResponseDttmArray = [searchTimeFrom, searchTimeTo];
+    }
+
+    if (deviceSearch.undoneTask.name !== 'all') {
+      requestData.undoneTaskName = deviceSearch.undoneTask.name;
+    }
+
+    if (deviceSearch.undoneTask.dttm) {
+      requestData.undoneDttm = moment(deviceSearch.undoneTask.dttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     }
 
     return requestData;
@@ -2550,9 +2561,15 @@ class HostController extends Component {
    */
   showFilterForm = (val, i) => {
     const {deviceSearch, deviceSearchList} = this.state;
+    const mapping = {
+      all: t('txt-all'),
+      scanFile: 'Malware',
+      gcbDetection: 'Detect GCB',
+      getVans: 'Vans',
+      upgradeHmd: 'HMD Upgrade',
+      getSystemInfo: 'System Info'
+    };
     let value = '';
-
-    if (!deviceSearchList[val]) return;
 
     if (val === 'theLatestTaskResponseDttmArray') {
       if (deviceSearch.theLatestTaskResponseDttmArray.from) {
@@ -2561,6 +2578,14 @@ class HostController extends Component {
 
       if (deviceSearch.theLatestTaskResponseDttmArray.to) {
         value += moment(deviceSearch.theLatestTaskResponseDttmArray.to).local().format('YYYY-MM-DD HH:mm');
+      }
+    } else if (val === 'undoneTask') {
+      const name = mapping[deviceSearch.undoneTask.name];
+      const dttm = deviceSearch.undoneTask.dttm ? moment(deviceSearch.undoneTask.dttm).local().format('YYYY-MM-DD HH:mm') : '';
+      value = name;
+
+      if (dttm) {
+        value += ', ' + dttm;
       }
     } else {
       value = deviceSearchList[val].join(', ');
@@ -2615,6 +2640,20 @@ class HostController extends Component {
 
     this.setState({
       queryModalType: type
+    });
+  }
+  /**
+   * Handle Undone task name change
+   * @method
+   * @param {string} type - form type ('name' or 'dttm')
+   * @param {object} obj - data object
+   */
+  handleUndoneTaskChange = (type, obj) => {
+    let tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch.undoneTask[type] = type === 'name' ? obj.target.value : obj;
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
     });
   }
   /**
@@ -2734,7 +2773,42 @@ class HostController extends Component {
                     onChange={this.setDateTimePickerChange.bind(this, 'to')} />
                 </MuiPickersUtilsProvider>
               }
-              {activeFilter !== 'theLatestTaskResponseDttmArray' && activeFilter !== 'system' &&
+              {activeFilter === 'undoneTask' &&
+                <React.Fragment>
+                  <TextField
+                    id='hostFilterUndonetaskName'
+                    className='undone-task'
+                    name='undoneTaskName'
+                    select
+                    variant='outlined'
+                    fullWidth
+                    size='small'
+                    value={deviceSearch.undoneTask.name}
+                    onChange={this.handleUndoneTaskChange.bind(this, 'name')}>
+                    <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                    <MenuItem value='scanFile'>Malware</MenuItem>
+                    <MenuItem value='gcbDetection'>Detect GCB</MenuItem>
+                    <MenuItem value='getVans'>Vans</MenuItem>
+                    <MenuItem value='upgradeHmd'>HMD Upgrade</MenuItem>
+                    <MenuItem value='getSystemInfo'>System Info</MenuItem>
+                  </TextField>
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                      id='hostFilterUndonetaskDttm'
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      ampm={false}
+                      value={deviceSearch.undoneTask.dttm}
+                      onChange={this.handleUndoneTaskChange.bind(this, 'dttm')} />
+                  </MuiPickersUtilsProvider>
+                </React.Fragment>
+              }
+              {activeFilter !== 'system' && activeFilter !== 'undoneTask' && activeFilter !== 'theLatestTaskResponseDttmArray' &&
                 <React.Fragment>
                   <MultiInput
                     base={HostFilter}
