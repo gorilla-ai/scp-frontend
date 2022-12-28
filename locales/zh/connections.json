@@ -195,6 +195,7 @@
   "txt-syslog": "日誌串流",
   "txt-minutes": "分鐘",
   "txt-load": "載入",
+  "txt-advanced": "進階",
   "txt-viewJSON": "$t(txt-view)JSON",
   "txt-exportCSV": "$t(txt-export)CSV",
   "txt-exportPDF": "$t(txt-export)PDF",

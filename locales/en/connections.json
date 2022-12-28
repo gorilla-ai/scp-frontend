@@ -195,6 +195,7 @@
   "txt-syslog": "Syslog",
   "txt-minutes": "Minutes",
   "txt-load": "Load",
+  "txt-advanced": "Advanced",
   "txt-viewJSON": "$t(txt-view) JSON",
   "txt-exportCSV": "$t(txt-export) CSV",
   "txt-exportPDF": "$t(txt-export) PDF",

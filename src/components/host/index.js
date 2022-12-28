@@ -69,7 +69,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isNoVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull', 'isConnected', 'isDisconnected', 'isNotScan'];
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isNoVersion', 'isConnected', 'isDisconnected', {advanced: ['isOwnerNull', 'isAreaNull', 'isSeatNull']}];
 const SCAN_RESULT = [
   {
     name: 'Yara Scan',
@@ -432,6 +432,7 @@ class HostController extends Component {
       hostDeviceOpen: false,
       reportNCCSTopen: false,
       vansPieChartOpen: false,
+      showHMDadvancedOption: false,
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //'hmdTriggerAll', 'safetyScan' or 'hmdDownload'
@@ -591,68 +592,60 @@ class HostController extends Component {
   getHmdlist = () => {
     const hmd_list = [
       {
-        name: 'Yara Scan',
-        value: 'isScanProc'
-      },
-      {
         name: 'Malware',
         value: 'isScanFile'
-      },
-      {
-        name: 'GCB',
-        value: 'isGCB'
-      },
-      {
-        name: 'IR',
-        value: 'isIR'
-      },
-      {
-        name: 'File Integrity',
-        value: 'isFileIntegrity'
-      },
-      {
-        name: 'Event Tracing',
-        value: 'isEventTracing'
-      },
-      {
-        name: 'Process Monitor',
-        value: 'isProcessMonitor'
       },
       {
         name: 'VANS',
         value: 'isVans'
       },
       {
+        name: 'GCB',
+        value: 'isGCB'
+      },
+      {
+        name: 'File Integrity',
+        value: 'isFileIntegrity'
+      },
+      {
         name: 'Callback Enabled File Integrity',
         value: 'isSnapshot'
-      },
-      {
-        name: 'Callback Enabled Process Monitor',
-        value: 'isProcWhiteList'
-      },
-      {
-        name: 'Callback Enabled EventTracing',
-        value: 'eventTracingEnable'
       },
       {
         name: 'Callback Disabled File Integrity',
         value: 'isNotSnapshot'
       },
       {
-        name: 'Callback Disabled Process Monitor',
-        value: 'isNotProcWhiteList'
+        name: 'Event Tracing',
+        value: 'isEventTracing'
+      },
+      {
+        name: 'Callback Enabled EventTracing',
+        value: 'eventTracingEnable'
       },
       {
         name: 'Callback Disabled EventTracing',
         value: 'eventTracingDisable'
       },
       {
-        name: t('host.txt-isScanFinished'),
-        value: 'isScanFinished'
+        name: 'Process Monitor',
+        value: 'isProcessMonitor'
       },
       {
-        name: t('host.txt-isScanUnfinished'),
-        value: 'isScanUnfinished'
+        name: 'Callback Enabled Process Monitor',
+        value: 'isProcWhiteList'
+      },
+      {
+        name: 'Callback Disabled Process Monitor',
+        value: 'isNotProcWhiteList'
+      },
+      {
+        name: 'Yara Scan',
+        value: 'isScanProc'
+      },
+      {
+        name: 'IR',
+        value: 'isIR'
       },
       {
         name: t('host.txt-isScanFail'),
@@ -1029,10 +1022,24 @@ class HostController extends Component {
         })
 
         _.forEach(HMD_STATUS_LIST, val => {
-          hmdStatusList.push({
-            text: t('host.txt-' + val) + ' (0)',
-            value: val
-          });
+          if (typeof val === 'object') {
+            const items = _.map(val.advanced, val => {
+              return {
+                text: t('host.txt-' + val) + ' (0)',
+                value: val
+              };
+            });
+
+            hmdStatusList.push({
+              text: t('txt-advanced'),
+              value: items
+            });
+          } else {
+            hmdStatusList.push({
+              text: t('host.txt-' + val) + ' (0)',
+              value: val
+            });
+          }
         })
 
         _.forEach(hmd_list, val => {
@@ -1083,16 +1090,36 @@ class HostController extends Component {
         })
 
         _.forEach(HMD_STATUS_LIST, val => {
-          let text = t('host.txt-' + val);
+          if (typeof val === 'object') {
+            const items = _.map(val.advanced, val => {
+              let text = t('host.txt-' + val);
 
-          if (data.devInfoAgg[val]) {
-            text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+              if (data.devInfoAgg[val]) {
+                text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+              }
+
+              return {
+                text,
+                value: val
+              };
+            });
+
+            hmdStatusList.push({
+              text: t('txt-advanced'),
+              value: items
+            });
+          } else {
+            let text = t('host.txt-' + val);
+
+            if (data.devInfoAgg[val]) {
+              text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+            }
+
+            hmdStatusList.push({
+              text,
+              value: val
+            });
           }
-
-          hmdStatusList.push({
-            text,
-            value: val
-          });
         })
 
         _.forEach(hmd_list, val => {
@@ -1569,15 +1596,17 @@ class HostController extends Component {
    * Handle checkbox check/uncheck
    * @method
    * @param {string} type - checked item type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
+   * @param {string} item - item for the arrow option
    * @param {object} event - event object
    */
-  toggleCheckbox = (type, event) => {
+  toggleCheckbox = (type, item, event) => {
+    const checkedItem = item || event.target.name;
     let tempFilterNav = {...this.state.filterNav};
 
     if (event.target.checked) {
-      tempFilterNav[type].push(event.target.name);
+      tempFilterNav[type].push(checkedItem);
     } else {
-      const index = tempFilterNav[type].indexOf(event.target.name);
+      const index = tempFilterNav[type].indexOf(checkedItem);
       tempFilterNav[type].splice(index, 1);
     }
 
@@ -1589,14 +1618,23 @@ class HostController extends Component {
     });
   }
   /**
-   * Display checkbox for left nav
+   * Toggle HMD arrow options
    * @method
-   * @param {string} type - filter type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
+   */
+  toggleHMDadvancedOption = () => {
+    this.setState({
+      showHMDadvancedOption: !this.state.showHMDadvancedOption
+    });
+  }
+  /**
+   * Show checkbox for option items
+   * @method
+   * @param {string} type - filter type ('hmdStatusSelected' or 'scanStatusSelected')
    * @param {object} val - individual filter data
    * @param {number} i - index of the filter data
    * @returns FormControlLabel component
    */
-  getCheckboxItem = (type, val, i) => {
+  showCheckbox = (type, val, i) => {
     return (
       <FormControlLabel
         key={i}
@@ -1606,10 +1644,51 @@ class HostController extends Component {
             className='checkbox-ui nav-box'
             name={val.value}
             checked={this.checkSelectedItem(type, val.value)}
-            onChange={this.toggleCheckbox.bind(this, type)}
+            onChange={this.toggleCheckbox.bind(this, type, val.value)}
             color='primary' />
         } />
-    )
+    )    
+  }
+  /**
+   * Display checkbox for left nav
+   * @method
+   * @param {string} type - filter type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
+   * @param {object} val - individual filter data
+   * @param {number} i - index of the filter data
+   * @returns FormControlLabel component
+   */
+  getCheckboxItem = (type, val, i) => {
+    if (val.text === t('txt-advanced')) {
+      const {showHMDadvancedOption} = this.state;
+
+      return (
+        <React.Fragment>
+          <div className='toggle-arrow' onClick={this.toggleHMDadvancedOption}>
+            <i className={`fg arrow fg-arrow-${showHMDadvancedOption ? 'bottom' : 'right'}`}></i>
+            <span>{val.text}</span>
+          </div>
+          {showHMDadvancedOption &&
+            <div className='option-items'>
+              {val.value.map(this.showCheckbox.bind(this, type))}
+            </div>
+          }
+        </React.Fragment>
+      )
+    } else {
+      return (
+        <FormControlLabel
+          key={i}
+          label={val.text}
+          control={
+            <Checkbox
+              className='checkbox-ui nav-box'
+              name={val.value}
+              checked={this.checkSelectedItem(type, val.value)}
+              onChange={this.toggleCheckbox.bind(this, type, '')}
+              color='primary' />
+          } />
+      )
+    }
   }
   /**
    * Display Left nav data

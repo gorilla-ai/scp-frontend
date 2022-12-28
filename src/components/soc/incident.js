@@ -27,18 +27,16 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context'
 import constants from '../constant/constant-incidnet'
-import Events from './common/events'
 import helper from '../common/helper'
 import IncidentComment from './common/comment'
 import IncidentFlowDialog from './common/flow-dialog'
+import IncidentForm from './common/incident-form'
 import IncidentReview from './common/review'
 import IncidentTag from './common/tag'
 import MuiTableContent from '../common/mui-table-content'
-import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
-import NotifyContact from './common/notifyContact'
 import NotifyDialog from './common/notify-dialog'
+import RelatedList from './common/related-list'
 import SocConfig from '../common/soc-configuration'
-import Ttps from './common/ttps'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -74,23 +72,6 @@ class Incident extends Component {
     at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
-      INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
-        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-      }),
-      INCIDENT_ACCIDENT_SUB_LIST: [
-        _.map(_.range(11, 17), el => {
-            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        }),
-        _.map(_.range(21, 26), el => {
-            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        }),
-        _.map(_.range(31, 33), el => {
-            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        }),
-        _.map(_.range(41, 45), el => {
-            return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        })
-      ],
       activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
       displayPage: 'main', /* main, events, ttps */
       incidentType: '',
@@ -149,11 +130,27 @@ class Incident extends Component {
       filesName: [],
       contextAnchor: null,
       currentData: {},
+      incidentAccidentList: _.map(_.range(1, 6), el => {
+        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+      }),
+      incidentAccidentSubList: [
+        _.map(_.range(11, 17), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(21, 26), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(31, 33), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(41, 45), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        })
+      ]
     };
 
     this.ah = getInstance('chewbacca');
   }
-
   componentDidMount() {
     const {baseUrl, locale, sessionRights} = this.context;
 
@@ -447,7 +444,21 @@ class Incident extends Component {
    */
   displayEditContent = () => {
     const {session} = this.context;
-    const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
+    const {
+      activeContent,
+      severityList,
+      incidentType,
+      incident,
+      toggleType,
+      socFlowList,
+      displayPage,
+      attach,
+      filesName,
+      deviceListOptions,
+      showDeviceListOptions,
+      incidentAccidentList,
+      incidentAccidentSubList
+    } = this.state;
     let editCheck = false;
     let drawCheck = false;
     let submitCheck = true;
@@ -533,27 +544,29 @@ class Incident extends Component {
         }
 
         <div className='auto-settings'>
-          {displayPage === 'main' &&
-            this.displayMainPage()
-          }
-          {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && 
-            this.displayNoticePage()
-          }
-          {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&
-            this.displayAttached()
-          }
-          {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && 
-            this.displayConnectUnit()
-          }
-          {activeContent !== 'addIncident' &&  displayPage === 'main' &&
-            this.displayFlow()
-          }
-          {displayPage === 'events' &&
-            this.displayEventsPage()
-          }
-          {displayPage === 'ttps' &&
-            this.displayTtpPage()
-          }
+          <IncidentForm
+            from='soc'
+            activeContent={activeContent}
+            displayPage={displayPage}
+            incident={incident}
+            severityList={severityList}
+            incidentType={incidentType}
+            socFlowList={socFlowList}
+            attach={attach}
+            filesName={filesName}
+            deviceListOptions={deviceListOptions}
+            showDeviceListOptions={showDeviceListOptions}
+            incidentAccidentList={incidentAccidentList}
+            incidentAccidentSubList={incidentAccidentSubList}
+            handleDataChange={this.handleDataChange}
+            handleDataChangeMui={this.handleDataChangeMui}
+            handleFileChange={this.handleFileChange}
+            handleConnectContactChange={this.handleConnectContactChange}
+            handleIncidentPageChange={this.handleIncidentPageChange}
+            handleEventsChange={this.handleEventsChange}
+            handleTtpsChange={this.handleTtpsChange}
+            toggleRelatedListModal={this.toggleRelatedListModal}
+            refreshIncidentAttach={this.refreshIncidentAttach} />
         </div>
 
         {activeContent === 'editIncident' &&
@@ -598,253 +611,6 @@ class Incident extends Component {
         variant='outlined'
         size='small'
         fullWidth={true} />
-    )
-  }
-  displayMainPage = () => {
-    const {locale} = this.context;
-    const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
-    let dateLocale = locale;
-
-    if (locale === 'zh') {
-      dateLocale += '-tw';
-    }
-
-    moment.locale(dateLocale);
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{t('edge-management.txt-basicInfo')}</div>
-          {activeContent !== 'addIncident' &&
-            <span className='msg'>{f('incidentFields.updateDttm')} {helper.getFormattedDate(incident.info.updateDttm, 'local')}</span>
-          }
-        </header>
-
-        <Button className='last-left' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
-
-        <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
-
-        <div className='group full'>
-          <label htmlFor='title'>{f('incidentFields.title')}</label>
-          <TextField
-            id='title'
-            name='title'
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.title}
-            helperText={it('txt-required')}
-            required
-            error={!(incident.info.title || '')}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-        <div className='group full'>
-          <label htmlFor='incidentDescription'>{f('incidentFields.incidentDescription')}</label>
-          <TextField
-            id='incidentDescription'
-            onChange={this.handleDataChangeMui}
-            required
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            multiline
-            rows={3}
-            rowsMax={3}
-            helperText={it('txt-required')}
-            name='incidentDescription'
-            error={!(incident.info.incidentDescription || '')}
-            value={incident.info.incidentDescription}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-        <div className='group'>
-          <label htmlFor='category'>{f('incidentFields.category')}</label>
-          <TextField
-            id='category'
-            name='category'
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            onChange={this.handleDataChangeMui}
-            helperText={it('txt-required')}
-            required
-            select
-            value={incident.info.category}
-            error={!(incident.info.category || '')}
-            disabled={activeContent === 'viewIncident'}>
-            {
-              _.map(_.range(0, 20), el => {
-                return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-              })
-            }
-          </TextField>
-        </div>
-        <div className='group'>
-          <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
-          <TextField
-            id='reporter'
-            name='reporter'
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            onChange={this.handleDataChangeMui}
-            required
-            helperText={it('txt-required')}
-            error={!(incident.info.reporter || '')}
-            value={incident.info.reporter}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-        <div className='group'>
-          <label htmlFor='reporter'>{f('incidentFields.flowId')}</label>
-          <TextField
-            id='flowTemplateId'
-            name='flowTemplateId'
-            select
-            fullWidth={true}
-            variant='outlined'
-            size='small'
-            required
-            onChange={this.handleDataChangeMui}
-            value={incident.info.flowTemplateId}
-            disabled={activeContent === 'viewIncident' || activeContent === 'editIncident'}>
-            {socFlowList}
-          </TextField>
-        </div>
-        <div className='group'>
-          <label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
-          <TextField
-            id='impactAssessment'
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            select
-            name='impactAssessment'
-            onChange={this.handleDataChangeMui}
-            required
-            helperText={it('txt-required')}
-            value={incident.info.impactAssessment}
-            error={!(incident.info.impactAssessment || '')}
-            disabled={true}>
-            {
-              _.map(_.range(1, 5), el => {
-                return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
-              })
-            }
-          </TextField>
-        </div>
-        <div className='group severity-level' style={{width: '25vh', paddingTop: '27px'}}>
-          <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incident.info.severity]}}/>
-          <TextField
-            id='severityLevel'
-            name='severity'
-            select
-            fullWidth={true}
-            label={f('syslogPatternTableFields.severity')}
-            variant='outlined'
-            size='small'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.severity}
-            disabled={activeContent === 'viewIncident'}>
-            {severityList}
-            </TextField>
-        </div>
-        <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
-          <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
-          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-            <KeyboardDateTimePicker
-              id='expireDttm'
-              className='date-time-picker'
-              inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD HH:mm'
-              ampm={false}
-              required
-              helperText={it('txt-required')}
-              value={incident.info.expireDttm}
-              readOnly={activeContent === 'viewIncident' }
-              onChange={this.handleDataChange.bind(this, 'expireDttm')} />
-          </MuiPickersUtilsProvider>
-        </div>
-        <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
-          <FormControlLabel
-            label={f('incidentFields.establishDate')}
-            control={
-              <Checkbox
-                className='checkbox-ui'
-                checked={incident.info.enableEstablishDttm}
-                onChange={this.toggleEstablishDateCheckbox}
-                color='primary' />
-            }
-            disabled={activeContent === 'viewIncident'} />
-          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-            <KeyboardDateTimePicker
-              id='establishDttm'
-              className='date-time-picker'
-              inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD HH:mm'
-              invalidDateMessage={t('txt-invalidDateMessage')}
-              ampm={false}
-              required={false}
-              value={incident.info.establishDttm}
-              disabled={activeContent === 'viewIncident' || !incident.info.enableEstablishDttm}
-              onChange={this.handleDataChange.bind(this, 'establishDttm')} />
-          </MuiPickersUtilsProvider>
-        </div>
-        <div className='group full'>
-          <label htmlFor='attackName'>{f('incidentFields.attackName')}</label>
-          <TextField
-            id='attackName'
-            onChange={this.handleDataChangeMui}
-            required
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            multiline
-            rows={3}
-            rowsMax={3}
-            helperText={it('txt-required')}
-            name='attackName'
-            error={!(incident.info.attackName || '')}
-            value={incident.info.attackName}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-
-        <div className='group full'>
-          <label htmlFor='description'>{f('incidentFields.description')}</label>
-          <TextField
-            id='description'
-            onChange={this.handleDataChangeMui}
-            required
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            multiline
-            rows={3}
-            rowsMax={3}
-            helperText={it('txt-required')}
-            name='description'
-            error={!(incident.info.description || '')}
-            value={incident.info.description}
-            disabled={activeContent === 'viewIncident'} />
-        </div>
-
-        {incidentType === 'ttps' &&
-          <div className='group full'>
-            <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
-            <Autocomplete
-              multiple
-              id='tags-standard'
-              size='small'
-              options={incident.info.differenceWithOptions}
-              getOptionLabel={(option) => option.text}
-              value={incident.info.showFontendRelatedList}
-              onChange={this.onTagsChange}
-              disabled={activeContent === 'viewIncident'}
-              renderInput={this.renderRelatedList} />
-          </div>
-        }
-      </div>
     )
   }
   onTagsChange = (event, values) => {
@@ -1023,236 +789,6 @@ class Incident extends Component {
       })
     }
   }
-  displayAttached = () => {
-    const {activeContent, incidentType, incident, attach, filesName} = this.state;
-    let dataFields = {};
-
-    incident.fileFieldsArr.forEach(tempData => {
-      dataFields[tempData] = {
-        label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
-        sortable: this.checkSortable(tempData),
-        formatter: (value, allValue, i) => {
-          if (tempData === 'fileSize') {
-            return <span>{this.formatBytes(value)}</span>
-          } else if (tempData === 'fileDttm') {
-            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-          } else if (tempData === 'fileMemo') {
-            if (incident.info.attachmentDescription) {
-              const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
-              let formattedWording = ''
-
-              if (target) {
-                if (target.fileMemo && target.fileMemo.length > 32) {
-                  formattedWording = target.fileMemo.substr(0, 32) + '...';
-                } else {
-                  formattedWording = target.fileMemo;
-                }
-              }
-
-              return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
-            }
-          } else if (tempData === 'action') {
-              let isShow = true;
-
-              if (moment(allValue.fileDttm).valueOf() < moment(incident.info.updateDttm).valueOf()) {
-                isShow = false;
-              }
-
-              return (
-                <div>
-                  <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
-
-                  {isShow &&
-                    <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
-                  }
-                </div>
-              )
-          } else {
-            return <span>{value}</span>
-          }
-        }
-      }
-    })
-
-    incident.fileFields = dataFields;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
-        </header>
-        {activeContent === 'addIncident' &&
-          <div className='group'>
-            <div className='c-file-input clearable file-input' style={type === 'page' ? {width: '95%'} : null}>
-              <input type='file' id='multiMalware' style={{width: 'calc(100% - 25px)'}} multiple onChange={this.handleFileChange} />
-              <button type='button'>{t('txt-selectFile')}</button>
-              <input type='text' className='long-name' readOnly value={filesName} />
-              {filesName.length > 0 &&
-                <i class='c-link inline fg fg-close' onClick={this.handleFileChange.bind(this, 'clear')}></i>
-              }
-            </div>
-          </div>
-        }
-        {activeContent === 'addIncident' &&
-          <div className='group'>
-            <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
-            <TextareaAutosize
-              id='fileMemo'
-              name='fileMemo'
-              className='textarea-autosize'
-              onChange={this.handleDataChangeMui}
-              value={incident.info.fileMemo}
-              rows={2} />
-          </div>
-        }
-        {activeContent !== 'addIncident' &&
-          <div className='group'>
-            <Button variant='contained' color='primary' className='upload' onClick={this.toggleUploadAttahment}>{t('txt-upload')}</Button>
-          </div>
-        }
-        {_.size(incident.info.fileList) > 0 &&
-          <div className='group full'>
-            <DataTable
-              style={{width: '100%'}}
-              className='main-table full'
-              fields={incident.fileFields}
-              data={incident.info.fileList} />
-          </div>
-        }
-      </div>
-    )
-  }
-  displayFlow = () => {
-    const {activeContent, incidentType, incident} = this.state;
-    let dataFields = {};
-
-    incident.flowFieldsArr.forEach(tempData => {
-      dataFields[tempData] = {
-        hide: tempData === 'id',
-        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-        sortable: this.checkSortable(tempData),
-        formatter: (value, allValue, i) => {
-          if (tempData === 'reviewDttm') {
-            return <span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
-          } else if (tempData === 'status') {
-            return <span>{it(`action.${value}`)}</span>
-          } else {
-            return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}</span>
-          }
-        }
-      }
-    });
-
-    incident.flowFields = dataFields;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-flowTitle')}</div>
-        </header>
-
-        <div className='group full'>
-          <DataTable
-            style={{width: '100%'}}
-            className='main-table full'
-            fields={incident.flowFields}
-            data={incident.info.historyList} />
-        </div>
-      </div>
-    )
-  }
-  displayNoticePage = () => {
-    const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-accidentTitle')}</div>
-        </header>
-
-        <div className='group'>
-          <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
-          <TextField
-            id='accidentCatogory'
-            name='accidentCatogory'
-            select
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentCatogory}
-            disabled={activeContent === 'viewIncident'}>
-            {INCIDENT_ACCIDENT_LIST}
-          </TextField>
-        </div>
-        {incident.info.accidentCatogory === '5' &&
-          <div className='group'>
-            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-            <TextField
-              id='accidentAbnormal'
-              name='accidentAbnormal'
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleDataChangeMui}
-              value={incident.info.accidentAbnormalOther}
-              disabled={activeContent === 'viewIncident'}/>
-          </div>
-        }
-        {incident.info.accidentCatogory !== '5' &&
-          <div className='group'>
-            <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-            <TextField
-              id='accidentAbnormal'
-              name='accidentAbnormal'
-              select
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleDataChangeMui}
-              value={incident.info.accidentAbnormal}
-              disabled={activeContent === 'viewIncident'}>
-              {INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
-            </TextField>
-          </div>
-        }
-
-        <div className='group full'>
-          <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
-          <TextareaAutosize
-            id='accidentDescription'
-            name='accidentDescription'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentDescription}
-            rows={3}
-            disabled={activeContent === 'viewIncident'}/>
-        </div>
-        <div className='group full'>
-          <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
-          <TextareaAutosize
-            id='accidentReason'
-            name='accidentReason'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentReason}
-            rows={3}
-            disabled={activeContent === 'viewIncident'}/>
-        </div>
-        <div className='group full'>
-          <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
-          <TextareaAutosize
-            id='accidentInvestigation'
-            name='accidentInvestigation'
-            className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
-            value={incident.info.accidentInvestigation}
-            rows={3}
-            disabled={activeContent === 'viewIncident'}/>
-        </div>
-      </div>
-    )
-  }
   handleConnectContactChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.notifyList = val;
@@ -1260,29 +796,6 @@ class Incident extends Component {
     this.setState({
       incident: temp
     });
-  }
-  displayConnectUnit = () => {
-      const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
-
-      return (
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{it('txt-notifyUnit')}</div>
-          </header>
-
-          <div className='group full multi'>
-            <MultiInput
-              id='incidentEvent'
-              className='incident-group'
-              base={NotifyContact}
-              defaultItemValue={{title: '', name: '', phone:'', email:''}}
-              value={incident.info.notifyList}
-              props={{activeContent: activeContent}}
-              onChange={this.handleConnectContactChange}
-              readOnly={activeContent === 'viewIncident'} />
-          </div>
-        </div>
-      )
   }
   handleEventsChange = (val) => {
     let temp = {...this.state.incident};
@@ -1292,49 +805,6 @@ class Incident extends Component {
       incident: temp
     });
   }
-  displayEventsPage = () => {
-    const {locale} = this.context;
-    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
-    const now = new Date();
-    const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-incident-events')}</div>
-        </header>
-
-        <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
-
-        <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
-
-        <div className='group full multi'>
-          <MultiInput
-            id='incidentEvent'
-            className='incident-group'
-            base={Events}
-            defaultItemValue={{
-              description: '',
-              deviceId: '',
-              time: {
-                from: nowTime,
-                to: nowTime
-              },
-              frequency: 1
-            }}
-            value={incident.info.eventList}
-            props={{
-              activeContent: activeContent,
-              locale: locale,
-              deviceListOptions: deviceListOptions,
-              showDeviceListOptions: showDeviceListOptions
-            }}
-            onChange={this.handleEventsChange}
-            readOnly={activeContent === 'viewIncident'} />
-        </div>
-      </div>
-    )
-  }
   handleTtpsChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.ttpList = val;
@@ -1342,32 +812,6 @@ class Incident extends Component {
     this.setState({
       incident: temp
     });
-  }
-  displayTtpPage = () => {
-    const {activeContent, incident} = this.state;
-
-    return (
-      <div className='form-group normal'>
-        <header>
-          <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})</div>
-        </header>
-
-        <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
-
-        <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
-
-        <div className='group full multi'>
-          <MultiInput
-            id='incidentTtp'
-            className='incident-group'
-            base={Ttps}
-            value={incident.info.ttpList}
-            props={{activeContent: activeContent}}
-            onChange={this.handleTtpsChange}
-            readOnly={activeContent === 'viewIncident'} />
-        </div>
-      </div>
-    )
   }
   handleSubmit = () => {
     const {baseUrl, contextRoot, session} = this.context;
