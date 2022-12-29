@@ -433,6 +433,11 @@ class HostController extends Component {
       reportNCCSTopen: false,
       vansPieChartOpen: false,
       showHMDadvancedOption: false,
+      showScanStatusOption: {
+        callBackFileIntegrity: false,
+        callBackEventTracing: false,
+        callBackPprocessMonitor: false
+      },
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
       menuType: '', //'hmdTriggerAll', 'safetyScan' or 'hmdDownload'
@@ -608,36 +613,54 @@ class HostController extends Component {
         value: 'isFileIntegrity'
       },
       {
-        name: 'Callback Enabled File Integrity',
-        value: 'isSnapshot'
-      },
-      {
-        name: 'Callback Disabled File Integrity',
-        value: 'isNotSnapshot'
+        name: 'Callback File Integrity',
+        type: 'callBackFileIntegrity',
+        value: [
+          {
+            name: 'Enabled',
+            value: 'isSnapshot'
+          },
+          {
+            name: 'Disabled',
+            value: 'isNotSnapshot'
+          }
+        ]
       },
       {
         name: 'Event Tracing',
         value: 'isEventTracing'
       },
       {
-        name: 'Callback Enabled EventTracing',
-        value: 'eventTracingEnable'
-      },
-      {
-        name: 'Callback Disabled EventTracing',
-        value: 'eventTracingDisable'
+        name: 'Callback Event Tracing',
+        type: 'callBackEventTracing',
+        value: [
+          {
+            name: 'Enabled',
+            value: 'eventTracingEnable'
+          },
+          {
+            name: 'Disabled',
+            value: 'eventTracingDisable'
+          }
+        ]
       },
       {
         name: 'Process Monitor',
         value: 'isProcessMonitor'
       },
       {
-        name: 'Callback Enabled Process Monitor',
-        value: 'isProcWhiteList'
-      },
-      {
-        name: 'Callback Disabled Process Monitor',
-        value: 'isNotProcWhiteList'
+        name: 'Callback Process Monitor',
+        type: 'callBackPprocessMonitor',
+        value: [
+          {
+            name: 'Enabled',
+            value: 'isProcWhiteList'
+          },
+          {
+            name: 'Disabled',
+            value: 'isNotProcWhiteList'
+          }
+        ]
       },
       {
         name: 'Yara Scan',
@@ -1043,10 +1066,25 @@ class HostController extends Component {
         })
 
         _.forEach(hmd_list, val => {
-          scanStatusList.push({
-            text: val.name + ' (0)',
-            value: val.value
-          });
+          if (_.isArray(val.value)) {
+            const items = _.map(val.value, val => {
+              return {
+                text: val.name + ' (0)',
+                value: val.value
+              };
+            });
+
+            scanStatusList.push({
+              text: val.name,
+              type: val.type,
+              value: items
+            });
+          } else {
+            scanStatusList.push({
+              text: val.name + ' (0)',
+              value: val.value
+            });
+          }
         });
 
         this.setState({
@@ -1123,16 +1161,37 @@ class HostController extends Component {
         })
 
         _.forEach(hmd_list, val => {
-          let text = val.name;
+          if (_.isArray(val.value)) {
+            const items = _.map(val.value, val => {
+              let text = val.name;
 
-          if (_.has(data.scanInfoAgg, val.value)) {
-            text += ' (' + data.scanInfoAgg[val.value] + ')';
+              if (_.has(data.scanInfoAgg, val.value)) {
+                text += ' (' + data.scanInfoAgg[val.value] + ')';
+              }
+
+              return {
+                text,
+                value: val.value
+              };
+            });
+
+            scanStatusList.push({
+              text: val.name,
+              type: val.type,
+              value: items
+            });
+          } else {
+            let text = val.name;
+
+            if (_.has(data.scanInfoAgg, val.value)) {
+              text += ' (' + data.scanInfoAgg[val.value] + ')';
+            }
+
+            scanStatusList.push({
+              text,
+              value: val.value
+            });
           }
-
-          scanStatusList.push({
-            text,
-            value: val.value
-          });
         });
 
         if (!data.rows || data.rows.length === 0) {
@@ -1627,6 +1686,20 @@ class HostController extends Component {
     });
   }
   /**
+   * Toggle HMD scan status arrow options
+   * @method
+   * @param {string} type - item type ('callBackFileIntegrity', 'callBackEventTracing' or 'callBackProcessMonitor')
+   */
+  toggleScanStatusOption = (type) => {
+    const {showScanStatusOption} = this.state;
+    let tempShowScanStatusOption = {...showScanStatusOption};
+    tempShowScanStatusOption[type] = !showScanStatusOption[type];
+
+    this.setState({
+      showScanStatusOption: tempShowScanStatusOption
+    });
+  }
+  /**
    * Show checkbox for option items
    * @method
    * @param {string} type - filter type ('hmdStatusSelected' or 'scanStatusSelected')
@@ -1658,11 +1731,11 @@ class HostController extends Component {
    * @returns FormControlLabel component
    */
   getCheckboxItem = (type, val, i) => {
-    if (val.text === t('txt-advanced')) {
-      const {showHMDadvancedOption} = this.state;
+    const {showHMDadvancedOption, showScanStatusOption} = this.state;
 
+    if (val.text === t('txt-advanced')) {
       return (
-        <React.Fragment>
+        <div key={i}>
           <div className='toggle-arrow' onClick={this.toggleHMDadvancedOption}>
             <i className={`fg arrow fg-arrow-${showHMDadvancedOption ? 'bottom' : 'right'}`}></i>
             <span>{val.text}</span>
@@ -1672,7 +1745,21 @@ class HostController extends Component {
               {val.value.map(this.showCheckbox.bind(this, type))}
             </div>
           }
-        </React.Fragment>
+        </div>
+      )
+    } else if (_.isArray(val.value)) {
+      return (
+        <div key={i}>
+          <div className='toggle-arrow' onClick={this.toggleScanStatusOption.bind(this, val.type)}>
+            <i className={`fg arrow fg-arrow-${showScanStatusOption[val.type] ? 'bottom' : 'right'}`}></i>
+            <span>{val.text}</span>
+          </div>
+          {showScanStatusOption[val.type] &&
+            <div className='option-items'>
+              {val.value.map(this.showCheckbox.bind(this, type))}
+            </div>
+          }
+        </div>
       )
     } else {
       return (
