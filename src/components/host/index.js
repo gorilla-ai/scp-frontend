@@ -432,11 +432,15 @@ class HostController extends Component {
       hostDeviceOpen: false,
       reportNCCSTopen: false,
       vansPieChartOpen: false,
-      showHMDadvancedOption: false,
-      showScanStatusOption: {
-        callBackFileIntegrity: false,
-        callBackEventTracing: false,
-        callBackPprocessMonitor: false
+      showLeftMenuOptions: {
+        hmdStatus: {
+          advanced: false
+        },
+        scanStatus: {
+          callBackFileIntegrity: false,
+          callBackEventTracing: false,
+          callBackPprocessMonitor: false
+        }
       },
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
@@ -1055,6 +1059,7 @@ class HostController extends Component {
 
             hmdStatusList.push({
               text: t('txt-advanced'),
+              type: 'advanced',
               value: items
             });
           } else {
@@ -1144,6 +1149,7 @@ class HostController extends Component {
 
             hmdStatusList.push({
               text: t('txt-advanced'),
+              type: 'advanced',
               value: items
             });
           } else {
@@ -1677,26 +1683,18 @@ class HostController extends Component {
     });
   }
   /**
-   * Toggle HMD arrow options
+   * Toggle left menu arrow options
    * @method
+   * @param {string} type - box type
+   * @param {string} item - item type
    */
-  toggleHMDadvancedOption = () => {
-    this.setState({
-      showHMDadvancedOption: !this.state.showHMDadvancedOption
-    });
-  }
-  /**
-   * Toggle HMD scan status arrow options
-   * @method
-   * @param {string} type - item type ('callBackFileIntegrity', 'callBackEventTracing' or 'callBackProcessMonitor')
-   */
-  toggleScanStatusOption = (type) => {
-    const {showScanStatusOption} = this.state;
-    let tempShowScanStatusOption = {...showScanStatusOption};
-    tempShowScanStatusOption[type] = !showScanStatusOption[type];
+  toggleLeftMenuOption = (type, item) => {
+    const {showLeftMenuOptions} = this.state;
+    let tempShowLeftMenuOptions = {...showLeftMenuOptions};
+    tempShowLeftMenuOptions[type][item] = !showLeftMenuOptions[type][item];
 
     this.setState({
-      showScanStatusOption: tempShowScanStatusOption
+      showLeftMenuOptions: tempShowLeftMenuOptions
     });
   }
   /**
@@ -1705,9 +1703,12 @@ class HostController extends Component {
    * @param {string} type - filter type ('hmdStatusSelected' or 'scanStatusSelected')
    * @param {object} val - individual filter data
    * @param {number} i - index of the filter data
+   * @param {string} [options] - option for 'normal'
    * @returns FormControlLabel component
    */
-  showCheckbox = (type, val, i) => {
+  showCheckbox = (type, val, i, options) => {
+    const item = options === 'normal' ? '' : val.value;
+
     return (
       <FormControlLabel
         key={i}
@@ -1717,10 +1718,10 @@ class HostController extends Component {
             className='checkbox-ui nav-box'
             name={val.value}
             checked={this.checkSelectedItem(type, val.value)}
-            onChange={this.toggleCheckbox.bind(this, type, val.value)}
+            onChange={this.toggleCheckbox.bind(this, type, item)}
             color='primary' />
         } />
-    )    
+    )
   }
   /**
    * Display checkbox for left nav
@@ -1731,30 +1732,18 @@ class HostController extends Component {
    * @returns FormControlLabel component
    */
   getCheckboxItem = (type, val, i) => {
-    const {showHMDadvancedOption, showScanStatusOption} = this.state;
+    const {showLeftMenuOptions} = this.state;
 
-    if (val.text === t('txt-advanced')) {
+    if (_.isArray(val.value)) {
+      const boxType = type.replace('Selected', '');
+
       return (
         <div key={i}>
-          <div className='toggle-arrow' onClick={this.toggleHMDadvancedOption}>
-            <i className={`fg arrow fg-arrow-${showHMDadvancedOption ? 'bottom' : 'right'}`}></i>
+          <div className='toggle-arrow' onClick={this.toggleLeftMenuOption.bind(this, boxType, val.type)}>
+            <i className={`fg arrow fg-arrow-${showLeftMenuOptions[boxType][val.type] ? 'bottom' : 'right'}`}></i>
             <span>{val.text}</span>
           </div>
-          {showHMDadvancedOption &&
-            <div className='option-items'>
-              {val.value.map(this.showCheckbox.bind(this, type))}
-            </div>
-          }
-        </div>
-      )
-    } else if (_.isArray(val.value)) {
-      return (
-        <div key={i}>
-          <div className='toggle-arrow' onClick={this.toggleScanStatusOption.bind(this, val.type)}>
-            <i className={`fg arrow fg-arrow-${showScanStatusOption[val.type] ? 'bottom' : 'right'}`}></i>
-            <span>{val.text}</span>
-          </div>
-          {showScanStatusOption[val.type] &&
+          {showLeftMenuOptions[boxType][val.type] &&
             <div className='option-items'>
               {val.value.map(this.showCheckbox.bind(this, type))}
             </div>
@@ -1762,19 +1751,7 @@ class HostController extends Component {
         </div>
       )
     } else {
-      return (
-        <FormControlLabel
-          key={i}
-          label={val.text}
-          control={
-            <Checkbox
-              className='checkbox-ui nav-box'
-              name={val.value}
-              checked={this.checkSelectedItem(type, val.value)}
-              onChange={this.toggleCheckbox.bind(this, type, '')}
-              color='primary' />
-          } />
-      )
+      return this.showCheckbox(type, val, i, 'normal');
     }
   }
   /**
@@ -3869,8 +3846,9 @@ class HostController extends Component {
    * @param {object | string} safetyData - active safety scan data, or primary key value
    * @param {object} [cpeData] - cpe data
    * @param {string} [from] - from option for 'safetyPage' or 'showAvailableHost'
+   * @param {string} [scanType] - scan type from hmd-scan-info
    */
-  getHostInfo = (safetyData, cpeData, from) => {
+  getHostInfo = (safetyData, cpeData, from, scanType) => {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
     const requestData = {
@@ -3903,10 +3881,11 @@ class HostController extends Component {
 
         if (from === 'showAvailableHost') {
           this.setState({
+            safetyScanType: scanType,
             currentSafetyData: data,
-            fromSafetyPage: 'availableHost',
             safetyDetailsOpen: !this.state.safetyDetailsOpen,
-            showSafetyTab: 'availableHost'
+            showSafetyTab: 'availableHost',
+            fromSafetyPage: 'availableHost',
           }, () => {
             this.toggleHostAnalysis('safetyScan');
           });

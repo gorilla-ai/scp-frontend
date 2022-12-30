@@ -1062,7 +1062,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayScanFilePath = (parentIndex, val, i) => {
-    const {ipType} = this.props;
+    const {activeScanType, ipType} = this.props;
     const {activePath, activeRuleHeader} = this.state;
     const virusTotalLink = `https://www.virustotal.com/gui/file/${val._FileInfo._HashValues._MD5}`;
     let uniqueKey = '';
@@ -1156,7 +1156,7 @@ class HMDscanInfo extends Component {
                   {val.hostIdArrCnt && val._FileInfo &&
                     <li>
                       {this.props.getHostInfo &&
-                        <div><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost')}>{helper.numberWithCommas(val.hostIdArrCnt)}</span></div>
+                        <div><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost', activeScanType)}>{helper.numberWithCommas(val.hostIdArrCnt)}</span></div>
                       }
 
                       {!this.props.getHostInfo &&
@@ -2691,6 +2691,7 @@ HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
   activeScanType: PropTypes.string,
   currentDeviceData: PropTypes.object.isRequired,
+  ipType: PropTypes.string,
   eventInfo: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
@@ -2699,7 +2700,9 @@ HMDscanInfo.propTypes = {
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
-  assessmentDatetime: PropTypes.object
+  assessmentDatetime: PropTypes.object,
+  hostCreateTime: PropTypes.object,
+  getHostInfo: PropTypes.func
 };
 
 export default withRouter(HMDscanInfo);
