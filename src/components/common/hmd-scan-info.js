@@ -1810,6 +1810,9 @@ class HMDscanInfo extends Component {
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult, val.TotalCnt)
           }
+          {activeTab === 'scanFile' && val.isUploaded &&
+            <span style={{color: '#0000ff'}}>{t('hmd-scan.txt-comporessSuccessFileCount')}: {helper.numberWithCommas(val.successTotalCnt)}</span>
+          }
           {activeTab === 'scanFile' && dataResult &&
             <Button variant='contained' color='primary' className='btn download' onClick={this.openConfirmModal.bind(this, malwareBtnType, dataResult, val.taskId, 'task')} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}</Button>
           }

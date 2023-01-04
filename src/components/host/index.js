@@ -3149,10 +3149,10 @@ class HostController extends Component {
     }
 
     if (val.doc_count === 0 || val.doc_count > 0) {
-      status = val.doc_count;
+      status = helper.numberWithCommas(val.doc_count);
 
       if (val.severity_type_name === 'gcbResult') {
-        status = val.FailCnt;
+        status = helper.numberWithCommas(val.FailCnt);
       }
     } else {
       if (val.taskStatus === 'Failure') {

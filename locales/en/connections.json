@@ -947,6 +947,7 @@
     "txt-suspiciousFileCount": "Suspicious File Count",
     "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious Filepath",
+    "txt-comporessSuccessFileCount": "Compress Success File Count",
     "txt-vulnerabilityInfo": "Vulnerability Info",
     "txt-VulnerabilityCount": "Vulnerabilities",
     "txt-learningInterval": "Process Monitor Learning Interval (second)",
