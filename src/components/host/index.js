@@ -69,6 +69,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const EDGE_SAFETY_SETTINGS = ['hmdSettings', 'hmdDownloadWindows', 'hmdDownloadLinux', 'uploadHMDfile'];
 const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isNoVersion', 'isConnected', 'isDisconnected', {advanced: ['isOwnerNull', 'isAreaNull', 'isSeatNull']}];
 const SCAN_RESULT = [
   {
@@ -160,7 +161,13 @@ const HMD_TRIGGER = [
     stop: 'EventTracingThread'
   }
 ];
-const SAFETY_SCAN_MENU = [
+const EXPORT_CHART_MENU = [
+  {
+    name: 'securityDiagnostic'
+  },
+  {
+    name: 'hostItem'
+  },
   {
     name: 'Malware',
     value: 'scanFile'
@@ -444,7 +451,7 @@ class HostController extends Component {
       },
       showSafetyTab: '', //'basicInfo' or 'availableHost'
       contextAnchor: null,
-      menuType: '', //'hmdTriggerAll', 'safetyScan' or 'hmdDownload'
+      menuType: '', //'endpointSecuritySettings', 'hmdTriggerAll' or 'exportChart'
       vansDeviceStatusList: [],
       vansHmdStatusList: [],
       severityList: null,
@@ -4230,7 +4237,7 @@ class HostController extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {string} type - menu type ('hmdTriggerAll', 'safetyScan' or 'hmdDownload')
+   * @param {string} type - menu type ('endpointSecuritySettings', 'hmdTriggerAll' or 'exportChart')
    * @param {object} event - event object
    */
   handleOpenMenu = (type, event) => {
@@ -4257,6 +4264,8 @@ class HostController extends Component {
     this.setState({
       uploadHmdFileOpen: !this.state.uploadHmdFileOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Toggle track host list
@@ -4985,6 +4994,31 @@ class HostController extends Component {
     }
   }
   /**
+   * Get HMD settings menu
+   * @method
+   * @param {string} val - individual HMD data
+   * @param {number} i - index of the HMD data
+   * @returns MenuItem component
+   */
+  getHMDsettings = (val, i) => {
+    const {sessionRights} = this.context;
+    let adminPrivilege = false;
+
+    if (sessionRights.Module_Config) {
+      adminPrivilege = true;
+    }
+
+    if (val === 'hmdSettings' && adminPrivilege) {
+      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, val)}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+    } else if (val === 'hmdDownloadWindows') {
+      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.hmdDownload.bind(this, 'windows')}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+    } else if (val === 'hmdDownloadLinux') {
+      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.hmdDownload.bind(this, 'linux')}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+    } else if (val === 'uploadHMDfile') {
+      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleHmdUploadFile}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+    }
+  }
+  /**
    * Get HMD test menu
    * @method
    * @param {string} val - individual HMD data
@@ -5079,35 +5113,60 @@ class HostController extends Component {
     this.handleCloseMenu();
   }
   /**
-   * Get safety scan menu
+   * Get span header width
    * @method
-   * @param {string} val - individual safety scan menu
-   * @param {number} i - index of the safety scan menu
+   * @returns width in px
+   */
+  getHeaderWidth = () => {
+    const {locale} = this.context;
+
+    if (locale === 'en') {
+      return '150px';
+    } else if (locale === 'zh') {
+      return '120px';
+    }
+  }
+  /**
+   * Get export chart menu
+   * @method
+   * @param {object} val - individual export chart menu
+   * @param {number} i - index of the export chart menu
    * @returns MenuItem component
    */
-  getSafetyScanMenu = (val, i) => {
+  getExportChartMenu = (val, i) => {
     const type = val.value;
-    let name = val.name;
+    const name = val.name;
 
-    if (type === 'getVansCpe') {
-      name = 'CPE';
-    } else if (type === 'getVansCve') {
-      name = 'CVE';
+    if (name === 'securityDiagnostic') {
+      return (
+        <MenuItem key={i} className='export-chart-menu'>
+          <span style={{width: this.getHeaderWidth()}}>{t('host.txt-' + name)}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportSecurityDiagnostic}>{t('txt-exportCSV')}</Button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getPDFfile}>{t('txt-exportPDF')}</Button>
+        </MenuItem>
+      )
+    } else if (name === 'hostItem') {
+      return (
+        <MenuItem key={i} className='export-chart-menu'>
+          <span style={{width: this.getHeaderWidth()}}>{t('host.txt-' + name)}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getCSVfile.bind(this, 'default')}>{t('txt-exportCSV')}</Button>
+        </MenuItem>
+      )
+    } else {
+      return (
+        <MenuItem key={i} className='export-chart-menu'>
+          <span style={{width: this.getHeaderWidth()}}>{name}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'hostList', type)}>{t('host.txt-downloadHostList')}</Button>
+          {type === 'getVansCpe' &&
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
+          }
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'report', type)}>{t('txt-export-' + type)}</Button>
+          {type === 'getVansCpe' &&
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
+          }
+        </MenuItem>
+      )
     }
-
-    return (
-      <MenuItem key={i} className='safety-scan-menu'>
-        <span className='header'>{val.name}</span>
-        <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'hostList', type)}>{t('host.txt-downloadHostList')}</Button>
-        {type === 'getVansCpe' &&
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
-        }
-        <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'report', type)}>{t('txt-export') + ' ' + name}</Button>
-        {type === 'getVansCpe' &&
-          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
-        }
-      </MenuItem>
-    )
   }
   /**
    * Handle HMD download button
@@ -5348,6 +5407,8 @@ class HostController extends Component {
     this.setState({
       activeContent: type
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Get and set safety scan list
@@ -5755,12 +5816,19 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary'><Link to='/SCP/host/cpe'>{t('host.txt-cpePage')}</Link></Button>
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'endpointSecuritySettings')}>{t('host.txt-endpointSecuritySettings')}</Button>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.exportSecurityDiagnostic} title={t('txt-exportSecurityDiagnostic')}><i className='fg fg-file-csv'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.getCSVfile.bind(this, 'default')} title={t('txt-exportCSV')}><i className='fg fg-file-csv'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getPDFfile} title={t('txt-exportPDF')}><PictureAsPdfOutlinedIcon /></Button>
           </div>
         </div>
+
+        <Menu
+          anchorEl={contextAnchor}
+          className='trigger-menu hmd-settings'
+          keepMounted
+          open={menuType === 'endpointSecuritySettings' && Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          {EDGE_SAFETY_SETTINGS.map(this.getHMDsettings)}
+        </Menu>
 
         <div className='data-content'>
           <div className={cx('left-nav tree', {'collapse': !showLeftNav})}>
@@ -5885,12 +5953,7 @@ class HostController extends Component {
                 {activeTab !== 'vansCharts' &&
                   <div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdTriggerAll')}>{t('hmd-scan.txt-triggerAll')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'safetyScan')}>{t('host.txt-safetyScan')}</Button>
-                    {adminPrivilege &&
-                      <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('hmd-scan.txt-hmdSettings')}</Button>
-                    }
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'hmdDownload')}>{t('hmd-scan.txt-hmdDownload')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleHmdUploadFile}>{t('hmd-scan.txt-uploadHMDfile')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'exportChart')}>{t('hmd-scan.txt-exportChart')}</Button>
                   </div>
                 }
 
@@ -5905,20 +5968,11 @@ class HostController extends Component {
 
                 <Menu
                   anchorEl={contextAnchor}
-                  className='trigger-menu safety'
+                  className='trigger-menu export'
                   keepMounted
-                  open={menuType === 'safetyScan' && Boolean(contextAnchor)}
+                  open={menuType === 'exportChart' && Boolean(contextAnchor)}
                   onClose={this.handleCloseMenu}>
-                  {SAFETY_SCAN_MENU.map(this.getSafetyScanMenu)}
-                </Menu>
-
-                <Menu
-                  anchorEl={contextAnchor}
-                  keepMounted
-                  open={menuType === 'hmdDownload' && Boolean(contextAnchor)}
-                  onClose={this.handleCloseMenu}>
-                  <MenuItem onClick={this.hmdDownload.bind(this, 'windows')}>Windows</MenuItem>
-                  <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
+                  {EXPORT_CHART_MENU.map(this.getExportChartMenu)}
                 </Menu>
 
                 {activeTab === 'hostList' &&
