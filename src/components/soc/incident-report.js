@@ -141,7 +141,7 @@ class IncidentReport extends Component {
     } else if (type === 'monthly') {
       url = `${baseUrl}${contextRoot}/api/soc/monthly/_export`;
       requestData = {
-        startDttm:moment(monthlyReportDate).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        startDttm: moment(monthlyReportDate).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
         timeZone: utc_offset
       };
     }
@@ -211,7 +211,7 @@ class IncidentReport extends Component {
                 </div>
               </div>
 
-              {/*<div className='form-group normal long'>
+              <div className='form-group normal long'>
                 <header>{it('txt-monthlyReport')}</header>
                 <div className='group'>
                   <label>{t('txt-date')}:</label>
@@ -230,7 +230,7 @@ class IncidentReport extends Component {
                   </MuiPickersUtilsProvider>
                   <Button variant='contained' color='primary' onClick={this.handleExportConfirm.bind(this, 'monthly')}>{t('txt-export')}</Button>
                 </div>
-              </div>*/}
+              </div>
             </div>
           </div>
         </div>
