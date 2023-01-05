@@ -1191,7 +1191,7 @@ class ThreatsController extends Component {
     });
   }
   checkRequired = (incident) => {
-    if (!incident.category || incident.category === 0 || incident.category === 9) {
+    if (!incident.category) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validCategory'),
@@ -1486,10 +1486,6 @@ class ThreatsController extends Component {
     const value = event.target.value;
     let tempIncident = {...incident};
     tempIncident.info[name] = value;
-
-    if (name === 'category' && (value === 0 || value === 9)) {
-      return;
-    }
 
     if (name === 'severity') {
       if (value === 'Emergency') {

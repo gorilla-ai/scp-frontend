@@ -566,7 +566,8 @@ class Incident extends Component {
             handleEventsChange={this.handleEventsChange}
             handleTtpsChange={this.handleTtpsChange}
             toggleRelatedListModal={this.toggleRelatedListModal}
-            refreshIncidentAttach={this.refreshIncidentAttach} />
+            refreshIncidentAttach={this.refreshIncidentAttach}
+            toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
         </div>
 
         {activeContent === 'editIncident' &&
@@ -912,7 +913,7 @@ class Incident extends Component {
   checkRequired = (incident) => {
     const {incidentType} = this.state;
 
-    if (!incident.category || incident.category === 0 || incident.category === 9) {
+    if (!incident.category) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validCategory'),
@@ -2003,11 +2004,7 @@ class Incident extends Component {
   handleDataChangeMui = (event) => {
     const {socFlowSourceList} = this.state;
     let temp = {...this.state.incident};
-    temp.info[event.target.name] = event.target.value;
-
-    if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
-      return;
-    }        
+    temp.info[event.target.name] = event.target.value;       
 
     if (event.target.name === 'severity') {
       if (event.target.value === 'Emergency') {

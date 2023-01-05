@@ -369,10 +369,6 @@ class IncidentRuleTemplate extends Component {
         let tempData = {...incidentRule};
         tempData.info[event.target.name] = event.target.value;
 
-        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
-            return;
-        }
-
         if (event.target.name === 'severity') {
 
             if (event.target.value === 'Emergency') {

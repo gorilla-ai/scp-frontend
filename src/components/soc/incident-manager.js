@@ -922,7 +922,8 @@ class IncidentManagement extends Component {
             handleEventsChange={this.handleEventsChange}
             handleTtpsChange={this.handleTtpsChange}
             toggleRelatedListModal={this.toggleRelatedListModal}
-            refreshIncidentAttach={this.refreshIncidentAttach} />
+            refreshIncidentAttach={this.refreshIncidentAttach}
+            toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
         </div>
 
         {activeContent === 'editIncident' &&
@@ -1313,7 +1314,7 @@ class IncidentManagement extends Component {
   checkRequired = (incident) => {
     const {incidentType} = this.state;
 
-    if (!incident.category || incident.category === 0 || incident.category === 9) {
+    if (!incident.category) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validCategory'),
@@ -2594,10 +2595,6 @@ class IncidentManagement extends Component {
     let tempSearch = {...this.state.search};
     tempSearch[event.target.name] = event.target.value;
 
-    if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
-      return;
-    }
-
     this.setState({
       search: tempSearch
     });
@@ -2672,10 +2669,6 @@ class IncidentManagement extends Component {
     const value = event.target.value;
     let tempIncident = {...incident};
     tempIncident.info[name] = value;
-
-    if (name === 'category' && (value === 0 || value === 9)) {
-      return;
-    }
 
     if (name === 'severity') {
       if (value === 'Emergency') {

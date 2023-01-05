@@ -183,25 +183,44 @@ class IncidentForm extends Component {
         </div>
         <div className='group'>
           <label htmlFor='category'>{f('incidentFields.category')}</label>
-          <TextField
-            id='category'
-            name='category'
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            onChange={this.props.handleDataChangeMui}
-            helperText={it('txt-required')}
-            required
-            select
-            value={incident.info.category}
-            error={!(incident.info.category || '')}
-            disabled={activeContent === 'viewIncident'}>
-            {
-              _.map(_.range(0, 20), el => {
-                return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-              })
-            }
-          </TextField>
+          {activeContent === 'viewIncident' &&
+            <TextField
+              id='category'
+              name='category'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              select
+              value={incident.info.category}
+              disabled={true}>
+              {
+                _.map(_.range(0, 20), el => {
+                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                })
+              }
+            </TextField>
+          }
+          {activeContent !== 'viewIncident' &&
+            <TextField
+              id='category'
+              name='category'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              onChange={this.props.handleDataChangeMui}
+              helperText={it('txt-required')}
+              required
+              select
+              value={incident.info.category}
+              error={!(incident.info.category || '')}
+              disabled={activeContent === 'viewIncident'}>
+              {
+                _.map(_.range(10, 20), el => {
+                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                })
+              }
+            </TextField>
+          }
         </div>
         <div className='group'>
           <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
@@ -297,7 +316,7 @@ class IncidentForm extends Component {
               <Checkbox
                 className='checkbox-ui'
                 checked={establishDttm}
-                onChange={this.toggleEstablishDateCheckbox}
+                onChange={this.props.toggleEstablishDateCheckbox}
                 color='primary' />
             }
             disabled={activeContent === 'viewIncident'} />
@@ -385,7 +404,7 @@ class IncidentForm extends Component {
             variant='outlined'
             fullWidth={true}
             size='small'
-            onChange={this.handleDataChangeMui}
+            onChange={this.props.handleDataChangeMui}
             value={incident.info.accidentCatogory}
             disabled={activeContent === 'viewIncident'}>
             {incidentAccidentList}
@@ -400,7 +419,7 @@ class IncidentForm extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              onChange={this.handleDataChangeMui}
+              onChange={this.props.handleDataChangeMui}
               value={incident.info.accidentAbnormalOther}
               disabled={activeContent === 'viewIncident'} />
           </div>
@@ -415,7 +434,7 @@ class IncidentForm extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              onChange={this.handleDataChangeMui}
+              onChange={this.props.handleDataChangeMui}
               value={incident.info.accidentAbnormal}
               disabled={activeContent === 'viewIncident'}>
               {incidentAccidentSubList[incident.info.accidentCatogory - 1]}
@@ -428,7 +447,7 @@ class IncidentForm extends Component {
             id='accidentDescription'
             name='accidentDescription'
             className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
+            onChange={this.props.handleDataChangeMui}
             value={incident.info.accidentDescription}
             rows={3}
             disabled={activeContent === 'viewIncident'} />
@@ -439,7 +458,7 @@ class IncidentForm extends Component {
             id='accidentReason'
             name='accidentReason'
             className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
+            onChange={this.props.handleDataChangeMui}
             value={incident.info.accidentReason}
             rows={3}
             disabled={activeContent === 'viewIncident'} />
@@ -450,7 +469,7 @@ class IncidentForm extends Component {
             id='accidentInvestigation'
             name='accidentInvestigation'
             className='textarea-autosize'
-            onChange={this.handleDataChangeMui}
+            onChange={this.props.handleDataChangeMui}
             value={incident.info.accidentInvestigation}
             rows={3}
             disabled={activeContent === 'viewIncident'} />
@@ -953,6 +972,7 @@ IncidentForm.propTypes = {
   handleTtpsChange: PropTypes.func,
   toggleRelatedListModal: PropTypes.func,
   refreshIncidentAttach: PropTypes.func,
+  toggleEstablishDateCheckbox: PropTypes.func.isRequired,
   toggleSteps: PropTypes.func
 };
 

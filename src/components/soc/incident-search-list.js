@@ -1895,10 +1895,6 @@ class IncidentSearch extends Component {
         let tempSearch = {...this.state.search};
         tempSearch[event.target.name] = event.target.value;
 
-        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
-          return;
-        }
-
         this.setState({
             search: tempSearch
         });
@@ -1960,10 +1956,6 @@ class IncidentSearch extends Component {
         const {socFlowSourceList} = this.state;
         let temp = {...this.state.incident};
         temp.info[event.target.name] = event.target.value;
-
-        if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
-          return;
-        }
 
         if (event.target.name === 'severity') {
             if (event.target.value === 'Emergency') {

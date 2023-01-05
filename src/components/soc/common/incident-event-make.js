@@ -159,6 +159,7 @@ class IncidentEventMake extends Component {
             handleFileChange={this.handleFileChange}
             handleConnectContactChange={this.handleConnectContactChange}
             handleEventsChange={this.handleEventsChange}
+            toggleEstablishDateCheckbox={this.props.toggleEstablishDateCheckbox}
             toggleSteps={this.toggleSteps} />
         </div>
       </div>

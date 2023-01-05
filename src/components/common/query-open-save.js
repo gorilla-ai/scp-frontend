@@ -1305,10 +1305,6 @@ class QueryOpenSave extends Component {
     let tempData = {...this.state.soc};
     tempData[event.target.name] = event.target.value;
 
-    if (event.target.name === 'category' && (event.target.value === 0 || event.target.value === 9)) {
-      return;
-    }
-
     if (event.target.name === 'severity') {
       if (event.target.value === 'Emergency') {
         tempData['impact'] = 4;
