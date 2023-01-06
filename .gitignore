@@ -5,3 +5,4 @@ server.js
 *.log
 src/components/dashboard/world-map.js
 src/components/configuration/topology/hmd-settings.js
+less/small-icon.less
