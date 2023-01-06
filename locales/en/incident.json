@@ -234,7 +234,6 @@
 	"txt-allSearch": "All Search",
 	"txt-flow-msg-na": "No process status to confirm",
 	"category": {
-		"0": "====== NCCST for STIX 1.0 (will be abandoned soon) =====",
 		"1": "Intrusion Attack",
 		"2": "Malware",
 		"3": "Scan Spying",
@@ -243,7 +242,6 @@
 		"6": "Policy Rule",
 		"7": "Investigated",
 		"8": "System Service",
-		"9": "====== New NCCST for STIX 2.0 =====",
 		"10": "Malicious Content",
 		"11": "Malware",
 		"12": "Information Collection",
