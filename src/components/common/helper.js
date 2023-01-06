@@ -618,6 +618,12 @@ const helper = {
     document.addEventListener('scroll', resetTimer, true);
 
     function resetTimer() {
+      const currentUrl = window.location.href;
+
+      if (currentUrl.indexOf('172.18.0.61') > 0 || currentUrl.indexOf('localhost') > 0) {
+        return;
+      }
+
       clearTimeout(global.activityTimer);
       global.activityTimer = setTimeout(logout, 1500000); //25 min.
     }
