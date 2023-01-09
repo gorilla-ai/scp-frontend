@@ -423,7 +423,7 @@ class IncidentUnit extends Component {
       }
     });
   }
-  handleUnitTreeConfirm = () =>{
+  handleUnitTreeConfirm = () => {
     const {treeData} = this.state;
     const {baseUrl} = this.context;
 

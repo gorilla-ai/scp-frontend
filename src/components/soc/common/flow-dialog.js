@@ -15,7 +15,7 @@ let it = null;
 
 class IncidentFlowDialog extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');

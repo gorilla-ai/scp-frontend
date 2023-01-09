@@ -86,7 +86,7 @@ class IncidentLog extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
-  checkAccountType = () =>{
+  checkAccountType = () => {
     const {baseUrl, session} = this.context;
     let requestData = {
       account:session.accountId

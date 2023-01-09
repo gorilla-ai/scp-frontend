@@ -234,7 +234,7 @@ class IncidentDeviceStep extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  checkAccountType = () =>{
+  checkAccountType = () => {
     const {baseUrl, session} = this.context;
     let requestData = {
       account:session.accountId
@@ -1577,7 +1577,7 @@ class IncidentDeviceStep extends Component {
     let temp = {...unit};
     temp['name'] = values;
     
-    _.forEach(departmentList, value =>{
+    _.forEach(departmentList, value => {
       if (values === value.name) {
         temp.id = value.id;
       }

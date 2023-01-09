@@ -20,7 +20,7 @@ let it = null;
 
 class NotifyDialog extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');

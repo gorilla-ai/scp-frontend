@@ -217,7 +217,7 @@ class Incident extends Component {
     if (r != null) return unescape(r[2]);
     return null;
   }
-  checkAccountType = () =>{
+  checkAccountType = () => {
     const {baseUrl, session} = this.context;
     const requestData = {
       account:session.accountId
@@ -2026,7 +2026,7 @@ class Incident extends Component {
     }
 
     if (event.target.name === 'flowTemplateId') {
-      _.forEach(socFlowSourceList , flowVal =>{
+      _.forEach(socFlowSourceList , flowVal => {
         if (flowVal.id === event.target.value) {
           if (flowVal.severity === 'Emergency') {
             temp.info['severity'] = 'Emergency';

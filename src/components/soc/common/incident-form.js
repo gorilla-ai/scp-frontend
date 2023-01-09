@@ -49,7 +49,7 @@ const ALERT_LEVEL_COLORS = {
  */
 class IncidentForm extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');

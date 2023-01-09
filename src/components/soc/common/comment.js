@@ -37,7 +37,7 @@ const INIT = {
 
 class IncidentComment extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
@@ -335,7 +335,7 @@ class IncidentComment extends Component {
             select
             onChange={this.handleChangeMui.bind(this)}>
             {
-              _.map(list,el=>{
+              _.map(list, el => {
                 return <MenuItem value={el.value}>{el.text}</MenuItem>
               })
             }

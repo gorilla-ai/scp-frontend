@@ -71,7 +71,7 @@ class IncidentIsac extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
-  checkAccountType = () =>{
+  checkAccountType = () => {
     const {baseUrl, session} = this.context;
     let requestData = {
       account:session.accountId
@@ -246,15 +246,14 @@ class IncidentIsac extends Component {
                           color='primary' />
                       }
                       label={t('txt-switch')}
-                      disabled={activeContent === 'viewMode'}
-                    />
+                      disabled={activeContent === 'viewMode'} />
                   </div>
                 </div>
 
                 <div className='form-group normal short'>
                   <header>{it('isac.txt-config-setting')}</header>
 
-                  <div className='group'  style={{width: '50%'}}>
+                  <div className='group' style={{width: '50%'}}>
                     <TextField
                       id='url'
                       name='url'
@@ -278,7 +277,7 @@ class IncidentIsac extends Component {
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'}/>
                   </div>
-                  <div className='group'  style={{width: '25%'}}>
+                  <div className='group' style={{width: '25%'}}>
                     <TextField
                       id='key'
                       name='key'

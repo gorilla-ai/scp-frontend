@@ -74,7 +74,7 @@ class IncidentSoc extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
-  checkAccountType = () =>{
+  checkAccountType = () => {
     const {baseUrl, session} = this.context;
     let requestData = {
       account:session.accountId
@@ -270,7 +270,7 @@ class IncidentSoc extends Component {
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
                   </div>
-                  <div className='group'  style={{width: '25%'}}>
+                  <div className='group' style={{width: '25%'}}>
                     <TextField
                       id='ip'
                       name='ip'
@@ -283,7 +283,7 @@ class IncidentSoc extends Component {
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
                   </div>
-                  <div className='group'  style={{width: '25%'}}>
+                  <div className='group' style={{width: '25%'}}>
                     <TextField
                       id='port'
                       name='port'
@@ -297,7 +297,7 @@ class IncidentSoc extends Component {
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
                   </div>
-                  <div className='group'  style={{width: '25%'}}>
+                  <div className='group' style={{width: '25%'}}>
                     <TextField
                       id='account'
                       name='account'
@@ -310,7 +310,7 @@ class IncidentSoc extends Component {
                       onChange={this.handleDataChange}
                       disabled={activeContent === 'viewMode'} />
                   </div>
-                  <div className='group'  style={{width: '25%'}}>
+                  <div className='group' style={{width: '25%'}}>
                     <TextField
                       id='password'
                       name='password'
