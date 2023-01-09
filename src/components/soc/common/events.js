@@ -39,7 +39,7 @@ class Events extends Component {
   handleDataChange = (field, value) => {
     const {onChange, value: curValue} = this.props;
 
-    if (field === 'from'){
+    if (field === 'from') {
       let tmpTime =  curValue.time;
       tmpTime.from = value;
 
@@ -64,7 +64,7 @@ class Events extends Component {
   onUnitChange = (event, values) => {
     const {onChange, value: curValue} = this.props;
 
-    if (values && values.value){
+    if (values && values.value) {
       onChange({...curValue, ['deviceId']: values.value, ['deviceObj']: values});
     } else {
       onChange({...curValue, ['deviceId']: '', ['deviceObj']: {}});
@@ -256,6 +256,6 @@ class Events extends Component {
 }
 
 Events.propTypes = {
-}
+};
 
 export default Events;

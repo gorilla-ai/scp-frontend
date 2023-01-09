@@ -201,7 +201,7 @@ class RelatedList extends Component {
                   )
                 } else if (val === 'severity') {
                   return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-                } else if (val === 'srcIPListString' || val === 'dstIPListString'){
+                } else if (val === 'srcIPListString' || val === 'dstIPListString') {
                   let formattedPatternIP = ''
 
                   if (value.length > 32) {

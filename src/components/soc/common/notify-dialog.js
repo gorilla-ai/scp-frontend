@@ -453,7 +453,6 @@ class NotifyDialog extends Component {
 
 NotifyDialog.contextType = BaseDataContext;
 NotifyDialog.propTypes = {
-
 };
 
 export default NotifyDialog;

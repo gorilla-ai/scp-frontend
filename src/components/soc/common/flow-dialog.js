@@ -30,7 +30,7 @@ class IncidentFlowDialog extends Component {
   }
   componentDidMount() {
   }
-  open(id) {
+  open = (id) => {
     const {baseUrl, session} = this.context;
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -61,10 +61,10 @@ class IncidentFlowDialog extends Component {
         });
       }
     }).catch(err => {
-      helper.showPopupMsg('', t('txt-error'), it('txt-flow-msg-na'))
+      helper.showPopupMsg('', t('txt-error'), it('txt-flow-msg-na'));
     })
   }
-  close() {
+  close = () => {
     this.setState({
       open: false
     });
@@ -104,7 +104,14 @@ class IncidentFlowDialog extends Component {
     }
 
     return (
-      <ModalDialog className='incident-tag-modal' style={{width: '1080px'}} title={it('txt-incident-soc-flow')} draggable={true} global={true} closeAction='cancel' actions={actions}>
+      <ModalDialog
+        className='incident-tag-modal'
+        style={{width: '1080px'}}
+        title={it('txt-incident-soc-flow')}
+        draggable={true}
+        global={true}
+        closeAction='cancel'
+        actions={actions}>
         <div className='data-content' style={{minHeight: '26vh'}}>
           <div className='parent-content'>
             <div className='main-content basic-form' style={{minHeight: '47vh'}}>
@@ -121,7 +128,6 @@ class IncidentFlowDialog extends Component {
 
 IncidentFlowDialog.contextType = BaseDataContext;
 IncidentFlowDialog.propTypes = {
-
 };
 
 export default IncidentFlowDialog;

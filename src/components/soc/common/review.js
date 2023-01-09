@@ -21,190 +21,202 @@ let et = null;
 let it = null;
 
 const INIT = {
-	open: false,
-	incidentId: '',
-	reviewType: 'audit',
-	comments: [],
-	selected: 'none',
-	comment: ''
+  open: false,
+  incidentId: '',
+  reviewType: 'audit',
+  comments: [],
+  selected: 'none',
+  comment: ''
 };
 
 class IncidentReview extends Component {
-	constructor(props) {
-		super(props)
+  constructor(props) {
+    super(props)
 
-		t = global.chewbaccaI18n.getFixedT(null, 'connections');
-  	et = global.chewbaccaI18n.getFixedT(null, 'errors');
-  	it = global.chewbaccaI18n.getFixedT(null, 'incident');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
-  	this.state = _.cloneDeep(INIT)
-	}
-	componentDidMount() {
-	}
-	open(incidentId, reviewType) {
-		const {baseUrl} = this.context
+    this.state = _.cloneDeep(INIT)
+  }
+  componentDidMount() {
+  }
+  open(incidentId, reviewType) {
+    const {baseUrl} = this.context;
 
-		helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-		ah.one({
-            url: `${baseUrl}/api/soc/command/_search`
-        })
-        .then(data => {
-            this.setState({incidentId, reviewType, open: true, comments: data.rt})
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
-	}
-	close() {
-    	this.setState({open: false})
-    }
-    handleChange(field, value) {
-    	this.setState({[field]: value}, () => {
-    		if (field === 'selected') {
-    			if (value === 'none') {
-	    			this.setState({comment: ''})
-	    		}
-	    		else {
-	    			const {comments} = this.state
-	    			const target = _.find(comments, {id: value})
+    ah.one({
+      url: `${baseUrl}/api/soc/command/_search`
+    })
+    .then(data => {
+      this.setState({
+        incidentId,
+        reviewType,
+        open: true,
+        comments: data.rt
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  close = () => {
+    this.setState({
+      open: false
+    });
+  }
+  handleChange = (field, value) => {
+    this.setState({
+      [field]: value
+    }, () => {
+      if (field === 'selected') {
+        if (value === 'none') {
+          this.setState({
+            comment: ''
+          });
+        } else {
+          const {comments} = this.state;
+          const target = _.find(comments, {id: value});
 
-	    			this.setState({comment: target.command})
-	    		}
-    		}
-    	})
-    }
-	handleChangeMui(event) {
-		this.setState({[event.target.name]: event.target.value}, () => {
-			if (event.target.name === 'selected') {
-				if (event.target.value === 'none') {
-					this.setState({comment: ''})
-				}
-				else {
-					const {comments} = this.state
-					const target = _.find(comments, {id: event.target.value})
+          this.setState({
+            comment: target.command
+          });
+        }
+      }
+    })
+  }
+  handleChangeMui = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    }, () => {
+      if (event.target.name === 'selected') {
+        if (event.target.value === 'none') {
+          this.setState({
+            comment: ''
+          });
+        } else {
+          const {comments} = this.state;
+          const target = _.find(comments, {id: event.target.value});
 
-					this.setState({comment: target.command})
-				}
-			}
-		})
-	}
-	handleChangeMuiComment(event){
-		// console.log("event.target.name == " , event.target.name)
-		// console.log("event.target.value == " , event.target.value)
+          this.setState({
+            comment: target.command
+          });
+        }
+      }
+    })
+  }
+  confirm = () => {
+    const {baseUrl, session} = this.context;
+    const {incidentId, comment, reviewType} = this.state;
 
-		// this.setState({[event.target.name]: event.target.value}, () => {
-		// 	if (event.target.name === 'selected') {
-		// 		if (event.target.value === 'none') {
-		// 			this.setState({comment: ''})
-		// 		}
-		// 		else {
-		// 			const {comments} = this.state
-		// 			const target = _.find(comments, {id: event.target.value})
-		//
-		// 			this.setState({comment: target.command})
-		// 		}
-		// 	}
-		// })
-	}
+    if (comment) {
+      const payload = {
+        incidentId,
+        opinion: comment,
+        userId: session.accountId
+      };
 
-    confirm() {
-    	const {baseUrl, session} = this.context
-    	const {incidentId, comment, reviewType} = this.state
+      let url = `${baseUrl}/api/soc/_${reviewType}`;
 
-	    if (comment){
-		    const payload = {
-			    incidentId,
-			    opinion: comment,
-			    userId: session.accountId
-		    }
+      if (reviewType === 'draw') {
+        url =  `${baseUrl}/api/soc/analyzer/_draw`;
+      }
 
-        let url = `${baseUrl}/api/soc/_${reviewType}`
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session    
 
-        if (reviewType === 'draw') {
-            // url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
-          url =  `${baseUrl}/api/soc/analyzer/_draw`
+      ah.one({
+        url: url,
+        data: JSON.stringify(payload),
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json'
+      }).then(data => {
+        helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
+
+        if (this.props.loadTab === 'manager') {
+          this.props.onLoad(incidentId, 'view');
+        } else {
+          this.props.onLoad('button', 'unhandled');
         }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session    
-
-		    ah.one({
-			    url: url,
-			    data: JSON.stringify(payload),
-			    type: 'POST',
-			    contentType: 'application/json',
-			    dataType: 'json'
-		    }).then(data => {
-			    helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
-
-			    if (this.props.loadTab === 'manager'){
-				    this.props.onLoad(incidentId, 'view')
-			    }else{
-				    this.props.onLoad('button', 'unhandled')
-			    }
-
-			    this.close()
-
-		    })
-			    .catch(err => {
-				    helper.showPopupMsg('', t('txt-error'), err.message)
-			    })
-	    }else{
-		    helper.showPopupMsg( it(`txt-required`),t(`txt-fail`));
-	    }
-
-
+        this.close();
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    } else {
+      helper.showPopupMsg( it(`txt-required`),t(`txt-fail`));
     }
-    render() {
-    	const {open, reviewType, comments, selected, comment} = this.state
-    	const actions ={
-    		cancel: {text: t('txt-cancel'), className:'standard', handler: this.close.bind(this)},
-            confirm: {text: it(`txt-${reviewType}`), handler: this.confirm.bind(this)}
-        }
+  }
+  render() {
+    const {open, reviewType, comments, selected, comment} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close},
+      confirm: {text: it(`txt-${reviewType}`), handler: this.confirm}
+    };
 
-        if (!open) {
-            return null
-        }
-
-        let list = [{text: it('txt-comment-none'), value: 'none'}]
-        _.forEach(comments, el => {
-        	list.push({text: el.title, value: el.id})
-        })
-        
-
-    	return <ModalDialog className='incident-review' title={it(`txt-${reviewType}`)} draggable={true} global={true} closeAction='cancel' actions={actions}>
-    		<div className='c-form content'>
-    			<div>
-    				<label>{it('txt-comment-example')}</label>
-    				<TextField
-					    id='selected'
-					    name='selected'
-					    variant='outlined'
-					    fullWidth={true}
-					    size='small'
-					    required
-					    value={selected}
-					    select
-					    onChange={this.handleChangeMui.bind(this)}>
-					    {
-					    	_.map(list,el=>{
-					    		return <MenuItem value={el.value}>{el.text}</MenuItem>
-						    })
-					    }
-				    </TextField>
-    			</div>
-    			<div>
-    				<label>{it('txt-comment')}</label>
-				    <Textarea className='textarea-autosize' rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />
-    			</div>
-    		</div>
-    	</ModalDialog>
+    if (!open) {
+      return null;
     }
+
+    let list = [{
+      text: it('txt-comment-none'),
+      value: 'none'
+    }];
+
+    _.forEach(comments, el => {
+      list.push({
+        text: el.title,
+        value: el.id
+      });
+    });
+
+    return (
+      <ModalDialog
+        className='incident-review'
+        title={it(`txt-${reviewType}`)}
+        draggable={true}
+        global={true}
+        closeAction='cancel'
+        actions={actions}>
+        <div className='c-form content'>
+          <div>
+            <label>{it('txt-comment-example')}</label>
+            <TextField
+              id='selected'
+              name='selected'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required
+              value={selected}
+              select
+              onChange={this.handleChangeMui}>
+              {
+                _.map(list, el => {
+                  return <MenuItem value={el.value}>{el.text}</MenuItem>
+                })
+              }
+            </TextField>
+          </div>
+          <div>
+            <label>{it('txt-comment')}</label>
+            <Textarea
+              className='textarea-autosize'
+              rows={6}
+              required={true}
+              value={comment}
+              onChange={this.handleChange.bind(this, 'comment')} />
+          </div>
+        </div>
+      </ModalDialog>
+    )
+  }
 }
 
-
-IncidentReview.contextType = BaseDataContext
+IncidentReview.contextType = BaseDataContext;
 IncidentReview.propTypes = {
-}
+};
 
-export default IncidentReview
+export default IncidentReview;

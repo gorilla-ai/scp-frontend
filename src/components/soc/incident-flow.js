@@ -344,7 +344,7 @@ class IncidentFlow extends Component {
         tempData.info['impact'] = 3;
       }
 
-      if (allValue.flowId){
+      if (allValue.flowId) {
         const [flowItem] = _.filter(this.state.flowSourceList, {entityId: allValue.flowId});
 
         this.setState({
@@ -357,7 +357,7 @@ class IncidentFlow extends Component {
       showPage = 'view';
       tempData = _.cloneDeep(originalData);
 
-      if (tempData.info.flowId){
+      if (tempData.info.flowId) {
         const [flowItem] = _.filter(this.state.flowSourceList, {entityId: tempData.info.flowId});
 
         this.setState({
@@ -399,7 +399,7 @@ class IncidentFlow extends Component {
     }
 
     if (event.target.name === 'flowId') {
-      if (event.target.value){
+      if (event.target.value) {
         const [flowItem] = _.filter(flowSourceList, {entityId: event.target.value});
 
         this.setState({
@@ -433,7 +433,7 @@ class IncidentFlow extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data){
+      if (data) {
         let showPage = '';
 
         if (activeContent === 'add') {
