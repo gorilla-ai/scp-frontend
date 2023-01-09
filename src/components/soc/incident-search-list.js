@@ -391,98 +391,6 @@ class IncidentSearch extends Component {
       incident: tempIncident
     });
   }
-  /* ------------------ View ------------------- */
-  render() {
-    const {session} = this.context;
-    const {
-      search,
-      activeContent,
-      baseUrl,
-      contextRoot,
-      showFilter,
-      showChart,
-      incident,
-      contextAnchor,
-      currentData,
-      accountType
-    } = this.state;
-    const tableOptions = {
-      onChangePage: (currentPage) => {
-        this.handlePaginationChange('currentPage', currentPage);
-      },
-      onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('pageSize', numberOfRows);
-      },
-      onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort(changedColumn, direction === 'desc');
-      }
-    };
-    let superUserCheck = false;
-
-    return (
-      <div>
-        <IncidentTag ref={ref => {
-          this.incidentTag = ref
-        }} onLoad={this.loadData.bind(this)} />
-
-        <IncidentFlowDialog ref={ref => {
-          this.incidentFlowDialog = ref
-        }} />
-
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
-          {(currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) &&
-            <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
-          }
-        </Menu>
-
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
-          </div>
-          <SearchOptions
-            datetime={search.datetime}
-            enableTime={true}
-            handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.loadData} />
-        </div>
-
-        <div className='data-content'>
-          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
-
-          <div className='parent-content'>
-            {this.renderFilter()}
-
-            {activeContent === 'tableList' &&
-              <div className='main-content'>
-                <header className='main-header'>{it('txt-incident')}</header>
-                <div className='content-header-btns with-menu '>
-                  {activeContent === 'viewIncident' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-                  }
-
-                  {_.size(incident.dataContent) > 0 &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
-                  }
-                </div>
-                <MuiTableContentWithoutLoading
-                  data={incident}
-                  tableOptions={tableOptions} />
-              </div>
-            }
-
-            {(activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
-              this.displayEditContent()
-            }
-          </div>
-        </div>
-      </div>
-    )
-  }
   /**
    * Display edit Incident content
    * @method
@@ -1728,7 +1636,7 @@ class IncidentSearch extends Component {
    */
   auditIncident = (id) => {
     const {baseUrl} = this.context;
-    let tmp = {
+    const tmp = {
       id
     };
 
@@ -1755,7 +1663,7 @@ class IncidentSearch extends Component {
    */
   sendIncident = (id) => {
     const {baseUrl} = this.context;
-    let tmp = {
+    const tmp = {
       id
     };
 
@@ -1925,681 +1833,766 @@ class IncidentSearch extends Component {
       incident: temp
     });
   }
-    handleDataChangeMui = (event) => {
-        const {socFlowSourceList} = this.state;
-        let temp = {...this.state.incident};
-        temp.info[event.target.name] = event.target.value;
+  handleDataChangeMui = (event) => {
+    const {socFlowSourceList} = this.state;
+    let temp = {...this.state.incident};
+    temp.info[event.target.name] = event.target.value;
 
-        if (event.target.name === 'severity') {
-            if (event.target.value === 'Emergency') {
-                temp.info['impactAssessment'] = 4
-                temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            } else if (event.target.value === 'Alert') {
-                temp.info['impactAssessment'] = 3
-                temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            } else if (event.target.value === 'Notice') {
-                temp.info['impactAssessment'] = 1
-                temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            } else if (event.target.value === 'Warning') {
-                temp.info['impactAssessment'] = 2
-                temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            } else if (event.target.value === 'Critical') {
-                temp.info['impactAssessment'] = 3
-                temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-            }
-        }
-
-        if (event.target.name === 'flowTemplateId') {
-            _.forEach(socFlowSourceList, flowVal => {
-                if (flowVal.id === event.target.value) {
-                    if (flowVal.severity === 'Emergency') {
-                        temp.info['severity'] = 'Emergency'
-                        temp.info['impactAssessment'] = 4
-                        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    } else if (flowVal.severity === 'Alert') {
-                        temp.info['severity'] = 'Alert'
-                        temp.info['impactAssessment'] = 3
-                        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    } else if (flowVal.severity === 'Notice') {
-                        temp.info['severity'] = 'Notice'
-                        temp.info['impactAssessment'] = 1
-                        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    } else if (flowVal.severity === 'Warning') {
-                        temp.info['severity'] = 'Warning'
-                        temp.info['impactAssessment'] = 2
-                        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    } else if (flowVal.severity === 'Critical') {
-                        temp.info['severity'] = 'Critical'
-                        temp.info['impactAssessment'] = 3
-                        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours')
-                    }
-                }
-            })
-        }
-
-        if (event.target.name === 'impactAssessment') {
-            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours')
-        }
-        this.setState({
-            incident: temp
-        })
+    if (event.target.name === 'severity') {
+      if (event.target.value === 'Emergency') {
+        temp.info['impactAssessment'] = 4;
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+      } else if (event.target.value === 'Alert') {
+        temp.info['impactAssessment'] = 3;
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+      } else if (event.target.value === 'Notice') {
+        temp.info['impactAssessment'] = 1;
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+      } else if (event.target.value === 'Warning') {
+        temp.info['impactAssessment'] = 2;
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+      } else if (event.target.value === 'Critical') {
+        temp.info['impactAssessment'] = 3;
+        temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+      }
     }
 
-    getOptions = () => {
-        const {baseUrl, contextRoot, session} = this.context;
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_search`,
-            data: JSON.stringify({}),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        let ipContent = '';
-
-                        if (val.eventList) {
-                            val.eventList = _.map(val.eventList, el => {
-                                if (el.eventConnectionList) {
-                                    el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
-                                        ipContent += '(' + it('txt-srcIp') + ': ' + ecl.srcIp + ')'
-                                    })
-                                }
-                            })
-                        }
-
-                        return {
-                            value: val.id,
-                            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
-                        }
-                    });
-
-                    this.setState({relatedListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/device/_search`,
-            data: JSON.stringify({use: '1'}),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.deviceName}
-                    });
-
-                    this.setState({deviceListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/device/_search`,
-            data: JSON.stringify({use: '2'}),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.deviceName}
-                    });
-
-                    this.setState({showDeviceListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
-    };
-
-    /**
-     * Handle XML download
-     * @param {Example-Type} option
-     */
-    getIncidentSTIXFileExample = (option) => {
-        const {baseUrl, contextRoot} = this.context;
-        const url = `${baseUrl}${contextRoot}/api/soc/incident/example/_export`;
-        let requestData = {
-            example: option
-        };
-        downloadWithForm(url, {payload: JSON.stringify(requestData)});
-    };
-
-    /**
-     * Incident-ID
-     * @param {Incident-ID} incidentId
-     */
-    getIncidentSTIXFile = (incidentId) => {
-        this.handleCloseMenu()
-        const {baseUrl, contextRoot} = this.context;
-        const url = `${baseUrl}${contextRoot}/api/soc/_export`;
-        let requestData = {
-            id: incidentId
-        };
-
-        downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    if (event.target.name === 'flowTemplateId') {
+      _.forEach(socFlowSourceList, flowVal => {
+        if (flowVal.id === event.target.value) {
+          if (flowVal.severity === 'Emergency') {
+            temp.info['severity'] = 'Emergency';
+            temp.info['impactAssessment'] = 4;
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Alert') {
+            temp.info['severity'] = 'Alert';
+            temp.info['impactAssessment'] = 3;
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Notice') {
+            temp.info['severity'] = 'Notice';
+            temp.info['impactAssessment'] = 1;
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Warning') {
+            temp.info['severity'] = 'Warning';
+            temp.info['impactAssessment'] = 2;
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Critical') {
+            temp.info['severity'] = 'Critical';
+            temp.info['impactAssessment'] = 3;
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * temp.info['impactAssessment']), 'hours');
+          }
+        }
+      })
     }
 
-    /**
-     * Check table sort
-     * @method
-     * @param {string} field - table field name
-     * @returns true for sortable or null
-     */
-    checkSortable = (field) => {
-        const unSortableFields = ['description', '_menu', 'action', 'tag'];
+    if (event.target.name === 'impactAssessment') {
+      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours');
+    }
+    this.setState({
+      incident: temp
+    });
+  }
+  getOptions = () => {
+    const {baseUrl, contextRoot, session} = this.context;
 
-        if (_.includes(unSortableFields, field)) {
-            return null;
-        } else {
-            return true;
-        }
-    };
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    /**
-     * Handle table sort
-     * @method
-     * @param {object} sort - sort data object
-     */
-    handleTableSort = (sort) => {
-        let tmpIncident = {...this.state.incident};
-        tmpIncident.sort.field = sort.field;
-        tmpIncident.sort.desc = sort.desc;
+    ah.one({
+      url: `${baseUrl}/api/soc/_search`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          let ipContent = '';
 
-        this.setState({
-            incident: tmpIncident
-        }, () => {
-            this.loadData()
+          if (val.eventList) {
+            val.eventList = _.map(val.eventList, el => {
+              if (el.eventConnectionList) {
+                el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
+                  ipContent += '(' + it('txt-srcIp') + ': ' + ecl.srcIp + ')';
+                })
+              }
+            })
+          }
 
+          return {
+            value: val.id,
+            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
+          };
         });
+
+        this.setState({
+          relatedListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({use: '1'}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return {
+            value: val.id,
+            text: val.deviceName
+          };
+        });
+
+        this.setState({
+          deviceListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({use: '2'}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return {
+            value: val.id,
+            text: val.deviceName
+          };
+        });
+
+        this.setState({
+          showDeviceListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle XML download
+   * @param {Example-Type} option
+   */
+  getIncidentSTIXFileExample = (option) => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/soc/incident/example/_export`;
+    const requestData = {
+      example: option
     };
 
-    openIncidentComment() {
-        this.incidentComment.open()
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
+   * Incident-ID
+   * @param {Incident-ID} incidentId
+   */
+  getIncidentSTIXFile = (incidentId) => {
+    this.handleCloseMenu()
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/soc/_export`;
+    const requestData = {
+      id: incidentId
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', '_menu', 'action', 'tag'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
     }
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   */
+  handleTableSort = (sort) => {
+    let tmpIncident = {...this.state.incident};
+    tmpIncident.sort.field = sort.field;
+    tmpIncident.sort.desc = sort.desc;
 
-    openIncidentTag(id) {
-        this.handleCloseMenu()
-        this.incidentTag.open(id)
+    this.setState({
+      incident: tmpIncident
+    }, () => {
+      this.loadData();
+    });
+  }
+  openIncidentComment() {
+    this.incidentComment.open();
+  }
+  openIncidentTag(id) {
+    this.handleCloseMenu();
+    this.incidentTag.open(id);
+  }
+  openIncidentFlow(id) {
+    this.handleCloseMenu();
+    this.incidentFlowDialog.open(id);
+  }
+  openIncidentReview(incidentId, reviewType) {
+    this.incidentReview.open(incidentId, reviewType);
+  }
+  uploadAttachment() {
+    const {baseUrl} = this.context;
+    const {incident, attach} = this.state;
+    let formData = new FormData();
+    formData.append('id', incident.info.id);
+    formData.append('file', attach);
+    formData.append('fileMemo', incident.info.fileMemo || '');
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/attachment/_upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      this.setState({
+        attach: null
+      }, () => {
+        this.getIncident(incident.info.id, 'view');
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  uploadAttachmentByModal(file, fileMemo) {
+    const {baseUrl} = this.context;
+    const {incident} = this.state;
+
+    if (file) {
+      let formData = new FormData();
+      formData.append('id', incident.info.id);
+      formData.append('file', file);
+      formData.append('fileMemo', fileMemo);
+
+      helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+      ah.one({
+        url: `${baseUrl}/api/soc/attachment/_upload`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
+      .then(data => {
+        this.refreshIncidentAttach(incident.info.id);
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
+  }
+  downloadAttachment(allValue) {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`;
 
-    openIncidentFlow(id) {
-        this.handleCloseMenu()
-        this.incidentFlowDialog.open(id)
-    }
+    downloadLink(url);
+  }
+  deleteAttachment(allValue) {
+    const {baseUrl} = this.context;
+    let {incident} = this.state;
 
-    openIncidentReview(incidentId, reviewType) {
-        this.incidentReview.open(incidentId, reviewType)
-    }
+    PopupDialog.prompt({
+      title: t('txt-delete'),
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}: {allValue.fileName}?</span>
+        </div>
+      ),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    uploadAttachment() {
-        const {baseUrl} = this.context
-        let {incident, attach} = this.state
-
-        let formData = new FormData()
-        formData.append('id', incident.info.id)
-        formData.append('file', attach)
-        formData.append('fileMemo', incident.info.fileMemo || '')
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/attachment/_upload`,
-            data: formData,
-            type: 'POST',
-            processData: false,
-            contentType: false
-        })
-            .then(data => {
-                this.setState({attach: null}, () => {
-                    this.getIncident(incident.info.id, 'view')
-                })
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    }
-
-    uploadAttachmentByModal(file, fileMemo) {
-        const {baseUrl} = this.context
-        let {incident} = this.state
-
-        if (file) {
-            let formData = new FormData()
-            formData.append('id', incident.info.id)
-            formData.append('file', file)
-            formData.append('fileMemo', fileMemo)
-
-            helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-            ah.one({
-                url: `${baseUrl}/api/soc/attachment/_upload`,
-                data: formData,
-                type: 'POST',
-                processData: false,
-                contentType: false
-            })
-                .then(data => {
-                    this.refreshIncidentAttach(incident.info.id)
-                })
-                .catch(err => {
-                    helper.showPopupMsg('', t('txt-error'), err.message)
-                })
-        }
-    }
-
-    downloadAttachment(allValue) {
-        const {baseUrl, contextRoot} = this.context
-        const {incident} = this.state
-        const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`
-
-        downloadLink(url)
-    }
-
-    deleteAttachment(allValue) {
-        const {baseUrl} = this.context
-        let {incident} = this.state
-
-        PopupDialog.prompt({
-            title: t('txt-delete'),
-            confirmText: t('txt-delete'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{t('txt-delete-msg')}: {allValue.fileName}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-                    ah.one({
-                        url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
-                        type: 'DELETE'
-                    })
-                        .then(data => {
-                            if (data.ret === 0) {
-                                // this.getIncident(incident.info.id, 'view')
-                                this.refreshIncidentAttach(incident.info.id)
-                            }
-                        })
-                        .catch(err => {
-                            helper.showPopupMsg('', t('txt-error'), err.message)
-                        })
-                }
+          ah.one({
+            url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
+            type: 'DELETE'
+          })
+          .then(data => {
+            if (data.ret === 0) {
+              this.refreshIncidentAttach(incident.info.id);
             }
+          })
+          .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+          })
+        }
+      }
+    })
+  }
+  toPdfPayload(incident) {
+    const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
+    let payload = {};
+
+    payload.id = incident.id;
+    payload.header = `${it('txt-incident-id')}${incident.id}`;
+    // basic
+    payload.basic = {};
+    payload.basic.cols = 4;
+    payload.basic.header = `${t('edge-management.txt-basicInfo')}    ${f('incidentFields.updateDttm')}  ${helper.getFormattedDate(incident.updateDttm, 'local')}`;
+    payload.basic.table = [];
+    payload.basic.table.push({text: f('incidentFields.title'), colSpan: 2});
+    payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2});
+    payload.basic.table.push({text: incident.title, colSpan: 2});
+    payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2});
+    payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2});
+    payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1});
+    payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1});
+    payload.basic.table.push({text: incident.reporter, colSpan: 2});
+    payload.basic.table.push({
+      text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`,
+      colSpan: 1
+    });
+    payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1});
+
+    if (incidentType === 'ttps') {
+      payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4});
+      payload.basic.table.push({text: incident.description, colSpan: 4});
+
+      if (_.size(incident.relatedList) > 0) {
+        let value = [];
+
+        _.forEach(incident.relatedList, el => {
+          const target = _.find(relatedListOptions, {value: el.value});
+          value.push(target.text);
         })
+
+        payload.basic.table.push({text: f('incidentFields.relatedList'), colSpan: 4});
+        payload.basic.table.push({text: value.toString(), colSpan: 4});
+      }
     }
 
+    // history
+    payload.history = {};
+    payload.history.cols = 4;
+    payload.history.header = it('txt-flowTitle');
+    payload.history.table = [];
+    payload.history.table.push({text: f(`incidentFields.status`), colSpan: 1});
+    payload.history.table.push({text: f(`incidentFields.reviewDttm`), colSpan: 1});
+    payload.history.table.push({text: f(`incidentFields.reviewerName`), colSpan: 1});
+    payload.history.table.push({text: f(`incidentFields.suggestion`), colSpan: 1});
 
-    toPdfPayload(incident) {
-        const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state
-        let payload = {}
+    _.forEach(incident.historyList, el => {
+      payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1});
+      payload.history.table.push({text: moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1});
+      payload.history.table.push({text: el.reviewerName, colSpan: 1});
+      payload.history.table.push({text: el.suggestion, colSpan: 1});
+    })
 
-        payload.id = incident.id
-        payload.header = `${it('txt-incident-id')}${incident.id}`
-        // basic
-        payload.basic = {}
-        payload.basic.cols = 4
-        payload.basic.header = `${t('edge-management.txt-basicInfo')}    ${f('incidentFields.updateDttm')}  ${helper.getFormattedDate(incident.updateDttm, 'local')}`
-        payload.basic.table = []
-        payload.basic.table.push({text: f('incidentFields.title'), colSpan: 2})
-        payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2})
-        payload.basic.table.push({text: incident.title, colSpan: 2})
-        payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2})
-        payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2})
-        payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1})
-        payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1})
-        payload.basic.table.push({text: incident.reporter, colSpan: 2})
-        payload.basic.table.push({
-            text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`,
-            colSpan: 1
-        })
-        payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
+    // attach
+    if (_.size(incident.fileList) > 0) {
+      payload.attachment = {};
+      payload.attachment.cols = 4;
+      payload.attachment.header = it('txt-attachedFile');
+      payload.attachment.table = [];
+      payload.attachment.table.push({text: f(`incidentFields.fileName`), colSpan: 1});
+      payload.attachment.table.push({text: f(`incidentFields.fileSize`), colSpan: 1});
+      payload.attachment.table.push({text: f(`incidentFields.fileDttm`), colSpan: 1});
+      payload.attachment.table.push({text: f(`incidentFields.fileMemo`), colSpan: 1});
 
-        if (incidentType === 'ttps') {
-            payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
-            payload.basic.table.push({text: incident.description, colSpan: 4})
-
-            if (_.size(incident.relatedList) > 0) {
-                let value = []
-                _.forEach(incident.relatedList, el => {
-                    const target = _.find(relatedListOptions, {value: el.value})
-                    value.push(target.text)
-                })
-
-                payload.basic.table.push({text: f('incidentFields.relatedList'), colSpan: 4})
-                payload.basic.table.push({text: value.toString(), colSpan: 4})
-            }
-        }
-
-        // history
-        payload.history = {}
-        payload.history.cols = 4
-        payload.history.header = it('txt-flowTitle')
-        payload.history.table = []
-        payload.history.table.push({text: f(`incidentFields.status`), colSpan: 1})
-        payload.history.table.push({text: f(`incidentFields.reviewDttm`), colSpan: 1})
-        payload.history.table.push({text: f(`incidentFields.reviewerName`), colSpan: 1})
-        payload.history.table.push({text: f(`incidentFields.suggestion`), colSpan: 1})
-
-        _.forEach(incident.historyList, el => {
-            payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1})
-            payload.history.table.push({text: moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
-            payload.history.table.push({text: el.reviewerName, colSpan: 1})
-            payload.history.table.push({text: el.suggestion, colSpan: 1})
-        })
-
-
-        // attach
-        if (_.size(incident.fileList) > 0) {
-            payload.attachment = {}
-            payload.attachment.cols = 4
-            payload.attachment.header = it('txt-attachedFile')
-            payload.attachment.table = []
-            payload.attachment.table.push({text: f(`incidentFields.fileName`), colSpan: 1})
-            payload.attachment.table.push({text: f(`incidentFields.fileSize`), colSpan: 1})
-            payload.attachment.table.push({text: f(`incidentFields.fileDttm`), colSpan: 1})
-            payload.attachment.table.push({text: f(`incidentFields.fileMemo`), colSpan: 1})
-
-            _.forEach(incident.fileList, file => {
-                payload.attachment.table.push({text: file.fileName, colSpan: 1})
-                payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
-                payload.attachment.table.push({
-                    text: moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'),
-                    colSpan: 1
-                })
-                const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
-                payload.attachment.table.push({text: target.fileMemo, colSpan: 1})
-            })
-        }
-
-        //  Contact list
-        payload.notifyList = {}
-        payload.notifyList.cols = 8
-        payload.notifyList.header = it('txt-notifyUnit')
-        payload.notifyList.table = []
-
-        _.forEach(incident.notifyList, notify => {
-            payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2})
-            payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2})
-            payload.notifyList.table.push({text: f('incidentFields.phone'), colSpan: 2})
-            payload.notifyList.table.push({text: f('incidentFields.email'), colSpan: 2})
-            payload.notifyList.table.push({text: notify.title, colSpan: 2})
-            payload.notifyList.table.push({text: notify.name, colSpan: 2})
-            payload.notifyList.table.push({text: notify.phone, colSpan: 2})
-            payload.notifyList.table.push({text: notify.email, colSpan: 2})
-        })
-
-
-        // accident
-        payload.accident = {}
-        payload.accident.cols = 4
-        payload.accident.header = it('txt-accidentTitle')
-        payload.accident.table = []
-        payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
-        payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
-
-        if (incident.accidentCatogory) {
-            payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
-        } else {
-            payload.accident.table.push({text: ' ', colSpan: 2})
-        }
-
-        if (!incident.accidentCatogory) {
-            payload.accident.table.push({text: ' ', colSpan: 2})
-        } else if (incident.accidentCatogory === '5') {
-            payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2})
-        } else {
-            payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2})
-        }
-
-        payload.accident.table.push({text: it('txt-accidentDescr'), colSpan: 4})
-        payload.accident.table.push({text: incident.accidentDescription, colSpan: 4})
-        payload.accident.table.push({text: it('txt-reasonDescr'), colSpan: 4})
-        payload.accident.table.push({text: incident.accidentReason, colSpan: 4})
-        payload.accident.table.push({text: it('txt-accidentInvestigation'), colSpan: 4})
-        payload.accident.table.push({text: incident.accidentInvestigation, colSpan: 4})
-
-
-        //  event list
-        payload.eventList = {}
-        payload.eventList.cols = 6
-        payload.eventList.header = it('txt-incident-events')
-        payload.eventList.table = []
-
-        _.forEach(incident.eventList, event => {
-            payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3})
-            payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
-            payload.eventList.table.push({text: event.description, colSpan: 3})
-            const target = _.find(showDeviceListOptions, {value: event.deviceId})
-
-            if (target) {
-                payload.eventList.table.push({text: target.text, colSpan: 3})
-            } else {
-                payload.eventList.table.push({text: '', colSpan: 3})
-            }
-
-            payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
-            payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
-            payload.eventList.table.push({
-                text: moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
-                colSpan: 2
-            })
-            payload.eventList.table.push({
-                text: moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
-                colSpan: 2
-            })
-            payload.eventList.table.push({text: event.frequency, colSpan: 2})
-
-            _.forEach(event.eventConnectionList, conn => {
-                payload.eventList.table.push({text: f('incidentFields.srcIp'), colSpan: 2})
-                payload.eventList.table.push({text: f('incidentFields.srcPort'), colSpan: 2})
-                payload.eventList.table.push({text: f('incidentFields.srcHostname'), colSpan: 2})
-                payload.eventList.table.push({text: conn.srcIp, colSpan: 2})
-                payload.eventList.table.push({text: conn.srcPort, colSpan: 2})
-                payload.eventList.table.push({text: conn.srcHostname, colSpan: 2})
-                payload.eventList.table.push({text: f('incidentFields.dstIp'), colSpan: 2})
-                payload.eventList.table.push({text: f('incidentFields.dstPort'), colSpan: 2})
-                payload.eventList.table.push({text: f('incidentFields.dstHostname'), colSpan: 2})
-                payload.eventList.table.push({text: conn.dstIp, colSpan: 2})
-                payload.eventList.table.push({text: conn.dstPort, colSpan: 2})
-                payload.eventList.table.push({text: conn.dstHostname, colSpan: 2})
-            })
-        })
-
-
-        // ttps
-        if (_.size(incident.ttpList) > 0) {
-            payload.ttps = {}
-            payload.ttps.cols = 4
-            payload.ttps.header = it('txt-incident-ttps')
-            payload.ttps.table = []
-        }
-
-        _.forEach(incident.ttpList, ttp => {
-            payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2})
-            payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2})
-            payload.ttps.table.push({text: ttp.title, colSpan: 2})
-            payload.ttps.table.push({
-                text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA',
-                colSpan: 2
-            })
-
-            if (_.size(ttp.etsList) > 0) {
-                payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4})
-                _.forEach(ttp.etsList, ets => {
-                    payload.ttps.table.push({text: f('incidentFields.cveId'), colSpan: 2})
-                    payload.ttps.table.push({text: f('incidentFields.etsDescription'), colSpan: 2})
-                    payload.ttps.table.push({text: ets.cveId || '', colSpan: 2})
-                    payload.ttps.table.push({text: ets.description || '', colSpan: 2})
-                })
-            }
-
-            if (_.size(ttp.obsFileList) > 0) {
-                payload.ttps.table.push({text: it('txt-ttp-obs-file'), colSpan: 4})
-                _.forEach(ttp.obsFileList, obsFile => {
-                    payload.ttps.table.push({text: f('incidentFields.fileName'), colSpan: 2})
-                    payload.ttps.table.push({text: f('incidentFields.fileExtension'), colSpan: 2})
-                    payload.ttps.table.push({text: obsFile.fileName, colSpan: 2})
-                    payload.ttps.table.push({text: obsFile.fileExtension, colSpan: 2})
-                    payload.ttps.table.push({text: 'MD5', colSpan: 2})
-                    payload.ttps.table.push({text: 'SHA1', colSpan: 2})
-                    payload.ttps.table.push({text: obsFile.md5, colSpan: 2})
-                    payload.ttps.table.push({text: obsFile.sha1, colSpan: 2})
-                    payload.ttps.table.push({text: 'SHA256', colSpan: 4})
-                    payload.ttps.table.push({text: obsFile.sha256, colSpan: 4})
-                })
-            }
-
-            if (_.size(ttp.obsUriList) > 0) {
-                payload.ttps.table.push({text: it('txt-ttp-obs-uri'), colSpan: 4})
-                _.forEach(ttp.obsUriList, obsUri => {
-                    payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2})
-                    payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2})
-                    payload.ttps.table.push({
-                        text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'),
-                        colSpan: 2
-                    })
-                    payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2})
-                })
-            }
-
-            if (_.size(ttp.obsSocketList) > 0) {
-                payload.ttps.table.push({text: it('txt-ttp-obs-socket'), colSpan: 4})
-                _.forEach(ttp.obsSocketList, obsSocket => {
-                    payload.ttps.table.push({text: 'IP', colSpan: 2})
-                    payload.ttps.table.push({text: 'Port', colSpan: 2})
-                    payload.ttps.table.push({text: obsSocket.ip, colSpan: 2})
-                    payload.ttps.table.push({text: obsSocket.port, colSpan: 2})
-                })
-            }
-        })
-
-        return payload
+      _.forEach(incident.fileList, file => {
+        payload.attachment.table.push({text: file.fileName, colSpan: 1});
+        payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1});
+        payload.attachment.table.push({
+          text: moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'),
+          colSpan: 1
+        });
+        const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName});
+        payload.attachment.table.push({text: target.fileMemo, colSpan: 1});
+      })
     }
 
-    exportPdf() {
-        const {baseUrl, contextRoot} = this.context
-        const {incident} = this.state
-        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
+    //  Contact list
+    payload.notifyList = {};
+    payload.notifyList.cols = 8;
+    payload.notifyList.header = it('txt-notifyUnit');
+    payload.notifyList.table = [];
+
+    _.forEach(incident.notifyList, notify => {
+      payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2});
+      payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2});
+      payload.notifyList.table.push({text: f('incidentFields.phone'), colSpan: 2});
+      payload.notifyList.table.push({text: f('incidentFields.email'), colSpan: 2});
+      payload.notifyList.table.push({text: notify.title, colSpan: 2});
+      payload.notifyList.table.push({text: notify.name, colSpan: 2});
+      payload.notifyList.table.push({text: notify.phone, colSpan: 2});
+      payload.notifyList.table.push({text: notify.email, colSpan: 2});
+    })
+
+    // accident
+    payload.accident = {};
+    payload.accident.cols = 4;
+    payload.accident.header = it('txt-accidentTitle');
+    payload.accident.table = [];
+    payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2});
+    payload.accident.table.push({text: it('txt-reason'), colSpan: 2});
+
+    if (incident.accidentCatogory) {
+      payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2});
+    } else {
+      payload.accident.table.push({text: ' ', colSpan: 2});
     }
 
-    exportAll() {
-        const {baseUrl, contextRoot, session} = this.context
-        let {search, incident, loadListType, accountRoleType} = this.state
+    if (!incident.accidentCatogory) {
+      payload.accident.table.push({text: ' ', colSpan: 2});
+    } else if (incident.accidentCatogory === '5') {
+      payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2});
+    } else {
+      payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2});
+    }
 
-        if (search.datetime) {
-            search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-        }
+    payload.accident.table.push({text: it('txt-accidentDescr'), colSpan: 4});
+    payload.accident.table.push({text: incident.accidentDescription, colSpan: 4});
+    payload.accident.table.push({text: it('txt-reasonDescr'), colSpan: 4});
+    payload.accident.table.push({text: incident.accidentReason, colSpan: 4});
+    payload.accident.table.push({text: it('txt-accidentInvestigation'), colSpan: 4});
+    payload.accident.table.push({text: incident.accidentInvestigation, colSpan: 4});
 
-        search.isExecutor = _.includes(session.roles, 'SOC Executor')
-        search.accountRoleType = this.state.accountRoleType
-        search.account = session.accountId
+    //  event list
+    payload.eventList = {};
+    payload.eventList.cols = 6;
+    payload.eventList.header = it('txt-incident-events');
+    payload.eventList.table = [];
 
+    _.forEach(incident.eventList, event => {
+      payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3});
+      payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3});
+      payload.eventList.table.push({text: event.description, colSpan: 3});
+      const target = _.find(showDeviceListOptions, {value: event.deviceId});
 
-        let payload = {
-            subStatus: 0,
-            keyword: '',
-            category: 0,
-            isExpired: 2,
-            accountRoleType,
-            isExecutor: _.includes(session.roles, 'SOC Executor'),
-        }
+      if (target) {
+        payload.eventList.table.push({text: target.text, colSpan: 3});
+      } else {
+        payload.eventList.table.push({text: '', colSpan: 3});
+      }
 
+      payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4});
+      payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2});
+      payload.eventList.table.push({
+        text: moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
+        colSpan: 2
+      });
+      payload.eventList.table.push({
+        text: moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'),
+        colSpan: 2
+      });
+      payload.eventList.table.push({text: event.frequency, colSpan: 2});
 
-        if (loadListType === 0) {
-            payload.status = 0
-            payload.isExpired = 1
-        } else if (loadListType === 1) {
-            if (payload.accountRoleType === constants.soc.SOC_Executor) {
-                payload.status = 2
-                payload.subStatus = 6
-            } else if (payload.accountRoleType === constants.soc.SOC_Super) {
-                payload.status = 7
-            } else {
-                payload.status = 1
+      _.forEach(event.eventConnectionList, conn => {
+        payload.eventList.table.push({text: f('incidentFields.srcIp'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.srcPort'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.srcHostname'), colSpan: 2});
+        payload.eventList.table.push({text: conn.srcIp, colSpan: 2});
+        payload.eventList.table.push({text: conn.srcPort, colSpan: 2});
+        payload.eventList.table.push({text: conn.srcHostname, colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.dstIp'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.dstPort'), colSpan: 2});
+        payload.eventList.table.push({text: f('incidentFields.dstHostname'), colSpan: 2});
+        payload.eventList.table.push({text: conn.dstIp, colSpan: 2});
+        payload.eventList.table.push({text: conn.dstPort, colSpan: 2});
+        payload.eventList.table.push({text: conn.dstHostname, colSpan: 2});
+      })
+    })
+
+    // ttps
+    if (_.size(incident.ttpList) > 0) {
+      payload.ttps = {};
+      payload.ttps.cols = 4;
+      payload.ttps.header = it('txt-incident-ttps');
+      payload.ttps.table = [];
+    }
+
+    _.forEach(incident.ttpList, ttp => {
+      payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2});
+      payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2});
+      payload.ttps.table.push({text: ttp.title, colSpan: 2});
+      payload.ttps.table.push({
+        text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA',
+        colSpan: 2
+      });
+
+      if (_.size(ttp.etsList) > 0) {
+        payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4});
+
+        _.forEach(ttp.etsList, ets => {
+          payload.ttps.table.push({text: f('incidentFields.cveId'), colSpan: 2});
+          payload.ttps.table.push({text: f('incidentFields.etsDescription'), colSpan: 2});
+          payload.ttps.table.push({text: ets.cveId || '', colSpan: 2});
+          payload.ttps.table.push({text: ets.description || '', colSpan: 2});
+        })
+      }
+
+      if (_.size(ttp.obsFileList) > 0) {
+        payload.ttps.table.push({text: it('txt-ttp-obs-file'), colSpan: 4});
+
+        _.forEach(ttp.obsFileList, obsFile => {
+          payload.ttps.table.push({text: f('incidentFields.fileName'), colSpan: 2});
+          payload.ttps.table.push({text: f('incidentFields.fileExtension'), colSpan: 2});
+          payload.ttps.table.push({text: obsFile.fileName, colSpan: 2});
+          payload.ttps.table.push({text: obsFile.fileExtension, colSpan: 2});
+          payload.ttps.table.push({text: 'MD5', colSpan: 2});
+          payload.ttps.table.push({text: 'SHA1', colSpan: 2});
+          payload.ttps.table.push({text: obsFile.md5, colSpan: 2});
+          payload.ttps.table.push({text: obsFile.sha1, colSpan: 2});
+          payload.ttps.table.push({text: 'SHA256', colSpan: 4});
+          payload.ttps.table.push({text: obsFile.sha256, colSpan: 4});
+        })
+      }
+
+      if (_.size(ttp.obsUriList) > 0) {
+        payload.ttps.table.push({text: it('txt-ttp-obs-uri'), colSpan: 4});
+
+        _.forEach(ttp.obsUriList, obsUri => {
+          payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2});
+          payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2});
+          payload.ttps.table.push({
+            text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'),
+            colSpan: 2
+          });
+          payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2});
+        })
+      }
+
+      if (_.size(ttp.obsSocketList) > 0) {
+        payload.ttps.table.push({text: it('txt-ttp-obs-socket'), colSpan: 4});
+
+        _.forEach(ttp.obsSocketList, obsSocket => {
+          payload.ttps.table.push({text: 'IP', colSpan: 2});
+          payload.ttps.table.push({text: 'Port', colSpan: 2});
+          payload.ttps.table.push({text: obsSocket.ip, colSpan: 2});
+          payload.ttps.table.push({text: obsSocket.port, colSpan: 2});
+        })
+      }
+    })
+
+    return payload;
+  }
+  exportPdf() {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.state;
+
+    downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))});
+  }
+  exportAll() {
+    const {baseUrl, contextRoot, session} = this.context;
+    let {search, incident, loadListType, accountRoleType} = this.state;
+
+    if (search.datetime) {
+      search.startDttm = moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      search.endDttm = moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
+    search.isExecutor = _.includes(session.roles, 'SOC Executor');
+    search.accountRoleType = this.state.accountRoleType;
+    search.account = session.accountId;
+
+    let payload = {
+      subStatus: 0,
+      keyword: '',
+      category: 0,
+      isExpired: 2,
+      accountRoleType,
+      isExecutor: _.includes(session.roles, 'SOC Executor'),
+    };
+
+    if (loadListType === 0) {
+      payload.status = 0;
+      payload.isExpired = 1;
+    } else if (loadListType === 1) {
+      if (payload.accountRoleType === constants.soc.SOC_Executor) {
+        payload.status = 2;
+        payload.subStatus = 6;
+      } else if (payload.accountRoleType === constants.soc.SOC_Super) {
+        payload.status = 7;
+      } else {
+        payload.status = 1;
+      }
+    } else if (loadListType === 2) {
+      payload.status = 0;
+      payload.creator = session.accountId
+    } else if (loadListType === 3) {
+      payload = search;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/_searchV2`,
+      data: JSON.stringify(payload),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      const payload = _.map(data.rt.rows, el => {
+        return this.toPdfPayload(el);
+      })
+
+      downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)});
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  notifyContact() {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.state;
+
+    let payload = {
+      incidentId: incident.info.id
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/_notify`,
+      data: JSON.stringify(payload),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data.status.includes('success')) {
+        helper.showPopupMsg('', it('txt-notify'), it('txt-notify') + t('notifications.txt-sendSuccess'));
+      } else {
+        helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'));
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  render() {
+    const {session} = this.context;
+    const {
+      search,
+      activeContent,
+      baseUrl,
+      contextRoot,
+      showFilter,
+      showChart,
+      incident,
+      contextAnchor,
+      currentData,
+      accountType
+    } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+    let superUserCheck = false;
+
+    return (
+      <div>
+        <IncidentTag ref={ref => {
+          this.incidentTag = ref
+        }} onLoad={this.loadData.bind(this)} />
+
+        <IncidentFlowDialog ref={ref => {
+          this.incidentFlowDialog = ref
+        }} />
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
+          {(currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED) &&
+            <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+          }
+        </Menu>
+
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
+          </div>
+          <SearchOptions
+            datetime={search.datetime}
+            enableTime={true}
+            handleDateChange={this.handleDateChange}
+            handleSearchSubmit={this.loadData} />
+        </div>
+
+        <div className='data-content'>
+          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
+
+          <div className='parent-content'>
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &&
+              <div className='main-content'>
+                <header className='main-header'>{it('txt-incident')}</header>
+                <div className='content-header-btns with-menu '>
+                  {activeContent === 'viewIncident' &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
+                  }
+
+                  {_.size(incident.dataContent) > 0 &&
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
+                  }
+                </div>
+                <MuiTableContentWithoutLoading
+                  data={incident}
+                  tableOptions={tableOptions} />
+              </div>
             }
-        } else if (loadListType === 2) {
-            payload.status = 0
-            payload.creator = session.accountId
-        } else if (loadListType === 3) {
-            payload = search
-        }
 
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_searchV2`,
-            data: JSON.stringify(payload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                let payload = _.map(data.rt.rows, el => {
-                    return this.toPdfPayload(el)
-                })
-
-                downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    }
-
-    notifyContact() {
-        const {baseUrl, contextRoot} = this.context
-        const {incident} = this.state
-
-        let payload = {
-            incidentId: incident.info.id
-        }
-
-        helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_notify`,
-            data: JSON.stringify(payload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                if (data.status.includes('success')) {
-                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify') + t('notifications.txt-sendSuccess'))
-                } else {
-                    helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
-    }
+            {(activeContent === 'viewIncident' || activeContent === 'editIncident' || activeContent === 'addIncident') &&
+              this.displayEditContent()
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
 
 IncidentSearch.contextType = BaseDataContext;
 IncidentSearch.propTypes = {
-    // nodeBaseUrl: PropTypes.string.isRequired
+  //nodeBaseUrl: PropTypes.string.isRequired
 };
 
-export default IncidentSearch
+export default IncidentSearch;

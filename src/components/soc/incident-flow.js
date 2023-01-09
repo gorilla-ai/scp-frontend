@@ -140,7 +140,7 @@ class IncidentFlow extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message)
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   setDefaultSearchOptions = () => {
@@ -232,8 +232,7 @@ class IncidentFlow extends Component {
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                        <i className='fg fg-eye' title={t('txt-view')} onClick={this.toggleContent.bind(this, 'view', allValue)} />
-                        {/*<i className='fg fg-trashcan'  title={t('txt-delete')}/>*/}
+                      <i className='fg fg-eye' title={t('txt-view')} onClick={this.toggleContent.bind(this, 'view', allValue)} />
                     </div>
                   )
                 } else if (val === 'severity') {
@@ -454,53 +453,6 @@ class IncidentFlow extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-
-  /* ------------------ View ------------------- */
-  render() {
-    const {activeContent, baseUrl, contextRoot, showFilter, incidentRule, accountType} = this.state;
-    const {session} = this.context;
-    const tableOptions = {
-      onChangePage: (currentPage) => {
-        this.handlePaginationChange('currentPage', currentPage);
-      },
-      onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('pageSize', numberOfRows);
-      },
-      onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort(changedColumn, direction === 'desc');
-      }
-    };
-
-    return (
-      <div>
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
-          <div className='parent-content'>
-            {this.renderFilter()}
-
-            {activeContent === 'tableList' &&
-              <div className='main-content'>
-                <header className='main-header'>{it('txt-incident-soc-flow')}</header>
-                <MuiTableContentWithoutLoading
-                  data={incidentRule}
-                  tableOptions={tableOptions}/>
-              </div>
-            }
-
-            {(activeContent === 'view' || activeContent === 'edit') &&
-              this.displayEditContent()
-            }
-          </div>
-        </div>
-      </div>
-    );
   }
   displayEditContent = () => {
     const {activeContent, severityList, flowList, incidentRule, formValidation, stepList, stepListObj} = this.state;
@@ -730,12 +682,57 @@ class IncidentFlow extends Component {
       }
     });
   };
+  render() {
+    const {session} = this.context;
+    const {activeContent, baseUrl, contextRoot, showFilter, incidentRule, accountType} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      <div>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
+          </div>
+        </div>
+
+        <div className='data-content'>
+          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType}/>
+          <div className='parent-content'>
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &&
+              <div className='main-content'>
+                <header className='main-header'>{it('txt-incident-soc-flow')}</header>
+                <MuiTableContentWithoutLoading
+                  data={incidentRule}
+                  tableOptions={tableOptions}/>
+              </div>
+            }
+
+            {(activeContent === 'view' || activeContent === 'edit') &&
+              this.displayEditContent()
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
 
 IncidentFlow.contextType = BaseDataContext;
 
 IncidentFlow.propTypes = {
-    // nodeBaseUrl: PropTypes.string.isRequired
+  //nodeBaseUrl: PropTypes.string.isRequired
 };
 
 export default IncidentFlow;
