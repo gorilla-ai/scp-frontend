@@ -210,7 +210,7 @@ class Incident extends Component {
       });
     });
   }
-  getQueryString(name) {
+  getQueryString = (name) => {
     let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
     let r = window.location.search.substr(1).match(reg);
 
@@ -538,7 +538,7 @@ class Incident extends Component {
             {closeCheck &&
               <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
             }
-            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
+            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf}>{t('txt-export')}</Button>
             <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact}>{it('txt-notify')}</Button>
           </div>
         }
@@ -1011,7 +1011,7 @@ class Incident extends Component {
         return false;
       }
 
-      let empty = _.filter(incident.eventList, function (o) {
+      const empty = _.filter(incident.eventList, function(o) {
         return !o.description || !o.deviceId || !o.eventConnectionList  || !o.frequency;
       });
 
@@ -1178,7 +1178,7 @@ class Incident extends Component {
           }
         })
 
-        let empty = _.filter(incident.ttpList, function (o) {
+        const empty = _.filter(incident.ttpList, function(o) {
           if (o.infrastructureType === undefined || o.infrastructureType === 0) {
             o.infrastructureType = '0';
           }
@@ -1976,8 +1976,8 @@ class Incident extends Component {
         category: 0,
         status: 0,
         datetime:{
-            from: helper.getSubstractDate(1, 'month'),
-            to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+          from: helper.getSubstractDate(1, 'month'),
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         },
         isExpired: 2
       }
@@ -2214,24 +2214,24 @@ class Incident extends Component {
       this.loadData('currentPage');
     });
   }
-  openIncidentComment() {
+  openIncidentComment = () => {
     this.incidentComment.open();
   }
-  openIncidentTag(id) {
+  openIncidentTag = (id) => {
     this.handleCloseMenu();
     this.incidentTag.open(id);
   }
-  openIncidentFlow(id) {
+  openIncidentFlow = (id) => {
     this.handleCloseMenu();
     this.incidentFlowDialog.open(id);
   }
-  openIncidentReview(incidentId, reviewType) {
+  openIncidentReview = (incidentId, reviewType) => {
     this.incidentReview.open(incidentId, reviewType);
   }
-  openNotifyDialog() {
+  openNotifyDialog = () => {
     this.notifyDialog.open(this.state.incident.info.id, this.state.notifyEmailList);
   }
-  uploadAttachment() {
+  uploadAttachment = () => {
     const {baseUrl} = this.context;
     let {incident, attach} = this.state;
 
@@ -2260,14 +2260,14 @@ class Incident extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  downloadAttachment(allValue) {
+  downloadAttachment = (allValue) => {
     const {baseUrl, contextRoot} = this.context
     const {incident} = this.state
     const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`
 
     downloadLink(url);
   }
-  deleteAttachment(allValue) {
+  deleteAttachment = (allValue) => {
     const {baseUrl} = this.context;
     let {incident} = this.state;
 
@@ -2298,7 +2298,7 @@ class Incident extends Component {
       }
     })
   }
-  toPdfPayload(incident) {
+  toPdfPayload = (incident) => {
     const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
     let payload = {};
 
@@ -2533,14 +2533,14 @@ class Incident extends Component {
 
     return payload;
   }
-  exportPdf() {
+  exportPdf = () => {
     const {baseUrl, contextRoot} = this.context;
     const {incident} = this.state;
 
     downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))});
   }
 
-  exportAll() {
+  exportAll = () => {
     const {baseUrl, contextRoot, session} = this.context;
     const {search, incident, loadListType, accountRoleType} = this.state;
 
@@ -2680,7 +2680,7 @@ class Incident extends Component {
             {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
               <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
             }
-            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
+            <button className='' onClick={this.openIncidentComment} title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
           </div>
         </div>
 
@@ -2717,7 +2717,6 @@ class Incident extends Component {
 
 Incident.contextType = BaseDataContext;
 Incident.propTypes = {
-
 };
 
 export default Incident;

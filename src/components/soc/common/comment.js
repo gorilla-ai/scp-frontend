@@ -287,13 +287,13 @@ class IncidentComment extends Component {
   render() {
     const {open, comments, selected, comment} = this.state;
     const actions_old = {
-      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close.bind(this)},
-      delete: {text: t('txt-delete'), handler: this.deleteComment.bind(this)},
-      edit: {text: t('txt-edit'), handler: this.editComment.bind(this)}
+      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close},
+      delete: {text: t('txt-delete'), handler: this.deleteComment},
+      edit: {text: t('txt-edit'), handler: this.editComment}
     };
     const actions_new = {
-      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close.bind(this)},
-      add: {text: t('txt-add'), handler: this.addComment.bind(this)}
+      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close},
+      add: {text: t('txt-add'), handler: this.addComment}
     };
 
     if (!open) {
@@ -333,7 +333,7 @@ class IncidentComment extends Component {
             multiline
             value={selected}
             select
-            onChange={this.handleChangeMui.bind(this)}>
+            onChange={this.handleChangeMui}>
             {
               _.map(list, el => {
                 return <MenuItem value={el.value}>{el.text}</MenuItem>
@@ -350,7 +350,7 @@ class IncidentComment extends Component {
             size='small'
             required
             value={comment.title}
-            onChange={(event) => this.handleChangeMuiComment(event,comment.title,comment.command,comment.id)}>
+            onChange={(event) => this.handleChangeMuiComment(event, comment.title, comment.command, comment.id)}>
           </TextField>
           <label htmlFor='comment'>{it('txt-comment')}</label>
           <TextareaAutosize
@@ -362,7 +362,7 @@ class IncidentComment extends Component {
             variant='outlined'
             fullWidth={true}
             size='small'
-            onChange={(event) => this.handleChangeMuiComment(event,comment.title,comment.command,comment.id)} />
+            onChange={(event) => this.handleChangeMuiComment(event, comment.title, comment.command, comment.id)} />
         </div>
       </ModalDialog>
     )

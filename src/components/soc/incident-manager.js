@@ -228,7 +228,7 @@ class IncidentManagement extends Component {
       }
     });
   }
-  getQueryString(name) {
+  getQueryString = (name) => {
     const reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
     const r = window.location.search.substr(1).match(reg);
 
@@ -894,7 +894,7 @@ class IncidentManagement extends Component {
             {restartCheck &&
               <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'restart')}>{it('txt-restart')}</Button>
             }
-            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
+            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf}>{t('txt-export')}</Button>
             <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact}>{it('txt-notify')}</Button>
           </div>
         }
@@ -1414,7 +1414,7 @@ class IncidentManagement extends Component {
         return false;
       }
 
-      let empty = _.filter(incident.eventList, function (o) {
+      let empty = _.filter(incident.eventList, function(o) {
         return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency;
       });
 
@@ -1583,7 +1583,7 @@ class IncidentManagement extends Component {
           }
         })
 
-        let empty = _.filter(incident.ttpList, function (o) {
+        let empty = _.filter(incident.ttpList, function(o) {
           if (o.infrastructureType === undefined || o.infrastructureType === 0) {
             o.infrastructureType = '0';
           }
@@ -2907,21 +2907,21 @@ class IncidentManagement extends Component {
       }
     });
   }
-  openIncidentComment() {
+  openIncidentComment = () => {
     this.incidentComment.open();
   }
-  openIncidentTag(id) {
+  openIncidentTag = (id) => {
     this.handleCloseMenu();
     this.incidentTag.open(id);
   }
-  openIncidentFlow(id) {
+  openIncidentFlow = (id) => {
     this.handleCloseMenu();
     this.incidentFlowDialog.open(id);
   }
-  openIncidentReview(incidentId, reviewType) {
+  openIncidentReview = (incidentId, reviewType) => {
     this.incidentReview.open(incidentId, reviewType);
   }
-  openNotifyDialog() {
+  openNotifyDialog = () => {
     this.notifyDialog.open(this.state.incident.info.id, this.state.notifyEmailList);
   }
   uploadAttachment = () => {
@@ -2959,7 +2959,7 @@ class IncidentManagement extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  toPdfPayload(incident) {
+  toPdfPayload = (incident) => {
     const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
     let payload = {};
 
@@ -3191,19 +3191,19 @@ class IncidentManagement extends Component {
 
     return payload;
   }
-  exportPdf() {
+  exportPdf = () => {
     const {baseUrl, contextRoot} = this.context;
     const {incident} = this.state;
 
     downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))});
   }
-  exportPdfFromTable(data) {
+  exportPdfFromTable = (data) => {
     const {baseUrl, contextRoot} = this.context;
     this.handleCloseMenu();
 
     downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(data))});
   }
-  exportAll() {
+  exportAll = () => {
     const {baseUrl, contextRoot} = this.context;
     const requestData = this.getIncidentRequestData();
 
@@ -3227,7 +3227,7 @@ class IncidentManagement extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  exportAllByWord() {
+  exportAllByWord = () => {
     const {baseUrl, contextRoot} = this.context;
     const payload = this.getIncidentRequestData();
 
@@ -3374,7 +3374,7 @@ class IncidentManagement extends Component {
             {accountType === constants.soc.NONE_LIMIT_ACCOUNT &&
               <button className='' onClick={this.openIncidentTag.bind(this, null)} title={it('txt-custom-tag')}><i className='fg fg-color-ruler' /></button>
             }
-            <button className='' onClick={this.openIncidentComment.bind(this)} title={it('txt-comment-example-edit')}><i className='fg fg-report' /></button>
+            <button className='' onClick={this.openIncidentComment} title={it('txt-comment-example-edit')}><i className='fg fg-report' /></button>
           </div>
         </div>
 
@@ -3393,10 +3393,10 @@ class IncidentManagement extends Component {
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                   }
                   {_.size(incident.dataContent) > 0 &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll}>{it('txt-export-all')}</Button>
                   }
                   {_.size(incident.dataContent) > 0 &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAllByWord.bind(this)}>{it('txt-export-all-word')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAllByWord}>{it('txt-export-all-word')}</Button>
                   }
                   {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'events')}>{it('txt-addIncident-events')}</Button>
@@ -3422,7 +3422,6 @@ class IncidentManagement extends Component {
 
 IncidentManagement.contextType = BaseDataContext;
 IncidentManagement.propTypes = {
-
 };
 
 export default IncidentManagement;

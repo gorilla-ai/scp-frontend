@@ -196,7 +196,7 @@ class IncidentDeviceStep extends Component {
   componentWillUnmount() {
     helper.clearTimer();
   }
-  comparer(otherArray) {
+  comparer = (otherArray) => {
     return function(current) {
       return otherArray.filter(function(other) {
         return other.value === current.value && other.display === current.display
@@ -2849,7 +2849,7 @@ class IncidentDeviceStep extends Component {
                   }
 
                   {accountType !== constants.soc.LIMIT_ACCOUNT && insertCheck &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog}>{it('txt-autoSendSettings')}</Button>
                   }
 
                   {insertCheck && accountType === constants.soc.NONE_LIMIT_ACCOUNT && (_.includes(session.roles, constants.soc.SOC_Analyzer) || _.includes(session.roles, constants.soc.SOC_Executor)) &&
@@ -2882,10 +2882,10 @@ class IncidentDeviceStep extends Component {
                 <div className='content-header-btns'>
                   <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                   {this.state.setType === 'send' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.sendCsvWithOnlineEditData}>{it('txt-send')}</Button>
                   }
                   {this.state.setType === 'download' &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.downloadCsvWithOnlineEditData.bind(this)}>{it('txt-exportHealthCsv')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.downloadCsvWithOnlineEditData}>{it('txt-exportHealthCsv')}</Button>
                   }
                 </div>
 

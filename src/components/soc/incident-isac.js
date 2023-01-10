@@ -152,8 +152,7 @@ class IncidentIsac extends Component {
       isacSettings: tmpIsacSettings
     });
   }
-
-  handleChange(field, value) {
+  handleChange = (field, value) => {
     let tmpIsacSettings = {...this.state.isacSettings};
     tmpIsacSettings[field] = value;
 

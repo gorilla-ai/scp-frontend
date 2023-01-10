@@ -92,11 +92,10 @@ class IncidentFlowDialog extends Component {
       </div>
     )
   }
-
   render() {
     const {open, stepTitleList} = this.state;
     const actions = {
-      cancel: {text: t('txt-close'), className:'standard', handler: this.close.bind(this)}
+      cancel: {text: t('txt-close'), className:'standard', handler: this.close}
     };
 
     if (!open) {

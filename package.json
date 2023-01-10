@@ -43,6 +43,7 @@
     "classnames": "^2.2.5",
     "clean-webpack-plugin": "^4.0.0",
     "core-js": "^3.9.1",
+    "cypress": "^12.3.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.10.0",
     "errorhandler": "^1.5.0",

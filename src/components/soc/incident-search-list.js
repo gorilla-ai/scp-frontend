@@ -442,7 +442,7 @@ class IncidentSearch extends Component {
         {activeContent === 'viewIncident' &&
           <div className='content-header-btns'>
             <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
+            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf}>{t('txt-export')}</Button>
           </div>
         }
 
@@ -709,7 +709,7 @@ class IncidentSearch extends Component {
       });
     }
   }
-  handleAFChange(file) {
+  handleAFChange = (file) => {
     let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
 
     if (flag.test(file.name)) {
@@ -725,7 +725,7 @@ class IncidentSearch extends Component {
       return it('file-too-large');
     }
   }
-  uploadAttachmentModal() {
+  uploadAttachmentModal = () => {
     PopupDialog.prompt({
       title: t('txt-upload'),
       confirmText: t('txt-confirm'),
@@ -837,7 +837,7 @@ class IncidentSearch extends Component {
         }
         {activeContent !== 'addIncident' &&
           <div className='group'>
-            <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+            <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal}>{t('txt-upload')}</Button>
           </div>
         }
         {_.size(incident.info.fileList) > 0 &&
@@ -2046,21 +2046,21 @@ class IncidentSearch extends Component {
       this.loadData();
     });
   }
-  openIncidentComment() {
+  openIncidentComment = () => {
     this.incidentComment.open();
   }
-  openIncidentTag(id) {
+  openIncidentTag = (id) => {
     this.handleCloseMenu();
     this.incidentTag.open(id);
   }
-  openIncidentFlow(id) {
+  openIncidentFlow = (id) => {
     this.handleCloseMenu();
     this.incidentFlowDialog.open(id);
   }
-  openIncidentReview(incidentId, reviewType) {
+  openIncidentReview = (incidentId, reviewType) => {
     this.incidentReview.open(incidentId, reviewType);
   }
-  uploadAttachment() {
+  uploadAttachment = () => {
     const {baseUrl} = this.context;
     const {incident, attach} = this.state;
     let formData = new FormData();
@@ -2088,7 +2088,7 @@ class IncidentSearch extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  uploadAttachmentByModal(file, fileMemo) {
+  uploadAttachmentByModal = (file, fileMemo) => {
     const {baseUrl} = this.context;
     const {incident} = this.state;
 
@@ -2115,14 +2115,14 @@ class IncidentSearch extends Component {
       })
     }
   }
-  downloadAttachment(allValue) {
+  downloadAttachment = (allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const {incident} = this.state;
     const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`;
 
     downloadLink(url);
   }
-  deleteAttachment(allValue) {
+  deleteAttachment = (allValue) => {
     const {baseUrl} = this.context;
     let {incident} = this.state;
 
@@ -2155,7 +2155,7 @@ class IncidentSearch extends Component {
       }
     })
   }
-  toPdfPayload(incident) {
+  toPdfPayload = (incident) => {
     const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
     let payload = {};
 
@@ -2402,13 +2402,13 @@ class IncidentSearch extends Component {
 
     return payload;
   }
-  exportPdf() {
+  exportPdf = () => {
     const {baseUrl, contextRoot} = this.context;
     const {incident} = this.state;
 
     downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))});
   }
-  exportAll() {
+  exportAll = () => {
     const {baseUrl, contextRoot, session} = this.context;
     let {search, incident, loadListType, accountRoleType} = this.state;
 
@@ -2469,7 +2469,7 @@ class IncidentSearch extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  notifyContact() {
+  notifyContact = () => {
     const {baseUrl, contextRoot} = this.context;
     const {incident} = this.state;
 
@@ -2528,7 +2528,7 @@ class IncidentSearch extends Component {
       <div>
         <IncidentTag ref={ref => {
           this.incidentTag = ref
-        }} onLoad={this.loadData.bind(this)} />
+        }} onLoad={this.loadData} />
 
         <IncidentFlowDialog ref={ref => {
           this.incidentFlowDialog = ref
@@ -2571,7 +2571,7 @@ class IncidentSearch extends Component {
                   }
 
                   {_.size(incident.dataContent) > 0 &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll}>{it('txt-export-all')}</Button>
                   }
                 </div>
                 <MuiTableContentWithoutLoading

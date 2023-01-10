@@ -938,11 +938,11 @@ class IncidentUnit extends Component {
       }
 
 
-      let result = _.map(tempIncidentDevice.info.accountList, function (obj) {
+      let result = _.map(tempIncidentDevice.info.accountList, function(obj) {
         return _.assign(obj, _.find(accountListOptions, {value: obj.value}));
       });
 
-      tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function (p, o) {
+      tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function(p, o) {
         return p.value === o.value;
       })
       tempIncidentDevice.info.showFontendRelatedList = result;
@@ -974,11 +974,11 @@ class IncidentUnit extends Component {
           })
         }
 
-        let result = _.map(tempIncidentDevice.info.accountList, function (obj) {
+        let result = _.map(tempIncidentDevice.info.accountList, function(obj) {
           return _.assign(obj, _.find(accountListOptions, {value: obj.value}));
         });
 
-        tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function (p, o) {
+        tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function(p, o) {
           return p.value === o.value
         })
         tempIncidentDevice.info.showFontendRelatedList = result;
