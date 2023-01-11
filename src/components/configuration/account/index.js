@@ -26,7 +26,6 @@ const FORM_VALIDATION = {
   }
 };
 
-const log = require('loglevel').getLogger('user/accounts')
 const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
 const gt =  i18n.getFixedT(null, 'app');
