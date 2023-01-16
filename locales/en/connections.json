@@ -848,6 +848,7 @@
     "txt-chassisAddress": "Chassis Address",
     "txt-chassisLocation": "Chassis Location",
     "txt-contact": "Contact",
+    "txt-notifyStatus": "Notify Status",
     "txt-upgradeTime": "Upgrade Date time",
     "txt-lastUpdateTime": "Last Update Time",
     "txt-anyTime": "Any Time",

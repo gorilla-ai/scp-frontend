@@ -662,6 +662,7 @@ class Edge extends Component {
         chassisAddress: allValue.chassisAddress ? allValue.chassisAddress : '',
         chassisLocation: allValue.chassisLocation ? allValue.chassisLocation : '',
         contact: allValue.contact ? allValue.contact : '',
+        notifyStatus: allValue.notifyStatus,
         isUpgradeEnable: allValue.isUpgradeDateTimeEnable,
         upgradeDatetime: allValue.upgradeDttm,
         edgeGroupList: allValue.groupList,
@@ -897,6 +898,7 @@ class Edge extends Component {
       chassisAddress: edge.info.chassisAddress,
       chassisLocation: edge.info.chassisLocation,
       contact: edge.info.contact,
+      notifyStatus: edge.info.notifyStatus,
       memo: edge.info.memo
     };
     let tempFormValidation = {...formValidation};
@@ -1120,6 +1122,19 @@ class Edge extends Component {
     })
 
     helper.showPopupMsg(t('txt-requestSent'));
+  }
+  /**
+   * Toggle notifiy status switch
+   * @method
+   */
+  handleNotifyStatusChange = () => {
+    const {edge} = this.state;
+    let tempEdge = {...edge};
+    tempEdge.info.notifyStatus = !edge.info.notifyStatus;
+
+    this.setState({
+      edge: tempEdge
+    });
   }
   /**
    * Display edit Edge content
@@ -1372,6 +1387,19 @@ class Edge extends Component {
                 disabled={activeContent === 'viewEdge'} />
             </div>
             <div className='edge-time'>
+              <div className='group'>
+                <FormLabel>{t('edge-management.txt-notifyStatus')}</FormLabel>            
+                <FormControlLabel
+                  className='switch-control'
+                  control={
+                    <Switch
+                      checked={edge.info.notifyStatus}
+                      onChange={this.handleNotifyStatusChange}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewEdge'} />
+              </div>
               <div className='group'>
                 <FormLabel>{t('edge-management.txt-upgradeTime')}</FormLabel>
                 <FormControlLabel

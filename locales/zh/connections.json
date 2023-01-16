@@ -848,6 +848,7 @@
     "txt-chassisAddress": "機櫃地址",
     "txt-chassisLocation": "機櫃位置",
     "txt-contact": "窗口",
+    "txt-notifyStatus": "斷線通知",
     "txt-upgradeTime": "升級時間",
     "txt-lastUpdateTime": "最近更新時間",
     "txt-anyTime": "不限時段",
