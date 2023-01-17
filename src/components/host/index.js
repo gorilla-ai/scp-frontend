@@ -972,6 +972,205 @@ class HostController extends Component {
     })
   }
   /**
+   * Get department selected list
+   * @method
+   */
+  getDepartmentSelected = () => {
+    const {account, filterNav} = this.state;
+    let departmentArray = [];
+
+    if (filterNav.departmentSelected.length > 0) {
+      departmentArray = filterNav.departmentSelected;
+    } else {
+      if (account.limitedRole) {
+        departmentArray = ['emptyDepartmentId'];
+      }
+    }
+
+    return {
+      departmentArray
+    };
+  }
+  /**
+   * Get HMD Status list
+   * @method
+   */
+  getHmdStatusList = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/ipdevice/assessment/devInfoAgg`;
+    const requestData = {
+      ...this.getDepartmentSelected()
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let hmdStatusList = [];
+
+        if (_.isEmpty(data)) {
+          _.forEach(HMD_STATUS_LIST, val => {
+            if (typeof val === 'object') {
+              const items = _.map(val.advanced, val => {
+                return {
+                  text: t('host.txt-' + val) + ' (0)',
+                  value: val
+                };
+              });
+
+              hmdStatusList.push({
+                text: t('txt-advanced'),
+                type: 'advanced',
+                value: items
+              });
+            } else {
+              hmdStatusList.push({
+                text: t('host.txt-' + val) + ' (0)',
+                value: val
+              });
+            }
+          })
+        } else {
+          _.forEach(HMD_STATUS_LIST, val => {
+            if (typeof val === 'object') {
+              const items = _.map(val.advanced, val => {
+                let text = t('host.txt-' + val);
+
+                if (data.devInfoAgg[val]) {
+                  text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+                }
+
+                return {
+                  text,
+                  value: val
+                };
+              });
+
+              hmdStatusList.push({
+                text: t('txt-advanced'),
+                type: 'advanced',
+                value: items
+              });
+            } else {
+              let text = t('host.txt-' + val);
+
+              if (data.devInfoAgg[val]) {
+                text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
+              }
+
+              hmdStatusList.push({
+                text,
+                value: val
+              });
+            }
+          })
+        }
+
+        this.setState({
+          hmdStatusList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get Scan Status list
+   * @method
+   */
+  getScanStatusList = () => {
+    const {baseUrl} = this.context;
+    const {hmd_list} = this.state;
+    const url = `${baseUrl}/api/ipdevice/assessment/scanInfoAgg`;
+    const requestData = {
+      ...this.getDepartmentSelected()
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let scanStatusList = [];
+
+        if (_.isEmpty(data)) {
+          _.forEach(hmd_list, val => {
+            if (_.isArray(val.value)) {
+              const items = _.map(val.value, val => {
+                return {
+                  text: val.name + ' (0)',
+                  value: val.value
+                };
+              });
+
+              scanStatusList.push({
+                text: val.name,
+                type: val.type,
+                value: items
+              });
+            } else {
+              scanStatusList.push({
+                text: val.name + ' (0)',
+                value: val.value
+              });
+            }
+          })
+        } else {
+          _.forEach(hmd_list, val => {
+            if (_.isArray(val.value)) {
+              const items = _.map(val.value, val => {
+                let text = val.name;
+
+                if (_.has(data.scanInfoAgg, val.value)) {
+                  text += ' (' + data.scanInfoAgg[val.value] + ')';
+                }
+
+                return {
+                  text,
+                  value: val.value
+                };
+              });
+
+              scanStatusList.push({
+                text: val.name,
+                type: val.type,
+                value: items
+              });
+            } else {
+              let text = val.name;
+
+              if (_.has(data.scanInfoAgg, val.value)) {
+                text += ' (' + data.scanInfoAgg[val.value] + ')';
+              }
+
+              scanStatusList.push({
+                text,
+                value: val.value
+              });
+            }
+          })
+        }
+
+        this.setState({
+          scanStatusList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get department tree data
    * @method
    */
@@ -992,9 +1191,13 @@ class HostController extends Component {
             if (account.departmentId) {
               this.setSelectedDepartment();
             } else {
-              this.getHostData();              
+              this.getHmdStatusList();
+              this.getScanStatusList();
+              this.getHostData();
             }
           } else {
+            this.getHmdStatusList();
+            this.getScanStatusList();
             this.getHostData();
           }
         });
@@ -1040,7 +1243,6 @@ class HostController extends Component {
     })
     .then(data => {
       let severityList = [];
-      let hmdStatusList = [];
       let scanStatusList = [];
       let tempHostInfo = {...hostInfo};
 
@@ -1055,54 +1257,8 @@ class HostController extends Component {
           });
         })
 
-        _.forEach(HMD_STATUS_LIST, val => {
-          if (typeof val === 'object') {
-            const items = _.map(val.advanced, val => {
-              return {
-                text: t('host.txt-' + val) + ' (0)',
-                value: val
-              };
-            });
-
-            hmdStatusList.push({
-              text: t('txt-advanced'),
-              type: 'advanced',
-              value: items
-            });
-          } else {
-            hmdStatusList.push({
-              text: t('host.txt-' + val) + ' (0)',
-              value: val
-            });
-          }
-        })
-
-        _.forEach(hmd_list, val => {
-          if (_.isArray(val.value)) {
-            const items = _.map(val.value, val => {
-              return {
-                text: val.name + ' (0)',
-                value: val.value
-              };
-            });
-
-            scanStatusList.push({
-              text: val.name,
-              type: val.type,
-              value: items
-            });
-          } else {
-            scanStatusList.push({
-              text: val.name + ' (0)',
-              value: val.value
-            });
-          }
-        });
-
         this.setState({
           severityList,
-          hmdStatusList,
-          scanStatusList,
           netProxyTree: {
             children: []
           },
@@ -1139,79 +1295,10 @@ class HostController extends Component {
           })
         })
 
-        _.forEach(HMD_STATUS_LIST, val => {
-          if (typeof val === 'object') {
-            const items = _.map(val.advanced, val => {
-              let text = t('host.txt-' + val);
-
-              if (data.devInfoAgg[val]) {
-                text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
-              }
-
-              return {
-                text,
-                value: val
-              };
-            });
-
-            hmdStatusList.push({
-              text: t('txt-advanced'),
-              type: 'advanced',
-              value: items
-            });
-          } else {
-            let text = t('host.txt-' + val);
-
-            if (data.devInfoAgg[val]) {
-              text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
-            }
-
-            hmdStatusList.push({
-              text,
-              value: val
-            });
-          }
-        })
-
-        _.forEach(hmd_list, val => {
-          if (_.isArray(val.value)) {
-            const items = _.map(val.value, val => {
-              let text = val.name;
-
-              if (_.has(data.scanInfoAgg, val.value)) {
-                text += ' (' + data.scanInfoAgg[val.value] + ')';
-              }
-
-              return {
-                text,
-                value: val.value
-              };
-            });
-
-            scanStatusList.push({
-              text: val.name,
-              type: val.type,
-              value: items
-            });
-          } else {
-            let text = val.name;
-
-            if (_.has(data.scanInfoAgg, val.value)) {
-              text += ' (' + data.scanInfoAgg[val.value] + ')';
-            }
-
-            scanStatusList.push({
-              text,
-              value: val.value
-            });
-          }
-        });
-
         if (!data.rows || data.rows.length === 0) {
           if (activeTab === 'hostList') {
             this.setState({
               severityList,
-              hmdStatusList,
               scanStatusList,
               hostInfo: tempHostInfo
             });
@@ -1219,7 +1306,6 @@ class HostController extends Component {
           } else if (activeTab === 'deviceMap') {
             this.setState({
               severityList,
-              hmdStatusList,
               scanStatusList,
               showLoadingIcon: false
             });
@@ -1233,8 +1319,6 @@ class HostController extends Component {
             to: data.assessmentEndDttm
           },
           severityList,
-          hmdStatusList,
-          scanStatusList,
           hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
           hostInfo: tempHostInfo,
           showLoadingIcon: false
@@ -2680,7 +2764,8 @@ class HostController extends Component {
 
         dataList.push(value);
       }
-    });
+    })
+
     tempDeviceSearchList[type] = dataList;
 
     this.setState({
@@ -4005,6 +4090,8 @@ class HostController extends Component {
           filterNav: tempFilterNav,
           limitedDepartment: data
         }, () => {
+          this.getHmdStatusList();
+          this.getScanStatusList();
           this.getHostData();
         });
       }
@@ -4035,6 +4122,8 @@ class HostController extends Component {
     this.setState({
       filterNav: tempFilterNav
     }, () => {
+      this.getHmdStatusList();
+      this.getScanStatusList();
       this.handleSearchSubmit();
     });
   }
