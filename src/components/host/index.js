@@ -1012,63 +1012,39 @@ class HostController extends Component {
       if (data) {
         let hmdStatusList = [];
 
-        if (_.isEmpty(data)) {
-          _.forEach(HMD_STATUS_LIST, val => {
-            if (typeof val === 'object') {
-              const items = _.map(val.advanced, val => {
-                return {
-                  text: t('host.txt-' + val) + ' (0)',
-                  value: val
-                };
-              });
-
-              hmdStatusList.push({
-                text: t('txt-advanced'),
-                type: 'advanced',
-                value: items
-              });
-            } else {
-              hmdStatusList.push({
-                text: t('host.txt-' + val) + ' (0)',
-                value: val
-              });
-            }
-          })
-        } else {
-          _.forEach(HMD_STATUS_LIST, val => {
-            if (typeof val === 'object') {
-              const items = _.map(val.advanced, val => {
-                let text = t('host.txt-' + val);
-
-                if (data.devInfoAgg[val]) {
-                  text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
-                }
-
-                return {
-                  text,
-                  value: val
-                };
-              });
-
-              hmdStatusList.push({
-                text: t('txt-advanced'),
-                type: 'advanced',
-                value: items
-              });
-            } else {
+        _.forEach(HMD_STATUS_LIST, val => {
+          if (typeof val === 'object') {
+            const items = _.map(val.advanced, val => {
               let text = t('host.txt-' + val);
 
-              if (data.devInfoAgg[val]) {
+              if (_.has(data.devInfoAgg, val)) {
                 text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
               }
 
-              hmdStatusList.push({
+              return {
                 text,
                 value: val
-              });
+              };
+            });
+
+            hmdStatusList.push({
+              text: t('txt-advanced'),
+              type: 'advanced',
+              value: items
+            });
+          } else {
+            let text = t('host.txt-' + val);
+
+            if (_.has(data.devInfoAgg, val)) {
+              text += ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')';
             }
-          })
-        }
+
+            hmdStatusList.push({
+              text,
+              value: val
+            });
+          }
+        })
 
         this.setState({
           hmdStatusList
@@ -1102,63 +1078,39 @@ class HostController extends Component {
       if (data) {
         let scanStatusList = [];
 
-        if (_.isEmpty(data)) {
-          _.forEach(hmd_list, val => {
-            if (_.isArray(val.value)) {
-              const items = _.map(val.value, val => {
-                return {
-                  text: val.name + ' (0)',
-                  value: val.value
-                };
-              });
-
-              scanStatusList.push({
-                text: val.name,
-                type: val.type,
-                value: items
-              });
-            } else {
-              scanStatusList.push({
-                text: val.name + ' (0)',
-                value: val.value
-              });
-            }
-          })
-        } else {
-          _.forEach(hmd_list, val => {
-            if (_.isArray(val.value)) {
-              const items = _.map(val.value, val => {
-                let text = val.name;
-
-                if (_.has(data.scanInfoAgg, val.value)) {
-                  text += ' (' + data.scanInfoAgg[val.value] + ')';
-                }
-
-                return {
-                  text,
-                  value: val.value
-                };
-              });
-
-              scanStatusList.push({
-                text: val.name,
-                type: val.type,
-                value: items
-              });
-            } else {
+        _.forEach(hmd_list, val => {
+          if (_.isArray(val.value)) {
+            const items = _.map(val.value, val => {
               let text = val.name;
 
               if (_.has(data.scanInfoAgg, val.value)) {
                 text += ' (' + data.scanInfoAgg[val.value] + ')';
               }
 
-              scanStatusList.push({
+              return {
                 text,
                 value: val.value
-              });
+              };
+            });
+
+            scanStatusList.push({
+              text: val.name,
+              type: val.type,
+              value: items
+            });
+          } else {
+            let text = val.name;
+
+            if (_.has(data.scanInfoAgg, val.value)) {
+              text += ' (' + data.scanInfoAgg[val.value] + ')';
             }
-          })
-        }
+
+            scanStatusList.push({
+              text,
+              value: val.value
+            });
+          }
+        })
 
         this.setState({
           scanStatusList
@@ -1243,7 +1195,6 @@ class HostController extends Component {
     })
     .then(data => {
       let severityList = [];
-      let scanStatusList = [];
       let tempHostInfo = {...hostInfo};
 
       if (_.isEmpty(data)) { //Take care empty data case
@@ -1299,14 +1250,12 @@ class HostController extends Component {
           if (activeTab === 'hostList') {
             this.setState({
               severityList,
-              scanStatusList,
               hostInfo: tempHostInfo
             });
             helper.showPopupMsg(t('txt-notFound'));
           } else if (activeTab === 'deviceMap') {
             this.setState({
               severityList,
-              scanStatusList,
               showLoadingIcon: false
             });
           }
