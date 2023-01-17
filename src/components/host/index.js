@@ -1832,7 +1832,14 @@ class HostController extends Component {
         <div key={i}>
           <div className='toggle-arrow' onClick={this.toggleLeftMenuOption.bind(this, boxType, val.type)}>
             <i className={`fg arrow fg-arrow-${showLeftMenuOptions[boxType][val.type] ? 'bottom' : 'right'}`}></i>
-            <span>{val.text}</span>
+            <FormControlLabel
+              label={val.text}
+              control={
+                <Checkbox
+                  className='checkbox-ui nav-box'
+                  color='primary' />
+              }
+              disabled={true} />
           </div>
           {showLeftMenuOptions[boxType][val.type] &&
             <div className='option-items'>

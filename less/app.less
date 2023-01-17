@@ -54,6 +54,7 @@ html {
   --laBackground: #fff;
   --fadedColor: #fff;
   --disabledColor: #ccc;
+  --disabledColorDark: #aaa;
   --disabledCalendar: #999;
 
   --soarFlowDefault: #1a192b;
@@ -113,6 +114,7 @@ html[data-theme='dark'] {
   --laBackground: #333;
   --fadedColor: #999;
   --disabledColor: #666;
+  --disabledColorDark: #666;
   --disabledCalendar: #ccc;
 
   --soarFlowDefault: #ff0;
@@ -1647,14 +1649,27 @@ button.standard:hover:not([disabled]) {
         .left-nav-group {
           width: 100%;
           padding: 10px 5px;
+          padding-left: 29px;
           border-radius: 5px;
           background-color: var(--leftTreeGroup);
           .toggle-arrow {
-            cursor: pointer;
+            margin-left: -36px;
             margin-bottom: 2px;
+            cursor: pointer;
+            label.Mui-disabled .MuiSvgIcon-root {
+              color: var(--disabledColorDark);
+            }
+            label span.MuiTypography-body1 {
+              color: var(--chartTextColor);
+              cursor: pointer;
+            }
             .arrow {
               float: left;
               width: 25px;
+              font-size: 20px;
+              font-weight: bold;
+              padding-top: 2px;
+              padding-left: 10px;
             }
           }
           .option-items {
