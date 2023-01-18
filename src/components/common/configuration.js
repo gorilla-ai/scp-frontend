@@ -113,7 +113,12 @@ class Config extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   render() {
+    const {hidden} = this.props;
     const {showContent, openEdgeManagement, openTopology, openSyslog, openAccount, selected} = this.state;
+
+    if (hidden) { //For Cypress testing purpose
+      return null;
+    }
 
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>

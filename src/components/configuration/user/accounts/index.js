@@ -830,14 +830,15 @@ class AccountList extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button id='accountShowAd' variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')}><i className='fg fg-signage-ad'></i></Button>
-            <Button id='accountShowAdd' variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
+            <Button id='accountShowAd' variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')} data-cy='ad-account'><i className='fg fg-signage-ad'></i></Button>
+            <Button id='accountShowAdd' variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')} data-cy='add-account'><i className='fg fg-add'></i></Button>
             <Button id='accountShowFilter' variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
         <div className='data-content'>
           <Config
+            hidden={true}
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 

@@ -24,7 +24,8 @@
     "start": "babel-node server.js",
     "start-watch": "nodemon --watch server.js --watch src/server --exec babel-node server.js",
     "doc": "jsdoc -r src -R README.md -p -c jsdoc.json -d docs",
-    "test": "jest"
+    "test": "jest",
+    "cypress:open": "cypress open"
   },
   "author": "",
   "license": "ISC",
