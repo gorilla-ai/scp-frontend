@@ -248,11 +248,12 @@ class Roles extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button id='privilegesAddBtn' variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
+            <Button id='privilegesAddBtn' variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')} data-cy='add-role'><i className='fg fg-add'></i></Button>
           </div>
         </div>
         <div className='data-content'>
           <Config
+            hidden={true}
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 

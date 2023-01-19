@@ -1,0 +1,48 @@
+{
+    "ret": 0,
+    "rt": [
+        {
+            "privilegeid": "DPIR-79b59475-7784-448e-8bb5-086e2fc11b39",
+            "sourceid": "DPIR",
+            "name": "SOC Executor",
+            "permits": [
+                {
+                    "permitid": "DPIR-261d00d0-a006-428b-aacf-7d8a12a297f7",
+                    "sourceid": "DPIR",
+                    "name": "Module_Common",
+                    "dispname": "Common Module",
+                    "moduleid": "DPIR-4d3d36dd-d4c9-4bd6-93ca-23a33091810a"
+                },
+                {
+                    "permitid": "DPIR-cf72c054-d428-48b4-a04a-e69d56647e57",
+                    "sourceid": "DPIR",
+                    "name": "Module_Config",
+                    "dispname": "Configuration Module",
+                    "moduleid": "DPIR-4d3d36dd-d4c9-4bd6-93ca-23a33091810a"
+                },
+                {
+                    "permitid": "DPIR-1ba8927e-26c2-4c04-aa47-317370725f8b",
+                    "sourceid": "DPIR",
+                    "name": "Module_Soc",
+                    "dispname": "SOC Module",
+                    "moduleid": "DPIR-bbe84e1a-1b7b-4524-bbdb-588308f730a8"
+                }
+            ]
+        },
+        {
+            "privilegeid": "DPIR-8543e8df-ebb6-488d-a5d0-aac2a4bf845f",
+            "sourceid": "DPIR",
+            "name": "SOC Supervisor",
+            "permits": [
+                {
+                    "permitid": "DPIR-1ba8927e-26c2-4c04-aa47-317370725f8b",
+                    "sourceid": "DPIR",
+                    "name": "Module_Soc",
+                    "dispname": "SOC Module",
+                    "moduleid": "DPIR-bbe84e1a-1b7b-4524-bbdb-588308f730a8"
+                }
+            ]
+        }
+    ],
+    "status": "success"
+}
