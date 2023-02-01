@@ -122,7 +122,7 @@ class IncidentReport extends Component {
   handleExportConfirm = (type) => {
     const {baseUrl, contextRoot} = this.context;
     const {datetime, monthlyReportDate} = this.state;
-    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
     const utc_offset = timezone._offset / 60; //Convert minute to hour
     let url = '';
     let requestData = {};

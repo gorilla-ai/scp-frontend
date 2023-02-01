@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import moment from 'moment'
+import momentTimezone from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
@@ -39,12 +40,7 @@ import SocConfig from '../common/soc-configuration'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-let it = null;
-let at = null;
-
+const FILE_NAME_PATTERN = /^[a-z0-9-_]+$/i;
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -53,6 +49,12 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
+let at = null;
 
 /**
  * IncidentManagement
@@ -79,6 +81,7 @@ class IncidentManagement extends Component {
       showChart: true,
       relatedListOpen: false,
       uploadAttachmentOpen: false,
+      statisticsReportOpen: false,
       isAnalyze: '',
       tempSavedData: {},
       currentIncident: {},
@@ -137,6 +140,11 @@ class IncidentManagement extends Component {
       loadListType: 2,
       attach: null,
       filesName: [],
+      monthlyReport: {
+        fileName: '',
+        date: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+        info: ''
+      },
       contextAnchor: null,
       currentData: {},
       incidentAccidentList: _.map(_.range(1, 6), el => {
@@ -1145,6 +1153,159 @@ class IncidentManagement extends Component {
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
+    }
+  }
+  /**
+   * Toggle statistics report modal
+   * @method
+   */
+  toggleStatisticsReport = () => {
+    this.setState({
+      statisticsReportOpen: !this.state.statisticsReportOpen
+    }, () => {
+      if (!this.state.statisticsReportOpen) {
+        this.setState({
+          monthlyReport: {
+            fileName: '',
+            date: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+            info: ''
+          }
+        });
+      }
+    });
+  }
+  /**
+   * Set new data for monthly report
+   * @method
+   * @param {string} type - new datetime object
+   * @param {object} newData - new data for monthly report
+   */
+  handleMonthlyReportChange = (type, newData) => {
+    let tempMonthlyReport = {...this.state.monthlyReport};
+    let value = '';
+
+    if (type === 'fileName') {
+      value = newData.target.value;
+    } else if (type === 'date') {
+      value = newData;
+    }
+
+    tempMonthlyReport[type] = value;
+
+    this.setState({
+      monthlyReport: tempMonthlyReport
+    });
+  }
+  /**
+   * Display statistics report content
+   * @method
+   * @returns HTML DOM
+   */  
+  statisticsReportContent = () => {
+    const {locale} = this.context;
+    const {monthlyReport} = this.state;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      <React.Fragment>
+        <div className='group file-name'>
+          <label>{t('txt-name')}:</label>
+          <TextField
+            id='monthlyReportFile'
+            name='fileName'
+            variant='outlined'
+            size='small'
+            value={monthlyReport.fileName}
+            onChange={this.handleMonthlyReportChange.bind(this, 'fileName')} />
+          <div className='extension'>.zip</div>
+        </div>
+        <div className='group date-time'>
+          <label>{t('txt-date')}:</label>
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDatePicker
+              id='monthlyReportDate'
+              className='date-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              value={monthlyReport.date}
+              onChange={this.handleMonthlyReportChange.bind(this, 'date')} />
+          </MuiPickersUtilsProvider>
+        </div>
+      </React.Fragment>
+    )
+  }
+  /**
+   * Handle statistics report modal
+   * @method
+   * @returns ModalDialog component
+   */
+  statisticsReportModal = () => {
+    const {monthlyReport} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleStatisticsReport},
+      confirm: {text: t('txt-confirm'), handler: this.statisticsReportConfirm}
+    };
+
+    return (
+      <ModalDialog
+        id='statisticsReportDialog'
+        className='modal-dialog'
+        title={it('txt-exportStatisticsReport')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={monthlyReport.info}
+        closeAction='cancel'>
+        {this.statisticsReportContent()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle statistics report confirm
+   * @method
+   */
+  statisticsReportConfirm = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {monthlyReport} = this.state;
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
+    const url = `${baseUrl}${contextRoot}/api/soc/monthly/_export`;
+    const requestData = {
+      name: monthlyReport.fileName,
+      startDttm: moment(monthlyReport.date).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      timeZone: utc_offset
+    };
+    let tempMonthlyReport = {...monthlyReport};
+    let validFileName = true;
+
+    if (monthlyReport.fileName === '') {
+      tempMonthlyReport.info = t('txt-fileNameEmpty');
+      validFileName = false;
+    }
+
+    if (monthlyReport.fileName && !FILE_NAME_PATTERN.test(monthlyReport.fileName)) { //Check file name format
+      tempMonthlyReport.info = t('txt-fileNameInvalid');
+      validFileName = false;
+    }
+
+    if (validFileName) {
+      //downloadWithForm(url, {payload: JSON.stringify(requestData)});
+
+      this.toggleStatisticsReport();
+    } else {
+      this.setState({
+        monthlyReport: tempMonthlyReport
+      });
     }
   }
   handleConnectContactChange = (val) => {
@@ -3275,6 +3436,7 @@ class IncidentManagement extends Component {
       accountType,
       relatedListOpen,
       uploadAttachmentOpen,
+      statisticsReportOpen,
       loadListType
     } = this.state;
     let insertCheck = false;
@@ -3337,6 +3499,10 @@ class IncidentManagement extends Component {
           this.uploadAttachmentModal()
         }
 
+        {statisticsReportOpen &&
+          this.statisticsReportModal()
+        }
+
         <Menu
           anchorEl={contextAnchor}
           keepMounted
@@ -3389,6 +3555,7 @@ class IncidentManagement extends Component {
               <div className='main-content'>
                 <header className='main-header'>{it('txt-incident')}</header>
                 <div className='content-header-btns with-menu '>
+                  {/*<Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport}>{it('txt-exportStatisticsReport')}</Button>*/}
                   {activeContent === 'viewIncident' &&
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                   }

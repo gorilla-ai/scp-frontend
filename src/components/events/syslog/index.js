@@ -678,7 +678,7 @@ class SyslogController extends Component {
     }
 
     if (options == 'csv') {
-      const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+      const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
       const utc_offset = timezone._offset / 60; //Convert minute to hour
       dataObj.timeZone = utc_offset;
     }
@@ -2041,7 +2041,7 @@ class SyslogController extends Component {
 
     requestData.columns = tempColumns;
 
-    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
     const utc_offset = timezone._offset / 60; //Convert minute to hour
     requestData.timeZone = utc_offset;
 

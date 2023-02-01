@@ -1735,7 +1735,7 @@ class Syslog extends Component {
   confirmExportCharts = () => {
     const {baseUrl, session} = this.context;
     const {chartExportType, datetimeExport, exportCharts} = this.state;
-    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
     const utc_offset = timezone._offset / 60; //Convert minute to hour
     let startDttm = '';
     let endDttm = '';

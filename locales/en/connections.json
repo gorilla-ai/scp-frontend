@@ -196,6 +196,7 @@
   "txt-minutes": "Minutes",
   "txt-load": "Load",
   "txt-advanced": "Advanced",
+  "txt-fileName": "File Name",
   "txt-viewJSON": "$t(txt-view) JSON",
   "txt-exportCSV": "$t(txt-export) CSV",
   "txt-exportPDF": "$t(txt-export) PDF",
@@ -238,6 +239,8 @@
   "txt-confirmProceed": "Confirm to proceed",
   "txt-confirmTerminate": "Confirm to terminate",
   "txt-addedList": "Added List",
+  "txt-fileNameEmpty": "Please check file name",
+  "txt-fileNameInvalid": "File name can only contain letters, numbers, dash and underscore",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",

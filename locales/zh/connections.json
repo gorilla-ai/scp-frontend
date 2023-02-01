@@ -196,6 +196,7 @@
   "txt-minutes": "分鐘",
   "txt-load": "載入",
   "txt-advanced": "進階",
+  "txt-fileName": "檔案名稱",
   "txt-viewJSON": "$t(txt-view)JSON",
   "txt-exportCSV": "$t(txt-export)CSV",
   "txt-exportPDF": "$t(txt-export)PDF",
@@ -238,6 +239,8 @@
   "txt-confirmProceed": "確認執行",
   "txt-confirmTerminate": "確認停用",
   "txt-addedList": "已選清單",
+  "txt-fileNameEmpty": "請檢查檔案名稱",
+  "txt-fileNameInvalid": "檔案名稱只能包含英文字母，數字，橫槓底線",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
