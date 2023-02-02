@@ -36,14 +36,6 @@ class IncidentEventMake extends Component {
     at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
-      activeContent: 'addIncident', //tableList, viewIncident, editIncident, addIncident
-      displayPage: 'main', /* main, events, ttps */
-      incidentType: '',
-      toggleType: '',
-      showFilter: false,
-      showChart: true,
-      currentIncident: {},
-      originalIncident: {},
       severityList: [],
       deviceListOptions: [],
       attach: null,
@@ -94,9 +86,8 @@ class IncidentEventMake extends Component {
     });
   }
   toggleSteps = (type) => {
-    const { activeSteps, formValidation} = this.state;
+    const {activeSteps} = this.state;
     let tempActiveSteps = activeSteps;
-    let tempFormValidation = {...formValidation};
 
     if (type === 'previous') {
       tempActiveSteps--;
@@ -107,10 +98,6 @@ class IncidentEventMake extends Component {
     } else if (type === 'next') {
       if (activeSteps === 1) {
         let validate = true;
-
-        this.setState({
-          formValidation: tempFormValidation
-        });
 
         if (!validate) {
           return;
@@ -129,7 +116,6 @@ class IncidentEventMake extends Component {
     const {incident, socFlowList, enableEstablishDttm} = this.props;
     const {
       activeSteps,
-      incidentType,
       severityList,
       attach,
       filesName,
@@ -146,7 +132,6 @@ class IncidentEventMake extends Component {
             activeSteps={activeSteps}
             incident={incident}
             severityList={severityList}
-            incidentType={incidentType}
             socFlowList={socFlowList}
             attach={attach}
             filesName={filesName}

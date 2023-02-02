@@ -75,7 +75,7 @@ class IncidentForm extends Component {
 
     if (from === 'soc') {
       return 'form-group normal';
-    } else if (from === 'threats') {
+    } else if (from === 'threats' || from === 'pattern') {
       return 'form-group long';
     }
   }
@@ -85,8 +85,12 @@ class IncidentForm extends Component {
    * @returns CSS property object
    */
   getStyle = () => {
-    if (this.props.from === 'threats') {
+    const {from} = this.props;
+
+    if (from === 'threats') {
       return { width: '85%' };
+    } else if (from === 'pattern') {
+      return { width: '100%' };
     }
   }
   /**
@@ -111,9 +115,14 @@ class IncidentForm extends Component {
     let disabledEstablishDttm = '';
     let dateLocale = locale;
 
-    if (from === 'soc') {
+    if (from === 'soc' || from === 'pattern') {
       establishDttm = incident.info.enableEstablishDttm;
-      disabledEstablishDttm = (activeContent === 'viewIncident' || !incident.info.enableEstablishDttm);
+
+      if (from === 'soc') {
+        disabledEstablishDttm = (activeContent === 'viewIncident' || !incident.info.enableEstablishDttm);
+      } else if (from === 'pattern') {
+        disabledEstablishDttm = (activeContent === 'viewPattern' || !incident.info.enableEstablishDttm);
+      }
     } else if (from === 'threats') {
       establishDttm = enableEstablishDttm;
       disabledEstablishDttm = !enableEstablishDttm;
@@ -135,17 +144,17 @@ class IncidentForm extends Component {
         </header>
 
         {from === 'soc' &&
-          <React.Fragment>
-            <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled={true}>{it('txt-prev-page')}</Button>
-            <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
-          </React.Fragment>  
+          <div className='btn btn-group'>
+            <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled={true}>{it('txt-prev-page')}</Button>
+            <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+          </div>
         }
 
-        {from === 'threats' &&
-          <React.Fragment>
-            <Button id='previousStep' className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
-            <Button id='nextStep' className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
-          </React.Fragment>
+        {(from === 'threats' || from === 'pattern') &&
+          <div className='btn btn-group'>
+            <Button id='previousStep' variant='contained' color='primary' className='left-btn' onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
+            <Button id='nextStep' variant='contained' color='primary' onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
+          </div>
         }
 
         <div className='group full'>
@@ -387,7 +396,7 @@ class IncidentForm extends Component {
    * @returns HTML DOM
    */
   displayNotice = () => {
-    const {activeContent, incidentAccidentList, incidentAccidentSubList, incidentType, incident} = this.props;
+    const {activeContent, incidentAccidentList, incidentAccidentSubList, incident} = this.props;
 
     return (
       <div className={this.getClassName()} style={this.getStyle()}>
@@ -610,7 +619,7 @@ class IncidentForm extends Component {
    * @returns HTML DOM
    */
   displayAttached = () => {
-    const {from, activeContent, incidentType, incident, attach, filesName} = this.props;
+    const {from, activeContent, incident, attach, filesName} = this.props;
     let dataFields = {};
 
     if (from === 'soc') {
@@ -689,9 +698,9 @@ class IncidentForm extends Component {
           }
         </div>
       )
-    } else if (from === 'threats') {
+    } else if (from === 'threats' || from === 'pattern') {
       return (
-        <div className='form-group long' style={{width: '85%'}}>
+        <div className='form-group long' style={this.getStyle()}>
           <header>
             <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em'}}>{it('txt-attachedFileHint')}</span></div>
           </header>
@@ -741,7 +750,7 @@ class IncidentForm extends Component {
    * @returns HTML DOM
    */
   displayFlow = () => {
-    const {activeContent, incidentType, incident} = this.props;
+    const {incident} = this.props;
     let dataFields = {};
 
     incident.flowFieldsArr.forEach(tempData => {
@@ -797,7 +806,7 @@ class IncidentForm extends Component {
         deviceListOptions,
         showDeviceListOptions
       };
-    } else if (from === 'threats') {
+    } else if (from === 'threats' || from === 'pattern') {
       propsData = {
         activeContent,
         locale,
@@ -812,17 +821,17 @@ class IncidentForm extends Component {
         </header>
 
         {from === 'soc' &&
-          <React.Fragment>
-            <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
-            <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentType !== 'ttps'}>{it('txt-next-page')}</Button>
-          </React.Fragment>  
+          <div className='btn btn-group'>
+            <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+            <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentType !== 'ttps'}>{it('txt-next-page')}</Button>
+          </div>
         }
 
-        {from === 'threats' &&
-          <React.Fragment>
-            <Button id='previousStep' className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
-            <Button id='nextStep' className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
-          </React.Fragment>
+        {(from === 'threats' || from === 'pattern') &&
+          <div className='btn btn-group'>
+            <Button id='previousStep' variant='contained' color='primary' className='left-btn' onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
+            <Button id='nextStep' variant='contained' color='primary' onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
+          </div>
         }
 
         <div className='group full multi'>
@@ -862,9 +871,10 @@ class IncidentForm extends Component {
           </div>
         </header>
 
-        <Button className='last-left' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
-
-        <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.props.handleIncidentPageChange.bind(this, 'events')} disabled={true}>{it('txt-next-page')}</Button>
+        <div className='btn btn-group'>
+          <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+          <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')} disabled={true}>{it('txt-next-page')}</Button>
+        </div>
 
         <div className='group full multi'>
           <MultiInput
@@ -918,7 +928,7 @@ class IncidentForm extends Component {
           </div>
         }
 
-        {from === 'threats' &&
+        {(from === 'threats' || from === 'pattern') && 
           <div>
             {activeSteps === 1 &&
               this.displayMain()
@@ -954,7 +964,7 @@ IncidentForm.propTypes = {
   displayPage: PropTypes.string,
   incident: PropTypes.object.isRequired,
   severityList: PropTypes.array.isRequired,
-  incidentType: PropTypes.string.isRequired,
+  incidentType: PropTypes.string,
   socFlowList: PropTypes.array.isRequired,
   attach: PropTypes.array.isRequired,
   filesName: PropTypes.array.isRequired,

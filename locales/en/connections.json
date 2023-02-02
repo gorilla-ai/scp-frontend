@@ -606,6 +606,7 @@
       "txt-addPatternScript": "Custom Alert Query",
       "txt-addSOCScript": "Custom SOC Incident Template",
       "txt-enableSOCScript": "Enable SOC Incident Template",
+      "txt-enableIncidentTemplate": "Enable Incident Template",
       "txt-public": "Public",
       "txt-patternQuery1": "In",
       "txt-patternQuery2": "minutes, alert occurs more than or equal to",

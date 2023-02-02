@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
@@ -15,6 +16,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import IncidentForm from '../../soc/common/incident-form'
 import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -47,6 +49,8 @@ const FORM_VALIDATION = {
 let t = null;
 let f = null;
 let et = null;
+let it = null;
+let at = null;
 
 /**
  * Pattern
@@ -61,16 +65,24 @@ class Pattern extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+    at = global.chewbaccaI18n.getFixedT(null, 'account');    
 
     this.state = {
       activeContent: 'tableList', //'tableList', 'viewPattern', 'addPattern' or 'editPattern'
       showFilter: false,
       patternSearch: _.cloneDeep(PATTERN_SEARCH),
+      activeSteps: 1,
       severitySelected: [],
       originalPatternData: {},
       severityList: [],
+      socFlowList: [],
       periodMinList: [],
       currentPatternData: '',
+      deviceListOptions: [],
+      showDeviceListOptions: [],
+      attach: null,
+      filesName: [],
       pattern: {
         dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
         dataFields: [],
@@ -92,6 +104,44 @@ class Pattern extends Component {
           queryScript: '',
         }
       },
+      incident: {
+        dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+        fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
+        flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: 'createDttm',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: {
+          status: 1,
+          socType: 1
+        }
+      },
+      currentIncident: {},
+      originalIncident: {},
+      enableIncidentTemplate: false,
+      incidentAccidentList: _.map(_.range(1, 6), el => {
+        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+      }),
+      incidentAccidentSubList: [
+        _.map(_.range(11, 17), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(21, 26), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(31, 33), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        }),
+        _.map(_.range(41, 45), el => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        })
+      ],
       formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
@@ -113,12 +163,85 @@ class Pattern extends Component {
    * @method
    */
   setDefaultSearchOptions = () => {
+    const {baseUrl, session} = this.context;
     const severityList = _.map(SEVERITY_TYPE, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
     const periodMinList = _.map(PERIOD_MIN, (val, i) => {
       return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/flow/_search`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    }).then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
+        });
+
+        this.setState({
+          socFlowList: list
+        });
+      }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({use:'1'}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return {
+            value: val.id,
+            text: val.deviceName
+          };
+        });
+
+        this.setState({
+          deviceListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({use:'2'}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return {
+            value: val.id,
+            text: val.deviceName
+          };
+        });
+
+        this.setState({
+          showDeviceListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
 
     this.setState({
       severityList,
@@ -217,7 +340,7 @@ class Pattern extends Component {
    * @param {object} allValue - Severity data
    */
   toggleContent = (type, allValue) => {
-    const {originalPatternData, pattern} = this.state;
+    const {originalPatternData, pattern, incident} = this.state;
     let tempPattern = {...pattern};
     let showPage = type;
 
@@ -248,8 +371,10 @@ class Pattern extends Component {
       });
     } else if (type === 'addPattern') {
       this.setState({
-        showFilter: false
-      });      
+        showFilter: false,
+        originalIncident: _.cloneDeep(incident),
+        enableIncidentTemplate: false
+      });
     } else if (type === 'cancel') {
       showPage = 'viewPattern';
       tempPattern = _.cloneDeep(originalPatternData);
@@ -268,6 +393,32 @@ class Pattern extends Component {
       }
     });
   }
+  toggleSteps = (type) => {
+    const {activeSteps} = this.state;
+    let tempActiveSteps = activeSteps;
+
+    if (type === 'previous') {
+      tempActiveSteps--;
+
+      this.setState({
+        activeSteps: tempActiveSteps
+      });
+    } else if (type === 'next') {
+      if (activeSteps === 1) {
+        let validate = true;
+
+        if (!validate) {
+          return;
+        }
+
+        tempActiveSteps++;
+
+        this.setState({
+          activeSteps: tempActiveSteps
+        });
+      }
+    }
+  }
   /**
    * Handle Pattern edit input data change
    * @method
@@ -282,13 +433,184 @@ class Pattern extends Component {
     });
   }
   /**
-   * Display edit Pattern content
+   * Toggle incident status switch
+   * @method
+   */
+  handleIncidentStatusChange = () => {
+    this.setState({
+      enableIncidentTemplate: !this.state.enableIncidentTemplate
+    });
+  }
+  /**
+   * Handle Incident data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleDataChange = (type, value) => {
+    let temp = {...this.state.incident};
+    temp.info[type] = value;
+
+    if (type === 'impactAssessment') {
+      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+    }
+
+    this.setState({
+      incident: temp
+    });
+  }
+  handleDataChangeMui = (event) => {
+    const {incident, socFlowSourceList} = this.state;
+    const name = event.target.name;
+    const value = event.target.value;
+    let tempIncident = {...incident};
+    tempIncident.info[name] = value;
+
+    if (name === 'severity') {
+      if (value === 'Emergency') {
+        tempIncident.info['impactAssessment'] = 4;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Alert') {
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Notice') {
+        tempIncident.info['impactAssessment'] = 1;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Warning') {
+        tempIncident.info['impactAssessment'] = 2;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Critical') {
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      }
+    }
+
+    if (name === 'flowTemplateId') {
+      _.forEach(socFlowSourceList , flowVal => {
+        if (flowVal.id === value) {
+          if (flowVal.severity === 'Emergency') {
+            tempIncident.info['severity'] = 'Emergency';
+            tempIncident.info['impactAssessment'] = 4;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Alert') {
+            tempIncident.info['severity'] = 'Alert';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Notice') {
+            tempIncident.info['severity'] = 'Notice';
+            tempIncident.info['impactAssessment'] = 1;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Warning') {
+            tempIncident.info['severity'] = 'Warning';
+            tempIncident.info['impactAssessment'] = 2;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Critical') {
+            tempIncident.info['severity'] = 'Critical';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          }
+        }
+      })
+    }
+
+    if (name === 'impactAssessment') {
+      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+    }
+
+    this.setState({
+      incident: tempIncident
+    });
+  }
+  /**
+   * Handle file upload change
+   * @method
+   * @param {string} [options] - option for 'clear'
+   */
+  handleFileChange = (options) => {
+    const input = document.getElementById('multiMalware');
+    let filesName = [];
+
+    if (options === 'clear') {
+      this.setState({
+        attach: null,
+        filesName: ''
+      });
+      return;
+    }
+
+    if (_.size(input.files) > 0) {
+      const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+      let validate = true;
+
+      _.forEach(input.files, val => {
+        if (flag.test(val.name)) {
+          validate = false;
+          helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
+          return;
+        } else if (val.size > 20000000) {
+          validate = false;
+          helper.showPopupMsg(it('file-too-large'), t('txt-error'));
+          return;
+        } else {
+          filesName.push(val.name);
+        }
+      })
+
+      if (!validate) return;
+
+      this.setState({
+        attach: input.files,
+        filesName: filesName.join(', ')
+      });
+    }
+  }
+  handleConnectContactChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.notifyList = val;
+
+    this.setState({
+      incident: temp
+    });
+  }
+  handleEventsChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.eventList = val;
+
+    this.setState({
+      incident: temp
+    });
+  }
+  toggleEstablishDateCheckbox = (event) => {
+    let tempIncident = {...this.state.incident};
+    tempIncident.info.enableEstablishDttm = event.target.checked;
+
+    this.setState({
+      incident: tempIncident
+    });
+  }
+  /**
+   * Display add/edit Pattern content
    * @method
    * @returns HTML DOM
    */
   displayEditPatternContent = () => {
-    const {locale} = this.context;
-    const {activeContent, severityList, periodMinList, pattern, formValidation} = this.state;
+    const {
+      activeContent,
+      activeSteps,
+      severityList,
+      socFlowList,
+      periodMinList,
+      deviceListOptions,
+      showDeviceListOptions,
+      attach,
+      filesName,
+      pattern,
+      incident,
+      enableIncidentTemplate,
+      incidentAccidentList,
+      incidentAccidentSubList,
+      formValidation
+    } = this.state;
     let pageType = '';
 
     if (activeContent === 'addPattern') {
@@ -310,93 +632,130 @@ class Pattern extends Component {
           }
         </div>
 
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
-            {pattern.info.lastUpdateDttm &&
-              <span className='msg'>{t('system-defined-pattern.txt-lastUpdateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
-            }
-          </header>
-          <div className='group'>
-            <TextField
-              id='patternName'
-              name='name'
-              label={f('syslogPatternTableFields.patternName')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!formValidation.name.valid}
-              helperText={formValidation.name.valid ? '' : t('txt-required')}
-              value={pattern.info.name}
-              onChange={this.handleDataChange}
-              disabled={activeContent === 'viewPattern'} />
-          </div>
-          <div className='group severity-level'>
-            <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}></i>
-            <TextField
-              id='severityLevel'
-              name='severity'
-              select
-              label={f('syslogPatternTableFields.severity')}
-              variant='outlined'
-              size='small'
-              value={pattern.info.severity}
-              onChange={this.handleDataChange}
-              disabled={activeContent === 'viewPattern'}>
-              {severityList}
-            </TextField>
-          </div>
-          <div className='group full'>
-            <TextField
-              id='queryScript'
-              name='queryScript'
-              label={f('syslogPatternTableFields.queryScript')}
-              multiline
-              rows={4}
-              maxLength={250}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!formValidation.queryScript.valid}
-              helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
-              value={pattern.info.queryScript}
-              onChange={this.handleDataChange}
-              disabled={activeContent === 'viewPattern'} />
-          </div>
-          <div className='group full'>
-            <div className='period'>
-              <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+        <div style={{height: '70vh', overflowY: 'auto'}}>
+          <div className='form-group normal'>
+            <header>
+              <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
+              {pattern.info.lastUpdateDttm &&
+                <span className='msg'>{t('system-defined-pattern.txt-lastUpdateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
+              }
+            </header>
+            <div className='group'>
               <TextField
-                className='number'
-                name='periodMin'
-                select
+                id='patternName'
+                name='name'
+                label={f('syslogPatternTableFields.patternName')}
                 variant='outlined'
+                fullWidth
                 size='small'
                 required
-                value={pattern.info.periodMin}
-                onChange={this.handleDataChange}
-                disabled={activeContent === 'viewPattern'}>
-                {periodMinList}
-              </TextField>
-              <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
-              <TextField
-                id='threshold'
-                className='number'
-                name='threshold'
-                type='number'
-                variant='outlined'
-                size='small'
-                InputProps={{inputProps: { min: 1, max: 1000 }}}
-                required
-                error={!formValidation.threshold.valid}
-                helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
-                value={pattern.info.threshold}
+                error={!formValidation.name.valid}
+                helperText={formValidation.name.valid ? '' : t('txt-required')}
+                value={pattern.info.name}
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewPattern'} />
-              <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
             </div>
+            <div className='group severity-level'>
+              <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}></i>
+              <TextField
+                id='severityLevel'
+                name='severity'
+                select
+                label={f('syslogPatternTableFields.severity')}
+                variant='outlined'
+                size='small'
+                value={pattern.info.severity}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewPattern'}>
+                {severityList}
+              </TextField>
+            </div>
+            <div className='group full'>
+              <TextField
+                id='queryScript'
+                name='queryScript'
+                label={f('syslogPatternTableFields.queryScript')}
+                multiline
+                rows={4}
+                maxLength={250}
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                error={!formValidation.queryScript.valid}
+                helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
+                value={pattern.info.queryScript}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewPattern'} />
+            </div>
+            <div className='group full'>
+              <div className='period'>
+                <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+                <TextField
+                  className='number'
+                  name='periodMin'
+                  select
+                  variant='outlined'
+                  size='small'
+                  required
+                  value={pattern.info.periodMin}
+                  onChange={this.handleDataChange}
+                  disabled={activeContent === 'viewPattern'}>
+                  {periodMinList}
+                </TextField>
+                <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
+                <TextField
+                  id='threshold'
+                  className='number'
+                  name='threshold'
+                  type='number'
+                  variant='outlined'
+                  size='small'
+                  InputProps={{inputProps: { min: 1, max: 1000 }}}
+                  required
+                  error={!formValidation.threshold.valid}
+                  helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
+                  value={pattern.info.threshold}
+                  onChange={this.handleDataChange}
+                  disabled={activeContent === 'viewPattern'} />
+                <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
+              </div>
+            </div>
+            {/*
+            <FormControlLabel
+              className='switch-control'
+              control={
+                <Switch
+                  checked={enableIncidentTemplate}
+                  onChange={this.handleIncidentStatusChange}
+                  color='primary' />
+              }
+              label={t('events.connections.txt-enableIncidentTemplate')} />
+            */}
+            {enableIncidentTemplate &&
+              <div className='auto-settings'>
+                <IncidentForm
+                  from='pattern'
+                  activeContent={activeContent}
+                  activeSteps={activeSteps}
+                  incident={incident}
+                  severityList={severityList}
+                  socFlowList={socFlowList}
+                  attach={attach}
+                  filesName={filesName}
+                  deviceListOptions={deviceListOptions}
+                  showDeviceListOptions={showDeviceListOptions}
+                  incidentAccidentList={incidentAccidentList}
+                  incidentAccidentSubList={incidentAccidentSubList}
+                  handleDataChange={this.handleDataChange}
+                  handleDataChangeMui={this.handleDataChangeMui}
+                  handleFileChange={this.handleFileChange}
+                  handleConnectContactChange={this.handleConnectContactChange}
+                  handleEventsChange={this.handleEventsChange}
+                  toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox}
+                  toggleSteps={this.toggleSteps} />
+              </div>
+            }
           </div>
         </div>
 

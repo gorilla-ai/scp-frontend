@@ -606,6 +606,7 @@
       "txt-addPatternScript": "定義告警條件",
       "txt-addSOCScript": "定義自動化事件單條件",
       "txt-enableSOCScript": "啟用自動化事件單條件",
+      "txt-enableIncidentTemplate": "事件單範本建立",
       "txt-public": "共用",
       "txt-patternQuery1": "統整",
       "txt-patternQuery2": "分鐘資料，超過或等於",
