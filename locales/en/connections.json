@@ -388,6 +388,10 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-cpePage": "CPE",
+    "txt-dashboard": "Dashboard",
+    "dashboard": {
+      "txt-vulnerabilityList": "Vulnerability List"
+    },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",
     "txt-hostItem": "Host Item",

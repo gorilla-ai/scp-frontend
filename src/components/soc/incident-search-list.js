@@ -484,8 +484,8 @@ class IncidentSearch extends Component {
     });
   }
   displayMainPage = () => {
-    const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
     const {locale} = this.context;
+    const {activeContent, incidentType, incident, severityList, socFlowList} = this.state;
     let dateLocale = locale;
 
     if (locale === 'zh') {
@@ -1031,8 +1031,8 @@ class IncidentSearch extends Component {
     });
   }
   displayEventsPage = () => {
-    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
     const {locale} = this.context;
+    const {incidentType, activeContent, incident, deviceListOptions, showDeviceListOptions} = this.state;
     const now = new Date();
     const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
 
@@ -1265,8 +1265,8 @@ class IncidentSearch extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, search, severityList} = this.state;
     const {locale} = this.context;
+    const {showFilter, search, severityList} = this.state;
     let dateLocale = locale;
 
     if (locale === 'zh') {

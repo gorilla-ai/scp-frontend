@@ -388,6 +388,10 @@
   "host": {
     "txt-hostList": "主機列表",
     "txt-cpePage": "CPE維護",
+    "txt-dashboard": "Dashboard",
+    "dashboard": {
+      "txt-vulnerabilityList": "弱點漏洞清單"
+    },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",
     "txt-hostItem": "主機項目",

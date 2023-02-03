@@ -758,5 +758,13 @@
     "cpe23uri": "Cpe23Uri",
     "productCpename": "Product Name",
     "isMatched": "isMatched"
+  },
+  "hostDashboardFields": {
+    "name": "Name",
+    "severity": "Severity",
+    "cvss": "CVSS",
+    "software": "Related Software",
+    "daysOpen": "Days Open",
+    "devicesCount": "Exposed Devices Count"
   }
 }
