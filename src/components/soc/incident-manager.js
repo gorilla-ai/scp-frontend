@@ -3545,7 +3545,11 @@ class IncidentManagement extends Component {
         </div>
 
         <div className='data-content'>
-          <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
+          <SocConfig
+            baseUrl={baseUrl}
+            contextRoot={contextRoot}
+            session={session}
+            accountType={accountType} />
 
           <div className='parent-content'>
             {this.renderStatistics()}
@@ -3555,7 +3559,7 @@ class IncidentManagement extends Component {
               <div className='main-content'>
                 <header className='main-header'>{it('txt-incident')}</header>
                 <div className='content-header-btns with-menu '>
-                  {/*<Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport}>{it('txt-exportStatisticsReport')}</Button>*/}
+                  {/*<Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport} data-cy='export-statistics-report'>{it('txt-exportStatisticsReport')}</Button>*/}
                   {activeContent === 'viewIncident' &&
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                   }

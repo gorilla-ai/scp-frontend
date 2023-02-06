@@ -104,8 +104,12 @@ class SocConfig extends Component {
     return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   render() {
-    const {accountType} = this.props;
+    const {hidden, accountType} = this.props;
     const {showContent, openIncidentManagement, openConfigManagement} = this.state;
+
+    if (hidden) { //For Cypress testing purpose
+      return null;
+    }
 
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>

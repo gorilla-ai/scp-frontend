@@ -620,7 +620,7 @@ class Pattern extends Component {
     }
 
     return (
-      <div className='main-content basic-form'>
+      <div id='addPatternForm' className='main-content basic-form'>
         <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
         <div className='content-header-btns'>
@@ -721,8 +721,8 @@ class Pattern extends Component {
                 <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
               </div>
             </div>
-            {/*
-            <FormControlLabel
+            {/*<FormControlLabel
+              id='incidentTemplateSwitch'
               className='switch-control'
               control={
                 <Switch
@@ -730,10 +730,9 @@ class Pattern extends Component {
                   onChange={this.handleIncidentStatusChange}
                   color='primary' />
               }
-              label={t('events.connections.txt-enableIncidentTemplate')} />
-            */}
+              label={t('events.connections.txt-enableIncidentTemplate')} />*/}
             {enableIncidentTemplate &&
-              <div className='auto-settings'>
+              <div id='incidentSettingsForm' className='auto-settings'>
                 <IncidentForm
                   from='pattern'
                   activeContent={activeContent}
@@ -1122,7 +1121,7 @@ class Pattern extends Component {
                 <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
                 <div className='content-header-btns with-menu'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('system-defined-pattern.txt-addPatternScript')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')} data-cy='add-pattern'>{t('system-defined-pattern.txt-addPatternScript')}</Button>
                 </div>
 
                 <MuiTableContent
@@ -1146,4 +1145,4 @@ Pattern.contextType = BaseDataContext;
 Pattern.propTypes = {
 };
 
-export default withRouter(Pattern);
+export default Pattern;

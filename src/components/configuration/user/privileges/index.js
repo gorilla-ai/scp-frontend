@@ -253,7 +253,6 @@ class Roles extends Component {
         </div>
         <div className='data-content'>
           <Config
-            hidden={true}
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 

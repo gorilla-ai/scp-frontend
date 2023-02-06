@@ -80,7 +80,7 @@ class HostDashboard extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      showFilter: true,
+      showFilter: false,
       datetime: {
         from: helper.getSubstractDate(1, 'month'),
         to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
