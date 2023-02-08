@@ -76,6 +76,7 @@ class Pattern extends Component {
       severitySelected: [],
       originalPatternData: {},
       severityList: [],
+      socFlowSourceList: [],
       socFlowList: [],
       periodMinList: [],
       currentPatternData: '',
@@ -181,11 +182,14 @@ class Pattern extends Component {
       dataType: 'json'
     }).then(data => {
       if (data) {
+        let flowSourceList = [];
         const list = _.map(data.rt.rows, val => {
+          flowSourceList.push(val);
           return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
         });
 
         this.setState({
+          socFlowSourceList: flowSourceList,
           socFlowList: list
         });
       }
@@ -220,7 +224,7 @@ class Pattern extends Component {
 
     ah.one({
       url: `${baseUrl}/api/soc/device/_search`,
-      data: JSON.stringify({use:'2'}),
+      data: JSON.stringify({use: '2'}),
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json'
@@ -367,21 +371,19 @@ class Pattern extends Component {
 
       this.setState({
         showFilter: false,
-        originalPatternData: _.cloneDeep(tempPattern)
+        originalPatternData: _.cloneDeep(tempPattern),
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'addPattern') {
       this.setState({
         showFilter: false,
         originalIncident: _.cloneDeep(incident),
-        enableIncidentTemplate: false
+        enableIncidentTemplate: false,
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'cancel') {
       showPage = 'viewPattern';
       tempPattern = _.cloneDeep(originalPatternData);
-
-      this.setState({
-        formValidation: _.cloneDeep(FORM_VALIDATION)
-      });
     }
 
     this.setState({
@@ -424,7 +426,7 @@ class Pattern extends Component {
    * @method
    * @param {object} event - event object
    */
-  handleDataChange = (event) => {
+  handlePatternChange = (event) => {
     let tempPattern = {...this.state.pattern};
     tempPattern.info[event.target.name] = event.target.value;
 
@@ -652,7 +654,7 @@ class Pattern extends Component {
                 error={!formValidation.name.valid}
                 helperText={formValidation.name.valid ? '' : t('txt-required')}
                 value={pattern.info.name}
-                onChange={this.handleDataChange}
+                onChange={this.handlePatternChange}
                 disabled={activeContent === 'viewPattern'} />
             </div>
             <div className='group severity-level'>
@@ -665,7 +667,7 @@ class Pattern extends Component {
                 variant='outlined'
                 size='small'
                 value={pattern.info.severity}
-                onChange={this.handleDataChange}
+                onChange={this.handlePatternChange}
                 disabled={activeContent === 'viewPattern'}>
                 {severityList}
               </TextField>
@@ -685,7 +687,7 @@ class Pattern extends Component {
                 error={!formValidation.queryScript.valid}
                 helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
                 value={pattern.info.queryScript}
-                onChange={this.handleDataChange}
+                onChange={this.handlePatternChange}
                 disabled={activeContent === 'viewPattern'} />
             </div>
             <div className='group full'>
@@ -699,7 +701,7 @@ class Pattern extends Component {
                   size='small'
                   required
                   value={pattern.info.periodMin}
-                  onChange={this.handleDataChange}
+                  onChange={this.handlePatternChange}
                   disabled={activeContent === 'viewPattern'}>
                   {periodMinList}
                 </TextField>
@@ -716,7 +718,7 @@ class Pattern extends Component {
                   error={!formValidation.threshold.valid}
                   helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
                   value={pattern.info.threshold}
-                  onChange={this.handleDataChange}
+                  onChange={this.handlePatternChange}
                   disabled={activeContent === 'viewPattern'} />
                 <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
               </div>
