@@ -677,9 +677,12 @@ class IncidentForm extends Component {
           <header>
             <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
           </header>
-          {this.commonUploadContent('page')}
+          {activeContent === 'addIncident' &&
+            this.commonUploadContent('page')
+          }
           {activeContent !== 'addIncident' &&
             <div className='group'>
+              <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.props.toggleUploadAttachment}>{t('txt-upload')}</Button>
               {incident.info.attachmentDescription &&
                 <Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}</Button>
               }
@@ -974,6 +977,7 @@ IncidentForm.propTypes = {
   handleDataChange: PropTypes.func.isRequired,
   handleDataChangeMui: PropTypes.func.isRequired,
   handleFileChange: PropTypes.func.isRequired,
+  toggleUploadAttachment: PropTypes.func,
   handleConnectContactChange: PropTypes.func.isRequired,
   handleIncidentPageChange: PropTypes.func,
   handleEventsChange: PropTypes.func.isRequired,

@@ -561,6 +561,7 @@ class Incident extends Component {
             handleDataChange={this.handleDataChange}
             handleDataChangeMui={this.handleDataChangeMui}
             handleFileChange={this.handleFileChange}
+            toggleUploadAttachment={this.toggleUploadAttachment}
             handleConnectContactChange={this.handleConnectContactChange}
             handleIncidentPageChange={this.handleIncidentPageChange}
             handleEventsChange={this.handleEventsChange}
@@ -682,7 +683,7 @@ class Incident extends Component {
    * Toggle file upload modal
    * @method
    */
-  toggleUploadAttahment = () => {
+  toggleUploadAttachment = () => {
     this.setState({
       uploadAttachmentOpen: !this.state.uploadAttachmentOpen
     }, () => {
@@ -735,7 +736,7 @@ class Incident extends Component {
    */
   uploadAttachmentModal = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadAttahment},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadAttachment},
       confirm: {text: t('txt-confirm'), handler: this.uploadAttachmentConfirm}
     };
 
@@ -783,7 +784,7 @@ class Incident extends Component {
       })
       .then(data => {
         this.refreshIncidentAttach(incident.info.id);
-        this.toggleUploadAttahment();
+        this.toggleUploadAttachment();
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
