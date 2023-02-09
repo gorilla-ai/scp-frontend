@@ -677,9 +677,7 @@ class IncidentForm extends Component {
           <header>
             <div className='text'>{it('txt-attachedFile')}<span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}</span></div>
           </header>
-          {activeContent === 'addIncident' &&
-            this.commonUploadContent('page')
-          }
+          {this.commonUploadContent('page')}
           {activeContent !== 'addIncident' &&
             <div className='group'>
               {incident.info.attachmentDescription &&
