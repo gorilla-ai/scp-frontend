@@ -73,6 +73,7 @@ class Events extends Component {
   render() {
     let {
       activeContent,
+      disabledStatus,
       locale,
       deviceListOptions,
       showDeviceListOptions,
@@ -135,8 +136,8 @@ class Events extends Component {
               value={description}
               required
               error={!(description || '').trim()}
-              helperText={it('txt-required')}
-              disabled={activeContent === 'viewIncident'} />
+              helperText={disabledStatus ? '' : it('txt-required')}
+              disabled={disabledStatus} />
           </div>
           {activeContent === 'viewIncident' &&
             <div className='group'>
@@ -152,9 +153,9 @@ class Events extends Component {
                 onChange={this.handleDataChangeMui}
                 value={deviceId}
                 required
-                helperText={it('txt-required')}
+                helperText={disabledStatus ? '' : it('txt-required')}
                 error={!(deviceId || '').trim()}
-                disabled={activeContent === 'viewIncident'}>
+                disabled={disabledStatus}>
                 {
                   _.map(showDeviceListOptions, el => {
                     return <MenuItem value={el.value}>{el.text}</MenuItem>
@@ -171,7 +172,7 @@ class Events extends Component {
                 id='deviceId'
                 name='deviceId'
                 required
-                helperText={it('txt-required')}
+                helperText={disabledStatus ? '' : it('txt-required')}
                 variant='outlined'
                 fullWidth={true}
                 size='small'
@@ -180,13 +181,13 @@ class Events extends Component {
                 onChange={this.onUnitChange}
                 value={deviceObj}
                 getOptionLabel={(option) => option.text}
-                disabled={activeContent === 'viewIncident'}
+                disabled={disabledStatus}
                 renderInput={(params) =>
                   <TextField
                     {...params}
                     required
                     error={!(deviceId || '').trim()}
-                    helperText={it('txt-required')}
+                    helperText={disabledStatus ? '' : it('txt-required')}
                     variant='outlined'
                     fullWidth={true}
                     size='small'
@@ -208,7 +209,7 @@ class Events extends Component {
                 format='YYYY-MM-DD HH:mm'
                 ampm={false}
                 value={time.from}
-                readOnly={activeContent === 'viewIncident' }
+                readOnly={disabledStatus }
                 onChange={this.handleDataChange.bind(this, 'from')} />
               <div className='between'>~</div>
               <KeyboardDateTimePicker
@@ -219,7 +220,7 @@ class Events extends Component {
                 format='YYYY-MM-DD HH:mm'
                 ampm={false}
                 value={time.to}
-                readOnly={activeContent === 'viewIncident' }
+                readOnly={disabledStatus }
                 onChange={this.handleDataChange.bind(this, 'to')} />
             </MuiPickersUtilsProvider>
           </div>
@@ -235,8 +236,8 @@ class Events extends Component {
               value={frequency}
               required
               error={!(frequency || 0)}
-              helperText={it('txt-required')}
-              disabled={activeContent === 'viewIncident'}/>
+              helperText={disabledStatus ? '' : it('txt-required')}
+              disabled={disabledStatus}/>
           </div>
         </div>
         <div className='line'>
@@ -244,11 +245,20 @@ class Events extends Component {
             id='eventConnections'
             className='event-connection-group'
             base={EventConnections}
-            defaultItemValue={{srcIp:'', srcPort:'', srcHostname:'', dstIp:'', dstPort:'', dstHostname:''}}
+            defaultItemValue={{
+              srcIp: '',
+              srcPort: '',
+              srcHostname: '',
+              dstIp: '',
+              dstPort: '',
+              dstHostname: ''
+            }}
             value={eventConnectionList}
-            props={{activeContent: activeContent}}
+            props={{
+              disabledStatus
+            }}
             onChange={this.handleEventsChange}
-            readOnly={activeContent === 'viewIncident'} />
+            readOnly={disabledStatus} />
         </div>
       </div>
     )

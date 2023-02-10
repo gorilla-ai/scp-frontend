@@ -119,13 +119,14 @@ class Pattern extends Component {
         currentPage: 1,
         pageSize: 20,
         info: {
+          severity: 'Emergency',
           status: 1,
           socType: 1
         }
       },
       currentIncident: {},
       originalIncident: {},
-      enableIncidentTemplate: false,
+      enableIncidentTemplate: true,
       incidentAccidentList: _.map(_.range(1, 6), el => {
         return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
       }),
@@ -371,12 +372,14 @@ class Pattern extends Component {
 
       this.setState({
         showFilter: false,
+        activeSteps: 1,
         originalPatternData: _.cloneDeep(tempPattern),
         formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'addPattern') {
       this.setState({
         showFilter: false,
+        activeSteps: 1,
         originalIncident: _.cloneDeep(incident),
         enableIncidentTemplate: false,
         formValidation: _.cloneDeep(FORM_VALIDATION)
@@ -723,7 +726,7 @@ class Pattern extends Component {
                 <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
               </div>
             </div>
-            {/*<FormControlLabel
+            <FormControlLabel
               id='incidentTemplateSwitch'
               className='switch-control'
               control={
@@ -732,7 +735,7 @@ class Pattern extends Component {
                   onChange={this.handleIncidentStatusChange}
                   color='primary' />
               }
-              label={t('events.connections.txt-enableIncidentTemplate')} />*/}
+              label={t('events.connections.txt-enableIncidentTemplate')} />
             {enableIncidentTemplate &&
               <div id='incidentSettingsForm' className='auto-settings'>
                 <IncidentForm
@@ -1112,6 +1115,7 @@ class Pattern extends Component {
 
         <div className='data-content'>
           <Config
+            hidden={true}
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 

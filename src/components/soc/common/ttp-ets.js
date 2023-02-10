@@ -34,7 +34,7 @@ class TtpEts extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {activeContent, value: {cveId, description}} = this.props;
+    const {disabledStatus, value: {cveId, description}} = this.props;
 
     return (
       <div className='event-content'>
@@ -45,11 +45,11 @@ class TtpEts extends Component {
               id='cveId'
               name='cveId'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={cveId}
-              disabled={activeContent === 'viewIncident'} />
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
             </div>
             <div className='group'>
               <label htmlFor='description'>{f('incidentFields.etsDescription')}</label>
@@ -57,11 +57,11 @@ class TtpEts extends Component {
                 id='description'
                 name='description'
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
-                onChange={this.handleDataChangeMui}
                 value={description}
-                disabled={activeContent === 'viewIncident'} />
+                onChange={this.handleDataChangeMui}
+                disabled={disabledStatus} />
             </div>
           </div>
       </div>

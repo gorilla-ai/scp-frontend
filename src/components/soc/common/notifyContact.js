@@ -31,7 +31,7 @@ class NotifyContact extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {activeContent, locale, value: {title, name, phone, email}} = this.props;
+    const {disabledStatus, locale, value: {title, name, phone, email}} = this.props;
     const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
     return (
@@ -48,7 +48,7 @@ class NotifyContact extends Component {
               size='small'
               onChange={this.handleDataChangeMui}
               value={title}
-              disabled={activeContent === 'viewIncident'} />
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='name'>{f('incidentFields.reviewerName')}</label>
@@ -61,7 +61,7 @@ class NotifyContact extends Component {
               size='small'
               onChange={this.handleDataChangeMui}
               value={name}
-              disabled={activeContent === 'viewIncident'} />
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='phone'>{f('incidentFields.phone')}</label>
@@ -74,7 +74,7 @@ class NotifyContact extends Component {
               size='small'
               onChange={this.handleDataChangeMui}
               value={phone}
-              disabled={activeContent === 'viewIncident'} />
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='email'>{f('incidentFields.email')}</label>
@@ -89,7 +89,7 @@ class NotifyContact extends Component {
               value={email}
               helperText={emailPattern.test(email) ? '' : it('txt-checkRequiredFieldType')}
               error={email === '' ? false:!emailPattern.test(email)}
-              disabled={activeContent === 'viewIncident'}>
+              disabled={disabledStatus}>
             </TextField>
           </div>
         </div>
