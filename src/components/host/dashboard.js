@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import moment from 'moment'
 import cx from 'classnames'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
@@ -18,50 +17,18 @@ import MuiTableContent from '../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const SEVERITY_TYPE = ['HIGH', 'MEDIUM', 'LOW'];
 const ALERT_LEVEL_COLORS = {
-  Emergency: '#CC2943',
-  Alert: '#CC7B29',
-  Critical: '#29B0CC',
-  Warning: '#29CC7A',
-  Notice: '#7ACC29'
+  HIGH: '#CC2943',
+  MEDIUM: '#CC7B29',
+  LOW: '#7ACC29'
 };
-const AUDIT_SEARCH = {
-  name: '',
+const CVE_SEARCH = {
+  cveId: '',
   cvss: '',
-  severity: [],
-  software: ''
+  relatedSoftware: '',
+  severity: []
 };
-
-const MOCK_DATA = [
-  {
-    id: 1,
-    name: 'CVE-2020-29123',
-    severity: 'Alert',
-    cvss: '6.5',
-    software: 'Microsoft Windows Server 2012',
-    daysOpen: '15',
-    devicesCount: '250'
-  },
-  {
-    id: 2,
-    name: 'CVE-2020-29125',
-    severity: 'Emergency',
-    cvss: '6.5',
-    software: 'Linux 2012',
-    daysOpen: '20',
-    devicesCount: '150'
-  },
-  {
-    id: 3,
-    name: 'CVE-2020-30513',
-    severity: 'Warning',
-    cvss: '8.5',
-    software: 'Microsoft Windows 2012',
-    daysOpen: '5',
-    devicesCount: '200'
-  }
-];
 
 let t = null;
 let f = null;
@@ -81,17 +48,13 @@ class HostDashboard extends Component {
 
     this.state = {
       showFilter: false,
-      datetime: {
-        from: helper.getSubstractDate(1, 'month'),
-        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      },
-      auditSearch: _.cloneDeep(AUDIT_SEARCH),
-      audit: {
-        dataFieldsArr: ['name', 'severity', 'cvss', 'software', 'daysOpen', 'devicesCount'],
+      cveSearch: _.cloneDeep(CVE_SEARCH),
+      cveData: {
+        dataFieldsArr: ['cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {
-          field: 'createDttm',
+          field: 'severity',
           desc: true
         },
         totalCount: 0,
@@ -108,7 +71,7 @@ class HostDashboard extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
 
-    this.getAuditData();
+    this.getCveData();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -118,22 +81,16 @@ class HostDashboard extends Component {
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getAuditData = (fromPage) => {
+  getCveData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {datetime, auditSearch, audit} = this.state;
-    const page = fromPage === 'currentPage' ? audit.currentPage : 0;
-    const url = `${baseUrl}/api/auditLog/system?page=${page + 1}&pageSize=${audit.pageSize}`;
-    const dateTime = {
-      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
-    let requestData = {
-      startDttm: dateTime.from,
-      endDttm: dateTime.to
-    };
+    const {cveSearch, cveData} = this.state;
+    const sort = cveData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? cveData.currentPage : 0;
+    const url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}&orders=${cveData.sort.field} ${sort}`;
+    let requestData = {};
 
-    if (auditSearch.keyword) {
-      requestData.keyword = auditSearch.keyword;
+    if (cveSearch.keyword) {
+      requestData.keyword = cveSearch.keyword;
     }
 
     this.ah.one({
@@ -144,34 +101,34 @@ class HostDashboard extends Component {
     })
     .then(data => {
       if (data) {
-        let tempAudit = {...audit};
+        let tempCveData = {...cveData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempAudit.dataContent = [];
-          tempAudit.totalCount = 0;
+          tempCveData.dataContent = [];
+          tempCveData.totalCount = 0;
 
           this.setState({
-            audit: tempAudit
+            cveData: tempCveData
           });
           return null;
-        }
+        }       
 
-        tempAudit.totalCount = data.counts;
-        tempAudit.currentPage = page;
-        tempAudit.dataContent = MOCK_DATA;
-        tempAudit.dataFields = _.map(audit.dataFieldsArr, val => {
+        tempCveData.dataContent = data.rows;
+        tempCveData.totalCount = data.count;
+        tempCveData.currentPage = page;
+        tempCveData.dataFields = _.map(cveData.dataFieldsArr, val => {
           return {
             name: val,
             label: f('hostDashboardFields.' + val),
             options: {
               filter: true,
-              sort: false,
+              sort: true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempAudit.dataContent[dataIndex];
-                const value = tempAudit.dataContent[dataIndex][val];
+                const allValue = tempCveData.dataContent[dataIndex];
+                const value = tempCveData.dataContent[dataIndex][val];
 
-                if (val === 'severity') {
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+                if (val === 'severity' && value) {
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
                 } else {
                   return value;
                 }
@@ -181,7 +138,7 @@ class HostDashboard extends Component {
         });
 
         this.setState({
-          audit: tempAudit
+          cveData: tempCveData
         });
       }
       return null;
@@ -197,14 +154,20 @@ class HostDashboard extends Component {
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (field, sort) => {
-    let tempAudit = {...this.state.audit};
-    tempAudit.sort.field = field;
-    tempAudit.sort.desc = sort;
+    let tempCveData = {...this.state.cveData};
+    let tableField = field;
+
+    if (field === 'cveId') {
+      tableField = 'cve_id';
+    }
+
+    tempCveData.sort.field = tableField;
+    tempCveData.sort.desc = sort;
 
     this.setState({
-      audit: tempAudit
+      cveData: tempCveData
     }, () => {
-      this.getAuditData();
+      this.getCveData();
     });
   }
   /**
@@ -214,13 +177,13 @@ class HostDashboard extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    let tempAudit = {...this.state.audit};
-    tempAudit[type] = value;
+    let tempCveData = {...this.state.cveData};
+    tempCveData[type] = value;
 
     this.setState({
-      audit: tempAudit
+      cveData: tempCveData
     }, () => {
-      this.getAuditData(type);
+      this.getCveData(type);
     });
   }
   /**
@@ -237,12 +200,12 @@ class HostDashboard extends Component {
    * @method
    * @param {object} event - event object
    */
-  handleAuditSearch = (event) => {
-    let tempAuditSearch = {...this.state.auditSearch};
-    tempAuditSearch[event.target.name] = event.target.value;
+  handleCveSearch = (event) => {
+    let tempCveSearch = {...this.state.cveSearch};
+    tempCveSearch[event.target.name] = event.target.value;
 
     this.setState({
-      auditSearch: tempAuditSearch
+      cveSearch: tempCveSearch
     });
   }
   /**
@@ -250,15 +213,15 @@ class HostDashboard extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    let tempAudit = {...this.state.audit};
-    tempAudit.dataContent = [];
-    tempAudit.totalCount = 0;
-    tempAudit.currentPage = 1;
+    let tempCveData = {...this.state.cveData};
+    tempCveData.dataContent = [];
+    tempCveData.totalCount = 0;
+    tempCveData.currentPage = 1;
 
     this.setState({
-      audit: tempAudit
+      cveData: tempCveData
     }, () => {
-      this.getAuditData();
+      this.getCveData();
     });
   }
   /**
@@ -268,11 +231,11 @@ class HostDashboard extends Component {
    * @param {array.<object>} value - selected input value
    */
   handleComboBoxChange = (event, value) => {
-    let tempAuditSearch = {...this.state.auditSearch};
-    tempAuditSearch.severity = value;
+    let tempCveSearch = {...this.state.cveSearch};
+    tempCveSearch.severity = value;
 
     this.setState({
-      auditSearch: tempAuditSearch
+      cveSearch: tempCveSearch
     });
   }
   /**
@@ -281,7 +244,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, auditSearch} = this.state;
+    const {showFilter, cveSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -290,42 +253,42 @@ class HostDashboard extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <TextField
-              id='auditSearchName'
-              name='name'
-              label={f('hostDashboardFields.name')}
+              id='cveSearchId'
+              name='cveId'
+              label={f('hostDashboardFields.cveId')}
               variant='outlined'
               fullWidth
               size='small'
-              value={auditSearch.name}
-              onChange={this.handleAuditSearch} />
+              value={cveSearch.cveId}
+              onChange={this.handleCveSearch} />
           </div>
           <div className='group'>
             <TextField
-              id='auditSearchCVSS'
+              id='cveSearchCVSS'
               name='cvss'
               label={f('hostDashboardFields.cvss')}
               variant='outlined'
               fullWidth
               size='small'
-              value={auditSearch.cvss}
-              onChange={this.handleAuditSearch} />
+              value={cveSearch.cvss}
+              onChange={this.handleCveSearch} />
           </div>
           <div className='group'>
             <TextField
-              id='auditSearchSoftware'
-              name='software'
-              label={f('hostDashboardFields.software')}
+              id='cveSearchSoftware'
+              name='relatedSoftware'
+              label={f('hostDashboardFields.relatedSoftware')}
               variant='outlined'
               fullWidth
               size='small'
-              value={auditSearch.software}
-              onChange={this.handleAuditSearch} />
+              value={cveSearch.relatedSoftware}
+              onChange={this.handleCveSearch} />
           </div>
           <div className='group' style={{width: '300px'}}>
             <Autocomplete
               className='combo-box checkboxes-tags'
               multiple
-              value={auditSearch.severity}
+              value={cveSearch.severity}
               options={_.map(SEVERITY_TYPE, (val) => { return { value: val } })}
               getOptionLabel={(option) => option.value}
               disableCloseOnSelect
@@ -365,12 +328,12 @@ class HostDashboard extends Component {
    */
   clearFilter = () => {
     this.setState({
-      auditSearch: _.cloneDeep(AUDIT_SEARCH)
+      cveSearch: _.cloneDeep(CVE_SEARCH)
     });
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, datetime, audit} = this.state;
+    const {showFilter, cveData} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -388,7 +351,7 @@ class HostDashboard extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-            <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
@@ -403,7 +366,7 @@ class HostDashboard extends Component {
               </div>
 
               <MuiTableContent
-                data={audit}
+                data={cveData}
                 tableOptions={tableOptions} />
             </div>
           </div>

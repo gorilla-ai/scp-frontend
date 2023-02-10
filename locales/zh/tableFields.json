@@ -760,11 +760,11 @@
     "isMatched": "isMatched"
   },
   "hostDashboardFields": {
-    "name": "Name",
+    "cveId": "Name",
     "severity": "Severity",
     "cvss": "CVSS",
-    "software": "Related Software",
+    "relatedSoftware": "Related Software",
     "daysOpen": "Days Open",
-    "devicesCount": "Exposed Devices Count"
+    "exposedDevices": "Exposed Devices Count"
   }
 }
