@@ -214,17 +214,16 @@ class IncidentReport extends Component {
               <div className='form-group normal long'>
                 <header>{it('txt-monthlyReport')}</header>
                 <div className='group'>
-                  <label>{t('txt-date')}:</label>
+                  <label>{t('txt-yearMonth')}:</label>
                   <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                     <KeyboardDatePicker
                       id='incidentReportMonthly'
                       className='date-picker'
                       inputVariant='outlined'
-                      variant='inline'
-                      format='YYYY-MM-DD'
+                      openTo='year'
+                      views={['year', 'month']}
+                      format='YYYY / MM'
                       invalidDateMessage={t('txt-invalidDateMessage')}
-                      maxDateMessage={t('txt-maxDateMessage')}
-                      minDateMessage={t('txt-minDateMessage')}
                       value={monthlyReportDate}
                       onChange={this.handleMonthlyDateChange} />
                   </MuiPickersUtilsProvider>
