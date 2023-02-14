@@ -1217,10 +1217,10 @@ class IncidentManagement extends Component {
     return (
       <React.Fragment>
         <div className='group file-name'>
-          <label>{t('txt-name')}:</label>
           <TextField
             id='monthlyReportFile'
             name='fileName'
+            label={t('txt-fileName')}
             variant='outlined'
             size='small'
             value={monthlyReport.fileName}
@@ -1228,15 +1228,15 @@ class IncidentManagement extends Component {
           <div className='extension'>.zip</div>
         </div>
         <div className='group date-time'>
-          <label>{t('txt-date')}:</label>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
             <KeyboardDatePicker
               id='monthlyReportDate'
               className='date-picker'
+              label={t('txt-date')}
               inputVariant='outlined'
               openTo='year'
               views={['year', 'month']}
-              format='YYYY / MM'
+              format='YYYY-MM'
               invalidDateMessage={t('txt-invalidDateMessage')}
               value={monthlyReport.date}
               onChange={this.handleMonthlyReportChange.bind(this, 'date')} />
