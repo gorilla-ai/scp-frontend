@@ -1234,11 +1234,10 @@ class IncidentManagement extends Component {
               id='monthlyReportDate'
               className='date-picker'
               inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD'
+              openTo='year'
+              views={['year', 'month']}
+              format='YYYY / MM'
               invalidDateMessage={t('txt-invalidDateMessage')}
-              maxDateMessage={t('txt-maxDateMessage')}
-              minDateMessage={t('txt-minDateMessage')}
               value={monthlyReport.date}
               onChange={this.handleMonthlyReportChange.bind(this, 'date')} />
           </MuiPickersUtilsProvider>
@@ -3561,7 +3560,7 @@ class IncidentManagement extends Component {
               <div className='main-content'>
                 <header className='main-header'>{it('txt-incident')}</header>
                 <div className='content-header-btns with-menu '>
-                  {/*<Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport} data-cy='export-statistics-report'>{it('txt-exportStatisticsReport')}</Button>*/}
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport} data-cy='export-statistics-report'>{it('txt-exportStatisticsReport')}</Button>
                   {activeContent === 'viewIncident' &&
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                   }
