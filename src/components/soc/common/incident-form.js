@@ -549,7 +549,7 @@ class IncidentForm extends Component {
    */
   deleteAttachment = (allValue) => {
     const {baseUrl} = this.context;
-    let {incident} = this.state;
+    let {incident} = this.props;
 
     PopupDialog.prompt({
       title: t('txt-delete'),
