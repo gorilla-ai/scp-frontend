@@ -2059,21 +2059,22 @@ html[data-theme='dark'] {
     .top-group {
       overflow: hidden;
       padding-top: 6px;
-      margin-bottom: 15px;
       .severity-level {
         float: left;
-        width: 79%;
-        margin-right: 10px;
+        width: 100%;
+        margin-bottom: 20px;
         .fg-recode {
           float: left;
-          width: 8%;
-          margin-right: 5px;
+          margin-right: 10px;
           margin-top: 5px;
         }
         .severity-dropdown {
           float: left;
-          width: 40%;
-          margin-right: 10px;
+          width: 93%;
+          &.with-pattern {
+            width: 40%;
+            margin-right: 10px;
+          }
         }
         .add-column {
           float: left;
@@ -2087,10 +2088,14 @@ html[data-theme='dark'] {
         margin-left: -5px;
       }
     }
+    .other-field {
+      width: 100%;
+      margin: 20px 0;
+    }
     .period {
       color: var(--primaryContentHeader);
-      margin-top: 10px;
-      margin-bottom: 15px;
+      margin-top: 5px;
+      margin-bottom: 5px;
       .support-text {
         display: inline-block;
         margin-top: 10px;

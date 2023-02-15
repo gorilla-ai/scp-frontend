@@ -1512,6 +1512,8 @@ class QueryOpenSave extends Component {
                 disabled={disabledStatus}>
                 {severityList}
               </TextField>
+            </div>
+            <div className='other-field'>
               <TextField
                 className='add-column'
                 name='aggColumn'
@@ -1633,29 +1635,29 @@ class QueryOpenSave extends Component {
                     {severityList}
                   </TextField>
                 </div>
-                <TextField
-                  style={{width: '22%'}}
-                  id='impact'
-                  name='impact'
-                  variant='outlined'
-                  fullWidth={true}
-                  size='small'
-                  onChange={this.handleSeverityWithSOCChange}
-                  required
-                  select
-                  label={f('incidentFields.impactAssessment')}
-                  value={soc.impact}
-                  disabled={true}>
-                  {
-                    _.map(_.range(1, 5), el => {
-                      return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
-                    })
-                  }
-                </TextField>
+                <div className='other-field'>
+                  <TextField
+                    id='impact'
+                    name='impact'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleSeverityWithSOCChange}
+                    required
+                    select
+                    label={f('incidentFields.impactAssessment')}
+                    value={soc.impact}
+                    disabled={true}>
+                    {
+                      _.map(_.range(1, 5), el => {
+                        return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                      })
+                    }
+                  </TextField>
+                </div>
               </div>
               <div className='top-group' >
                 <TextField
-                  style={{width: '100%'}}
                   id='category'
                   name='category'
                   variant='outlined'
@@ -1676,7 +1678,6 @@ class QueryOpenSave extends Component {
               </div>
               <div className='top-group' >
                 <FormControlLabel
-                  style={{width: '100%'}}
                   label={t('events.connections.txt-enableSOCScript')}
                   className='soc-script'
                   control={
@@ -1689,7 +1690,7 @@ class QueryOpenSave extends Component {
               <div className='period'>
                 <span className='support-text'>{t('events.connections.txt-socQuery1')}</span>
                 <TextField
-                  style={{width: '40%'}}
+                  style={{width: '20%'}}
                   name='limitQuery'
                   variant='outlined'
                   size='small'
@@ -1700,11 +1701,11 @@ class QueryOpenSave extends Component {
                 </TextField>
                 <span className='support-text'>{t('events.connections.txt-socQuery2')}</span>
               </div>
-              <div className='top-group' style={{width: '100%'}}>
+              <div className='other-field'>
                 <TextField
-                  style={{width: '100%'}}
                   name='title'
                   variant='outlined'
+                  fullWidth
                   size='small'
                   required
                   label={f('incidentFields.title')}
@@ -1715,11 +1716,11 @@ class QueryOpenSave extends Component {
                   disabled={patternCheckboxDisabled}>
                 </TextField>
               </div>
-              <div className='top-group'  style={{width: '100%'}}>
+              <div className='other-field'>
                 <TextField
-                  style={{width: '100%'}}
                   name='eventDescription'
                   variant='outlined'
+                  fullWidth
                   size='small'
                   required
                   label={f('incidentFields.rule')}
@@ -1771,105 +1772,104 @@ class QueryOpenSave extends Component {
           disabled={disabledStatus} />
 
         {tempSocTemplateEnable &&
-        <div className='group severity-section'>
-          <div className='top-group'>
-            <div className='severity-level' style={{width: '63%'}}>
+          <div className='group severity-section' style={{paddingTop: 0}}>
+            <div className='top-group'>
+              <div className='other-field'>
+                <TextField
+                  id='category'
+                  name='category'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  onChange={this.handleSeverityWithSOCChange}
+                  required
+                  select
+                  label={f('incidentFields.category')}
+                  value={soc.category}
+                  disabled={disabledStatus}>
+                  {
+                    _.map(_.range(0, 20), el => {
+                      return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                    })
+                  }
+                </TextField>
+              </div>
+              <div className='other-field'>
+                <TextField
+                  id='impact'
+                  name='impact'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  onChange={this.handleSeverityWithSOCChange}
+                  required
+                  select
+                  label={f('incidentFields.impactAssessment')}
+                  value={soc.impact}
+                  disabled={true}>
+                  {
+                    _.map(_.range(1, 5), el => {
+                      return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                    })
+                  }
+                </TextField>
+              </div>
+            </div>
+            <div className='period'>
+              <span className='support-text'>{t('events.connections.txt-socQuery1')}</span>
               <TextField
-                className='severity-dropdown'
-                id='category'
-                name='category'
+                style={{width: '20%'}}
+                name='limitQuery'
                 variant='outlined'
-                fullWidth={true}
                 size='small'
-                onChange={this.handleSeverityWithSOCChange}
                 required
-                select
-                label={f('incidentFields.category')}
-                value={soc.category}
-                disabled={disabledStatus}>
-                {
-                  _.map(_.range(0, 20), el => {
-                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                  })
+                value={soc.limitQuery}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={true}>
+              </TextField>
+              <span className='support-text'>{t('events.connections.txt-socQuery2')}</span>
+            </div>
+            <div className='top-group'>
+              <FormControlLabel
+                label={t('events.connections.txt-enableSOCScript')}
+                control={
+                  <Switch
+                    checked={soc.status}
+                    color='primary' />
                 }
+                disabled={true} />
+            </div>
+            <div className='other-field'>
+              <TextField
+                name='title'
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                label={f('incidentFields.title')}
+                value={soc.title}
+                error={!formValidation.title.valid}
+                helperText={formValidation.title.msg}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={disabledStatus}>
               </TextField>
             </div>
-            <TextField
-              style={{width: '30%'}}
-              id='impact'
-              name='impact'
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleSeverityWithSOCChange}
-              required
-              select
-              label={f('incidentFields.impactAssessment')}
-              value={soc.impact}
-              disabled={true}>
-              {
-                _.map(_.range(1, 5), el => {
-                  return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
-                })
-              }
-            </TextField>
+            <div className='other-field'>
+              <TextField
+                name='eventDescription'
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                label={f('incidentFields.rule')}
+                value={soc.eventDescription}
+                error={!formValidation.eventDescription.valid}
+                helperText={formValidation.eventDescription.msg}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={disabledStatus}>
+              </TextField>
+            </div>
           </div>
-          <div className='period'>
-            <span className='support-text'>{t('events.connections.txt-socQuery1')}</span>
-            <TextField
-              style={{width: '40%'}}
-              name='limitQuery'
-              variant='outlined'
-              size='small'
-              required
-              value={soc.limitQuery}
-              onChange={this.handleSeverityWithSOCChange}
-              disabled={true}>
-            </TextField>
-            <span className='support-text'>{t('events.connections.txt-socQuery2')}</span>
-          </div>
-          <div className='top-group' style={{width: '100%'}}>
-            <FormControlLabel
-              style={{width: '100%'}}
-              label={t('events.connections.txt-enableSOCScript')}
-              control={
-                <Switch
-                  checked={soc.status}
-                  color='primary' />
-              }
-              disabled={true} />
-          </div>
-          <div className='top-group' style={{width: '100%'}}>
-            <TextField
-              style={{width: '100%'}}
-              name='title'
-              variant='outlined'
-              size='small'
-              required
-              label={f('incidentFields.title')}
-              value={soc.title}
-              error={!formValidation.title.valid}
-              helperText={formValidation.title.msg}
-              onChange={this.handleSeverityWithSOCChange}
-              disabled={disabledStatus}>
-            </TextField>
-          </div>
-          <div className='top-group' style={{width: '100%'}}>
-            <TextField
-              style={{width: '100%'}}
-              name='eventDescription'
-              variant='outlined'
-              size='small'
-              required
-              label={f('incidentFields.rule')}
-              value={soc.eventDescription}
-              error={!formValidation.eventDescription.valid}
-              helperText={formValidation.eventDescription.msg}
-              onChange={this.handleSeverityWithSOCChange}
-              disabled={disabledStatus}>
-            </TextField>
-          </div>
-        </div>
         }
       </div>
     )
