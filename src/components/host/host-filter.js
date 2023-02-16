@@ -4,8 +4,8 @@ import _ from 'lodash'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import MenuItem from '@material-ui/core/MenuItem'
-import TextField from '@material-ui/core/TextField'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
 
 let t = null;
 

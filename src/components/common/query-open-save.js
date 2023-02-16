@@ -738,7 +738,7 @@ class QueryOpenSave extends Component {
                       title: '',
                       eventDescription: '',
                       impact: 4,
-                      category: 1,
+                      category: 1
                     }
                   });
                 })
@@ -757,7 +757,7 @@ class QueryOpenSave extends Component {
               title: '',
               eventDescription: '',
               impact: 4,
-              category: 1,
+              category: 1
             }
           });
 

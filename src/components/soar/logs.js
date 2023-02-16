@@ -2,9 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import MenuItem from '@material-ui/core/MenuItem'
-import TextField from '@material-ui/core/TextField'
-import TextareaAutosize from "@material-ui/core/TextareaAutosize";
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
 /**
  * SOAR Logs page

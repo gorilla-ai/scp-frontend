@@ -64,7 +64,7 @@ class FilterInput extends Component {
       return (
         <div className='filter-section'>
           <MultiInput
-            className='filter-warp'
+            className='filter-wrap'
             base={SearchFilter}
             inline={inline}
             props={data}

@@ -2264,7 +2264,7 @@ class SyslogController extends Component {
         setNotifyEmailData={this.setNotifyEmailData}
         getSavedQuery={this.getSavedQuery}
         getPublicSavedQuery={this.getPublicSavedQuery}
-        closeDialog={this.closeDialog}/>
+        closeDialog={this.closeDialog} />
     )
   }
   /**

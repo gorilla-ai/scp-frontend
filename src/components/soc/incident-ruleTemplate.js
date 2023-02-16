@@ -516,15 +516,11 @@ class IncidentRuleTemplate extends Component {
   displayMarkSearch = (value, index) => {
     return (
       <FilterInput
-        key={index}
-        activeTab={'SOC'}
-        logFields={''}
         queryType='query'
         filterData={[{
           condition: value.condition,
           query: value.query
-        }]}
-        inline={false} />
+        }]} />
     )
   }
   displayEditContent = () => {
@@ -550,243 +546,245 @@ class IncidentRuleTemplate extends Component {
           }
         </div>
 
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{it('txt-soc-filter')}</div>
-          </header>
-          <div className='group'>
-            <TextField
-              id='patternName'
-              name='name'
-              label={f('incidentFields.accountQueryDTO.name')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              value={incidentRule.info.accountQueryDTO.name}
-              disabled={true}/>
-          </div>
-          <div className='group'>
-            <TextField
-              id='patternName'
-              name='name'
-              label={f('incidentFields.accountQueryDTO.module')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              value={incidentRule.info.accountQueryDTO.module}
-              disabled={true}/>
-          </div>
-        </div>
-
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{it('txt-soc-filter-input')}</div>
-          </header>
-          <div className='filter-group'>
-            {incidentRule.info.accountQueryDTO.queryText.filter.map(this.displayMarkSearch)}
-          </div>
-        </div>
-
-        {incidentRule.info.accountQueryDTO.module === 'SYSLOG' &&
+        <div className='config-notify' style={{height: activeContent === 'view' ? '78vh' : '70vh'}}>
           <div className='form-group normal'>
             <header>
-              <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
+              <div className='text'>{it('txt-soc-filter')}</div>
             </header>
             <div className='group'>
               <TextField
                 id='patternName'
                 name='name'
-                label={f('syslogPatternTableFields.patternName')}
+                label={f('incidentFields.accountQueryDTO.name')}
                 variant='outlined'
                 fullWidth
                 size='small'
                 required
-                value={incidentRule.info.alertPattern.patternName}
+                value={incidentRule.info.accountQueryDTO.name}
                 disabled={true}/>
             </div>
-            <div className='group severity-level'>
-              <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incidentRule.info.severity]}}/>
+            <div className='group'>
               <TextField
-                id='severityLevel'
-                name='severity'
-                select
-                label={f('syslogPatternTableFields.severity')}
-                variant='outlined'
-                size='small'
-                onChange={this.handlePatternChange}
-                value={incidentRule.info.alertPattern.severity}
-                disabled={activeContent === 'view'}>
-                {severityList}
-              </TextField>
-            </div>
-
-            <div className='group full'>
-              <TextField
-                id='queryScript'
-                name='queryScript'
-                label={f('syslogPatternTableFields.queryScript')}
-                multiline
-                rows={4}
-                maxLength={250}
+                id='patternName'
+                name='name'
+                label={f('incidentFields.accountQueryDTO.module')}
                 variant='outlined'
                 fullWidth
                 size='small'
                 required
-                value={incidentRule.info.alertPattern.queryScript}
+                value={incidentRule.info.accountQueryDTO.module}
                 disabled={true}/>
             </div>
+          </div>
 
-            <div className='group full'>
-              <div className='period'>
-                <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+          <div className='form-group normal'>
+            <header>
+              <div className='text'>{it('txt-soc-filter-input')}</div>
+            </header>
+            <div className='filter-group'>
+              {incidentRule.info.accountQueryDTO.queryText.filter.map(this.displayMarkSearch)}
+            </div>
+          </div>
+
+          {incidentRule.info.accountQueryDTO.module === 'SYSLOG' &&
+            <div className='form-group normal'>
+              <header>
+                <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
+              </header>
+              <div className='group'>
                 <TextField
-                  className='number'
-                  name='periodMin'
-                  select
+                  id='patternName'
+                  name='name'
+                  label={f('syslogPatternTableFields.patternName')}
                   variant='outlined'
+                  fullWidth
                   size='small'
                   required
-                  value={incidentRule.info.alertPattern.periodMin}
-                  disabled={true}>
-                  {periodMinList}
-                </TextField>
-                <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
-                <TextField
-                  id='threshold'
-                  className='number'
-                  name='threshold'
-                  type='number'
-                  variant='outlined'
-                  size='small'
-                  InputProps={{inputProps: {min: 1, max: 1000}}}
-                  required
-                  value={incidentRule.info.alertPattern.threshold}
-                  disabled={true} />
-                <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
+                  value={incidentRule.info.alertPattern.patternName}
+                  disabled={true}/>
               </div>
-            </div>
-          </div>
-        }
+              <div className='group severity-level'>
+                <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incidentRule.info.severity]}}/>
+                <TextField
+                  id='severityLevel'
+                  name='severity'
+                  select
+                  label={f('syslogPatternTableFields.severity')}
+                  variant='outlined'
+                  size='small'
+                  onChange={this.handlePatternChange}
+                  value={incidentRule.info.alertPattern.severity}
+                  disabled={activeContent === 'view'}>
+                  {severityList}
+                </TextField>
+              </div>
 
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{t('events.connections.txt-enableSOCScript')}</div>
-            <FormControlLabel
-              className='switch-control'
-              control={
-                <Switch
-                  checked={incidentRule.info.status}
-                  onChange={(event) => this.handleChange('status', event.target.checked)}
-                  color='primary' />
-              }
-              label={t('txt-switch')}
-              disabled={activeContent === 'view'} />
-          </header>
-          <div className='group full'>
-            <TextField
-              name='title'
-              variant='outlined'
-              size='small'
-              required
-              fullWidth
-              label={f('incidentFields.title')}
-              value={incidentRule.info.title}
-              error={!formValidation.title.valid}
-              helperText={formValidation.title.msg}
-              onChange={this.handleSeverityWithSOCChange}
-              disabled={activeContent === 'view'}>
-            </TextField>
-          </div>
-          <div className='group full'>
-            <TextField
-              name='eventDescription'
-              variant='outlined'
-              size='small'
-              required
-              fullWidth
-              label={f('incidentFields.rule')}
-              value={incidentRule.info.eventDescription}
-              error={!formValidation.eventDescription.valid}
-              helperText={formValidation.eventDescription.msg}
-              onChange={this.handleSeverityWithSOCChange}
-              disabled={activeContent === 'view'}>
-            </TextField>
-          </div>
+              <div className='group full'>
+                <TextField
+                  id='queryScript'
+                  name='queryScript'
+                  label={f('syslogPatternTableFields.queryScript')}
+                  multiline
+                  rows={4}
+                  maxLength={250}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  required
+                  value={incidentRule.info.alertPattern.queryScript}
+                  disabled={true}/>
+              </div>
 
-          {incidentRule.info.accountQueryDTO.module !== 'SYSLOG' &&
-            <div className='group severity-level' style={{width: '33vh', paddingRight: '33px'}}>
-              <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incidentRule.info.severity]}} />
-              <TextField
-                id='severity'
-                name='severity'
-                select
-                fullWidth
-                label={f('syslogPatternTableFields.severity')}
-                variant='outlined'
-                size='small'
-                value={incidentRule.info.severity}
-                onChange={this.handleSeverityWithSOCChange}
-                disabled={activeContent === 'view'}>
-                {severityList}
-              </TextField>
+              <div className='group full'>
+                <div className='period'>
+                  <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+                  <TextField
+                    className='number'
+                    name='periodMin'
+                    select
+                    variant='outlined'
+                    size='small'
+                    required
+                    value={incidentRule.info.alertPattern.periodMin}
+                    disabled={true}>
+                    {periodMinList}
+                  </TextField>
+                  <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
+                  <TextField
+                    id='threshold'
+                    className='number'
+                    name='threshold'
+                    type='number'
+                    variant='outlined'
+                    size='small'
+                    InputProps={{inputProps: {min: 1, max: 1000}}}
+                    required
+                    value={incidentRule.info.alertPattern.threshold}
+                    disabled={true} />
+                  <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
+                </div>
+              </div>
             </div>
           }
 
-          <div className='group'>
-            <TextField
-              id='impact'
-              name='impact'
-              variant='outlined'
-              fullWidth
-              size='small'
-              onChange={this.handleSeverityWithSOCChange}
-              required
-              select
-              label={f('incidentFields.impactAssessment')}
-              value={incidentRule.info.impact}
-              disabled={true}>
-              {
-                _.map(_.range(1, 5), el => {
-                  return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
-                })
-              }
-            </TextField>
-          </div>
-          <div className='group'>
-            <TextField
-              id='category'
-              name='category'
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              onChange={this.handleSeverityWithSOCChange}
-              required
-              select
-              label={f('incidentFields.category')}
-              value={incidentRule.info.category}
-              disabled={activeContent === 'view'}>
-              {
-                _.map(_.range(0, 20), el => {
-                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
-                })
-              }
-            </TextField>
-          </div>
-          <div className='group full'>
-            <div className='period'>
-              <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
+          <div className='form-group normal'>
+            <header>
+              <div className='text'>{t('events.connections.txt-enableSOCScript')}</div>
+              <FormControlLabel
+                className='switch-control'
+                control={
+                  <Switch
+                    checked={incidentRule.info.status}
+                    onChange={(event) => this.handleChange('status', event.target.checked)}
+                    color='primary' />
+                }
+                label={t('txt-switch')}
+                disabled={activeContent === 'view'} />
+            </header>
+            <div className='group full'>
               <TextField
-                name='limitQuery'
+                name='title'
                 variant='outlined'
                 size='small'
                 required
-                value={incidentRule.info.limitQuery}
+                fullWidth
+                label={f('incidentFields.title')}
+                value={incidentRule.info.title}
+                error={!formValidation.title.valid}
+                helperText={formValidation.title.msg}
                 onChange={this.handleSeverityWithSOCChange}
-                disabled={true}>
+                disabled={activeContent === 'view'}>
               </TextField>
-              <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
+            </div>
+            <div className='group full'>
+              <TextField
+                name='eventDescription'
+                variant='outlined'
+                size='small'
+                required
+                fullWidth
+                label={f('incidentFields.rule')}
+                value={incidentRule.info.eventDescription}
+                error={!formValidation.eventDescription.valid}
+                helperText={formValidation.eventDescription.msg}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={activeContent === 'view'}>
+              </TextField>
+            </div>
+            {incidentRule.info.accountQueryDTO.module !== 'SYSLOG' &&
+              <div className='group severity-level'>
+                <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incidentRule.info.severity]}} />
+                <TextField
+                  id='severity'
+                  name='severity'
+                  select
+                  fullWidth
+                  label={f('syslogPatternTableFields.severity')}
+                  variant='outlined'
+                  size='small'
+                  style={{width: '94.5%'}}
+                  value={incidentRule.info.severity}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={activeContent === 'view'}>
+                  {severityList}
+                </TextField>
+              </div>
+            }
+            <div className='group'>
+              <TextField
+                id='impact'
+                name='impact'
+                variant='outlined'
+                fullWidth
+                size='small'
+                onChange={this.handleSeverityWithSOCChange}
+                required
+                select
+                label={f('incidentFields.impactAssessment')}
+                value={incidentRule.info.impact}
+                disabled={true}>
+                {
+                  _.map(_.range(1, 5), el => {
+                    return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                  })
+                }
+              </TextField>
+            </div>
+            <div className='group'>
+              <TextField
+                id='category'
+                name='category'
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                onChange={this.handleSeverityWithSOCChange}
+                required
+                select
+                label={f('incidentFields.category')}
+                value={incidentRule.info.category}
+                disabled={activeContent === 'view'}>
+                {
+                  _.map(_.range(0, 20), el => {
+                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                  })
+                }
+              </TextField>
+            </div>
+            <div className='group'>
+              <div className='period'>
+                <span className='support-text'>{t('events.connections.txt-socQuery1')} </span>
+                <TextField
+                  name='limitQuery'
+                  variant='outlined'
+                  size='small'
+                  style={{width: '20%'}}
+                  required
+                  value={incidentRule.info.limitQuery}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={true}>
+                </TextField>
+                <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
+              </div>
             </div>
           </div>
         </div>
