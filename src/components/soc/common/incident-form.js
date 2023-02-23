@@ -95,26 +95,99 @@ class IncidentForm extends Component {
     }
   }
   /**
-   * Check error field
+   * Check required field
    * @method
    * @param {string} field - form name
+   * @returns boolean true / false
+   */
+  checkRequiredField = (field) => {
+    const {from, activeContent, requiredField} = this.props;
+    let required = false;
+
+    if (activeContent === 'viewIncident' || activeContent === 'viewPattern') {
+      return;
+    }
+
+    if (from === 'soc') {
+      required = true;
+    }
+
+    if (from === 'pattern' && requiredField.indexOf(field) > -1) {
+      required = true;
+    }
+
+    return required;
+  }
+  /**
+   * Check error field
+   * @method
+   * @param {string} field - field name
+   * @param {string} value - field value
    * @returns boolean true
    */
-  checkErrorField = (field) => {
-    if (this.props.from === 'soc' && !field) {
+  checkErrorField = (field, value) => {
+    const {from, activeContent, requiredField} = this.props;
+
+    if (activeContent === 'viewIncident' || activeContent === 'viewPattern') {
+      return false;
+    }
+
+    if (from === 'soc' && !value) {
+      return true;
+    }
+
+    if (from === 'pattern' && requiredField.indexOf(field) > -1 && !value) {
       return true;
     }
   }
   /**
    * Check helper text
    * @method
-   * @param {string} field - form name
+   * @param {string} field - field name
+   * @param {string} value - field value
    * @returns required text
    */
-  checkHelperText = (field) => {
-    if (this.props.from === 'soc' && !field) {
+  checkHelperText = (field, value) => {
+    const {from, activeContent, requiredField} = this.props;
+
+    if (activeContent === 'viewIncident' || activeContent === 'viewPattern') {
+      return;
+    }
+
+    if (from === 'soc' && !value) {
       return it('txt-required');
     }
+
+    if (from === 'pattern' && requiredField.indexOf(field) > -1 && !value) {
+      return it('txt-required');
+    }
+  }
+  /**
+   * Check disabled status
+   * @method
+   * @returns boolean true / false
+   */
+  checkDisabledStatus = (field) => {
+    const {from, activeContent} = this.props;
+    let disabled = null;
+
+    if (from === 'soc') {
+      if (activeContent === 'addIncident') {
+        disabled = false;
+      } else {
+        disabled = true;
+      }
+    }
+
+    if (from === 'pattern') {
+      if (activeContent === 'viewPattern') {
+        disabled = true;
+      } else {
+        disabled = false;
+      }
+    }
+
+    return disabled;
   }
   /**
    * Display main section
@@ -179,7 +252,7 @@ class IncidentForm extends Component {
           </div>
         }
 
-        {(from === 'threats' || from === 'pattern') &&
+        {from === 'threats' &&
           <div className='btn btn-group'>
             <Button id='previousStep' variant='contained' color='primary' className='left-btn' onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}</Button>
             <Button id='nextStep' variant='contained' color='primary' onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}</Button>
@@ -194,13 +267,30 @@ class IncidentForm extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            required={required}
-            error={this.checkErrorField(incident.info.title)}
-            helperText={this.checkHelperText(incident.info.title)}
+            required={this.checkRequiredField(incident.info.title)}
+            error={this.checkErrorField('title', incident.info.title)}
+            helperText={this.checkHelperText('title', incident.info.title)}
             value={incident.info.title}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
         </div>
+        {from === 'pattern' &&
+          <div className='group full'>
+            <label htmlFor='title'>{f('incidentFields.rule')}</label>
+            <TextField
+              id='eventDescription'
+              name='eventDescription'
+              variant='outlined'
+              fullWidth
+              size='small'
+              required={this.checkRequiredField(incident.info.eventDescription)}
+              error={this.checkErrorField('eventDescription', incident.info.eventDescription)}
+              helperText={this.checkHelperText('eventDescription', incident.info.eventDescription)}
+              value={incident.info.eventDescription}
+              onChange={this.props.handleDataChangeMui}
+              disabled={disabledStatus} />
+          </div>
+        }
         <div className='group full'>
           <label htmlFor='incidentDescription'>{f('incidentFields.incidentDescription')}</label>
           <TextField
@@ -212,9 +302,9 @@ class IncidentForm extends Component {
             multiline
             rows={3}
             rowsMax={3}
-            required={required}
-            error={this.checkErrorField(incident.info.incidentDescription)}
-            helperText={this.checkHelperText(incident.info.incidentDescription)}
+            required={this.checkRequiredField(incident.info.incidentDescription)}
+            error={this.checkErrorField('incidentDescription', incident.info.incidentDescription)}
+            helperText={this.checkHelperText('incidentDescription', incident.info.incidentDescription)}
             value={incident.info.incidentDescription}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -228,9 +318,9 @@ class IncidentForm extends Component {
             fullWidth
             size='small'
             select
-            required
-            error={this.checkErrorField(incident.info.category)}
-            helperText={this.checkHelperText(incident.info.category)}
+            required={this.checkRequiredField(incident.info.category)}
+            error={this.checkErrorField('category', incident.info.category)}
+            helperText={this.checkHelperText('category', incident.info.category)}
             value={incident.info.category}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus}>
@@ -249,9 +339,9 @@ class IncidentForm extends Component {
             variant='outlined'
             fullWidth
             size='small'
-            required={required}
-            error={this.checkErrorField(incident.info.reporter)}
-            helperText={this.checkHelperText(incident.info.reporter)}
+            required={this.checkRequiredField(incident.info.reporter)}
+            error={this.checkErrorField('reporter', incident.info.reporter)}
+            helperText={this.checkHelperText('reporter', incident.info.reporter)}
             value={incident.info.reporter}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -265,10 +355,12 @@ class IncidentForm extends Component {
             fullWidth
             size='small'
             select
-            required={required}
-            value={incident.info.flowTemplateId}
+            required
+            error={this.checkErrorField('flowTemplateId', incident.info.flowTemplateId)}
+            helperText={this.checkHelperText('flowTemplateId', incident.info.flowTemplateId)}
+            value={incident.info.flowTemplateId || ''}
             onChange={this.props.handleDataChangeMui}
-            disabled={activeContent !== 'addIncident' && activeContent !== 'addPattern'}>
+            disabled={this.checkDisabledStatus()}>
             {socFlowList}
           </TextField>
         </div>
@@ -281,6 +373,9 @@ class IncidentForm extends Component {
             fullWidth
             size='small'
             select
+            required
+            error={this.checkErrorField('impactAssessment', incident.info.impactAssessment)}
+            helperText={this.checkHelperText('impactAssessment', incident.info.impactAssessment)}
             value={incident.info.impactAssessment || ''}
             onChange={this.props.handleDataChangeMui}
             disabled={true}>
@@ -307,53 +402,57 @@ class IncidentForm extends Component {
             {severityList}
           </TextField>
         </div>
-        <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
-          <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
-          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-            <KeyboardDateTimePicker
-              id='expireDttm'
-              className='date-time-picker'
-              inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD HH:mm'
-              invalidDateMessage={t('txt-invalidDateMessage')}
-              ampm={false}
-              required={required}
-              error={this.checkErrorField(incident.info.expireDttm)}
-              helperText={this.checkHelperText(incident.info.expireDttm)}
-              value={incident.info.expireDttm}
-              onChange={this.props.handleDataChange.bind(this, 'expireDttm')}
+        {from !== 'pattern' &&
+          <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
+            <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                id='expireDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                required={this.checkRequiredField(incident.info.expireDttm)}
+                error={this.checkErrorField(incident.info.expireDttm)}
+                helperText={this.checkHelperText(incident.info.expireDttm)}
+                value={incident.info.expireDttm}
+                onChange={this.props.handleDataChange.bind(this, 'expireDttm')}
+                disabled={disabledStatus} />
+            </MuiPickersUtilsProvider>
+          </div>
+        }
+        {from !== 'pattern' &&
+          <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
+            <FormControlLabel
+              label={f('incidentFields.establishDate')}
+              control={
+                <Checkbox
+                  className='checkbox-ui'
+                  checked={establishDttm}
+                  onChange={this.props.toggleEstablishDateCheckbox}
+                  color='primary' />
+              }
               disabled={disabledStatus} />
-          </MuiPickersUtilsProvider>
-        </div>
-        <div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
-          <FormControlLabel
-            label={f('incidentFields.establishDate')}
-            control={
-              <Checkbox
-                className='checkbox-ui'
-                checked={establishDttm}
-                onChange={this.props.toggleEstablishDateCheckbox}
-                color='primary' />
-            }
-            disabled={disabledStatus} />
-          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-            <KeyboardDateTimePicker
-              id='establishDttm'
-              className='date-time-picker'
-              inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD HH:mm'
-              invalidDateMessage={t('txt-invalidDateMessage')}
-              ampm={false}
-              required={false}
-              error={this.checkErrorField(incident.info.establishDttm)}
-              helperText={this.checkHelperText(incident.info.establishDttm)}
-              value={incident.info.establishDttm}
-              onChange={this.props.handleDataChange.bind(this, 'establishDttm')}
-              disabled={disabledEstablishDttm} />
-          </MuiPickersUtilsProvider>
-        </div>
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                id='establishDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                required={false}
+                error={this.checkErrorField(incident.info.establishDttm)}
+                helperText={this.checkHelperText(incident.info.establishDttm)}
+                value={incident.info.establishDttm}
+                onChange={this.props.handleDataChange.bind(this, 'establishDttm')}
+                disabled={disabledEstablishDttm} />
+            </MuiPickersUtilsProvider>
+          </div>
+        }
         <div className='group full'>
           <label htmlFor='attackName'>{f('incidentFields.attackName')}</label>
           <TextField
@@ -365,9 +464,9 @@ class IncidentForm extends Component {
             multiline
             rows={3}
             rowsMax={3}
-            required={required}
-            error={this.checkErrorField(incident.info.attackName)}
-            helperText={this.checkHelperText(incident.info.attackName)}
+            required={this.checkRequiredField(incident.info.attackName)}
+            error={this.checkErrorField('attackName', incident.info.attackName)}
+            helperText={this.checkHelperText('attackName', incident.info.attackName)}
             value={incident.info.attackName}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -383,9 +482,9 @@ class IncidentForm extends Component {
             multiline
             rows={3}
             rowsMax={3}
-            required={required}
-            error={this.checkErrorField(incident.info.description)}
-            helperText={this.checkHelperText(incident.info.description)}
+            required={this.checkRequiredField(incident.info.description)}
+            error={this.checkErrorField('description', incident.info.description)}
+            helperText={this.checkHelperText('description', incident.info.description)}
             value={incident.info.description}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -1006,15 +1105,15 @@ class IncidentForm extends Component {
               this.displayNotice()
             }
 
-            {activeSteps === 1 &&
+            {activeSteps === 1 && from === 'threats' &&
               this.displayAttached()
             }
 
-            {activeSteps === 1 &&
+            {activeSteps === 1 && from === 'threats' &&
               this.displayConnectUnit()
             }
 
-            {activeSteps === 2 &&
+            {activeSteps === 2 && from === 'threats' &&
               this.displayEvents()
             }
           </div>
@@ -1034,8 +1133,9 @@ IncidentForm.propTypes = {
   severityList: PropTypes.array.isRequired,
   incidentType: PropTypes.string,
   socFlowList: PropTypes.array.isRequired,
-  attach: PropTypes.array.isRequired,
+  attach: PropTypes.array,
   filesName: PropTypes.array.isRequired,
+  requiredField: PropTypes.array,
   deviceListOptions: PropTypes.array.isRequired,
   showDeviceListOptions: PropTypes.array,
   incidentAccidentList: PropTypes.array.isRequired,

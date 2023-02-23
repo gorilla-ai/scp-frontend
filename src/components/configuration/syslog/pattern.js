@@ -29,10 +29,17 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const REQUIRED_FIELD = ['title', 'eventDescription', 'category', 'flowTemplateId', 'impactAssessment', 'severity'];
 const PERIOD_MIN = [10, 15, 30, 60];
 const PATTERN_SEARCH = {
   name: '',
   queryScript: ''
+};
+const INCIDENT_INFO = {
+  severity: 'Emergency',
+  impactAssessment: 4,
+  status: 1,
+  socType: 1
 };
 const FORM_VALIDATION = {
   name: {
@@ -103,7 +110,8 @@ class Pattern extends Component {
           periodMin: 10,
           threshold: 1,
           queryScript: '',
-        }
+        },
+        withIncident: false
       },
       incident: {
         dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
@@ -118,15 +126,11 @@ class Pattern extends Component {
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
-        info: {
-          severity: 'Emergency',
-          status: 1,
-          socType: 1
-        }
+        info: _.cloneDeep(INCIDENT_INFO)
       },
       currentIncident: {},
       originalIncident: {},
-      enableIncidentTemplate: true,
+      enableIncidentTemplate: false,
       incidentAccidentList: _.map(_.range(1, 6), el => {
         return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
       }),
@@ -345,8 +349,9 @@ class Pattern extends Component {
    * @param {object} allValue - Severity data
    */
   toggleContent = (type, allValue) => {
-    const {originalPatternData, pattern, incident} = this.state;
+    const {originalPatternData, pattern, incident, originalIncident} = this.state;
     let tempPattern = {...pattern};
+    let tempIncident = {...incident};
     let showPage = type;
 
     if (type === 'tableList') {
@@ -360,6 +365,7 @@ class Pattern extends Component {
         queryScript: ''
       };
     } else if (type === 'viewPattern') {
+      let enableIncidentTemplate = false;
       tempPattern.info = {
         id: allValue.patternId,
         name: allValue.patternName,
@@ -369,24 +375,53 @@ class Pattern extends Component {
         threshold: allValue.threshold,
         queryScript: allValue.queryScript
       };
+      tempPattern.withIncident = false;
+
+      if (allValue.incidentRuleTemplateDTO) {
+        tempPattern.withIncident = true;
+        tempIncident.info = {
+          ...allValue.incidentRuleTemplateDTO
+        };
+
+        tempIncident.info.impactAssessment = allValue.incidentRuleTemplateDTO.impact;
+        delete tempIncident.info.accountDTO;
+        delete tempIncident.info.accountQueryDTO;
+        delete tempIncident.info.alertPatternDTO;
+        delete tempIncident.info.createDttm;
+        delete tempIncident.info.updateDttm;
+        delete tempIncident.info.content;
+        enableIncidentTemplate = allValue.incidentRuleTemplateDTO.status;
+      } else {
+        tempIncident.info = _.cloneDeep(INCIDENT_INFO);
+      }
 
       this.setState({
         showFilter: false,
         activeSteps: 1,
         originalPatternData: _.cloneDeep(tempPattern),
+        incident: tempIncident,
+        originalIncident: _.cloneDeep(tempIncident),
+        enableIncidentTemplate,
         formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'addPattern') {
+      tempIncident.info = _.cloneDeep(INCIDENT_INFO);
+
       this.setState({
         showFilter: false,
         activeSteps: 1,
-        originalIncident: _.cloneDeep(incident),
+        incident: tempIncident,
+        originalIncident: _.cloneDeep(tempIncident),
         enableIncidentTemplate: false,
         formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'cancel') {
       showPage = 'viewPattern';
       tempPattern = _.cloneDeep(originalPatternData);
+
+      this.setState({
+        incident: _.cloneDeep(originalIncident)
+      });
     }
 
     this.setState({
@@ -397,32 +432,6 @@ class Pattern extends Component {
         this.getPatternScript();
       }
     });
-  }
-  toggleSteps = (type) => {
-    const {activeSteps} = this.state;
-    let tempActiveSteps = activeSteps;
-
-    if (type === 'previous') {
-      tempActiveSteps--;
-
-      this.setState({
-        activeSteps: tempActiveSteps
-      });
-    } else if (type === 'next') {
-      if (activeSteps === 1) {
-        let validate = true;
-
-        if (!validate) {
-          return;
-        }
-
-        tempActiveSteps++;
-
-        this.setState({
-          activeSteps: tempActiveSteps
-        });
-      }
-    }
   }
   /**
    * Handle Pattern edit input data change
@@ -747,6 +756,7 @@ class Pattern extends Component {
                   socFlowList={socFlowList}
                   attach={attach}
                   filesName={filesName}
+                  requiredField={REQUIRED_FIELD}
                   deviceListOptions={deviceListOptions}
                   showDeviceListOptions={showDeviceListOptions}
                   incidentAccidentList={incidentAccidentList}
@@ -756,8 +766,7 @@ class Pattern extends Component {
                   handleFileChange={this.handleFileChange}
                   handleConnectContactChange={this.handleConnectContactChange}
                   handleEventsChange={this.handleEventsChange}
-                  toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox}
-                  toggleSteps={this.toggleSteps} />
+                  toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
               </div>
             }
           </div>
@@ -842,7 +851,7 @@ class Pattern extends Component {
    */
   handlePatternSubmit = () => {
     const {baseUrl, session} = this.context;
-    const {activeContent, pattern, formValidation} = this.state;
+    const {activeContent, pattern, incident, originalIncident, enableIncidentTemplate, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
     let validate = true;
     let requestType = '';
@@ -889,6 +898,37 @@ class Pattern extends Component {
       threshold: Number(pattern.info.threshold)
     };
 
+    if (enableIncidentTemplate === true) {
+      requestData.incidentRuleTemplateDTO = {
+        ...incident.info,
+        impact: incident.info.impactAssessment,
+        limitQuery: 10,
+        creator: session.accountId
+      };
+
+      _.forEach(REQUIRED_FIELD, val => { //Check required field for Incident
+        if (!incident.info[val]) {
+          PopupDialog.alert({
+            title: t('txt-tips'),
+            display: t('txt-checkRequiredFieldType'),
+            confirmText: t('txt-close')
+          });
+          validate = false;
+          return false;
+        }
+      })
+
+      if (!validate) {
+        return;
+      }
+    } else {
+      if (activeContent === 'editPattern' && pattern.withIncident) {
+        requestData.incidentRuleTemplateDTO = {
+          ...originalIncident.info
+        };
+      }
+    }
+
     if (activeContent === 'addPattern') {
       requestType = 'POST';
     } else if (activeContent === 'editPattern') {
@@ -897,7 +937,7 @@ class Pattern extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/alert/pattern`,
+      url: `${baseUrl}/api/v2/alert/pattern`,
       data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
@@ -1115,7 +1155,6 @@ class Pattern extends Component {
 
         <div className='data-content'>
           <Config
-            hidden={true}
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 
