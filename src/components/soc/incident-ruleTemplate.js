@@ -768,7 +768,7 @@ class IncidentRuleTemplate extends Component {
               value={incidentRule.info.category}
               disabled={activeContent === 'view'}>
               {
-                _.map(_.range(0, 20), el => {
+                _.map(_.range(10, 20), el => {
                   return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                 })
               }

@@ -2043,7 +2043,7 @@ class IncidentManagement extends Component {
               value={search.category}
               onChange={this.handleSearchMui}>
               {
-                _.map(_.range(0, 20), el => {
+                _.map(_.range(10, 20), el => {
                   return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                 })
               }

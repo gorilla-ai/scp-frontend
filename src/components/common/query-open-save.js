@@ -1668,7 +1668,7 @@ class QueryOpenSave extends Component {
                   value={soc.category}
                   disabled={patternCheckboxDisabled}>
                   {
-                    _.map(_.range(0, 20), el => {
+                    _.map(_.range(10, 20), el => {
                       return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                     })
                   }
@@ -1788,7 +1788,7 @@ class QueryOpenSave extends Component {
                 value={soc.category}
                 disabled={disabledStatus}>
                 {
-                  _.map(_.range(0, 20), el => {
+                  _.map(_.range(10, 20), el => {
                     return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                   })
                 }
