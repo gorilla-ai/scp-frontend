@@ -407,7 +407,6 @@ class IncidentRuleTemplate extends Component {
   handlePatternSubmit = () => {
     const {baseUrl, session} = this.context;
     const {incidentRule, activeContent} = this.state;
-    let requestType = 'PATCH';
 
     if (!session.accountId) {
       return;
@@ -427,7 +426,7 @@ class IncidentRuleTemplate extends Component {
       this.ah.one({
         url: `${baseUrl}/api/alert/pattern`,
         data: JSON.stringify(requestData),
-        type: requestType,
+        type: 'PATCH',
         contentType: 'text/plain'
       })
       .then(data => {
