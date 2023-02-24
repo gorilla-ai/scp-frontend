@@ -130,6 +130,7 @@ class Pattern extends Component {
       currentIncident: {},
       originalIncident: {},
       enableIncidentTemplate: null,
+      originalEnableIncidentTemplate: null,
       incidentAccidentList: _.map(_.range(1, 6), el => {
         return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
       }),
@@ -348,7 +349,7 @@ class Pattern extends Component {
    * @param {object} allValue - Severity data
    */
   toggleContent = (type, allValue) => {
-    const {originalPatternData, pattern, incident, originalIncident} = this.state;
+    const {originalPatternData, pattern, incident, originalIncident, originalEnableIncidentTemplate} = this.state;
     let tempPattern = {...pattern};
     let tempIncident = {...incident};
     let showPage = type;
@@ -399,6 +400,7 @@ class Pattern extends Component {
         incident: tempIncident,
         originalIncident: _.cloneDeep(tempIncident),
         enableIncidentTemplate: allValue.socTemplateEnable,
+        originalEnableIncidentTemplate: allValue.socTemplateEnable,
         formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'addPattern') {
@@ -417,7 +419,8 @@ class Pattern extends Component {
       tempPattern = _.cloneDeep(originalPatternData);
 
       this.setState({
-        incident: _.cloneDeep(originalIncident)
+        incident: _.cloneDeep(originalIncident),
+        enableIncidentTemplate: originalEnableIncidentTemplate
       });
     }
 
@@ -943,7 +946,9 @@ class Pattern extends Component {
     })
     .then(data => {
       this.setState({
-        originalPatternData: _.cloneDeep(pattern)
+        originalPatternData: _.cloneDeep(pattern),
+        originalIncident: _.cloneDeep(incident),
+        originalEnableIncidentTemplate: _.cloneDeep(enableIncidentTemplate)
       }, () => {
         let showPage = '';
 
