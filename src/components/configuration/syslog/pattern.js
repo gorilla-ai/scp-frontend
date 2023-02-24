@@ -38,7 +38,6 @@ const PATTERN_SEARCH = {
 const INCIDENT_INFO = {
   severity: 'Emergency',
   impactAssessment: 4,
-  status: 1,
   socType: 1
 };
 const FORM_VALIDATION = {
@@ -130,7 +129,7 @@ class Pattern extends Component {
       },
       currentIncident: {},
       originalIncident: {},
-      enableIncidentTemplate: false,
+      enableIncidentTemplate: null,
       incidentAccidentList: _.map(_.range(1, 6), el => {
         return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
       }),
@@ -365,7 +364,6 @@ class Pattern extends Component {
         queryScript: ''
       };
     } else if (type === 'viewPattern') {
-      let enableIncidentTemplate = false;
       tempPattern.info = {
         id: allValue.patternId,
         name: allValue.patternName,
@@ -390,7 +388,6 @@ class Pattern extends Component {
         delete tempIncident.info.createDttm;
         delete tempIncident.info.updateDttm;
         delete tempIncident.info.content;
-        enableIncidentTemplate = allValue.incidentRuleTemplateDTO.status;
       } else {
         tempIncident.info = _.cloneDeep(INCIDENT_INFO);
       }
@@ -401,7 +398,7 @@ class Pattern extends Component {
         originalPatternData: _.cloneDeep(tempPattern),
         incident: tempIncident,
         originalIncident: _.cloneDeep(tempIncident),
-        enableIncidentTemplate,
+        enableIncidentTemplate: allValue.socTemplateEnable,
         formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     } else if (type === 'addPattern') {
@@ -744,7 +741,8 @@ class Pattern extends Component {
                   onChange={this.handleIncidentStatusChange}
                   color='primary' />
               }
-              label={t('events.connections.txt-enableIncidentTemplate')} />
+              label={t('events.connections.txt-enableIncidentTemplate')}
+              disabled={activeContent === 'viewPattern'} />
             {enableIncidentTemplate &&
               <div id='incidentSettingsForm' className='auto-settings'>
                 <IncidentForm
@@ -895,10 +893,11 @@ class Pattern extends Component {
       severity: pattern.info.severity,
       queryScript: pattern.info.queryScript,
       periodMin: Number(pattern.info.periodMin),
-      threshold: Number(pattern.info.threshold)
+      threshold: Number(pattern.info.threshold),
+      socTemplateEnable: enableIncidentTemplate
     };
 
-    if (enableIncidentTemplate === true) {
+    if (enableIncidentTemplate) {
       requestData.incidentRuleTemplateDTO = {
         ...incident.info,
         impact: incident.info.impactAssessment,
