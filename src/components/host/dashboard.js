@@ -157,11 +157,6 @@ class HostDashboard extends Component {
   handleTableSort = (field, sort) => {
     let tempCveData = {...this.state.cveData};
     let tableField = field;
-
-    if (field === 'cveId') {
-      tableField = 'cve_id';
-    }
-
     tempCveData.sort.field = tableField;
     tempCveData.sort.desc = sort;
 
