@@ -10,7 +10,13 @@ import Checkbox from '@material-ui/core/Checkbox'
 import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -29,6 +35,18 @@ const CVE_SEARCH = {
   cvss: '',
   relatedSoftware: '',
   severity: []
+};
+const EXPOSED_DEVICES_DATA = {
+  dataFieldsArr: ['hostName', 'group', 'system', 'ip', 'relatedSoftware', 'daysOpen'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
 };
 
 let t = null;
@@ -50,18 +68,24 @@ class HostDashboard extends Component {
     this.state = {
       showFilter: false,
       cveSearch: _.cloneDeep(CVE_SEARCH),
+      showCveInfo: false,
+      activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
       cveData: {
-        dataFieldsArr: ['cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
+        dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {
-          field: 'severity',
+          field: '',
           desc: true
         },
         totalCount: 0,
         currentPage: 0,
         pageSize: 20
-      }
+      },
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      contextAnchor: null,
+      currentCveId: '',
+      currentCveData: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -87,8 +111,12 @@ class HostDashboard extends Component {
     const {cveSearch, cveData} = this.state;
     const sort = cveData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? cveData.currentPage : 0;
-    const url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}&orders=${cveData.sort.field} ${sort}`;
+    let url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}`;
     let requestData = {};
+
+    if (cveData.sort.field) {
+      url += `&orders=${cveData.sort.field} ${sort}`;
+    }
 
     if (cveSearch.keyword) {
       requestData.keyword = cveSearch.keyword;
@@ -119,16 +147,23 @@ class HostDashboard extends Component {
         tempCveData.currentPage = page;
         tempCveData.dataFields = _.map(cveData.dataFieldsArr, val => {
           return {
-            name: val,
-            label: f('hostDashboardFields.' + val),
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : f('hostDashboardFields.' + val),
             options: {
               filter: true,
               sort: true,
+              viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempCveData.dataContent[dataIndex];
                 const value = tempCveData.dataContent[dataIndex][val];
 
-                if (val === 'severity' && value) {
+                if (val === '_menu') {
+                  return (
+                    <div className='table-menu active'>
+                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)}><i className='fg fg-more'></i></Button>
+                    </div>
+                  )
+                } else if (val === 'severity' && value) {
                   return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
                 } else {
                   return value;
@@ -149,38 +184,324 @@ class HostDashboard extends Component {
     })
   }
   /**
+   * Handle open menu
+   * @method
+   * @param {object} id - active CVE ID
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (id, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentCveId: id
+    });
+  }
+  /**
+   * Get individual CVE data
+   * @method
+   */
+  getActiveCveInfo = () => {
+    const {baseUrl} = this.context;
+    const {currentCveId} = this.state;
+    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCveId}`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          currentCveData: data.cveInfo
+        }, () => {
+          this.toggleShowCVE();
+        });
+
+        this.handleCloseMenu();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get related software list
+   * @method
+   * @param {array.<string>} list - related software list
+   * @returns list of software
+   */
+  getSoftwareList = (list) => {
+    list.shift();
+    return list.join(', ');
+  }
+  /**
+   * Get exposed devices data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getExposedDevices = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {exposedDevicesData, currentCveId} = this.state;
+    const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
+    const requestData = {
+      cveId: currentCveId
+    };
+    let url = `${baseUrl}/api/hmd/cve/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+
+    if (exposedDevicesData.sort.field) {
+      url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempExposedDevicesData = {...exposedDevicesData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempExposedDevicesData.dataContent = [];
+          tempExposedDevicesData.totalCount = 0;
+
+          this.setState({
+            exposedDevicesData: tempExposedDevicesData
+          });
+          return null;
+        }       
+
+        tempExposedDevicesData.dataContent = data.rows;
+        tempExposedDevicesData.totalCount = data.count;
+        tempExposedDevicesData.currentPage = page;
+        tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.dashboard.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempExposedDevicesData.dataContent[dataIndex];
+                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+
+                if (val === 'relatedSoftware') {
+                  return (
+                    <div>
+                      <span>{value[0]}</span>
+                      {value.length > 1 &&
+                        <span title={this.getSoftwareList(value)}>, more...</span>
+                      }
+                    </div>
+                  )
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          exposedDevicesData: tempExposedDevicesData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
+  }
+  /**
+   * Toggle show CVE info
+   * @method
+   */
+  toggleShowCVE = () => {
+    this.setState({
+      showCveInfo: !this.state.showCveInfo,
+      activeCveInfo: 'vulnerabilityDetails',
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+    });
+  }
+  /**
+   * Toggle show CVE button
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - 'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
+   */
+  toggleCveButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
+    this.setState({
+      activeCveInfo: type
+    }, () => {
+      if (this.state.activeCveInfo === 'exposedDevices') {
+        this.getExposedDevices();
+      }
+    });
+  }
+  /**
+   * Display new password content
+   * @method
+   * @returns HTML DOM
+   */
+  displayCveInfo = () => {
+    const {activeCveInfo, exposedDevicesData, currentCveData} = this.state;
+    const tableOptions = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('exposedDevices', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      <div>
+        <ToggleButtonGroup
+          id='activeCveInfoButtons'
+          value={activeCveInfo}
+          exclusive
+          onChange={this.toggleCveButtons}>
+          <ToggleButton id='vulnerabilityDetails' value='vulnerabilityDetails'>{t('host.dashboard.txt-vulnerabilityDetails')}</ToggleButton>
+          <ToggleButton id='exposedDevices' value='exposedDevices'>{t('host.dashboard.txt-exposedDevices')}</ToggleButton>
+          <ToggleButton id='relatedSoftware' value='relatedSoftware'>{t('host.dashboard.txt-relatedSoftware')}</ToggleButton>
+        </ToggleButtonGroup>
+
+        <div className='main-content'>
+          {activeCveInfo === 'vulnerabilityDetails' &&
+            <ul className='vulnerability'>
+              <li><span>Vulnerability description</span>: {currentCveData.description}</li>
+              <li><span>Name</span>: {currentCveData.cveId}</li>
+              <li><span>Severity</span>: {currentCveData.severity}</li>
+              <li><span>CVSS</span>: {currentCveData.cvss}</li>
+              <li><span>CVSS Version</span>: {currentCveData.cvssVersion}</li>
+              <li><span>Published on</span>: {helper.getFormattedDate(currentCveData.publishedDate, 'local')}</li>
+              <li><span>Updatd on</span>: {helper.getFormattedDate(currentCveData.lastModifiedDate, 'local')}</li>
+              <li><span>Days open</span>: {currentCveData.daysOpen}</li>
+            </ul>
+          }
+
+          {activeCveInfo === 'exposedDevices' &&
+            <MuiTableContent
+              tableHeight='auto'
+              data={exposedDevicesData}
+              tableOptions={tableOptions} />
+          }
+
+          {activeCveInfo === 'relatedSoftware' &&
+            <div>{t('host.dashboard.txt-relatedSoftware')}</div>
+          }
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Show CVE info dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showCveDialog = () => {
+    const {currentCveId} = this.state;
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
+    };
+    const titleText = t('txt-resetPassword');
+
+    return (
+      <ModalDialog
+        id='showCveDialog'
+        className='modal-dialog'
+        title={currentCveId}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayCveInfo()}
+      </ModalDialog>
+    )
+  }
+  /**
    * Handle table sort
    * @method
+   * @param {string} tableType - table type ('cve' or 'exposedDevices')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (field, sort) => {
-    let tempCveData = {...this.state.cveData};
+  handleTableSort = (tableType, field, sort) => {
+    const {cveData, exposedDevicesData} = this.state;
+    let tempCveData = {...cveData};
+    let tempExposedDevicesData = {...exposedDevicesData};
     let tableField = field;
-    tempCveData.sort.field = tableField;
-    tempCveData.sort.desc = sort;
 
-    this.setState({
-      cveData: tempCveData
-    }, () => {
-      this.getCveData();
-    });
+    if (tableType === 'cve') {
+      tempCveData.sort.field = tableField;
+      tempCveData.sort.desc = sort;
+
+      this.setState({
+        cveData: tempCveData
+      }, () => {
+        this.getCveData();
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData.sort.field = tableField;
+      tempExposedDevicesData.sort.desc = sort;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices();
+      });
+    }
   }
   /**
    * Handle table pagination change
    * @method
+   * @param {string} tableType - table type ('cve' or 'exposedDevices')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
-  handlePaginationChange = (type, value) => {
-    let tempCveData = {...this.state.cveData};
-    tempCveData[type] = value;
+  handlePaginationChange = (tableType, type, value) => {
+    const {cveData, exposedDevicesData} = this.state;
+    let tempCveData = {...cveData};
+    let tempExposedDevicesData = {...exposedDevicesData};
 
-    this.setState({
-      cveData: tempCveData
-    }, () => {
-      this.getCveData(type);
-    });
+    if (tableType === 'cve') {
+      tempCveData[type] = value;
+
+      this.setState({
+        cveData: tempCveData
+      }, () => {
+        this.getCveData(type);
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData[type] = value;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices(type);
+      });
+    }
   }
   /**
    * Toggle filter content on/off
@@ -329,27 +650,39 @@ class HostDashboard extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, cveData} = this.state;
+    const {showFilter, showCveInfo, cveData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
-        this.handlePaginationChange('currentPage', currentPage);
+        this.handlePaginationChange('cve', 'currentPage', currentPage);
       },
       onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('pageSize', numberOfRows);
+        this.handlePaginationChange('cve', 'pageSize', numberOfRows);
       },
       onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort(changedColumn, direction === 'desc');
+        this.handleTableSort('cve', changedColumn, direction === 'desc');
       }
     };
 
     return (
       <div>
+        {showCveInfo &&
+          this.showCveDialog()
+        }
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem id='activeCveView' onClick={this.getActiveCveInfo}>{t('txt-view')}</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
             <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled><i className='fg fg-filter'></i></Button>
           </div>
-        </div>
+        </div>       
 
         <div className='data-content'>
           <div className='parent-content'>

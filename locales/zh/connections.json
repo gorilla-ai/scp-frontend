@@ -391,7 +391,15 @@
     "txt-cpePage": "CPE維護",
     "txt-dashboard": "Dashboard",
     "dashboard": {
-      "txt-vulnerabilityList": "弱點漏洞清單"
+      "txt-vulnerabilityList": "弱點漏洞清單",
+      "txt-vulnerabilityDetails": "Vulnerability Details",
+      "txt-exposedDevices": "Exposed Devices",
+      "txt-relatedSoftware": "Related Software",
+      "txt-group": "Group",
+      "txt-hostName": "Host Name",
+      "txt-daysOpen": "Days Open",
+      "txt-system": "System",
+      "txt-ip": "IP"
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",
