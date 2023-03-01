@@ -28,7 +28,7 @@ class TtpObsSocket extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {activeContent, value: {ip, port}} = this.props;
+    const {disabledStatus, value: {ip, port}} = this.props;
 
     return (
       <div className='event-content'>
@@ -39,13 +39,13 @@ class TtpObsSocket extends Component {
               id='ip'
               name='ip'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
-              value={ip}
-              helperText={t('network-topology.txt-ipValidationFail')}
               error={ip === '' || ip === undefined ? false : !helper.ValidateIP_Address(ip)}
-              disabled={activeContent === 'viewIncident'} />
+              helperText={disabledStatus ? '' : t('network-topology.txt-ipValidationFail')}
+              value={ip}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='port'>Port</label>
@@ -53,11 +53,11 @@ class TtpObsSocket extends Component {
               id='port'
               name='port'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={port}
-              disabled={activeContent === 'viewIncident'} />
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
         </div>
       </div>

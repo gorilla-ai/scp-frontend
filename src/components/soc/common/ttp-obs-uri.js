@@ -30,7 +30,7 @@ class TtpObsUri extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {activeContent, value: {uriType, uriValue}} = this.props;
+    const {disabledStatus, value: {uriType, uriValue}} = this.props;
 
     return (
       <div className='event-content'>
@@ -41,12 +41,12 @@ class TtpObsUri extends Component {
               id='uriType'
               name='uriType'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               select
               onChange={this.handleDataChangeMui}
               value={uriType}
-              disabled={activeContent === 'viewIncident'}>
+              disabled={disabledStatus}>
               {
                 _.map([
                   {text: f('incidentFields.domain'), value: 1}
@@ -62,11 +62,11 @@ class TtpObsUri extends Component {
               id='uriValue'
               name='uriValue'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               onChange={this.handleDataChangeMui}
               value={uriValue}
-              disabled={activeContent === 'viewIncident'}/>
+              disabled={disabledStatus}/>
           </div>
         </div>
       </div>

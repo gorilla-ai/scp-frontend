@@ -45,7 +45,7 @@ class Ttps extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    let {activeContent, value: {title, infrastructureType, etsList, obsFileList, obsUriList, obsSocketList}} = this.props;
+    let {disabledStatus, value: {title, infrastructureType, etsList, obsFileList, obsUriList, obsSocketList}} = this.props;
 
     if (infrastructureType  === 1) {
       infrastructureType = '1';
@@ -66,12 +66,12 @@ class Ttps extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              helperText={t('txt-checkRequiredFieldType')}
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
               error={!(title || '').trim()}
               onChange={this.handleDataChangeMui}
               value={title}
               required
-              disabled={activeContent === 'viewIncident'}/>
+              disabled={disabledStatus}/>
           </div>
           <div className='group'>
             <label htmlFor='infrastructureType'>{f('incidentFields.infrastructureType')}</label>
@@ -84,9 +84,9 @@ class Ttps extends Component {
               select
               onChange={this.handleDataChangeMui}
               value={infrastructureType}
-              helperText={t('txt-checkRequiredFieldType')}
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
               error={!(infrastructureType || '')}
-              disabled={activeContent === 'viewIncident'}>
+              disabled={disabledStatus}>
               {
                 _.map([
                   {value: '0', text: 'IOC'}, {value: '1', text: 'IOA'}
@@ -105,9 +105,11 @@ class Ttps extends Component {
               className='ttp-group'
               base={TtpEts}
               value={etsList}
-              props={{activeContent: activeContent}}
+              props={{
+                disabledStatus
+              }}
               onChange={this.handleDataChange.bind(this, 'etsList')}
-              readOnly={activeContent === 'viewIncident'} />
+              readOnly={disabledStatus} />
           </div>
         </div>
 
@@ -119,9 +121,11 @@ class Ttps extends Component {
               className='ttp-group'
               base={TtpObsFile}
               value={obsFileList}
-              props={{activeContent: activeContent}}
+              props={{
+                disabledStatus
+              }}
               onChange={this.handleDataChange.bind(this, 'obsFileList')}
-              readOnly={activeContent === 'viewIncident'} />
+              readOnly={disabledStatus} />
           </div>
         </div>
 
@@ -133,9 +137,11 @@ class Ttps extends Component {
               className='ttp-group'
               base={TtpObsUri}
               value={obsUriList}
-              props={{activeContent: activeContent}}
+              props={{
+                disabledStatus
+              }}
               onChange={this.handleDataChange.bind(this, 'obsUriList')}
-              readOnly={activeContent === 'viewIncident'} />
+              readOnly={disabledStatus} />
           </div>
         </div>
 
@@ -147,9 +153,11 @@ class Ttps extends Component {
               className='ttp-group'
               base={TtpObsSocket}
               value={obsSocketList}
-              props={{activeContent: activeContent}}
+              props={{
+                disabledStatus
+              }}
               onChange={this.handleDataChange.bind(this, 'obsSocketList')}
-              readOnly={activeContent === 'viewIncident'} />
+              readOnly={disabledStatus} />
           </div>
         </div>
       </div>

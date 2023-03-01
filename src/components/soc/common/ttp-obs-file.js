@@ -32,7 +32,7 @@ class TtpObsFile extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {activeContent, value: {fileName, fileExtension, md5, sha1, sha256}} = this.props;
+    const {disabledStatus, value: {fileName, fileExtension, md5, sha1, sha256}} = this.props;
 
     return (
       <div className='event-content'>
@@ -43,11 +43,11 @@ class TtpObsFile extends Component {
               id='fileName'
               name='fileName'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               onChange={this.handleDataChangeMui}
               value={fileName}
-              disabled={activeContent === 'viewIncident'} />
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='fileExtension'>{f('incidentFields.fileExtension')}</label>
@@ -55,11 +55,11 @@ class TtpObsFile extends Component {
               id='fileExtension'
               name='fileExtension'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               onChange={this.handleDataChangeMui}
               value={fileExtension}
-              disabled={activeContent === 'viewIncident'} />
+              disabled={disabledStatus} />
           </div>
         </div>
             
@@ -70,12 +70,12 @@ class TtpObsFile extends Component {
               id='md5'
               name='md5'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
-              value={md5}
               maxLength={32}
-              disabled={activeContent === 'viewIncident'} />
+              value={md5}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
             </div>
             <div className='group'>
               <label htmlFor='sha1'>SHA1</label>
@@ -83,12 +83,12 @@ class TtpObsFile extends Component {
                 id='sha1'
                 name='sha1'
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
-                onChange={this.handleDataChangeMui}
-                value={sha1}
                 maxLength={40}
-                disabled={activeContent === 'viewIncident'} />
+                value={sha1}
+                onChange={this.handleDataChangeMui}
+                disabled={disabledStatus} />
             </div>
           </div>
 
@@ -99,12 +99,12 @@ class TtpObsFile extends Component {
                 id='sha256'
                 name='sha256'
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
-                onChange={this.handleDataChangeMui}
-                value={sha256}
                 maxLength={64}
-                disabled={activeContent === 'viewIncident'} />
+                value={sha256}
+                onChange={this.handleDataChangeMui}
+                disabled={disabledStatus} />
             </div>
         </div>
       </div>

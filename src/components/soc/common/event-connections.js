@@ -33,7 +33,7 @@ class EventConnections extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {activeContent, value: {srcIp, srcPort, srcHostname, dstIp, dstPort, dstHostname}} = this.props
+    const {disabledStatus, value: {srcIp, srcPort, srcHostname, dstIp, dstPort, dstHostname}} = this.props
 
     return (
       <div className='connection-content'>
@@ -44,15 +44,15 @@ class EventConnections extends Component {
               id='srcIp'
               name='srcIp'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
-              value={srcIp}
-              helperText={t('txt-checkRequiredFieldType')}
+              required
               aria-errormessage={t('network-topology.txt-ipValidationFail')}
               error={!helper.ValidateIP_Address(srcIp)}
-              required
-              disabled={activeContent === 'viewIncident'} />
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              value={srcIp}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='srcPort' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.srcPort')}</label>
@@ -60,11 +60,11 @@ class EventConnections extends Component {
               id='srcPort'
               name='srcPort'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={srcPort}
-              disabled={activeContent === 'viewIncident'} />
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='srcHostname' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.srcHostname')}</label>
@@ -72,11 +72,11 @@ class EventConnections extends Component {
               id='srcHostname'
               name='srcHostname'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={srcHostname}
-              disabled={activeContent === 'viewIncident'} />
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
         </div>
 
@@ -87,14 +87,14 @@ class EventConnections extends Component {
               id='dstIp'
               name='dstIp'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
-              value={dstIp}
-              helperText={t('txt-checkRequiredFieldType')}
-              error={!helper.ValidateIP_Address(dstIp)}
               required
-              disabled={activeContent === 'viewIncident'} />
+              error={!helper.ValidateIP_Address(dstIp)}
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              value={dstIp}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='dstPort' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.dstPort')}</label>
@@ -102,11 +102,11 @@ class EventConnections extends Component {
               id='dstPort'
               name='dstPort'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={dstPort}
-              disabled={activeContent === 'viewIncident'} />
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
           <div className='group'>
             <label htmlFor='dstHostname' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.dstHostname')}</label>
@@ -114,11 +114,11 @@ class EventConnections extends Component {
               id='dstHostname'
               name='dstHostname'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={dstHostname}
-              disabled={activeContent === 'viewIncident'} />
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
           </div>
         </div>
       </div>

@@ -1217,10 +1217,10 @@ class IncidentManagement extends Component {
     return (
       <React.Fragment>
         <div className='group file-name'>
-          <label>{t('txt-name')}:</label>
           <TextField
             id='monthlyReportFile'
             name='fileName'
+            label={t('txt-fileName')}
             variant='outlined'
             size='small'
             value={monthlyReport.fileName}
@@ -1228,17 +1228,16 @@ class IncidentManagement extends Component {
           <div className='extension'>.zip</div>
         </div>
         <div className='group date-time'>
-          <label>{t('txt-date')}:</label>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
             <KeyboardDatePicker
               id='monthlyReportDate'
               className='date-picker'
+              label={t('txt-date')}
               inputVariant='outlined'
-              variant='inline'
-              format='YYYY-MM-DD'
+              openTo='year'
+              views={['year', 'month']}
+              format='YYYY-MM'
               invalidDateMessage={t('txt-invalidDateMessage')}
-              maxDateMessage={t('txt-maxDateMessage')}
-              minDateMessage={t('txt-minDateMessage')}
               value={monthlyReport.date}
               onChange={this.handleMonthlyReportChange.bind(this, 'date')} />
           </MuiPickersUtilsProvider>
@@ -2044,7 +2043,7 @@ class IncidentManagement extends Component {
               value={search.category}
               onChange={this.handleSearchMui}>
               {
-                _.map(_.range(0, 20), el => {
+                _.map(_.range(10, 20), el => {
                   return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                 })
               }
@@ -3561,7 +3560,7 @@ class IncidentManagement extends Component {
               <div className='main-content'>
                 <header className='main-header'>{it('txt-incident')}</header>
                 <div className='content-header-btns with-menu '>
-                  {/*<Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport} data-cy='export-statistics-report'>{it('txt-exportStatisticsReport')}</Button>*/}
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleStatisticsReport} data-cy='export-statistics-report'>{it('txt-exportStatisticsReport')}</Button>
                   {activeContent === 'viewIncident' &&
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
                   }
