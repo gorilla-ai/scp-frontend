@@ -11,10 +11,12 @@ import 'moment/locale/zh-tw'
 
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormLabel from '@material-ui/core/FormLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
+import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
@@ -92,7 +94,7 @@ class Syslog extends Component {
     this.state = {
       openFilter: false,
       activeContent: 'syslogData', //'syslogData', 'hostInfo' or 'editSyslog'
-      dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'patternName', '_menu'],
+      dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'patternName', 'notify', '_menu'],
       dataFields: {},
       syslog: {
         dataContent: null,
@@ -119,6 +121,7 @@ class Syslog extends Component {
         ip: ''
       },
       newHostName: '',
+      hostNotifyStatus: '',
       sshDataFieldArr: ['id', 'account', 'option'],
       sshData: [],
       sshAccountName: '',
@@ -131,7 +134,7 @@ class Syslog extends Component {
       },
       showPatternLeftNav: true,
       openExportCharts: false,
-      openEditHostName: false,
+      openEditHost: false,
       openTimeline: false,
       openEditHosts: false,
       openEditPatternName: false,
@@ -295,6 +298,11 @@ class Syslog extends Component {
                 if (allValue.patternSetting.length > 0) {
                   return <div className='flex-item'>{allValue.patternSetting.map(this.displayPatternName)}</div>
                 }
+              } else if (tempData === 'notify') {
+                const color = value ? '#22ac38' : '#d10d25';
+                const title = value ? t('txt-online') : t('txt-offline');
+
+                return <span><i className='fg fg-recode' style={{color}} title={title} /></span>
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
@@ -751,21 +759,20 @@ class Syslog extends Component {
     const fullHostName = val.netProxyHostName;
     let hostName = val.netProxyHostName;
     let status = {
-      server: {},
+      notify: {},
       netproxy: {}
     };
 
-    if (!val.server && !val.netproxy) {
+    if (!val.netproxy) {
       return;
     }
 
-    if (val.server.logstashStatus.toLowerCase() === 'active') {
-      status.server.color = '#22ac38';
-      status.server.title = t('txt-online');
-    } else if (val.server.logstashStatus.toLowerCase() === 'inactive') {
-      status.server.color = '#d10d25';
-      status.server.title = t('txt-offline');
-      status.server.errorText = val.server.inactive.join(', ');
+    if (val.netProxyNotify) {
+      status.notify.color = '#22ac38';
+      status.notify.title = t('txt-online');
+    } else {
+      status.notify.color = '#d10d25';
+      status.notify.title = t('txt-offline');
     }
 
     if (val.netproxy.logstashStatus.toLowerCase() === 'active') {
@@ -785,20 +792,18 @@ class Syslog extends Component {
       <div className='host-info' key={i}>
         <header>
           <div className='title'>{t('syslogFields.txt-hostIP')}: {val.netProxyIp}</div>
-          <div className='name'>{t('txt-name')}: <span title={fullHostName}>{hostName}</span> <i className='fg fg-edit' onClick={this.toggleHostNameEdit.bind(this, val.netProxyHostId, val.netProxyIp, val.netProxyHostName)} title={t('txt-edit')}></i></div>
-          <span className='status'>Server {t('txt-status')}: <i className='fg fg-recode' style={{color: status.server.color}} title={status.server.title} /></span>
+          <div className='name'>{t('txt-name')}: <span title={fullHostName}>{hostName}</span></div>
+          <span className='status'>{t('txt-notifyStatus')}: <i className='fg fg-recode' style={{color: status.notify.color}} title={status.notify.title} /></span>
           <span className='status'>NetProxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
           <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
           {val.netproxy.logstashStatus === 'INACTIVE' &&
             <i className='fg fg-trashcan host' onClick={this.openDeleteHostModal.bind(this, val)} title={t('txt-delete')}></i>
           }
+          <i className='fg fg-edit host' onClick={this.toggleHostEdit.bind(this, val)} title={t('txt-edit')}></i>
         </header>
         <div className='content-header-btns'>
         </div>
         <div className='host-content'>
-          {status.server.errorText &&
-            <span className='error-text'><i className='fg fg-alert-1'></i>Server: {status.server.errorText}</span>
-          }
           {status.netproxy.errorText &&
             <span className='error-text'><i className='fg fg-alert-1'></i>NetProxy: {status.netproxy.errorText}</span>
           }
@@ -1884,23 +1889,22 @@ class Syslog extends Component {
     });
   }
   /**
-   * Toggle edit host name dialog on/off
+   * Toggle host edit dialog on/off
    * @method
-   * @param {string} [id] - host ID
-   * @param {string} [ip] - host IP
-   * @param {string} [hostName] - host name
+   * @param {object} [val] - host info
    */
-  toggleHostNameEdit = (id, ip, hostName) => {
+  toggleHostEdit = (val) => {
     this.setState({
-      openEditHostName: !this.state.openEditHostName
+      openEditHost: !this.state.openEditHost
     }, () => {
-      if (id) {
+      if (val && val.netProxyHostId) {
         this.setState({
           activeHostInfo: {
-            id,
-            ip
+            id: val.netProxyHostId,
+            ip: val.netProxyIp
           },
-          newHostName: hostName
+          newHostName: val.netProxyHostName,
+          hostNotifyStatus: val.netProxyNotify
         });
       }
     });
@@ -1916,59 +1920,85 @@ class Syslog extends Component {
     });
   }
   /**
-   * Display edit host name content
+   * Toggle notifiy status switch
+   * @method
+   */
+  handleNotifyStatusChange = () => {
+    this.setState({
+      hostNotifyStatus: !this.state.hostNotifyStatus
+    });
+  }
+  /**
+   * Display edit host content
    * @method
    * @returns HTML DOM
    */
-  displayEditHostName = () => {
+  displayEditHost = () => {
+    const {newHostName, hostNotifyStatus} = this.state;
+
     return (
-      <div className='group'>
-        <TextField
-          name='name'
-          label={t('syslogFields.txt-hostName')}
-          variant='outlined'
-          fullWidth
-          size='small'
-          value={this.state.newHostName}
-          onChange={this.handleEditHostNameChange} />
-      </div>
+      <React.Fragment>
+        <div className='group'>
+          <TextField
+            name='name'
+            label={t('syslogFields.txt-hostName')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={newHostName}
+            onChange={this.handleEditHostNameChange} />
+        </div>
+        <div className='group'>
+          <FormLabel className='notify'>{t('txt-notifyStatus')}</FormLabel>            
+          <FormControlLabel
+            className='switch-control'
+            control={
+              <Switch
+                checked={hostNotifyStatus}
+                onChange={this.handleNotifyStatusChange}
+                color='primary' />
+            }
+            label={t('txt-switch')} />
+        </div>
+      </React.Fragment>
     )
   }
   /**
-   * Display edit host name dialog
+   * Display edit host dialog
    * @method
    * @returns ModalDialog component
    */
-  showEditHostNameDialog = () => {
+  showEditHostDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleHostNameEdit},
-      confirm: {text: t('txt-confirm'), handler: this.confirmEditHostName}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleHostEdit},
+      confirm: {text: t('txt-confirm'), handler: this.confirmEditHost}
     };
 
     return (
       <ModalDialog
-        id='editHostName'
+        id='configEditHost'
         className='modal-dialog'
-        title={t('syslogFields.txt-editHostName')}
+        title={t('syslogFields.txt-editHostInfo')}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='confirm'>
-        {this.displayEditHostName()}    
+        {this.displayEditHost()}    
       </ModalDialog>
     )
   }
   /**
-   * Handle edit host name confirm
+   * Handle edit host confirm
    * @method
    */
-  confirmEditHostName = () => {
+  confirmEditHost = () => {
     const {baseUrl} = this.context;
-    const {activeHostInfo, newHostName} = this.state;
+    const {activeHostInfo, newHostName, hostNotifyStatus} = this.state;
     const url = `${baseUrl}/api/log/netproxy/updatehost`;
     const requestData = {
       ...activeHostInfo,
-      hostName: newHostName
+      hostName: newHostName,
+      notify: hostNotifyStatus
     };
 
     this.ah.one({
@@ -1980,7 +2010,7 @@ class Syslog extends Component {
     .then(data => {
       if (data) {
         this.getSyslogData();
-        this.toggleHostNameEdit();
+        this.toggleHostEdit();
       }
       return null;
     })
@@ -2734,7 +2764,7 @@ class Syslog extends Component {
       editSyslogType,
       showPatternLeftNav,
       openExportCharts,
-      openEditHostName,
+      openEditHost,
       openTimeline,
       openEditHosts,
       openEditPatternName,
@@ -2762,8 +2792,8 @@ class Syslog extends Component {
           this.showExportChartsDialog()
         }
 
-        {openEditHostName &&
-          this.showEditHostNameDialog()
+        {openEditHost &&
+          this.showEditHostDialog()
         }
 
         {openTimeline &&
