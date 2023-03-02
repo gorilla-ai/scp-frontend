@@ -3189,11 +3189,23 @@ button.standard:hover:not([disabled]) {
         .edit-syslog-config {
           height: 70vh;
           overflow-y: auto;
+          .notify-status {
+            width: 70%;
+            margin: 0 auto;
+            margin-top: -10px;
+            color: var(--primaryContentHeader);
+            .notify {
+              float: left;
+              margin-top: 10px;
+              margin-right: 10px;
+              color: var(--primaryContentHeader);
+            }
+          }
           .pattern-content {
             position: relative;
             width: 70%;
             margin: 0 auto;
-            margin-top: 70px;
+            margin-top: 60px;
             margin-bottom: 30px;
             border: 1px solid var(--primaryBorder);
             & > header {

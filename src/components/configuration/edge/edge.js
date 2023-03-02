@@ -93,7 +93,7 @@ class Edge extends Component {
       edgeSearch: _.cloneDeep(EDGE_SEARCH),
       originalEdgeData: {},
       edge: {
-        dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
+        dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', 'notifyStatus', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -397,6 +397,11 @@ class Edge extends Component {
                   } else {
                     return <div className='description-edge'>serviceArr</div>
                   }
+                } else if (val === 'notifyStatus') {
+                  const color = value ? '#22ac38' : '#d10d25';
+                  const title = value ? t('txt-online') : t('txt-offline');
+
+                  return <span><i className='fg fg-recode' style={{color}} title={title} /></span>
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
@@ -1388,7 +1393,7 @@ class Edge extends Component {
             </div>
             <div className='edge-time'>
               <div className='group'>
-                <FormLabel>{t('edge-management.txt-notifyStatus')}</FormLabel>            
+                <FormLabel>{t('edge-management.txt-notifyStatus')}</FormLabel>
                 <FormControlLabel
                   className='switch-control'
                   control={

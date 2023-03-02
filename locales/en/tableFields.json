@@ -522,6 +522,7 @@
     "groups": "Group",
     "serviceType": "Service Type",
     "connectionStatus": "Connection Status",
+    "notifyStatus": "Notify Status",
     "txt-lastAlertDataUpdDT": "Latest alert data update time",
     "txt-attackCnt": "Attack count",
     "txt-agentMode": "Monitor mode",
@@ -557,7 +558,8 @@
   },
   "serviceStatusFields": {
     "status": "Status",
-    "serviceName": "Service Name"
+    "serviceName": "Service Name",
+    "notifyStatus": "Notify Status"
   },
   "incidentFields": {
     "severity": "Severity Label",

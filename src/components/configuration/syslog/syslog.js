@@ -1092,6 +1092,18 @@ class Syslog extends Component {
     });
   }
   /**
+   * Handle syslog edit notify change
+   * @method
+   */
+  handleConfigNotifyChange = () => {
+    let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+    tempSyslogPatternConfig.notify = !tempSyslogPatternConfig.notify;
+
+    this.setState({
+      syslogPatternConfig: tempSyslogPatternConfig
+    });
+  }
+  /**
    * Get and set the latest event sample data
    * @method
    * @param {number} i - index of the syslogPatternConfig pattern list
@@ -1181,7 +1193,8 @@ class Syslog extends Component {
       loghostIp: syslogPatternConfig.loghostIp,
       name: syslogPatternConfig.name,
       port: Number(syslogPatternConfig.port),
-      format: syslogPatternConfig.format
+      format: syslogPatternConfig.format,
+      notfiy: syslogPatternConfig.notfiy
     };
 
     requestData.patternSetting = _.map(syslogPatternConfig.patternSetting, val => {
@@ -1949,7 +1962,7 @@ class Syslog extends Component {
             onChange={this.handleEditHostNameChange} />
         </div>
         <div className='group'>
-          <FormLabel className='notify'>{t('txt-notifyStatus')}</FormLabel>            
+          <FormLabel className='notify'>{t('txt-notifyStatus')}</FormLabel>
           <FormControlLabel
             className='switch-control'
             control={
@@ -2922,6 +2935,19 @@ class Syslog extends Component {
                         value={syslogPatternConfig.format}
                         disabled />
                     </div>
+                  </div>
+
+                  <div className='notify-status'>
+                    <FormLabel className='notify'>{t('txt-notifyStatus')}</FormLabel>
+                    <FormControlLabel
+                      className='switch-control'
+                      control={
+                        <Switch
+                          checked={syslogPatternConfig.notify}
+                          onChange={this.handleConfigNotifyChange}
+                          color='primary' />
+                      }
+                      label={t('txt-switch')} />
                   </div>
 
                   <div className='pattern-content'>
