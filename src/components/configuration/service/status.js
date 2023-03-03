@@ -4,6 +4,11 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormLabel from '@material-ui/core/FormLabel'
+import Switch from '@material-ui/core/Switch'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import Config from '../../common/configuration'
@@ -28,11 +33,13 @@ class Status extends Component {
 
     this.state = {
       lastUpdateTime: '',
+      showNotifyStatus: false,
       serviceStatus: {
-        dataFieldsArr: ['status', 'serviceName'],
+        dataFieldsArr: ['status', 'serviceName', 'notifyStatus'],
         dataFields: [],
         dataContent: null
-      }
+      },
+      notifyStatusList: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -130,16 +137,138 @@ class Status extends Component {
                   }
 
                   return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
+                } else if (val === 'notifyStatus') {
+                  const color = value ? '#22ac38' : '#d10d25';
+                  const title = value ? t('txt-online') : t('txt-offline');
+
+                  return <span><i className='fg fg-recode' style={{color}} title={title} /></span>
                 }
               }
             }
           };
         });
 
+        const notifyStatusList = _.map(data.monitor, val => {
+          return {
+            serviceName: val.serviceName,
+            status: val.notifyStatus
+          };
+        });
+
         this.setState({
           lastUpdateTime,
-          serviceStatus: tempServiceStatus
+          serviceStatus: tempServiceStatus,
+          notifyStatusList
         });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle notify settings dialog
+   * @method
+   */
+  toggleNotifySettings = () => {
+    this.setState({
+      showNotifyStatus: !this.state.showNotifyStatus
+    });
+  }
+  /**
+   * Handle notify status change
+   * @method
+   * @param {number} i - index of the monitor data array
+   * @param {object} event - event object
+   */
+  handleNotifyStatusChange = (i, event) => {
+    let tempNotifyStatusList = _.cloneDeep(this.state.notifyStatusList);
+    tempNotifyStatusList[i].status = event.target.checked;
+
+    this.setState({
+      notifyStatusList: tempNotifyStatusList
+    });
+  }
+  /**
+   * Display individual switch control
+   * @method
+   * @param {object} val - monitor data
+   * @param {number} i - index of the monitor data array
+   * @returns HTML DOM
+   */
+  displaySwitchControl = (val, i) => {
+    return (
+      <div key={i} className='switch-group'>
+        <FormLabel className='service-name'>{val.serviceName}</FormLabel>
+        <FormControlLabel
+          className='switch-control'
+          control={
+            <Switch
+              checked={val.status}
+              onChange={this.handleNotifyStatusChange.bind(this, i)}
+              color='primary' />
+          }
+          label={t('txt-switch')} />
+      </div>
+    )
+  }
+  /**
+   * Display notify settings content
+   * @method
+   * @returns HTML DOM
+   */
+  displayNotifySettings = () => {
+    return (
+      <div className='notify-settings'>
+        {this.state.notifyStatusList.map(this.displaySwitchControl)}
+      </div>
+    )
+  }
+  /**
+   * Show Notify settings dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  notifySettingsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleNotifySettings},
+      confirm: {text: t('txt-confirm'), handler: this.notifySettingsConfirm}
+    };
+    const titleText = t('notifications.txt-settings');
+
+    return (
+      <ModalDialog
+        id='notifySettingsDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayNotifySettings()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Notify Settings confirm
+   * @method
+   */
+  notifySettingsConfirm = () => {
+    const {baseUrl} = this.context;
+    const {notifyStatusList} = this.state;
+    const url = `${baseUrl}/api/monitor/updateService`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(notifyStatusList),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.toggleNotifySettings();
+        this.getServiceStatus('refresh');
       }
       return null;
     })
@@ -149,7 +278,7 @@ class Status extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {lastUpdateTime, serviceStatus} = this.state;
+    const {lastUpdateTime, serviceStatus, showNotifyStatus} = this.state;
     const tableOptions = {
       pagination: false,
       tableBodyHeight: '78vh'
@@ -157,6 +286,10 @@ class Status extends Component {
 
     return (
       <div>
+        {showNotifyStatus &&
+          this.notifySettingsDialog()
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='contained' color='primary' onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}><i className='fg fg-update'></i></Button>
@@ -172,6 +305,11 @@ class Status extends Component {
           <div className='parent-content'>
             <div className='main-content'>
               <header className='main-header'>{t('txt-serviceStatus')}</header>
+
+              <div className='content-header-btns with-menu'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleNotifySettings}>{t('notifications.txt-settings')}</Button>
+              </div>
+
               <div className='table-content'>
                 <div className='table no-pagination'>
                   <MuiTableContent

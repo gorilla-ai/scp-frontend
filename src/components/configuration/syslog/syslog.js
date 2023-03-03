@@ -323,51 +323,6 @@ class Syslog extends Component {
         this.setState({
           syslog: tempSyslog,
           dataFields: tempFields
-        }, () => {
-          this.getSyslogStatus();
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set syslog status
-   * @method
-   */
-  getSyslogStatus = () => {
-    const {baseUrl} = this.context;
-    const {syslog} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/v2/log/config/status`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let tempSyslog = {...syslog};
-        let formattedSyslogArr = [];
-        let status = {
-          server: [],
-          netproxy: []
-        };
-
-        _.forEach(syslog.dataContent, val => {
-          status.server = data.server[val.netProxyIp];
-          status.netproxy = data.netproxy[val.netProxyIp];
-
-          formattedSyslogArr.push({
-            ...val,
-            ...status
-          });
-        })
-
-        tempSyslog.dataContent = formattedSyslogArr;
-
-        this.setState({
-          syslog: tempSyslog
         });
       }
       return null;
@@ -763,10 +718,6 @@ class Syslog extends Component {
       netproxy: {}
     };
 
-    if (!val.netproxy) {
-      return;
-    }
-
     if (val.netProxyNotify) {
       status.notify.color = '#22ac38';
       status.notify.title = t('txt-online');
@@ -775,13 +726,16 @@ class Syslog extends Component {
       status.notify.title = t('txt-offline');
     }
 
-    if (val.netproxy.logstashStatus.toLowerCase() === 'active') {
+    if (val.netProxyStatus.toLowerCase() === 'active') {
       status.netproxy.color = '#22ac38';
       status.netproxy.title = t('txt-online');
-    } else if (val.netproxy.logstashStatus.toLowerCase() === 'inactive') {
+    } else if (val.netProxyStatus.toLowerCase() === 'inactive') {
       status.netproxy.color = '#d10d25';
       status.netproxy.title = t('txt-offline');
-      status.netproxy.errorText = val.netproxy.inactive.join(', ');
+
+      if (val.inactive.length > 0) {
+        status.netproxy.errorText = val.inactive.join(', ');
+      }
     }
 
     if (fullHostName.length > 10) {
@@ -795,8 +749,8 @@ class Syslog extends Component {
           <div className='name'>{t('txt-name')}: <span title={fullHostName}>{hostName}</span></div>
           <span className='status'>{t('txt-notifyStatus')}: <i className='fg fg-recode' style={{color: status.notify.color}} title={status.notify.title} /></span>
           <span className='status'>NetProxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
-          <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.netproxy.updatetime, 'local')}</span>
-          {val.netproxy.logstashStatus === 'INACTIVE' &&
+          <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.updatetime, 'local')}</span>
+          {val.netProxyStatus === 'INACTIVE' &&
             <i className='fg fg-trashcan host' onClick={this.openDeleteHostModal.bind(this, val)} title={t('txt-delete')}></i>
           }
           <i className='fg fg-edit host' onClick={this.toggleHostEdit.bind(this, val)} title={t('txt-edit')}></i>
@@ -1194,7 +1148,7 @@ class Syslog extends Component {
       name: syslogPatternConfig.name,
       port: Number(syslogPatternConfig.port),
       format: syslogPatternConfig.format,
-      notfiy: syslogPatternConfig.notfiy
+      notify: syslogPatternConfig.notify
     };
 
     requestData.patternSetting = _.map(syslogPatternConfig.patternSetting, val => {
