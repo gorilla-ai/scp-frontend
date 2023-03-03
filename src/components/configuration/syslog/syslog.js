@@ -720,10 +720,10 @@ class Syslog extends Component {
 
     if (val.netProxyNotify) {
       status.notify.color = '#22ac38';
-      status.notify.title = t('txt-online');
+      status.notify.title = t('txt-on');
     } else {
       status.notify.color = '#d10d25';
-      status.notify.title = t('txt-offline');
+      status.notify.title = t('txt-off');
     }
 
     if (val.netProxyStatus.toLowerCase() === 'active') {
