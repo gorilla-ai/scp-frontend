@@ -101,26 +101,6 @@ class ThreatIntelligence extends Component {
     helper.clearTimer();
   }
   /**
-   * Format the object data into array type
-   * @method
-   * @param {object} data - chart data
-   */
-  formatPieChartData = (data) => {
-    let indicatorsData = [];
-
-    _.keys(data)
-    .forEach(key => {
-      if (data[key] > 0) {
-        indicatorsData.push({
-          key,
-          doc_count: data[key]
-        });
-      }
-    });
-
-    return indicatorsData;
-  }
-  /**
    * Get and set charts data
    * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
    * @param {object} [dateTime] - custom datetime set by the user
@@ -230,6 +210,26 @@ class ThreatIntelligence extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Format the object data into array type
+   * @method
+   * @param {object} data - chart data
+   */
+  formatPieChartData = (data) => {
+    let indicatorsData = [];
+
+    _.keys(data)
+    .forEach(key => {
+      if (data[key] > 0) {
+        indicatorsData.push({
+          key,
+          doc_count: data[key]
+        });
+      }
+    });
+
+    return indicatorsData;
   }
   /**
    * Reset indicators data

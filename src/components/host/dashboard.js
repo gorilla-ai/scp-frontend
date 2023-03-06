@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import moment from 'moment'
 import cx from 'classnames'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
@@ -16,7 +17,9 @@ import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
+import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PieChart from 'react-chart/build/src/components/pie'
 
 import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
@@ -68,6 +71,11 @@ class HostDashboard extends Component {
     this.state = {
       showFilter: false,
       cveSearch: _.cloneDeep(CVE_SEARCH),
+      cveSeverityLevel: {
+        data: null,
+        count: 0
+      },
+      monthlySeverityTrend: null,
       showCveInfo: false,
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
       cveData: {
@@ -96,10 +104,208 @@ class HostDashboard extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
 
+    this.getCveSeverityData();
     this.getCveData();
   }
   componentWillUnmount() {
     helper.clearTimer();
+  }
+  /**
+   * Get and set CVE chart data
+   * @method
+   */
+  getCveSeverityData = () => {
+    const {baseUrl} = this.context;
+
+    //Pie Chart
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/cveUpdateToDate/severityAgg`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        this.setState({
+          cveSeverityLevel: {
+            data: this.formatPieChartData(data.severityAgg),
+            count: data.total
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    //Bar Chart
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/cveUpdateToDate/year/severityAgg`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let monthlySeverityTrend = [];
+
+        _.keys(data.severityAgg)
+        .forEach(key => {
+          _.keys(data.severityAgg[key])
+          .forEach(key2 => {
+            if (data.severityAgg[key][key2] >= 0) {
+              monthlySeverityTrend.push({
+                day: parseInt(moment(helper.getFormattedDate(key2, 'local')).format('x')),
+                count: data.severityAgg[key][key2],
+                indicator: key.toUpperCase()
+              })
+            }
+          })
+        });
+
+        this.setState({
+          monthlySeverityTrend
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Format the object data into array type
+   * @method
+   * @param {object} data - chart data
+   */
+  formatPieChartData = (data) => {
+    let cveSeverityLevel = [];
+
+    _.keys(data)
+    .forEach(key => {
+      if (data[key] > 0) {
+        cveSeverityLevel.push({
+          key: key.toUpperCase(),
+          doc_count: data[key]
+        });
+      }
+    });
+
+    return cveSeverityLevel;
+  }
+  /**
+   * Show pie chart
+   * @method
+   * @param {array.<object>} cveSeverityLevel - CVE severity data
+   * @returns HTML DOM
+   */
+  showPieChart = (cveSeverityLevel) => {
+    const centerText = t('txt-total') + ': ' + this.state.cveSeverityLevel.count;
+
+    return (
+      <div className='chart-group'>
+        {!cveSeverityLevel &&
+          <div className='empty-data'>
+            <header>{t('host.dashboard.txt-severityLevelQuery')}</header>
+            <span><i className='fg fg-loading-2'></i></span>
+          </div>
+        }
+        {cveSeverityLevel && cveSeverityLevel.length === 0 &&
+          <div className='empty-data'>
+            <header>{t('host.dashboard.txt-severityLevelQuery')}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {cveSeverityLevel && cveSeverityLevel.length > 0 &&
+          <PieChart
+            title={t('host.dashboard.txt-severityLevelQuery')}
+            holeSize={45}
+            centerText={centerText}
+            data={cveSeverityLevel}
+            colors={{
+              key: ALERT_LEVEL_COLORS
+            }}
+            keyLabels={{
+              key: t('txt-severity'),
+              doc_count: t('txt-count')
+            }}
+            valueLabels={{
+              'Pie Chart': {
+                key: t('txt-severity'),
+                doc_count: t('txt-count')
+              }
+            }}
+            dataCfg={{
+              splitSlice: ['key'],
+              sliceSize: 'doc_count'
+            }} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Show bar chart
+   * @method
+   * @param {array.<object>} monthlySeverityTrend - chart data
+   * @returns HTML DOM
+   */
+  showBarChart = (monthlySeverityTrend) => {
+    return (
+      <div className='chart-group'>
+        {!monthlySeverityTrend &&
+          <div className='empty-data'>
+            <header>{t('host.dashboard.txt-monthlySeverityTrend')}</header>
+            <span><i className='fg fg-loading-2'></i></span>
+          </div>
+        }
+        {monthlySeverityTrend && monthlySeverityTrend.length === 0 &&
+          <div className='empty-data'>
+            <header>{t('host.dashboard.txt-monthlySeverityTrend')}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {monthlySeverityTrend && monthlySeverityTrend.length > 0 &&
+          <BarChart
+            stacked
+            vertical
+            title={t('host.dashboard.txt-monthlySeverityTrend')}
+            legend={{
+              enabled: true
+            }}
+            data={monthlySeverityTrend}
+            colors={ALERT_LEVEL_COLORS}
+            dataCfg={{
+              x: 'day',
+              y: 'count',
+              splitSeries: 'indicator'
+            }}
+            xAxis={{
+              type: 'datetime'
+            }}
+            plotOptions={{
+              series: {
+                maxPointWidth: 20
+              }
+            }}
+            tooltip={{
+              formatter: this.onTooltip
+            }} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.<object>} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (eventInfo, data) => {
+    return (
+      <section>
+        <span>{t('txt-severity')}: {data[0].indicator}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
+      </section>
+    )
   }
   /**
    * Get and set ES table data
@@ -650,7 +856,7 @@ class HostDashboard extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, showCveInfo, cveData, contextAnchor} = this.state;
+    const {showFilter, cveSeverityLevel, monthlySeverityTrend, showCveInfo, cveData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cve', 'currentPage', currentPage);
@@ -688,10 +894,17 @@ class HostDashboard extends Component {
           <div className='parent-content'>
             {this.renderFilter()}
 
+            <div className='main-statistics host'>
+              <div className='statistics-content'>
+                {this.showPieChart(cveSeverityLevel.data)}
+                {this.showBarChart(monthlySeverityTrend)}
+              </div>
+            </div>
+
             <div className='main-content'>
               <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
 
-              <div className='content-header-btns with-menu'>
+              <div className='content-header-btns'>
               </div>
 
               <MuiTableContent

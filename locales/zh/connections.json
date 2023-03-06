@@ -392,6 +392,8 @@
     "txt-cpePage": "CPE維護",
     "txt-dashboard": "Dashboard",
     "dashboard": {
+      "txt-severityLevelQuery": "CVE風險暴露等級分佈查詢",
+      "txt-monthlySeverityTrend": "CVE每月漏洞等級統計趨勢",
       "txt-vulnerabilityList": "弱點漏洞清單",
       "txt-vulnerabilityDetails": "Vulnerability Details",
       "txt-exposedDevices": "Exposed Devices",
