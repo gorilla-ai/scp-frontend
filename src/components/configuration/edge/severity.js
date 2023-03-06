@@ -449,9 +449,8 @@ class Severity extends Component {
    */
   displaySeverityCheckbox = (val, i) => {
     return (
-      <div className='option' key={val + i}>
+      <div key={val + i} className='option'>
         <FormControlLabel
-          key={i}
           label={val}
           control={
             <Checkbox

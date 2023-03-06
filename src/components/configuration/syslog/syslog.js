@@ -743,7 +743,7 @@ class Syslog extends Component {
     }
 
     return (
-      <div className='host-info' key={i}>
+      <div key={i} className='host-info'>
         <header>
           <div className='title'>{t('syslogFields.txt-hostIP')}: {val.netProxyIp}</div>
           <div className='name'>{t('txt-name')}: <span title={fullHostName}>{hostName}</span></div>

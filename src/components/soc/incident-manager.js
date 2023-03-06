@@ -1979,9 +1979,8 @@ class IncidentManagement extends Component {
    */
   displaySeverityCheckbox = (val, i) => {
     return (
-      <div className='option' key={val + i}>
+      <div key={val + i} className='option'>
         <FormControlLabel
-          key={i}
           label={val}
           control={
             <Checkbox
@@ -2156,9 +2155,8 @@ class IncidentManagement extends Component {
   }
   displayStatusCheckbox = (val, i) => {
     return (
-      <div className='option' key={val + i}>
+      <div key={val + i} className='option'>
         <FormControlLabel
-          key={i}
           label={it(`status.${val}`)}
           control={
             <Checkbox

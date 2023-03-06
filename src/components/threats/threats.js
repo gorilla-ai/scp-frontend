@@ -65,7 +65,7 @@ class Threats extends Component {
 
     if (alertChartsList[i].type === 'pie') {
       return (
-        <div className='chart-group' key={alertChartsList[i].chartID}>
+        <div key={alertChartsList[i].chartID} className='chart-group'>
           {!alertChartsList[i].chartData &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
@@ -96,7 +96,7 @@ class Threats extends Component {
       )
     } else if (alertChartsList[i].type === 'table') {
       return (
-        <div className='chart-group' key={alertChartsList[i].chartID}>
+        <div key={alertChartsList[i].chartID} className='chart-group'>
           {!alertChartsList[i].chartData &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>

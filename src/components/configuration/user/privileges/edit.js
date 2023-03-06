@@ -257,8 +257,8 @@ class PrivilegeEdit extends Component {
     if (val.text.includes('SOC') || privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
       return (
         <FormControlLabel
-          className='privilege-checkbox'
           key={i}
+          className='privilege-checkbox'
           label={val.text}
           control={
             <Checkbox
@@ -274,8 +274,8 @@ class PrivilegeEdit extends Component {
     } else {
       return (
         <FormControlLabel
-          className='privilege-checkbox'
           key={i}
+          className='privilege-checkbox'
           label={val.text}
           control={
             <Checkbox

@@ -239,11 +239,10 @@ class IncidentTag extends Component {
   }
   displayCheckbox = (val, i) => {
     return (
-      <div className='option' style={{display:'flex'}} key={val.id + i}>
+      <div key={val.id + i} className='option' style={{display:'flex'}}>
         <div className='incident-tag-square' style={{backgroundColor: val.color}} />
         &nbsp;
         <FormControlLabel
-          key={i}
           label={val.tag}
           control={
             <Checkbox

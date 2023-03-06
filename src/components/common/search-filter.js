@@ -33,7 +33,7 @@ class SearchFilter extends Component {
     const filterList = _.map(conditionList, (val, i) => {
       let formattedValue = val.toLowerCase();
       formattedValue = formattedValue.replace(' ', '_');
-      return <MenuItem id={'searchFilter' + val.replace(' ', '')} key={i} value={formattedValue}>{val}</MenuItem>
+      return <MenuItem key={i} id={'searchFilter' + val.replace(' ', '')} value={formattedValue}>{val}</MenuItem>
     });
 
     return (

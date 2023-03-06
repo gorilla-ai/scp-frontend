@@ -178,7 +178,6 @@ class NotifyDialog extends Component {
       <tr key={i}>
         <td>
           <FormControlLabel
-            key={i}
             control={
               <Checkbox
                 className='checkbox-ui'
@@ -191,7 +190,6 @@ class NotifyDialog extends Component {
         </td>
         <td>
           <FormControlLabel
-            key={i}
             control={
               <Checkbox
                 className='checkbox-ui'

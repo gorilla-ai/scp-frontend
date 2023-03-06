@@ -812,7 +812,7 @@ class DashboardStats extends Component {
 
     if (alertChartsList[i].type === 'pie') {
       return (
-        <div className='chart-group' key={alertChartsList[i].chartID}>
+        <div key={alertChartsList[i].chartID} className='chart-group'>
           {!alertChartsList[i].chartData &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
@@ -844,7 +844,7 @@ class DashboardStats extends Component {
       )
     } else if (alertChartsList[i].type === 'table') {
       return (
-        <div className='chart-group' key={alertChartsList[i].chartID}>
+        <div key={alertChartsList[i].chartID} className='chart-group'>
           {!ivar.dataContent &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
@@ -884,7 +884,7 @@ class DashboardStats extends Component {
       const content = val.data ? t('txt-notFound') : <span><i className='fg fg-loading-2'></i></span>;
 
       return (
-        <div className='c-chart dns-histogram' key={val.id}>
+        <div key={val.id} className='c-chart dns-histogram'>
           <header>{t('dashboard.txt-' + val.id)}</header>
           <span className='show-empty'>{content}</span>
         </div>

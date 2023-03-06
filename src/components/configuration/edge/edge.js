@@ -260,8 +260,8 @@ class Edge extends Component {
     }
 
     return (
-      <ul key={i}>
-        <li key={i + val.serviceName}><span className='header'>{val.serviceName}:</span> <span style={{color}}>{val.status}</span></li>
+      <ul key={i + val.serviceName}>
+        <li><span className='header'>{val.serviceName}:</span> <span style={{color}}>{val.status}</span></li>
       </ul>
     )
   }

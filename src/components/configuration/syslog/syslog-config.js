@@ -91,7 +91,7 @@ class syslogConfig extends Component {
   displayParsedData = (val, key) => {
     if (key != '_Raw') {
       return (
-        <div className='group' key={key}>
+        <div key={key} className='group'>
           <TextField
             id={key}
             name='format'
