@@ -27,6 +27,8 @@
   "txt-view": "View",
   "txt-close": "Close",
   "txt-closeRefresh": "Close and refresh content",
+  "txt-statusOn": "On",
+  "txt-statusOff": "Off",
   "txt-show": "Show",
   "txt-tips": "Tips",
   "txt-notifyStatus": "Notify Status",

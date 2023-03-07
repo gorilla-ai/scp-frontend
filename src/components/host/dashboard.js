@@ -127,7 +127,7 @@ class HostDashboard extends Component {
         this.setState({
           cveSeverityLevel: {
             data: this.formatPieChartData(data.severityAgg),
-            count: data.total
+            count: helper.numberWithCommas(data.total)
           }
         });
       }

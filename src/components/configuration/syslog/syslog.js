@@ -299,10 +299,7 @@ class Syslog extends Component {
                   return <div className='flex-item'>{allValue.patternSetting.map(this.displayPatternName)}</div>
                 }
               } else if (tempData === 'notify') {
-                const color = value ? '#22ac38' : '#d10d25';
-                const title = value ? t('txt-on') : t('txt-off');
-
-                return <span><i className='fg fg-recode' style={{color}} title={title} /></span>
+                return <span>{value ? t('txt-statusOn') : t('txt-statusOff')}</span>
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
@@ -719,11 +716,9 @@ class Syslog extends Component {
     };
 
     if (val.netProxyNotify) {
-      status.notify.color = '#22ac38';
-      status.notify.title = t('txt-on');
+      status.notify.title = t('txt-statusOn');
     } else {
-      status.notify.color = '#d10d25';
-      status.notify.title = t('txt-off');
+      status.notify.title = t('txt-statusOff');
     }
 
     if (val.netProxyStatus.toLowerCase() === 'active') {
@@ -747,7 +742,7 @@ class Syslog extends Component {
         <header>
           <div className='title'>{t('syslogFields.txt-hostIP')}: {val.netProxyIp}</div>
           <div className='name'>{t('txt-name')}: <span title={fullHostName}>{hostName}</span></div>
-          <span className='status'>{t('txt-notifyStatus')}: <i className='fg fg-recode' style={{color: status.notify.color}} title={status.notify.title} /></span>
+          <span className='status'>{t('txt-notifyStatus')}: {status.notify.title}</span>
           <span className='status'>NetProxy {t('txt-status')}: <i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} /></span>
           <span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.updatetime, 'local')}</span>
           {val.netProxyStatus === 'INACTIVE' &&

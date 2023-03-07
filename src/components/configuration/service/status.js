@@ -138,10 +138,7 @@ class Status extends Component {
 
                   return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
                 } else if (val === 'notifyStatus') {
-                  const color = value ? '#22ac38' : '#d10d25';
-                  const title = value ? t('txt-on') : t('txt-off');
-
-                  return <span><i className='fg fg-recode' style={{color}} title={title} /></span>
+                  return <span>{value ? t('txt-statusOn') : t('txt-statusOff')}</span>
                 }
               }
             }
