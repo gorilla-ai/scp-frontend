@@ -2930,7 +2930,8 @@ html[data-theme='dark'] {
     text-align: center;
   }
 }
-#statisticsReportDialog-dialog {
+#statisticsReportDialog-content {
+  width: 350px;
   .group {
     display: flex;
     margin: 10px;
@@ -2938,20 +2939,16 @@ html[data-theme='dark'] {
       margin-bottom: 20px;
     }
     &.date-time {
+      .date-picker {
+        width: 283px;
+      }
       input {
-        width: 123px !important;
         height: 24px;
       }
     }
     .extension {
       margin-top: 7px;
       margin-left: 5px;
-    }
-  }
-  footer {
-    text-align: center;
-    .c-info {
-      text-align: right;
     }
   }
 }

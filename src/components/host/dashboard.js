@@ -152,7 +152,7 @@ class HostDashboard extends Component {
           .forEach(key2 => {
             if (data.severityAgg[key][key2] >= 0) {
               monthlySeverityTrend.push({
-                day: parseInt(moment(helper.getFormattedDate(key2, 'local')).format('x')),
+                day: helper.getFormattedDate(key2, 'local'),
                 count: data.severityAgg[key][key2],
                 indicator: key.toUpperCase()
               })
@@ -277,7 +277,10 @@ class HostDashboard extends Component {
               splitSeries: 'indicator'
             }}
             xAxis={{
-              type: 'datetime'
+              type: 'datetime',
+              units: [
+                ['month', [1]]
+              ]
             }}
             plotOptions={{
               series: {

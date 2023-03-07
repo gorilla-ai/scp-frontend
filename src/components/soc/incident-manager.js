@@ -1222,6 +1222,7 @@ class IncidentManagement extends Component {
             name='fileName'
             label={t('txt-fileName')}
             variant='outlined'
+            fullWidth
             size='small'
             value={monthlyReport.fileName}
             onChange={this.handleMonthlyReportChange.bind(this, 'fileName')} />
@@ -1280,9 +1281,9 @@ class IncidentManagement extends Component {
     const {monthlyReport} = this.state;
     const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
     const utc_offset = timezone._offset / 60; //Convert minute to hour
-    const url = `${baseUrl}${contextRoot}/api/soc/monthly/_export`;
+    const url = `${baseUrl}${contextRoot}/api/v2/soc/monthly/_export`;
     const requestData = {
-      name: monthlyReport.fileName,
+      fileName: monthlyReport.fileName,
       startDttm: moment(monthlyReport.date).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       timeZone: utc_offset
     };
@@ -1300,7 +1301,7 @@ class IncidentManagement extends Component {
     }
 
     if (validFileName) {
-      //downloadWithForm(url, {payload: JSON.stringify(requestData)});
+      downloadWithForm(url, {payload: JSON.stringify(requestData)});
 
       this.toggleStatisticsReport();
     } else {
