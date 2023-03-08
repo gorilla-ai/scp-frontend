@@ -11,6 +11,7 @@
   "txt-low": "Low",
   "txt-medium": "Medium",
   "txt-high": "High",
+  "txt-critical": "Critical",
   "txt-switch": "Switch",
   "txt-ok": "OK",
   "txt-time": "Time",
@@ -394,8 +395,8 @@
     "txt-cpePage": "CPE",
     "txt-dashboard": "Dashboard",
     "dashboard": {
-      "txt-severityLevelQuery": "CVE風險暴露等級分佈查詢",
-      "txt-monthlySeverityTrend": "CVE每月漏洞等級統計趨勢",
+      "txt-severityLevelQuery": "Vulnerability Exposure Level",
+      "txt-monthlySeverityTrend": "Monthly Vulnerability Level Trend",
       "txt-vulnerabilityList": "Vulnerability List",
       "txt-vulnerabilityDetails": "Vulnerability Details",
       "txt-exposedDevices": "Exposed Devices",
@@ -404,7 +405,13 @@
       "txt-hostName": "Host Name",
       "txt-daysOpen": "Days Open",
       "txt-system": "System",
-      "txt-ip": "IP"
+      "txt-ip": "IP",
+      "txt-vulnerabilityDesc": "Vulnerability description",
+      "txt-name": "Name",
+      "txt-severity": "Severity",
+      "txt-cvssVersion": "CVSS Version",
+      "txt-publishedDate": "Published on",
+      "txt-updatedDate": "Updatd on"
     },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",

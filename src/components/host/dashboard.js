@@ -27,12 +27,7 @@ import MuiTableContent from '../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const SEVERITY_TYPE = ['HIGH', 'MEDIUM', 'LOW'];
-const ALERT_LEVEL_COLORS = {
-  HIGH: '#CC2943',
-  MEDIUM: '#CC7B29',
-  LOW: '#7ACC29'
-};
+const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const CVE_SEARCH = {
   cveId: '',
   cvss: '',
@@ -51,6 +46,7 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+let ALERT_LEVEL_COLORS = {};
 
 let t = null;
 let f = null;
@@ -104,11 +100,35 @@ class HostDashboard extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
 
+    this.setLocalLabel();
     this.getCveSeverityData();
     this.getCveData();
   }
   componentWillUnmount() {
     helper.clearTimer();
+  }
+  /**
+   * Get and set locale label for charts
+   * @method
+   */
+  setLocalLabel = () => {
+    const {locale} = this.context;
+
+    if (locale === 'en') {
+      ALERT_LEVEL_COLORS = {
+        Critical: '#000',
+        High: '#CC2943',
+        Medium: '#CC7B29',
+        Low: '#7ACC29'
+      };
+    } else if (locale === 'zh') {
+      ALERT_LEVEL_COLORS = {
+        嚴重: '#000',
+        高: '#CC2943',
+        中: '#CC7B29',
+        低: '#7ACC29'
+      };
+    }
   }
   /**
    * Get and set CVE chart data
@@ -154,7 +174,7 @@ class HostDashboard extends Component {
               monthlySeverityTrend.push({
                 day: helper.getFormattedDate(key2, 'local'),
                 count: data.severityAgg[key][key2],
-                indicator: key.toUpperCase()
+                indicator: t('txt-' + key)
               })
             }
           })
@@ -182,7 +202,7 @@ class HostDashboard extends Component {
     .forEach(key => {
       if (data[key] > 0) {
         cveSeverityLevel.push({
-          key: key.toUpperCase(),
+          key: t('txt-' + key),
           doc_count: data[key]
         });
       }
@@ -373,7 +393,9 @@ class HostDashboard extends Component {
                     </div>
                   )
                 } else if (val === 'severity' && value) {
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
+                  const severityLevel = t('txt-' + value.toLowerCase());
+
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}</span>
                 } else {
                   return value;
                 }
@@ -599,14 +621,14 @@ class HostDashboard extends Component {
         <div className='main-content'>
           {activeCveInfo === 'vulnerabilityDetails' &&
             <ul className='vulnerability'>
-              <li><span>Vulnerability description</span>: {currentCveData.description}</li>
-              <li><span>Name</span>: {currentCveData.cveId}</li>
-              <li><span>Severity</span>: {currentCveData.severity}</li>
+              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCveData.description}</li>
+              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCveData.cveId}</li>
+              <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + currentCveData.severity.toLowerCase())}</li> 
               <li><span>CVSS</span>: {currentCveData.cvss}</li>
-              <li><span>CVSS Version</span>: {currentCveData.cvssVersion}</li>
-              <li><span>Published on</span>: {helper.getFormattedDate(currentCveData.publishedDate, 'local')}</li>
-              <li><span>Updatd on</span>: {helper.getFormattedDate(currentCveData.lastModifiedDate, 'local')}</li>
-              <li><span>Days open</span>: {currentCveData.daysOpen}</li>
+              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCveData.cvssVersion}</li>
+              <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(currentCveData.publishedDate, 'local')}</li>
+              <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(currentCveData.lastModifiedDate, 'local')}</li>
+              <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {currentCveData.daysOpen}</li>
             </ul>
           }
 

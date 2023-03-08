@@ -762,11 +762,11 @@
     "isMatched": "isMatched"
   },
   "hostDashboardFields": {
-    "cveId": "Name",
-    "severity": "Severity",
+    "cveId": "CVE名稱",
+    "severity": "嚴重程度",
     "cvss": "CVSS",
-    "relatedSoftware": "Related Software",
-    "daysOpen": "Days Open",
-    "exposedDevices": "Exposed Devices Count"
+    "relatedSoftware": "相關軟體",
+    "daysOpen": "已存在天數",
+    "exposedDevices": "暴露裝置數量"
   }
 }
