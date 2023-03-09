@@ -400,6 +400,7 @@
       "txt-vulnerabilityList": "弱點漏洞清單",
       "txt-vulnerabilityDetails": "漏洞詳細資訊",
       "txt-exposedDevices": "暴露的裝置",
+      "txt-exposedDevicesCount": "暴露的裝置數量",
       "txt-relatedSoftware": "相關軟體",
       "txt-group": "群組",
       "txt-hostName": "主機名稱",

@@ -400,6 +400,7 @@
       "txt-vulnerabilityList": "Vulnerability List",
       "txt-vulnerabilityDetails": "Vulnerability Details",
       "txt-exposedDevices": "Exposed Devices",
+      "txt-exposedDevicesCount": "Exposed Devices Count",
       "txt-relatedSoftware": "Related Software",
       "txt-group": "Group",
       "txt-hostName": "Host Name",

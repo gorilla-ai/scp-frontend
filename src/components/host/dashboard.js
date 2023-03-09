@@ -74,6 +74,8 @@ class HostDashboard extends Component {
       monthlySeverityTrend: null,
       showCveInfo: false,
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
+      hostNameSearch: '',
+      hostNameCount: 0,
       cveData: {
         dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
         dataFields: [],
@@ -474,7 +476,7 @@ class HostDashboard extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {exposedDevicesData, currentCveId} = this.state;
+    const {hostNameSearch, exposedDevicesData, currentCveId} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     const requestData = {
@@ -484,6 +486,10 @@ class HostDashboard extends Component {
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
+    }
+
+    if (hostNameSearch) {
+      requestData.hostName = hostNameSearch;
     }
 
     this.ah.one({
@@ -538,6 +544,7 @@ class HostDashboard extends Component {
         });
 
         this.setState({
+          hostNameCount: data.count,
           exposedDevicesData: tempExposedDevicesData
         });
       }
@@ -564,6 +571,8 @@ class HostDashboard extends Component {
     this.setState({
       showCveInfo: !this.state.showCveInfo,
       activeCveInfo: 'vulnerabilityDetails',
+      hostNameSearch: '',
+      hostNameCount: 0,
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
     });
   }
@@ -587,12 +596,22 @@ class HostDashboard extends Component {
     });
   }
   /**
+   * Handle host name search
+   * @method
+   * @param {object} event - event object
+   */
+  handleHostNameChange = (event) => {
+    this.setState({
+      hostNameSearch: event.target.value
+    });
+  }
+  /**
    * Display new password content
    * @method
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {activeCveInfo, exposedDevicesData, currentCveData} = this.state;
+    const {activeCveInfo, hostNameSearch, hostNameCount, exposedDevicesData, currentCveData} = this.state;
     const tableOptions = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -633,10 +652,23 @@ class HostDashboard extends Component {
           }
 
           {activeCveInfo === 'exposedDevices' &&
-            <MuiTableContent
-              tableHeight='auto'
-              data={exposedDevicesData}
-              tableOptions={tableOptions} />
+            <React.Fragment>
+              <TextField
+                name='hostNameSearch'
+                className='hostname-search'
+                label={t('host.dashboard.txt-hostName')}
+                variant='outlined'
+                size='small'
+                value={hostNameSearch}
+                onChange={this.handleHostNameChange} />
+              <Button variant='contained' color='primary' className='host-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
+              <div className='hostname-text'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + hostNameCount}</div>
+
+              <MuiTableContent
+                tableHeight='auto'
+                data={exposedDevicesData}
+                tableOptions={tableOptions} />
+            </React.Fragment>
           }
 
           {activeCveInfo === 'relatedSoftware' &&
@@ -652,17 +684,15 @@ class HostDashboard extends Component {
    * @returns ModalDialog component
    */
   showCveDialog = () => {
-    const {currentCveId} = this.state;
     const actions = {
       cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
     };
-    const titleText = t('txt-resetPassword');
 
     return (
       <ModalDialog
         id='showCveDialog'
         className='modal-dialog'
-        title={currentCveId}
+        title={this.state.currentCveId}
         draggable={true}
         global={true}
         actions={actions}
