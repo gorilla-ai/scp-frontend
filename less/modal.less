@@ -2988,16 +2988,25 @@ html[data-theme='dark'] {
       font-weight: bold;
     }
   }
-  .hostname-search {
-    margin-right: 5px;
-    margin-bottom: 20px;
+  .search-field {
+    position: relative;
+    width: 250px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    .hostname-search {
+      width: 100%;
+      input {
+        width: 78%;
+      }
+    }
+    .fg-close {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+    }
   }
   .hostname-text {
-    margin-top: -5px;
     margin-bottom: 15px;
-  }
-  .host-btn {
-    margin-top: 1px;
   }
 }
 #configEditHost-content {

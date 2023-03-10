@@ -606,6 +606,26 @@ class HostDashboard extends Component {
     });
   }
   /**
+   * Handle reset button for host name search
+   * @method
+   */
+  handleResetBtn = () => {
+    this.setState({
+      hostNameSearch: ''
+    }, () => {
+      this.getExposedDevices();
+    });
+  }
+  /**
+   * Handle keyw down for host name search
+   * @method
+   */
+  handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      this.getExposedDevices();
+    }
+  }
+  /**
    * Display new password content
    * @method
    * @returns HTML DOM
@@ -653,15 +673,21 @@ class HostDashboard extends Component {
 
           {activeCveInfo === 'exposedDevices' &&
             <React.Fragment>
-              <TextField
-                name='hostNameSearch'
-                className='hostname-search'
-                label={t('host.dashboard.txt-hostName')}
-                variant='outlined'
-                size='small'
-                value={hostNameSearch}
-                onChange={this.handleHostNameChange} />
-              <Button variant='contained' color='primary' className='host-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
+              <div className='search-field'>
+                <TextField
+                  name='hostNameSearch'
+                  className='hostname-search'
+                  label={t('host.dashboard.txt-hostName')}
+                  variant='outlined'
+                  size='small'
+                  value={hostNameSearch}
+                  onChange={this.handleHostNameChange}
+                  onKeyDown={this.handleKeyDown} />
+                {hostNameSearch &&
+                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn}></i>
+                }
+              </div>
+
               <div className='hostname-text'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + hostNameCount}</div>
 
               <MuiTableContent
