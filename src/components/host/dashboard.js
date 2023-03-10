@@ -29,10 +29,8 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const CVE_SEARCH = {
-  cveId: '',
-  cvss: '',
-  relatedSoftware: '',
-  severity: []
+  keyword: '',
+  count: 0
 };
 const EXPOSED_DEVICES_DATA = {
   dataFieldsArr: ['hostName', 'group', 'system', 'ip', 'relatedSoftware', 'daysOpen'],
@@ -67,6 +65,10 @@ class HostDashboard extends Component {
     this.state = {
       showFilter: false,
       cveSearch: _.cloneDeep(CVE_SEARCH),
+      hostNameSearch: {
+        keyword: '',
+        count: 0
+      },
       cveSeverityLevel: {
         data: null,
         count: 0
@@ -74,8 +76,6 @@ class HostDashboard extends Component {
       monthlySeverityTrend: null,
       showCveInfo: false,
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
-      hostNameSearch: '',
-      hostNameCount: 0,
       cveData: {
         dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
         dataFields: [],
@@ -344,13 +344,14 @@ class HostDashboard extends Component {
     const page = fromPage === 'currentPage' ? cveData.currentPage : 0;
     let url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}`;
     let requestData = {};
+    let tempCveSearch = {...cveSearch};
 
     if (cveData.sort.field) {
       url += `&orders=${cveData.sort.field} ${sort}`;
     }
 
     if (cveSearch.keyword) {
-      requestData.keyword = cveSearch.keyword;
+      requestData.cveId = cveSearch.keyword;
     }
 
     this.ah.one({
@@ -405,8 +406,10 @@ class HostDashboard extends Component {
             }
           };
         });
+        tempCveSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
+          cveSearch: tempCveSearch,
           cveData: tempCveData
         });
       }
@@ -483,13 +486,14 @@ class HostDashboard extends Component {
       cveId: currentCveId
     };
     let url = `${baseUrl}/api/hmd/cve/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+    let tempHostNameSearch = {...hostNameSearch};
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
     }
 
-    if (hostNameSearch) {
-      requestData.hostName = hostNameSearch;
+    if (hostNameSearch.keyword) {
+      requestData.hostName = hostNameSearch.keyword;
     }
 
     this.ah.one({
@@ -543,8 +547,10 @@ class HostDashboard extends Component {
           };
         });
 
+        tempHostNameSearch.count = helper.numberWithCommas(data.count);
+
         this.setState({
-          hostNameCount: data.count,
+          hostNameSearch: tempHostNameSearch,
           exposedDevicesData: tempExposedDevicesData
         });
       }
@@ -571,8 +577,10 @@ class HostDashboard extends Component {
     this.setState({
       showCveInfo: !this.state.showCveInfo,
       activeCveInfo: 'vulnerabilityDetails',
-      hostNameSearch: '',
-      hostNameCount: 0,
+      hostNameSearch: {
+        keyword: '',
+        count: 0
+      },
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
     });
   }
@@ -601,28 +609,54 @@ class HostDashboard extends Component {
    * @param {object} event - event object
    */
   handleHostNameChange = (event) => {
+    let tempHostNameSearch = {...this.state.hostNameSearch};
+    tempHostNameSearch.keyword = event.target.value;
+
     this.setState({
-      hostNameSearch: event.target.value
+      hostNameSearch: tempHostNameSearch
     });
   }
   /**
    * Handle reset button for host name search
    * @method
+   * @param {string} type - 'cveSearch' or 'hostNameSearch'
    */
-  handleResetBtn = () => {
-    this.setState({
-      hostNameSearch: ''
-    }, () => {
-      this.getExposedDevices();
-    });
+  handleResetBtn = (type, event) => {
+    const {cveSearch, hostNameSearch} = this.state;
+
+    if (type === 'cveSearch') {
+      let tempCveSearch = {...cveSearch};
+      tempCveSearch.keyword = '';
+
+      this.setState({
+        cveSearch: tempCveSearch
+      }, () => {
+        this.getCveData();
+      });
+    } else if (type === 'hostNameSearch') {
+      let tempHostNameSearch = {...hostNameSearch};
+      tempHostNameSearch.keyword = '';
+
+      this.setState({
+        hostNameSearch: tempHostNameSearch
+      }, () => {
+        this.getExposedDevices();
+      });
+    }
   }
   /**
-   * Handle keyw down for host name search
+   * Handle keyw down for search field
    * @method
+   * @param {string} type - 'cveSearch' or 'hostNameSearch'
+   * @param {object} event - event object
    */
-  handleKeyDown = (event) => {
+  handleKeyDown = (type, event) => {
     if (event.key === 'Enter') {
-      this.getExposedDevices();
+      if (type === 'cveSearch') {
+        this.getCveData();
+      } else if (type === 'hostNameSearch') {
+        this.getExposedDevices();
+      }
     }
   }
   /**
@@ -631,7 +665,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {activeCveInfo, hostNameSearch, hostNameCount, exposedDevicesData, currentCveData} = this.state;
+    const {activeCveInfo, hostNameSearch, exposedDevicesData, currentCveData} = this.state;
     const tableOptions = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -676,19 +710,19 @@ class HostDashboard extends Component {
               <div className='search-field'>
                 <TextField
                   name='hostNameSearch'
-                  className='hostname-search'
+                  className='search-text'
                   label={t('host.dashboard.txt-hostName')}
                   variant='outlined'
                   size='small'
-                  value={hostNameSearch}
+                  value={hostNameSearch.keyword}
                   onChange={this.handleHostNameChange}
-                  onKeyDown={this.handleKeyDown} />
-                {hostNameSearch &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn}></i>
+                  onKeyDown={this.handleKeyDown.bind(this, 'hostNameSearch')} />
+                {hostNameSearch.keyword &&
+                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
                 }
-              </div>
 
-              <div className='hostname-text'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + hostNameCount}</div>
+                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + hostNameSearch.count}</div>
+              </div>
 
               <MuiTableContent
                 tableHeight='auto'
@@ -921,23 +955,26 @@ class HostDashboard extends Component {
         </div>
         <div className='button-group'>
           <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
   }
   /**
-   * Clear filter input value
+   * Handle CVE search search
    * @method
+   * @param {object} event - event object
    */
-  clearFilter = () => {
+  handleCveChange = (event) => {
+    let tempCveSearch = {...this.state.cveSearch};
+    tempCveSearch.keyword = event.target.value;
+
     this.setState({
-      cveSearch: _.cloneDeep(CVE_SEARCH)
+      cveSearch: tempCveSearch
     });
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, cveSeverityLevel, monthlySeverityTrend, showCveInfo, cveData, contextAnchor} = this.state;
+    const {showFilter, cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, cveData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cve', 'currentPage', currentPage);
@@ -967,7 +1004,7 @@ class HostDashboard extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-            <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled><i className='fg fg-filter'></i></Button>
+            <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>       
 
@@ -986,6 +1023,22 @@ class HostDashboard extends Component {
               <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
 
               <div className='content-header-btns'>
+              </div>
+
+              <div className='search-field'>
+                <TextField
+                  name='cveSearch'
+                  className='search-text'
+                  label={t('host.dashboard.txt-hostName')}
+                  variant='outlined'
+                  size='small'
+                  value={cveSearch.keyword}
+                  onChange={this.handleCveChange}
+                  onKeyDown={this.handleKeyDown.bind(this, 'cveSearch')} />
+                {cveSearch.keyword &&
+                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
+                }
+                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + cveSearch.count}</div>
               </div>
 
               <MuiTableContent
