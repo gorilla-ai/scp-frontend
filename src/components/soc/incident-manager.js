@@ -83,7 +83,6 @@ class IncidentManagement extends Component {
       relatedListOpen: false,
       uploadAttachmentOpen: false,
       statisticsReportOpen: false,
-      isAnalyze: '',
       tempSavedData: {},
       currentIncident: {},
       originalIncident: {},
@@ -719,15 +718,9 @@ class IncidentManagement extends Component {
    */
   checkTempSave = (formType, incidentFormType) => {
     const {baseUrl, session} = this.context;
-    const isAnalyze = formType === 'ttps';
     const requestData = {
-      accountId: session.accountId,
-      isAnalyze
+      accountId: session.accountId
     };
-
-    this.setState({
-      isAnalyze
-    });
 
     this.ah.one({
       url: `${baseUrl}/api/soc/temporary/search`,
@@ -1355,7 +1348,7 @@ class IncidentManagement extends Component {
    */
   handleSubmit = (type) => {
     const {baseUrl, contextRoot, session} = this.context;
-    const {activeContent, incidentFormType, tempSavedData, attach, isAnalyze} = this.state;
+    const {activeContent, incidentFormType, tempSavedData, attach} = this.state;
     let incident = {...this.state.incident};
 
     if (type === 'save' && !this.checkRequired(incident.info)) {
@@ -1467,8 +1460,8 @@ class IncidentManagement extends Component {
     } else if (type === 'tempSave') {
       const requestData = {
         accountId: session.accountId,
-        isAnalyze,
-        contentJson: incident.info
+        contentJson: incident.info,
+        incidentType: incidentFormType
       };
 
       ah.one({
