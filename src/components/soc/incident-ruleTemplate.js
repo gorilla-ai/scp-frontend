@@ -575,14 +575,16 @@ class IncidentRuleTemplate extends Component {
           </div>
         </div>
 
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{it('txt-soc-filter-input')}</div>
-          </header>
-          <div className='filter-group'>
-            {incidentRule.info.accountQueryDTO.queryText.filter.map(this.displayMarkSearch)}
+        {incidentRule.info.accountQueryDTO.queryText.filter &&
+          <div className='form-group normal'>
+            <header>
+              <div className='text'>{it('txt-soc-filter-input')}</div>
+            </header>
+            <div className='filter-group'>
+              {incidentRule.info.accountQueryDTO.queryText.filter.map(this.displayMarkSearch)}
+            </div>
           </div>
-        </div>
+        }
 
         {incidentRule.info.accountQueryDTO.module === 'SYSLOG' &&
           <div className='form-group normal'>
