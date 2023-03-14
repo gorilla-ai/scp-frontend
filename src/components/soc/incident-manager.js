@@ -74,8 +74,9 @@ class IncidentManagement extends Component {
 
     this.state = {
       activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
-      displayPage: 'main', /* main, events, ttps */
+      displayPage: 'main', //main, events, ttps, edr
       incidentType: '',
+      incidentFormType: '', //'monitor', analyze' or 'EDR'
       toggleType: '',
       showFilter: false,
       showChart: true,
@@ -147,6 +148,7 @@ class IncidentManagement extends Component {
         info: ''
       },
       contextAnchor: null,
+      menuType: '', //'incidentMenu' or 'tableMenu'
       currentData: {},
       incidentAccidentList: _.map(_.range(1, 6), el => {
         return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
@@ -357,7 +359,7 @@ class IncidentManagement extends Component {
 
                 if (val === '_menu') {
                   return (
-                    <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, allValue)}>
+                    <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, 'tableMenu', allValue)}>
                       <MoreIcon />
                     </IconButton>
                   )
@@ -496,7 +498,7 @@ class IncidentManagement extends Component {
                 if (val === '_menu') {
                     return (
                       <div className='table-menu active'>
-                        <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, allValue)}>
+                        <IconButton aria-label='more' onClick={this.handleOpenMenu.bind(this, 'tableMenu', allValue)}>
                           <MoreIcon />
                         </IconButton>
                       </div>
@@ -661,14 +663,21 @@ class IncidentManagement extends Component {
   /**
    * Handle open menu
    * @method
+   * @param {string} type - menu type ('incidentMenu' or 'tableMenu')
    * @param {object} data - active data
    * @param {object} event - event object
    */
-  handleOpenMenu = (data, event) => {
+  handleOpenMenu = (type, data, event) => {
     this.setState({
       contextAnchor: event.currentTarget,
-      currentData: data
+      menuType: type
     });
+
+    if (data) {
+      this.setState({
+        currentData: data
+      });
+    }
   }
   /**
    * Handle close menu
@@ -706,8 +715,9 @@ class IncidentManagement extends Component {
    * Check if user has temp saved data
    * @method
    * @param {string} formType - form Type ('events' or 'ttps')
+   * @param {string} incidentFormType - incident Type ('monitor', analyze' or 'EDR')
    */
-  checkTempSave = (formType) => {
+  checkTempSave = (formType, incidentFormType) => {
     const {baseUrl, session} = this.context;
     const isAnalyze = formType === 'ttps';
     const requestData = {
@@ -726,12 +736,14 @@ class IncidentManagement extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.toggleContent('addIncident', formType, !_.isEmpty(data) ? data : null);
+      this.toggleContent('addIncident', formType, !_.isEmpty(data) ? data : null, incidentFormType);
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.handleCloseMenu();
   }
   /**
    * Delete temp saved data
@@ -765,6 +777,7 @@ class IncidentManagement extends Component {
       activeContent,
       severityList,
       incidentType,
+      incidentFormType,
       incident,
       toggleType,
       socFlowList,
@@ -916,6 +929,7 @@ class IncidentManagement extends Component {
             incident={incident}
             severityList={severityList}
             incidentType={incidentType}
+            incidentFormType={incidentFormType}
             socFlowList={socFlowList}
             attach={attach}
             filesName={filesName}
@@ -1341,7 +1355,7 @@ class IncidentManagement extends Component {
    */
   handleSubmit = (type) => {
     const {baseUrl, contextRoot, session} = this.context;
-    const {activeContent, tempSavedData, attach, isAnalyze} = this.state;
+    const {activeContent, incidentFormType, tempSavedData, attach, isAnalyze} = this.state;
     let incident = {...this.state.incident};
 
     if (type === 'save' && !this.checkRequired(incident.info)) {
@@ -1411,8 +1425,12 @@ class IncidentManagement extends Component {
 
     if (type === 'save') {
       let requestData = {
-       ...incident.info 
+        ...incident.info
       };
+
+      if (incidentFormType) {
+        requestData.incidentType = incidentFormType;
+      }
 
       if (tempSavedData.id) {
         requestData.incidentTemporaryId = tempSavedData.id;
@@ -1431,6 +1449,7 @@ class IncidentManagement extends Component {
           incident.info.status = data.rt.status;
 
           this.setState({
+            incidentFormType: '',
             originalIncident: _.cloneDeep(incident)
           }, () => {
             if (attach) {
@@ -1463,6 +1482,7 @@ class IncidentManagement extends Component {
           this.toggleContent('tableList');
 
           this.setState({ //temp save not support file upload
+            incidentFormType: '',
             attach: null,
             filesName: []
           });
@@ -1475,7 +1495,7 @@ class IncidentManagement extends Component {
     }
   }
   checkRequired = (incident) => {
-    const {incidentType} = this.state;
+    const {incidentType, incidentFormType} = this.state;
 
     if (!incident.category) {
       PopupDialog.alert({
@@ -1517,7 +1537,7 @@ class IncidentManagement extends Component {
         eventCheck = false;
       } else {
         _.forEach(incident.eventList, event => {
-          if (_.size(event.eventConnectionList)<= 0) {
+          if (_.size(event.eventConnectionList) <= 0) {
             PopupDialog.alert({
               title: t('txt-tips'),
               display: it('txt-validEvents'),
@@ -1566,6 +1586,18 @@ class IncidentManagement extends Component {
                     confirmText: t('txt-close')
                   });
                   eventCheck = false;
+                }
+              }
+
+              if (incidentFormType === 'EDR') {
+                if (eventConnect.dstHostname === '') {
+                  PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validEvents'),
+                    confirmText: t('txt-close')
+                  });
+                  eventCheck = false;
+                  return;
                 }
               }
             })
@@ -2331,7 +2363,15 @@ class IncidentManagement extends Component {
       }
     });
   }
-  toggleContent = (type, allValue, savedData) => {
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string} allValue - new page number
+   * @param {string} savedData - new page number
+   * @param {string} incidentFormType - incident Type ('monitor', 'analyze' or 'EDR')
+   */
+  toggleContent = (type, allValue, savedData, incidentFormType) => {
     const {baseUrl, contextRoot} = this.context;
     const {originalIncident, incident, relatedListOptions, tempSavedData, loadListType} = this.state;
     let tempIncident = {...incident};
@@ -2351,8 +2391,8 @@ class IncidentManagement extends Component {
         createDttm: allValue.createDttm,
         updateDttm: allValue.updateDttm,
         relatedList: allValue.relatedList,
-        showFontendRelatedList:allValue.showFontendRelatedList,
-        differenceWithOptions:allValue.differenceWithOptions,
+        showFontendRelatedList: allValue.showFontendRelatedList,
+        differenceWithOptions: allValue.differenceWithOptions,
         ttpList: allValue.ttpList,
         eventList: allValue.eventList,
         status: allValue.status,
@@ -2403,8 +2443,8 @@ class IncidentManagement extends Component {
         socType: null,
         createDttm: null,
         relatedList: [],
-        showFontendRelatedList:[],
-        differenceWithOptions:relatedListOptions,
+        showFontendRelatedList: [],
+        differenceWithOptions: relatedListOptions,
         ttpList: null,
         eventList: null,
         notifyList: null,
@@ -2435,16 +2475,21 @@ class IncidentManagement extends Component {
         showFilter: false,
         originalIncident: _.cloneDeep(tempIncident),
         incidentType: allValue,
+        incidentFormType,
         displayPage: 'main'
       });
     } else if (type === 'tableList') {
-      tempIncident.info = _.cloneDeep(incident.info)
+      tempIncident.info = _.cloneDeep(incident.info);
     } else if (type === 'cancel-add') {
       showPage = 'tableList';
-      tempIncident = _.cloneDeep(originalIncident)
+      tempIncident = _.cloneDeep(originalIncident);
+
+      this.setState({
+        incidentFormType: ''
+      });
     } else if (type === 'cancel') {
       showPage = 'viewIncident';
-      tempIncident = _.cloneDeep(originalIncident)
+      tempIncident = _.cloneDeep(originalIncident);
     } else if (type === 'redirect') {
       let alertData = JSON.parse(allValue);
       tempIncident.info = {
@@ -2495,7 +2540,7 @@ class IncidentManagement extends Component {
       };
 
       if (alertData._edgeInfo || alertData._edgeId) {
-        let searchRequestData = {
+        const searchRequestData = {
           deviceId: alertData._edgeInfo.agentId || alertData._edgeId
         };
 
@@ -3432,6 +3477,7 @@ class IncidentManagement extends Component {
       showChart,
       incident, 
       contextAnchor,
+      menuType,
       currentData,
       accountType,
       relatedListOpen,
@@ -3506,9 +3552,23 @@ class IncidentManagement extends Component {
         <Menu
           anchorEl={contextAnchor}
           keepMounted
-          open={Boolean(contextAnchor)}
+          open={menuType === 'incidentMenu' && Boolean(contextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
+          {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
+            <MenuItem onClick={this.checkTempSave.bind(this, 'events', 'monitor')}>{it('txt-eventsIncident')}</MenuItem>
+          }
+          {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
+            <MenuItem onClick={this.checkTempSave.bind(this, 'ttps', 'analyze')}>{it('txt-ttpsIncident')}</MenuItem>
+          }
+          <MenuItem onClick={this.checkTempSave.bind(this, 'ttps', 'EDR')}>EDR</MenuItem>
+        </Menu>
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={menuType === 'tableMenu' && Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
           <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
           <MenuItem onClick={this.exportPdfFromTable.bind(this, currentData)}>{t('txt-export')}</MenuItem>
 
@@ -3569,12 +3629,8 @@ class IncidentManagement extends Component {
                   {_.size(incident.dataContent) > 0 &&
                     <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAllByWord}>{it('txt-export-all-word')}</Button>
                   }
-                  {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'events')}>{it('txt-addIncident-events')}</Button>
-                  }
-                  {accountType === constants.soc.NONE_LIMIT_ACCOUNT && insertCheck &&
-                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.checkTempSave.bind(this, 'ttps')}>{it('txt-addIncident-ttps')}</Button>
-                  }
+
+                  <Button id='inventoryAddIp' variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'incidentMenu', '')}>{it('txt-addIncident')}</Button>
                 </div>
                 <MuiTableContentWithoutLoading
                   data={incident}

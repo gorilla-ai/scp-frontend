@@ -66,11 +66,11 @@ class Ttps extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
+              required
               helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
               error={!(title || '').trim()}
-              onChange={this.handleDataChangeMui}
               value={title}
-              required
+              onChange={this.handleDataChangeMui}
               disabled={disabledStatus}/>
           </div>
           <div className='group'>
@@ -82,10 +82,10 @@ class Ttps extends Component {
               fullWidth={true}
               size='small'
               select
-              onChange={this.handleDataChangeMui}
-              value={infrastructureType}
-              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
               error={!(infrastructureType || '')}
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              value={infrastructureType}
+              onChange={this.handleDataChangeMui}
               disabled={disabledStatus}>
               {
                 _.map([

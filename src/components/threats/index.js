@@ -1378,11 +1378,16 @@ class ThreatsController extends Component {
 
     incident.info.status = INCIDENT_STATUS_UNREVIEWED;
 
+    const requestData = {
+      ...incident.info,
+      incidentType: 'monitor'
+    };
+
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/soc`,
-      data: JSON.stringify(incident.info),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json'

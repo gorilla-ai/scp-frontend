@@ -944,7 +944,7 @@ class IncidentForm extends Component {
    */
   displayEvents = () => {
     const {locale} = this.context;
-    const {from, incidentType, activeContent, activeSteps, incident, deviceListOptions, showDeviceListOptions} = this.props;
+    const {from, incidentType, incidentFormType, activeContent, activeSteps, incident, deviceListOptions, showDeviceListOptions} = this.props;
     const now = new Date();
     const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
     let propsData = {};
@@ -952,6 +952,7 @@ class IncidentForm extends Component {
 
     if (from === 'soc') {
       propsData = {
+        incidentFormType,
         activeContent,
         disabledStatus: activeContent === 'viewIncident' ? true : false,
         locale,
@@ -960,6 +961,7 @@ class IncidentForm extends Component {
       };
     } else if (from === 'threats') {
       propsData = {
+        incidentFormType,
         activeContent,
         disabledStatus,
         locale,
@@ -967,6 +969,7 @@ class IncidentForm extends Component {
       };
     } else if (from === 'pattern') {
       propsData = {
+        incidentFormType,
         activeContent,
         disabledStatus: activeContent === 'viewPattern' ? true : false,
         locale,
@@ -1133,6 +1136,7 @@ IncidentForm.propTypes = {
   incident: PropTypes.object.isRequired,
   severityList: PropTypes.array.isRequired,
   incidentType: PropTypes.string,
+  incidentFormType: PropTypes.string,
   socFlowList: PropTypes.array.isRequired,
   attach: PropTypes.array,
   filesName: PropTypes.array.isRequired,

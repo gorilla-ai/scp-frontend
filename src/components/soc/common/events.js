@@ -72,6 +72,7 @@ class Events extends Component {
   }
   render() {
     let {
+      incidentFormType,
       activeContent,
       disabledStatus,
       locale,
@@ -99,8 +100,8 @@ class Events extends Component {
       if (deviceItem.value === deviceId) {
         deviceNameCheck = true;
         deviceObj = {
-          value:deviceItem.value,
-          text:deviceItem.text
+          value: deviceItem.value,
+          text: deviceItem.text
         };
       }
     })
@@ -110,8 +111,8 @@ class Events extends Component {
       _.forEach(showDeviceListOptions, deviceItem => {
         if (deviceItem.value === deviceId) {
           furtherObj = {
-            value:deviceItem.value,
-            text:deviceItem.text
+            value: deviceItem.value,
+            text: deviceItem.text
           };
           furtherDeviceList.push(furtherObj);
         }
@@ -209,7 +210,7 @@ class Events extends Component {
                 format='YYYY-MM-DD HH:mm'
                 ampm={false}
                 value={time.from}
-                readOnly={disabledStatus }
+                readOnly={disabledStatus}
                 onChange={this.handleDataChange.bind(this, 'from')} />
               <div className='between'>~</div>
               <KeyboardDateTimePicker
@@ -220,7 +221,7 @@ class Events extends Component {
                 format='YYYY-MM-DD HH:mm'
                 ampm={false}
                 value={time.to}
-                readOnly={disabledStatus }
+                readOnly={disabledStatus}
                 onChange={this.handleDataChange.bind(this, 'to')} />
             </MuiPickersUtilsProvider>
           </div>
@@ -255,6 +256,7 @@ class Events extends Component {
             }}
             value={eventConnectionList}
             props={{
+              incidentFormType,
               disabledStatus
             }}
             onChange={this.handleEventsChange}

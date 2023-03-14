@@ -33,7 +33,18 @@ class EventConnections extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    const {disabledStatus, value: {srcIp, srcPort, srcHostname, dstIp, dstPort, dstHostname}} = this.props
+    const {
+      incidentFormType,
+      disabledStatus,
+      value: {
+        srcIp,
+        srcPort,
+        srcHostname,
+        dstIp,
+        dstPort,
+        dstHostname
+      }
+    } = this.props;
 
     return (
       <div className='connection-content'>
@@ -56,7 +67,8 @@ class EventConnections extends Component {
           </div>
           <div className='group'>
             <label htmlFor='srcPort' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.srcPort')}</label>
-            <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
+            <TextField
+              style={{paddingRight: '2em', paddingLeft: '2em'}}
               id='srcPort'
               name='srcPort'
               variant='outlined'
@@ -68,7 +80,8 @@ class EventConnections extends Component {
           </div>
           <div className='group'>
             <label htmlFor='srcHostname' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.srcHostname')}</label>
-            <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
+            <TextField
+              style={{paddingRight: '2em', paddingLeft: '2em'}}
               id='srcHostname'
               name='srcHostname'
               variant='outlined'
@@ -98,7 +111,8 @@ class EventConnections extends Component {
           </div>
           <div className='group'>
             <label htmlFor='dstPort' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.dstPort')}</label>
-            <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
+            <TextField
+              style={{paddingRight: '2em', paddingLeft: '2em'}}
               id='dstPort'
               name='dstPort'
               variant='outlined'
@@ -110,15 +124,33 @@ class EventConnections extends Component {
           </div>
           <div className='group'>
             <label htmlFor='dstHostname' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.dstHostname')}</label>
-            <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
-              id='dstHostname'
-              name='dstHostname'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={dstHostname}
-              onChange={this.handleDataChangeMui}
-              disabled={disabledStatus} />
+            {incidentFormType === 'EDR' &&
+              <TextField
+                style={{paddingRight: '2em', paddingLeft: '2em'}}
+                id='dstHostname'
+                name='dstHostname'
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                error={!(dstHostname || '').trim()}
+                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+                value={dstHostname}
+                onChange={this.handleDataChangeMui}
+                disabled={disabledStatus} />
+            }
+            {incidentFormType !== 'EDR' &&
+              <TextField
+                style={{paddingRight: '2em', paddingLeft: '2em'}}
+                id='dstHostname'
+                name='dstHostname'
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={dstHostname}
+                onChange={this.handleDataChangeMui}
+                disabled={disabledStatus} />
+            }
           </div>
         </div>
       </div>
