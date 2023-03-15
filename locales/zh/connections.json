@@ -412,7 +412,8 @@
       "txt-severity": "等級",
       "txt-cvssVersion": "CVSS版本",
       "txt-publishedDate": "官方發表時間",
-      "txt-updatedDate": "最近更新時間"
+      "txt-updatedDate": "最近更新時間",
+      "txt-cveName": "CVE名稱"
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",

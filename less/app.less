@@ -3156,11 +3156,13 @@ button.standard:hover:not([disabled]) {
         }
         .search-field {
           position: relative;
-          width: 250px;
+          width: 300px;
           margin: 15px 0;
           padding-left: 10px;
           .search-text {
-            width: 100%;
+            float: left;
+            width: 75%;
+            margin-right: 5px;
             input {
               width: 78%;
             }
@@ -3168,10 +3170,13 @@ button.standard:hover:not([disabled]) {
           .fg-close {
             position: absolute;
             top: 8px;
-            right: 10px;
+            left: 200px;
+          }
+          .search-btn {
+            margin-top: 2px;
           }
           .search-count {
-            margin: 15px 0;
+            margin-top: 15px;
           }
         }
         .events-syslog-statistics {

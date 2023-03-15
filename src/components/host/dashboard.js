@@ -630,8 +630,6 @@ class HostDashboard extends Component {
 
       this.setState({
         cveSearch: tempCveSearch
-      }, () => {
-        this.getCveData();
       });
     } else if (type === 'hostNameSearch') {
       let tempHostNameSearch = {...hostNameSearch};
@@ -639,8 +637,6 @@ class HostDashboard extends Component {
 
       this.setState({
         hostNameSearch: tempHostNameSearch
-      }, () => {
-        this.getExposedDevices();
       });
     }
   }
@@ -717,6 +713,7 @@ class HostDashboard extends Component {
                   value={hostNameSearch.keyword}
                   onChange={this.handleHostNameChange}
                   onKeyDown={this.handleKeyDown.bind(this, 'hostNameSearch')} />
+                <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-filter')}</Button>
                 {hostNameSearch.keyword &&
                   <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
                 }
@@ -1029,12 +1026,13 @@ class HostDashboard extends Component {
                 <TextField
                   name='cveSearch'
                   className='search-text'
-                  label={t('host.dashboard.txt-hostName')}
+                  label={t('host.dashboard.txt-cveName')}
                   variant='outlined'
                   size='small'
                   value={cveSearch.keyword}
                   onChange={this.handleCveChange}
                   onKeyDown={this.handleKeyDown.bind(this, 'cveSearch')} />
+                <Button variant='contained' color='primary' className='search-btn' onClick={this.getCveData}>{t('txt-filter')}</Button>
                 {cveSearch.keyword &&
                   <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
                 }

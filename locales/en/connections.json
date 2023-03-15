@@ -412,7 +412,8 @@
       "txt-severity": "Severity",
       "txt-cvssVersion": "CVSS Version",
       "txt-publishedDate": "Published on",
-      "txt-updatedDate": "Updatd on"
+      "txt-updatedDate": "Updatd on",
+      "txt-cveName": "CVE Name"
     },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",
