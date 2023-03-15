@@ -719,7 +719,8 @@ class IncidentManagement extends Component {
   checkTempSave = (formType, incidentFormType) => {
     const {baseUrl, session} = this.context;
     const requestData = {
-      accountId: session.accountId
+      accountId: session.accountId,
+      incidentType: incidentFormType
     };
 
     this.ah.one({
@@ -1233,7 +1234,6 @@ class IncidentManagement extends Component {
             size='small'
             value={monthlyReport.fileName}
             onChange={this.handleMonthlyReportChange.bind(this, 'fileName')} />
-          <div className='extension'>.zip</div>
         </div>
         <div className='group date-time'>
           <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
