@@ -1156,7 +1156,7 @@ class HMDscanInfo extends Component {
                   {val.hostIdArrCnt && val._FileInfo &&
                     <li>
                       {this.props.getHostInfo &&
-                        <div><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost', activeScanType)}>{helper.numberWithCommas(val.hostIdArrCnt)}</span></div>
+                        <div><span className='blue-color'>{f('malwareFields.hostIdArrCnt')}</span>: <span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost', activeScanType)}>{t('txt-view')}</span></div>
                       }
 
                       {!this.props.getHostInfo &&
