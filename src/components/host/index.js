@@ -419,7 +419,7 @@ class HostController extends Component {
         openFlag: false
       },
       popOverAnchor: null,
-      activeFilter: '', //Same as FILTER_LIST
+      activeFilter: '', //same as FILTER_LIST
       showLeftNav: true,
       datetimeExport: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DDTHH:mm:ss')),
       trackHostFile: null,

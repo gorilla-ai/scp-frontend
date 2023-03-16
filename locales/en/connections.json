@@ -399,6 +399,7 @@
       "txt-monthlySeverityTrend": "Monthly Vulnerability Level Trend",
       "txt-vulnerabilityList": "Vulnerability List",
       "txt-vulnerabilityDetails": "Vulnerability Details",
+      "txt-vulnerabilityCount": "Vulnerability Count",
       "txt-exposedDevices": "Exposed Devices",
       "txt-exposedDevicesCount": "Exposed Devices Count",
       "txt-relatedSoftware": "Related Software",

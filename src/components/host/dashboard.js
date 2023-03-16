@@ -13,12 +13,14 @@ import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
 
 import {BaseDataContext} from '../common/context'
@@ -65,6 +67,9 @@ class HostDashboard extends Component {
     this.state = {
       showFilter: false,
       cveSearch: _.cloneDeep(CVE_SEARCH),
+      cveFilter: {
+        cvss: ''
+      },
       hostNameSearch: {
         keyword: '',
         count: 0
@@ -73,8 +78,11 @@ class HostDashboard extends Component {
         data: null,
         count: 0
       },
+      popOverAnchor: null,
+      activeFilter: '',
       monthlySeverityTrend: null,
       showCveInfo: false,
+      showFilterQuery: false,
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
       cveData: {
         dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
@@ -102,7 +110,7 @@ class HostDashboard extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
 
-    this.setLocalLabel();
+    this.setLocaleLabel();
     this.getCveSeverityData();
     this.getCveData();
   }
@@ -113,7 +121,7 @@ class HostDashboard extends Component {
    * Get and set locale label for charts
    * @method
    */
-  setLocalLabel = () => {
+  setLocaleLabel = () => {
     const {locale} = this.context;
 
     if (locale === 'en') {
@@ -588,7 +596,7 @@ class HostDashboard extends Component {
    * Toggle show CVE button
    * @method
    * @param {object} event - event object
-   * @param {string} type - 'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
+   * @param {string} type - CVE button type ('vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware')
    */
   toggleCveButtons = (event, type) => {
     if (!type) {
@@ -619,7 +627,7 @@ class HostDashboard extends Component {
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - 'cveSearch' or 'hostNameSearch'
+   * @param {string} type - reset button type ('cveSearch' or 'hostNameSearch')
    */
   handleResetBtn = (type, event) => {
     const {cveSearch, hostNameSearch} = this.state;
@@ -656,7 +664,7 @@ class HostDashboard extends Component {
     }
   }
   /**
-   * Display new password content
+   * Display CVE info content
    * @method
    * @returns HTML DOM
    */
@@ -713,7 +721,7 @@ class HostDashboard extends Component {
                   value={hostNameSearch.keyword}
                   onChange={this.handleHostNameChange}
                   onKeyDown={this.handleKeyDown.bind(this, 'hostNameSearch')} />
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-filter')}</Button>
+                <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
                 {hostNameSearch.keyword &&
                   <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
                 }
@@ -969,9 +977,117 @@ class HostDashboard extends Component {
       cveSearch: tempCveSearch
     });
   }
+  /**
+   * Handle filter click
+   * @method
+   * @param {string} activeFilter - active filter type
+   * @param {object} event - event object
+   */
+  handleFilterclick = (activeFilter, event) => {
+    this.setState({
+      popOverAnchor: event.currentTarget,
+      activeFilter
+    });
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  handlePopoverClose = () => {
+    this.setState({
+      popOverAnchor: null
+    });
+  }
+  /**
+   * Toggle show filter query
+   * @method
+   */
+  toggleFilterQuery = () => {
+    this.setState({
+      showFilterQuery: !this.state.showFilterQuery,
+    });
+  }
+  /**
+   * Display filter query content
+   * @method
+   * @returns HTML DOM
+   */
+  displayFilterQuery = () => {
+    const {cveFilter, popOverAnchor} = this.state;
+
+    return (
+      <div className='filter-section'>
+        <PopoverMaterial
+          id='hostFilterPopover'
+          open={Boolean(popOverAnchor)}
+          anchorEl={popOverAnchor}
+          onClose={this.handlePopoverClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}>
+          <div className='content'>
+            <React.Fragment>
+              <div>Ryan</div>
+            </React.Fragment>
+          </div>
+        </PopoverMaterial>
+
+        <div className='group'>
+          <TextField
+            name='cvss'
+            label='CVSS'
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={cveFilter.cvss}
+            onClick={this.handleFilterclick.bind(this, 'cvss')}
+            InputProps={{
+              readOnly: true
+            }} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Show filter query dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showFilterQueryDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFilterQuery},
+      confirm: {text: t('txt-confirm'), handler: this.handleFilterQuerySubmit}
+    };
+
+    return (
+      <ModalDialog
+        id='showFilterQueryDialog'
+        className='modal-dialog'
+        title={t('txt-filterQuery')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayFilterQuery()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle filter query submit
+   * @method
+   */
+  handleFilterQuerySubmit = () => {
+
+    this.toggleFilterQuery();
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, cveData, contextAnchor} = this.state;
+    const {showFilter, cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, showFilterQuery, cveData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cve', 'currentPage', currentPage);
@@ -990,6 +1106,10 @@ class HostDashboard extends Component {
           this.showCveDialog()
         }
 
+        {showFilterQuery &&
+          this.showFilterQueryDialog()
+        }
+
         <Menu
           anchorEl={contextAnchor}
           keepMounted
@@ -1003,18 +1123,18 @@ class HostDashboard extends Component {
             <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
             <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
-        </div>       
+        </div>
 
         <div className='data-content'>
           <div className='parent-content'>
             {this.renderFilter()}
 
-            <div className='main-statistics host'>
+            {/*<div className='main-statistics host'>
               <div className='statistics-content'>
                 {this.showPieChart(cveSeverityLevel.data)}
                 {this.showBarChart(monthlySeverityTrend)}
               </div>
-            </div>
+            </div>*/}
 
             <div className='main-content'>
               <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
@@ -1022,21 +1142,26 @@ class HostDashboard extends Component {
               <div className='content-header-btns'>
               </div>
 
-              <div className='search-field'>
-                <TextField
-                  name='cveSearch'
-                  className='search-text'
-                  label={t('host.dashboard.txt-cveName')}
-                  variant='outlined'
-                  size='small'
-                  value={cveSearch.keyword}
-                  onChange={this.handleCveChange}
-                  onKeyDown={this.handleKeyDown.bind(this, 'cveSearch')} />
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getCveData}>{t('txt-filter')}</Button>
-                {cveSearch.keyword &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
-                }
-                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + cveSearch.count}</div>
+              <div className='actions-bar'>
+                <div className='search-field'>
+                  <TextField
+                    name='cveSearch'
+                    className='search-text'
+                    label={t('host.dashboard.txt-cveName')}
+                    variant='outlined'
+                    size='small'
+                    value={cveSearch.keyword}
+                    onChange={this.handleCveChange}
+                    onKeyDown={this.handleKeyDown.bind(this, 'cveSearch')} />
+                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getCveData}>{t('txt-search')}</Button>
+                  {cveSearch.keyword &&
+                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
+                  }
+                  <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + cveSearch.count}</div>
+                </div>
+                <div className='action-items'>
+                  <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.toggleFilterQuery}></i>
+                </div>
               </div>
 
               <MuiTableContent
