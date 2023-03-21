@@ -24,15 +24,37 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
 
 import {BaseDataContext} from '../common/context'
+import DashboardFilter from './dashboard-filter'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
+const FILTER_LIST = ['cvss', 'daysOpen', 'exposedDevices'];
 const CVE_SEARCH = {
   keyword: '',
   count: 0
+};
+const CVE_FILTER = {
+  severity: [],
+  cvss: [{
+    condition: '=',
+    input: ''
+  }],
+  daysOpen: [{
+    condition: '=',
+    input: ''
+  }],
+  exposedDevices: [{
+    condition: '=',
+    input: ''
+  }]
+};
+const CVE_FILTER_LIST = {
+  cvss: [],
+  daysOpen: [],
+  exposedDevices: []
 };
 const EXPOSED_DEVICES_DATA = {
   dataFieldsArr: ['hostName', 'group', 'system', 'ip', 'relatedSoftware', 'daysOpen'],
@@ -65,11 +87,10 @@ class HostDashboard extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      showFilter: false,
+      severityType: [],
       cveSearch: _.cloneDeep(CVE_SEARCH),
-      cveFilter: {
-        cvss: ''
-      },
+      cveFilter: _.cloneDeep(CVE_FILTER),
+      cveFilterList: _.cloneDeep(CVE_FILTER_LIST),
       hostNameSearch: {
         keyword: '',
         count: 0
@@ -111,6 +132,7 @@ class HostDashboard extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.setLocaleLabel();
+    this.getSeverityType();
     this.getCveSeverityData();
     this.getCveData();
   }
@@ -139,6 +161,22 @@ class HostDashboard extends Component {
         低: '#7ACC29'
       };
     }
+  }
+  /**
+   * Get and set severity type
+   * @method
+   */
+  getSeverityType = () => {
+    const severityType = _.map(SEVERITY_TYPE, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      severityType
+    });
   }
   /**
    * Get and set CVE chart data
@@ -350,16 +388,14 @@ class HostDashboard extends Component {
     const {cveSearch, cveData} = this.state;
     const sort = cveData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? cveData.currentPage : 0;
+    const requestData = {
+      ...this.getCveFilterRequestData()
+    };
     let url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}`;
-    let requestData = {};
     let tempCveSearch = {...cveSearch};
 
     if (cveData.sort.field) {
       url += `&orders=${cveData.sort.field} ${sort}`;
-    }
-
-    if (cveSearch.keyword) {
-      requestData.cveId = cveSearch.keyword;
     }
 
     this.ah.one({
@@ -426,6 +462,79 @@ class HostDashboard extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Get condition text
+   * @method
+   * @returns text in string
+   */
+  getConditionMode = (val) => {
+    if (val === '=') {
+      return 'eq';
+    } else if (val === '>') {
+      return 'gt';
+    } else if (val === '<') {
+      return 'lt';
+    }
+  }
+  /**
+   * Get CVE filter request data
+   * @method
+   * @returns requestData object
+   */
+  getCveFilterRequestData = () => {
+    const {cveSearch, cveFilter, cveFilterList} = this.state;
+    let requestData = {};
+
+    if (cveSearch.keyword) {
+      requestData.cveId = cveSearch.keyword;
+    }
+
+    if (cveFilter.severity.length > 0) {
+      const severityArray = _.map(cveFilter.severity, val => {
+        return val.value.toUpperCase();
+      });
+
+      requestData.severityArray = severityArray;
+    }
+
+    if (cveFilterList.cvss.length > 0) {
+      requestData.cvssArray = _.map(cveFilterList.cvss, val => {
+        const condition = val.substr(0, 1);
+        const cvss = val.substr(2);
+
+        return {
+          mode: this.getConditionMode(condition),
+          cvss
+        }
+      });
+    }
+
+    if (cveFilterList.daysOpen.length > 0) {
+      requestData.daysOpenArray = _.map(cveFilterList.daysOpen, val => {
+        const condition = val.substr(0, 1);
+        const daysOpen = Number(val.substr(2));
+
+        return {
+          mode: this.getConditionMode(condition),
+          daysOpen
+        }
+      });
+    }
+
+    if (cveFilterList.exposedDevices.length > 0) {
+      requestData.exposedDevicesArray = _.map(cveFilterList.exposedDevices, val => {
+        const condition = val.substr(0, 1);
+        const exposedDevices = Number(val.substr(2));
+
+        return {
+          mode: this.getConditionMode(condition),
+          exposedDevices
+        }
+      });
+    }
+
+    return requestData;
   }
   /**
    * Handle open menu
@@ -669,7 +778,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {activeCveInfo, hostNameSearch, exposedDevicesData, currentCveData} = this.state;
+    const {hostNameSearch, activeCveInfo, exposedDevicesData, currentCveData} = this.state;
     const tableOptions = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -830,141 +939,6 @@ class HostDashboard extends Component {
     }
   }
   /**
-   * Toggle filter content on/off
-   * @method
-   */
-  toggleFilter = () => {
-    this.setState({
-      showFilter: !this.state.showFilter
-    });
-  }
-  /**
-   * Handle filter input data change
-   * @method
-   * @param {object} event - event object
-   */
-  handleCveSearch = (event) => {
-    let tempCveSearch = {...this.state.cveSearch};
-    tempCveSearch[event.target.name] = event.target.value;
-
-    this.setState({
-      cveSearch: tempCveSearch
-    });
-  }
-  /**
-   * Handle search submit
-   * @method
-   */
-  handleSearchSubmit = () => {
-    let tempCveData = {...this.state.cveData};
-    tempCveData.dataContent = [];
-    tempCveData.totalCount = 0;
-    tempCveData.currentPage = 1;
-
-    this.setState({
-      cveData: tempCveData
-    }, () => {
-      this.getCveData();
-    });
-  }
-  /**
-   * Handle combo box change
-   * @method
-   * @param {object} event - event object
-   * @param {array.<object>} value - selected input value
-   */
-  handleComboBoxChange = (event, value) => {
-    let tempCveSearch = {...this.state.cveSearch};
-    tempCveSearch.severity = value;
-
-    this.setState({
-      cveSearch: tempCveSearch
-    });
-  }
-  /**
-   * Display filter content
-   * @method
-   * @returns HTML DOM
-   */
-  renderFilter = () => {
-    const {showFilter, cveSearch} = this.state;
-
-    return (
-      <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
-        <div className='header-text'>{t('txt-filter')}</div>
-        <div className='filter-section config'>
-          <div className='group'>
-            <TextField
-              id='cveSearchId'
-              name='cveId'
-              label={f('hostDashboardFields.cveId')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={cveSearch.cveId}
-              onChange={this.handleCveSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='cveSearchCVSS'
-              name='cvss'
-              label={f('hostDashboardFields.cvss')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={cveSearch.cvss}
-              onChange={this.handleCveSearch} />
-          </div>
-          <div className='group'>
-            <TextField
-              id='cveSearchSoftware'
-              name='relatedSoftware'
-              label={f('hostDashboardFields.relatedSoftware')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={cveSearch.relatedSoftware}
-              onChange={this.handleCveSearch} />
-          </div>
-          <div className='group' style={{width: '300px'}}>
-            <Autocomplete
-              className='combo-box checkboxes-tags'
-              multiple
-              value={cveSearch.severity}
-              options={_.map(SEVERITY_TYPE, (val) => { return { value: val } })}
-              getOptionLabel={(option) => option.value}
-              disableCloseOnSelect
-              noOptionsText={t('txt-notFound')}
-              openText={t('txt-on')}
-              closeText={t('txt-off')}
-              clearText={t('txt-clear')}
-              renderOption={(option, { selected }) => (
-                <React.Fragment>
-                  <Checkbox
-                    color='primary'
-                    icon={<CheckBoxOutlineBlankIcon />}
-                    checkedIcon={<CheckBoxIcon />}
-                    checked={selected} />
-                  {option.value}
-                </React.Fragment>
-              )}
-              renderInput={(params) => (
-                <TextField {...params} label={f('hostDashboardFields.severity')} variant='outlined' size='small' />
-              )}
-              getOptionSelected={(option, value) => (
-                option.value === value.value
-              )}
-              onChange={this.handleComboBoxChange} />
-          </div>
-        </div>
-        <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
-        </div>
-      </div>
-    )
-  }
-  /**
    * Handle CVE search search
    * @method
    * @param {object} event - event object
@@ -1001,11 +975,85 @@ class HostDashboard extends Component {
   /**
    * Toggle show filter query
    * @method
+   * @param {string} options - option for 'confirm'
    */
-  toggleFilterQuery = () => {
+  toggleFilterQuery = (options) => {
+    if (options === 'confirm') {
+      this.getCveData();
+    }
+
     this.setState({
       showFilterQuery: !this.state.showFilterQuery,
     });
+  }
+  /**
+   * Handle combo box change
+   * @method
+   * @param {object} event - event object
+   * @param {array.<object>} value - selected input value
+   */
+  handleComboBoxChange = (event, value) => {
+    let tempCveFilter = {...this.state.cveFilter};
+    tempCveFilter.severity = value;
+
+    this.setState({
+      cveFilter: tempCveFilter
+    });
+  }
+  /**
+   * Set dashboard filter data
+   * @method
+   * @param {string} type - filter type
+   * @param {array.<string>} data - filter data
+   */
+  setDashboardFilter = (type, data) => {
+    const {cveFilter, cveFilterList} = this.state;
+    let tempCveFilter = {...cveFilter};
+    let tempCveFilterList = {...cveFilterList};
+    let dataList = [];
+    tempCveFilter[type] = data;
+
+    _.forEach(data, val => {
+      let value = val.input;
+
+      if (value) {
+        value = val.condition + ' ' + value;
+        dataList.push(value);
+      }
+    })
+
+    tempCveFilterList[type] = dataList;
+
+    this.setState({
+      cveFilter: tempCveFilter,
+      cveFilterList: tempCveFilterList
+    });
+  }
+  /**
+   * Display filter form
+   * @method
+   * @param {string} val - filter data
+   * @param {number} i - index of the filter data
+   * @returns HTML DOM
+   */
+  showFilterForm = (val, i) => {
+    const value = this.state.cveFilterList[val].join(', ');
+
+    return (
+      <div key={i} className='group'>
+        <TextField
+          name={val}
+          label={f('hostDashboardFields.' + val)}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={value}
+          onClick={this.handleFilterclick.bind(this, val)}
+          InputProps={{
+            readOnly: true
+          }} />
+      </div>
+    )
   }
   /**
    * Display filter query content
@@ -1013,12 +1061,19 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {cveFilter, popOverAnchor} = this.state;
+    const {severityType, cveFilter, popOverAnchor, activeFilter} = this.state;
+    const defaultItemValue = {
+      condition: '=',
+      input: ''
+    };
+    const data = {
+      activeFilter
+    };
 
     return (
       <div className='filter-section'>
         <PopoverMaterial
-          id='hostFilterPopover'
+          id='dashboardFilterPopover'
           open={Boolean(popOverAnchor)}
           anchorEl={popOverAnchor}
           onClose={this.handlePopoverClose}
@@ -1032,26 +1087,60 @@ class HostDashboard extends Component {
           }}>
           <div className='content'>
             <React.Fragment>
-              <div>Ryan</div>
+              <MultiInput
+                base={DashboardFilter}
+                defaultItemValue={defaultItemValue}
+                value={cveFilter[activeFilter]}
+                props={data}
+                onChange={this.setDashboardFilter.bind(this, activeFilter)} />
             </React.Fragment>
           </div>
         </PopoverMaterial>
 
         <div className='group'>
-          <TextField
-            name='cvss'
-            label='CVSS'
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={cveFilter.cvss}
-            onClick={this.handleFilterclick.bind(this, 'cvss')}
-            InputProps={{
-              readOnly: true
-            }} />
+          <Autocomplete
+            className='combo-box'
+            multiple
+            value={cveFilter.severity}
+            options={severityType}
+            getOptionLabel={(option) => option.text}
+            disableCloseOnSelect
+            noOptionsText={t('txt-notFound')}
+            openText={t('txt-on')}
+            closeText={t('txt-off')}
+            clearText={t('txt-clear')}
+            renderOption={(option, { selected }) => (
+              <React.Fragment>
+                <Checkbox
+                  color='primary'
+                  icon={<CheckBoxOutlineBlankIcon />}
+                  checkedIcon={<CheckBoxIcon />}
+                  checked={selected} />
+                {option.text}
+              </React.Fragment>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label={f('hostDashboardFields.severity')} variant='outlined' size='small' />
+            )}
+            getOptionSelected={(option, value) => (
+              option.value === value.value
+            )}
+            onChange={this.handleComboBoxChange} />
         </div>
+        {FILTER_LIST.map(this.showFilterForm)}
+        <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>
     )
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      cveFilter: _.cloneDeep(CVE_FILTER),
+      cveFilterList: _.cloneDeep(CVE_FILTER_LIST)
+    });
   }
   /**
    * Show filter query dialog
@@ -1061,7 +1150,7 @@ class HostDashboard extends Component {
   showFilterQueryDialog = () => {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFilterQuery},
-      confirm: {text: t('txt-confirm'), handler: this.handleFilterQuerySubmit}
+      confirm: {text: t('txt-confirm'), handler: this.toggleFilterQuery.bind(this, 'confirm')}
     };
 
     return (
@@ -1077,17 +1166,9 @@ class HostDashboard extends Component {
       </ModalDialog>
     )
   }
-  /**
-   * Handle filter query submit
-   * @method
-   */
-  handleFilterQuerySubmit = () => {
-
-    this.toggleFilterQuery();
-  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, showFilterQuery, cveData, contextAnchor} = this.state;
+    const {cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, showFilterQuery, cveData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cve', 'currentPage', currentPage);
@@ -1121,20 +1202,17 @@ class HostDashboard extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-            <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
         <div className='data-content'>
           <div className='parent-content'>
-            {this.renderFilter()}
-
-            {/*<div className='main-statistics host'>
+            <div className='main-statistics host'>
               <div className='statistics-content'>
                 {this.showPieChart(cveSeverityLevel.data)}
                 {this.showBarChart(monthlySeverityTrend)}
               </div>
-            </div>*/}
+            </div>
 
             <div className='main-content'>
               <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
