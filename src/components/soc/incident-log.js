@@ -200,6 +200,8 @@ class IncidentLog extends Component {
                     return <span>{it('txt-incident-related')}</span>
                   } else if (value === 'health') {
                     return <span>{it('txt-incident-health')}</span>
+                  } else if (value === 'EDR') {
+                    return <span>EDR</span>
                   }
                 } else if (val === 'status') {
                   if (value === 'success') {
@@ -320,6 +322,10 @@ class IncidentLog extends Component {
                   {
                     value: 'health',
                     text: it('txt-incident-health')
+                  },
+                  {
+                    value: 'EDR',
+                    text: 'EDR'
                   }
                 ], el => {
                   return <MenuItem value={el.value}>{el.text}</MenuItem>
