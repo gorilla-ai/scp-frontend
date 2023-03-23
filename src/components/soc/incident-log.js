@@ -54,7 +54,7 @@ class IncidentLog extends Component {
       },
       accountType:constants.soc.LIMIT_ACCOUNT,
       incidentLog: {
-        dataFieldsArr: ['id', 'type', 'status', 'createDttm', 'updateDttm', 'sendTime'],
+        dataFieldsArr: ['id', 'type', 'status', 'createdDttm', 'updateDttm', 'sendDttm'],
         dataFields: [],
         dataContent: [],
         sort: {
@@ -189,9 +189,9 @@ class IncidentLog extends Component {
 
                 if (val === 'updateDttm') {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
-                } else if (val === 'createDttm') {
+                } else if (val === 'createdDttm') {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
-                } else if (val === 'sendTime') {
+                } else if (val === 'sendDttm') {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 } else if (val === 'type') {
                   if (value === 'event') {
@@ -380,7 +380,7 @@ class IncidentLog extends Component {
                 _.map([
                   {
                     value: 'sendDttm',
-                    text: f('incidentFields.sendTime')
+                    text: f('incidentFields.sendDttm')
                   },
                   {
                     value: 'updateDttm',
@@ -388,7 +388,7 @@ class IncidentLog extends Component {
                   },
                   {
                     value: 'createdDttm',
-                    text: f('incidentFields.createDttm')
+                    text: f('incidentFields.createdDttm')
                   }
                 ], el => {
                   return <MenuItem value={el.value}>{el.text}</MenuItem>
@@ -397,7 +397,7 @@ class IncidentLog extends Component {
             </TextField>
           </div>
           <div className='group' style={{width: '500px'}}>
-            <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
+            <label htmlFor='searchDttm'>{f('incidentFields.createdDttm')}</label>
             <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
               <KeyboardDateTimePicker
                 className='date-time-picker'
