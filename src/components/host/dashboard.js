@@ -23,6 +23,8 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
 
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
 import {BaseDataContext} from '../common/context'
 import DashboardFilter from './dashboard-filter'
 import helper from '../common/helper'
@@ -443,6 +445,18 @@ class HostDashboard extends Component {
                   const severityLevel = t('txt-' + value.toLowerCase());
 
                   return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}</span>
+                } else if (val === 'relatedSoftware') {
+                  return (
+                    <div>
+                      <span>{value[0]}</span>
+                      {value.length > 1 &&
+                        <span>, {value[1]}</span>
+                      }
+                      {value.length > 2 &&
+                        <span title={this.getSoftwareList(value)}>, {t('txt-more')}...</span>
+                      }
+                    </div>
+                  )
                 } else {
                   return value;
                 }
@@ -587,6 +601,7 @@ class HostDashboard extends Component {
    */
   getSoftwareList = (list) => {
     list.shift();
+    list.shift();
     return list.join(', ');
   }
   /**
@@ -652,7 +667,10 @@ class HostDashboard extends Component {
                     <div>
                       <span>{value[0]}</span>
                       {value.length > 1 &&
-                        <span title={this.getSoftwareList(value)}>, more...</span>
+                        <span>, {value[1]}</span>
+                      }
+                      {value.length > 2 &&
+                        <span title={this.getSoftwareList(value)}>, {t('txt-more')}...</span>
                       }
                     </div>
                   )
@@ -1166,6 +1184,29 @@ class HostDashboard extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Export CVE list
+   * @method
+   */
+  exportCveList = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {cveData} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
+    let exportFields = {};
+    let fieldsList = _.cloneDeep(this.state.cveData.dataFieldsArr);
+    fieldsList.shift();
+
+    _.forEach(fieldsList, val => {
+      exportFields[val] = f('hostDashboardFields.' + val);
+    })
+
+    const requestData = {
+      ...this.getCveFilterRequestData(),
+      exportFields
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, showFilterQuery, cveData, contextAnchor} = this.state;
@@ -1217,7 +1258,9 @@ class HostDashboard extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
 
-              <div className='content-header-btns'>
+              <div className='content-header-btns with-menu'>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCveList}>{t('txt-export')}</Button>
               </div>
 
               <div className='actions-bar'>
@@ -1236,9 +1279,6 @@ class HostDashboard extends Component {
                     <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
                   }
                   <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + cveSearch.count}</div>
-                </div>
-                <div className='action-items'>
-                  <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.toggleFilterQuery}></i>
                 </div>
               </div>
 
