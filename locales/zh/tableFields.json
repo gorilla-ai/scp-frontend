@@ -583,6 +583,7 @@
     "createDttm-start": "建立時間(起)",
     "createDttm-end": "建立時間(訖)",
     "sendDttm": "發布時間",
+    "createDttm": "建立時間",
     "createdDttm": "建立時間",
     "impactAssessment": "影響等級",
     "attackName": "攻擊手法",

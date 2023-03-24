@@ -583,6 +583,7 @@
     "createDttm-start": "Create Datetime(From)",
     "createDttm-end": "Create Datetime(To)",
     "sendDttm": "Send Datetime",
+    "createDttm": "Create Datetime",
     "createdDttm": "Create Datetime",
     "impactAssessment": "Impact Assessment",
     "attackName": "Attack Name",
