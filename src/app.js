@@ -32,7 +32,6 @@ import IncidentISAC from './components/soc/incident-isac'
 import IncidentLog from './components/soc/incident-log'
 import IncidentManagement from './components/soc/incident-manager'
 import IncidentRule from './components/soc/incident-ruleTemplate'
-import IncidentSearch from './components/soc/incident-search-list'
 import IncidentSOC from './components/soc/incident-soc'
 import IncidentUnit from './components/soc/incident-unit'
 import logger from 'loglevel-prefix-persist/client'
@@ -303,12 +302,6 @@ const incidentReport = () => (
   </BaseDataContext.Provider>
 );
 
-const incidentSearch = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <IncidentSearch />
-  </BaseDataContext.Provider>
-);
-
 const incidentManagement = () => (
   <BaseDataContext.Provider value={baseData}>
     <IncidentManagement />
@@ -368,7 +361,6 @@ const Main = () => (
       <Route exact path='/SCP/soc/incident-rule-template' component={incidentRule} />
       <Route exact path='/SCP/soc/incident-flow' component={incidentFlow} />
       <Route exact path='/SCP/soc/incident-report' component={incidentReport} />
-      <Route exact path='/SCP/soc/incident-search' component={incidentSearch} />
       <Route exact path='/SCP/soc/incident-management' component={incidentManagement} />
     </Switch>
   </main>

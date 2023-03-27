@@ -40,7 +40,7 @@ class SocConfig extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const openIncidentManagement = this.getActiveFrame('incident') || this.getActiveFrame('incident-search') || this.getActiveFrame('incidentLog') || this.getActiveFrame('incidentSOCRule') || this.getActiveFrame('incidentSOCFlow') || this.getActiveFrame('incidentSOCReport') || this.getActiveFrame('incidentManagement');
+    const openIncidentManagement = this.getActiveFrame('incident') || this.getActiveFrame('incidentLog') || this.getActiveFrame('incidentSOCRule') || this.getActiveFrame('incidentSOCFlow') || this.getActiveFrame('incidentSOCReport') || this.getActiveFrame('incidentManagement');
     const openConfigManagement = this.getActiveFrame('incidentSettingSOC') || this.getActiveFrame('incidentSettingISAC');
 
     this.setState({
@@ -70,7 +70,6 @@ class SocConfig extends Component {
     const path = window.location.pathname;
     const pattern = {
       incident: '/SCP/soc/incident',
-      'incident-search': '/SCP/soc/incident-search',
       incidentLog:'/SCP/soc/incident-log',
       incidentSOCRule:'/SCP/soc/incident-rule-template',
       incidentSOCFlow:'/SCP/soc/incident-flow',
@@ -114,7 +113,7 @@ class SocConfig extends Component {
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>
         <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openIncidentManagement', openIncidentManagement)}>
-          <span className={`${this.getActiveFrame('incident') || this.getActiveFrame('incident-search') || this.getActiveFrame('incidentLog') || this.getActiveFrame('incidentSOCRule') || this.getActiveFrame('incidentSOCFlow') || this.getActiveFrame('incidentSOCReport') || this.getActiveFrame('incidentManagement')
+          <span className={`${this.getActiveFrame('incident') || this.getActiveFrame('incidentLog') || this.getActiveFrame('incidentSOCRule') || this.getActiveFrame('incidentSOCFlow') || this.getActiveFrame('incidentSOCReport') || this.getActiveFrame('incidentManagement')
             }`}>{it('txt-incident-management')}</span>
           <i className={`c-link fg fg-arrow-${openIncidentManagement ? 'top' : 'bottom'}`} />
         </div>

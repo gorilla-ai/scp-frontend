@@ -102,7 +102,6 @@ class Incident extends Component {
         unhandled: 0,
         mine: 0
       },
-      relatedListOptions: [],
       deviceListOptions: [],
       showDeviceListOptions: [],
       incident: {
@@ -1205,7 +1204,7 @@ class Incident extends Component {
   }
   getIncident = (id, type) => {
     const {baseUrl} = this.context;
-    const {activeContent, incidentType, incident, relatedListOptions, showDeviceListOptions} = this.state;
+    const {activeContent, incidentType, incident, showDeviceListOptions} = this.state;
 
     this.handleCloseMenu();
 
@@ -1232,10 +1231,9 @@ class Incident extends Component {
 
 
       const result = _.map(temp.relatedList, function(obj) {
-        return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+        return _.assign(obj, _.find([], {value: obj.value}));
       });
 
-      temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value });
       temp.showFontendRelatedList = result;
 
       if (temp.eventList) {
@@ -1300,7 +1298,7 @@ class Incident extends Component {
   }
   refreshIncidentAttach = (id) => {
     const {baseUrl} = this.context;
-    const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+    const {activeContent, incidentType, incident} = this.state;
 
     this.handleCloseMenu();
 
@@ -1326,10 +1324,9 @@ class Incident extends Component {
       }
 
       let result = _.map(temp.relatedList, function(obj) {
-        return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+        return _.assign(obj, _.find([], {value: obj.value}));
       });
 
-      temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value });
       temp.showFontendRelatedList = result;
 
       if (temp.eventList) {
@@ -1577,7 +1574,7 @@ class Incident extends Component {
   }
   toggleContent = (type, allValue) => {
     const {baseUrl, contextRoot} = this.context;
-    const {originalIncident, incident,relatedListOptions} = this.state;
+    const {originalIncident, incident} = this.state;
     let tempIncident = {...incident};
     let showPage = type;
 
@@ -1649,7 +1646,6 @@ class Incident extends Component {
         createDttm: null,
         relatedList: [],
         showFontendRelatedList: [],
-        differenceWithOptions: relatedListOptions,
         ttpList: null,
         eventList: null,
         notifyList: null,
@@ -2065,44 +2061,44 @@ class Incident extends Component {
   getOptions = () => {
     const {baseUrl, contextRoot, session} = this.context;
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+    // helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    ah.one({
-      url: `${baseUrl}/api/soc/_search`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
-    })
-    .then(data => {
-      if (data) {
-        let list = _.map(data.rt.rows, val => {
-          let ipContent = '';
+    // ah.one({
+    //   url: `${baseUrl}/api/soc/_search`,
+    //   data: JSON.stringify({}),
+    //   type: 'POST',
+    //   contentType: 'application/json',
+    //   dataType: 'json'
+    // })
+    // .then(data => {
+    //   if (data) {
+    //     let list = _.map(data.rt.rows, val => {
+    //       let ipContent = '';
 
-          if (val.eventList) {
-            val.eventList = _.map(val.eventList, el => {
-              if (el.eventConnectionList) {
-                el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
-                    ipContent += '(' + it('txt-srcIp')+ ': ' + ecl.srcIp + ')'
-                })
-              }
-            })
-          }
+    //       if (val.eventList) {
+    //         val.eventList = _.map(val.eventList, el => {
+    //           if (el.eventConnectionList) {
+    //             el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
+    //                 ipContent += '(' + it('txt-srcIp')+ ': ' + ecl.srcIp + ')'
+    //             })
+    //           }
+    //         })
+    //       }
 
-          return {
-            value: val.id,
-            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
-          };
-        });
+    //       return {
+    //         value: val.id,
+    //         text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
+    //       };
+    //     });
 
-        this.setState({
-          relatedListOptions: list
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    //     this.setState({
+    //       relatedListOptions: list
+    //     });
+    //   }
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // })
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
@@ -2300,7 +2296,7 @@ class Incident extends Component {
     })
   }
   toPdfPayload = (incident) => {
-    const {incidentType, relatedListOptions, deviceListOptions, showDeviceListOptions} = this.state;
+    const {incidentType, deviceListOptions, showDeviceListOptions} = this.state;
     let payload = {};
 
     payload.id = incident.id;
@@ -2332,7 +2328,7 @@ class Incident extends Component {
       if (_.size(incident.relatedList) > 0) {
         let value = []
         _.forEach(incident.relatedList, el => {
-          const target = _.find(relatedListOptions, {value: el.value})
+          const target = _.find([], {value: el.value})
           value.push(target.text)
         })
 
