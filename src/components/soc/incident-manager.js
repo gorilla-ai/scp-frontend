@@ -1356,7 +1356,9 @@ class IncidentManagement extends Component {
 
     if (incident.info.showFontendRelatedList) {
       incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
-        return {incidentRelatedId: val};
+        return {
+          incidentRelatedId: val
+        };
       });
     }
 

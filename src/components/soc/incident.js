@@ -78,6 +78,7 @@ class Incident extends Component {
       toggleType:'',
       showFilter: false,
       showChart: true,
+      relatedListOpen: false,
       uploadAttachmentOpen: false,
       currentIncident: {},
       originalIncident: {},
@@ -591,6 +592,21 @@ class Incident extends Component {
       displayPage: val
     });
   }
+  toggleRelatedListModal = () => {
+    this.setState({
+      relatedListOpen: !this.state.relatedListOpen
+    });
+  }
+  setIncidentList = (list) => {
+    const tempIncident = {...this.state.incident};
+    tempIncident.info.showFontendRelatedList = list;
+
+    this.setState({
+      incident: tempIncident
+    }, () => {
+      this.toggleRelatedListModal();
+    });
+  }
   toggleEstablishDateCheckbox = (event) => {
     let tempIncident = {...this.state.incident};
     tempIncident.info.enableEstablishDttm = event.target.checked;
@@ -824,9 +840,9 @@ class Incident extends Component {
     }
 
     if (incident.info.showFontendRelatedList) {
-      incident.info.relatedList = _.map(incident.info.showFontendRelatedList, el => {
+      incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
         return {
-          incidentRelatedId: el.value
+          incidentRelatedId: val
         };
       });
     }
@@ -1218,23 +1234,9 @@ class Incident extends Component {
       let tempIncident = {...incident};
       let tempShowDeviceListOptions = _.cloneDeep(showDeviceListOptions);
       let temp = data.rt;
-
-      if (temp.relatedList) {
-        temp.relatedList = _.map(temp.relatedList, el => {
-          const obj = {
-            value :el.incidentRelatedId,
-            text:el.incidentRelatedId
-          }
-          return obj;
-        })
-      }
-
-
-      const result = _.map(temp.relatedList, function(obj) {
-        return _.assign(obj, _.find([], {value: obj.value}));
+      temp.showFontendRelatedList = _.map(temp.relatedList, val => {
+        return val.incidentRelatedId;
       });
-
-      temp.showFontendRelatedList = result;
 
       if (temp.eventList) {
         temp.eventList = _.map(temp.eventList, el => {
@@ -2624,6 +2626,7 @@ class Incident extends Component {
       contextRoot,
       showFilter,
       showChart,
+      relatedListOpen,
       uploadAttachmentOpen,
       incident, 
       contextAnchor,
@@ -2659,6 +2662,13 @@ class Incident extends Component {
 
         {uploadAttachmentOpen &&
           this.uploadAttachmentModal()
+        }
+
+        {relatedListOpen &&
+          <RelatedList
+            incidentList={incident.info.showFontendRelatedList}
+            setIncidentList={this.setIncidentList}
+            toggleRelatedListModal={this.toggleRelatedListModal} />
         }
 
         <Menu
