@@ -375,7 +375,7 @@ class HostDashboard extends Component {
     return (
       <section>
         <span>{t('txt-severity')}: {data[0].indicator}<br /></span>
-        <span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM')}<br /></span>
         <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
