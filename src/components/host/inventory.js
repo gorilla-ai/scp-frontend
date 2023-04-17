@@ -26,7 +26,7 @@ import PieChart from 'react-chart/build/src/components/pie'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
-import DashboardFilter from './dashboard-filter'
+import InventoryFilter from './inventory-filter'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
 
@@ -34,11 +34,11 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const FILTER_LIST = ['cvss', 'daysOpen', 'exposedDevices'];
-const CVE_SEARCH = {
+const CPE_SEARCH = {
   keyword: '',
   count: 0
 };
-const CVE_FILTER = {
+const CPE_FILTER = {
   severity: [],
   cvss: [{
     condition: '=',
@@ -53,7 +53,7 @@ const CVE_FILTER = {
     input: ''
   }]
 };
-const CVE_FILTER_LIST = {
+const CPE_FILTER_LIST = {
   cvss: [],
   daysOpen: [],
   exposedDevices: []
@@ -76,12 +76,12 @@ let t = null;
 let f = null;
 
 /**
- * Host Dashboard
+ * Host Inventory
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the Host Dashboard page
+ * @summary A react component to show the Host Inventory page
  */
-class HostDashboard extends Component {
+class HostInventory extends Component {
   constructor(props) {
     super(props);
 
@@ -90,25 +90,20 @@ class HostDashboard extends Component {
 
     this.state = {
       severityType: [],
-      cveSearch: _.cloneDeep(CVE_SEARCH),
-      cveFilter: _.cloneDeep(CVE_FILTER),
-      cveFilterList: _.cloneDeep(CVE_FILTER_LIST),
+      cpeSearch: _.cloneDeep(CPE_SEARCH),
+      cpeFilter: _.cloneDeep(CPE_FILTER),
+      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
       hostNameSearch: {
         keyword: '',
         count: 0
       },
-      cveSeverityLevel: {
-        data: null,
-        count: 0
-      },
       popOverAnchor: null,
       activeFilter: '',
-      monthlySeverityTrend: null,
       showCveInfo: false,
       showFilterQuery: false,
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
-      cveData: {
-        dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'daysOpen', 'exposedDevices'],
+      cpeData: {
+        dataFieldsArr: ['_menu', 'product', 'system', 'vendor', 'version', 'vulnerabilityNum', 'exposedDevicesTotal'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -121,8 +116,8 @@ class HostDashboard extends Component {
       },
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       contextAnchor: null,
-      currentCveId: '',
-      currentCveData: {}
+      currentCpeKey: '',
+      currentCpeData: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -135,8 +130,7 @@ class HostDashboard extends Component {
 
     this.setLocaleLabel();
     this.getSeverityType();
-    this.getCveSeverityData();
-    this.getCveData();
+    this.getCpeData();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -181,223 +175,23 @@ class HostDashboard extends Component {
     });
   }
   /**
-   * Get and set CVE chart data
-   * @method
-   */
-  getCveSeverityData = () => {
-    const {baseUrl} = this.context;
-
-    //Pie Chart
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/cveUpdateToDate/severityAgg`,
-      type: 'GET'
-    }, {showProgress: false})
-    .then(data => {
-      if (data) {
-        this.setState({
-          cveSeverityLevel: {
-            data: this.formatPieChartData(data.severityAgg),
-            count: helper.numberWithCommas(data.total)
-          }
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-
-    //Bar Chart
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/cveUpdateToDate/year/severityAgg`,
-      type: 'GET'
-    }, {showProgress: false})
-    .then(data => {
-      if (data) {
-        let monthlySeverityTrend = [];
-
-        _.keys(data.severityAgg)
-        .forEach(key => {
-          _.keys(data.severityAgg[key])
-          .forEach(key2 => {
-            if (data.severityAgg[key][key2] >= 0) {
-              monthlySeverityTrend.push({
-                day: helper.getFormattedDate(key2, 'local'),
-                count: data.severityAgg[key][key2],
-                indicator: t('txt-' + key)
-              })
-            }
-          })
-        });
-
-        this.setState({
-          monthlySeverityTrend
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Format the object data into array type
-   * @method
-   * @param {object} data - chart data
-   */
-  formatPieChartData = (data) => {
-    let cveSeverityLevel = [];
-
-    _.keys(data)
-    .forEach(key => {
-      if (data[key] > 0) {
-        cveSeverityLevel.push({
-          key: t('txt-' + key),
-          doc_count: data[key]
-        });
-      }
-    });
-
-    return cveSeverityLevel;
-  }
-  /**
-   * Show pie chart
-   * @method
-   * @param {array.<object>} cveSeverityLevel - CVE severity data
-   * @returns HTML DOM
-   */
-  showPieChart = (cveSeverityLevel) => {
-    const centerText = t('txt-total') + ': ' + this.state.cveSeverityLevel.count;
-
-    return (
-      <div className='chart-group'>
-        {!cveSeverityLevel &&
-          <div className='empty-data'>
-            <header>{t('host.dashboard.txt-severityLevelQuery')}</header>
-            <span><i className='fg fg-loading-2'></i></span>
-          </div>
-        }
-        {cveSeverityLevel && cveSeverityLevel.length === 0 &&
-          <div className='empty-data'>
-            <header>{t('host.dashboard.txt-severityLevelQuery')}</header>
-            <span>{t('txt-notFound')}</span>
-          </div>
-        }
-        {cveSeverityLevel && cveSeverityLevel.length > 0 &&
-          <PieChart
-            title={t('host.dashboard.txt-severityLevelQuery')}
-            holeSize={45}
-            centerText={centerText}
-            data={cveSeverityLevel}
-            colors={{
-              key: ALERT_LEVEL_COLORS
-            }}
-            keyLabels={{
-              key: t('txt-severity'),
-              doc_count: t('txt-count')
-            }}
-            valueLabels={{
-              'Pie Chart': {
-                key: t('txt-severity'),
-                doc_count: t('txt-count')
-              }
-            }}
-            dataCfg={{
-              splitSlice: ['key'],
-              sliceSize: 'doc_count'
-            }} />
-        }
-      </div>
-    )
-  }
-  /**
-   * Show bar chart
-   * @method
-   * @param {array.<object>} monthlySeverityTrend - chart data
-   * @returns HTML DOM
-   */
-  showBarChart = (monthlySeverityTrend) => {
-    return (
-      <div className='chart-group'>
-        {!monthlySeverityTrend &&
-          <div className='empty-data'>
-            <header>{t('host.dashboard.txt-monthlySeverityTrend')}</header>
-            <span><i className='fg fg-loading-2'></i></span>
-          </div>
-        }
-        {monthlySeverityTrend && monthlySeverityTrend.length === 0 &&
-          <div className='empty-data'>
-            <header>{t('host.dashboard.txt-monthlySeverityTrend')}</header>
-            <span>{t('txt-notFound')}</span>
-          </div>
-        }
-        {monthlySeverityTrend && monthlySeverityTrend.length > 0 &&
-          <BarChart
-            stacked
-            vertical
-            title={t('host.dashboard.txt-monthlySeverityTrend')}
-            legend={{
-              enabled: true
-            }}
-            data={monthlySeverityTrend}
-            colors={ALERT_LEVEL_COLORS}
-            dataCfg={{
-              x: 'day',
-              y: 'count',
-              splitSeries: 'indicator'
-            }}
-            xAxis={{
-              type: 'datetime',
-              units: [
-                ['month', [1]]
-              ]
-            }}
-            plotOptions={{
-              series: {
-                maxPointWidth: 20
-              }
-            }}
-            tooltip={{
-              formatter: this.onTooltip
-            }} />
-        }
-      </div>
-    )
-  }
-  /**
-   * Show tooltip info when mouseover the chart
-   * @method
-   * @param {object} eventInfo - MouseoverEvents
-   * @param {array.<object>} data - chart data
-   * @returns HTML DOM
-   */
-  onTooltip = (eventInfo, data) => {
-    return (
-      <section>
-        <span>{t('txt-severity')}: {data[0].indicator}<br /></span>
-        <span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM')}<br /></span>
-        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
-      </section>
-    )
-  }
-  /**
-   * Get and set CVE data
+   * Get and set CPE data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getCveData = (fromPage) => {
+  getCpeData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {cveSearch, cveData} = this.state;
-    const sort = cveData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? cveData.currentPage : 0;
+    const {cpeSearch, cpeData} = this.state;
+    const sort = cpeData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? cpeData.currentPage : 0;
     const requestData = {
-      ...this.getCveFilterRequestData()
+      ...this.getCpeFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}`;
-    let tempCveSearch = {...cveSearch};
+    let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
+    let tempCpeSearch = {...cpeSearch};
 
-    if (cveData.sort.field) {
-      url += `&orders=${cveData.sort.field} ${sort}`;
+    if (cpeData.sort.field) {
+      url += `&orders=${cpeData.sort.field} ${sort}`;
     }
 
     this.ah.one({
@@ -408,53 +202,37 @@ class HostDashboard extends Component {
     })
     .then(data => {
       if (data) {
-        let tempCveData = {...cveData};
+        let tempCpeData = {...cpeData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempCveData.dataContent = [];
-          tempCveData.totalCount = 0;
+          tempCpeData.dataContent = [];
+          tempCpeData.totalCount = 0;
 
           this.setState({
-            cveData: tempCveData
+            cpeData: tempCpeData
           });
           return null;
         }       
 
-        tempCveData.dataContent = data.rows;
-        tempCveData.totalCount = data.count;
-        tempCveData.currentPage = page;
-        tempCveData.dataFields = _.map(cveData.dataFieldsArr, val => {
+        tempCpeData.dataContent = data.rows;
+        tempCpeData.totalCount = data.count;
+        tempCpeData.currentPage = page;
+        tempCpeData.dataFields = _.map(cpeData.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
-            label: val === '_menu' ? '' : f('hostDashboardFields.' + val),
+            label: val === '_menu' ? '' : f('hostCpeFields.' + val),
             options: {
               filter: true,
               sort: true,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempCveData.dataContent[dataIndex];
-                const value = tempCveData.dataContent[dataIndex][val];
+                const allValue = tempCpeData.dataContent[dataIndex];
+                const value = tempCpeData.dataContent[dataIndex][val];
 
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)}><i className='fg fg-more'></i></Button>
-                    </div>
-                  )
-                } else if (val === 'severity' && value) {
-                  const severityLevel = t('txt-' + value.toLowerCase());
-
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}</span>
-                } else if (val === 'relatedSoftware') {
-                  return (
-                    <div>
-                      <span>{value[0]}</span>
-                      {value.length > 1 &&
-                        <span>, {value[1]}</span>
-                      }
-                      {value.length > 2 &&
-                        <span title={this.getSoftwareList(value)}>, {t('txt-more')}...</span>
-                      }
+                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else {
@@ -464,11 +242,11 @@ class HostDashboard extends Component {
             }
           };
         });
-        tempCveSearch.count = helper.numberWithCommas(data.count);
+        tempCpeSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          cveSearch: tempCveSearch,
-          cveData: tempCveData
+          cpeSearch: tempCpeSearch,
+          cpeData: tempCpeData
         });
       }
       return null;
@@ -492,28 +270,28 @@ class HostDashboard extends Component {
     }
   }
   /**
-   * Get CVE filter request data
+   * Get CPE filter request data
    * @method
    * @returns requestData object
    */
-  getCveFilterRequestData = () => {
-    const {cveSearch, cveFilter, cveFilterList} = this.state;
+  getCpeFilterRequestData = () => {
+    const {cpeSearch, cpeFilter, cpeFilterList} = this.state;
     let requestData = {};
 
-    if (cveSearch.keyword) {
-      requestData.cveId = cveSearch.keyword;
+    if (cpeSearch.keyword) {
+      requestData.cveId = cpeSearch.keyword;
     }
 
-    if (cveFilter.severity.length > 0) {
-      const severityArray = _.map(cveFilter.severity, val => {
+    if (cpeFilter.severity.length > 0) {
+      const severityArray = _.map(cpeFilter.severity, val => {
         return val.value.toUpperCase();
       });
 
       requestData.severityArray = severityArray;
     }
 
-    if (cveFilterList.cvss.length > 0) {
-      requestData.cvssArray = _.map(cveFilterList.cvss, val => {
+    if (cpeFilterList.cvss.length > 0) {
+      requestData.cvssArray = _.map(cpeFilterList.cvss, val => {
         const condition = val.substr(0, 1);
         const cvss = val.substr(2);
 
@@ -524,8 +302,8 @@ class HostDashboard extends Component {
       });
     }
 
-    if (cveFilterList.daysOpen.length > 0) {
-      requestData.daysOpenArray = _.map(cveFilterList.daysOpen, val => {
+    if (cpeFilterList.daysOpen.length > 0) {
+      requestData.daysOpenArray = _.map(cpeFilterList.daysOpen, val => {
         const condition = val.substr(0, 1);
         const daysOpen = Number(val.substr(2));
 
@@ -536,8 +314,8 @@ class HostDashboard extends Component {
       });
     }
 
-    if (cveFilterList.exposedDevices.length > 0) {
-      requestData.exposedDevicesArray = _.map(cveFilterList.exposedDevices, val => {
+    if (cpeFilterList.exposedDevices.length > 0) {
+      requestData.exposedDevicesArray = _.map(cpeFilterList.exposedDevices, val => {
         const condition = val.substr(0, 1);
         const exposedDevices = Number(val.substr(2));
 
@@ -553,23 +331,23 @@ class HostDashboard extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {object} id - active CVE ID
+   * @param {object} key - active CPE key
    * @param {object} event - event object
    */
-  handleOpenMenu = (id, event) => {
+  handleOpenMenu = (key, event) => {
     this.setState({
       contextAnchor: event.currentTarget,
-      currentCveId: id
+      currentCpeKey: key
     });
   }
   /**
-   * Get individual CVE data
+   * Get individual CPE data
    * @method
    */
-  getActiveCveInfo = () => {
+  getActiveCpeInfo = () => {
     const {baseUrl} = this.context;
-    const {currentCveId} = this.state;
-    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCveId}`;
+    const {currentCpeKey} = this.state;
+    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCpeKey}`;
 
     this.ah.one({
       url,
@@ -580,7 +358,7 @@ class HostDashboard extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          currentCveData: data.cveInfo
+          currentCpeData: data.cveInfo
         }, () => {
           this.toggleShowCVE();
         });
@@ -611,11 +389,11 @@ class HostDashboard extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {hostNameSearch, exposedDevicesData, currentCveId} = this.state;
+    const {hostNameSearch, exposedDevicesData, currentCpeKey} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     const requestData = {
-      cveId: currentCveId
+      cveId: currentCpeKey
     };
     let url = `${baseUrl}/api/hmd/cve/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
     let tempHostNameSearch = {...hostNameSearch};
@@ -754,17 +532,17 @@ class HostDashboard extends Component {
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('cveSearch' or 'hostNameSearch')
+   * @param {string} type - reset button type ('cpeSearch' or 'hostNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cveSearch, hostNameSearch} = this.state;
+    const {cpeSearch, hostNameSearch} = this.state;
 
-    if (type === 'cveSearch') {
-      let tempCveSearch = {...cveSearch};
-      tempCveSearch.keyword = '';
+    if (type === 'cpeSearch') {
+      let tempCpeSearch = {...cpeSearch};
+      tempCpeSearch.keyword = '';
 
       this.setState({
-        cveSearch: tempCveSearch
+        cpeSearch: tempCpeSearch
       });
     } else if (type === 'hostNameSearch') {
       let tempHostNameSearch = {...hostNameSearch};
@@ -778,13 +556,13 @@ class HostDashboard extends Component {
   /**
    * Handle keyw down for search field
    * @method
-   * @param {string} type - 'cveSearch' or 'hostNameSearch'
+   * @param {string} type - 'cpeSearch' or 'hostNameSearch'
    * @param {object} event - event object
    */
   handleKeyDown = (type, event) => {
     if (event.key === 'Enter') {
-      if (type === 'cveSearch') {
-        this.getCveData();
+      if (type === 'cpeSearch') {
+        this.getCpeData();
       } else if (type === 'hostNameSearch') {
         this.getExposedDevices();
       }
@@ -796,7 +574,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {hostNameSearch, activeCveInfo, exposedDevicesData, currentCveData} = this.state;
+    const {hostNameSearch, activeCveInfo, exposedDevicesData, currentCpeData} = this.state;
     const tableOptions = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -825,14 +603,14 @@ class HostDashboard extends Component {
         <div className='main-content'>
           {activeCveInfo === 'vulnerabilityDetails' &&
             <ul className='vulnerability'>
-              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCveData.description}</li>
-              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCveData.cveId}</li>
-              <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + currentCveData.severity.toLowerCase())}</li> 
-              <li><span>CVSS</span>: {currentCveData.cvss}</li>
-              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCveData.cvssVersion}</li>
-              <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(currentCveData.publishedDate, 'local')}</li>
-              <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(currentCveData.lastModifiedDate, 'local')}</li>
-              <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {currentCveData.daysOpen}</li>
+              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCpeData.description}</li>
+              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCpeData.cveId}</li>
+              <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + currentCpeData.severity.toLowerCase())}</li> 
+              <li><span>CVSS</span>: {currentCpeData.cvss}</li>
+              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCpeData.cvssVersion}</li>
+              <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(currentCpeData.publishedDate, 'local')}</li>
+              <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(currentCpeData.lastModifiedDate, 'local')}</li>
+              <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {currentCpeData.daysOpen}</li>
             </ul>
           }
 
@@ -884,7 +662,7 @@ class HostDashboard extends Component {
       <ModalDialog
         id='showCveDialog'
         className='modal-dialog'
-        title={this.state.currentCveId}
+        title={this.state.currentCpeKey}
         draggable={true}
         global={true}
         actions={actions}
@@ -901,19 +679,19 @@ class HostDashboard extends Component {
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {cveData, exposedDevicesData} = this.state;
-    let tempCveData = {...cveData};
+    const {cpeData, exposedDevicesData} = this.state;
+    let tempCpeData = {...cpeData};
     let tempExposedDevicesData = {...exposedDevicesData};
     let tableField = field;
 
     if (tableType === 'cve') {
-      tempCveData.sort.field = tableField;
-      tempCveData.sort.desc = sort;
+      tempCpeData.sort.field = tableField;
+      tempCpeData.sort.desc = sort;
 
       this.setState({
-        cveData: tempCveData
+        cpeData: tempCpeData
       }, () => {
-        this.getCveData();
+        this.getCpeData();
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData.sort.field = tableField;
@@ -934,17 +712,17 @@ class HostDashboard extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {cveData, exposedDevicesData} = this.state;
-    let tempCveData = {...cveData};
+    const {cpeData, exposedDevicesData} = this.state;
+    let tempCpeData = {...cpeData};
     let tempExposedDevicesData = {...exposedDevicesData};
 
     if (tableType === 'cve') {
-      tempCveData[type] = value;
+      tempCpeData[type] = value;
 
       this.setState({
-        cveData: tempCveData
+        cpeData: tempCpeData
       }, () => {
-        this.getCveData(type);
+        this.getCpeData(type);
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData[type] = value;
@@ -962,11 +740,11 @@ class HostDashboard extends Component {
    * @param {object} event - event object
    */
   handleCveChange = (event) => {
-    let tempCveSearch = {...this.state.cveSearch};
-    tempCveSearch.keyword = event.target.value;
+    let tempCpeSearch = {...this.state.cpeSearch};
+    tempCpeSearch.keyword = event.target.value;
 
     this.setState({
-      cveSearch: tempCveSearch
+      cpeSearch: tempCpeSearch
     });
   }
   /**
@@ -997,7 +775,7 @@ class HostDashboard extends Component {
    */
   toggleFilterQuery = (options) => {
     if (options === 'confirm') {
-      this.getCveData();
+      this.getCpeData();
     }
 
     this.setState({
@@ -1011,23 +789,23 @@ class HostDashboard extends Component {
    * @param {array.<object>} value - selected input value
    */
   handleComboBoxChange = (event, value) => {
-    let tempCveFilter = {...this.state.cveFilter};
+    let tempCveFilter = {...this.state.cpeFilter};
     tempCveFilter.severity = value;
 
     this.setState({
-      cveFilter: tempCveFilter
+      cpeFilter: tempCveFilter
     });
   }
   /**
-   * Set dashboard filter data
+   * Set inventory filter data
    * @method
    * @param {string} type - filter type
    * @param {array.<string>} data - filter data
    */
-  setDashboardFilter = (type, data) => {
-    const {cveFilter, cveFilterList} = this.state;
-    let tempCveFilter = {...cveFilter};
-    let tempCveFilterList = {...cveFilterList};
+  setInventoryFilter = (type, data) => {
+    const {cpeFilter, cpeFilterList} = this.state;
+    let tempCveFilter = {...cpeFilter};
+    let tempCveFilterList = {...cpeFilterList};
     let dataList = [];
     tempCveFilter[type] = data;
 
@@ -1043,8 +821,8 @@ class HostDashboard extends Component {
     tempCveFilterList[type] = dataList;
 
     this.setState({
-      cveFilter: tempCveFilter,
-      cveFilterList: tempCveFilterList
+      cpeFilter: tempCveFilter,
+      cpeFilterList: tempCveFilterList
     });
   }
   /**
@@ -1055,7 +833,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   showFilterForm = (val, i) => {
-    const value = this.state.cveFilterList[val].join(', ');
+    const value = this.state.cpeFilterList[val].join(', ');
 
     return (
       <div key={i} className='group'>
@@ -1079,7 +857,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {severityType, cveFilter, popOverAnchor, activeFilter} = this.state;
+    const {severityType, cpeFilter, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
@@ -1106,11 +884,11 @@ class HostDashboard extends Component {
           <div className='content'>
             <React.Fragment>
               <MultiInput
-                base={DashboardFilter}
+                base={InventoryFilter}
                 defaultItemValue={defaultItemValue}
-                value={cveFilter[activeFilter]}
+                value={cpeFilter[activeFilter]}
                 props={data}
-                onChange={this.setDashboardFilter.bind(this, activeFilter)} />
+                onChange={this.setInventoryFilter.bind(this, activeFilter)} />
             </React.Fragment>
           </div>
         </PopoverMaterial>
@@ -1119,7 +897,7 @@ class HostDashboard extends Component {
           <Autocomplete
             className='combo-box'
             multiple
-            value={cveFilter.severity}
+            value={cpeFilter.severity}
             options={severityType}
             getOptionLabel={(option) => option.text}
             disableCloseOnSelect
@@ -1156,8 +934,8 @@ class HostDashboard extends Component {
    */
   clearFilter = () => {
     this.setState({
-      cveFilter: _.cloneDeep(CVE_FILTER),
-      cveFilterList: _.cloneDeep(CVE_FILTER_LIST)
+      cpeFilter: _.cloneDeep(CPE_FILTER),
+      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST)
     });
   }
   /**
@@ -1190,10 +968,10 @@ class HostDashboard extends Component {
    */
   exportCveList = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {cveData} = this.state;
+    const {cpeData} = this.state;
     const url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
     let exportFields = {};
-    let fieldsList = _.cloneDeep(this.state.cveData.dataFieldsArr);
+    let fieldsList = _.cloneDeep(this.state.cpeData.dataFieldsArr);
     fieldsList.shift();
 
     _.forEach(fieldsList, val => {
@@ -1201,7 +979,7 @@ class HostDashboard extends Component {
     })
 
     const requestData = {
-      ...this.getCveFilterRequestData(),
+      ...this.getCpeFilterRequestData(),
       exportFields
     };
 
@@ -1209,7 +987,7 @@ class HostDashboard extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, showFilterQuery, cveData, contextAnchor} = this.state;
+    const {cpeSearch, showCveInfo, showFilterQuery, cpeData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cve', 'currentPage', currentPage);
@@ -1237,7 +1015,7 @@ class HostDashboard extends Component {
           keepMounted
           open={Boolean(contextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem id='activeCveView' onClick={this.getActiveCveInfo}>{t('txt-view')}</MenuItem>
+          <MenuItem id='activeCveView' onClick={this.getActiveCpeInfo}>{t('txt-view')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
@@ -1249,10 +1027,7 @@ class HostDashboard extends Component {
         <div className='data-content'>
           <div className='parent-content'>
             <div className='main-statistics host'>
-              <div className='statistics-content'>
-                {this.showPieChart(cveSeverityLevel.data)}
-                {this.showBarChart(monthlySeverityTrend)}
-              </div>
+
             </div>
 
             <div className='main-content'>
@@ -1266,24 +1041,24 @@ class HostDashboard extends Component {
               <div className='actions-bar'>
                 <div className='search-field'>
                   <TextField
-                    name='cveSearch'
+                    name='cpeSearch'
                     className='search-text'
                     label={t('host.dashboard.txt-cveName')}
                     variant='outlined'
                     size='small'
-                    value={cveSearch.keyword}
+                    value={cpeSearch.keyword}
                     onChange={this.handleCveChange}
-                    onKeyDown={this.handleKeyDown.bind(this, 'cveSearch')} />
-                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getCveData}>{t('txt-search')}</Button>
-                  {cveSearch.keyword &&
-                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
+                    onKeyDown={this.handleKeyDown.bind(this, 'cpeSearch')} />
+                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getCpeData}>{t('txt-search')}</Button>
+                  {cpeSearch.keyword &&
+                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}></i>
                   }
-                  <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + cveSearch.count}</div>
+                  <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + cpeSearch.count}</div>
                 </div>
               </div>
 
               <MuiTableContent
-                data={cveData}
+                data={cpeData}
                 tableOptions={tableOptions} />
             </div>
           </div>
@@ -1293,9 +1068,9 @@ class HostDashboard extends Component {
   }
 }
 
-HostDashboard.contextType = BaseDataContext;
+HostInventory.contextType = BaseDataContext;
 
-HostDashboard.propTypes = {
+HostInventory.propTypes = {
 };
 
-export default HostDashboard;
+export default HostInventory;

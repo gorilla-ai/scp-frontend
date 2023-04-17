@@ -768,5 +768,13 @@
     "relatedSoftware": "Related Software",
     "daysOpen": "Days Open",
     "exposedDevices": "Exposed Devices Count"
+  },
+  "hostCpeFields": {
+    "product": "Product",
+    "system": "System",
+    "vendor": "Vendor",
+    "version": "Version",
+    "vulnerabilityNum": "Vulnerability Number",
+    "exposedDevicesTotal": "Exposed Devices Count"
   }
 }

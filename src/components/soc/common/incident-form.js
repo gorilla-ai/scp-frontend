@@ -445,9 +445,6 @@ class IncidentForm extends Component {
                 format='YYYY-MM-DD HH:mm'
                 invalidDateMessage={t('txt-invalidDateMessage')}
                 ampm={false}
-                required={false}
-                error={this.checkErrorField(incident.info.establishDttm)}
-                helperText={this.checkHelperText(incident.info.establishDttm)}
                 value={incident.info.establishDttm}
                 onChange={this.props.handleDataChange.bind(this, 'establishDttm')}
                 disabled={disabledEstablishDttm} />
