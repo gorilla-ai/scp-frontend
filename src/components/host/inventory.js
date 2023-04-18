@@ -59,7 +59,7 @@ const CPE_FILTER_LIST = {
   exposedDevices: []
 };
 const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['hostName', 'group', 'system', 'ip', 'relatedSoftware', 'daysOpen'],
+  dataFieldsArr: ['hostName', 'system', 'ip', 'daysOpen'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -70,6 +70,19 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const DISCOVERED_VULNERABILITY_DATA = {
+  dataFieldsArr: ['cveId', 'severity', 'cvss'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+const NOT_AVAILABLE = 'N/A';
 let ALERT_LEVEL_COLORS = {};
 
 let t = null;
@@ -97,11 +110,15 @@ class HostInventory extends Component {
         keyword: '',
         count: 0
       },
+      cveNameSearch: {
+        keyword: '',
+        count: 0
+      },
       popOverAnchor: null,
       activeFilter: '',
-      showCveInfo: false,
+      showCpeInfo: false,
       showFilterQuery: false,
-      activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
+      activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       cpeData: {
         dataFieldsArr: ['_menu', 'product', 'system', 'vendor', 'version', 'vulnerabilityNum', 'exposedDevicesTotal'],
         dataFields: [],
@@ -115,6 +132,7 @@ class HostInventory extends Component {
         pageSize: 20
       },
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
       contextAnchor: null,
       currentCpeKey: '',
       currentCpeData: {}
@@ -223,7 +241,7 @@ class HostInventory extends Component {
             label: val === '_menu' ? '' : f('hostCpeFields.' + val),
             options: {
               filter: true,
-              sort: true,
+              sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempCpeData.dataContent[dataIndex];
@@ -256,6 +274,21 @@ class HostInventory extends Component {
     })
   }
   /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
    * Get condition text
    * @method
    * @returns text in string
@@ -279,7 +312,7 @@ class HostInventory extends Component {
     let requestData = {};
 
     if (cpeSearch.keyword) {
-      requestData.cveId = cpeSearch.keyword;
+      requestData.product = cpeSearch.keyword;
     }
 
     if (cpeFilter.severity.length > 0) {
@@ -347,7 +380,7 @@ class HostInventory extends Component {
   getActiveCpeInfo = () => {
     const {baseUrl} = this.context;
     const {currentCpeKey} = this.state;
-    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCpeKey}`;
+    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/cpeInfo?cpeKey=${currentCpeKey}`;
 
     this.ah.one({
       url,
@@ -358,9 +391,9 @@ class HostInventory extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          currentCpeData: data.cveInfo
+          currentCpeData: data.cpeInfo
         }, () => {
-          this.toggleShowCVE();
+          this.toggleShowCPE();
         });
 
         this.handleCloseMenu();
@@ -393,9 +426,9 @@ class HostInventory extends Component {
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     const requestData = {
-      cveId: currentCpeKey
+      cpeKey: currentCpeKey
     };
-    let url = `${baseUrl}/api/hmd/cve/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+    let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
     let tempHostNameSearch = {...hostNameSearch};
 
     if (exposedDevicesData.sort.field) {
@@ -439,22 +472,7 @@ class HostInventory extends Component {
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempExposedDevicesData.dataContent[dataIndex];
                 const value = tempExposedDevicesData.dataContent[dataIndex][val];
-
-                if (val === 'relatedSoftware') {
-                  return (
-                    <div>
-                      <span>{value[0]}</span>
-                      {value.length > 1 &&
-                        <span>, {value[1]}</span>
-                      }
-                      {value.length > 2 &&
-                        <span title={this.getSoftwareList(value)}>, {t('txt-more')}...</span>
-                      }
-                    </div>
-                  )
-                } else {
-                  return value;
-                }
+                return value;
               }
             }
           };
@@ -474,6 +492,89 @@ class HostInventory extends Component {
     })
   }
   /**
+   * Get discovered vulnerability data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getDiscoveredVulnerability = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {cveNameSearch, discoveredVulnerabilityData, currentCpeKey} = this.state;
+    const sort = discoveredVulnerabilityData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? discoveredVulnerabilityData.currentPage : 0;
+    const requestData = {
+      cpeKey: currentCpeKey
+    };
+    let url = `${baseUrl}/api/hmd/cpe/cves?page=${page + 1}&pageSize=${discoveredVulnerabilityData.pageSize}`;
+    let tempCveNameSearch = {...cveNameSearch};
+
+    if (discoveredVulnerabilityData.sort.field) {
+      url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
+    }
+
+    if (cveNameSearch.keyword) {
+      requestData.cveId = cveNameSearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempDiscoveredVulnerabilityData.dataContent = [];
+          tempDiscoveredVulnerabilityData.totalCount = 0;
+
+          this.setState({
+            discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+          });
+          return null;
+        }       
+
+        tempDiscoveredVulnerabilityData.dataContent = data.rows;
+        tempDiscoveredVulnerabilityData.totalCount = data.count;
+        tempDiscoveredVulnerabilityData.currentPage = page;
+        tempDiscoveredVulnerabilityData.dataFields = _.map(discoveredVulnerabilityData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('hostDashboardFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempDiscoveredVulnerabilityData.dataContent[dataIndex];
+                const value = tempDiscoveredVulnerabilityData.dataContent[dataIndex][val];
+
+                if (val === 'severity' && value) {
+                  const severityLevel = t('txt-' + value.toLowerCase());
+
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}</span>
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        tempCveNameSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          cveNameSearch: tempCveNameSearch,
+          discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle close menu
    * @method
    */
@@ -483,13 +584,13 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Toggle show CVE info
+   * Toggle show CPE info
    * @method
    */
-  toggleShowCVE = () => {
+  toggleShowCPE = () => {
     this.setState({
-      showCveInfo: !this.state.showCveInfo,
-      activeCveInfo: 'vulnerabilityDetails',
+      showCpeInfo: !this.state.showCpeInfo,
+      activeCpeInfo: 'vulnerabilityDetails',
       hostNameSearch: {
         keyword: '',
         count: 0
@@ -498,21 +599,25 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Toggle show CVE button
+   * Toggle show CPE button
    * @method
    * @param {object} event - event object
-   * @param {string} type - CVE button type ('vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware')
+   * @param {string} type - CPE button type ('vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability')
    */
-  toggleCveButtons = (event, type) => {
+  toggleCpeButtons = (event, type) => {
     if (!type) {
       return;
     }
     
     this.setState({
-      activeCveInfo: type
+      activeCpeInfo: type
     }, () => {
-      if (this.state.activeCveInfo === 'exposedDevices') {
+      const {activeCpeInfo} = this.state;
+
+      if (activeCpeInfo === 'exposedDevices') {
         this.getExposedDevices();
+      } else if (activeCpeInfo === 'discoveredVulnerability') {
+        this.getDiscoveredVulnerability();
       }
     });
   }
@@ -530,12 +635,25 @@ class HostInventory extends Component {
     });
   }
   /**
+   * Handle CVE name search
+   * @method
+   * @param {object} event - event object
+   */
+  handleCveNameChange = (event) => {
+    let tempCveNameSearch = {...this.state.cveNameSearch};
+    tempCveNameSearch.keyword = event.target.value;
+
+    this.setState({
+      cveNameSearch: tempCveNameSearch
+    });
+  }
+  /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('cpeSearch' or 'hostNameSearch')
+   * @param {string} type - reset button type ('cpeSearch', 'hostNameSearch' or 'cveNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cpeSearch, hostNameSearch} = this.state;
+    const {cpeSearch, hostNameSearch, cveNameSearch} = this.state;
 
     if (type === 'cpeSearch') {
       let tempCpeSearch = {...cpeSearch};
@@ -551,12 +669,19 @@ class HostInventory extends Component {
       this.setState({
         hostNameSearch: tempHostNameSearch
       });
+    } else if (type === 'cveNameSearch') {
+      let tempCveNameSearch = {...cveNameSearch};
+      tempCveNameSearch.keyword = '';
+
+      this.setState({
+        cveNameSearch: tempCveNameSearch
+      });
     }
   }
   /**
    * Handle keyw down for search field
    * @method
-   * @param {string} type - 'cpeSearch' or 'hostNameSearch'
+   * @param {string} type - 'cpeSearch', 'hostNameSearch' or 'cveNameSearch'
    * @param {object} event - event object
    */
   handleKeyDown = (type, event) => {
@@ -565,17 +690,19 @@ class HostInventory extends Component {
         this.getCpeData();
       } else if (type === 'hostNameSearch') {
         this.getExposedDevices();
+      } else if (type === 'cveNameSearch') {
+        this.getDiscoveredVulnerability();
       }
     }
   }
   /**
-   * Display CVE info content
+   * Display CPE info content
    * @method
    * @returns HTML DOM
    */
-  displayCveInfo = () => {
-    const {hostNameSearch, activeCveInfo, exposedDevicesData, currentCpeData} = this.state;
-    const tableOptions = {
+  displayCpeInfo = () => {
+    const {hostNameSearch, cveNameSearch, activeCpeInfo, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
+    const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
@@ -587,34 +714,44 @@ class HostInventory extends Component {
         this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
       }
     };
+    const tableOptionsDiscoveredVulnerability = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('discoveredVulnerability', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('discoveredVulnerability', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('discoveredVulnerability', changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
         <ToggleButtonGroup
-          id='activeCveInfoButtons'
-          value={activeCveInfo}
+          id='activeCpeInfoButtons'
+          value={activeCpeInfo}
           exclusive
-          onChange={this.toggleCveButtons}>
+          onChange={this.toggleCpeButtons}>
           <ToggleButton id='vulnerabilityDetails' value='vulnerabilityDetails'>{t('host.dashboard.txt-vulnerabilityDetails')}</ToggleButton>
           <ToggleButton id='exposedDevices' value='exposedDevices'>{t('host.dashboard.txt-exposedDevices')}</ToggleButton>
-          <ToggleButton id='relatedSoftware' value='relatedSoftware'>{t('host.dashboard.txt-relatedSoftware')}</ToggleButton>
+          <ToggleButton id='discoveredVulnerability' value='discoveredVulnerability'>{t('host.inventory.txt-discoveredVulnerability')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
-          {activeCveInfo === 'vulnerabilityDetails' &&
+          {activeCpeInfo === 'vulnerabilityDetails' &&
             <ul className='vulnerability'>
-              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCpeData.description}</li>
-              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCpeData.cveId}</li>
-              <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + currentCpeData.severity.toLowerCase())}</li> 
-              <li><span>CVSS</span>: {currentCpeData.cvss}</li>
-              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCpeData.cvssVersion}</li>
-              <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(currentCpeData.publishedDate, 'local')}</li>
-              <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(currentCpeData.lastModifiedDate, 'local')}</li>
-              <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {currentCpeData.daysOpen}</li>
+            <li><span>{t('host.inventory.txt-product')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-cpeKey')}</span>: {currentCpeData.cpeKey || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-vendor')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-version')}</span>: {currentCpeData.version || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-swEdition')}</span>: {currentCpeData.swEdition || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-createDttm')}</span>: {helper.getFormattedDate(currentCpeData.createDttm, 'local')}</li>
             </ul>
           }
 
-          {activeCveInfo === 'exposedDevices' &&
+          {activeCpeInfo === 'exposedDevices' &&
             <React.Fragment>
               <div className='search-field'>
                 <TextField
@@ -637,54 +774,78 @@ class HostInventory extends Component {
               <MuiTableContent
                 tableHeight='auto'
                 data={exposedDevicesData}
-                tableOptions={tableOptions} />
+                tableOptions={tableOptionsExposedDevices} />
             </React.Fragment>
           }
 
-          {activeCveInfo === 'relatedSoftware' &&
-            <div>{t('host.dashboard.txt-relatedSoftware')}</div>
+          {activeCpeInfo === 'discoveredVulnerability' &&
+            <React.Fragment>
+              <div className='search-field'>
+                <TextField
+                  name='cveNameSearch'
+                  className='search-text'
+                  label={t('host.dashboard.txt-cveName')}
+                  variant='outlined'
+                  size='small'
+                  value={cveNameSearch.keyword}
+                  onChange={this.handleCveNameChange}
+                  onKeyDown={this.handleKeyDown.bind(this, 'cveNameSearch')} />
+                <Button variant='contained' color='primary' className='search-btn' onClick={this.getDiscoveredVulnerability}>{t('txt-search')}</Button>
+                {cveNameSearch.keyword &&
+                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveNameSearch')}></i>
+                }
+
+                <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + cveNameSearch.count}</div>
+              </div>
+
+              <MuiTableContent
+                tableHeight='auto'
+                data={discoveredVulnerabilityData}
+                tableOptions={tableOptionsDiscoveredVulnerability} />
+            </React.Fragment>
           }
         </div>
       </div>
     )
   }
   /**
-   * Show CVE info dialog
+   * Show CPE info dialog
    * @method
    * @returns ModalDialog component
    */
-  showCveDialog = () => {
+  showCpeDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
+      cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
     };
 
     return (
       <ModalDialog
-        id='showCveDialog'
+        id='showCpeDialog'
         className='modal-dialog'
         title={this.state.currentCpeKey}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayCveInfo()}
+        {this.displayCpeInfo()}
       </ModalDialog>
     )
   }
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('cve' or 'exposedDevices')
+   * @param {string} tableType - table type ('cpe', 'exposedDevices' or 'discoveredVulnerability')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {cpeData, exposedDevicesData} = this.state;
+    const {cpeData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
     let tempCpeData = {...cpeData};
     let tempExposedDevicesData = {...exposedDevicesData};
+    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tableField = field;
 
-    if (tableType === 'cve') {
+    if (tableType === 'cpe') {
       tempCpeData.sort.field = tableField;
       tempCpeData.sort.desc = sort;
 
@@ -702,21 +863,31 @@ class HostInventory extends Component {
       }, () => {
         this.getExposedDevices();
       });
+    } else if (tableType === 'discoveredVulnerability') {
+      tempDiscoveredVulnerabilityData.sort.field = tableField;
+      tempDiscoveredVulnerabilityData.sort.desc = sort;
+
+      this.setState({
+        discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+      }, () => {
+        this.getDiscoveredVulnerability();
+      });
     }
   }
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('cve' or 'exposedDevices')
+   * @param {string} tableType - table type ('cpe', 'exposedDevices' or 'discoveredVulnerability')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {cpeData, exposedDevicesData} = this.state;
+    const {cpeData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
     let tempCpeData = {...cpeData};
     let tempExposedDevicesData = {...exposedDevicesData};
+    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
-    if (tableType === 'cve') {
+    if (tableType === 'cpe') {
       tempCpeData[type] = value;
 
       this.setState({
@@ -732,14 +903,22 @@ class HostInventory extends Component {
       }, () => {
         this.getExposedDevices(type);
       });
+    } else if (tableType === 'discoveredVulnerability') {
+      tempDiscoveredVulnerabilityData[type] = value;
+
+      this.setState({
+        discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+      }, () => {
+        this.getDiscoveredVulnerability(type);
+      });
     }
   }
   /**
-   * Handle CVE search search
+   * Handle CPE search search
    * @method
    * @param {object} event - event object
    */
-  handleCveChange = (event) => {
+  handleCpeChange = (event) => {
     let tempCpeSearch = {...this.state.cpeSearch};
     tempCpeSearch.keyword = event.target.value;
 
@@ -963,19 +1142,19 @@ class HostInventory extends Component {
     )
   }
   /**
-   * Export CVE list
+   * Export CPE list
    * @method
    */
-  exportCveList = () => {
+  exportCpeList = () => {
     const {baseUrl, contextRoot} = this.context;
     const {cpeData} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
+    const url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
     let exportFields = {};
     let fieldsList = _.cloneDeep(this.state.cpeData.dataFieldsArr);
     fieldsList.shift();
 
     _.forEach(fieldsList, val => {
-      exportFields[val] = f('hostDashboardFields.' + val);
+      exportFields[val] = f('hostCpeFields.' + val);
     })
 
     const requestData = {
@@ -987,23 +1166,23 @@ class HostInventory extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {cpeSearch, showCveInfo, showFilterQuery, cpeData, contextAnchor} = this.state;
+    const {cpeSearch, showCpeInfo, showFilterQuery, cpeData, contextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
-        this.handlePaginationChange('cve', 'currentPage', currentPage);
+        this.handlePaginationChange('cpe', 'currentPage', currentPage);
       },
       onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('cve', 'pageSize', numberOfRows);
+        this.handlePaginationChange('cpe', 'pageSize', numberOfRows);
       },
       onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort('cve', changedColumn, direction === 'desc');
+        this.handleTableSort('cpe', changedColumn, direction === 'desc');
       }
     };
 
     return (
       <div>
-        {showCveInfo &&
-          this.showCveDialog()
+        {showCpeInfo &&
+          this.showCpeDialog()
         }
 
         {showFilterQuery &&
@@ -1031,11 +1210,11 @@ class HostInventory extends Component {
             </div>
 
             <div className='main-content'>
-              <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
+              <header className='main-header'>{t('host.inventory.txt-orgSoftwareList')}</header>
 
               <div className='content-header-btns with-menu'>
                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCveList}>{t('txt-export')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCpeList}>{t('txt-export')}</Button>
               </div>
 
               <div className='actions-bar'>
@@ -1043,17 +1222,17 @@ class HostInventory extends Component {
                   <TextField
                     name='cpeSearch'
                     className='search-text'
-                    label={t('host.dashboard.txt-cveName')}
+                    label={t('host.inventory.txt-applicationName')}
                     variant='outlined'
                     size='small'
                     value={cpeSearch.keyword}
-                    onChange={this.handleCveChange}
+                    onChange={this.handleCpeChange}
                     onKeyDown={this.handleKeyDown.bind(this, 'cpeSearch')} />
                   <Button variant='contained' color='primary' className='search-btn' onClick={this.getCpeData}>{t('txt-search')}</Button>
                   {cpeSearch.keyword &&
                     <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}></i>
                   }
-                  <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + cpeSearch.count}</div>
+                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + cpeSearch.count}</div>
                 </div>
               </div>
 

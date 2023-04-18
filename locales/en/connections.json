@@ -404,6 +404,7 @@
       "txt-exposedDevices": "Exposed Devices",
       "txt-exposedDevicesCount": "Exposed Devices Count",
       "txt-relatedSoftware": "Related Software",
+      "txt-relatedSoftwareCount": "Related Software Count",
       "txt-group": "Group",
       "txt-hostName": "Host Name",
       "txt-daysOpen": "Days Open",
@@ -416,6 +417,20 @@
       "txt-publishedDate": "Published on",
       "txt-updatedDate": "Updatd on",
       "txt-cveName": "CVE Name"
+    },
+    "inventory": {
+      "txt-discoveredVulnerability": "Discovered Vulnerability",
+      "txt-discoveredVulnerabilityCount": "Discovered Vulnerability Count",
+      "txt-orgSoftwareList": "Organization Software List",
+      "txt-applicationName": "Application Name",
+      "txt-softwareCount": "Software Count",
+      "txt-cpeKey": "Key",
+      "txt-product": "Product",
+      "txt-productName": "Product Name",
+      "txt-vendor": "Vendor",
+      "txt-version": "Version",
+      "txt-swEdition": "Sowftware Edition",
+      "txt-createDttm": "Create Date"
     },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",

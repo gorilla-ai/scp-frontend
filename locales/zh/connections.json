@@ -404,6 +404,7 @@
       "txt-exposedDevices": "暴露的裝置",
       "txt-exposedDevicesCount": "暴露的裝置數量",
       "txt-relatedSoftware": "相關軟體",
+      "txt-relatedSoftwareCount": "相關軟體數量",
       "txt-group": "群組",
       "txt-hostName": "主機名稱",
       "txt-daysOpen": "已存在天數",
@@ -416,6 +417,20 @@
       "txt-publishedDate": "官方發表時間",
       "txt-updatedDate": "最近更新時間",
       "txt-cveName": "CVE名稱"
+    },
+    "inventory": {
+      "txt-discoveredVulnerability": "軟體漏洞清單",
+      "txt-discoveredVulnerabilityCount": "軟體漏洞清單數量",
+      "txt-orgSoftwareList": "組織軟體清單",
+      "txt-applicationName": "軟體名稱",
+      "txt-softwareCount": "軟體數量",
+      "txt-cpeKey": "Key",
+      "txt-product": "產品",
+      "txt-productName": "產品名稱",
+      "txt-vendor": "廠商",
+      "txt-version": "版本",
+      "txt-swEdition": "軟體版本",
+      "txt-createDttm": "建立日期"
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",

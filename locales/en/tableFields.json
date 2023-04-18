@@ -767,7 +767,11 @@
     "cvss": "CVSS",
     "relatedSoftware": "Related Software",
     "daysOpen": "Days Open",
-    "exposedDevices": "Exposed Devices Count"
+    "exposedDevices": "Exposed Devices Count",
+    "cpeKey": "CPE Key",
+    "product": "Product",
+    "system": "System",
+    "version": "Version"
   },
   "hostCpeFields": {
     "product": "Product",

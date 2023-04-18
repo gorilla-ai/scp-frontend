@@ -70,6 +70,19 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const RELATED_SOFTWARE_DATA = {
+  dataFieldsArr: ['product', 'system', 'version', 'exposedDevices'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+const NOT_AVAILABLE = 'N/A';
 let ALERT_LEVEL_COLORS = {};
 
 let t = null;
@@ -97,6 +110,10 @@ class HostDashboard extends Component {
         keyword: '',
         count: 0
       },
+      productSearch: {
+        keyword: '',
+        count: 0
+      },
       cveSeverityLevel: {
         data: null,
         count: 0
@@ -120,6 +137,7 @@ class HostDashboard extends Component {
         pageSize: 20
       },
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      relatedSoftwareData: _.cloneDeep(RELATED_SOFTWARE_DATA),
       contextAnchor: null,
       currentCveId: '',
       currentCveData: {}
@@ -429,7 +447,7 @@ class HostDashboard extends Component {
             label: val === '_menu' ? '' : f('hostDashboardFields.' + val),
             options: {
               filter: true,
-              sort: true,
+              sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempCveData.dataContent[dataIndex];
@@ -476,6 +494,21 @@ class HostDashboard extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
   }
   /**
    * Get condition text
@@ -696,6 +729,89 @@ class HostDashboard extends Component {
     })
   }
   /**
+   * Get related software data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getRelatedSoftware = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {productSearch, relatedSoftwareData, currentCveId} = this.state;
+    const sort = relatedSoftwareData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? relatedSoftwareData.currentPage : 0;
+    const requestData = {
+      cveId: currentCveId
+    };
+    let url = `${baseUrl}/api/hmd/cve/relatedSoftware?page=${page + 1}&pageSize=${relatedSoftwareData.pageSize}`;
+    let tempProductSearch = {...productSearch};
+
+    if (relatedSoftwareData.sort.field) {
+      url += `&orders=${relatedSoftwareData.sort.field} ${sort}`;
+    }
+
+    if (productSearch.keyword) {
+      requestData.product = productSearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempExposedDevicesData = {...relatedSoftwareData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempExposedDevicesData.dataContent = [];
+          tempExposedDevicesData.totalCount = 0;
+
+          this.setState({
+            relatedSoftwareData: tempExposedDevicesData
+          });
+          return null;
+        }       
+
+        tempExposedDevicesData.dataContent = data.rows;
+        tempExposedDevicesData.totalCount = data.count;
+        tempExposedDevicesData.currentPage = page;
+        tempExposedDevicesData.dataFields = _.map(relatedSoftwareData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('hostDashboardFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempExposedDevicesData.dataContent[dataIndex];
+                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+
+                if (val === 'exposedDevices') {
+                  const exposedDevices = value + ' / ' + allValue.exposedDevicesTotal;
+
+                  return exposedDevices;
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        tempProductSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          productSearch: tempProductSearch,
+          relatedSoftwareData: tempExposedDevicesData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle close menu
    * @method
    */
@@ -733,8 +849,12 @@ class HostDashboard extends Component {
     this.setState({
       activeCveInfo: type
     }, () => {
-      if (this.state.activeCveInfo === 'exposedDevices') {
+      const {activeCveInfo} = this.state;
+
+      if (activeCveInfo === 'exposedDevices') {
         this.getExposedDevices();
+      } else if (activeCveInfo === 'relatedSoftware') {
+        this.getRelatedSoftware();
       }
     });
   }
@@ -752,12 +872,25 @@ class HostDashboard extends Component {
     });
   }
   /**
+   * Handle product search
+   * @method
+   * @param {object} event - event object
+   */
+  handleProductChange = (event) => {
+    let tempProductSearch = {...this.state.productSearch};
+    tempProductSearch.keyword = event.target.value;
+
+    this.setState({
+      productSearch: tempProductSearch
+    });
+  }
+  /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('cveSearch' or 'hostNameSearch')
+   * @param {string} type - reset button type ('cveSearch', 'hostNameSearch' or 'productSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cveSearch, hostNameSearch} = this.state;
+    const {cveSearch, hostNameSearch, productSearch} = this.state;
 
     if (type === 'cveSearch') {
       let tempCveSearch = {...cveSearch};
@@ -773,12 +906,19 @@ class HostDashboard extends Component {
       this.setState({
         hostNameSearch: tempHostNameSearch
       });
+    } else if (type === 'productSearch') {
+      let tempProductSearch = {...productSearch};
+      tempProductSearch.keyword = '';
+
+      this.setState({
+        productSearch: tempProductSearch
+      });
     }
   }
   /**
    * Handle keyw down for search field
    * @method
-   * @param {string} type - 'cveSearch' or 'hostNameSearch'
+   * @param {string} type - 'cveSearch', 'hostNameSearch' or 'productSearch'
    * @param {object} event - event object
    */
   handleKeyDown = (type, event) => {
@@ -787,6 +927,8 @@ class HostDashboard extends Component {
         this.getCveData();
       } else if (type === 'hostNameSearch') {
         this.getExposedDevices();
+      } else if (type === 'productSearch') {
+        this.getRelatedSoftware();
       }
     }
   }
@@ -796,8 +938,8 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {hostNameSearch, activeCveInfo, exposedDevicesData, currentCveData} = this.state;
-    const tableOptions = {
+    const {hostNameSearch, productSearch, activeCveInfo, exposedDevicesData, relatedSoftwareData, currentCveData} = this.state;
+    const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
@@ -807,6 +949,18 @@ class HostDashboard extends Component {
       },
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
+      }
+    };
+    const tableOptionsRelatedSoftware = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('relatedSoftware', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('relatedSoftware', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('relatedSoftware', changedColumn, direction === 'desc');
       }
     };
 
@@ -825,11 +979,11 @@ class HostDashboard extends Component {
         <div className='main-content'>
           {activeCveInfo === 'vulnerabilityDetails' &&
             <ul className='vulnerability'>
-              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCveData.description}</li>
-              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCveData.cveId}</li>
+              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCveData.description || NOT_AVAILABLE}</li>
+              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCveData.cveId || NOT_AVAILABLE}</li>
               <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + currentCveData.severity.toLowerCase())}</li> 
-              <li><span>CVSS</span>: {currentCveData.cvss}</li>
-              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCveData.cvssVersion}</li>
+              <li><span>CVSS</span>: {currentCveData.cvss || NOT_AVAILABLE}</li>
+              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCveData.cvssVersion || NOT_AVAILABLE}</li>
               <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(currentCveData.publishedDate, 'local')}</li>
               <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(currentCveData.lastModifiedDate, 'local')}</li>
               <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {currentCveData.daysOpen}</li>
@@ -859,12 +1013,35 @@ class HostDashboard extends Component {
               <MuiTableContent
                 tableHeight='auto'
                 data={exposedDevicesData}
-                tableOptions={tableOptions} />
+                tableOptions={tableOptionsExposedDevices} />
             </React.Fragment>
           }
 
           {activeCveInfo === 'relatedSoftware' &&
-            <div>{t('host.dashboard.txt-relatedSoftware')}</div>
+            <React.Fragment>
+              <div className='search-field'>
+                <TextField
+                  name='productSearch'
+                  className='search-text'
+                  label={t('host.inventory.txt-productName')}
+                  variant='outlined'
+                  size='small'
+                  value={productSearch.keyword}
+                  onChange={this.handleProductChange}
+                  onKeyDown={this.handleKeyDown.bind(this, 'productSearch')} />
+                <Button variant='contained' color='primary' className='search-btn' onClick={this.getRelatedSoftware}>{t('txt-search')}</Button>
+                {productSearch.keyword &&
+                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'productSearch')}></i>
+                }
+
+                <div className='search-count'>{t('host.dashboard.txt-relatedSoftwareCount') + ': ' + productSearch.count}</div>
+              </div>
+
+              <MuiTableContent
+                tableHeight='auto'
+                data={relatedSoftwareData}
+                tableOptions={tableOptionsRelatedSoftware} />
+            </React.Fragment>
           }
         </div>
       </div>
@@ -896,14 +1073,15 @@ class HostDashboard extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('cve' or 'exposedDevices')
+   * @param {string} tableType - table type ('cve', 'exposedDevices' or 'relatedSoftware')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {cveData, exposedDevicesData} = this.state;
+    const {cveData, exposedDevicesData, relatedSoftwareData} = this.state;
     let tempCveData = {...cveData};
     let tempExposedDevicesData = {...exposedDevicesData};
+    let tempRelatedSoftwareData = {...relatedSoftwareData};
     let tableField = field;
 
     if (tableType === 'cve') {
@@ -924,19 +1102,29 @@ class HostDashboard extends Component {
       }, () => {
         this.getExposedDevices();
       });
+    } else if (tableType === 'relatedSoftware') {
+      tempRelatedSoftwareData.sort.field = tableField;
+      tempRelatedSoftwareData.sort.desc = sort;
+
+      this.setState({
+        relatedSoftwareData: tempRelatedSoftwareData
+      }, () => {
+        this.getRelatedSoftware();
+      });
     }
   }
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('cve' or 'exposedDevices')
+   * @param {string} tableType - table type ('cve', 'exposedDevices' or 'relatedSoftware')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {cveData, exposedDevicesData} = this.state;
+    const {cveData, exposedDevicesData, relatedSoftwareData} = this.state;
     let tempCveData = {...cveData};
     let tempExposedDevicesData = {...exposedDevicesData};
+    let tempRelatedSoftwareData = {...relatedSoftwareData};
 
     if (tableType === 'cve') {
       tempCveData[type] = value;
@@ -953,6 +1141,14 @@ class HostDashboard extends Component {
         exposedDevicesData: tempExposedDevicesData
       }, () => {
         this.getExposedDevices(type);
+      });
+    } else if (tableType === 'relatedSoftware') {
+      tempRelatedSoftwareData[type] = value;
+
+      this.setState({
+        relatedSoftwareData: tempRelatedSoftwareData
+      }, () => {
+        this.getRelatedSoftware(type);
       });
     }
   }

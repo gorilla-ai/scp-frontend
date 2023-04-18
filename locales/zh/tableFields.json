@@ -767,7 +767,11 @@
     "cvss": "CVSS",
     "relatedSoftware": "相關軟體",
     "daysOpen": "已存在天數",
-    "exposedDevices": "暴露裝置數量"
+    "exposedDevices": "暴露裝置數量",
+    "cpeKey": "CPE Key",
+    "product": "產品",
+    "system": "系統",
+    "version": "版本"
   },
   "hostCpeFields": {
     "product": "產品",
