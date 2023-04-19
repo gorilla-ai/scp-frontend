@@ -746,20 +746,23 @@
   },
   "hostCpeFields": {
     "id": "ID",
-    "part": "Part",
-    "vendor": "Vendor",
-    "product": "Product",
-    "version": "Version",
-    "update": "Update",
-    "edition": "Edition",
-    "language": "Language",
-    "swEdition": "SW Edition",
-    "targetSw": "Target SW",
-    "targetHw": "Target HW",
-    "other": "Others",
-    "cpe23uri": "Cpe23Uri",
-    "productCpename": "Product Name",
-    "isMatched": "isMatched"
+    "part": "部分",
+    "vendor": "廠商",
+    "product": "產品",
+    "version": "版號",
+    "update": "更新",
+    "edition": "版本",
+    "language": "語言",
+    "swEdition": "軟體版本",
+    "targetSw": "目標軟體",
+    "targetHw": "目標硬體",
+    "other": "其他",
+    "cpe23uri": "CPE名稱",
+    "productCpename": "產品名稱",
+    "isMatched": "相符",
+    "system": "系統",
+    "vulnerabilityNum": "弱點數量",
+    "exposedDevices": "暴露裝置數量"
   },
   "hostDashboardFields": {
     "cveId": "CVE名稱",
@@ -772,13 +775,5 @@
     "product": "產品",
     "system": "系統",
     "version": "版本"
-  },
-  "hostCpeFields": {
-    "product": "產品",
-    "system": "系統",
-    "vendor": "廠商",
-    "version": "版本",
-    "vulnerabilityNum": "弱點數量",
-    "exposedDevices": "暴露裝置數量"
   }
 }

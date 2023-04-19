@@ -426,6 +426,7 @@
       "txt-softwareCount": "軟體數量",
       "txt-cpe23uri": "CPE名稱",
       "txt-cpeNameComponents": "CPE名稱組成元件",
+      "txt-inventoryList": "CPE清單",
       "txt-edition": "版本",
       "txt-language": "語言",
       "txt-other": "其他",

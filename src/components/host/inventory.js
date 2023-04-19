@@ -26,25 +26,26 @@ import PieChart from 'react-chart/build/src/components/pie'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
-import InventoryFilter from './inventory-filter'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
+import SearchFilter from './search-filter'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
-const FILTER_LIST = ['cvss', 'daysOpen', 'exposedDevices'];
+const FILTER_LIST = ['version', 'vulnerabilityNum', 'exposedDevices'];
 const CPE_SEARCH = {
   keyword: '',
   count: 0
 };
 const CPE_FILTER = {
-  severity: [],
-  cvss: [{
+  system: [],
+  vendor: [],
+  version: [{
     condition: '=',
     input: ''
   }],
-  daysOpen: [{
+  vulnerabilityNum: [{
     condition: '=',
     input: ''
   }],
@@ -54,8 +55,8 @@ const CPE_FILTER = {
   }]
 };
 const CPE_FILTER_LIST = {
-  cvss: [],
-  daysOpen: [],
+  version: [],
+  vulnerabilityNum: [],
   exposedDevices: []
 };
 const EXPOSED_DEVICES_DATA = {
@@ -102,7 +103,8 @@ class HostInventory extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      severityType: [],
+      systemType: [],
+      vendorType: [],
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
@@ -133,7 +135,8 @@ class HostInventory extends Component {
       },
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
-      contextAnchor: null,
+      tableContextAnchor: null,
+      exportContextAnchor: null,
       currentCpeKey: '',
       currentCpeData: {}
     };
@@ -147,7 +150,7 @@ class HostInventory extends Component {
     helper.inactivityTime(baseUrl, locale);
 
     this.setLocaleLabel();
-    this.getSeverityType();
+    this.getSystemVendorList();
     this.getCpeData();
   }
   componentWillUnmount() {
@@ -177,20 +180,42 @@ class HostInventory extends Component {
     }
   }
   /**
-   * Get and set severity type
+   * Get and set system and vendor list
    * @method
    */
-  getSeverityType = () => {
-    const severityType = _.map(SEVERITY_TYPE, val => {
-      return {
-        value: val,
-        text: t('txt-' + val)
-      };
-    });
+  getSystemVendorList = () => {
+    const {baseUrl} = this.context;
 
-    this.setState({
-      severityType
-    });
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/cpeUpdateToDate/group/filter`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const systemType = _.map(data.systemGroup, val => {
+          return {
+            value: val,
+            text: val
+          };
+        });
+
+        const vendorType = _.map(data.vendorGroup, val => {
+          return {
+            value: val,
+            text: val
+          };
+        });
+
+        this.setState({
+          systemType,
+          vendorType
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set CPE data
@@ -319,34 +344,42 @@ class HostInventory extends Component {
       requestData.product = cpeSearch.keyword;
     }
 
-    if (cpeFilter.severity.length > 0) {
-      const severityArray = _.map(cpeFilter.severity, val => {
-        return val.value.toUpperCase();
+    if (cpeFilter.system.length > 0) {
+      const systemArray = _.map(cpeFilter.system, val => {
+        return val.value;
       });
 
-      requestData.severityArray = severityArray;
+      requestData.systemArray = systemArray;
     }
 
-    if (cpeFilterList.cvss.length > 0) {
-      requestData.cvssArray = _.map(cpeFilterList.cvss, val => {
+    if (cpeFilter.vendor.length > 0) {
+      const vendorArray = _.map(cpeFilter.vendor, val => {
+        return val.value;
+      });
+
+      requestData.vendorArray = vendorArray;
+    }
+
+    if (cpeFilterList.version.length > 0) {
+      requestData.versionArray = _.map(cpeFilterList.version, val => {
         const condition = val.substr(0, 1);
-        const cvss = val.substr(2);
+        const version = val.substr(2);
 
         return {
           mode: this.getConditionMode(condition),
-          cvss
+          version
         }
       });
     }
 
-    if (cpeFilterList.daysOpen.length > 0) {
-      requestData.daysOpenArray = _.map(cpeFilterList.daysOpen, val => {
+    if (cpeFilterList.vulnerabilityNum.length > 0) {
+      requestData.vulnerabilityNumArray = _.map(cpeFilterList.vulnerabilityNum, val => {
         const condition = val.substr(0, 1);
-        const daysOpen = Number(val.substr(2));
+        const vulnerabilityNum = Number(val.substr(2));
 
         return {
           mode: this.getConditionMode(condition),
-          daysOpen
+          vulnerabilityNum
         }
       });
     }
@@ -373,7 +406,7 @@ class HostInventory extends Component {
    */
   handleOpenMenu = (key, event) => {
     this.setState({
-      contextAnchor: event.currentTarget,
+      tableContextAnchor: event.currentTarget,
       currentCpeKey: key
     });
   }
@@ -584,7 +617,8 @@ class HostInventory extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      contextAnchor: null
+      tableContextAnchor: null,
+      exportContextAnchor: null
     });
   }
   /**
@@ -835,7 +869,7 @@ class HostInventory extends Component {
       <ModalDialog
         id='showCpeDialog'
         className='modal-dialog'
-        title={currentCpeData.cpe23uri}
+        title={currentCpeData.product}
         draggable={true}
         global={true}
         actions={actions}
@@ -977,29 +1011,30 @@ class HostInventory extends Component {
   /**
    * Handle combo box change
    * @method
+   * @param {string} type - combo box type ('system' or 'vendor')
    * @param {object} event - event object
    * @param {array.<object>} value - selected input value
    */
-  handleComboBoxChange = (event, value) => {
-    let tempCveFilter = {...this.state.cpeFilter};
-    tempCveFilter.severity = value;
+  handleComboBoxChange = (type, event, value) => {
+    let tempCpeFilter = {...this.state.cpeFilter};
+    tempCpeFilter[type] = value;
 
     this.setState({
-      cpeFilter: tempCveFilter
+      cpeFilter: tempCpeFilter
     });
   }
   /**
-   * Set inventory filter data
+   * Set search filter data
    * @method
    * @param {string} type - filter type
    * @param {array.<string>} data - filter data
    */
-  setInventoryFilter = (type, data) => {
+  setSerchFilter = (type, data) => {
     const {cpeFilter, cpeFilterList} = this.state;
-    let tempCveFilter = {...cpeFilter};
-    let tempCveFilterList = {...cpeFilterList};
+    let tempCpeFilter = {...cpeFilter};
+    let tempCpeFilterList = {...cpeFilterList};
     let dataList = [];
-    tempCveFilter[type] = data;
+    tempCpeFilter[type] = data;
 
     _.forEach(data, val => {
       let value = val.input;
@@ -1010,11 +1045,11 @@ class HostInventory extends Component {
       }
     })
 
-    tempCveFilterList[type] = dataList;
+    tempCpeFilterList[type] = dataList;
 
     this.setState({
-      cpeFilter: tempCveFilter,
-      cpeFilterList: tempCveFilterList
+      cpeFilter: tempCpeFilter,
+      cpeFilterList: tempCpeFilterList
     });
   }
   /**
@@ -1031,7 +1066,7 @@ class HostInventory extends Component {
       <div key={i} className='group'>
         <TextField
           name={val}
-          label={f('hostDashboardFields.' + val)}
+          label={f('hostCpeFields.' + val)}
           variant='outlined'
           fullWidth
           size='small'
@@ -1049,12 +1084,13 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {severityType, cpeFilter, popOverAnchor, activeFilter} = this.state;
+    const {systemType, vendorType, cpeFilter, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
     };
     const data = {
+      pageType: 'inventory',
       activeFilter
     };
 
@@ -1076,11 +1112,11 @@ class HostInventory extends Component {
           <div className='content'>
             <React.Fragment>
               <MultiInput
-                base={InventoryFilter}
+                base={SearchFilter}
                 defaultItemValue={defaultItemValue}
                 value={cpeFilter[activeFilter]}
                 props={data}
-                onChange={this.setInventoryFilter.bind(this, activeFilter)} />
+                onChange={this.setSerchFilter.bind(this, activeFilter)} />
             </React.Fragment>
           </div>
         </PopoverMaterial>
@@ -1089,8 +1125,8 @@ class HostInventory extends Component {
           <Autocomplete
             className='combo-box'
             multiple
-            value={cpeFilter.severity}
-            options={severityType}
+            value={cpeFilter.system}
+            options={systemType}
             getOptionLabel={(option) => option.text}
             disableCloseOnSelect
             noOptionsText={t('txt-notFound')}
@@ -1108,13 +1144,45 @@ class HostInventory extends Component {
               </React.Fragment>
             )}
             renderInput={(params) => (
-              <TextField {...params} label={f('hostDashboardFields.severity')} variant='outlined' size='small' />
+              <TextField {...params} label={f('hostCpeFields.system')} variant='outlined' size='small' />
             )}
             getOptionSelected={(option, value) => (
               option.value === value.value
             )}
-            onChange={this.handleComboBoxChange} />
+            onChange={this.handleComboBoxChange.bind(this, 'system')} />
         </div>
+
+        <div className='group'>
+          <Autocomplete
+            className='combo-box'
+            multiple
+            value={cpeFilter.vendor}
+            options={vendorType}
+            getOptionLabel={(option) => option.text}
+            disableCloseOnSelect
+            noOptionsText={t('txt-notFound')}
+            openText={t('txt-on')}
+            closeText={t('txt-off')}
+            clearText={t('txt-clear')}
+            renderOption={(option, { selected }) => (
+              <React.Fragment>
+                <Checkbox
+                  color='primary'
+                  icon={<CheckBoxOutlineBlankIcon />}
+                  checkedIcon={<CheckBoxIcon />}
+                  checked={selected} />
+                {option.text}
+              </React.Fragment>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label={f('hostCpeFields.vendor')} variant='outlined' size='small' />
+            )}
+            getOptionSelected={(option, value) => (
+              option.value === value.value
+            )}
+            onChange={this.handleComboBoxChange.bind(this, 'vendor')} />
+        </div>
+
         {FILTER_LIST.map(this.showFilterForm)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>
@@ -1155,31 +1223,49 @@ class HostInventory extends Component {
     )
   }
   /**
+   * Handle export open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleExportOpenMenu = (event) => {
+    this.setState({
+      exportContextAnchor: event.currentTarget
+    });
+  }
+  /**
    * Export CPE list
    * @method
+   * @param {string} type - export type ('cpe' or 'nccst')
    */
-  exportCpeList = () => {
+  exportCpeList = (type) => {
     const {baseUrl, contextRoot} = this.context;
     const {cpeData} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
-    let exportFields = {};
-    let fieldsList = _.cloneDeep(this.state.cpeData.dataFieldsArr);
-    fieldsList.shift();
-
-    _.forEach(fieldsList, val => {
-      exportFields[val] = f('hostCpeFields.' + val);
-    })
-
-    const requestData = {
-      ...this.getCpeFilterRequestData(),
-      exportFields
+    let url = '';
+    let requestData = {
+      ...this.getCpeFilterRequestData()
     };
 
+    if (type === 'cpe') {
+      let exportFields = {};
+      let fieldsList = _.cloneDeep(cpeData.dataFieldsArr);
+      fieldsList.shift();
+
+      _.forEach(fieldsList, val => {
+        exportFields[val] = f('hostCpeFields.' + val);
+      })
+
+      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
+      requestData.exportFields = exportFields
+    } else if (type === 'nccst') {
+      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
+    }
+
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    this.handleCloseMenu();
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {cpeSearch, showCpeInfo, showFilterQuery, cpeData, contextAnchor} = this.state;
+    const {cpeSearch, showCpeInfo, showFilterQuery, cpeData, tableContextAnchor, exportContextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cpe', 'currentPage', currentPage);
@@ -1203,9 +1289,9 @@ class HostInventory extends Component {
         }
 
         <Menu
-          anchorEl={contextAnchor}
+          anchorEl={tableContextAnchor}
           keepMounted
-          open={Boolean(contextAnchor)}
+          open={Boolean(tableContextAnchor)}
           onClose={this.handleCloseMenu}>
           <MenuItem id='activeCveView' onClick={this.getActiveCpeInfo}>{t('txt-view')}</MenuItem>
         </Menu>
@@ -1226,8 +1312,17 @@ class HostInventory extends Component {
               <header className='main-header'>{t('host.inventory.txt-orgSoftwareList')}</header>
 
               <div className='content-header-btns with-menu'>
+                <Menu
+                  anchorEl={exportContextAnchor}
+                  keepMounted
+                  open={Boolean(exportContextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  <MenuItem onClick={this.exportCpeList.bind(this, 'cpe')}>{t('host.inventory.txt-inventoryList')}</MenuItem>
+                  <MenuItem onClick={this.exportCpeList.bind(this, 'nccst')}>NCCST</MenuItem>
+                </Menu>
+
                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCpeList}>{t('txt-export')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleExportOpenMenu}>{t('txt-export')}</Button>
               </div>
 
               <div className='actions-bar'>

@@ -2,41 +2,24 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import Autocomplete from '@material-ui/lab/Autocomplete'
 import MenuItem from '@material-ui/core/MenuItem'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
 
 let t = null;
 let f = null;
 
 /**
- * Inventory Filter
+ * Dashboard Filter
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component for the Inventory filter input
+ * @summary A react component for the search filter input
  */
-class InventoryFilter extends Component {
+class SerchFilter extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
-  }
-  /**
-   * Display status list
-   * @method
-   * @param {object} params - parameters for Autocomplete
-   * @returns TextField component
-   */
-  renderStatusList = (params) => {
-    return (
-      <TextField
-        {...params}
-        label={t('host.txt-status')}
-        variant='outlined'
-        size='small' />
-    )
   }
   /**
    * Set search filter input
@@ -65,13 +48,20 @@ class InventoryFilter extends Component {
     });
   }
   render() {
-    const {activeFilter, value} = this.props;
+    const {pageType, activeFilter, value} = this.props;
     const conditionList = ['>', '=', '<'];
     const filterList = _.map(conditionList, (val, i) => {
       let formattedValue = val.toLowerCase();
       formattedValue = formattedValue.replace(' ', '_');
       return <MenuItem key={i} value={formattedValue}>{val}</MenuItem>
     });
+    let label = '';
+
+    if (pageType === 'dashboard') {
+      label = f('hostDashboardFields.' + activeFilter);
+    } else if (pageType === 'inventory') {
+      label = f('hostCpeFields.' + activeFilter);
+    }
 
     return (
       <div>
@@ -91,7 +81,7 @@ class InventoryFilter extends Component {
           name='input'
           clssName='condition-input'
           style={{float: 'left', width: '65%'}}
-          label={f('hostDashboardFields.' + activeFilter)}
+          label={label}
           variant='outlined'
           fullWidth
           size='small'
@@ -102,8 +92,8 @@ class InventoryFilter extends Component {
   }
 }
 
-InventoryFilter.propTypes = {
+SerchFilter.propTypes = {
   value: PropTypes.object.isRequired
 };
 
-export default InventoryFilter;
+export default SerchFilter;

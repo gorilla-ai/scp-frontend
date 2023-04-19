@@ -26,9 +26,9 @@ import PieChart from 'react-chart/build/src/components/pie'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
-import DashboardFilter from './dashboard-filter'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
+import SearchFilter from './search-filter'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -1213,12 +1213,12 @@ class HostDashboard extends Component {
     });
   }
   /**
-   * Set dashboard filter data
+   * Set search filter data
    * @method
    * @param {string} type - filter type
    * @param {array.<string>} data - filter data
    */
-  setDashboardFilter = (type, data) => {
+  setSerchFilter = (type, data) => {
     const {cveFilter, cveFilterList} = this.state;
     let tempCveFilter = {...cveFilter};
     let tempCveFilterList = {...cveFilterList};
@@ -1279,6 +1279,7 @@ class HostDashboard extends Component {
       input: ''
     };
     const data = {
+      pageType: 'dashboard',
       activeFilter
     };
 
@@ -1300,11 +1301,11 @@ class HostDashboard extends Component {
           <div className='content'>
             <React.Fragment>
               <MultiInput
-                base={DashboardFilter}
+                base={SearchFilter}
                 defaultItemValue={defaultItemValue}
                 value={cveFilter[activeFilter]}
                 props={data}
-                onChange={this.setDashboardFilter.bind(this, activeFilter)} />
+                onChange={this.setSerchFilter.bind(this, activeFilter)} />
             </React.Fragment>
           </div>
         </PopoverMaterial>
@@ -1387,7 +1388,7 @@ class HostDashboard extends Component {
     const {cveData} = this.state;
     const url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
     let exportFields = {};
-    let fieldsList = _.cloneDeep(this.state.cveData.dataFieldsArr);
+    let fieldsList = _.cloneDeep(cveData.dataFieldsArr);
     fieldsList.shift();
 
     _.forEach(fieldsList, val => {

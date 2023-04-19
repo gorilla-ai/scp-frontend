@@ -753,13 +753,16 @@
     "update": "Update",
     "edition": "Edition",
     "language": "Language",
-    "swEdition": "SW Edition",
-    "targetSw": "Target SW",
-    "targetHw": "Target HW",
-    "other": "Others",
-    "cpe23uri": "Cpe23Uri",
+    "swEdition": "Software Edition",
+    "targetSw": "Target Software",
+    "targetHw": "Target Hardware",
+    "other": "Other",
+    "cpe23uri": "CPE Name",
     "productCpename": "Product Name",
-    "isMatched": "isMatched"
+    "isMatched": "Matched",
+    "system": "System",
+    "vulnerabilityNum": "Vulnerability Number",
+    "exposedDevices": "Exposed Devices Count"
   },
   "hostDashboardFields": {
     "cveId": "Name",
@@ -772,13 +775,5 @@
     "product": "Product",
     "system": "System",
     "version": "Version"
-  },
-  "hostCpeFields": {
-    "product": "Product",
-    "system": "System",
-    "vendor": "Vendor",
-    "version": "Version",
-    "vulnerabilityNum": "Vulnerability Number",
-    "exposedDevices": "Exposed Devices Count"
   }
 }
