@@ -120,7 +120,7 @@ class HostInventory extends Component {
       showFilterQuery: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       cpeData: {
-        dataFieldsArr: ['_menu', 'product', 'system', 'vendor', 'version', 'vulnerabilityNum', 'exposedDevicesTotal'],
+        dataFieldsArr: ['_menu', 'product', 'system', 'vendor', 'version', 'vulnerabilityNum', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -253,6 +253,10 @@ class HostInventory extends Component {
                       <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
+                } else if (val === 'vulnerabilityNum') {
+                  return helper.numberWithCommas(value);
+                } else if (val === 'exposedDevices') {
+                  return value + ' / ' + allValue.exposedDevicesTotal;
                 } else {
                   return value;
                 }
@@ -742,12 +746,20 @@ class HostInventory extends Component {
         <div className='main-content'>
           {activeCpeInfo === 'vulnerabilityDetails' &&
             <ul className='vulnerability'>
-            <li><span>{t('host.inventory.txt-product')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-cpeKey')}</span>: {currentCpeData.cpeKey || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-vendor')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-version')}</span>: {currentCpeData.version || NOT_AVAILABLE}</li>
+              <li className='header'><span>{t('host.inventory.txt-cpe23uri')}</span>: {currentCpeData.cpe23uri || NOT_AVAILABLE}</li>
+              <li className='header'><span>{t('host.inventory.txt-cpeNameComponents')}</span></li>
+              <li><span>{t('host.inventory.txt-edition')}</span>: {currentCpeData.edition || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-language')}</span>: {currentCpeData.language || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-other')}</span>: {currentCpeData.other || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-part')}</span>: {currentCpeData.part || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-product')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
               <li><span>{t('host.inventory.txt-swEdition')}</span>: {currentCpeData.swEdition || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-createDttm')}</span>: {helper.getFormattedDate(currentCpeData.createDttm, 'local')}</li>
+              <li><span>{t('host.inventory.txt-targetHw')}</span>: {currentCpeData.targetHw || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-targetSw')}</span>: {currentCpeData.targetSw || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-update')}</span>: {currentCpeData.update || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-vendor')}</span>: {currentCpeData.vendor || NOT_AVAILABLE}</li>
+              <li><span>{t('host.inventory.txt-version')}</span>: {currentCpeData.version || NOT_AVAILABLE}</li>
+              <li className='header'><span>{t('host.inventory.txt-productCpename')}</span>: <span>{currentCpeData.productCpename}</span></li>
             </ul>
           }
 
@@ -768,7 +780,7 @@ class HostInventory extends Component {
                   <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
                 }
 
-                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + hostNameSearch.count}</div>
+                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(hostNameSearch.count)}</div>
               </div>
 
               <MuiTableContent
@@ -795,7 +807,7 @@ class HostInventory extends Component {
                   <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveNameSearch')}></i>
                 }
 
-                <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + cveNameSearch.count}</div>
+                <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + helper.numberWithCommas(cveNameSearch.count)}</div>
               </div>
 
               <MuiTableContent
@@ -814,6 +826,7 @@ class HostInventory extends Component {
    * @returns ModalDialog component
    */
   showCpeDialog = () => {
+    const {currentCpeData} = this.state;
     const actions = {
       cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
     };
@@ -822,7 +835,7 @@ class HostInventory extends Component {
       <ModalDialog
         id='showCpeDialog'
         className='modal-dialog'
-        title={this.state.currentCpeKey}
+        title={currentCpeData.cpe23uri}
         draggable={true}
         global={true}
         actions={actions}
@@ -1232,7 +1245,7 @@ class HostInventory extends Component {
                   {cpeSearch.keyword &&
                     <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}></i>
                   }
-                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + cpeSearch.count}</div>
+                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(cpeSearch.count)}</div>
                 </div>
               </div>
 

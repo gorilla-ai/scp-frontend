@@ -778,7 +778,7 @@
     "system": "系統",
     "vendor": "廠商",
     "version": "版本",
-    "vulnerabilityNum": "已存在天數",
-    "exposedDevicesTotal": "暴露裝置數量"
+    "vulnerabilityNum": "弱點數量",
+    "exposedDevices": "暴露裝置數量"
   }
 }

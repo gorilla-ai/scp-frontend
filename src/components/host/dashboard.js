@@ -110,7 +110,7 @@ class HostDashboard extends Component {
         keyword: '',
         count: 0
       },
-      productSearch: {
+      productNameSearch: {
         keyword: '',
         count: 0
       },
@@ -285,7 +285,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   showPieChart = (cveSeverityLevel) => {
-    const centerText = t('txt-total') + ': ' + this.state.cveSeverityLevel.count;
+    const centerText = t('txt-total') + ': ' + helper.numberWithCommas(this.state.cveSeverityLevel.count);
 
     return (
       <div className='chart-group'>
@@ -735,21 +735,21 @@ class HostDashboard extends Component {
    */
   getRelatedSoftware = (fromPage) => {
     const {baseUrl} = this.context;
-    const {productSearch, relatedSoftwareData, currentCveId} = this.state;
+    const {productNameSearch, relatedSoftwareData, currentCveId} = this.state;
     const sort = relatedSoftwareData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? relatedSoftwareData.currentPage : 0;
     const requestData = {
       cveId: currentCveId
     };
     let url = `${baseUrl}/api/hmd/cve/relatedSoftware?page=${page + 1}&pageSize=${relatedSoftwareData.pageSize}`;
-    let tempProductSearch = {...productSearch};
+    let tempProductNameSearch = {...productNameSearch};
 
     if (relatedSoftwareData.sort.field) {
       url += `&orders=${relatedSoftwareData.sort.field} ${sort}`;
     }
 
-    if (productSearch.keyword) {
-      requestData.product = productSearch.keyword;
+    if (productNameSearch.keyword) {
+      requestData.product = productNameSearch.keyword;
     }
 
     this.ah.one({
@@ -787,9 +787,7 @@ class HostDashboard extends Component {
                 const value = tempExposedDevicesData.dataContent[dataIndex][val];
 
                 if (val === 'exposedDevices') {
-                  const exposedDevices = value + ' / ' + allValue.exposedDevicesTotal;
-
-                  return exposedDevices;
+                  return value + ' / ' + allValue.exposedDevicesTotal;
                 } else {
                   return value;
                 }
@@ -798,10 +796,10 @@ class HostDashboard extends Component {
           };
         });
 
-        tempProductSearch.count = helper.numberWithCommas(data.count);
+        tempProductNameSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          productSearch: tempProductSearch,
+          productNameSearch: tempProductNameSearch,
           relatedSoftwareData: tempExposedDevicesData
         });
       }
@@ -877,20 +875,20 @@ class HostDashboard extends Component {
    * @param {object} event - event object
    */
   handleProductChange = (event) => {
-    let tempProductSearch = {...this.state.productSearch};
-    tempProductSearch.keyword = event.target.value;
+    let tempProductNameSearch = {...this.state.productNameSearch};
+    tempProductNameSearch.keyword = event.target.value;
 
     this.setState({
-      productSearch: tempProductSearch
+      productNameSearch: tempProductNameSearch
     });
   }
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('cveSearch', 'hostNameSearch' or 'productSearch')
+   * @param {string} type - reset button type ('cveSearch', 'hostNameSearch' or 'productNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cveSearch, hostNameSearch, productSearch} = this.state;
+    const {cveSearch, hostNameSearch, productNameSearch} = this.state;
 
     if (type === 'cveSearch') {
       let tempCveSearch = {...cveSearch};
@@ -906,19 +904,19 @@ class HostDashboard extends Component {
       this.setState({
         hostNameSearch: tempHostNameSearch
       });
-    } else if (type === 'productSearch') {
-      let tempProductSearch = {...productSearch};
-      tempProductSearch.keyword = '';
+    } else if (type === 'productNameSearch') {
+      let tempProductNameSearch = {...productNameSearch};
+      tempProductNameSearch.keyword = '';
 
       this.setState({
-        productSearch: tempProductSearch
+        productNameSearch: tempProductNameSearch
       });
     }
   }
   /**
    * Handle keyw down for search field
    * @method
-   * @param {string} type - 'cveSearch', 'hostNameSearch' or 'productSearch'
+   * @param {string} type - 'cveSearch', 'hostNameSearch' or 'productNameSearch'
    * @param {object} event - event object
    */
   handleKeyDown = (type, event) => {
@@ -927,7 +925,7 @@ class HostDashboard extends Component {
         this.getCveData();
       } else if (type === 'hostNameSearch') {
         this.getExposedDevices();
-      } else if (type === 'productSearch') {
+      } else if (type === 'productNameSearch') {
         this.getRelatedSoftware();
       }
     }
@@ -938,7 +936,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {hostNameSearch, productSearch, activeCveInfo, exposedDevicesData, relatedSoftwareData, currentCveData} = this.state;
+    const {hostNameSearch, productNameSearch, activeCveInfo, exposedDevicesData, relatedSoftwareData, currentCveData} = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -1007,7 +1005,7 @@ class HostDashboard extends Component {
                   <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
                 }
 
-                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + hostNameSearch.count}</div>
+                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(hostNameSearch.count)}</div>
               </div>
 
               <MuiTableContent
@@ -1021,20 +1019,20 @@ class HostDashboard extends Component {
             <React.Fragment>
               <div className='search-field'>
                 <TextField
-                  name='productSearch'
+                  name='productNameSearch'
                   className='search-text'
                   label={t('host.inventory.txt-productName')}
                   variant='outlined'
                   size='small'
-                  value={productSearch.keyword}
+                  value={productNameSearch.keyword}
                   onChange={this.handleProductChange}
-                  onKeyDown={this.handleKeyDown.bind(this, 'productSearch')} />
+                  onKeyDown={this.handleKeyDown.bind(this, 'productNameSearch')} />
                 <Button variant='contained' color='primary' className='search-btn' onClick={this.getRelatedSoftware}>{t('txt-search')}</Button>
-                {productSearch.keyword &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'productSearch')}></i>
+                {productNameSearch.keyword &&
+                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'productNameSearch')}></i>
                 }
 
-                <div className='search-count'>{t('host.dashboard.txt-relatedSoftwareCount') + ': ' + productSearch.count}</div>
+                <div className='search-count'>{t('host.dashboard.txt-relatedSoftwareCount') + ': ' + helper.numberWithCommas(productNameSearch.count)}</div>
               </div>
 
               <MuiTableContent
@@ -1474,7 +1472,7 @@ class HostDashboard extends Component {
                   {cveSearch.keyword &&
                     <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveSearch')}></i>
                   }
-                  <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + cveSearch.count}</div>
+                  <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + helper.numberWithCommas(cveSearch.count)}</div>
                 </div>
               </div>
 

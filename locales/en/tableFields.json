@@ -779,6 +779,6 @@
     "vendor": "Vendor",
     "version": "Version",
     "vulnerabilityNum": "Vulnerability Number",
-    "exposedDevicesTotal": "Exposed Devices Count"
+    "exposedDevices": "Exposed Devices Count"
   }
 }
