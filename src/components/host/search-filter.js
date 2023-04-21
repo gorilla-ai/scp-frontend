@@ -9,12 +9,12 @@ let t = null;
 let f = null;
 
 /**
- * Dashboard Filter
+ * Search Filter
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
  * @summary A react component for the search filter input
  */
-class SerchFilter extends Component {
+class SearchFilter extends Component {
   constructor(props) {
     super(props);
 
@@ -92,8 +92,8 @@ class SerchFilter extends Component {
   }
 }
 
-SerchFilter.propTypes = {
+SearchFilter.propTypes = {
   value: PropTypes.object.isRequired
 };
 
-export default SerchFilter;
+export default SearchFilter;
