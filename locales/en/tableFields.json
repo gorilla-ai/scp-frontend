@@ -642,7 +642,11 @@
     "srcIPListString": "Source IP ",
     "dstIPListString": "Destination IP",
     "phone": "Phone",
-    "email": "Email"
+    "email": "Email",
+    "killChain": "Kill Chain",
+    "killChainName": "Name",
+    "phaseName": "Phase",
+    "attackProcess": "Attack Process"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

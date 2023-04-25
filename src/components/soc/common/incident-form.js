@@ -24,6 +24,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context'
 import Events from './events'
 import helper from '../../common/helper'
+import KillChain from './kill-chain'
 import NotifyContact from './notifyContact'
 import Ttps from './ttps'
 
@@ -486,6 +487,23 @@ class IncidentForm extends Component {
             value={incident.info.description}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
+        </div>
+        <div className='group full multi'>
+          <label htmlFor='description'>{f('incidentFields.killChain')}</label>
+          <MultiInput
+            id='incidentKillChain'
+            className='incident-group'
+            base={KillChain}
+            defaultItemValue={{
+              killChainName: '',
+              phaseName: ''
+            }}
+            value={incident.info.killChainList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.props.handleKillChainChange}
+            readOnly={disabledStatus} />
         </div>
         {incidentType === 'ttps' &&
           <div className='group full'>
@@ -1150,6 +1168,7 @@ IncidentForm.propTypes = {
   handleConnectContactChange: PropTypes.func.isRequired,
   handleIncidentPageChange: PropTypes.func,
   handleEventsChange: PropTypes.func.isRequired,
+  handleKillChainChange: PropTypes.func.isRequired,
   handleTtpsChange: PropTypes.func,
   toggleRelatedListModal: PropTypes.func,
   refreshIncidentAttach: PropTypes.func,

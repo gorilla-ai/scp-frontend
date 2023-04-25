@@ -18,6 +18,7 @@ import TextField from '@material-ui/core/TextField'
 
 import {BaseDataContext} from '../../common/context'
 import EventConnections from './event-connections'
+import EventProcess from './event-process'
 import helper from '../../common/helper'
 
 let t = null;
@@ -53,9 +54,9 @@ class Events extends Component {
       onChange({...curValue, [field]: value});
     }
   }
-  handleEventsChange = (val) => {
+  handleEventsChange = (type, val) => {
     const {onChange, value: curValue} = this.props;
-    onChange({...curValue, ['eventConnectionList']: val});
+    onChange({...curValue, [type]: val});
   }
   handleDataChangeMui = (event) => {
     const {onChange, value: curValue} = this.props;
@@ -84,6 +85,7 @@ class Events extends Component {
         time,
         frequency,
         eventConnectionList,
+        eventProcessList,
         deviceObj
       }
     } = this.props;
@@ -243,6 +245,21 @@ class Events extends Component {
         </div>
         <div className='line'>
           <MultiInput
+            id='eventProcess'
+            className='event-process-group'
+            base={EventProcess}
+            defaultItemValue={{
+              process: ''
+            }}
+            value={eventProcessList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.handleEventsChange.bind(this, 'eventProcessList')}
+            readOnly={disabledStatus} />
+        </div>
+        <div className='line'>
+          <MultiInput
             id='eventConnections'
             className='event-connection-group'
             base={EventConnections}
@@ -259,7 +276,7 @@ class Events extends Component {
               incidentFormType,
               disabledStatus
             }}
-            onChange={this.handleEventsChange}
+            onChange={this.handleEventsChange.bind(this, 'eventConnectionList')}
             readOnly={disabledStatus} />
         </div>
       </div>

@@ -3065,7 +3065,8 @@ button.standard:hover:not([disabled]) {
                       }
                     }
                   }
-                  .event-connection-group {
+                  .event-connection-group,
+                  .event-process-group {
                     width: 100%;
                     span.group {
                       width: 100% !important;
@@ -3079,6 +3080,9 @@ button.standard:hover:not([disabled]) {
                       display: flex;
                       .group {
                         width: 33%;
+                        &.process {
+                          width: 98%;
+                        }
                       }
                     }
                   }

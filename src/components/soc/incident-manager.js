@@ -937,6 +937,7 @@ class IncidentManagement extends Component {
             handleConnectContactChange={this.handleConnectContactChange}
             handleIncidentPageChange={this.handleIncidentPageChange}
             handleEventsChange={this.handleEventsChange}
+            handleKillChainChange={this.handleKillChainChange}
             handleTtpsChange={this.handleTtpsChange}
             toggleRelatedListModal={this.toggleRelatedListModal}
             refreshIncidentAttach={this.refreshIncidentAttach}
@@ -1332,6 +1333,14 @@ class IncidentManagement extends Component {
       incident: temp
     });
   }
+  handleKillChainChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.killChainList = val;
+
+    this.setState({
+      incident: temp
+    });
+  }
   handleTtpsChange = (val) => {
     let temp = {...this.state.incident};
     temp.info.ttpList = val;
@@ -1374,8 +1383,17 @@ class IncidentManagement extends Component {
           }
         })
 
+        let processArray = [];
+
+        if (el.eventProcessList.length > 0) {
+          processArray = _.map(el.eventProcessList, val => {
+            return val.process;
+          });
+        }
+
         return {
           ...el,
+          processArray,
           startDttm: moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
           endDttm: moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
         }
@@ -1818,8 +1836,19 @@ class IncidentManagement extends Component {
 
       if (temp.eventList) {
         temp.eventList = _.map(temp.eventList, el => {
+          let eventProcessList  = [];
+
+          if (el.processArray.length > 0) {
+            eventProcessList = _.map(el.processArray, val => {
+              return {
+                process: val
+              };
+            });
+          }
+
           return {
             ...el,
+            eventProcessList,
             time: {
               from: moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
               to: moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
@@ -2386,6 +2415,7 @@ class IncidentManagement extends Component {
         showFontendRelatedList: allValue.showFontendRelatedList,
         ttpList: allValue.ttpList,
         eventList: allValue.eventList,
+        killChainList: allValue.killChainList,
         status: allValue.status,
         fileList: allValue.fileList,
         fileMemo: allValue.fileMemo,

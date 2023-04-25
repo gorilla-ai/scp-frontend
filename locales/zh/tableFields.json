@@ -642,7 +642,11 @@
     "srcIPListString": "來源IP",
     "dstIPListString": "目的IP",
     "phone": "電話",
-    "email": "電子郵件"
+    "email": "電子郵件",
+    "killChain": "攻擊鏈",
+    "killChainName": "名稱",
+    "phaseName": "Phase",
+    "attackProcess": "攻擊指令"
   },
   "severityTableFields": {
     "dataSourceType": "類型",
