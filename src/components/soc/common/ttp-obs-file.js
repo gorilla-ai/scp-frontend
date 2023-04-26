@@ -1,13 +1,26 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import moment from 'moment'
 import _ from 'lodash'
 
-import Input from 'react-ui/build/src/components/input'
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 
+import Input from 'react-ui/build/src/components/input'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
 import {BaseDataContext} from '../../common/context'
+import EventProcess from './event-process'
+import FileUpload from '../../common/file-upload'
 import helper from '../../common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
@@ -20,19 +33,135 @@ class TtpObsFile extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      file: {},
+      uploadFileName: '',
+      tmpFileId: ''
+    };
+
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
   }
-  handleDataChange = (field, value) => {
-    const {onChange, value: curValue} = this.props;
-    onChange({...curValue, [field]: value});
-  }
+  ryan = () => {}
+  /**
+   * Handle input data change
+   * @method
+   * @param {object} event - event object
+   */
   handleDataChangeMui = (event) => {
-    const {onChange, value: curValue} = this.props;
-    onChange({...curValue, [event.target.name]: event.target.value});
+    this.props.onChange({
+      ...this.props.value,
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Handle date change
+   * @method
+   * @param {string} type - date type ('createDttm', 'modifyDttm' or 'accessDttm')
+   * @param {string} value - input value
+   */
+  handleDateChange = (type, value) => {
+    this.props.onChange({
+      ...this.props.value,
+      [type]: value
+    });
+  }
+  /**
+   * Handle events change
+   * @method
+   * @param {string} value - input value
+   */
+  handleEventsChange = (value) => {
+    this.props.onChange({
+      ...this.props.value,
+      eventProcessList: value
+    });
+  }
+  /**
+   * Handle file upload input value change
+   * @method
+   * @param {object} value - file data to be set
+   */
+  handleFileChange = (value) => {
+    if (value) {
+      this.setState({
+        file: value,
+        uploadFileName: value.name
+      });
+    } else {
+      this.setState({
+        file: {},
+        uploadFileName: ''
+      });
+
+      this.props.onChange({
+        ...this.props.value,
+        uploadFileName: '',
+        tmpFileId: ''
+      });
+    }
+  }
+  /**
+   * Handle file upload
+   * @method
+   */
+  handleFileUpload = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {file, uploadFileName} = this.state;
+    let formData = new FormData();
+    formData.append('file', file);
+
+    this.ah.one({
+      url: `${baseUrl}/api/soc/malware/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        this.props.onChange({
+          ...this.props.value,
+          uploadFileName,
+          tmpFileId: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
-    const {disabledStatus, value: {fileName, fileExtension, md5, sha1, sha256}} = this.props;
+    const {locale} = this.context;
+    const {
+      disabledStatus,
+      value: {
+        fileName,
+        fileExtension,
+        fileSize,
+        createDttm,
+        modifyDttm,
+        accessDttm,
+        md5,
+        sha1,
+        sha256,
+        product,
+        isFamily,
+        resultName,
+        result,
+        eventProcessList
+      }
+    } = this.props;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
 
     return (
       <div className='event-content'>
@@ -45,8 +174,8 @@ class TtpObsFile extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={fileName}
+              onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
           </div>
           <div className='group'>
@@ -57,12 +186,88 @@ class TtpObsFile extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              onChange={this.handleDataChangeMui}
               value={fileExtension}
+              onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
           </div>
         </div>
-            
+
+        <div className='line'>
+          <div className='group'>
+            <label htmlFor='fileSize'>{f('incidentFields.fileSize')}</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='fileSize'
+              name='fileSize'
+              type='number'
+              variant='outlined'
+              size='small'
+              InputProps={{inputProps: { min: 1 }}}
+              required
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              error={!(fileSize || '').trim()}
+              value={fileSize}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          </div>
+          <div className='group' style={{width: '25vh', marginRight: '10px'}}>
+            <label htmlFor='expireDttm'>{f('incidentFields.fileCreateDttm')}</label>
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                id='fileCreateDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                required
+                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+                error={_.isEmpty(createDttm)}
+                value={createDttm}
+                onChange={this.handleDateChange.bind(this, 'createDttm')}
+                disabled={disabledStatus} />
+            </MuiPickersUtilsProvider>
+          </div>
+          <div className='group' style={{width: '25vh', marginRight: '10px'}}>
+            <label htmlFor='expireDttm'>{f('incidentFields.fileModifyDttm')}</label>
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                id='fileModifyDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                required
+                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+                error={_.isEmpty(modifyDttm)}
+                value={modifyDttm}
+                onChange={this.handleDateChange.bind(this, 'modifyDttm')}
+                disabled={disabledStatus} />
+            </MuiPickersUtilsProvider>
+          </div>
+          <div className='group' style={{width: '25vh', marginRight: '10px'}}>
+            <label htmlFor='expireDttm'>{f('incidentFields.fileAccessDttm')}</label>
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                id='fileAccessDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                required
+                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+                error={_.isEmpty(accessDttm)}
+                value={accessDttm}
+                onChange={this.handleDateChange.bind(this, 'accessDttm')}
+                disabled={disabledStatus} />
+            </MuiPickersUtilsProvider>
+          </div>
+        </div>
+
         <div className='line'>
           <div className='group'>
             <label htmlFor='md5'>MD5</label>
@@ -76,42 +281,141 @@ class TtpObsFile extends Component {
               value={md5}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
-            </div>
-            <div className='group'>
-              <label htmlFor='sha1'>SHA1</label>
-              <TextField style={{paddingRight: '2em'}}
-                id='sha1'
-                name='sha1'
-                variant='outlined'
-                fullWidth
-                size='small'
-                maxLength={40}
-                value={sha1}
-                onChange={this.handleDataChangeMui}
-                disabled={disabledStatus} />
-            </div>
           </div>
+          <div className='group'>
+            <label htmlFor='sha1'>SHA1</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='sha1'
+              name='sha1'
+              variant='outlined'
+              fullWidth
+              size='small'
+              maxLength={40}
+              value={sha1}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          </div>
+        </div>
 
-          <div className='line'>
-            <div className='group full'>
-              <label htmlFor='sha256'>SHA256</label>
-              <TextField style={{paddingRight: '2em'}}
-                id='sha256'
-                name='sha256'
-                variant='outlined'
-                fullWidth
-                size='small'
-                maxLength={64}
-                value={sha256}
-                onChange={this.handleDataChangeMui}
-                disabled={disabledStatus} />
-            </div>
+        <div className='line'>
+          <div className='group full'>
+            <label htmlFor='sha256'>SHA256</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='sha256'
+              name='sha256'
+              variant='outlined'
+              fullWidth
+              size='small'
+              maxLength={64}
+              value={sha256}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          </div>
+        </div>
+
+        <div className='line'>
+          <div className='group'>
+            <label htmlFor='fileProduct'>{f('incidentFields.fileProduct')}</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='fileProduct'
+              name='product'
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              error={!(product || '').trim()}
+              value={product}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          </div>
+          <div className='group'>
+            <label htmlFor='fileIsFamily'>{f('incidentFields.fileFamily')}</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='fileIsFamily'
+              name='isFamily'
+              variant='outlined'
+              fullWidth
+              size='small'
+              select
+              value={isFamily}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus}>
+              <MenuItem value={true}>True</MenuItem>
+              <MenuItem value={false}>False</MenuItem>
+            </TextField>
+          </div>
+        </div>
+
+        <div className='line'>
+          <div className='group'>
+            <label htmlFor='fileResultName'>{f('incidentFields.fileSeverity')}</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='fileResultName'
+              name='resultName'
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              error={!(resultName || '').trim()}
+              value={resultName}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          </div>
+          <div className='group'>
+            <label htmlFor='fileResult'>{f('incidentFields.fileResult')}</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='fileResult'
+              name='result'
+              variant='outlined'
+              fullWidth
+              size='small'
+              select
+              value={result}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus}>
+              <MenuItem value='Malicious'>Malicious</MenuItem>
+              <MenuItem value='suspicious'>Suspicious</MenuItem>
+              <MenuItem value='benign'>Benign</MenuItem>
+              <MenuItem value='unknown'>Unknown</MenuItem>
+            </TextField>
+          </div>
+        </div>
+
+        <div className='line'>
+          <div className='group'>
+            <div className='upload-header'>{f('incidentFields.fileUpload')}</div>
+            <FileUpload
+              id='fileUpload'
+              fileType='zip'
+              btnText={t('txt-selectFile')}
+              handleFileChange={this.handleFileChange} />
+            <Button variant='contained' color='primary' className='upload-btn' onClick={this.handleFileUpload}>{t('txt-upload')}</Button>
+          </div>
+        </div>
+
+        <div className='line'>
+          <MultiInput
+            id='eventProcess'
+            className='event-process-group'
+            base={EventProcess}
+            defaultItemValue={{
+              process: ''
+            }}
+            value={eventProcessList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.handleEventsChange}
+            readOnly={disabledStatus} />
         </div>
       </div>
     )
   }
 }
 
+TtpObsFile.contextType = BaseDataContext;
 TtpObsFile.propTypes = {
 };
 

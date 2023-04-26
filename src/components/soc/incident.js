@@ -878,7 +878,7 @@ class Incident extends Component {
 
         return {
           ...el,
-          processArray,,
+          processArray,
           startDttm: moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
           endDttm: moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
         };

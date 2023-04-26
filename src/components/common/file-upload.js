@@ -42,6 +42,13 @@ class FileUpload extends Component {
     const disabled = readOnly || false;
     let validate = {};
 
+    if (fileType == 'zip') {
+      validate = {
+        extension: '.zip',
+        t: this.getErrorMsg
+      };
+    }
+
     if (fileType == 'indicators') {
       validate = {
         extension: '.zip',
@@ -69,7 +76,6 @@ class FileUpload extends Component {
         t: this.getErrorMsg
       };
     }
-
 
     if (fileType === 'attached') {
       validate = {

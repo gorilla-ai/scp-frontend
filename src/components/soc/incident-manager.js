@@ -1341,7 +1341,7 @@ class IncidentManagement extends Component {
       incident: temp
     });
   }
-  handleTtpsChange = (val) => {
+  handleTtpsChange = (val, event) => {
     let temp = {...this.state.incident};
     temp.info.ttpList = val;
 
@@ -1385,7 +1385,7 @@ class IncidentManagement extends Component {
 
         let processArray = [];
 
-        if (el.eventProcessList.length > 0) {
+        if (el.eventProcessList && el.eventProcessList.length > 0) {
           processArray = _.map(el.eventProcessList, val => {
             return val.process;
           });
@@ -1447,6 +1447,8 @@ class IncidentManagement extends Component {
       if (tempSavedData.id) {
         requestData.incidentTemporaryId = tempSavedData.id;
       }
+
+      return;
 
       ah.one({
         url: `${baseUrl}/api/soc`,
@@ -1681,6 +1683,13 @@ class IncidentManagement extends Component {
                   fileCheck = false;
                   return;
                 }
+              }
+
+              if (!file.fileSize || !file.createDttm || !file.modifyDttm || !file.accessDttm || !file.product || !file.uploadFileName || !file.tmpFileId || !file.resultName) {
+                fileCheck = false;
+                return;
+              } else {
+                fileCheck = true;
               }
             })
           } else {
