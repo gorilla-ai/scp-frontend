@@ -384,7 +384,7 @@ class Incident extends Component {
                     }
                   }
                 }
-              }
+              };
             });
 
             this.setState({
@@ -848,7 +848,7 @@ class Incident extends Component {
       return;
     }
 
-    if (incident.info.showFontendRelatedList) {
+    if (incident.info.showFontendRelatedList && incident.info.showFontendRelatedList.length > 0) {
       incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
         return {
           incidentRelatedId: val
@@ -856,7 +856,7 @@ class Incident extends Component {
       });
     }
 
-    if (incident.info.eventList) {
+    if (incident.info.eventList && incident.info.eventList.length > 0) {
       incident.info.eventList = _.map(incident.info.eventList, el => {
         _.forEach(el.eventConnectionList, eventConnectItem => {
           if (eventConnectItem.srcPort === '') {
@@ -883,6 +883,43 @@ class Incident extends Component {
           endDttm: moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
         };
       });
+    }
+
+    if (incident.info.ttpList && incident.info.ttpList.length > 0) {
+      incident.info.ttpList = _.map(incident.info.ttpList, el => {
+        if (el.obsFileList && el.obsFileList.length > 0) {
+          let obsFileList = [];
+
+          _.forEach(el.obsFileList, val => {
+            let processArray = [];
+
+            if (val.eventProcessList && val.eventProcessList.length > 0) {
+              processArray = _.map(val.eventProcessList, val2 => {
+                return val2.process;
+              });
+            }
+
+            obsFileList.push({
+              ...val,
+              fileSize: Number(val.fileSize),
+              createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              incidentMalwareAnalysisDTO: {
+                product: val.product,
+                resultName: val.resultName,
+                result: val.result,
+                processArray
+              }
+            });
+          })
+
+          return {
+            ...el,
+            obsFileList
+          };
+        }
+      })
     }
 
     if (incident.info.accidentCatogory) {
@@ -1256,11 +1293,11 @@ class Incident extends Component {
         return val.incidentRelatedId;
       });
 
-      if (temp.eventList) {
+      if (temp.eventList && temp.eventList.length > 0) {
         temp.eventList = _.map(temp.eventList, el => {
           let eventProcessList  = [];
 
-          if (el.processArray.length > 0) {
+          if (el.processArray && el.processArray.length > 0) {
             eventProcessList = _.map(el.processArray, val => {
               return {
                 process: val
@@ -1279,7 +1316,7 @@ class Incident extends Component {
         })
       }
 
-      if (temp.ttpList) {
+      if (temp.ttpList && temp.ttpList.length > 0) {
         temp.ttpList = _.map(temp.ttpList, el => {
           let tempTtp = el;
 
@@ -1287,6 +1324,31 @@ class Incident extends Component {
             tempTtp.infrastructureType = '0';
           } else if (tempTtp.infrastructureType === 1) {
             tempTtp.infrastructureType = '1';
+          }
+
+          if (tempTtp.obsFileList && tempTtp.obsFileList.length > 0) {
+            tempTtp.obsFileList = _.map(tempTtp.obsFileList, el => {
+              let eventProcessList  = [];
+
+              if (el.incidentMalwareAnalysisDTO && el.incidentMalwareAnalysisDTO.processArray && el.incidentMalwareAnalysisDTO.processArray.length > 0) {
+                eventProcessList = _.map(el.incidentMalwareAnalysisDTO.processArray, val => {
+                  return {
+                    process: val
+                  };
+                });
+              }
+
+              return {
+                ...el,
+                createDttm: moment(el.createDttm).local().format('YYYY-MM-DD HH:mm:ss'),
+                modifyDttm: moment(el.modifyDttm).local().format('YYYY-MM-DD HH:mm:ss'),
+                accessDttm: moment(el.accessDttm).local().format('YYYY-MM-DD HH:mm:ss'),
+                product: el.incidentMalwareAnalysisDTO.product,
+                resultName: el.incidentMalwareAnalysisDTO.resultName,
+                result: el.incidentMalwareAnalysisDTO.result,
+                eventProcessList
+              };
+            })
           }
 
           return {

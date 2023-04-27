@@ -23,7 +23,6 @@ import helper from '../../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
-let et = null;
 let f = null;
 
 class TtpObsFile extends Component {
@@ -31,7 +30,6 @@ class TtpObsFile extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
@@ -44,7 +42,6 @@ class TtpObsFile extends Component {
   }
   componentDidMount() {
   }
-  ryan = () => {}
   /**
    * Handle input data change
    * @method
@@ -127,6 +124,8 @@ class TtpObsFile extends Component {
           uploadFileName,
           tmpFileId: data
         });
+
+        helper.showPopupMsg(t('txt-uploadSuccess'));
       }
       return null;
     })
@@ -204,7 +203,7 @@ class TtpObsFile extends Component {
               InputProps={{inputProps: { min: 1 }}}
               required
               helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-              error={!(fileSize || '').trim()}
+              error={!fileSize}
               value={fileSize}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
@@ -385,7 +384,7 @@ class TtpObsFile extends Component {
 
         <div className='line'>
           <div className='group'>
-            <div className='upload-header'>{f('incidentFields.fileUpload')}</div>
+            <div className='upload-header'>{f('incidentFields.fileUpload')} (.zip)</div>
             <FileUpload
               id='fileUpload'
               fileType='zip'

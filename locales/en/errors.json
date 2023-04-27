@@ -106,6 +106,7 @@
   "-9015": "Inventory not exist",
   "-9016": "Regex syntax error",
   "-9017": "Child department exist",
+  "-9020": "File is not zip file",
 
   "-9100": "Parse Json Fail",
   "-9101": "Parse File Fail",
