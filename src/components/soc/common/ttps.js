@@ -46,7 +46,18 @@ class Ttps extends Component {
     onChange({...curValue, [event.target.name]: event.target.value});
   }
   render() {
-    let {disabledStatus, value: {title, infrastructureType, etsList, obsFileList, obsUriList, obsSocketList}} = this.props;
+    let {
+      disabledStatus,
+      incidentFormType,
+      value: {
+        title,
+        infrastructureType,
+        etsList,
+        obsFileList,
+        obsUriList,
+        obsSocketList
+      }
+    } = this.props;
 
     if (infrastructureType  === 1) {
       infrastructureType = '1';

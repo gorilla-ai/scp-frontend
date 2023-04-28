@@ -8,10 +8,10 @@ let t = null;
 let f = null;
 
 /**
- * Kill Chain
+ * Event Process
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component for the Incident Form Events Process
+ * @summary A react component for the Incident Form Event Process
  */
 class EventProcess extends Component {
   constructor(props) {

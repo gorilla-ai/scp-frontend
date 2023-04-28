@@ -74,7 +74,7 @@ class IncidentManagement extends Component {
 
     this.state = {
       activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
-      displayPage: 'main', //main, events, ttps, edr
+      displayPage: 'main', //'main', 'events', 'ttps' or 'edr'
       incidentType: '',
       incidentFormType: '', //'monitor', analyze' or 'EDR'
       toggleType: '',

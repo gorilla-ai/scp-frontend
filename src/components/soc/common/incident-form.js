@@ -24,9 +24,11 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context'
 import Events from './events'
 import helper from '../../common/helper'
+import IncidentIP from './incident-ip'
 import KillChain from './kill-chain'
 import NotifyContact from './notifyContact'
 import Ttps from './ttps'
+import TtpObsFile from './ttp-obs-file'
 
 import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -221,10 +223,10 @@ class IncidentForm extends Component {
 
       if (from === 'soc') {
         required = true;
-        disabledStatus = activeContent === 'viewIncident' ? true : false;
+        disabledStatus = activeContent === 'viewIncident';
         disabledEstablishDttm = (activeContent === 'viewIncident' || !incident.info.enableEstablishDttm);
       } else if (from === 'pattern') {
-        disabledStatus = activeContent === 'viewPattern' ? true : false;
+        disabledStatus = activeContent === 'viewPattern';
         disabledEstablishDttm = (activeContent === 'viewPattern' || !incident.info.enableEstablishDttm);
       }
     } else if (from === 'threats') {
@@ -525,9 +527,9 @@ class IncidentForm extends Component {
     let disabledStatus = null;
 
     if (from === 'soc') {
-      disabledStatus = activeContent === 'viewIncident' ? true : false;
+      disabledStatus = activeContent === 'viewIncident';
     } else if (from === 'pattern') {
-      disabledStatus = activeContent === 'viewPattern' ? true : false;
+      disabledStatus = activeContent === 'viewPattern';
     }
 
     return (
@@ -722,9 +724,9 @@ class IncidentForm extends Component {
     let disabledStatus = false;
 
     if (from === 'soc') {
-      disabledStatus = activeContent === 'viewIncident' ? true : false;
+      disabledStatus = activeContent === 'viewIncident';
     } else if (from === 'pattern') {
-      disabledStatus = activeContent === 'viewPattern' ? true : false;
+      disabledStatus = activeContent === 'viewPattern';
     }
 
     return (
@@ -877,9 +879,9 @@ class IncidentForm extends Component {
     let disabledStatus = null;
 
     if (from === 'soc') {
-      disabledStatus = activeContent === 'viewIncident' ? true : false;
+      disabledStatus = activeContent === 'viewIncident';
     } else if (from === 'pattern') {
-      disabledStatus = activeContent === 'viewPattern' ? true : false;
+      disabledStatus = activeContent === 'viewPattern';
     } 
 
     return (
@@ -969,7 +971,7 @@ class IncidentForm extends Component {
       propsData = {
         incidentFormType,
         activeContent,
-        disabledStatus: activeContent === 'viewIncident' ? true : false,
+        disabledStatus: activeContent === 'viewIncident',
         locale,
         deviceListOptions,
         showDeviceListOptions
@@ -986,7 +988,7 @@ class IncidentForm extends Component {
       propsData = {
         incidentFormType,
         activeContent,
-        disabledStatus: activeContent === 'viewPattern' ? true : false,
+        disabledStatus: activeContent === 'viewPattern',
         locale,
         deviceListOptions
       };
@@ -1035,43 +1037,174 @@ class IncidentForm extends Component {
     )
   }
   /**
+   * Handle TTP obs file change
+   * @method
+   * @param {object} value - input data value
+   */
+  handleTtpObsChange = (value) => {
+    this.props.handleTtpsChange({
+      obsFileList: value
+    });
+  }
+  /**
    * Display TTP section
    * @method
    * @returns HTML DOM
    */
   displayTTP = () => {
+    const {from, incidentFormType, activeContent, incident} = this.props;
+    let disabledStatus = null;
+
+    if (from === 'soc') {
+      disabledStatus = activeContent === 'viewIncident';
+    } else if (from === 'pattern') {
+      disabledStatus = activeContent === 'viewPattern';
+    }
+
+    if (incidentFormType === 'analyze') {
+      return (
+        <div className='form-group normal'>
+          <header>
+            <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})</div>
+          </header>
+
+          <div className='btn btn-group'>
+            <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+            <Button variant='contained' color='primary' disabled={true}>{it('txt-next-page')}</Button>
+          </div>
+
+          <div className='group full multi'>
+            <MultiInput
+              id='incidentTtp'
+              className='incident-group'
+              base={Ttps}
+              value={incident.info.ttpList}
+              props={{
+                disabledStatus
+              }}
+              onChange={this.props.handleTtpsChange}
+              readOnly={disabledStatus} />
+          </div>
+        </div>
+      )
+    } else if (incidentFormType === 'EDR') {
+      return (
+        <div className='form-group normal'>
+          <header>
+            <div className='text'>{it('txt-ttp-obs-file')}</div>
+          </header>
+
+          <div className='btn btn-group'>
+            <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+            <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'edr')}>{it('txt-next-page')}</Button>
+          </div>
+
+          <div className='group full multi'>
+            <MultiInput
+              id='obsFile'
+              className='incident-group ttp-group'
+              base={TtpObsFile}
+              defaultItemValue={{
+                createDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+                modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+                accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+                isFamily: false,
+                result: 'Malicious'
+              }}
+              value={incident.info.ttpList && incident.info.ttpList.obsFileList}
+              props={{
+                disabledStatus
+              }}
+              onChange={this.handleTtpObsChange}
+              readOnly={disabledStatus} />
+          </div>
+        </div>
+      )
+    }
+  }
+  /**
+   * Display EDR section
+   * @method
+   * @returns HTML DOM
+   */
+  displayEDR = () => {
     const {from, activeContent, incident} = this.props;
     let disabledStatus = null;
 
     if (from === 'soc') {
-      disabledStatus = activeContent === 'viewIncident' ? true : false;
+      disabledStatus = activeContent === 'viewIncident';
     } else if (from === 'pattern') {
-      disabledStatus = activeContent === 'viewPattern' ? true : false;
+      disabledStatus = activeContent === 'viewPattern';
     }
 
     return (
       <div className='form-group normal'>
         <header>
-          <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
-          </div>
+          <div className='text'>{it('txt-incident-ttps')} ({it('txt-incident-ip')}/{it('txt-incident-url')} {it('txt-mustOne')})</div>
         </header>
 
         <div className='btn btn-group'>
-          <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
-          <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')} disabled={true}>{it('txt-next-page')}</Button>
+          <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-prev-page')}</Button>
+          <Button variant='contained' color='primary' disabled={true}>{it('txt-next-page')}</Button>
         </div>
 
+        <div className='group'>
+          <label htmlFor='fileName'>{it('txt-incident-ttps-desc')}</label>
+          <TextField style={{paddingRight: '2em'}}
+            id='fileName'
+            name='fileName'
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={incident.info.ttpList}
+            onChange={this.props.handleTtpsChange}
+            disabled={disabledStatus} />
+        </div>
+        <div className='group'>
+          <label htmlFor='fileExtension'>{it('txt-incident-index-type')}</label>
+          <TextField style={{paddingRight: '2em'}}
+            id='fileExtension'
+            name='fileExtension'
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={incident.info.ttpList}
+            onChange={this.props.handleTtpsChange}
+            disabled={disabledStatus} />
+        </div>
         <div className='group full multi'>
           <MultiInput
-            id='incidentTtp'
+            id='edrIncidentIP'
             className='incident-group'
-            base={Ttps}
-            value={incident.info.ttpList}
+            base={IncidentIP}
+            value={incident.info.ttpList && incident.info.ttpList.obsFileList}
             props={{
-              activeContent,
+              type: 'ip',
               disabledStatus
             }}
-            onChange={this.props.handleTtpsChange}
+            onChange={this.handleTtpObsChange}
+            readOnly={disabledStatus} />
+          <MultiInput
+            id='edrIncidentURL'
+            className='incident-group'
+            base={IncidentIP}
+            value={incident.info.ttpList && incident.info.ttpList.obsFileList}
+            props={{
+              type: 'url',
+              disabledStatus
+            }}
+            onChange={this.handleTtpObsChange}
+            readOnly={disabledStatus} />
+          <MultiInput
+            id='edrIncidentInfo'
+            className='incident-group'
+            base={IncidentIP}
+            value={incident.info.ttpList && incident.info.ttpList.obsFileList}
+            props={{
+              type: 'info',
+              disabledStatus
+            }}
+            onChange={this.handleTtpObsChange}
             readOnly={disabledStatus} />
         </div>
       </div>
@@ -1110,6 +1243,10 @@ class IncidentForm extends Component {
 
             {displayPage === 'ttps' &&
               this.displayTTP()
+            }
+
+            {displayPage === 'edr' &&
+              this.displayEDR()
             }
           </div>
         }
