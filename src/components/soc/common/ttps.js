@@ -18,8 +18,8 @@ import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 import TtpEts from './ttp-ets'
 import TtpObsFile from './ttp-obs-file'
-import TtpObsUri from './ttp-obs-uri'
 import TtpObsSocket from './ttp-obs-socket'
+import TtpObsUri from './ttp-obs-uri'
 
 let t = null;
 let et = null;
@@ -42,8 +42,31 @@ class Ttps extends Component {
     onChange({...curValue, [field]: value});
   }
   handleDataChangeMui = (event) => {
-    const {onChange, value: curValue} = this.props;
-    onChange({...curValue, [event.target.name]: event.target.value});
+    const {incidentFormType, onChange, value: curValue} = this.props;
+
+    if (incidentFormType === 'EDR') {
+      onChange({
+        obsFileList: ...curValue,
+        [event.target.name]: event.target.value
+      });
+    } else {
+      onChange({
+        ...curValue,
+        [event.target.name]: event.target.value
+      });
+    }
+  }
+  /**
+   * Check helper text
+   * @method
+   * @returns required text
+   */
+  checkHelperText = () => {
+    const {disabledStatus, incidentFormType} = this.props;
+
+    if (!disabledStatus && incidentFormType === 'analyze') {
+      return t('txt-checkRequiredFieldType');
+    }
   }
   render() {
     let {
@@ -78,9 +101,9 @@ class Ttps extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              required
-              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-              error={!(title || '').trim()}
+              required={incidentFormType === 'analyze'}
+              error={incidentFormType === 'analyze' && !title}
+              helperText={this.checkHelperText()}
               value={title}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus}/>
@@ -94,8 +117,8 @@ class Ttps extends Component {
               fullWidth={true}
               size='small'
               select
-              error={!(infrastructureType || '')}
-              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
+              error={incidentFormType === 'analyze' && !infrastructureType}
+              helperText={this.checkHelperText()}
               value={infrastructureType}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus}>
@@ -109,44 +132,49 @@ class Ttps extends Component {
             </TextField>
           </div>
         </div>
-        <div className='event-sub'>
-          <label className='ttp-header' htmlFor='TtpEts'>{it('txt-ttp-ets')}</label>
-          <div className='group full'>
-            <MultiInput
-              id='ttpEts'
-              className='ttp-group'
-              base={TtpEts}
-              value={etsList}
-              props={{
-                disabledStatus
-              }}
-              onChange={this.handleDataChange.bind(this, 'etsList')}
-              readOnly={disabledStatus} />
-          </div>
-        </div>
 
-        <div className='event-sub'>
-          <label className='ttp-header' htmlFor='obsFile'>{it('txt-ttp-obs-file')}</label>
-          <div className='group full'>
-            <MultiInput
-              id='obsFile'
-              className='ttp-group'
-              base={TtpObsFile}
-              defaultItemValue={{
-                createDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                isFamily: false,
-                result: 'Malicious'
-              }}
-              value={obsFileList}
-              props={{
-                disabledStatus
-              }}
-              onChange={this.handleDataChange.bind(this, 'obsFileList')}
-              readOnly={disabledStatus} />
+        {incidentFormType === 'analyze' &&
+          <div className='event-sub'>
+            <label className='ttp-header' htmlFor='TtpEts'>{it('txt-ttp-ets')}</label>
+            <div className='group full'>
+              <MultiInput
+                id='ttpEts'
+                className='ttp-group'
+                base={TtpEts}
+                value={etsList}
+                props={{
+                  disabledStatus
+                }}
+                onChange={this.handleDataChange.bind(this, 'etsList')}
+                readOnly={disabledStatus} />
+            </div>
           </div>
-        </div>
+        }
+
+        {incidentFormType === 'analyze' &&
+          <div className='event-sub'>
+            <label className='ttp-header' htmlFor='obsFile'>{it('txt-ttp-obs-file')}</label>
+            <div className='group full'>
+              <MultiInput
+                id='obsFile'
+                className='ttp-group'
+                base={TtpObsFile}
+                defaultItemValue={{
+                  createDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+                  modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+                  accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+                  isFamily: false,
+                  result: 'Malicious'
+                }}
+                value={obsFileList}
+                props={{
+                  disabledStatus
+                }}
+                onChange={this.handleDataChange.bind(this, 'obsFileList')}
+                readOnly={disabledStatus} />
+            </div>
+          </div>
+        }
 
         <div className='event-sub'>
           <label className='ttp-header' htmlFor='obsUri'>{it('txt-ttp-obs-uri')}</label>
@@ -179,6 +207,24 @@ class Ttps extends Component {
               readOnly={disabledStatus} />
           </div>
         </div>
+
+        {incidentFormType === 'EDR' &&
+          <div className='event-sub'>
+            <label className='ttp-header' htmlFor='TtpEts'>{it('txt-ttp-ets')}</label>
+            <div className='group full'>
+              <MultiInput
+                id='ttpEts'
+                className='ttp-group'
+                base={TtpEts}
+                value={etsList}
+                props={{
+                  disabledStatus
+                }}
+                onChange={this.handleDataChange.bind(this, 'etsList')}
+                readOnly={disabledStatus} />
+            </div>
+          </div>
+        }
       </div>
     )
   }

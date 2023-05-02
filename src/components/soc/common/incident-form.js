@@ -24,7 +24,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context'
 import Events from './events'
 import helper from '../../common/helper'
-import IncidentIP from './incident-ip'
 import KillChain from './kill-chain'
 import NotifyContact from './notifyContact'
 import Ttps from './ttps'
@@ -1076,10 +1075,11 @@ class IncidentForm extends Component {
           <div className='group full multi'>
             <MultiInput
               id='incidentTtp'
-              className='incident-group'
+              className='incident-group anaylze'
               base={Ttps}
               value={incident.info.ttpList}
               props={{
+                incidentFormType,
                 disabledStatus
               }}
               onChange={this.props.handleTtpsChange}
@@ -1128,7 +1128,7 @@ class IncidentForm extends Component {
    * @returns HTML DOM
    */
   displayEDR = () => {
-    const {from, activeContent, incident} = this.props;
+    const {from, incidentFormType, activeContent, incident} = this.props;
     let disabledStatus = null;
 
     if (from === 'soc') {
@@ -1140,7 +1140,7 @@ class IncidentForm extends Component {
     return (
       <div className='form-group normal'>
         <header>
-          <div className='text'>{it('txt-incident-ttps')} ({it('txt-incident-ip')}/{it('txt-incident-url')} {it('txt-mustOne')})</div>
+          <div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})</div>
         </header>
 
         <div className='btn btn-group'>
@@ -1148,63 +1148,17 @@ class IncidentForm extends Component {
           <Button variant='contained' color='primary' disabled={true}>{it('txt-next-page')}</Button>
         </div>
 
-        <div className='group'>
-          <label htmlFor='fileName'>{it('txt-incident-ttps-desc')}</label>
-          <TextField style={{paddingRight: '2em'}}
-            id='fileName'
-            name='fileName'
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={incident.info.ttpList}
-            onChange={this.props.handleTtpsChange}
-            disabled={disabledStatus} />
-        </div>
-        <div className='group'>
-          <label htmlFor='fileExtension'>{it('txt-incident-index-type')}</label>
-          <TextField style={{paddingRight: '2em'}}
-            id='fileExtension'
-            name='fileExtension'
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={incident.info.ttpList}
-            onChange={this.props.handleTtpsChange}
-            disabled={disabledStatus} />
-        </div>
         <div className='group full multi'>
           <MultiInput
-            id='edrIncidentIP'
-            className='incident-group'
-            base={IncidentIP}
-            value={incident.info.ttpList && incident.info.ttpList.obsFileList}
+            id='incidentTtp'
+            className='incident-group edr'
+            base={Ttps}
+            value={incident.info.ttpList}
             props={{
-              type: 'ip',
+              incidentFormType,
               disabledStatus
             }}
-            onChange={this.handleTtpObsChange}
-            readOnly={disabledStatus} />
-          <MultiInput
-            id='edrIncidentURL'
-            className='incident-group'
-            base={IncidentIP}
-            value={incident.info.ttpList && incident.info.ttpList.obsFileList}
-            props={{
-              type: 'url',
-              disabledStatus
-            }}
-            onChange={this.handleTtpObsChange}
-            readOnly={disabledStatus} />
-          <MultiInput
-            id='edrIncidentInfo'
-            className='incident-group'
-            base={IncidentIP}
-            value={incident.info.ttpList && incident.info.ttpList.obsFileList}
-            props={{
-              type: 'info',
-              disabledStatus
-            }}
-            onChange={this.handleTtpObsChange}
+            onChange={this.props.handleTtpsChange}
             readOnly={disabledStatus} />
         </div>
       </div>

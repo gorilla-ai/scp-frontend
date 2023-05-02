@@ -1,4 +1,6 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
 
 import TextField from '@material-ui/core/TextField'
 
@@ -18,10 +20,6 @@ class TtpObsSocket extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
   }
   componentDidMount() {
-  }
-  handleDataChange = (field, value) => {
-    const {onChange, value: curValue} = this.props;
-    onChange({...curValue, [field]: value});
   }
   handleDataChangeMui = (event) => {
     const {onChange, value: curValue} = this.props;

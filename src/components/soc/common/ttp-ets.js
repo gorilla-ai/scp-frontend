@@ -25,10 +25,6 @@ class TtpEts extends Component {
   }
   componentDidMount() {
   }
-  handleDataChange = (field, value) => {
-    const {onChange, value: curValue} = this.props;
-    onChange({...curValue, [field]: value});
-  }
   handleDataChangeMui = (event) => {
     const {onChange, value: curValue} = this.props;
     onChange({...curValue, [event.target.name]: event.target.value});

@@ -845,7 +845,7 @@ class IncidentManagement extends Component {
     return (
       <div className='main-content basic-form'>
         <header className='main-header' style={{display: 'flex'}}>
-          {it(`txt-${activeContent}-${incidentType}`)}
+          {it(`txt-${activeContent}-${incidentFormType}`)}
 
           {activeContent !== 'addIncident' &&
             <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red', marginLeft: '5px'}}>{incident.info.id}</span>
@@ -1403,41 +1403,87 @@ class IncidentManagement extends Component {
       })
     }
 
-    if (incident.info.ttpList && incident.info.ttpList.length > 0) {
-      incident.info.ttpList = _.map(incident.info.ttpList, el => {
-        if (el.obsFileList && el.obsFileList.length > 0) {
-          let obsFileList = [];
+    if (incidentFormType === 'EDR') {
+      if (incident.info.ttpList && incident.info.ttpList.length > 0) {
 
-          _.forEach(el.obsFileList, val => {
-            let processArray = [];
+        // if (incident.info.ttpList.obsFileList.title) {
+        //   if (incident.info.ttpList.obsFileList.obsUriList || incident.info.ttpList.obsFileList.obsSocketList) {
 
-            if (val.eventProcessList && val.eventProcessList.length > 0) {
-              processArray = _.map(val.eventProcessList, val2 => {
-                return val2.process;
-              });
-            }
+        //   }
+        // }
 
-            obsFileList.push({
-              ...val,
-              fileSize: Number(val.fileSize),
-              createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-              modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-              accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-              incidentMalwareAnalysisDTO: {
-                product: val.product,
-                resultName: val.resultName,
-                result: val.result,
-                processArray
+        // incident.info.ttpList = _.map(incident.info.ttpList, el => {
+        //   if (el.obsFileList && el.obsFileList.length > 0) {
+        //     let obsFileList = [];
+
+        //     _.forEach(el.obsFileList, val => {
+        //       let processArray = [];
+
+        //       if (val.eventProcessList && val.eventProcessList.length > 0) {
+        //         processArray = _.map(val.eventProcessList, val2 => {
+        //           return val2.process;
+        //         });
+        //       }
+
+        //       obsFileList.push({
+        //         ...val,
+        //         fileSize: Number(val.fileSize),
+        //         createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        //         modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        //         accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        //         incidentMalwareAnalysisDTO: {
+        //           product: val.product,
+        //           resultName: val.resultName,
+        //           result: val.result,
+        //           processArray
+        //         }
+        //       });
+        //     })
+
+        //     return {
+        //       ...el,
+        //       obsFileList
+        //     };
+        //   }
+        // });
+      }
+    } else {
+      if (incident.info.ttpList && incident.info.ttpList.length > 0) {
+        incident.info.ttpList = _.map(incident.info.ttpList, el => {
+          if (el.obsFileList && el.obsFileList.length > 0) {
+            let obsFileList = [];
+
+            _.forEach(el.obsFileList, val => {
+              let processArray = [];
+
+              if (val.eventProcessList && val.eventProcessList.length > 0) {
+                processArray = _.map(val.eventProcessList, val2 => {
+                  return val2.process;
+                });
               }
-            });
-          })
 
-          return {
-            ...el,
-            obsFileList
-          };
-        }
-      })
+              obsFileList.push({
+                ...val,
+                fileSize: Number(val.fileSize),
+                createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+                incidentMalwareAnalysisDTO: {
+                  product: val.product,
+                  resultName: val.resultName,
+                  result: val.result,
+                  processArray
+                }
+              });
+            })
+
+            return {
+              ...el,
+              obsFileList
+            };
+          }
+        });
+      }
     }
 
     if (incident.info.accidentCatogory) {
@@ -1474,6 +1520,8 @@ class IncidentManagement extends Component {
     }
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    return;
 
     if (type === 'save') {
       let requestData = {
@@ -1701,6 +1749,19 @@ class IncidentManagement extends Component {
         let fileCheck = false;
         let urlCheck = false;
         let socketCheck = false;
+
+        if (incidentFormType === 'EDR') {
+          if (incident.ttpList.obsFileList.title) {
+            if (!incident.ttpList.obsFileList.obsUriList && !incident.ttpList.obsFileList.obsSocketList) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                confirmText: t('txt-close')
+              });
+              statusCheck = false;
+            }
+          }
+        }
 
         _.forEach(incident.ttpList, ttp => {
           if (_.size(ttp.obsFileList) > 0) {
