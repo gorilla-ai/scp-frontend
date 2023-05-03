@@ -27,6 +27,7 @@ import helper from '../../common/helper'
 import KillChain from './kill-chain'
 import NotifyContact from './notifyContact'
 import Ttps from './ttps'
+import TtpEdr from './ttp-edr'
 import TtpObsFile from './ttp-obs-file'
 
 import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
@@ -1036,16 +1037,6 @@ class IncidentForm extends Component {
     )
   }
   /**
-   * Handle TTP obs file change
-   * @method
-   * @param {object} value - input data value
-   */
-  handleTtpObsChange = (value) => {
-    this.props.handleTtpsChange({
-      obsFileList: value
-    });
-  }
-  /**
    * Display TTP section
    * @method
    * @returns HTML DOM
@@ -1075,7 +1066,7 @@ class IncidentForm extends Component {
           <div className='group full multi'>
             <MultiInput
               id='incidentTtp'
-              className='incident-group anaylze'
+              className='incident-group'
               base={Ttps}
               value={incident.info.ttpList}
               props={{
@@ -1101,21 +1092,15 @@ class IncidentForm extends Component {
 
           <div className='group full multi'>
             <MultiInput
-              id='obsFile'
-              className='incident-group ttp-group'
-              base={TtpObsFile}
-              defaultItemValue={{
-                createDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                isFamily: false,
-                result: 'Malicious'
-              }}
-              value={incident.info.ttpList && incident.info.ttpList.obsFileList}
+              id='incidentTtp'
+              className='incident-group'
+              base={Ttps}
+              value={incident.info.ttpList}
               props={{
+                incidentFormType,
                 disabledStatus
               }}
-              onChange={this.handleTtpObsChange}
+              onChange={this.props.handleTtpsChange}
               readOnly={disabledStatus} />
           </div>
         </div>
@@ -1150,15 +1135,14 @@ class IncidentForm extends Component {
 
         <div className='group full multi'>
           <MultiInput
-            id='incidentTtp'
+            id='incidentTtpEdr'
             className='incident-group edr'
-            base={Ttps}
-            value={incident.info.ttpList}
+            base={TtpEdr}
+            value={incident.info.edrList}
             props={{
-              incidentFormType,
               disabledStatus
             }}
-            onChange={this.props.handleTtpsChange}
+            onChange={this.props.handleTtpEdrChange}
             readOnly={disabledStatus} />
         </div>
       </div>
