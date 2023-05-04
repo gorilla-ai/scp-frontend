@@ -75,6 +75,7 @@ class Incident extends Component {
       activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
       displayPage: 'main', /* main, events, ttps */
       incidentType: '',
+      incidentFormType: '', //'monitor', analyze' or 'EDR'
       toggleType:'',
       showFilter: false,
       showChart: true,
@@ -448,6 +449,7 @@ class Incident extends Component {
       activeContent,
       severityList,
       incidentType,
+      incidentFormType,
       incident,
       toggleType,
       socFlowList,
@@ -493,7 +495,7 @@ class Incident extends Component {
     return (
       <div className='main-content basic-form'>
         <header className='main-header' style={{display: 'flex'}}>
-          {it(`txt-${activeContent}-${incidentType}`)}
+          {it(`txt-${activeContent}-${incidentFormType}`)}
 
           {activeContent !== 'addIncident' &&
             <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red'}}>{incident.info.id}</span>
@@ -551,6 +553,7 @@ class Incident extends Component {
             incident={incident}
             severityList={severityList}
             incidentType={incidentType}
+            incidentFormType={incidentFormType}
             socFlowList={socFlowList}
             attach={attach}
             filesName={filesName}
@@ -841,12 +844,12 @@ class Incident extends Component {
   }
   handleSubmit = () => {
     const {baseUrl, contextRoot, session} = this.context;
-    const {activeContent, incidentType, attach} = this.state;
+    const {activeContent, incidentType, incidentFormType, attach} = this.state;
     let incident = {...this.state.incident};
 
-    if (!this.checkRequired(incident.info)) {
-      return;
-    }
+    // if (!this.checkRequired(incident.info)) {
+    //   return;
+    // }
 
     if (incident.info.showFontendRelatedList && incident.info.showFontendRelatedList.length > 0) {
       incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
@@ -883,6 +886,18 @@ class Incident extends Component {
           endDttm: moment(el.time.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
         };
       });
+    }
+
+    if (incidentFormType === 'EDR') {
+      let newTtpList = [{
+        obsFileList: []
+      }];
+
+      _.forEach(incident.info.ttpList, val => {
+        newTtpList[0].obsFileList.push(val.obsFileList[0]);
+      })
+
+      incident.info.ttpList = newTtpList;
     }
 
     if (incident.info.ttpList && incident.info.ttpList.length > 0) {
@@ -922,6 +937,15 @@ class Incident extends Component {
       })
     }
 
+    if (incidentFormType === 'EDR') {
+      if (incident.info.ttpList && incident.info.ttpList.length > 0 && incident.info.edrList && incident.info.edrList.length > 0) {
+        incident.info.ttpList = [{
+          ...incident.info.ttpList[0],
+          ...incident.info.edrList[0]
+        }];
+      }
+    }
+
     if (incident.info.accidentCatogory) {
       if (incident.info.accidentCatogory === 5) {
         incident.info.accidentAbnormal = null;
@@ -951,6 +975,10 @@ class Incident extends Component {
       incident.info.status =  constants.soc.INCIDENT_STATUS_UNREVIEWED;
     }
 
+    if (incidentFormType) {
+      requestData.incidentType = incidentFormType;
+    }
+
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
@@ -965,6 +993,7 @@ class Incident extends Component {
       incident.info.status = data.rt.status;
 
       this.setState({
+        incidentFormType: '',
         originalIncident: _.cloneDeep(incident)
       }, () => {
         if (attach) {
@@ -982,7 +1011,7 @@ class Incident extends Component {
     })
   }
   checkRequired = (incident) => {
-    const {incidentType} = this.state;
+    const {incidentType, incidentFormType} = this.state;
 
     if (!incident.category) {
       PopupDialog.alert({
@@ -1071,6 +1100,18 @@ class Incident extends Component {
                     confirmText: t('txt-close')
                   });
                   eventCheck = false;
+                }
+              }
+
+              if (incidentFormType === 'EDR') {
+                if (eventConnect.dstHostname === '') {
+                  PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validEvents'),
+                    confirmText: t('txt-close')
+                  });
+                  eventCheck = false;
+                  return;
                 }
               }
             })
@@ -1292,6 +1333,7 @@ class Incident extends Component {
       temp.showFontendRelatedList = _.map(temp.relatedList, val => {
         return val.incidentRelatedId;
       });
+      const incidentFormType = temp.incidentType;
 
       if (temp.eventList && temp.eventList.length > 0) {
         temp.eventList = _.map(temp.eventList, el => {
@@ -1357,7 +1399,17 @@ class Incident extends Component {
         });
       }
 
-      let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
+      if (incidentFormType === 'EDR') {
+        temp.edrList = _.cloneDeep(temp.ttpList);
+        delete temp.edrList[0].obsFileList;
+
+        temp.ttpList = _.map(temp.ttpList[0].obsFileList, val => {
+          return {
+            obsFileList: [val]
+          };
+        });
+      }
+
       let toggleType = type;
       tempIncident.info = temp;
 
@@ -1378,7 +1430,8 @@ class Incident extends Component {
 
       this.setState({
         incident: tempIncident,
-        incidentType,
+        incidentType: _.size(temp.ttpList) > 0 ? 'ttps' : 'events',
+        incidentFormType,
         toggleType,
         showDeviceListOptions: tempShowDeviceListOptions
       }, () => {
@@ -1667,7 +1720,7 @@ class Incident extends Component {
   }
   toggleContent = (type, allValue) => {
     const {baseUrl, contextRoot} = this.context;
-    const {originalIncident, incident} = this.state;
+    const {originalIncident, incident, incidentFormType} = this.state;
     let tempIncident = {...incident};
     let showPage = type;
 
@@ -1712,6 +1765,10 @@ class Incident extends Component {
         flowData: allValue.flowData
       };
 
+      if (incidentFormType === 'EDR') {
+        tempIncident.info.edrList = allValue.edrList;
+      }
+
       if (!tempIncident.info.socType) {
         tempIncident.info.socType = 1
       }
@@ -1726,63 +1783,21 @@ class Incident extends Component {
         showFilter: false,
         originalIncident: _.cloneDeep(tempIncident)
       });
-    }  else if (type === 'addIncident') {
-      tempIncident.info = {
-        id: null,
-        title: null,
-        incidentDescription: null,
-        category: null,
-        reporter: null,
-        attackName: null,
-        description: null,
-        impactAssessment: 4,
-        socType: null,
-        createDttm: null,
-        relatedList: [],
-        showFontendRelatedList: [],
-        ttpList: null,
-        eventList: null,
-        notifyList: null,
-        fileMemo: '',
-        tagList: null,
-        historyList: null,
-        creator: null,
-        announceSource: null,
-        expireDttm: null,
-        enableEstablishDttm: true,
-        establishDttm: null,
-        attachmentDescription: null,
-        accidentCatogory: null,
-        accidentDescription: null,
-        accidentReason: null,
-        accidentInvestigation: null,
-        accidentAbnormal: null,
-        accidentAbnormalOther: null,
-        severity: 'Emergency',
-        flowTemplateId: '',
-        flowData: {}
-      };
-
-      if (!tempIncident.info.socType) {
-        tempIncident.info.socType = 1;
-      }
-
-      this.setState({
-        showFilter: false,
-        originalIncident: _.cloneDeep(tempIncident),
-        incidentType: allValue,
-        displayPage: 'main'
-      });
     } else if (type === 'tableList') {
-      tempIncident.info = _.cloneDeep(incident.info)
+      tempIncident.info = _.cloneDeep(incident.info);
     } else if (type === 'cancel-add') {
       showPage = 'tableList';
-      tempIncident = _.cloneDeep(originalIncident)
+      tempIncident = _.cloneDeep(originalIncident);
+
+      this.setState({
+        incidentFormType: ''
+      });
     } else if (type === 'cancel') {
       showPage = 'viewIncident';
-      tempIncident = _.cloneDeep(originalIncident)
+      tempIncident = _.cloneDeep(originalIncident);
     } else if (type === 'redirect') {
       let alertData = JSON.parse(allValue);
+
       tempIncident.info = {
         title: alertData.Info,
         reporter: alertData.Collector,

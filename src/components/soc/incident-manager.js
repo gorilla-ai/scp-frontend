@@ -1371,9 +1371,9 @@ class IncidentManagement extends Component {
     const {activeContent, incidentFormType, tempSavedData, attach} = this.state;
     let incident = {...this.state.incident};
 
-    if (type === 'save' && !this.checkRequired(incident.info)) {
-      return;
-    }
+    // if (type === 'save' && !this.checkRequired(incident.info)) {
+    //   return;
+    // }
 
     if (incident.info.showFontendRelatedList && incident.info.showFontendRelatedList.length > 0) {
       incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
@@ -1413,85 +1413,60 @@ class IncidentManagement extends Component {
     }
 
     if (incidentFormType === 'EDR') {
-      if (incident.info.ttpList && incident.info.ttpList.length > 0) {
+      let newTtpList = [{
+        obsFileList: []
+      }];
 
-        // if (incident.info.ttpList.obsFileList.title) {
-        //   if (incident.info.ttpList.obsFileList.obsUriList || incident.info.ttpList.obsFileList.obsSocketList) {
+      _.forEach(incident.info.ttpList, val => {
+        newTtpList[0].obsFileList.push(val.obsFileList[0]);
+      })
 
-        //   }
-        // }
+      incident.info.ttpList = newTtpList;
+    }
 
-        // incident.info.ttpList = _.map(incident.info.ttpList, el => {
-        //   if (el.obsFileList && el.obsFileList.length > 0) {
-        //     let obsFileList = [];
+    if (incident.info.ttpList && incident.info.ttpList.length > 0) {
+      incident.info.ttpList = _.map(incident.info.ttpList, el => {
+        if (el.obsFileList && el.obsFileList.length > 0) {
+          let obsFileList = [];
 
-        //     _.forEach(el.obsFileList, val => {
-        //       let processArray = [];
+          _.forEach(el.obsFileList, val => {
+            let processArray = [];
 
-        //       if (val.eventProcessList && val.eventProcessList.length > 0) {
-        //         processArray = _.map(val.eventProcessList, val2 => {
-        //           return val2.process;
-        //         });
-        //       }
-
-        //       obsFileList.push({
-        //         ...val,
-        //         fileSize: Number(val.fileSize),
-        //         createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        //         modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        //         accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        //         incidentMalwareAnalysisDTO: {
-        //           product: val.product,
-        //           resultName: val.resultName,
-        //           result: val.result,
-        //           processArray
-        //         }
-        //       });
-        //     })
-
-        //     return {
-        //       ...el,
-        //       obsFileList
-        //     };
-        //   }
-        // });
-      }
-    } else {
-      if (incident.info.ttpList && incident.info.ttpList.length > 0) {
-        incident.info.ttpList = _.map(incident.info.ttpList, el => {
-          if (el.obsFileList && el.obsFileList.length > 0) {
-            let obsFileList = [];
-
-            _.forEach(el.obsFileList, val => {
-              let processArray = [];
-
-              if (val.eventProcessList && val.eventProcessList.length > 0) {
-                processArray = _.map(val.eventProcessList, val2 => {
-                  return val2.process;
-                });
-              }
-
-              obsFileList.push({
-                ...val,
-                fileSize: Number(val.fileSize),
-                createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-                modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-                accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-                incidentMalwareAnalysisDTO: {
-                  product: val.product,
-                  resultName: val.resultName,
-                  result: val.result,
-                  processArray
-                }
+            if (val.eventProcessList && val.eventProcessList.length > 0) {
+              processArray = _.map(val.eventProcessList, val2 => {
+                return val2.process;
               });
-            })
+            }
 
-            return {
-              ...el,
-              obsFileList
-            };
-          }
-        });
+            obsFileList.push({
+              ...val,
+              fileSize: Number(val.fileSize),
+              createDttm: moment(val.createDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              modifyDttm: moment(val.modifyDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              accessDttm: moment(val.accessDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+              incidentMalwareAnalysisDTO: {
+                product: val.product,
+                resultName: val.resultName,
+                result: val.result,
+                processArray
+              }
+            });
+          })
+
+          return {
+            ...el,
+            obsFileList
+          };
+        }
+      });
+    }
+
+    if (incidentFormType === 'EDR') {
+      if (incident.info.ttpList && incident.info.ttpList.length > 0 && incident.info.edrList && incident.info.edrList.length > 0) {
+        incident.info.ttpList = [{
+          ...incident.info.ttpList[0],
+          ...incident.info.edrList[0]
+        }];
       }
     }
 
@@ -1529,8 +1504,6 @@ class IncidentManagement extends Component {
     }
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    return;
 
     if (type === 'save') {
       let requestData = {
@@ -1606,153 +1579,153 @@ class IncidentManagement extends Component {
   checkRequired = (incident) => {
     const {incidentType, incidentFormType} = this.state;
 
-    // if (!incident.category) {
-    //   PopupDialog.alert({
-    //     title: t('txt-tips'),
-    //     display: it('txt-validCategory'),
-    //     confirmText: t('txt-close')
-    //   });
-    //   return false;
-    // }
+    if (!incident.category) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validCategory'),
+        confirmText: t('txt-close')
+      });
+      return false;
+    }
 
-    // if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
-    //   PopupDialog.alert({
-    //     title: t('txt-tips'),
-    //     display: it('txt-validBasic'),
-    //     confirmText: t('txt-close')
-    //   });
+    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validBasic'),
+        confirmText: t('txt-close')
+      });
 
-    //   return false;
-    // }
+      return false;
+    }
 
-    // // always check event list
-    // if (!incident.eventList) {
-    //   PopupDialog.alert({
-    //     title: t('txt-tips'),
-    //     display: it('txt-validEvents'),
-    //     confirmText: t('txt-close')
-    //   });
+    // always check event list
+    if (!incident.eventList) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validEvents'),
+        confirmText: t('txt-close')
+      });
 
-    //   return false;
-    // } else {
-    //   let eventCheck = true;
+      return false;
+    } else {
+      let eventCheck = true;
 
-    //   if (incident.eventList.length <= 0) {
-    //     PopupDialog.alert({
-    //       title: t('txt-tips'),
-    //       display: it('txt-validEvents'),
-    //       confirmText: t('txt-close')
-    //     });
-    //     eventCheck = false;
-    //   } else {
-    //     _.forEach(incident.eventList, event => {
-    //       if (_.size(event.eventConnectionList) <= 0) {
-    //         PopupDialog.alert({
-    //           title: t('txt-tips'),
-    //           display: it('txt-validEvents'),
-    //           confirmText: t('txt-close')
-    //         });
-    //         eventCheck = false;
-    //       } else {
-    //         _.forEach(event.eventConnectionList, eventConnect => {
-    //           if (!helper.ValidateIP_Address(eventConnect.srcIp) ) {
-    //             PopupDialog.alert({
-    //               title: t('txt-tips'),
-    //               display: t('network-topology.txt-ipValidationFail'),
-    //               confirmText: t('txt-close')
-    //             });
-    //             eventCheck = false;
-    //             return;
-    //           }
+      if (incident.eventList.length <= 0) {
+        PopupDialog.alert({
+          title: t('txt-tips'),
+          display: it('txt-validEvents'),
+          confirmText: t('txt-close')
+        });
+        eventCheck = false;
+      } else {
+        _.forEach(incident.eventList, event => {
+          if (_.size(event.eventConnectionList) <= 0) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-validEvents'),
+              confirmText: t('txt-close')
+            });
+            eventCheck = false;
+          } else {
+            _.forEach(event.eventConnectionList, eventConnect => {
+              if (!helper.ValidateIP_Address(eventConnect.srcIp) ) {
+                PopupDialog.alert({
+                  title: t('txt-tips'),
+                  display: t('network-topology.txt-ipValidationFail'),
+                  confirmText: t('txt-close')
+                });
+                eventCheck = false;
+                return;
+              }
 
-    //           if (!helper.ValidateIP_Address(eventConnect.dstIp)) {
-    //             PopupDialog.alert({
-    //               title: t('txt-tips'),
-    //               display: t('network-topology.txt-ipValidationFail'),
-    //               confirmText: t('txt-close')
-    //             });
-    //             eventCheck = false;
-    //             return;
-    //           }
+              if (!helper.ValidateIP_Address(eventConnect.dstIp)) {
+                PopupDialog.alert({
+                  title: t('txt-tips'),
+                  display: t('network-topology.txt-ipValidationFail'),
+                  confirmText: t('txt-close')
+                });
+                eventCheck = false;
+                return;
+              }
 
-    //           if (eventConnect.dstPort) {
-    //             if (!helper.ValidatePort(eventConnect.dstPort)) {
-    //               PopupDialog.alert({
-    //                 title: t('txt-tips'),
-    //                 display: t('network-topology.txt-portValidationFail'),
-    //                 confirmText: t('txt-close')
-    //               });
-    //               eventCheck = false;
-    //               return;
-    //             }
-    //           }
+              if (eventConnect.dstPort) {
+                if (!helper.ValidatePort(eventConnect.dstPort)) {
+                  PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: t('network-topology.txt-portValidationFail'),
+                    confirmText: t('txt-close')
+                  });
+                  eventCheck = false;
+                  return;
+                }
+              }
 
-    //           if (eventConnect.srcPort) {
-    //             if (!helper.ValidatePort(eventConnect.srcPort)) {
-    //               PopupDialog.alert({
-    //                 title: t('txt-tips'),
-    //                 display: t('network-topology.txt-portValidationFail'),
-    //                 confirmText: t('txt-close')
-    //               });
-    //               eventCheck = false;
-    //             }
-    //           }
+              if (eventConnect.srcPort) {
+                if (!helper.ValidatePort(eventConnect.srcPort)) {
+                  PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: t('network-topology.txt-portValidationFail'),
+                    confirmText: t('txt-close')
+                  });
+                  eventCheck = false;
+                }
+              }
 
-    //           if (incidentFormType === 'EDR') {
-    //             if (eventConnect.dstHostname === '') {
-    //               PopupDialog.alert({
-    //                 title: t('txt-tips'),
-    //                 display: it('txt-validEvents'),
-    //                 confirmText: t('txt-close')
-    //               });
-    //               eventCheck = false;
-    //               return;
-    //             }
-    //           }
-    //         })
-    //       }
-    //     })
-    //   }
+              if (incidentFormType === 'EDR') {
+                if (eventConnect.dstHostname === '') {
+                  PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validEvents'),
+                    confirmText: t('txt-close')
+                  });
+                  eventCheck = false;
+                  return;
+                }
+              }
+            })
+          }
+        })
+      }
 
-    //   if (!eventCheck) {
-    //     return false;
-    //   }
+      if (!eventCheck) {
+        return false;
+      }
 
-    //   let empty = _.filter(incident.eventList, function(o) {
-    //     return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency;
-    //   });
+      let empty = _.filter(incident.eventList, function(o) {
+        return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency;
+      });
 
-    //   if (_.size(empty) > 0) {
-    //     PopupDialog.alert({
-    //       title: t('txt-tips'),
-    //       display: it('txt-validEvents'),
-    //       confirmText: t('txt-close')
-    //     });
+      if (_.size(empty) > 0) {
+        PopupDialog.alert({
+          title: t('txt-tips'),
+          display: it('txt-validEvents'),
+          confirmText: t('txt-close')
+        });
 
-    //     return false;
-    //   }
-    // }
+        return false;
+      }
+    }
 
     // check ttp list
     if (incidentType === 'ttps') {
-      // if (!incident.description) {
-      //   PopupDialog.alert({
-      //     title: t('txt-tips'),
-      //     display: it('txt-validTechniqueInfa'),
-      //     confirmText: t('txt-close')
-      //   });
+      if (!incident.description) {
+        PopupDialog.alert({
+          title: t('txt-tips'),
+          display: it('txt-validTechniqueInfa'),
+          confirmText: t('txt-close')
+        });
 
-      //   return false;
-      // }
+        return false;
+      }
 
       if (!incident.ttpList) {
-        // PopupDialog.alert({
-        //   title: t('txt-tips'),
-        //   display: it('txt-validTTPs'),
-        //   confirmText: t('txt-close')
-        // });
+        PopupDialog.alert({
+          title: t('txt-tips'),
+          display: it('txt-validTTPs'),
+          confirmText: t('txt-close')
+        });
 
-        // return false;
+        return false;
       } else {
         let statusCheck = true;
         let fileCheck = false;
@@ -1760,16 +1733,6 @@ class IncidentManagement extends Component {
         let socketCheck = false;
 
         if (incidentFormType === 'EDR' && incident.edrList) {
-          // const newTtpList = _.map(incident.ttpList, val => {
-          //   return {
-          //     obsFileList: val.obsFileList,
-          //     ...incident.edrList[0]
-          //   }
-          // });
-
-          // console.log(newTtpList);
-          // incident.ttpList = newTtpList;
-
           if (incident.edrList[0].title || incident.edrList[0].infrastructureType) {
             let validate = true;
 
@@ -1873,11 +1836,11 @@ class IncidentManagement extends Component {
             _.forEach(ttp.obsFileList, file => {
               if (file.fileName && file.fileExtension) {
                 if (file.md5 || file.sha1 || file.sha256) {
-                  if (helper.validateInputRuleData('fileHashMd5',file.md5)) {
+                  if (helper.validateInputRuleData('fileHashMd5', file.md5)) {
                     fileCheck = true;
-                  } else if (helper.validateInputRuleData('fileHashSha1',file.sha1)) {
+                  } else if (helper.validateInputRuleData('fileHashSha1', file.sha1)) {
                     fileCheck = true;
-                  } else if (helper.validateInputRuleData('fileHashSha256',file.sha256)) {
+                  } else if (helper.validateInputRuleData('fileHashSha256', file.sha256)) {
                     fileCheck = true;
                   } else {
                     fileCheck = false;
@@ -2008,25 +1971,27 @@ class IncidentManagement extends Component {
           }
         })
 
-        let empty = _.filter(incident.ttpList, function(o) {
-          if (o.infrastructureType === undefined || o.infrastructureType === 0) {
-            o.infrastructureType = '0';
-          }
+        if (incidentFormType !== 'EDR') {
+          let empty = _.filter(incident.ttpList, function(o) {
+            if (o.infrastructureType === undefined || o.infrastructureType === 0) {
+              o.infrastructureType = '0';
+            }
 
-          if (!o.title || !o.infrastructureType) {
+            if (!o.title || !o.infrastructureType) {
+              statusCheck = false;
+            }
+          });
+
+          if (_.size(empty) > 0) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-validTechniqueInfa'),
+              confirmText: t('txt-close')
+            });
             statusCheck = false;
           }
-        });
-
-        if (_.size(empty) > 0) {
-          PopupDialog.alert({
-            title: t('txt-tips'),
-            display: it('txt-validTechniqueInfa'),
-            confirmText: t('txt-close')
-          });
-          statusCheck = false;
+          return statusCheck;
         }
-        return statusCheck;
       }
     }
 
@@ -2034,7 +1999,7 @@ class IncidentManagement extends Component {
   }
   getIncident = (id, type) => {
     const {baseUrl} = this.context;
-    const {activeContent, incidentType, incident, showDeviceListOptions} = this.state;
+    const {incident, showDeviceListOptions} = this.state;
 
     this.handleCloseMenu();
 
@@ -2051,6 +2016,7 @@ class IncidentManagement extends Component {
       temp.showFontendRelatedList = _.map(temp.relatedList, val => {
         return val.incidentRelatedId;
       });
+      const incidentFormType = temp.incidentType;
 
       if (temp.eventList && temp.eventList.length > 0) {
         temp.eventList = _.map(temp.eventList, el => {
@@ -2116,7 +2082,17 @@ class IncidentManagement extends Component {
         })
       }
 
-      let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
+      if (incidentFormType === 'EDR') {
+        temp.edrList = _.cloneDeep(temp.ttpList);
+        delete temp.edrList[0].obsFileList;
+
+        temp.ttpList = _.map(temp.ttpList[0].obsFileList, val => {
+          return {
+            obsFileList: [val]
+          };
+        });
+      }
+
       let toggleType = type;
       tempIncident.info = temp;
 
@@ -2137,7 +2113,8 @@ class IncidentManagement extends Component {
 
       this.setState({
         incident: tempIncident,
-        incidentType,
+        incidentType: _.size(temp.ttpList) > 0 ? 'ttps' : 'events',
+        incidentFormType,
         toggleType,
         showDeviceListOptions: tempShowDeviceListOptions
       }, () => {
@@ -2633,11 +2610,11 @@ class IncidentManagement extends Component {
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string} allValue - new page number
    * @param {string} savedData - new page number
-   * @param {string} incidentFormType - incident Type ('monitor', 'analyze' or 'EDR')
+   * @param {string} formType - incident form type ('monitor', 'analyze' or 'EDR')
    */
-  toggleContent = (type, allValue, savedData, incidentFormType) => {
+  toggleContent = (type, allValue, savedData, formType) => {
     const {baseUrl, contextRoot} = this.context;
-    const {originalIncident, incident, tempSavedData, loadListType} = this.state;
+    const {originalIncident, incident, incidentFormType, tempSavedData, loadListType} = this.state;
     let tempIncident = {...incident};
     let showPage = type;
 
@@ -2679,6 +2656,10 @@ class IncidentManagement extends Component {
         severity: allValue.severity,
         flowTemplateId: allValue.flowTemplateId
       };
+
+      if (incidentFormType === 'EDR') {
+        tempIncident.info.edrList = allValue.edrList;
+      }
 
       if (!tempIncident.info.socType) {
         tempIncident.info.socType = 1;
@@ -2738,7 +2719,7 @@ class IncidentManagement extends Component {
         showFilter: false,
         originalIncident: _.cloneDeep(tempIncident),
         incidentType: allValue,
-        incidentFormType,
+        incidentFormType: formType,
         displayPage: 'main'
       });
     } else if (type === 'tableList') {
