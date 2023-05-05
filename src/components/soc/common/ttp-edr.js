@@ -68,10 +68,9 @@ class TtpEdr extends Component {
       value: {
         title,
         infrastructureType,
-        etsList,
-        obsFileList,
         obsUriList,
-        obsSocketList
+        obsSocketList,
+        etsList
       }
     } = this.props;
 
@@ -133,6 +132,10 @@ class TtpEdr extends Component {
               id='obsUri'
               className='ttp-group'
               base={TtpObsUri}
+              defaultItemValue={{
+                uriType: '',
+                uriValue: ''
+              }}
               value={obsUriList}
               props={{
                 disabledStatus
@@ -149,6 +152,10 @@ class TtpEdr extends Component {
               id='obsSocket'
               className='ttp-group'
               base={TtpObsSocket}
+              defaultItemValue={{
+                ip: '',
+                port: ''
+              }}
               value={obsSocketList}
               props={{
                 disabledStatus
@@ -165,6 +172,10 @@ class TtpEdr extends Component {
               id='ttpEts'
               className='ttp-group'
               base={TtpEts}
+              defaultItemValue={{
+                cveId: '',
+                description: ''
+              }}
               value={etsList}
               props={{
                 disabledStatus

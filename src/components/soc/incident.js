@@ -570,6 +570,7 @@ class Incident extends Component {
             handleEventsChange={this.handleEventsChange}
             handleKillChainChange={this.handleKillChainChange}
             handleTtpsChange={this.handleTtpsChange}
+            handleTtpEdrChange={this.handleTtpEdrChange}
             toggleRelatedListModal={this.toggleRelatedListModal}
             refreshIncidentAttach={this.refreshIncidentAttach}
             toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
@@ -842,14 +843,31 @@ class Incident extends Component {
       incident: temp
     });
   }
+  handleTtpEdrChange = (val, event) => {
+    let temp = {...this.state.incident};
+
+    if (val[0] && val[0].obsSocketList) { //Handle special case for obsSocketList
+      const obsSocket = val[0].obsSocketList[0];
+
+      if (obsSocket && !obsSocket.ip && !obsSocket.port) {
+        val[0].obsSocketList = [];
+      }
+    }
+
+    temp.info.edrList = val;
+
+    this.setState({
+      incident: temp
+    });
+  }
   handleSubmit = () => {
     const {baseUrl, contextRoot, session} = this.context;
     const {activeContent, incidentType, incidentFormType, attach} = this.state;
     let incident = {...this.state.incident};
 
-    // if (!this.checkRequired(incident.info)) {
-    //   return;
-    // }
+    if (!this.checkRequired(incident.info)) {
+      return;
+    }
 
     if (incident.info.showFontendRelatedList && incident.info.showFontendRelatedList.length > 0) {
       incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
@@ -976,7 +994,7 @@ class Incident extends Component {
     }
 
     if (incidentFormType) {
-      requestData.incidentType = incidentFormType;
+      incident.info.incidentType = incidentFormType;
     }
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -1013,19 +1031,19 @@ class Incident extends Component {
   checkRequired = (incident) => {
     const {incidentType, incidentFormType} = this.state;
 
-    if (!incident.category) {
+    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
       PopupDialog.alert({
         title: t('txt-tips'),
-        display: it('txt-validCategory'),
+        display: it('txt-validBasic'),
         confirmText: t('txt-close')
       });
       return false;
     }
 
-    if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
+    if (!incident.category) {
       PopupDialog.alert({
         title: t('txt-tips'),
-        display: it('txt-validBasic'),
+        display: it('txt-validCategory'),
         confirmText: t('txt-close')
       });
       return false;
@@ -1107,7 +1125,7 @@ class Incident extends Component {
                 if (eventConnect.dstHostname === '') {
                   PopupDialog.alert({
                     title: t('txt-tips'),
-                    display: it('txt-validEvents'),
+                    display: it('txt-validDstHostname'),
                     confirmText: t('txt-close')
                   });
                   eventCheck = false;
@@ -1124,7 +1142,7 @@ class Incident extends Component {
       }
 
       const empty = _.filter(incident.eventList, function(o) {
-        return !o.description || !o.deviceId || !o.eventConnectionList  || !o.frequency;
+        return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency;
       });
 
       if (_.size(empty) > 0) {
@@ -1133,22 +1151,12 @@ class Incident extends Component {
           display: it('txt-validEvents'),
           confirmText: t('txt-close')
         });
-
         return false;
       }
     }
 
     // check ttp list
     if (incidentType === 'ttps') {
-      if (!incident.description) {
-        PopupDialog.alert({
-          title: t('txt-tips'),
-          display: it('txt-validTechniqueInfa'),
-          confirmText: t('txt-close')
-        });
-        return false;
-      }
-
       if (!incident.ttpList) {
         PopupDialog.alert({
           title: t('txt-tips'),
@@ -1159,19 +1167,23 @@ class Incident extends Component {
       } else {
         let statusCheck = true;
         let fileCheck = false;
+        let edrCheck = false;
         let urlCheck = false;
         let socketCheck = false;
 
         _.forEach(incident.ttpList, ttp => {
           if (_.size(ttp.obsFileList) > 0) {
             _.forEach(ttp.obsFileList, file => {
-              if (file.fileName && file.fileExtension) {
+              if (!file.fileName || !file.fileExtension) {
+                fileCheck = false;
+                return;
+              } else {
                 if (file.md5 || file.sha1 || file.sha256) {
                   if (helper.validateInputRuleData('fileHashMd5', file.md5)) {
                     fileCheck = true;
-                  } else if (helper.validateInputRuleData('fileHashSha1',file.sha1)) {
+                  } else if (helper.validateInputRuleData('fileHashSha1', file.sha1)) {
                     fileCheck = true;
-                  } else if (helper.validateInputRuleData('fileHashSha256',file.sha256)) {
+                  } else if (helper.validateInputRuleData('fileHashSha256', file.sha256)) {
                     fileCheck = true;
                   } else {
                     fileCheck = false;
@@ -1181,6 +1193,13 @@ class Incident extends Component {
                   fileCheck = false;
                   return;
                 }
+              }
+
+              if (!file.fileSize || !file.createDttm || !file.modifyDttm || !file.accessDttm || !file.product || !file.uploadFileName || !file.tmpFileId || !file.resultName) {
+                fileCheck = false;
+                return;
+              } else {
+                fileCheck = true;
               }
             })
           } else {
@@ -1200,8 +1219,168 @@ class Incident extends Component {
             urlCheck = true;
           }
 
-          if (_.size(ttp.obsSocketList) > 0) {
-            _.forEach(ttp.obsSocketList, socket => {
+          if (incidentFormType !== 'EDR') {
+            if (_.size(ttp.obsSocketList) > 0) {
+              _.forEach(ttp.obsSocketList, socket => {
+                if (socket.ip || socket.port) {
+                  if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
+                    PopupDialog.alert({
+                      title: t('txt-tips'),
+                      display: t('network-topology.txt-ipValidationFail'),
+                      confirmText: t('txt-close')
+                    });
+                    socketCheck = false;
+                    return;
+                  }
+
+                  if (socket.port) {
+                    if (!helper.ValidatePort(socket.port)) {
+                      PopupDialog.alert({
+                        title: t('txt-tips'),
+                        display: t('network-topology.txt-portValidationFail'),
+                        confirmText: t('txt-close')
+                      });
+                      socketCheck = false;
+                      return;
+                    } else {
+                      if (!socket.ip) {
+                        PopupDialog.alert({
+                          title: t('txt-tips'),
+                          display: t('network-topology.txt-ipValidationFail'),
+                          confirmText: t('txt-close')
+                        });
+                        socketCheck = false;
+                        return;
+                      }
+                      socketCheck = true;
+                    }
+                  }
+                  socketCheck = true;
+                } else {
+                  socketCheck = false;
+                  return;
+                }
+              })
+            } else {
+              socketCheck = true;
+            }
+
+            if (!fileCheck && !urlCheck && !socketCheck) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
+                confirmText: t('txt-close')
+              });
+              statusCheck = false;
+            }
+          }
+
+          if (!fileCheck) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-checkFileFieldType'),
+              confirmText: t('txt-close')
+            });
+            statusCheck = false;
+          }
+
+          if (incidentFormType !== 'EDR') {
+            if (!urlCheck) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-checkUrlFieldType'),
+                confirmText: t('txt-close')
+              });
+              statusCheck = false;
+            }
+            if (!socketCheck) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-checkIPFieldType'),
+                confirmText: t('txt-close')
+              });
+              statusCheck = false;
+            }
+
+            if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
+                confirmText: t('txt-close')
+              });
+              statusCheck = false;
+            }
+          }
+        })
+
+        if (incidentFormType !== 'EDR') {
+          const empty = _.filter(incident.ttpList, function(o) {
+            if (o.infrastructureType === undefined || o.infrastructureType === 0) {
+              o.infrastructureType = '0';
+            }
+
+            if (!o.title || !o.infrastructureType) {
+              statusCheck = false;
+            }
+          });
+
+          if (_.size(empty) > 0) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-validTechniqueInfa'),
+              confirmText: t('txt-close')
+            });
+            statusCheck = false;
+          }
+          return statusCheck;
+        }
+
+        if (incidentFormType === 'EDR' && incident.edrList && incident.edrList.length > 0) {
+          if (incident.edrList[0].title || incident.edrList[0].infrastructureType) {
+            edrCheck = true;
+
+            if (!incident.edrList[0].title && !incident.edrList[0].infrastructureType) {
+              edrCheck = false;
+            }
+
+            if (_.isEmpty(incident.edrList[0].obsUriList) && _.isEmpty(incident.edrList[0].obsSocketList)) {
+              edrCheck = false;
+            }
+
+            if (!edrCheck) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                confirmText: t('txt-close')
+              });
+              return;
+            }
+          }
+
+          if (incident.edrList[0].obsUriList && _.size(incident.edrList[0].obsUriList) > 0) {
+            _.forEach(incident.edrList[0].obsUriList, uri => {
+              if (uri.uriType && uri.uriValue) {
+                urlCheck = true;
+              } else {
+                urlCheck = false;
+                return;
+              }
+            })
+          } else {
+            urlCheck = true;
+          }
+
+          if (!urlCheck) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-checkUrlFieldType'),
+              confirmText: t('txt-close')
+            });
+            return;
+          }
+
+          if (incident.edrList[0].obsSocketList && _.size(incident.edrList[0].obsSocketList) > 0) {
+            _.forEach(incident.edrList[0].obsSocketList, socket => {
               if (socket.ip || socket.port) {
                 if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
                   PopupDialog.alert({
@@ -1234,81 +1413,27 @@ class Incident extends Component {
                     }
                     socketCheck = true;
                   }
+                } else {
+                  socketCheck = false;
+                  return;
                 }
-                socketCheck = true;
               } else {
-                socketCheck = false;
-                return;
+                socketCheck = true;
               }
             })
           } else {
             socketCheck = true;
           }
 
-          if (!fileCheck && !urlCheck && !socketCheck) {
-            PopupDialog.alert({
-              title: t('txt-tips'),
-              display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
-              confirmText: t('txt-close')
-            });
-            statusCheck = false;
-          }
-
-          if (!fileCheck) {
-            PopupDialog.alert({
-              title: t('txt-tips'),
-              display: it('txt-checkFileFieldType'),
-              confirmText: t('txt-close')
-            });
-            statusCheck = false;
-          }
-
-          if (!urlCheck) {
-            PopupDialog.alert({
-              title: t('txt-tips'),
-              display: it('txt-checkUrlFieldType'),
-              confirmText: t('txt-close')
-            });
-            statusCheck = false;
-          }
           if (!socketCheck) {
             PopupDialog.alert({
               title: t('txt-tips'),
               display: it('txt-checkIPFieldType'),
               confirmText: t('txt-close')
             });
-            statusCheck = false;
+            return;
           }
-
-          if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0) {
-            PopupDialog.alert({
-              title: t('txt-tips'),
-              display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
-              confirmText: t('txt-close')
-            });
-            statusCheck = false;
-          }
-        })
-
-        const empty = _.filter(incident.ttpList, function(o) {
-          if (o.infrastructureType === undefined || o.infrastructureType === 0) {
-            o.infrastructureType = '0';
-          }
-
-          if (!o.title || !o.infrastructureType) {
-            statusCheck = false;
-          }
-        });
-
-        if (_.size(empty) > 0) {
-          PopupDialog.alert({
-            title: t('txt-tips'),
-            display: it('txt-validTechniqueInfa'),
-            confirmText: t('txt-close')
-          });
-          statusCheck = false;
         }
-
         return statusCheck;
       }
     }

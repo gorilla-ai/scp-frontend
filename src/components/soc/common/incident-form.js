@@ -1138,6 +1138,13 @@ class IncidentForm extends Component {
             id='incidentTtpEdr'
             className='incident-group edr'
             base={TtpEdr}
+            defaultItemValue={{
+              title: '',
+              infrastructureType: '',
+              obsUriList: [],
+              obsSocketList: [],
+              etsList: []
+            }}
             value={incident.info.edrList}
             props={{
               disabledStatus

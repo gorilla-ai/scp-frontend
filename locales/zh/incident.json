@@ -167,6 +167,7 @@
 	"txt-validTechniqueInfa": "請檢查是否正確輸入手法描述及指標類型資料",
 	"txt-validTTPs": "請檢查是否正確輸入攻擊手法資料",
 	"txt-validEvents": "請檢查是否正確輸入監控觸發紀錄資料",
+	"txt-validDstHostname": "請檢查是否正確輸入目標主機",
 	"txt-validCategory": "請檢查是否正確輸入事件類別",
 	"txt-validBasic": "請檢查是否正確輸入事件單基本資料",
 	"txt-portValidationFail": "請輸入正確Port格式",

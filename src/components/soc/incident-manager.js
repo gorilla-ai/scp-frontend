@@ -1355,6 +1355,15 @@ class IncidentManagement extends Component {
   }
   handleTtpEdrChange = (val, event) => {
     let temp = {...this.state.incident};
+
+    if (val[0] && val[0].obsSocketList) { //Handle special case for obsSocketList
+      const obsSocket = val[0].obsSocketList[0];
+
+      if (obsSocket && !obsSocket.ip && !obsSocket.port) {
+        val[0].obsSocketList = [];
+      }
+    }
+
     temp.info.edrList = val;
 
     this.setState({
@@ -1371,9 +1380,9 @@ class IncidentManagement extends Component {
     const {activeContent, incidentFormType, tempSavedData, attach} = this.state;
     let incident = {...this.state.incident};
 
-    // if (type === 'save' && !this.checkRequired(incident.info)) {
-    //   return;
-    // }
+    if (type === 'save' && !this.checkRequired(incident.info)) {
+      return;
+    }
 
     if (incident.info.showFontendRelatedList && incident.info.showFontendRelatedList.length > 0) {
       incident.info.relatedList = _.map(incident.info.showFontendRelatedList, val => {
@@ -1579,22 +1588,21 @@ class IncidentManagement extends Component {
   checkRequired = (incident) => {
     const {incidentType, incidentFormType} = this.state;
 
-    if (!incident.category) {
-      PopupDialog.alert({
-        title: t('txt-tips'),
-        display: it('txt-validCategory'),
-        confirmText: t('txt-close')
-      });
-      return false;
-    }
-
     if (!incident.title || !incident.incidentDescription || !incident.reporter || !incident.attackName || !incident.description || !incident.impactAssessment || !incident.socType || !incident.severity || !incident.flowTemplateId) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-validBasic'),
         confirmText: t('txt-close')
       });
+      return false;
+    }
 
+    if (!incident.category) {
+      PopupDialog.alert({
+        title: t('txt-tips'),
+        display: it('txt-validCategory'),
+        confirmText: t('txt-close')
+      });
       return false;
     }
 
@@ -1605,7 +1613,6 @@ class IncidentManagement extends Component {
         display: it('txt-validEvents'),
         confirmText: t('txt-close')
       });
-
       return false;
     } else {
       let eventCheck = true;
@@ -1675,7 +1682,7 @@ class IncidentManagement extends Component {
                 if (eventConnect.dstHostname === '') {
                   PopupDialog.alert({
                     title: t('txt-tips'),
-                    display: it('txt-validEvents'),
+                    display: it('txt-validDstHostname'),
                     confirmText: t('txt-close')
                   });
                   eventCheck = false;
@@ -1691,7 +1698,7 @@ class IncidentManagement extends Component {
         return false;
       }
 
-      let empty = _.filter(incident.eventList, function(o) {
+      const empty = _.filter(incident.eventList, function(o) {
         return !o.description || !o.deviceId || !o.eventConnectionList || !o.frequency;
       });
 
@@ -1701,140 +1708,33 @@ class IncidentManagement extends Component {
           display: it('txt-validEvents'),
           confirmText: t('txt-close')
         });
-
         return false;
       }
     }
 
     // check ttp list
     if (incidentType === 'ttps') {
-      if (!incident.description) {
-        PopupDialog.alert({
-          title: t('txt-tips'),
-          display: it('txt-validTechniqueInfa'),
-          confirmText: t('txt-close')
-        });
-
-        return false;
-      }
-
       if (!incident.ttpList) {
         PopupDialog.alert({
           title: t('txt-tips'),
           display: it('txt-validTTPs'),
           confirmText: t('txt-close')
         });
-
         return false;
       } else {
         let statusCheck = true;
         let fileCheck = false;
+        let edrCheck = false;
         let urlCheck = false;
         let socketCheck = false;
-
-        if (incidentFormType === 'EDR' && incident.edrList) {
-          if (incident.edrList[0].title || incident.edrList[0].infrastructureType) {
-            let validate = true;
-
-            if (!incident.edrList[0].title && !incident.edrList[0].infrastructureType) {
-              validate = false;
-            }
-
-            if (_.isEmpty(incident.edrList[0].obsUriList) && _.isEmpty(incident.edrList[0].obsSocketList)) {
-              validate = false;
-            }
-
-            if (!validate) {
-              PopupDialog.alert({
-                title: t('txt-tips'),
-                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
-                confirmText: t('txt-close')
-              });
-              return;
-            }
-          }
-
-          if (incident.edrList[0].obsUriList && _.size(incident.edrList[0].obsUriList) > 0) {
-            _.forEach(incident.edrList[0].obsUriList, uri => {
-              if (uri.uriType && uri.uriValue) {
-                urlCheck = true;
-              } else {
-                urlCheck = false;
-                return;
-              }
-            })
-          } else {
-            urlCheck = true;
-          }
-
-          if (!urlCheck) {
-            PopupDialog.alert({
-              title: t('txt-tips'),
-              display: it('txt-checkUrlFieldType'),
-              confirmText: t('txt-close')
-            });
-            return;
-          }
-
-          if (incident.edrList[0].obsSocketList && _.size(incident.edrList[0].obsSocketList) > 0) {
-            _.forEach(incident.edrList[0].obsSocketList, socket => {
-              if (socket.ip || socket.port) {
-                if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
-                  PopupDialog.alert({
-                    title: t('txt-tips'),
-                    display: t('network-topology.txt-ipValidationFail'),
-                    confirmText: t('txt-close')
-                  });
-                  socketCheck = false;
-                  return;
-                }
-
-                if (socket.port) {
-                  if (!helper.ValidatePort(socket.port)) {
-                    PopupDialog.alert({
-                      title: t('txt-tips'),
-                      display: t('network-topology.txt-portValidationFail'),
-                      confirmText: t('txt-close')
-                    });
-                    socketCheck = false;
-                    return;
-                  } else {
-                    if (!socket.ip) {
-                      PopupDialog.alert({
-                        title: t('txt-tips'),
-                        display: t('network-topology.txt-ipValidationFail'),
-                        confirmText: t('txt-close')
-                      });
-                      socketCheck = false;
-                      return
-                    }
-                    socketCheck = true;
-                  }
-                }
-                socketCheck = true;
-              } else {
-                socketCheck = false;
-                return;
-              }
-            })
-          } else {
-            socketCheck = true;
-          }
-
-          if (!socketCheck) {
-            PopupDialog.alert({
-              title: t('txt-tips'),
-              display: it('txt-checkIPFieldType'),
-              confirmText: t('txt-close')
-            });
-            return;
-          }
-        }
 
         _.forEach(incident.ttpList, ttp => {
           if (_.size(ttp.obsFileList) > 0) {
             _.forEach(ttp.obsFileList, file => {
-              if (file.fileName && file.fileExtension) {
+              if (!file.fileName || !file.fileExtension) {
+                fileCheck = false;
+                return;
+              } else {
                 if (file.md5 || file.sha1 || file.sha256) {
                   if (helper.validateInputRuleData('fileHashMd5', file.md5)) {
                     fileCheck = true;
@@ -1972,7 +1872,7 @@ class IncidentManagement extends Component {
         })
 
         if (incidentFormType !== 'EDR') {
-          let empty = _.filter(incident.ttpList, function(o) {
+          const empty = _.filter(incident.ttpList, function(o) {
             if (o.infrastructureType === undefined || o.infrastructureType === 0) {
               o.infrastructureType = '0';
             }
@@ -1992,9 +1892,109 @@ class IncidentManagement extends Component {
           }
           return statusCheck;
         }
+
+        if (incidentFormType === 'EDR' && incident.edrList && incident.edrList.length > 0) {
+          if (incident.edrList[0].title || incident.edrList[0].infrastructureType) {
+            edrCheck = true;
+
+            if (!incident.edrList[0].title && !incident.edrList[0].infrastructureType) {
+              edrCheck = false;
+            }
+
+            if (_.isEmpty(incident.edrList[0].obsUriList) && _.isEmpty(incident.edrList[0].obsSocketList)) {
+              edrCheck = false;
+            }
+
+            if (!edrCheck) {
+              PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                confirmText: t('txt-close')
+              });
+              return;
+            }
+          }
+
+          if (incident.edrList[0].obsUriList && _.size(incident.edrList[0].obsUriList) > 0) {
+            _.forEach(incident.edrList[0].obsUriList, uri => {
+              if (uri.uriType && uri.uriValue) {
+                urlCheck = true;
+              } else {
+                urlCheck = false;
+                return;
+              }
+            })
+          } else {
+            urlCheck = true;
+          }
+
+          if (!urlCheck) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-checkUrlFieldType'),
+              confirmText: t('txt-close')
+            });
+            return;
+          }
+
+          if (incident.edrList[0].obsSocketList && _.size(incident.edrList[0].obsSocketList) > 0) {
+            _.forEach(incident.edrList[0].obsSocketList, socket => {
+              if (socket.ip || socket.port) {
+                if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
+                  PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: t('network-topology.txt-ipValidationFail'),
+                    confirmText: t('txt-close')
+                  });
+                  socketCheck = false;
+                  return;
+                }
+
+                if (socket.port) {
+                  if (!helper.ValidatePort(socket.port)) {
+                    PopupDialog.alert({
+                      title: t('txt-tips'),
+                      display: t('network-topology.txt-portValidationFail'),
+                      confirmText: t('txt-close')
+                    });
+                    socketCheck = false;
+                    return;
+                  } else {
+                    if (!socket.ip) {
+                      PopupDialog.alert({
+                        title: t('txt-tips'),
+                        display: t('network-topology.txt-ipValidationFail'),
+                        confirmText: t('txt-close')
+                      });
+                      socketCheck = false;
+                      return;
+                    }
+                    socketCheck = true;
+                  }
+                } else {
+                  socketCheck = false;
+                  return;
+                }
+              } else {
+                socketCheck = true;
+              }
+            })
+          } else {
+            socketCheck = true;
+          }
+
+          if (!socketCheck) {
+            PopupDialog.alert({
+              title: t('txt-tips'),
+              display: it('txt-checkIPFieldType'),
+              confirmText: t('txt-close')
+            });
+            return;
+          }
+        }
+        return statusCheck;
       }
     }
-
     return true;
   }
   getIncident = (id, type) => {
