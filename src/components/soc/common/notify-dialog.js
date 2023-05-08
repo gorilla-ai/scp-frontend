@@ -85,7 +85,7 @@ class NotifyDialog extends Component {
     this.setState({
       emailCheckAll: !this.state.emailCheckAll
     }, () => {
-      const {notifyEmailList, emailCheckAll} = this.state;
+      const {emailCheckAll, notifyEmailList} = this.state;
       let emailSelectedList = [];
 
       if (emailCheckAll) {
@@ -109,7 +109,6 @@ class NotifyDialog extends Component {
     const {notifyEmailList, phoneSelectedList, emailSelectedList} = this.state;
 
     if (type === 'phone') {
-      let phoneCheckAll = false;
       let tempPhoneSelectedList = _.cloneDeep(phoneSelectedList);
 
       if (event.target.checked) {
@@ -120,16 +119,11 @@ class NotifyDialog extends Component {
         });
       }
 
-      if (tempPhoneSelectedList.length === notifyEmailList.length) {
-        phoneCheckAll = true;
-      }
-
       this.setState({
-        phoneCheckAll,
+        phoneCheckAll: tempPhoneSelectedList.length === notifyEmailList.length,
         phoneSelectedList: tempPhoneSelectedList
       });
     } else if (type === 'email') {
-      let emailCheckAll = false;
       let tempEmailSelectedList = _.cloneDeep(emailSelectedList);
 
       if (event.target.checked) {
@@ -140,12 +134,8 @@ class NotifyDialog extends Component {
         });
       }
 
-      if (tempEmailSelectedList.length === notifyEmailList.length) {
-        emailCheckAll = true;
-      }
-
       this.setState({
-        emailCheckAll,
+        emailCheckAll: tempEmailSelectedList.length === notifyEmailList.length,
         emailSelectedList: tempEmailSelectedList
       });
     }

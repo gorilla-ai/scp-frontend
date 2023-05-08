@@ -615,6 +615,7 @@
     "fileFamily": "File Family",
     "fileSeverity": "File Severity",
     "fileResult": "File Result",
+    "malwareTypes": "Malware Types",
     "uriType": "URI Type",
     "uriValue": "URI Value",
     "domain": "Domain",

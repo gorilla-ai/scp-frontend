@@ -177,6 +177,7 @@
 	"txt-new": "新增",
 	"txt-update": "更新",
 	"txt-delete": "刪除",
+	"txt-send": "發布",
 	"txt-validAbbreviationType": "請檢查英文縮寫是否輸入特殊字元，目前字元只支援 _ 及 - ",
 
 	"txt-soc-filter": "查詢條件基本資料",

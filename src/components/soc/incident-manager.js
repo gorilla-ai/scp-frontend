@@ -83,6 +83,7 @@ class IncidentManagement extends Component {
       relatedListOpen: false,
       uploadAttachmentOpen: false,
       statisticsReportOpen: false,
+      sendIncidentOpen: false,
       tempSavedData: {},
       currentIncident: {},
       originalIncident: {},
@@ -145,6 +146,10 @@ class IncidentManagement extends Component {
         date: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
         info: ''
       },
+      activeIncidentId: '',
+      attachmentCheckAll: false,
+      attachmentList: [],
+      attachmentSelectedList: [],
       contextAnchor: null,
       menuType: '', //'incidentMenu' or 'tableMenu'
       currentData: {},
@@ -904,7 +909,7 @@ class IncidentManagement extends Component {
               <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'closeV2')}>{it('txt-close')}</Button>
             }
             {publishCheck &&
-              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
+              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleSendIncident.bind(this, incident.info)}>{it('txt-send')}</Button>
             }
             {deleteCheck &&
               <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'delete')}>{it('txt-delete')}</Button>
@@ -1320,6 +1325,169 @@ class IncidentManagement extends Component {
         monthlyReport: tempMonthlyReport
       });
     }
+  }
+  /**
+   * Toggle send incident modal
+   * @method
+   * @param {object} [currentData] - incident data
+   */
+  toggleSendIncident = (currentData) => {
+    if (currentData && currentData.id) {
+      const attachmentList = currentData.attachmentDescription ? JSON.parse(currentData.attachmentDescription) : [];
+
+      this.setState({
+        activeIncidentId: currentData.id,
+        attachmentCheckAll: false,
+        attachmentList,
+        attachmentSelectedList: []
+      }, () => {
+        this.setState({
+          sendIncidentOpen: true
+        });
+      });
+    } else {
+      this.setState({
+        sendIncidentOpen: false
+      });
+    }
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle attachment checkbox for all
+   * @method
+   * @param {object} event - event object
+   */
+  toggleAttachmentCheckAll = (event) => {
+    this.setState({
+      attachmentCheckAll: !this.state.attachmentCheckAll
+    }, () => {
+      const {attachmentCheckAll, attachmentList} = this.state;
+      let attachmentSelectedList = [];
+
+      if (attachmentCheckAll) {
+        attachmentSelectedList = attachmentList.map(val => {
+          return val.fileName;
+        });
+      }
+
+      this.setState({
+        attachmentSelectedList
+      });
+    });
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleAttachmentCheckbox = (event) => {
+    const {attachmentList, attachmentSelectedList} = this.state;
+    let tempAttachmentSelectedList = _.cloneDeep(attachmentSelectedList);
+
+    if (event.target.checked) {
+      tempAttachmentSelectedList.push(event.target.name);
+    } else {
+      const index = tempAttachmentSelectedList.indexOf(event.target.name);
+      tempAttachmentSelectedList.splice(index, 1);
+    }
+
+    this.setState({
+      attachmentCheckAll: tempAttachmentSelectedList.length === attachmentList.length,
+      attachmentSelectedList: tempAttachmentSelectedList
+    });
+  }
+  /**
+   * Display checkbox for attachment list
+   * @method
+   * @param {object} val - individual attachment list
+   * @param {number} i - index of the attachment list
+   * @returns FormControlLabel component
+   */
+  showCheckboxList = (val, i) => {
+    return (
+      <tr key={i}>
+        <td>
+          <FormControlLabel
+            key={i}
+            control={
+              <Checkbox
+                className='checkbox-ui'
+                name={val.fileName}
+                checked={_.includes(this.state.attachmentSelectedList, val.fileName)}
+                onChange={this.toggleAttachmentCheckbox}
+                color='primary' />
+            } />
+        </td>
+        <td>{val.fileName}</td>
+        <td>{val.fileMemo}</td>
+      </tr>
+    )
+  }
+  /**
+   * Display send incident content
+   * @method
+   * @returns HTML DOM
+   */  
+  sendIncidentContent = () => {
+    const {activeIncidentId, attachmentCheckAll, attachmentList} = this.state;
+
+    return (
+      <div>
+        <div className='msg'>
+          <span>{it('txt-send-msg')}: {activeIncidentId}?</span>
+        </div>
+        {attachmentList.length > 0 &&
+          <table className='c-table main-table with-border'>
+            <thead>
+              <tr>
+                <th>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        className='checkbox-ui'
+                        name='emailCheckAll'
+                        checked={attachmentCheckAll}
+                        onChange={this.toggleAttachmentCheckAll}
+                        color='primary' />
+                    } />
+                </th>
+                <th>{t('txt-fileName')}</th>
+                <th>{t('txt-memo')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attachmentList.map(this.showCheckboxList)}
+            </tbody>
+          </table>
+        }
+      </div>
+    )
+  }
+  /**
+   * Handle send incident modal
+   * @method
+   * @returns ModalDialog component
+   */
+  sendIncidentModal = () => {
+    const {activeIncidentId} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleSendIncident},
+      confirm: {text: t('txt-confirm'), handler: this.sendIncident.bind(this, activeIncidentId)}
+    };
+
+    return (
+      <ModalDialog
+        id='sendIncidentDialog'
+        className='modal-dialog'
+        title={it('txt-send')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.sendIncidentContent()}
+      </ModalDialog>
+    )
   }
   handleConnectContactChange = (val) => {
     let temp = {...this.state.incident};
@@ -2505,7 +2673,7 @@ class IncidentManagement extends Component {
       }
     })
   }
-  openReviewModal= (allValue, reviewType) => {
+  openReviewModal = (allValue, reviewType) => {
     this.handleCloseMenu();
 
     PopupDialog.prompt({
@@ -2520,29 +2688,6 @@ class IncidentManagement extends Component {
       act: (confirmed, data) => {
         if (confirmed) {
           this.openIncidentReview(allValue.id, reviewType);
-        }
-      }
-    });
-  }
-  /**
-   * Show Send Incident dialog
-   * @method
-   * @param {object} allValue - IncidentDevice data
-   */
-  openSendMenu = (id) => {
-    PopupDialog.prompt({
-      title: it('txt-send'),
-      id: 'modalWindowSmall',
-      confirmText: it('txt-send'),
-      cancelText: t('txt-cancel'),
-      display: (
-        <div className='content delete'>
-          <span>{it('txt-send-msg')}: {id} ?</span>
-        </div>
-      ),
-      act: (confirmed, data) => {
-        if (confirmed) {
-          this.sendIncident(id);
         }
       }
     });
@@ -2908,20 +3053,28 @@ class IncidentManagement extends Component {
   }
   /**
    * Send Incident
-   * @param {string} id
+   * @param {string} id - active incident ID
    */
   sendIncident = (id) => {
     const {baseUrl} = this.context;
-    const {loadListType} = this.state;
-    const tmp = {
+    const {loadListType, attachmentList} = this.state;
+    const fileNameList = _.map(attachmentList, val => {
+      return val.fileName
+    });
+
+    let requestData = {
       id
     };
+
+    if (fileNameList.length > 0) {
+      requestData.fileNameList = fileNameList;
+    }
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/soc/_send`,
-      data: JSON.stringify(tmp),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json'
@@ -2941,6 +3094,7 @@ class IncidentManagement extends Component {
     })
 
     this.handleCloseMenu();
+    this.toggleSendIncident();
   }
   /**
    * Open audit finish dialog
@@ -3727,6 +3881,7 @@ class IncidentManagement extends Component {
       relatedListOpen,
       uploadAttachmentOpen,
       statisticsReportOpen,
+      sendIncidentOpen,
       loadListType
     } = this.state;
     let insertCheck = false;
@@ -3793,6 +3948,10 @@ class IncidentManagement extends Component {
           this.statisticsReportModal()
         }
 
+        {sendIncidentOpen &&
+          this.sendIncidentModal()
+        }
+
         <Menu
           anchorEl={contextAnchor}
           keepMounted
@@ -3829,7 +3988,7 @@ class IncidentManagement extends Component {
           }
 
           {sendCheck &&
-            <MenuItem onClick={this.sendIncident.bind(this, currentData.id)}>{it('txt-send')}</MenuItem>
+            <MenuItem onClick={this.toggleSendIncident.bind(this, currentData)}>{it('txt-send')}</MenuItem>
           }
 
           {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED &&

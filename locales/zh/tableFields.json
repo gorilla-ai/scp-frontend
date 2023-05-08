@@ -615,6 +615,7 @@
     "fileFamily": "惡意程式家族",
     "fileSeverity": "威脅等級",
     "fileResult": "分析結果",
+    "malwareTypes": "惡意程式類型",
     "uriType": "URI類型",
     "uriValue": "URI內容",
     "domain": "網域",

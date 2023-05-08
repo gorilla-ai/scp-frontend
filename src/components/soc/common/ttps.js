@@ -145,7 +145,8 @@ class Ttps extends Component {
                 modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
                 accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
                 isFamily: false,
-                result: 'Malicious'
+                result: 'Malicious',
+                malwareTypes: 'adware'
               }}
               value={obsFileList}
               props={{

@@ -151,9 +151,12 @@ class TtpObsFile extends Component {
         isFamily,
         resultName,
         result,
+        uploadFileName: originalUploadFileName,
+        malwareTypes,
         eventProcessList
       }
     } = this.props;
+    const {uploadFileName} = this.state;
     let dateLocale = locale;
 
     if (locale === 'zh') {
@@ -352,6 +355,7 @@ class TtpObsFile extends Component {
             <TextField style={{paddingRight: '2em'}}
               id='fileResultName'
               name='resultName'
+              placeholder='8/10'
               variant='outlined'
               fullWidth
               size='small'
@@ -384,6 +388,9 @@ class TtpObsFile extends Component {
 
         <div className='line'>
           <div className='group'>
+            {(uploadFileName || originalUploadFileName) &&
+              <div style={{marginBottom: '10px'}}>{t('txt-fileName')}: {uploadFileName || originalUploadFileName}</div>
+            }
             <div className='upload-header'>{f('incidentFields.fileUpload')} (.zip)</div>
             <FileUpload
               id='fileUpload'
@@ -391,6 +398,42 @@ class TtpObsFile extends Component {
               btnText={t('txt-selectFile')}
               handleFileChange={this.handleFileChange} />
             <Button variant='contained' color='primary' className='upload-btn' onClick={this.handleFileUpload}>{t('txt-upload')}</Button>
+          </div>
+          <div className='group'>
+            <label htmlFor='malwareTypes'>{f('incidentFields.malwareTypes')}</label>
+            <TextField style={{paddingRight: '2em'}}
+              id='malwareTypes'
+              name='malwareTypes'
+              variant='outlined'
+              fullWidth
+              size='small'
+              select
+              value={malwareTypes}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus}>
+              <MenuItem value='adware'>Adware</MenuItem>
+              <MenuItem value='backdoor'>Backdoor</MenuItem>
+              <MenuItem value='bootkit'>Bootkit</MenuItem>
+              <MenuItem value='bot'>Bot</MenuItem>
+              <MenuItem value='ddos'>Ddos</MenuItem>
+              <MenuItem value='downloader'>Downloader</MenuItem>
+              <MenuItem value='dropper'>Dropper</MenuItem>
+              <MenuItem value='exploit-kit'>Exploit Kit</MenuItem>
+              <MenuItem value='keylogger'>Keylogger</MenuItem>
+              <MenuItem value='ransomware'>Ransomware</MenuItem>
+              <MenuItem value='remote-access-trojan'>Remote Access Trojan</MenuItem>
+              <MenuItem value='resource-exploitation'>Resource Exploitation</MenuItem>
+              <MenuItem value='rogue-security-software'>Rogue Security Software</MenuItem>
+              <MenuItem value='rootkit'>Rootkit</MenuItem>
+              <MenuItem value='screen-capture'>Screen Capture</MenuItem>
+              <MenuItem value='spyware'>Spyware</MenuItem>
+              <MenuItem value='trojan'>Trojan</MenuItem>
+              <MenuItem value='virus'>Virus</MenuItem>
+              <MenuItem value='webshell'>Web Shell</MenuItem>
+              <MenuItem value='wiper'>Wiper</MenuItem>
+              <MenuItem value='worm'>Worm</MenuItem>
+              <MenuItem value='unknown'>Unknown</MenuItem>
+            </TextField>
           </div>
         </div>
 

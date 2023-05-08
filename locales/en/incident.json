@@ -176,6 +176,7 @@
 	"txt-new": "Add",
 	"txt-update": "Edit",
 	"txt-delete": "Delete",
+	"txt-send": "Send",
 	"txt-validAbbreviationType": "Please check abbreviation has entered special characters, Only _ and - are supported",
 
 	"txt-soc-filter": "Filter Basic Info",
