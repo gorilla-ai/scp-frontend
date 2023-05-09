@@ -170,6 +170,7 @@
 	"txt-validDstHostname": "請檢查是否正確輸入目標主機",
 	"txt-validCategory": "請檢查是否正確輸入事件類別",
 	"txt-validBasic": "請檢查是否正確輸入事件單基本資料",
+	"txt-validKillChain": "請檢查是否正確輸入攻擊鏈",
 	"txt-portValidationFail": "請輸入正確Port格式",
 	"txt-validUnit": "請檢查是否正確輸入資安事件申報機關資料",
 	"txt-superAccount-not-set-unit": "此帳號未設定綁定機關，將跳轉至預設畫面",

@@ -17,7 +17,6 @@ import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 import TtpEts from './ttp-ets'
-import TtpObsFile from './ttp-obs-file'
 import TtpObsSocket from './ttp-obs-socket'
 import TtpObsUri from './ttp-obs-uri'
 

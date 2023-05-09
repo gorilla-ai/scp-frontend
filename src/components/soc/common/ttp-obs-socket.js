@@ -50,9 +50,11 @@ class TtpObsSocket extends Component {
             <TextField style={{paddingRight: '2em'}}
               id='port'
               name='port'
+              type='number'
               variant='outlined'
               fullWidth
               size='small'
+              InputProps={{inputProps: { min: 1 }}}
               value={port}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />

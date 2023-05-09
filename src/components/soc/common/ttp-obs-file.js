@@ -136,6 +136,7 @@ class TtpObsFile extends Component {
   render() {
     const {locale} = this.context;
     const {
+      incidentFormType,
       disabledStatus,
       value: {
         fileName,
@@ -204,9 +205,6 @@ class TtpObsFile extends Component {
               variant='outlined'
               size='small'
               InputProps={{inputProps: { min: 1 }}}
-              required
-              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-              error={!fileSize}
               value={fileSize}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
@@ -222,9 +220,6 @@ class TtpObsFile extends Component {
                 format='YYYY-MM-DD HH:mm'
                 invalidDateMessage={t('txt-invalidDateMessage')}
                 ampm={false}
-                required
-                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-                error={_.isEmpty(createDttm)}
                 value={createDttm}
                 onChange={this.handleDateChange.bind(this, 'createDttm')}
                 disabled={disabledStatus} />
@@ -241,9 +236,6 @@ class TtpObsFile extends Component {
                 format='YYYY-MM-DD HH:mm'
                 invalidDateMessage={t('txt-invalidDateMessage')}
                 ampm={false}
-                required
-                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-                error={_.isEmpty(modifyDttm)}
                 value={modifyDttm}
                 onChange={this.handleDateChange.bind(this, 'modifyDttm')}
                 disabled={disabledStatus} />
@@ -260,9 +252,6 @@ class TtpObsFile extends Component {
                 format='YYYY-MM-DD HH:mm'
                 invalidDateMessage={t('txt-invalidDateMessage')}
                 ampm={false}
-                required
-                helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-                error={_.isEmpty(accessDttm)}
                 value={accessDttm}
                 onChange={this.handleDateChange.bind(this, 'accessDttm')}
                 disabled={disabledStatus} />
@@ -324,9 +313,6 @@ class TtpObsFile extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              required
-              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-              error={!(product || '').trim()}
               value={product}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
@@ -359,9 +345,6 @@ class TtpObsFile extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              required
-              helperText={disabledStatus ? '' : t('txt-checkRequiredFieldType')}
-              error={!(resultName || '').trim()}
               value={resultName}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />

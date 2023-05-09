@@ -61,6 +61,7 @@ class Ttps extends Component {
         obsSocketList
       }
     } = this.props;
+    let obsFileDefaultValue = {};
 
     if (infrastructureType  === 1) {
       infrastructureType = '1';
@@ -68,6 +69,26 @@ class Ttps extends Component {
 
     if (infrastructureType  === 0) {
       infrastructureType = '0';
+    }
+
+    if (incidentFormType === 'analyze') {
+      obsFileDefaultValue = {
+        createDttm: '',
+        modifyDttm: '',
+        accessDttm: '',
+        isFamily: '',
+        result: '',
+        malwareTypes: ''
+      };
+    } else if (incidentFormType === 'EDR') {
+      obsFileDefaultValue = {
+        createDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+        modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+        accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+        isFamily: false,
+        result: 'Malicious',
+        malwareTypes: 'adware'
+      };
     }
 
     return (
@@ -140,16 +161,10 @@ class Ttps extends Component {
               id='obsFile'
               className='ttp-group'
               base={TtpObsFile}
-              defaultItemValue={{
-                createDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                modifyDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                accessDttm: moment().local().format('YYYY-MM-DDTHH:mm:ss'),
-                isFamily: false,
-                result: 'Malicious',
-                malwareTypes: 'adware'
-              }}
+              defaultItemValue={obsFileDefaultValue}
               value={obsFileList}
               props={{
+                incidentFormType,
                 disabledStatus
               }}
               onChange={this.handleDataChange.bind(this, 'obsFileList')}
@@ -165,6 +180,10 @@ class Ttps extends Component {
                 id='obsUri'
                 className='ttp-group'
                 base={TtpObsUri}
+                defaultItemValue={{
+                  uriType: '',
+                  uriValue: ''
+                }}
                 value={obsUriList}
                 props={{
                   disabledStatus
@@ -183,6 +202,10 @@ class Ttps extends Component {
                 id='obsSocket'
                 className='ttp-group'
                 base={TtpObsSocket}
+                defaultItemValue={{
+                  ip: '',
+                  port: ''
+                }}
                 value={obsSocketList}
                 props={{
                   disabledStatus

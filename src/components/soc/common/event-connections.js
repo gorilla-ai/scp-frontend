@@ -67,9 +67,11 @@ class EventConnections extends Component {
               style={{paddingRight: '2em', paddingLeft: '2em'}}
               id='srcPort'
               name='srcPort'
+              type='number'
               variant='outlined'
               fullWidth
               size='small'
+              InputProps={{inputProps: { min: 1 }}}
               value={srcPort}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />
@@ -111,9 +113,11 @@ class EventConnections extends Component {
               style={{paddingRight: '2em', paddingLeft: '2em'}}
               id='dstPort'
               name='dstPort'
+              type='number'
               variant='outlined'
               fullWidth
               size='small'
+              InputProps={{inputProps: { min: 1 }}}
               value={dstPort}
               onChange={this.handleDataChangeMui}
               disabled={disabledStatus} />

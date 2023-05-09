@@ -1307,7 +1307,7 @@ class ThreatsController extends Component {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddIncidentDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleMakeIncidentSubmit}
     };
-    const titleText = it('txt-addIncident-events');
+    const titleText = it('txt-addIncident-monitor');
 
     return (
       <ModalDialog

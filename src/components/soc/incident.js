@@ -1049,6 +1049,29 @@ class Incident extends Component {
       return false;
     }
 
+    //check for kill chain list
+    if (incident.killChainList && incident.killChainList.length > 0) {
+      let killChainCheck = true;
+
+      _.forEach(incident.killChainList, val => {
+        if (val.killChainName || val.phaseName) {
+          if (!val.killChainName || !val.phaseName) {
+            killChainCheck = false;
+            return;
+          }
+        }
+      })
+
+      if (!killChainCheck) {
+        PopupDialog.alert({
+          title: t('txt-tips'),
+          display: it('txt-validKillChain'),
+          confirmText: t('txt-close')
+        });
+        return false;
+      }
+    }
+
     // always check event list
     if (!incident.eventList) {
       PopupDialog.alert({
@@ -1172,7 +1195,7 @@ class Incident extends Component {
         let socketCheck = false;
 
         _.forEach(incident.ttpList, ttp => {
-          if (_.size(ttp.obsFileList) > 0) {
+          if (ttp && ttp.obsFileList && (_.size(ttp.obsFileList) > 0)) {
             _.forEach(ttp.obsFileList, file => {
               if (!file.fileName || !file.fileExtension) {
                 fileCheck = false;
@@ -1195,7 +1218,7 @@ class Incident extends Component {
                 }
               }
 
-              if (!file.fileSize || !file.createDttm || !file.modifyDttm || !file.accessDttm || !file.product || !file.uploadFileName || !file.tmpFileId || !file.resultName) {
+              if (!file.fileSize || !file.createDttm || !file.modifyDttm || !file.accessDttm || !file.product || file.isFamily.toString() === '' || !file.resultName || !file.result || !file.uploadFileName || !file.tmpFileId || !file.malwareTypes) {
                 fileCheck = false;
                 return;
               } else {
@@ -1206,7 +1229,7 @@ class Incident extends Component {
             fileCheck = true;
           }
 
-          if (_.size(ttp.obsUriList) > 0) {
+          if (ttp && ttp.obsUriList && (_.size(ttp.obsUriList) > 0)) {
             _.forEach(ttp.obsUriList, uri => {
               if (uri.uriType && uri.uriValue) {
                 urlCheck = true;
@@ -1220,7 +1243,7 @@ class Incident extends Component {
           }
 
           if (incidentFormType !== 'EDR') {
-            if (_.size(ttp.obsSocketList) > 0) {
+            if (ttp && ttp.obsSocketList && (_.size(ttp.obsSocketList) > 0)) {
               _.forEach(ttp.obsSocketList, socket => {
                 if (socket.ip || socket.port) {
                   if (socket.ip && !helper.ValidateIP_Address(socket.ip)) {
