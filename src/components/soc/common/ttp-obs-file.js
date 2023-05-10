@@ -2,12 +2,14 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
+import styled from 'styled-components'
 
 import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
 import MomentUtils from '@date-io/moment'
 import 'moment/locale/zh-tw'
 
 import Button from '@material-ui/core/Button'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
@@ -25,6 +27,10 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let f = null;
 
+const CheckBoxIconContainer = styled(CheckBoxIcon)`
+  color: #7ACC29;
+`;
+
 class TtpObsFile extends Component {
   constructor(props) {
     super(props);
@@ -34,8 +40,7 @@ class TtpObsFile extends Component {
 
     this.state = {
       file: {},
-      uploadFileName: '',
-      tmpFileId: ''
+      uploadFileName: ''
     };
 
     this.ah = getInstance('chewbacca');
@@ -153,6 +158,7 @@ class TtpObsFile extends Component {
         resultName,
         result,
         uploadFileName: originalUploadFileName,
+        tmpFileId,
         malwareTypes,
         eventProcessList
       }
@@ -372,7 +378,12 @@ class TtpObsFile extends Component {
         <div className='line'>
           <div className='group'>
             {(uploadFileName || originalUploadFileName) &&
-              <div style={{marginBottom: '10px'}}>{t('txt-fileName')}: {uploadFileName || originalUploadFileName}</div>
+              <React.Fragment>
+                <div className='upload-file'>{t('txt-fileName')}: {uploadFileName || originalUploadFileName}</div>
+                {tmpFileId &&
+                  <CheckBoxIconContainer />
+                }
+              </React.Fragment>
             }
             <div className='upload-header'>{f('incidentFields.fileUpload')} (.zip)</div>
             <FileUpload
@@ -380,7 +391,7 @@ class TtpObsFile extends Component {
               fileType='zip'
               btnText={t('txt-selectFile')}
               handleFileChange={this.handleFileChange} />
-            <Button variant='contained' color='primary' className='upload-btn' onClick={this.handleFileUpload}>{t('txt-upload')}</Button>
+            <Button variant='contained' color='primary' className='upload-btn' onClick={this.handleFileUpload} disabled={!uploadFileName}>{t('txt-upload')}</Button>
           </div>
           <div className='group'>
             <label htmlFor='malwareTypes'>{f('incidentFields.malwareTypes')}</label>

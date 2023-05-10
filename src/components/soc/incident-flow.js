@@ -496,7 +496,7 @@ class IncidentFlow extends Component {
               size='small'
               required
               value={incidentRule.info.name}
-              disabled={true} />
+              disabled />
           </div>
 
           <div className='group severity-level' style={{width: '25vh', paddingRight:'33px'}}>
@@ -511,7 +511,7 @@ class IncidentFlow extends Component {
               size='small'
               value={incidentRule.info.severity}
               onChange={this.handleSeverityWithSOCChange}
-              disabled={true}>
+              disabled>
               {severityList}
             </TextField>
           </div>
@@ -528,7 +528,7 @@ class IncidentFlow extends Component {
               select
               label={f('incidentFields.impactAssessment')}
               value={incidentRule.info.impact}
-              disabled={true}>
+              disabled>
               {
                 _.map(_.range(1, 5), el => {
                   return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>

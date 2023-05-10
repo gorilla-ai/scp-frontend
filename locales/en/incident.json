@@ -118,6 +118,7 @@
 	"txt-ttp-obs-uri": "Malicious URI",
 	"txt-ttp-obs-socket": "Malicious IP",
 	"txt-srcIp": "Source IP",
+	"txt-fileSendConfirm": "Send with the following files",
 	"txt-autoSendSettings": "Auto-Send Settings",
 	"txt-autoSendState": "Auto-Send Status",
 	"txt-autoSend": "Is auto send to NCCST when the fourth of every month",

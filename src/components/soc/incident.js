@@ -951,8 +951,12 @@ class Incident extends Component {
             ...el,
             obsFileList
           };
+        } else {
+          return {
+            ...el
+          };
         }
-      })
+      });
     }
 
     if (incidentFormType === 'EDR') {
@@ -1373,7 +1377,7 @@ class Incident extends Component {
             if (!edrCheck) {
               PopupDialog.alert({
                 title: t('txt-tips'),
-                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                display: it('txt-incident-ttps') + '('+it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
                 confirmText: t('txt-close')
               });
               return;

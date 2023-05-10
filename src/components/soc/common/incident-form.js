@@ -251,7 +251,7 @@ class IncidentForm extends Component {
 
         {from === 'soc' &&
           <div className='btn btn-group'>
-            <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled={true}>{it('txt-prev-page')}</Button>
+            <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled>{it('txt-prev-page')}</Button>
             <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
           </div>
         }
@@ -382,7 +382,7 @@ class IncidentForm extends Component {
             helperText={this.checkHelperText('impactAssessment', incident.info.impactAssessment)}
             value={incident.info.impactAssessment || ''}
             onChange={this.props.handleDataChangeMui}
-            disabled={true}>
+            disabled>
             {
               _.map(_.range(1, 5), el => {
                 return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
@@ -1060,7 +1060,7 @@ class IncidentForm extends Component {
 
           <div className='btn btn-group'>
             <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
-            <Button variant='contained' color='primary' disabled={true}>{it('txt-next-page')}</Button>
+            <Button variant='contained' color='primary' disabled>{it('txt-next-page')}</Button>
           </div>
 
           <div className='group full multi'>
@@ -1068,6 +1068,14 @@ class IncidentForm extends Component {
               id='incidentTtp'
               className='incident-group'
               base={Ttps}
+              defaultItemValue={{
+                title: '',
+                infrastructureType: '',
+                obsFileList: [],
+                obsUriList: [],
+                obsSocketList: [],
+                etsList: []
+              }}
               value={incident.info.ttpList}
               props={{
                 incidentFormType,
@@ -1095,6 +1103,14 @@ class IncidentForm extends Component {
               id='incidentTtp'
               className='incident-group'
               base={Ttps}
+              defaultItemValue={{
+                title: '',
+                infrastructureType: '',
+                obsFileList: [],
+                obsUriList: [],
+                obsSocketList: [],
+                etsList: []
+              }}
               value={incident.info.ttpList}
               props={{
                 incidentFormType,
@@ -1130,7 +1146,7 @@ class IncidentForm extends Component {
 
         <div className='btn btn-group'>
           <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-prev-page')}</Button>
-          <Button variant='contained' color='primary' disabled={true}>{it('txt-next-page')}</Button>
+          <Button variant='contained' color='primary' disabled>{it('txt-next-page')}</Button>
         </div>
 
         <div className='group full multi'>

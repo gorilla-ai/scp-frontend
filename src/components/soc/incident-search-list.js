@@ -503,7 +503,7 @@ class IncidentSearch extends Component {
           }
         </header>
 
-        <Button className='last-left' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+        <Button className='last-left' disabled style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
         <Button className='last' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
@@ -588,7 +588,7 @@ class IncidentSearch extends Component {
             helperText={it('txt-required')}
             value={incident.info.impactAssessment}
             error={!(incident.info.impactAssessment || '')}
-            disabled={true}>
+            disabled>
             {
               _.map(_.range(1, 5), el => {
                 return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
@@ -1085,7 +1085,7 @@ class IncidentSearch extends Component {
 
         <Button className='last-left ' style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
-        <Button className='last' disabled={true} style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
+        <Button className='last' disabled style={{backgroundColor: '#001b34', color: '#FFFFFF'}} onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
         <div className='group full multi'>
           <MultiInput

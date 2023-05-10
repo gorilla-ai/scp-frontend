@@ -559,7 +559,7 @@ class IncidentRuleTemplate extends Component {
               size='small'
               required
               value={incidentRule.info.accountQueryDTO.name}
-              disabled={true}/>
+              disabled />
           </div>
           <div className='group'>
             <TextField
@@ -571,7 +571,7 @@ class IncidentRuleTemplate extends Component {
               size='small'
               required
               value={incidentRule.info.accountQueryDTO.module}
-              disabled={true}/>
+              disabled />
           </div>
         </div>
 
@@ -601,7 +601,7 @@ class IncidentRuleTemplate extends Component {
                 size='small'
                 required
                 value={incidentRule.info.alertPattern.patternName}
-                disabled={true}/>
+                disabled />
             </div>
             <div className='group severity-level'>
               <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incidentRule.info.severity]}}/>
@@ -632,7 +632,7 @@ class IncidentRuleTemplate extends Component {
                 size='small'
                 required
                 value={incidentRule.info.alertPattern.queryScript}
-                disabled={true}/>
+                disabled />
             </div>
 
             <div className='group full'>
@@ -646,7 +646,7 @@ class IncidentRuleTemplate extends Component {
                   size='small'
                   required
                   value={incidentRule.info.alertPattern.periodMin}
-                  disabled={true}>
+                  disabled>
                   {periodMinList}
                 </TextField>
                 <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
@@ -660,7 +660,7 @@ class IncidentRuleTemplate extends Component {
                   InputProps={{inputProps: {min: 1, max: 1000}}}
                   required
                   value={incidentRule.info.alertPattern.threshold}
-                  disabled={true} />
+                  disabled />
                 <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
               </div>
             </div>
@@ -743,7 +743,7 @@ class IncidentRuleTemplate extends Component {
               select
               label={f('incidentFields.impactAssessment')}
               value={incidentRule.info.impact}
-              disabled={true}>
+              disabled>
               {
                 _.map(_.range(1, 5), el => {
                   return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
@@ -781,8 +781,7 @@ class IncidentRuleTemplate extends Component {
                 required
                 value={incidentRule.info.limitQuery}
                 onChange={this.handleSeverityWithSOCChange}
-                disabled={true}>
-              </TextField>
+                disabled />
               <span className='support-text'>{t('events.connections.txt-socQuery2')} </span>
             </div>
           </div>

@@ -1438,28 +1438,31 @@ class IncidentManagement extends Component {
           <span>{it('txt-send-msg')}: {activeIncidentId}?</span>
         </div>
         {attachmentList.length > 0 &&
-          <table className='c-table main-table with-border'>
-            <thead>
-              <tr>
-                <th>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        className='checkbox-ui'
-                        name='emailCheckAll'
-                        checked={attachmentCheckAll}
-                        onChange={this.toggleAttachmentCheckAll}
-                        color='primary' />
-                    } />
-                </th>
-                <th>{t('txt-fileName')}</th>
-                <th>{t('txt-memo')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attachmentList.map(this.showCheckboxList)}
-            </tbody>
-          </table>
+          <React.Fragment>
+            <div>{it('txt-fileSendConfirm')}?</div>
+            <table className='c-table main-table with-border'>
+              <thead>
+                <tr>
+                  <th>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          className='checkbox-ui'
+                          name='emailCheckAll'
+                          checked={attachmentCheckAll}
+                          onChange={this.toggleAttachmentCheckAll}
+                          color='primary' />
+                      } />
+                  </th>
+                  <th>{t('txt-fileName')}</th>
+                  <th>{t('txt-memo')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attachmentList.map(this.showCheckboxList)}
+              </tbody>
+            </table>
+          </React.Fragment>
         }
       </div>
     )
@@ -1633,6 +1636,10 @@ class IncidentManagement extends Component {
           return {
             ...el,
             obsFileList
+          };
+        } else {
+          return {
+            ...el
           };
         }
       });
@@ -2016,7 +2023,7 @@ class IncidentManagement extends Component {
             if (!fileCheck && !urlCheck && !socketCheck) {
               PopupDialog.alert({
                 title: t('txt-tips'),
-                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
                 confirmText: t('txt-close')
               });
               statusCheck = false;
@@ -2054,7 +2061,7 @@ class IncidentManagement extends Component {
             if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0) {
               PopupDialog.alert({
                 title: t('txt-tips'),
-                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                display: it('txt-incident-ttps') + '(' + it('txt-ttp-obs-file') + '/' + it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
                 confirmText: t('txt-close')
               });
               statusCheck = false;
@@ -2099,7 +2106,7 @@ class IncidentManagement extends Component {
             if (!edrCheck) {
               PopupDialog.alert({
                 title: t('txt-tips'),
-                display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                display: it('txt-incident-ttps') + '('+it('txt-ttp-obs-uri') + '/' + it('txt-ttp-obs-socket') + '-' + it('txt-mustOne') + ')',
                 confirmText: t('txt-close')
               });
               return;

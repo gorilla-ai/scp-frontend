@@ -144,6 +144,10 @@ class Ttps extends Component {
                 id='ttpEts'
                 className='ttp-group'
                 base={TtpEts}
+                defaultItemValue={{
+                  cveId: '',
+                  description: ''
+                }}
                 value={etsList}
                 props={{
                   disabledStatus

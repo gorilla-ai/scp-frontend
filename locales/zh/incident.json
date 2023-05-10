@@ -119,6 +119,7 @@
 	"txt-ttp-obs-uri": "惡意URI",
 	"txt-ttp-obs-socket": "惡意IP連線",
 	"txt-srcIp": "來源IP",
+	"txt-fileSendConfirm": "以下檔案是否一併發布",
 	"txt-autoSendSettings": "自動發布設定",
 	"txt-autoSendState": "自動發布狀態",
 	"txt-autoSend": "是否每月4號自動發布給NCCST",
