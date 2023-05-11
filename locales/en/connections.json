@@ -493,6 +493,7 @@
     "txt-title-getProcessMonitorResult": "Process Information",
     "txt-title-getVansCpe": "CPE Information",
     "txt-title-getVansCve": "CVE Information",
+    "txt-title-getKbid": "KBID Information",
     "txt-peFile": "PE File",
     "txt-peFileExtension": "PE File Extension",
     "txt-verifyTrust": "Verified Trust",

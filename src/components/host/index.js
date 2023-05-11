@@ -259,6 +259,10 @@ const SAFETY_SCAN_LIST = [
   {
     name: 'VANS - CVE',
     value: 'getVansCve'
+  },
+  {
+    name: 'KBID',
+    value: 'getKbid'
   }
 ];
 const MODULE_TYPE = {
@@ -269,7 +273,8 @@ const MODULE_TYPE = {
   getEventTraceResult: 'eventTracing',
   getProcessMonitorResult: 'processMonitor',
   getVansCpe: 'cpe',
-  getVansCve: 'cve'
+  getVansCve: 'cve',
+  getKbid: 'kbid'
 };
 const VANS_DATA = ['vansCounts', 'vansHigh', 'vansMedium', 'vansLow', 'gcbCounts', 'malwareCounts'];
 const MAPS_PRIVATE_DATA = {
@@ -1616,22 +1621,26 @@ class HostController extends Component {
         hitCVE: true
       };
     } else {
-      url = `${baseUrl}/api/v2/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
-
-      if (safetyScanType === 'getVansCpe') {
-        requestData.hmdScanDistribution = {
-          taskName: 'getVans',
-          primaryKeyName: 'cpe23Uri'
-        };
-      } else if (safetyScanType === 'getVansCve') {
-        requestData.hmdScanDistribution = {
-          taskName: 'getVans',
-          primaryKeyName: 'cveId'
-        };
+      if (safetyScanType === 'getKbid') {
+        url = `${baseUrl}/api/hmd/kbid/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
       } else {
-        requestData.hmdScanDistribution = {
-          taskName: safetyScanType
-        };
+        url = `${baseUrl}/api/v2/hmd/hmdScanDistribution/_search?page=${safetyScanData.currentPage}&pageSize=${safetyScanData.pageSize}`;
+
+        if (safetyScanType === 'getVansCpe') {
+          requestData.hmdScanDistribution = {
+            taskName: 'getVans',
+            primaryKeyName: 'cpe23Uri'
+          };
+        } else if (safetyScanType === 'getVansCve') {
+          requestData.hmdScanDistribution = {
+            taskName: 'getVans',
+            primaryKeyName: 'cveId'
+          };
+        } else {
+          requestData.hmdScanDistribution = {
+            taskName: safetyScanType
+          };
+        }
       }
     }
 
@@ -1646,18 +1655,34 @@ class HostController extends Component {
         let tempSafetyScanData = {...safetyScanData};
         let hmdEventsData = {};
 
-        if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
-          tempSafetyScanData.dataContent = [];
-          tempSafetyScanData.totalCount = 0;
+        if (safetyScanType === 'getKbid') {
+          if (data.rows.length === 0) {
+            tempSafetyScanData.dataContent = [];
+            tempSafetyScanData.totalCount = 0;
 
-          this.setState({
-            safetyScanData: tempSafetyScanData
-          });
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
+            this.setState({
+              safetyScanData: tempSafetyScanData
+            });
+            helper.showPopupMsg(t('txt-notFound'));
+            return;
+          }
+
+          tempSafetyScanData.dataContent = data.rows;
+        } else {
+          if (!data.hmdScanDistribution || data.hmdScanDistribution.length === 0) {
+            tempSafetyScanData.dataContent = [];
+            tempSafetyScanData.totalCount = 0;
+
+            this.setState({
+              safetyScanData: tempSafetyScanData
+            });
+            helper.showPopupMsg(t('txt-notFound'));
+            return;
+          }
+
+          tempSafetyScanData.dataContent = data.hmdScanDistribution;
         }
 
-        tempSafetyScanData.dataContent = data.hmdScanDistribution;
         tempSafetyScanData.totalCount = data.count;
 
         this.setState({
@@ -3851,6 +3876,12 @@ class HostController extends Component {
           }
         </div>
       )
+    } else if (safetyScanType === 'getKbid') {
+      return (
+        <div className='flex-item'>
+          <span className='text'>{t('host.txt-hostCount')}: {safetyData}</span>
+        </div>
+      )
     }
   }
   /**
@@ -3872,7 +3903,7 @@ class HostController extends Component {
   /**
    * Display common info for safety scan table
    * @method
-   * @param {object} safetyData - active safety scan data
+   * @param {object || string} safetyData - active safety scan data
    * @returns HTML DOM
    */
   getCommonContent = (safetyData) => {
@@ -3884,7 +3915,7 @@ class HostController extends Component {
         {safetyData.annotationObj &&
           <span className='vans-status scan' style={this.getVansStatusColor(safetyData.annotationObj.color)} onMouseOver={this.openPopover.bind(this, safetyData.annotationObj.annotation)} onMouseOut={this.closePopover}>{safetyData.annotationObj.status}</span>
         }
-        <span>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize)}</span>
+        <span>{t('host.txt-hostCount')}: {helper.numberWithCommas(safetyData.hostIdArraySize || safetyData)}</span>
       </div>
     )
   }
@@ -3898,12 +3929,31 @@ class HostController extends Component {
    */
   getHostInfo = (safetyData, cpeData, from, scanType) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/hmdScanDistribution`;
-    const requestData = {
-      primaryKeyValue: from === 'showAvailableHost' ? safetyData : safetyData.primaryKeyValue || safetyData.id,
-      exactStartDttm: safetyData.startTimeString,
-      hostIdObj: safetyData.hostIdObj
-    };
+    const {account, filterNav, safetyScanType} = this.state;
+    let url = '';
+    let requestData = {};
+
+    if (safetyScanType === 'getKbid') {
+      url = `${baseUrl}/api/hmd/kbid/devices`;
+      requestData = {
+        kbid: safetyData
+      };
+
+      if (filterNav.departmentSelected.length > 0) {
+        requestData.departmentArray = filterNav.departmentSelected;
+      } else {
+        if (account.limitedRole) {
+          requestData.departmentArray =  ['emptyDepartmentId'];
+        }
+      }
+    } else {
+      url = `${baseUrl}/api/hmd/hmdScanDistribution`;
+      requestData = {
+        primaryKeyValue: from === 'showAvailableHost' ? safetyData : safetyData.primaryKeyValue || safetyData.id,
+        exactStartDttm: safetyData.startTimeString,
+        hostIdObj: safetyData.hostIdObj
+      };
+    }
 
     this.ah.one({
       url,
@@ -3956,17 +4006,30 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getSafetyList = (val, i) => {
+    const {safetyScanType} = this.state;
+    let primaryValue = val.primaryKeyValue;
+    let secondaryValue = val;
+    let hostValue = val;
+
+    if (safetyScanType === 'getKbid') {
+      primaryValue = val.kbid;
+      secondaryValue = val.exposedDevices;
+      hostValue = val.kbid;
+    }
+
     return (
       <li key={i}>
         <div className='device-alert product-safety'>
           <i className='fg fg-wifi-beacon-1'></i>
-          {this.getPrimaryContent(val.primaryKeyValue)}
+          {this.getPrimaryContent(primaryValue)}
         </div>
-        <div className='info'>
-          {this.getSecondaryContent(val)}
-        </div>
-        {this.getCommonContent(val)}
-        <div className='view-details' onClick={this.getHostInfo.bind(this, val)}>
+        {safetyScanType !== 'getKbid' &&
+          <div className='info'>
+            {this.getSecondaryContent(secondaryValue)}
+          </div>
+        }
+        {this.getCommonContent(secondaryValue)}
+        <div className='view-details' onClick={this.getHostInfo.bind(this, hostValue)}>
           {t('host.txt-viewInfo')}
         </div>
       </li>

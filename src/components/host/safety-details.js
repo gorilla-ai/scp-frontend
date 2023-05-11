@@ -13,6 +13,7 @@ import VansNotes from './vans-notes'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
+
 let t = null;
 let f = null;
 
@@ -133,6 +134,12 @@ class SafetyDetails extends Component {
         <tr>
           <th>CVE ID</th>
           <th>{t('txt-severity')}</th>
+        </tr>
+      )
+    } else if (safetyScanType === 'getKbid') {
+      return (
+        <tr>
+          <th>KBID</th>
         </tr>
       )
     }
@@ -261,6 +268,12 @@ class SafetyDetails extends Component {
               <span className={severity}>{t('txt-' + severity)}</span>
             }
           </td>
+        </tr>
+      )
+    } else if (safetyScanType === 'getKbid') {
+      return (
+        <tr>
+          <td><span>{currentSafetyData.count}</span></td>
         </tr>
       )
     }
@@ -775,6 +788,23 @@ class SafetyDetails extends Component {
     )
   }
   /**
+   * Display individual table row for KBID
+   * @method
+   * @param {string} val - individual KBID data
+   * @param {number} i - index of the KBID array
+   * @returns HTML DOM
+   */
+  getKbidTableBody = (val, i) => {
+    return (
+      <tr key={i}>
+        <td><span>{val.ip}</span></td>
+        <td><span>{val.hostName}</span></td>
+        <td><span>{val.system}</span></td>
+        <td><span>{val.departmentName}</span></td>
+      </tr>
+    )
+  }
+  /**
    * Display Safety Scan content
    * @method
    * @returns HTML DOM
@@ -836,6 +866,23 @@ class SafetyDetails extends Component {
                         </tbody>
                       </table>
                     }
+                    {safetyScanType === 'getKbid' &&
+                      <table className='c-table main-table cve'>
+                        <thead>
+                          <tr>
+                            <th>{t('ipFields.ip')}</th>
+                            <th>{t('ipFields.hostName')}</th>
+                            <th>{t('ipFields.system')}</th>
+                            <th>{t('ipFields.departmentName')}</th>
+                          </tr>
+                        </thead>                   
+                        <tbody>
+                          {currentSafetyData.rows &&
+                            currentSafetyData.rows.map(this.getKbidTableBody)
+                          }
+                        </tbody>
+                      </table>                    
+                    }
                   </div>
                 }
                 {contentType === 'availableHost' &&
@@ -878,7 +925,7 @@ class SafetyDetails extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                        {currentSafetyData.disDevDtos.length > 0 &&
+                        {currentSafetyData.disDevDtos && currentSafetyData.disDevDtos.length > 0 &&
                           currentSafetyData.disDevDtos.map(this.getHostTableBody)
                         }
                       </tbody>

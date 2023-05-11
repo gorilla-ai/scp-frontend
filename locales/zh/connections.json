@@ -493,6 +493,7 @@
     "txt-title-getProcessMonitorResult": "程序異動掃描資訊",
     "txt-title-getVansCpe": "VANS弱點掃描CPE資訊",
     "txt-title-getVansCve": "VANS弱點掃描CVE資訊",
+    "txt-title-getKbid": "KBID資訊",
     "txt-peFile": "PE檔",
     "txt-peFileExtension": "PE副檔名",
     "txt-verifyTrust": "有效簽章",
