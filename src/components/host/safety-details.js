@@ -167,7 +167,7 @@ class SafetyDetails extends Component {
    */
   getTopTableBody = () => {
     const {locale} = this.context;
-    const {currentSafetyData, safetyScanType} = this.props;
+    const {currentSafetyData, safetyScanType, activeKbid} = this.props;
 
     if (safetyScanType === 'scanFile') {
       return (
@@ -273,7 +273,7 @@ class SafetyDetails extends Component {
     } else if (safetyScanType === 'getKbid') {
       return (
         <tr>
-          <td><span>{currentSafetyData.count}</span></td>
+          <td><span>{activeKbid}</span></td>
         </tr>
       )
     }
@@ -753,6 +753,23 @@ class SafetyDetails extends Component {
     )
   }
   /**
+   * Display individual table row for KBID
+   * @method
+   * @param {string} val - individual KBID data
+   * @param {number} i - index of the KBID array
+   * @returns HTML DOM
+   */
+  getKbidTableBody = (val, i) => {
+    return (
+      <tr key={i}>
+        <td><span>{val.ip}</span></td>
+        <td><span>{val.hostName}</span></td>
+        <td><span>{val.system}</span></td>
+        <td><span>{val.departmentName}</span></td>
+      </tr>
+    )
+  }
+  /**
    * Display individual table row for CVE info
    * @method
    * @param {number} currentSafetyData - current safety data
@@ -788,23 +805,6 @@ class SafetyDetails extends Component {
     )
   }
   /**
-   * Display individual table row for KBID
-   * @method
-   * @param {string} val - individual KBID data
-   * @param {number} i - index of the KBID array
-   * @returns HTML DOM
-   */
-  getKbidTableBody = (val, i) => {
-    return (
-      <tr key={i}>
-        <td><span>{val.ip}</span></td>
-        <td><span>{val.hostName}</span></td>
-        <td><span>{val.system}</span></td>
-        <td><span>{val.departmentName}</span></td>
-      </tr>
-    )
-  }
-  /**
    * Display Safety Scan content
    * @method
    * @returns HTML DOM
@@ -812,7 +812,6 @@ class SafetyDetails extends Component {
   displaySafetyDetails = () => {
     const {currentSafetyData, safetyScanType, vansHmdStatusList} = this.props;
     const {contentType, showVansNotes} = this.state;
-
     let basicInfoText = t('host.txt-basicInfo');
 
     if (safetyScanType === 'getFileIntegrity' || safetyScanType === 'getProcessMonitorResult') {
@@ -834,8 +833,10 @@ class SafetyDetails extends Component {
           <div className='main-content'>
             <div className='nav'>
               <ul>
-                <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{basicInfoText}</span></li>
-                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.hostIdArraySize}</span></li>
+                {safetyScanType !== 'getKbid' &&
+                  <li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}><span>{basicInfoText}</span></li>
+                }
+                <li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}><span>{t('host.txt-availableHost')}</span><span className='host-count'>{currentSafetyData.hostIdArraySize || currentSafetyData.count}</span></li>
                 <li className='header' onClick={this.toggleVansNotes}><span>{t('host.txt-vansNotes')}</span> <i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}></i></li>
               </ul>
               {showVansNotes &&
@@ -866,37 +867,26 @@ class SafetyDetails extends Component {
                         </tbody>
                       </table>
                     }
-                    {safetyScanType === 'getKbid' &&
-                      <table className='c-table main-table cve'>
-                        <thead>
-                          <tr>
-                            <th>{t('ipFields.ip')}</th>
-                            <th>{t('ipFields.hostName')}</th>
-                            <th>{t('ipFields.system')}</th>
-                            <th>{t('ipFields.departmentName')}</th>
-                          </tr>
-                        </thead>                   
-                        <tbody>
-                          {currentSafetyData.rows &&
-                            currentSafetyData.rows.map(this.getKbidTableBody)
-                          }
-                        </tbody>
-                      </table>                    
-                    }
                   </div>
                 }
                 {contentType === 'availableHost' &&
                   <div>
                     <div className='header trigger'>{t('host.txt-availableHost')}</div>
-                    <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
+                    {safetyScanType !== 'getKbid' &&
+                      <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
+                    }
                     <table className='c-table main-table with-border'>
                       <thead>
                         <tr>
                           <th>{t('ipFields.ip')}</th>
                           <th>{t('ipFields.hostName')}</th>
                           <th>{t('ipFields.system')}</th>
-                          <th>{t('ipFields.owner')}</th>
-                          <th>{t('ipFields.version')}</th>
+                          {safetyScanType !== 'getKbid' &&
+                            <th>{t('ipFields.owner')}</th>
+                          }
+                          {safetyScanType !== 'getKbid' &&
+                            <th>{t('ipFields.version')}</th>
+                          }
                           {safetyScanType === 'scanFile' &&
                             <th>{t('host.txt-suspiciousFilePath')}</th>
                           }
@@ -921,11 +911,19 @@ class SafetyDetails extends Component {
                           {safetyScanType === 'getProcessMonitorResult' &&
                             <th>{t('host.txt-suspiciousFilePath')}</th>
                           }
-                          <th></th>
+                          {safetyScanType === 'getKbid' &&
+                            <th>{t('ipFields.departmentName')}</th>
+                          }
+                          {safetyScanType !== 'getKbid' &&
+                            <th></th>
+                          }
                         </tr>
                       </thead>
                       <tbody>
-                        {currentSafetyData.disDevDtos && currentSafetyData.disDevDtos.length > 0 &&
+                        {safetyScanType === 'getKbid' && currentSafetyData.rows &&
+                          currentSafetyData.rows.map(this.getKbidTableBody)
+                        }
+                        {safetyScanType !== 'getKbid' && currentSafetyData.disDevDtos && currentSafetyData.disDevDtos.length > 0 &&
                           currentSafetyData.disDevDtos.map(this.getHostTableBody)
                         }
                       </tbody>
@@ -969,6 +967,7 @@ SafetyDetails.propTypes = {
   showSafetyTab: PropTypes.string.isRequired,
   fromSafetyPage: PropTypes.bool.isRequired,
   vansHmdStatusList: PropTypes.array.isRequired,
+  activeKbid: PropTypes.string,
   getHostInfo: PropTypes.func.isRequired,
   toggleSafetyDetails: PropTypes.func.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,

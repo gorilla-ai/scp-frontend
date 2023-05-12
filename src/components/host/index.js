@@ -187,6 +187,10 @@ const EXPORT_CHART_MENU = [
   {
     name: 'VANS - CVE',
     value: 'getVansCve'
+  },
+  {
+    name: 'KBID',
+    value: 'getKbid'
   }
 ];
 const HOST_SORT_LIST = [
@@ -442,8 +446,9 @@ class HostController extends Component {
       hostAnalysisOpen: false,
       safetyDetailsOpen: false,
       hostDeviceOpen: false,
-      reportNCCSTopen: false,
+      reportOpen: false,
       vansPieChartOpen: false,
+      reportType: '',
       showLeftMenuOptions: {
         hmdStatus: {
           advanced: false
@@ -491,6 +496,7 @@ class HostController extends Component {
         statistics: t('host.txt-deviceMap')
       },
       activeVansPatch: {},
+      activeKbid: '',
       hostInfo: {
         dataContent: null,
         totalCount: 0,
@@ -2021,14 +2027,15 @@ class HostController extends Component {
     });
   }
   /**
-   * Toggle NCCST list modal dialog on/off
+   * Toggle report modal dialog on/off
    * @method
+   * @param {string} type - report type ('nccst' or 'kbid')
    */
-  toggleReportNCCST = () => {
+  toggleReport = (type) => {
     const {baseUrl} = this.context;
-    const {reportNCCSTopen} = this.state;
+    const {reportOpen} = this.state;
 
-    if (!reportNCCSTopen) {
+    if (type === 'nccst' && !reportOpen) {
       this.ah.one({
         url: `${baseUrl}/api/hmd/cpeFile/merge/_delete`,
         data: JSON.stringify({}),
@@ -2043,9 +2050,21 @@ class HostController extends Component {
       })
     }
 
+    if (type === 'nccst') {
+      this.setState({
+        uploadedCPE: false
+      });
+    }
+
     this.setState({
-      reportNCCSTopen: !reportNCCSTopen,
-      uploadedCPE: false,
+      reportOpen: !reportOpen,
+      reportType: type,
+      hmdVansConfigurations: {
+        oid: '',
+        unitName: '',
+        apiKey: '',
+        apiUrl: ''
+      },
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
 
@@ -2154,17 +2173,19 @@ class HostController extends Component {
     })
   }
   /**
-   * Display NCCST form content
+   * Display report form content
    * @method
    * @returns HTML DOM
    */
-  displayNCCSTform = () => {
-    const {uploadedCPE, hmdVansConfigurations, vansFormValidation} = this.state;
+  displayReportform = () => {
+    const {reportType, uploadedCPE, hmdVansConfigurations, vansFormValidation} = this.state;
 
     return (
       <div className='vans-config-form'>
-        <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
-        {uploadedCPE &&
+        {reportType === 'nccst' &&
+          <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
+        }
+        {reportType === 'nccst' && uploadedCPE &&
           <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedCpe')}</Button>
         }
         <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
@@ -2228,39 +2249,45 @@ class HostController extends Component {
     )
   }
   /**
-   * Show NCCST list modal dialog
+   * Show report list modal dialog
    * @method
    * @returns ModalDialog component
    */
-  showNCCSTlist = () => {
+  showReportlist = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReportNCCST},
-      confirm: {text: t('txt-confirm'), handler: this.confirmNCCSTlist}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReport},
+      confirm: {text: t('txt-confirm'), handler: this.confirmReportlist}
     };
 
     return (
       <ModalDialog
         id='reportNCCSTdialog'
         className='modal-dialog'
-        title={t('host.txt-report-nccst')}
+        title={t('host.txt-report-' + this.state.reportType)}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayNCCSTform()}
+        {this.displayReportform()}
       </ModalDialog>
     )
   }
   /**
-   * Handle NCCST list confirm
+   * Handle report list confirm
    * @method
    */
-  confirmNCCSTlist = () => {
+  confirmReportlist = () => {
     const {baseUrl} = this.context;
-    const {hmdVansConfigurations, vansFormValidation} = this.state;
-    const url = `${baseUrl}/api/v2/hmd/vans/_report`;
+    const {reportType, hmdVansConfigurations, vansFormValidation} = this.state;
+    let url = '';
     let tempVansFormValidation = {...vansFormValidation};
     let validate = true;
+
+    if (reportType === 'nccst') {
+      url = `${baseUrl}/api/v2/hmd/vans/_report`;
+    } else if (reportType === 'kbid') {
+      url = `${baseUrl}/api/hmd/kbid/_report`;
+    }
 
     if (hmdVansConfigurations.oid) {
       tempVansFormValidation.oid.valid = true;
@@ -2298,19 +2325,33 @@ class HostController extends Component {
       return;
     }
 
-    const requestData = {
-      ...this.getHostSafetyRequestData(),
-      hmdScanDistribution: {
-        taskName: 'getVans',
-        primaryKeyName: 'cpe23Uri'
-      },
-      hmdVansConfigurations: {
-        oid: hmdVansConfigurations.oid,
-        unit_name: hmdVansConfigurations.unitName,
-        api_key: hmdVansConfigurations.apiKey,
-        api_url: hmdVansConfigurations.apiUrl
-      }
-    };
+    let requestData = {};
+
+    if (reportType === 'nccst') {
+      requestData = {
+        ...this.getHostSafetyRequestData(),
+        hmdScanDistribution: {
+          taskName: 'getVans',
+          primaryKeyName: 'cpe23Uri'
+        },
+        hmdVansConfigurations: {
+          oid: hmdVansConfigurations.oid,
+          unit_name: hmdVansConfigurations.unitName,
+          api_key: hmdVansConfigurations.apiKey,
+          api_url: hmdVansConfigurations.apiUrl
+        }
+      };
+    } else if (reportType === 'kbid') {
+      requestData = {
+        ...this.getHostSafetyRequestData(),
+        hmdKbidConfigurations: {
+          oid: hmdVansConfigurations.oid,
+          unit_name: hmdVansConfigurations.unitName,
+          api_key: hmdVansConfigurations.apiKey,
+          api_url: hmdVansConfigurations.apiUrl
+        }
+      };
+    }
 
     this.ah.one({
       url,
@@ -2322,7 +2363,7 @@ class HostController extends Component {
       if (data) {
         helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
 
-        this.toggleReportNCCST();
+        this.toggleReport();
       }
       return null;
     })
@@ -3666,8 +3707,8 @@ class HostController extends Component {
    * @param {string | bool} options - option to show safety scan tab ('basicInfo' or 'showAvailableHost'); option for 'getVansCpe' or 'availableHost'
    */
   toggleSafetyDetails = (safetyData, options) => {
-    const {savedCpeData, fromSafetyPage} = this.state;
-    const showSafetyTab = options === 'showAvailableHost' ? 'availableHost' : 'basicInfo';
+    const {savedCpeData, safetyScanType, fromSafetyPage} = this.state;
+    let showSafetyTab = options === 'showAvailableHost' ? 'availableHost' : 'basicInfo';
     let data = {};
 
     if (options === 'getVansCpe') {
@@ -3690,6 +3731,10 @@ class HostController extends Component {
 
     if (!_.isEmpty(safetyData)) {
       data.currentSafetyData = safetyData;
+    }
+
+    if (safetyScanType === 'getKbid') {
+      showSafetyTab = 'availableHost';
     }
 
     this.setState({
@@ -3939,6 +3984,10 @@ class HostController extends Component {
         kbid: safetyData
       };
 
+      this.setState({
+        activeKbid: safetyData
+      });
+
       if (filterNav.departmentSelected.length > 0) {
         requestData.departmentArray = filterNav.departmentSelected;
       } else {
@@ -3983,7 +4032,7 @@ class HostController extends Component {
             currentSafetyData: data,
             safetyDetailsOpen: !this.state.safetyDetailsOpen,
             showSafetyTab: 'availableHost',
-            fromSafetyPage: 'availableHost',
+            fromSafetyPage: 'availableHost'
           }, () => {
             this.toggleHostAnalysis('safetyScan');
           });
@@ -4038,7 +4087,7 @@ class HostController extends Component {
   /**
    * Handle CSV download
    * @method
-   * @param {string} [options] - option for 'default' or department ID
+   * @param {string} [options] - option for 'default', 'kbid' or department ID
    */
   getCSVfile = (options) => {
     const {baseUrl, contextRoot} = this.context;
@@ -4048,6 +4097,20 @@ class HostController extends Component {
 
     if (options === 'default') {
       url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_export`;
+    } else if (options === 'kbid') {
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/_export`;
+
+      const fieldsList = ['kbid', 'exposedDevices'];
+      let exportFields = {};
+
+      _.forEach(fieldsList, val => {
+        exportFields[val] = t('host.txt-' + val);
+      })
+
+      requestData = {
+        ...requestData,
+        exportFields
+      };
     } else {
       if (vansTableType === 'assessment') {
         url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/deptCountsTable/_export`;
@@ -5260,6 +5323,14 @@ class HostController extends Component {
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.getCSVfile.bind(this, 'default')}>{t('txt-exportCSV')}</Button>
         </MenuItem>
       )
+    } else if (name === 'KBID') {
+      return (
+        <MenuItem key={i} className='export-chart-menu'>
+          <span style={{width: this.getHeaderWidth()}}>{name}</span>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.getCSVfile.bind(this, 'kbid')}>{t('txt-export-' + type)}</Button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReport.bind(this, 'kbid')}>{t('host.txt-report-kbid')}</Button>
+        </MenuItem>
+      )
     } else {
       return (
         <MenuItem key={i} className='export-chart-menu'>
@@ -5270,7 +5341,7 @@ class HostController extends Component {
           }
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'report', type)}>{t('txt-export-' + type)}</Button>
           {type === 'getVansCpe' &&
-            <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReportNCCST} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReport.bind(this, 'nccst')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
           }
         </MenuItem>
       )
@@ -5767,7 +5838,7 @@ class HostController extends Component {
       hostAnalysisOpen,
       safetyDetailsOpen,
       hostDeviceOpen,
-      reportNCCSTopen,
+      reportOpen,
       vansPieChartOpen,
       showSafetyTab,
       contextAnchor,
@@ -5775,6 +5846,7 @@ class HostController extends Component {
       hostCreateTime,
       vansDeviceStatusList,
       vansHmdStatusList,
+      activeKbid,
       netProxyTree,
       privateMaskedIPtree,
       departmentList,
@@ -5902,6 +5974,7 @@ class HostController extends Component {
             showSafetyTab={showSafetyTab}
             fromSafetyPage={fromSafetyPage}
             vansHmdStatusList={vansHmdStatusList}
+            activeKbid={activeKbid}
             getIPdeviceInfo={this.getIPdeviceInfo}
             getSafetyScanData={this.getSafetyScanData}
             toggleSafetyDetails={this.toggleSafetyDetails}
@@ -5913,8 +5986,8 @@ class HostController extends Component {
           this.showHostDeviceList()
         }
 
-        {reportNCCSTopen &&
-          this.showNCCSTlist()
+        {reportOpen &&
+          this.showReportlist()
         }
 
         {uploadCpeFileOpen &&
