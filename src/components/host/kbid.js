@@ -30,32 +30,16 @@ import SearchFilter from './search-filter'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
-const FILTER_LIST = ['version', 'vulnerabilityNum', 'exposedDevices'];
-const CPE_SEARCH = {
+const FILTER_LIST = ['departmentArray'];
+const KBID_SEARCH = {
   keyword: '',
   count: 0
 };
-const CPE_FILTER = {
-  system: [],
-  vendor: [],
-  version: [{
-    condition: '=',
-    input: ''
-  }],
-  vulnerabilityNum: [{
-    condition: '=',
-    input: ''
-  }],
-  exposedDevices: [{
-    condition: '=',
-    input: ''
-  }]
+const KBID_FILTER = {
+  departmentArray: []
 };
-const CPE_FILTER_LIST = {
-  version: [],
-  vulnerabilityNum: [],
-  exposedDevices: []
+const KBID_FILTER_LIST = {
+  departmentArray: []
 };
 const EXPOSED_DEVICES_DATA = {
   dataFieldsArr: ['hostName', 'system', 'ip', 'daysOpen'],
@@ -88,12 +72,12 @@ let t = null;
 let f = null;
 
 /**
- * Host Inventory
+ * Host KBID
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the Host Inventory page
+ * @summary A react component to show the Host KBID page
  */
-class HostInventory extends Component {
+class HostKbid extends Component {
   constructor(props) {
     super(props);
 
@@ -103,9 +87,9 @@ class HostInventory extends Component {
     this.state = {
       systemType: [],
       vendorType: [],
-      cpeSearch: _.cloneDeep(CPE_SEARCH),
-      cpeFilter: _.cloneDeep(CPE_FILTER),
-      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
+      kbidSearch: _.cloneDeep(KBID_SEARCH),
+      kbidFilter: _.cloneDeep(KBID_FILTER),
+      kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
       hostNameSearch: {
         keyword: '',
         count: 0
@@ -118,9 +102,9 @@ class HostInventory extends Component {
       activeFilter: '',
       showCpeInfo: false,
       showFilterQuery: false,
-      activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
-      cpeData: {
-        dataFieldsArr: ['_menu', 'product', 'system', 'vendor', 'version', 'vulnerabilityNum', 'exposedDevices'],
+      activeCpeInfo: 'exposedDevices',
+      kbidData: {
+        dataFieldsArr: ['_menu', 'kbid', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -147,92 +131,29 @@ class HostInventory extends Component {
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
 
-    this.setLocaleLabel();
-    this.getSystemVendorList();
-    this.getCpeData();
+    this.getKbidData();
   }
   componentWillUnmount() {
     helper.clearTimer();
   }
   /**
-   * Get and set locale label for charts
-   * @method
-   */
-  setLocaleLabel = () => {
-    const {locale} = this.context;
-
-    if (locale === 'en') {
-      ALERT_LEVEL_COLORS = {
-        Critical: '#000',
-        High: '#CC2943',
-        Medium: '#CC7B29',
-        Low: '#7ACC29'
-      };
-    } else if (locale === 'zh') {
-      ALERT_LEVEL_COLORS = {
-        嚴重: '#000',
-        高: '#CC2943',
-        中: '#CC7B29',
-        低: '#7ACC29'
-      };
-    }
-  }
-  /**
-   * Get and set system and vendor list
-   * @method
-   */
-  getSystemVendorList = () => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/cpeUpdateToDate/group/filter`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        const systemType = _.map(data.systemGroup, val => {
-          return {
-            value: val,
-            text: val
-          };
-        });
-
-        const vendorType = _.map(data.vendorGroup, val => {
-          return {
-            value: val,
-            text: val
-          };
-        });
-
-        this.setState({
-          systemType,
-          vendorType
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set CPE data
+   * Get and set KBID data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getCpeData = (fromPage) => {
+  getKbidData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {cpeSearch, cpeData} = this.state;
-    const sort = cpeData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? cpeData.currentPage : 0;
+    const {kbidSearch, kbidData} = this.state;
+    const sort = kbidData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? kbidData.currentPage : 0;
     const requestData = {
-      ...this.getCpeFilterRequestData()
+      ...this.getKbidFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
-    let tempCpeSearch = {...cpeSearch};
+    let url = `${baseUrl}/api/hmd/kbid/_search?page=${page + 1}&pageSize=${kbidData.pageSize}`;
+    let tempKbidSearch = {...kbidSearch};
 
-    if (cpeData.sort.field) {
-      url += `&orders=${cpeData.sort.field} ${sort}`;
+    if (kbidData.sort.field) {
+      url += `&orders=${kbidData.sort.field} ${sort}`;
     }
 
     this.ah.one({
@@ -243,43 +164,39 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        let tempCpeData = {...cpeData};
+        let tempKbidData = {...kbidData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempCpeData.dataContent = [];
-          tempCpeData.totalCount = 0;
+          tempKbidData.dataContent = [];
+          tempKbidData.totalCount = 0;
 
           this.setState({
-            cpeData: tempCpeData
+            kbidData: tempKbidData
           });
           return null;
         }       
 
-        tempCpeData.dataContent = data.rows;
-        tempCpeData.totalCount = data.count;
-        tempCpeData.currentPage = page;
-        tempCpeData.dataFields = _.map(cpeData.dataFieldsArr, val => {
+        tempKbidData.dataContent = data.rows;
+        tempKbidData.totalCount = data.count;
+        tempKbidData.currentPage = page;
+        tempKbidData.dataFields = _.map(kbidData.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
-            label: val === '_menu' ? '' : f('hostCpeFields.' + val),
+            label: val === '_menu' ? '' : f('hostKbidFields.' + val),
             options: {
               filter: true,
               sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempCpeData.dataContent[dataIndex];
-                const value = tempCpeData.dataContent[dataIndex][val];
+                const allValue = tempKbidData.dataContent[dataIndex];
+                const value = tempKbidData.dataContent[dataIndex][val];
 
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)}><i className='fg fg-more'></i></Button>
+                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
-                } else if (val === 'vulnerabilityNum') {
-                  return helper.numberWithCommas(value);
-                } else if (val === 'exposedDevices') {
-                  return value + ' / ' + allValue.exposedDevicesTotal;
                 } else {
                   return value;
                 }
@@ -287,11 +204,11 @@ class HostInventory extends Component {
             }
           };
         });
-        tempCpeSearch.count = helper.numberWithCommas(data.count);
+        tempKbidSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          cpeSearch: tempCpeSearch,
-          cpeData: tempCpeData
+          kbidSearch: tempKbidSearch,
+          kbidData: tempKbidData
         });
       }
       return null;
@@ -316,82 +233,16 @@ class HostInventory extends Component {
     }
   }
   /**
-   * Get condition text
-   * @method
-   * @returns text in string
-   */
-  getConditionMode = (val) => {
-    if (val === '=') {
-      return 'eq';
-    } else if (val === '>') {
-      return 'gt';
-    } else if (val === '<') {
-      return 'lt';
-    }
-  }
-  /**
-   * Get CPE filter request data
+   * Get KBID filter request data
    * @method
    * @returns requestData object
    */
-  getCpeFilterRequestData = () => {
-    const {cpeSearch, cpeFilter, cpeFilterList} = this.state;
+  getKbidFilterRequestData = () => {
+    const {kbidSearch} = this.state;
     let requestData = {};
 
-    if (cpeSearch.keyword) {
-      requestData.product = cpeSearch.keyword;
-    }
-
-    if (cpeFilter.system.length > 0) {
-      const systemArray = _.map(cpeFilter.system, val => {
-        return val.value;
-      });
-
-      requestData.systemArray = systemArray;
-    }
-
-    if (cpeFilter.vendor.length > 0) {
-      const vendorArray = _.map(cpeFilter.vendor, val => {
-        return val.value;
-      });
-
-      requestData.vendorArray = vendorArray;
-    }
-
-    if (cpeFilterList.version.length > 0) {
-      requestData.versionArray = _.map(cpeFilterList.version, val => {
-        const condition = val.substr(0, 1);
-        const version = val.substr(2);
-
-        return {
-          mode: this.getConditionMode(condition),
-          version
-        }
-      });
-    }
-
-    if (cpeFilterList.vulnerabilityNum.length > 0) {
-      requestData.vulnerabilityNumArray = _.map(cpeFilterList.vulnerabilityNum, val => {
-        const condition = val.substr(0, 1);
-        const vulnerabilityNum = Number(val.substr(2));
-
-        return {
-          mode: this.getConditionMode(condition),
-          vulnerabilityNum
-        }
-      });
-    }
-
-    if (cpeFilterList.exposedDevices.length > 0) {
-      requestData.exposedDevicesArray = _.map(cpeFilterList.exposedDevices, val => {
-        const condition = val.substr(0, 1);
-        const exposedDevices = Number(val.substr(2));
-
-        return {
-          mode: this.getConditionMode(condition),
-          exposedDevices
-        }
-      });
+    if (kbidSearch.keyword) {
+      requestData.kbid = kbidSearch.keyword;
     }
 
     return requestData;
@@ -438,17 +289,6 @@ class HostInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Get related software list
-   * @method
-   * @param {array.<string>} list - related software list
-   * @returns list of software
-   */
-  getSoftwareList = (list) => {
-    list.shift();
-    list.shift();
-    return list.join(', ');
   }
   /**
    * Get exposed devices data
@@ -686,17 +526,17 @@ class HostInventory extends Component {
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('cpeSearch', 'hostNameSearch' or 'cveNameSearch')
+   * @param {string} type - reset button type ('kbidSearch', 'hostNameSearch' or 'cveNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cpeSearch, hostNameSearch, cveNameSearch} = this.state;
+    const {kbidSearch, hostNameSearch, cveNameSearch} = this.state;
 
-    if (type === 'cpeSearch') {
-      let tempCpeSearch = {...cpeSearch};
-      tempCpeSearch.keyword = '';
+    if (type === 'kbidSearch') {
+      let tempKbidSearch = {...kbidSearch};
+      tempKbidSearch.keyword = '';
 
       this.setState({
-        cpeSearch: tempCpeSearch
+        kbidSearch: tempKbidSearch
       });
     } else if (type === 'hostNameSearch') {
       let tempHostNameSearch = {...hostNameSearch};
@@ -717,13 +557,13 @@ class HostInventory extends Component {
   /**
    * Handle keyw down for search field
    * @method
-   * @param {string} type - 'cpeSearch', 'hostNameSearch' or 'cveNameSearch'
+   * @param {string} type - 'kbidSearch', 'hostNameSearch' or 'cveNameSearch'
    * @param {object} event - event object
    */
   handleKeyDown = (type, event) => {
     if (event.key === 'Enter') {
-      if (type === 'cpeSearch') {
-        this.getCpeData();
+      if (type === 'kbidSearch') {
+        this.getKbidData();
       } else if (type === 'hostNameSearch') {
         this.getExposedDevices();
       } else if (type === 'cveNameSearch') {
@@ -884,20 +724,20 @@ class HostInventory extends Component {
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {cpeData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
-    let tempCpeData = {...cpeData};
+    const {kbidData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    let tempKbidData = {...kbidData};
     let tempExposedDevicesData = {...exposedDevicesData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tableField = field;
 
     if (tableType === 'cpe') {
-      tempCpeData.sort.field = tableField;
-      tempCpeData.sort.desc = sort;
+      tempKbidData.sort.field = tableField;
+      tempKbidData.sort.desc = sort;
 
       this.setState({
-        cpeData: tempCpeData
+        kbidData: tempKbidData
       }, () => {
-        this.getCpeData();
+        this.getKbidData();
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData.sort.field = tableField;
@@ -927,18 +767,18 @@ class HostInventory extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {cpeData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
-    let tempCpeData = {...cpeData};
+    const {kbidData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    let tempKbidData = {...kbidData};
     let tempExposedDevicesData = {...exposedDevicesData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
     if (tableType === 'cpe') {
-      tempCpeData[type] = value;
+      tempKbidData[type] = value;
 
       this.setState({
-        cpeData: tempCpeData
+        kbidData: tempKbidData
       }, () => {
-        this.getCpeData(type);
+        this.getKbidData(type);
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData[type] = value;
@@ -964,11 +804,11 @@ class HostInventory extends Component {
    * @param {object} event - event object
    */
   handleCpeChange = (event) => {
-    let tempCpeSearch = {...this.state.cpeSearch};
-    tempCpeSearch.keyword = event.target.value;
+    let tempKbidSearch = {...this.state.kbidSearch};
+    tempKbidSearch.keyword = event.target.value;
 
     this.setState({
-      cpeSearch: tempCpeSearch
+      kbidSearch: tempKbidSearch
     });
   }
   /**
@@ -999,7 +839,7 @@ class HostInventory extends Component {
    */
   toggleFilterQuery = (options) => {
     if (options === 'confirm') {
-      this.getCpeData();
+      this.getKbidData();
     }
 
     this.setState({
@@ -1014,11 +854,11 @@ class HostInventory extends Component {
    * @param {array.<object>} value - selected input value
    */
   handleComboBoxChange = (type, event, value) => {
-    let tempCpeFilter = {...this.state.cpeFilter};
+    let tempCpeFilter = {...this.state.kbidFilter};
     tempCpeFilter[type] = value;
 
     this.setState({
-      cpeFilter: tempCpeFilter
+      kbidFilter: tempCpeFilter
     });
   }
   /**
@@ -1028,9 +868,9 @@ class HostInventory extends Component {
    * @param {array.<string>} data - filter data
    */
   setSerchFilter = (type, data) => {
-    const {cpeFilter, cpeFilterList} = this.state;
-    let tempCpeFilter = {...cpeFilter};
-    let tempCpeFilterList = {...cpeFilterList};
+    const {kbidFilter, kbidFilterList} = this.state;
+    let tempCpeFilter = {...kbidFilter};
+    let tempCpeFilterList = {...kbidFilterList};
     let dataList = [];
     tempCpeFilter[type] = data;
 
@@ -1046,8 +886,8 @@ class HostInventory extends Component {
     tempCpeFilterList[type] = dataList;
 
     this.setState({
-      cpeFilter: tempCpeFilter,
-      cpeFilterList: tempCpeFilterList
+      kbidFilter: tempCpeFilter,
+      kbidFilterList: tempCpeFilterList
     });
   }
   /**
@@ -1058,7 +898,7 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   showFilterForm = (val, i) => {
-    const value = this.state.cpeFilterList[val].join(', ');
+    const value = this.state.kbidFilterList[val].join(', ');
 
     return (
       <div key={i} className='group'>
@@ -1082,7 +922,7 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {systemType, vendorType, cpeFilter, popOverAnchor, activeFilter} = this.state;
+    const {systemType, vendorType, kbidFilter, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
@@ -1108,12 +948,14 @@ class HostInventory extends Component {
             horizontal: 'left',
           }}>
           <div className='content'>
-            <MultiInput
-              base={SearchFilter}
-              defaultItemValue={defaultItemValue}
-              value={cpeFilter[activeFilter]}
-              props={data}
-              onChange={this.setSerchFilter.bind(this, activeFilter)} />
+            <React.Fragment>
+              <MultiInput
+                base={SearchFilter}
+                defaultItemValue={defaultItemValue}
+                value={kbidFilter[activeFilter]}
+                props={data}
+                onChange={this.setSerchFilter.bind(this, activeFilter)} />
+            </React.Fragment>
           </div>
         </PopoverMaterial>
 
@@ -1121,7 +963,7 @@ class HostInventory extends Component {
           <Autocomplete
             className='combo-box'
             multiple
-            value={cpeFilter.system}
+            value={kbidFilter.system}
             options={systemType}
             getOptionLabel={(option) => option.text}
             disableCloseOnSelect
@@ -1152,7 +994,7 @@ class HostInventory extends Component {
           <Autocomplete
             className='combo-box'
             multiple
-            value={cpeFilter.vendor}
+            value={kbidFilter.vendor}
             options={vendorType}
             getOptionLabel={(option) => option.text}
             disableCloseOnSelect
@@ -1190,8 +1032,8 @@ class HostInventory extends Component {
    */
   clearFilter = () => {
     this.setState({
-      cpeFilter: _.cloneDeep(CPE_FILTER),
-      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST)
+      kbidFilter: _.cloneDeep(KBID_FILTER),
+      kbidFilterList: _.cloneDeep(KBID_FILTER_LIST)
     });
   }
   /**
@@ -1235,15 +1077,15 @@ class HostInventory extends Component {
    */
   exportCpeList = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const {cpeData} = this.state;
+    const {kbidData} = this.state;
     let url = '';
     let requestData = {
-      ...this.getCpeFilterRequestData()
+      ...this.getKbidFilterRequestData()
     };
 
     if (type === 'cpe') {
       let exportFields = {};
-      let fieldsList = _.cloneDeep(cpeData.dataFieldsArr);
+      let fieldsList = _.cloneDeep(kbidData.dataFieldsArr);
       fieldsList.shift();
 
       _.forEach(fieldsList, val => {
@@ -1261,7 +1103,7 @@ class HostInventory extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {cpeSearch, showCpeInfo, showFilterQuery, cpeData, tableContextAnchor, exportContextAnchor} = this.state;
+    const {kbidSearch, showCpeInfo, showFilterQuery, kbidData, tableContextAnchor, exportContextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cpe', 'currentPage', currentPage);
@@ -1305,7 +1147,7 @@ class HostInventory extends Component {
             </div>
 
             <div className='main-content'>
-              <header className='main-header'>{t('host.inventory.txt-orgSoftwareList')}</header>
+              <header className='main-header'>{t('host.txt-kbid')}</header>
 
               <div className='content-header-btns with-menu'>
                 <Menu
@@ -1324,24 +1166,24 @@ class HostInventory extends Component {
               <div className='actions-bar'>
                 <div className='search-field'>
                   <TextField
-                    name='cpeSearch'
+                    name='kbidSearch'
                     className='search-text'
-                    label={t('host.inventory.txt-applicationName')}
+                    label={t('host.txt-kbidName')}
                     variant='outlined'
                     size='small'
-                    value={cpeSearch.keyword}
+                    value={kbidSearch.keyword}
                     onChange={this.handleCpeChange}
-                    onKeyDown={this.handleKeyDown.bind(this, 'cpeSearch')} />
-                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getCpeData}>{t('txt-search')}</Button>
-                  {cpeSearch.keyword &&
-                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}></i>
+                    onKeyDown={this.handleKeyDown.bind(this, 'kbidSearch')} />
+                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getKbidData}>{t('txt-search')}</Button>
+                  {kbidSearch.keyword &&
+                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'kbidSearch')}></i>
                   }
-                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(cpeSearch.count)}</div>
+                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(kbidSearch.count)}</div>
                 </div>
               </div>
 
               <MuiTableContent
-                data={cpeData}
+                data={kbidData}
                 tableOptions={tableOptions} />
             </div>
           </div>
@@ -1351,9 +1193,9 @@ class HostInventory extends Component {
   }
 }
 
-HostInventory.contextType = BaseDataContext;
+HostKbid.contextType = BaseDataContext;
 
-HostInventory.propTypes = {
+HostKbid.propTypes = {
 };
 
-export default HostInventory;
+export default HostKbid;

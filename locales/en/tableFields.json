@@ -788,5 +788,9 @@
     "product": "Product",
     "system": "System",
     "version": "Version"
+  },
+  "hostKbidFields": {
+    "kbid": "KBID",
+    "exposedDevices": "Exposed Devices"
   }
 }

@@ -788,5 +788,9 @@
     "product": "產品",
     "system": "系統",
     "version": "版本"
+  },
+  "hostKbidFields": {
+    "kbid": "KBID",
+    "exposedDevices": "裝置數量"
   }
 }

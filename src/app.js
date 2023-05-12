@@ -25,6 +25,7 @@ import Host from './components/host/index'
 import HostCpe from './components/host/cpe'
 import HostDashboard from './components/host/dashboard'
 import HostInventory from './components/host/inventory'
+import HostKbid from './components/host/kbid'
 import Incident from './components/soc/incident'
 import IncidentDeviceStep from './components/soc/incident-device-with-step'
 import IncidentFlow from './components/soc/incident-flow'
@@ -135,6 +136,12 @@ const HostDashboardComp = () => (
 const HostInventoryComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <HostInventory />
+  </BaseDataContext.Provider>
+);
+
+const HostKbidComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <HostKbid />
   </BaseDataContext.Provider>
 );
 
@@ -341,6 +348,7 @@ const Main = () => (
       <Route exact path='/SCP/host/cpe' component={HostCpeComp} />
       <Route exact path='/SCP/host/dashboard' component={HostDashboardComp} />
       <Route exact path='/SCP/host/inventory' component={HostInventoryComp} />
+      <Route exact path='/SCP/host/kbid' component={HostKbidComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />

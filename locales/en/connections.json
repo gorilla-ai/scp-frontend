@@ -458,6 +458,7 @@
     "txt-report-nccst": "Report NCCST",
     "txt-report-kbid": "Report KBID",
     "txt-kbid": "KBID",
+    "txt-kbidName": "KBID Name",
     "txt-exposedDevices": "Exposed Devices",
     "txt-report-nccst-success": "Report Success",
     "txt-report-nccst-fail": "Report Failed",
