@@ -385,7 +385,7 @@ class TtpObsFile extends Component {
                 }
               </React.Fragment>
             }
-            <div className='upload-header'>{f('incidentFields.fileUpload')} (.zip)</div>
+            <div className='upload-header'>{f('incidentFields.fileUpload')} (.zip) ({it('txt-zipPassword')})</div>
             <FileUpload
               id='fileUpload'
               fileType='zip'

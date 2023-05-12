@@ -110,6 +110,7 @@
 	"txt-editIncident-EDR": "編輯EDR事件單",
 	"txt-sendHealthCsv": "發布健康狀態統計單",
 	"txt-exportHealthCsv": "匯出健康狀態統計單",
+	"txt-zipPassword": "密碼需為: nics",
 	"txt-restore": "還原",
 	"txt-abandon": "捨棄",
 	"txt-id": "編號: ",

@@ -109,6 +109,7 @@
 	"txt-editIncident-EDR": "Edit EDR Incident",
 	"txt-sendHealthCsv": "Send Health Status Statistic CSV",
 	"txt-exportHealthCsv": "Export Health Status Statistic CSV",
+	"txt-zipPassword": "Password: nics",
 	"txt-restore": "Restore",
 	"txt-abandon": "Abandon",
 	"txt-id": "ID: ",
