@@ -920,11 +920,11 @@ class SafetyDetails extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                        {safetyScanType === 'getKbid' && currentSafetyData.rows &&
-                          currentSafetyData.rows.map(this.getKbidTableBody)
-                        }
                         {safetyScanType !== 'getKbid' && currentSafetyData.disDevDtos && currentSafetyData.disDevDtos.length > 0 &&
                           currentSafetyData.disDevDtos.map(this.getHostTableBody)
+                        }
+                        {safetyScanType === 'getKbid' && currentSafetyData.rows &&
+                          currentSafetyData.rows.map(this.getKbidTableBody)
                         }
                       </tbody>
                     </table>
