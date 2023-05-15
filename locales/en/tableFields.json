@@ -791,6 +791,7 @@
   },
   "hostKbidFields": {
     "kbid": "KBID",
-    "exposedDevices": "Exposed Devices"
+    "exposedDevices": "Exposed Devices",
+    "departmentArray": "Department"
   }
 }

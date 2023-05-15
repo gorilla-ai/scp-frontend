@@ -791,6 +791,7 @@
   },
   "hostKbidFields": {
     "kbid": "KBID",
-    "exposedDevices": "裝置數量"
+    "exposedDevices": "裝置數量",
+    "departmentArray": "部門"
   }
 }

@@ -2986,11 +2986,11 @@ class HostController extends Component {
             onClose={this.handlePopoverClose}
             anchorOrigin={{
               vertical: 'bottom',
-              horizontal: 'left',
+              horizontal: 'left'
             }}
             transformOrigin={{
               vertical: 'top',
-              horizontal: 'left',
+              horizontal: 'left'
             }}>
             <div className='content'>
               {activeFilter === 'system' &&
@@ -4157,8 +4157,8 @@ class HostController extends Component {
    */
   setSelectedDepartment = () => {
     const {baseUrl} = this.context;
-    const {account} = this.state;
-    let tempFilterNav = {...this.state.filterNav};
+    const {account, filterNav} = this.state;
+    let tempFilterNav = {...filterNav};
 
     this.ah.one({
       url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,

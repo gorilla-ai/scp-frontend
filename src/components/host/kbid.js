@@ -8,6 +8,8 @@ import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -15,6 +17,8 @@ import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -85,6 +89,16 @@ class HostKbid extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
+      },
+      departmentList: null,
+      limitedDepartment: [],
       systemType: [],
       vendorType: [],
       kbidSearch: _.cloneDeep(KBID_SEARCH),
@@ -99,7 +113,7 @@ class HostKbid extends Component {
         count: 0
       },
       popOverAnchor: null,
-      activeFilter: '',
+      activeFilter: '', //same as FILTER_LIST
       showCpeInfo: false,
       showFilterQuery: false,
       activeCpeInfo: 'exposedDevices',
@@ -126,15 +140,88 @@ class HostKbid extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {baseUrl, locale, sessionRights} = this.context;
+    const {baseUrl, locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
+
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId;
+
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
+      }
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getDepartmentTree();
+      });
+    }    
 
     this.getKbidData();
   }
   componentWillUnmount() {
     helper.clearTimer();
+  }
+  /**
+   * Get department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          departmentList: data
+        }, () => {
+          if (account.limitedRole && account.departmentId) {
+            this.setSelectedDepartment();
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account, kbidFilter} = this.state;
+    let tempKbidFilter = {...kbidFilter};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempKbidFilter.departmentArray = data;
+
+        this.setState({
+          kbidFilter: tempKbidFilter,
+          limitedDepartment: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set KBID data
@@ -904,7 +991,7 @@ class HostKbid extends Component {
       <div key={i} className='group'>
         <TextField
           name={val}
-          label={f('hostCpeFields.' + val)}
+          label={f('hostKbidFields.' + val)}
           variant='outlined'
           fullWidth
           size='small'
@@ -917,20 +1004,103 @@ class HostKbid extends Component {
     )
   }
   /**
+   * Determine checkbox disabled status
+   * @method
+   * @param {string} id - department tree ID
+   * @returns boolean true/false
+   */
+  checkboxDisabled = (id) => {
+    const {account, limitedDepartment} = this.state;
+
+    if (account.limitedRole) {
+      if (limitedDepartment.length === 0) {
+        return true;
+      }
+
+      if (limitedDepartment.length > 0) {
+        if (!_.includes(limitedDepartment, id)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return false;
+  }
+  /**
+   * Get list of selected checkbox
+   * @method
+   * @param {bool} checked - checkbox on/off
+   * @param {string} type - filterNav type
+   * @param {array.<string>} list - list of selected items
+   * @param {string} [id] - selected checkbox id
+   * @returns array of selected list
+   */
+  getSelectedItems = (checked, type, list, id) => {
+    const {kbidFilter} = this.state;
+
+    if (checked) {
+      return _.concat(kbidFilter[type], ...list, id);
+    } else {
+      return _.without(kbidFilter[type], ...list, id);
+    }
+  }
+  /**
+   * Handle department checkbox check/uncheck
+   * @method
+   * @param {object} tree - department tree data
+   * @param {object} event - event object
+   */
+  toggleDepartmentCheckbox = (tree, event) => {
+    let tempKbidFilter = {...this.state.kbidFilter};
+    let departmentChildList = [];
+
+    _.forEach(tree.children, val => {
+      helper.floorPlanRecursive(val, obj => {
+        departmentChildList.push(obj.id);
+      });
+    })
+
+    tempKbidFilter.departmentArray = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
+
+    this.setState({
+      kbidFilter: tempKbidFilter
+    });
+  }
+  /**
+   * Display department tree content
+   * @method
+   * @param {object} tree - department tree data
+   * @returns HTML DOM
+   */
+  getDepartmentTreeLabel = (tree) => {
+    return <span><Checkbox checked={_.includes(this.state.kbidFilter.departmentArray, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' disabled={this.checkboxDisabled(tree.id)} />{tree.name}</span>
+  }
+  /**
+   * Display department tree item
+   * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
+   */
+  getDepartmentTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={this.getDepartmentTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getDepartmentTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
    * Display filter query content
    * @method
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {systemType, vendorType, kbidFilter, popOverAnchor, activeFilter} = this.state;
-    const defaultItemValue = {
-      condition: '=',
-      input: ''
-    };
-    const data = {
-      pageType: 'inventory',
-      activeFilter
-    };
+    const {departmentList, popOverAnchor, activeFilter} = this.state;
 
     return (
       <div className='filter-section'>
@@ -941,85 +1111,29 @@ class HostKbid extends Component {
           onClose={this.handlePopoverClose}
           anchorOrigin={{
             vertical: 'bottom',
-            horizontal: 'left',
+            horizontal: 'left'
           }}
           transformOrigin={{
             vertical: 'top',
-            horizontal: 'left',
+            horizontal: 'left'
           }}>
           <div className='content'>
-            <React.Fragment>
-              <MultiInput
-                base={SearchFilter}
-                defaultItemValue={defaultItemValue}
-                value={kbidFilter[activeFilter]}
-                props={data}
-                onChange={this.setSerchFilter.bind(this, activeFilter)} />
-            </React.Fragment>
+            {!departmentList &&
+              <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
+            }
+            {departmentList && departmentList.length === 0 &&
+              <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
+            }
+            {departmentList && departmentList.length > 0 &&
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {departmentList.map(this.getDepartmentTreeItem)}
+              </TreeView>
+            }
           </div>
         </PopoverMaterial>
-
-        <div className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={kbidFilter.system}
-            options={systemType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.system')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange.bind(this, 'system')} />
-        </div>
-
-        <div className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={kbidFilter.vendor}
-            options={vendorType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.vendor')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange.bind(this, 'vendor')} />
-        </div>
 
         {FILTER_LIST.map(this.showFilterForm)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>

@@ -1292,11 +1292,11 @@ class HostDashboard extends Component {
           onClose={this.handlePopoverClose}
           anchorOrigin={{
             vertical: 'bottom',
-            horizontal: 'left',
+            horizontal: 'left'
           }}
           transformOrigin={{
             vertical: 'top',
-            horizontal: 'left',
+            horizontal: 'left'
           }}>
           <div className='content'>
             <React.Fragment>
