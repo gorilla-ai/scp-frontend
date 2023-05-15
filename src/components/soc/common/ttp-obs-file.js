@@ -26,6 +26,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
+let it = null;
 
 const CheckBoxIconContainer = styled(CheckBoxIcon)`
   color: #7ACC29;
@@ -37,6 +38,7 @@ class TtpObsFile extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
     this.state = {
       file: {},
