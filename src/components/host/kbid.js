@@ -34,19 +34,33 @@ import SearchFilter from './search-filter'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['departmentArray'];
+const FILTER_LIST = ['departmentSelected'];
 const KBID_SEARCH = {
   keyword: '',
   count: 0
 };
 const KBID_FILTER = {
-  departmentArray: []
+  departmentSelected: []
 };
 const KBID_FILTER_LIST = {
-  departmentArray: []
+  departmentSelected: []
+};
+const VANS_FORM_VALIDATION = {
+  oid: {
+    valid: true
+  },
+  unitName: {
+    valid: true
+  },
+  apiKey: {
+    valid: true
+  },
+  apiUrl: {
+    valid: true
+  }
 };
 const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['hostName', 'system', 'ip', 'daysOpen'],
+  dataFieldsArr: ['ip', 'hostName', 'system', 'departmentName'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -57,20 +71,12 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
-const DISCOVERED_VULNERABILITY_DATA = {
-  dataFieldsArr: ['cveId', 'severity', 'cvss'],
-  dataFields: [],
-  dataContent: null,
-  sort: {
-    field: '',
-    desc: true
-  },
-  totalCount: 0,
-  currentPage: 0,
-  pageSize: 20
+const HMD_VANS_CONFIG = {
+  oid: '',
+  unitName: '',
+  apiKey: '',
+  apiUrl: ''
 };
-const NOT_AVAILABLE = 'N/A';
-let ALERT_LEVEL_COLORS = {};
 
 let t = null;
 let f = null;
@@ -97,10 +103,9 @@ class HostKbid extends Component {
         departmentId: '',
         limitedRole: false
       },
-      departmentList: null,
+      departmentList: [],
+      departmentNameMapping: {},
       limitedDepartment: [],
-      systemType: [],
-      vendorType: [],
       kbidSearch: _.cloneDeep(KBID_SEARCH),
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
@@ -108,15 +113,13 @@ class HostKbid extends Component {
         keyword: '',
         count: 0
       },
-      cveNameSearch: {
-        keyword: '',
-        count: 0
-      },
       popOverAnchor: null,
+      tableContextAnchor: null,
       activeFilter: '', //same as FILTER_LIST
-      showCpeInfo: false,
       showFilterQuery: false,
-      activeCpeInfo: 'exposedDevices',
+      reportOpen: false,
+      showKbidInfo: false,
+      activeKbidInfo: 'exposedDevices',
       kbidData: {
         dataFieldsArr: ['_menu', 'kbid', 'exposedDevices'],
         dataFields: [],
@@ -130,11 +133,9 @@ class HostKbid extends Component {
         pageSize: 20
       },
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
-      discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
-      tableContextAnchor: null,
-      exportContextAnchor: null,
-      currentCpeKey: '',
-      currentCpeData: {}
+      currentKbid: '',
+      hmdVansConfigurations: _.cloneDeep(HMD_VANS_CONFIG),
+      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
@@ -160,9 +161,7 @@ class HostKbid extends Component {
       }, () => {
         this.getDepartmentTree();
       });
-    }    
-
-    this.getKbidData();
+    }
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -181,8 +180,17 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
+        let departmentNameMapping = {};
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentNameMapping[obj.id] = obj.name;
+          });
+        })
+
         this.setState({
-          departmentList: data
+          departmentList: data,
+          departmentNameMapping
         }, () => {
           if (account.limitedRole && account.departmentId) {
             this.setSelectedDepartment();
@@ -201,8 +209,9 @@ class HostKbid extends Component {
    */
   setSelectedDepartment = () => {
     const {baseUrl} = this.context;
-    const {account, kbidFilter} = this.state;
+    const {account, departmentNameMapping, kbidFilter, kbidFilterList} = this.state;
     let tempKbidFilter = {...kbidFilter};
+    let tempKbidFilterList = {...kbidFilterList};
 
     this.ah.one({
       url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
@@ -210,11 +219,17 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
-        tempKbidFilter.departmentArray = data;
+        tempKbidFilter.departmentSelected = data;
+        tempKbidFilterList.departmentSelected = _.map(data, val => {
+          return departmentNameMapping[val];
+        });
 
         this.setState({
+          limitedDepartment: data,
           kbidFilter: tempKbidFilter,
-          limitedDepartment: data
+          kbidFilterList: tempKbidFilterList
+        }, () => {
+          this.getKbidData();
         });
       }
       return null;
@@ -325,11 +340,15 @@ class HostKbid extends Component {
    * @returns requestData object
    */
   getKbidFilterRequestData = () => {
-    const {kbidSearch} = this.state;
+    const {kbidSearch, kbidFilter} = this.state;
     let requestData = {};
 
     if (kbidSearch.keyword) {
       requestData.kbid = kbidSearch.keyword;
+    }
+
+    if (kbidFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = kbidFilter.departmentSelected;
     }
 
     return requestData;
@@ -337,60 +356,30 @@ class HostKbid extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {object} key - active CPE key
+   * @param {object} kbid - active KBID
    * @param {object} event - event object
    */
-  handleOpenMenu = (key, event) => {
+  handleOpenMenu = (kbid, event) => {
     this.setState({
       tableContextAnchor: event.currentTarget,
-      currentCpeKey: key
+      currentKbid: kbid
     });
-  }
-  /**
-   * Get individual CPE data
-   * @method
-   */
-  getActiveCpeInfo = () => {
-    const {baseUrl} = this.context;
-    const {currentCpeKey} = this.state;
-    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/cpeInfo?cpeKey=${currentCpeKey}`;
-
-    this.ah.one({
-      url,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          currentCpeData: data.cpeInfo
-        }, () => {
-          this.toggleShowCPE();
-        });
-
-        this.handleCloseMenu();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Get exposed devices data
    * @method
-   * @param {string} [fromPage] - option for 'currentPage'
+   * @param {string} [fromPage] - option for 'open' or currentPage'
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {hostNameSearch, exposedDevicesData, currentCpeKey} = this.state;
+    const {hostNameSearch, exposedDevicesData, currentKbid} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
-    const requestData = {
-      cpeKey: currentCpeKey
+    let url = `${baseUrl}/api/hmd/kbid/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+    let requestData = {
+      kbid: currentKbid,
+      ...this.getKbidFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
     let tempHostNameSearch = {...hostNameSearch};
 
     if (exposedDevicesData.sort.field) {
@@ -398,7 +387,7 @@ class HostKbid extends Component {
     }
 
     if (hostNameSearch.keyword) {
-      requestData.hostName = hostNameSearch.keyword;
+      requestData.hostNameOrIp = hostNameSearch.keyword;
     }
 
     this.ah.one({
@@ -445,90 +434,13 @@ class HostKbid extends Component {
         this.setState({
           hostNameSearch: tempHostNameSearch,
           exposedDevicesData: tempExposedDevicesData
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get discovered vulnerability data
-   * @method
-   * @param {string} [fromPage] - option for 'currentPage'
-   */
-  getDiscoveredVulnerability = (fromPage) => {
-    const {baseUrl} = this.context;
-    const {cveNameSearch, discoveredVulnerabilityData, currentCpeKey} = this.state;
-    const sort = discoveredVulnerabilityData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? discoveredVulnerabilityData.currentPage : 0;
-    const requestData = {
-      cpeKey: currentCpeKey
-    };
-    let url = `${baseUrl}/api/hmd/cpe/cves?page=${page + 1}&pageSize=${discoveredVulnerabilityData.pageSize}`;
-    let tempCveNameSearch = {...cveNameSearch};
-
-    if (discoveredVulnerabilityData.sort.field) {
-      url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
-    }
-
-    if (cveNameSearch.keyword) {
-      requestData.cveId = cveNameSearch.keyword;
-    }
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
-
-        if (!data.rows || data.rows.length === 0) {
-          tempDiscoveredVulnerabilityData.dataContent = [];
-          tempDiscoveredVulnerabilityData.totalCount = 0;
-
-          this.setState({
-            discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
-          });
-          return null;
-        }       
-
-        tempDiscoveredVulnerabilityData.dataContent = data.rows;
-        tempDiscoveredVulnerabilityData.totalCount = data.count;
-        tempDiscoveredVulnerabilityData.currentPage = page;
-        tempDiscoveredVulnerabilityData.dataFields = _.map(discoveredVulnerabilityData.dataFieldsArr, val => {
-          return {
-            name: val,
-            label: f('hostDashboardFields.' + val),
-            options: {
-              filter: true,
-              sort: true,
-              customBodyRenderLite: (dataIndex) => {
-                const allValue = tempDiscoveredVulnerabilityData.dataContent[dataIndex];
-                const value = tempDiscoveredVulnerabilityData.dataContent[dataIndex][val];
-
-                if (val === 'severity' && value) {
-                  const severityLevel = t('txt-' + value.toLowerCase());
-
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}</span>
-                } else {
-                  return value;
-                }
-              }
-            }
-          };
+        }, () => {
+          if (fromPage === 'open') {
+            this.toggleShowKBID();
+          }
         });
 
-        tempCveNameSearch.count = helper.numberWithCommas(data.count);
-
-        this.setState({
-          cveNameSearch: tempCveNameSearch,
-          discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
-        });
+        this.handleCloseMenu();
       }
       return null;
     })
@@ -542,46 +454,31 @@ class HostKbid extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      tableContextAnchor: null,
-      exportContextAnchor: null
+      tableContextAnchor: null
     });
   }
   /**
-   * Toggle show CPE info
+   * Toggle show KBID info
    * @method
    */
-  toggleShowCPE = () => {
+  toggleShowKBID = () => {
     this.setState({
-      showCpeInfo: !this.state.showCpeInfo,
-      activeCpeInfo: 'vulnerabilityDetails',
-      hostNameSearch: {
-        keyword: '',
-        count: 0
-      },
-      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+      showKbidInfo: !this.state.showKbidInfo
     });
   }
   /**
-   * Toggle show CPE button
+   * Toggle show KBID button
    * @method
    * @param {object} event - event object
-   * @param {string} type - CPE button type ('vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability')
+   * @param {string} type - KBID button type ('exposedDevices')
    */
-  toggleCpeButtons = (event, type) => {
+  toggleKbidButtons = (event, type) => {
     if (!type) {
       return;
     }
     
     this.setState({
-      activeCpeInfo: type
-    }, () => {
-      const {activeCpeInfo} = this.state;
-
-      if (activeCpeInfo === 'exposedDevices') {
-        this.getExposedDevices();
-      } else if (activeCpeInfo === 'discoveredVulnerability') {
-        this.getDiscoveredVulnerability();
-      }
+      activeKbidInfo: type
     });
   }
   /**
@@ -598,25 +495,12 @@ class HostKbid extends Component {
     });
   }
   /**
-   * Handle CVE name search
-   * @method
-   * @param {object} event - event object
-   */
-  handleCveNameChange = (event) => {
-    let tempCveNameSearch = {...this.state.cveNameSearch};
-    tempCveNameSearch.keyword = event.target.value;
-
-    this.setState({
-      cveNameSearch: tempCveNameSearch
-    });
-  }
-  /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('kbidSearch', 'hostNameSearch' or 'cveNameSearch')
+   * @param {string} type - reset button type ('kbidSearch' or 'hostNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {kbidSearch, hostNameSearch, cveNameSearch} = this.state;
+    const {kbidSearch, hostNameSearch} = this.state;
 
     if (type === 'kbidSearch') {
       let tempKbidSearch = {...kbidSearch};
@@ -632,19 +516,12 @@ class HostKbid extends Component {
       this.setState({
         hostNameSearch: tempHostNameSearch
       });
-    } else if (type === 'cveNameSearch') {
-      let tempCveNameSearch = {...cveNameSearch};
-      tempCveNameSearch.keyword = '';
-
-      this.setState({
-        cveNameSearch: tempCveNameSearch
-      });
     }
   }
   /**
    * Handle keyw down for search field
    * @method
-   * @param {string} type - 'kbidSearch', 'hostNameSearch' or 'cveNameSearch'
+   * @param {string} type - 'kbidSearch' or 'hostNameSearch'
    * @param {object} event - event object
    */
   handleKeyDown = (type, event) => {
@@ -653,20 +530,18 @@ class HostKbid extends Component {
         this.getKbidData();
       } else if (type === 'hostNameSearch') {
         this.getExposedDevices();
-      } else if (type === 'cveNameSearch') {
-        this.getDiscoveredVulnerability();
       }
     }
   }
   /**
-   * Display CPE info content
+   * Display KBID info content
    * @method
    * @returns HTML DOM
    */
-  displayCpeInfo = () => {
-    const {hostNameSearch, cveNameSearch, activeCpeInfo, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
+  displayKbidInfo = () => {
+    const {hostNameSearch, activeKbidInfo, exposedDevicesData} = this.state;
     const tableOptionsExposedDevices = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: '458px',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
       },
@@ -677,58 +552,25 @@ class HostKbid extends Component {
         this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
       }
     };
-    const tableOptionsDiscoveredVulnerability = {
-      tableBodyHeight: '550px',
-      onChangePage: (currentPage) => {
-        this.handlePaginationChange('discoveredVulnerability', 'currentPage', currentPage);
-      },
-      onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('discoveredVulnerability', 'pageSize', numberOfRows);
-      },
-      onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort('discoveredVulnerability', changedColumn, direction === 'desc');
-      }
-    };
 
     return (
       <div>
         <ToggleButtonGroup
-          id='activeCpeInfoButtons'
-          value={activeCpeInfo}
+          id='activeKbidInfoButtons'
+          value={activeKbidInfo}
           exclusive
-          onChange={this.toggleCpeButtons}>
-          <ToggleButton id='vulnerabilityDetails' value='vulnerabilityDetails'>{t('host.dashboard.txt-vulnerabilityDetails')}</ToggleButton>
+          onChange={this.toggleKbidButtons}>
           <ToggleButton id='exposedDevices' value='exposedDevices'>{t('host.dashboard.txt-exposedDevices')}</ToggleButton>
-          <ToggleButton id='discoveredVulnerability' value='discoveredVulnerability'>{t('host.inventory.txt-discoveredVulnerability')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
-          {activeCpeInfo === 'vulnerabilityDetails' &&
-            <ul className='vulnerability'>
-              <li className='header'><span>{t('host.inventory.txt-cpe23uri')}</span>: {currentCpeData.cpe23uri || NOT_AVAILABLE}</li>
-              <li className='header'><span>{t('host.inventory.txt-cpeNameComponents')}</span></li>
-              <li><span>{t('host.inventory.txt-edition')}</span>: {currentCpeData.edition || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-language')}</span>: {currentCpeData.language || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-other')}</span>: {currentCpeData.other || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-part')}</span>: {currentCpeData.part || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-product')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-swEdition')}</span>: {currentCpeData.swEdition || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-targetHw')}</span>: {currentCpeData.targetHw || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-targetSw')}</span>: {currentCpeData.targetSw || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-update')}</span>: {currentCpeData.update || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-vendor')}</span>: {currentCpeData.vendor || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-version')}</span>: {currentCpeData.version || NOT_AVAILABLE}</li>
-              <li className='header'><span>{t('host.inventory.txt-productCpename')}</span>: <span>{currentCpeData.productCpename}</span></li>
-            </ul>
-          }
-
-          {activeCpeInfo === 'exposedDevices' &&
+          {activeKbidInfo === 'exposedDevices' &&
             <React.Fragment>
               <div className='search-field'>
                 <TextField
                   name='hostNameSearch'
                   className='search-text'
-                  label={t('host.dashboard.txt-hostName')}
+                  label={t('host.dashboard.txt-hostNameOrIp')}
                   variant='outlined'
                   size='small'
                   value={hostNameSearch.keyword}
@@ -748,76 +590,47 @@ class HostKbid extends Component {
                 tableOptions={tableOptionsExposedDevices} />
             </React.Fragment>
           }
-
-          {activeCpeInfo === 'discoveredVulnerability' &&
-            <React.Fragment>
-              <div className='search-field'>
-                <TextField
-                  name='cveNameSearch'
-                  className='search-text'
-                  label={t('host.dashboard.txt-cveName')}
-                  variant='outlined'
-                  size='small'
-                  value={cveNameSearch.keyword}
-                  onChange={this.handleCveNameChange}
-                  onKeyDown={this.handleKeyDown.bind(this, 'cveNameSearch')} />
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getDiscoveredVulnerability}>{t('txt-search')}</Button>
-                {cveNameSearch.keyword &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveNameSearch')}></i>
-                }
-
-                <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + helper.numberWithCommas(cveNameSearch.count)}</div>
-              </div>
-
-              <MuiTableContent
-                tableHeight='auto'
-                data={discoveredVulnerabilityData}
-                tableOptions={tableOptionsDiscoveredVulnerability} />
-            </React.Fragment>
-          }
         </div>
       </div>
     )
   }
   /**
-   * Show CPE info dialog
+   * Show KBID info dialog
    * @method
    * @returns ModalDialog component
    */
-  showCpeDialog = () => {
-    const {currentCpeData} = this.state;
+  showKbidDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
+      cancel: {text: t('txt-close'), handler: this.toggleShowKBID}
     };
 
     return (
       <ModalDialog
-        id='showCpeDialog'
+        id='showKbidDialog'
         className='modal-dialog'
-        title={currentCpeData.product}
+        title={this.state.currentKbid}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayCpeInfo()}
+        {this.displayKbidInfo()}
       </ModalDialog>
     )
   }
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('cpe', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('kbid' or 'exposedDevices')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {kbidData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    const {kbidData, exposedDevicesData} = this.state;
     let tempKbidData = {...kbidData};
     let tempExposedDevicesData = {...exposedDevicesData};
-    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tableField = field;
 
-    if (tableType === 'cpe') {
+    if (tableType === 'kbid') {
       tempKbidData.sort.field = tableField;
       tempKbidData.sort.desc = sort;
 
@@ -835,31 +648,21 @@ class HostKbid extends Component {
       }, () => {
         this.getExposedDevices();
       });
-    } else if (tableType === 'discoveredVulnerability') {
-      tempDiscoveredVulnerabilityData.sort.field = tableField;
-      tempDiscoveredVulnerabilityData.sort.desc = sort;
-
-      this.setState({
-        discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
-      }, () => {
-        this.getDiscoveredVulnerability();
-      });
     }
   }
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('cpe', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('kbid' or 'exposedDevices')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {kbidData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    const {kbidData, exposedDevicesData} = this.state;
     let tempKbidData = {...kbidData};
     let tempExposedDevicesData = {...exposedDevicesData};
-    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
-    if (tableType === 'cpe') {
+    if (tableType === 'kbid') {
       tempKbidData[type] = value;
 
       this.setState({
@@ -875,22 +678,14 @@ class HostKbid extends Component {
       }, () => {
         this.getExposedDevices(type);
       });
-    } else if (tableType === 'discoveredVulnerability') {
-      tempDiscoveredVulnerabilityData[type] = value;
-
-      this.setState({
-        discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
-      }, () => {
-        this.getDiscoveredVulnerability(type);
-      });
     }
   }
   /**
-   * Handle CPE search search
+   * Handle KBID search search
    * @method
    * @param {object} event - event object
    */
-  handleCpeChange = (event) => {
+  handleKbidChange = (event) => {
     let tempKbidSearch = {...this.state.kbidSearch};
     tempKbidSearch.keyword = event.target.value;
 
@@ -934,50 +729,6 @@ class HostKbid extends Component {
     });
   }
   /**
-   * Handle combo box change
-   * @method
-   * @param {string} type - combo box type ('system' or 'vendor')
-   * @param {object} event - event object
-   * @param {array.<object>} value - selected input value
-   */
-  handleComboBoxChange = (type, event, value) => {
-    let tempCpeFilter = {...this.state.kbidFilter};
-    tempCpeFilter[type] = value;
-
-    this.setState({
-      kbidFilter: tempCpeFilter
-    });
-  }
-  /**
-   * Set search filter data
-   * @method
-   * @param {string} type - filter type
-   * @param {array.<string>} data - filter data
-   */
-  setSerchFilter = (type, data) => {
-    const {kbidFilter, kbidFilterList} = this.state;
-    let tempCpeFilter = {...kbidFilter};
-    let tempCpeFilterList = {...kbidFilterList};
-    let dataList = [];
-    tempCpeFilter[type] = data;
-
-    _.forEach(data, val => {
-      let value = val.input;
-
-      if (value) {
-        value = val.condition + ' ' + value;
-        dataList.push(value);
-      }
-    })
-
-    tempCpeFilterList[type] = dataList;
-
-    this.setState({
-      kbidFilter: tempCpeFilter,
-      kbidFilterList: tempCpeFilterList
-    });
-  }
-  /**
    * Display filter form
    * @method
    * @param {string} val - filter data
@@ -1004,12 +755,12 @@ class HostKbid extends Component {
     )
   }
   /**
-   * Determine checkbox disabled status
+   * Determine whether to show department or not
    * @method
    * @param {string} id - department tree ID
    * @returns boolean true/false
    */
-  checkboxDisabled = (id) => {
+  checkDepartmentList = (id) => {
     const {account, limitedDepartment} = this.state;
 
     if (account.limitedRole) {
@@ -1051,7 +802,9 @@ class HostKbid extends Component {
    * @param {object} event - event object
    */
   toggleDepartmentCheckbox = (tree, event) => {
-    let tempKbidFilter = {...this.state.kbidFilter};
+    const {departmentNameMapping, kbidFilter, kbidFilterList} = this.state;
+    let tempKbidFilter = {...kbidFilter};
+    let tempKbidFilterList = {...kbidFilterList};
     let departmentChildList = [];
 
     _.forEach(tree.children, val => {
@@ -1060,10 +813,15 @@ class HostKbid extends Component {
       });
     })
 
-    tempKbidFilter.departmentArray = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
+    tempKbidFilter.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
+
+    tempKbidFilterList.departmentSelected = _.map(tempKbidFilter.departmentSelected, val => {
+      return departmentNameMapping[val];
+    })
 
     this.setState({
-      kbidFilter: tempKbidFilter
+      kbidFilter: tempKbidFilter,
+      kbidFilterList: tempKbidFilterList
     });
   }
   /**
@@ -1073,7 +831,7 @@ class HostKbid extends Component {
    * @returns HTML DOM
    */
   getDepartmentTreeLabel = (tree) => {
-    return <span><Checkbox checked={_.includes(this.state.kbidFilter.departmentArray, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' disabled={this.checkboxDisabled(tree.id)} />{tree.name}</span>
+    return <span><Checkbox checked={_.includes(this.state.kbidFilter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
   }
   /**
    * Display department tree item
@@ -1083,6 +841,8 @@ class HostKbid extends Component {
    * @returns TreeItem component
    */
   getDepartmentTreeItem = (val, i) => {
+    if (this.checkDepartmentList(val.id)) return; // Hide the tree items that are not belong to the user's account
+
     return (
       <TreeItem
         key={val.id + i}
@@ -1118,23 +878,23 @@ class HostKbid extends Component {
             horizontal: 'left'
           }}>
           <div className='content'>
-            {!departmentList &&
-              <div className='left-nav-group'><span className='loading no-padding'><i className='fg fg-loading-2'></i></span></div>
-            }
-            {departmentList && departmentList.length === 0 &&
-              <div className='left-nav-group'><span>{t('txt-notFound')}</span></div>
-            }
-            {departmentList && departmentList.length > 0 &&
-              <TreeView
-                className='tree-view'
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}>
-                {departmentList.map(this.getDepartmentTreeItem)}
-              </TreeView>
+            {activeFilter &&
+              <React.Fragment>
+                {departmentList.length === 0 &&
+                  <div className='not-found'>{t('txt-notFound')}</div>
+                }
+                {departmentList.length > 0 &&
+                  <TreeView
+                    className='tree-view'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}>
+                    {departmentList.map(this.getDepartmentTreeItem)}
+                  </TreeView>
+                }
+              </React.Fragment>
             }
           </div>
         </PopoverMaterial>
-
         {FILTER_LIST.map(this.showFilterForm)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>
@@ -1175,69 +935,245 @@ class HostKbid extends Component {
     )
   }
   /**
-   * Handle export open menu
+   * Export KBID list
    * @method
-   * @param {object} event - event object
    */
-  handleExportOpenMenu = (event) => {
+  exportKbidList = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/hmd/kbid/_export`;
+    const fieldsList = ['kbid', 'exposedDevices'];
+    let exportFields = {};
+
+    _.forEach(fieldsList, val => {
+      exportFields[val] = t('host.txt-' + val);
+    })
+
+    const requestData = {
+      ...this.getKbidFilterRequestData(),
+      exportFields
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
+   * Toggle report modal dialog on/off
+   * @method
+   */
+  toggleReport = () => {
     this.setState({
-      exportContextAnchor: event.currentTarget
+      reportOpen: !this.state.reportOpen,
+      hmdVansConfigurations: _.cloneDeep(HMD_VANS_CONFIG),
+      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
     });
   }
   /**
-   * Export CPE list
+   * Set input data change
    * @method
-   * @param {string} type - export type ('cpe' or 'nccst')
+   * @param {object} event - event object
    */
-  exportCpeList = (type) => {
-    const {baseUrl, contextRoot} = this.context;
-    const {kbidData} = this.state;
-    let url = '';
-    let requestData = {
-      ...this.getKbidFilterRequestData()
+  handleVansConfigChange = (event) => {
+    const {name, value} = event.target;
+    let tempHmdVansConfigurations = {...this.state.hmdVansConfigurations};
+    tempHmdVansConfigurations[name] = value;
+
+    this.setState({
+      hmdVansConfigurations: tempHmdVansConfigurations
+    });
+  }
+  /**
+   * Display report form content
+   * @method
+   * @returns HTML DOM
+   */
+  displayReportForm = () => {
+    const {hmdVansConfigurations, vansFormValidation} = this.state;
+
+    return (
+      <div className='vans-config-form'>
+        <div className='group'>
+          <TextField
+            id='vansConfigOID'
+            name='oid'
+            label={t('host.txt-vansConfigOID')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.oid.valid}
+            helperText={vansFormValidation.oid.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.oid}
+            onChange={this.handleVansConfigChange} />
+        </div>
+        <div className='group'>
+          <TextField
+            id='vansConfigUnitName'
+            name='unitName'
+            label={t('host.txt-vansConfigUnitName')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.unitName.valid}
+            helperText={vansFormValidation.unitName.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.unitName}
+            onChange={this.handleVansConfigChange} />
+        </div>
+        <div className='group'>
+          <TextField
+            id='vansConfigApiKey'
+            name='apiKey'
+            label={t('host.txt-vansConfigApiKey')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.apiKey.valid}
+            helperText={vansFormValidation.apiKey.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.apiKey}
+            onChange={this.handleVansConfigChange} />
+        </div>
+        <div className='group'>    
+          <TextField
+            id='vansConfigApiUrl'
+            name='apiUrl'
+            label={t('host.txt-vansConfigApiUrl')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!vansFormValidation.apiUrl.valid}
+            helperText={vansFormValidation.apiUrl.valid ? '' : t('txt-required')}
+            value={hmdVansConfigurations.apiUrl}
+            onChange={this.handleVansConfigChange} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Show report list modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showReportList = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReport},
+      confirm: {text: t('txt-confirm'), handler: this.confirmReportList}
     };
 
-    if (type === 'cpe') {
-      let exportFields = {};
-      let fieldsList = _.cloneDeep(kbidData.dataFieldsArr);
-      fieldsList.shift();
+    return (
+      <ModalDialog
+        id='reportNCCSTdialog'
+        className='modal-dialog'
+        title={t('host.txt-report-kbid')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayReportForm()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle report list confirm
+   * @method
+   */
+  confirmReportList = () => {
+    const {baseUrl} = this.context;
+    const {hmdVansConfigurations, vansFormValidation} = this.state;
+    const url = `${baseUrl}/api/hmd/kbid/_report`;
+    let tempVansFormValidation = {...vansFormValidation};
+    let validate = true;
 
-      _.forEach(fieldsList, val => {
-        exportFields[val] = f('hostCpeFields.' + val);
-      })
-
-      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
-      requestData.exportFields = exportFields
-    } else if (type === 'nccst') {
-      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
+    if (hmdVansConfigurations.oid) {
+      tempVansFormValidation.oid.valid = true;
+    } else {
+      tempVansFormValidation.oid.valid = false;
+      validate = false;
     }
 
-    downloadWithForm(url, {payload: JSON.stringify(requestData)});
-    this.handleCloseMenu();
+    if (hmdVansConfigurations.unitName) {
+      tempVansFormValidation.unitName.valid = true;
+    } else {
+      tempVansFormValidation.unitName.valid = false;
+      validate = false;
+    }
+
+    if (hmdVansConfigurations.apiKey) {
+      tempVansFormValidation.apiKey.valid = true;
+    } else {
+      tempVansFormValidation.apiKey.valid = false;
+      validate = false;
+    }
+
+    if (hmdVansConfigurations.apiUrl) {
+      tempVansFormValidation.apiUrl.valid = true;
+    } else {
+      tempVansFormValidation.apiUrl.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      vansFormValidation: tempVansFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    const requestData = {
+      ...this.getKbidFilterRequestData(),
+      hmdKbidConfigurations: {
+        oid: hmdVansConfigurations.oid,
+        unit_name: hmdVansConfigurations.unitName,
+        api_key: hmdVansConfigurations.apiKey,
+        api_url: hmdVansConfigurations.apiUrl
+      }
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
+        this.toggleReport();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {kbidSearch, showCpeInfo, showFilterQuery, kbidData, tableContextAnchor, exportContextAnchor} = this.state;
+    const {reportOpen, kbidSearch, showKbidInfo, showFilterQuery, kbidData, tableContextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
-        this.handlePaginationChange('cpe', 'currentPage', currentPage);
+        this.handlePaginationChange('kbid', 'currentPage', currentPage);
       },
       onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('cpe', 'pageSize', numberOfRows);
+        this.handlePaginationChange('kbid', 'pageSize', numberOfRows);
       },
       onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort('cpe', changedColumn, direction === 'desc');
+        this.handleTableSort('kbid', changedColumn, direction === 'desc');
       }
     };
 
     return (
       <div>
-        {showCpeInfo &&
-          this.showCpeDialog()
-        }
-
         {showFilterQuery &&
           this.showFilterQueryDialog()
+        }
+
+        {reportOpen &&
+          this.showReportList()
+        }
+
+        {showKbidInfo &&
+          this.showKbidDialog()
         }
 
         <Menu
@@ -1245,7 +1181,7 @@ class HostKbid extends Component {
           keepMounted
           open={Boolean(tableContextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem id='activeCveView' onClick={this.getActiveCpeInfo}>{t('txt-view')}</MenuItem>
+          <MenuItem id='activeKbidView' onClick={this.getExposedDevices.bind(this, 'open')}>{t('txt-view')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>
@@ -1264,17 +1200,9 @@ class HostKbid extends Component {
               <header className='main-header'>{t('host.txt-kbid')}</header>
 
               <div className='content-header-btns with-menu'>
-                <Menu
-                  anchorEl={exportContextAnchor}
-                  keepMounted
-                  open={Boolean(exportContextAnchor)}
-                  onClose={this.handleCloseMenu}>
-                  <MenuItem onClick={this.exportCpeList.bind(this, 'cpe')}>{t('host.inventory.txt-inventoryList')}</MenuItem>
-                  <MenuItem onClick={this.exportCpeList.bind(this, 'nccst')}>NCCST</MenuItem>
-                </Menu>
-
                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleExportOpenMenu}>{t('txt-export')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportKbidList}>{t('txt-export')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReport}>{t('host.txt-report-kbid')}</Button>
               </div>
 
               <div className='actions-bar'>
@@ -1286,7 +1214,7 @@ class HostKbid extends Component {
                     variant='outlined'
                     size='small'
                     value={kbidSearch.keyword}
-                    onChange={this.handleCpeChange}
+                    onChange={this.handleKbidChange}
                     onKeyDown={this.handleKeyDown.bind(this, 'kbidSearch')} />
                   <Button variant='contained' color='primary' className='search-btn' onClick={this.getKbidData}>{t('txt-search')}</Button>
                   {kbidSearch.keyword &&

@@ -2974,11 +2974,13 @@ html[data-theme='dark'] {
   }
 }
 #showCveDialog-content,
-#showCpeDialog-content {
+#showCpeDialog-content,
+#showKbidDialog-content {
   width: 1500px;
   height: 700px;
   #activeCveInfoButtons,
-  #activeCpeInfoButtons {
+  #activeCpeInfoButtons,
+  #activeKbidInfoButtons {
     margin: 10px 0;
   }
   .main-content {
@@ -3047,7 +3049,7 @@ html[data-theme='dark'] {
   width: 500px;
   .filter-section {
     input {
-      width: auto;
+      width: 100%;
     }
     .group {
       margin: 20px 0;
@@ -3079,6 +3081,9 @@ html[data-theme='dark'] {
       textarea {
         padding: 5px;
       }
+    }
+    .not-found {
+      margin: 5px 10px 10px 10px;
     }
     .fg-add {
       color: #fff;

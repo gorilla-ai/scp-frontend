@@ -2177,7 +2177,7 @@ class HostController extends Component {
    * @method
    * @returns HTML DOM
    */
-  displayReportform = () => {
+  displayReportForm = () => {
     const {reportType, uploadedCPE, hmdVansConfigurations, vansFormValidation} = this.state;
 
     return (
@@ -2188,7 +2188,9 @@ class HostController extends Component {
         {reportType === 'nccst' && uploadedCPE &&
           <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedCpe')}</Button>
         }
-        <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
+        {reportType === 'nccst' &&
+          <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
+        }
         <div className='group'>
           <TextField
             id='vansConfigOID'
@@ -2217,7 +2219,7 @@ class HostController extends Component {
             value={hmdVansConfigurations.unitName}
             onChange={this.handleVansConfigChange} />
         </div>
-        <div className='group'>   
+        <div className='group'>
           <TextField
             id='vansConfigApiKey'
             name='apiKey'
@@ -2253,10 +2255,10 @@ class HostController extends Component {
    * @method
    * @returns ModalDialog component
    */
-  showReportlist = () => {
+  showReportList = () => {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReport},
-      confirm: {text: t('txt-confirm'), handler: this.confirmReportlist}
+      confirm: {text: t('txt-confirm'), handler: this.confirmReportList}
     };
 
     return (
@@ -2268,7 +2270,7 @@ class HostController extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayReportform()}
+        {this.displayReportForm()}
       </ModalDialog>
     )
   }
@@ -2276,7 +2278,7 @@ class HostController extends Component {
    * Handle report list confirm
    * @method
    */
-  confirmReportlist = () => {
+  confirmReportList = () => {
     const {baseUrl} = this.context;
     const {reportType, hmdVansConfigurations, vansFormValidation} = this.state;
     let url = '';
@@ -2362,7 +2364,6 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
-
         this.toggleReport();
       }
       return null;
@@ -5987,7 +5988,7 @@ class HostController extends Component {
         }
 
         {reportOpen &&
-          this.showReportlist()
+          this.showReportList()
         }
 
         {uploadCpeFileOpen &&
