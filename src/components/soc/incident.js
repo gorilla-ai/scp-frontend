@@ -1552,14 +1552,16 @@ class Incident extends Component {
       }
 
       if (incidentFormType === 'EDR') {
-        temp.edrList = _.cloneDeep(temp.ttpList);
-        delete temp.edrList[0].obsFileList;
+        if (temp.ttpList && temp.ttpList.length > 0) {
+          temp.edrList = _.cloneDeep(temp.ttpList);
+          delete temp.edrList[0].obsFileList;
 
-        temp.ttpList = _.map(temp.ttpList[0].obsFileList, val => {
-          return {
-            obsFileList: [val]
-          };
-        });
+          temp.ttpList = _.map(temp.ttpList[0].obsFileList, val => {
+            return {
+              obsFileList: [val]
+            };
+          });
+        }
       }
 
       let toggleType = type;
