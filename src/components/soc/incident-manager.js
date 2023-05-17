@@ -3112,14 +3112,20 @@ class IncidentManagement extends Component {
       dataType: 'json'
     })
     .then(data => {
-      if (loadListType === 0) {
-        this.loadCondition('other','expired');
-      } else if (loadListType === 2) {
-        this.loadCondition('other','mine');
-      } else if (loadListType === 3) {
-        this.loadData();
+      if (data.rt) {
+        if (data.rt.error) {
+          helper.showPopupMsg(it('txt-send-fail'), data.rt.message);
+        } else {
+          if (loadListType === 0) {
+            this.loadCondition('other','expired');
+          } else if (loadListType === 2) {
+            this.loadCondition('other','mine');
+          } else if (loadListType === 3) {
+            this.loadData();
+          }
+          helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+        }
       }
-      helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
     })
     .catch(err => {
       helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));

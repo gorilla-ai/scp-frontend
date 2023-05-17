@@ -1677,8 +1677,14 @@ class IncidentSearch extends Component {
       dataType: 'json'
     })
     .then(data => {
-      this.loadData();
-      helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+      if (data.rt) {
+        if (data.rt.error) {
+          helper.showPopupMsg(it('txt-send-fail'), data.rt.message);
+        } else {
+          this.loadData();
+          helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+        }
+      }
     })
     .catch(err => {
       helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
