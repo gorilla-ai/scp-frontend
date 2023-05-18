@@ -1003,7 +1003,7 @@ class IncidentForm extends Component {
         {from === 'soc' &&
           <div className='btn btn-group'>
             <Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
-            <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentType !== 'ttps'}>{it('txt-next-page')}</Button>
+            <Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentFormType === 'monitor'}>{it('txt-next-page')}</Button>
           </div>
         }
 

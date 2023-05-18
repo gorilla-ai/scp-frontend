@@ -3113,8 +3113,8 @@ class IncidentManagement extends Component {
     })
     .then(data => {
       if (data.rt) {
-        if (data.rt.error) {
-          helper.showPopupMsg(it('txt-send-fail'), data.rt.message);
+        if (data.rt.error) { // Show error message from api response
+          helper.showPopupMsg(data.rt.message, it('txt-send-fail'));
         } else {
           if (loadListType === 0) {
             this.loadCondition('other','expired');
@@ -4029,9 +4029,7 @@ class IncidentManagement extends Component {
             <MenuItem onClick={this.toggleSendIncident.bind(this, currentData)}>{it('txt-send')}</MenuItem>
           }
 
-          {currentData.status === constants.soc.INCIDENT_STATUS_SUBMITTED || currentData.status === constants.soc.INCIDENT_STATUS_CLOSED &&
-            <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
-          }
+          <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>

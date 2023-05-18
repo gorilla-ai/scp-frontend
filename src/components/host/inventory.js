@@ -8,6 +8,8 @@ import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
 import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -15,6 +17,8 @@ import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -31,12 +35,13 @@ import SearchFilter from './search-filter'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
-const FILTER_LIST = ['version', 'vulnerabilityNum', 'exposedDevices'];
+const FILTER_LIST = ['version', 'vulnerabilityNum'];
 const CPE_SEARCH = {
   keyword: '',
   count: 0
 };
 const CPE_FILTER = {
+  departmentSelected: [],
   system: [],
   vendor: [],
   version: [{
@@ -46,16 +51,12 @@ const CPE_FILTER = {
   vulnerabilityNum: [{
     condition: '=',
     input: ''
-  }],
-  exposedDevices: [{
-    condition: '=',
-    input: ''
   }]
 };
 const CPE_FILTER_LIST = {
+  departmentSelected: [],
   version: [],
-  vulnerabilityNum: [],
-  exposedDevices: []
+  vulnerabilityNum: []
 };
 const EXPOSED_DEVICES_DATA = {
   dataFieldsArr: ['hostName', 'system', 'ip', 'daysOpen'],
@@ -101,8 +102,19 @@ class HostInventory extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
+      },
       systemType: [],
       vendorType: [],
+      departmentList: [],
+      departmentNameMapping: {},
+      limitedDepartment: [],
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
@@ -142,14 +154,29 @@ class HostInventory extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {baseUrl, locale, sessionRights} = this.context;
+    const {baseUrl, locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
     helper.inactivityTime(baseUrl, locale);
 
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId;
+
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
+      }
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getDepartmentTree();
+      });
+    }
+
     this.setLocaleLabel();
-    this.getSystemVendorList();
-    this.getCpeData();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -178,15 +205,99 @@ class HostInventory extends Component {
     }
   }
   /**
+   * Get department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentNameMapping = {};
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentNameMapping[obj.id] = obj.name;
+          });
+        })
+
+        this.setState({
+          departmentList: data,
+          departmentNameMapping
+        }, () => {
+          if (account.limitedRole && account.departmentId) {
+            this.setSelectedDepartment();
+          } else {
+            this.getSystemVendorList();
+            this.getCpeData();
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account, departmentNameMapping, cpeFilter, cpeFilterList} = this.state;
+    let tempCpeFilter = {...cpeFilter};
+    let temCpeFilterList = {...cpeFilterList};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempCpeFilter.departmentSelected = data;
+        temCpeFilterList.departmentSelected = _.map(data, val => {
+          return departmentNameMapping[val];
+        });
+
+        this.setState({
+          limitedDepartment: data,
+          cpeFilter: tempCpeFilter,
+          cpeFilterList: temCpeFilterList
+        }, () => {
+          this.getSystemVendorList();
+          this.getCpeData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get and set system and vendor list
    * @method
    */
   getSystemVendorList = () => {
     const {baseUrl} = this.context;
+    const {cpeFilter} = this.state;
+    let requestData = {};
+
+    if (cpeFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cpeFilter.departmentSelected;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/hmd/cpeUpdateToDate/group/filter`,
-      type: 'GET'
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
     .then(data => {
       if (data) {
@@ -246,10 +357,12 @@ class HostInventory extends Component {
         let tempCpeData = {...cpeData};
 
         if (!data.rows || data.rows.length === 0) {
+          tempCpeSearch.count = 0;
           tempCpeData.dataContent = [];
           tempCpeData.totalCount = 0;
 
           this.setState({
+            cpeSearch: tempCpeSearch,
             cpeData: tempCpeData
           });
           return null;
@@ -278,8 +391,6 @@ class HostInventory extends Component {
                   )
                 } else if (val === 'vulnerabilityNum') {
                   return helper.numberWithCommas(value);
-                } else if (val === 'exposedDevices') {
-                  return value + ' / ' + allValue.exposedDevicesTotal;
                 } else {
                   return value;
                 }
@@ -307,7 +418,7 @@ class HostInventory extends Component {
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const unSortableFields = ['_menu'];
+    const unSortableFields = ['_menu', 'system', 'exposedDevices'];
 
     if (_.includes(unSortableFields, field)) {
       return false;
@@ -358,6 +469,10 @@ class HostInventory extends Component {
       requestData.vendorArray = vendorArray;
     }
 
+    if (cpeFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cpeFilter.departmentSelected;
+    }
+
     if (cpeFilterList.version.length > 0) {
       requestData.versionArray = _.map(cpeFilterList.version, val => {
         const condition = val.substr(0, 1);
@@ -378,18 +493,6 @@ class HostInventory extends Component {
         return {
           mode: this.getConditionMode(condition),
           vulnerabilityNum
-        }
-      });
-    }
-
-    if (cpeFilterList.exposedDevices.length > 0) {
-      requestData.exposedDevicesArray = _.map(cpeFilterList.exposedDevices, val => {
-        const condition = val.substr(0, 1);
-        const exposedDevices = Number(val.substr(2));
-
-        return {
-          mode: this.getConditionMode(condition),
-          exposedDevices
         }
       });
     }
@@ -457,14 +560,15 @@ class HostInventory extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {hostNameSearch, exposedDevicesData, currentCpeKey} = this.state;
+    const {hostNameSearch, cpeFilter, exposedDevicesData, currentCpeKey} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
-    const requestData = {
+    let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+    let requestData = {
       cpeKey: currentCpeKey
     };
-    let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
     let tempHostNameSearch = {...hostNameSearch};
+    let tempExposedDevicesData = {...exposedDevicesData};
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
@@ -472,6 +576,10 @@ class HostInventory extends Component {
 
     if (hostNameSearch.keyword) {
       requestData.hostName = hostNameSearch.keyword;
+    }
+
+    if (cpeFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cpeFilter.departmentSelected;
     }
 
     this.ah.one({
@@ -482,13 +590,13 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        let tempExposedDevicesData = {...exposedDevicesData};
-
         if (!data.rows || data.rows.length === 0) {
+          tempHostNameSearch.count = 0;
           tempExposedDevicesData.dataContent = [];
           tempExposedDevicesData.totalCount = 0;
 
           this.setState({
+            hostNameSearch: tempHostNameSearch,
             exposedDevicesData: tempExposedDevicesData
           });
           return null;
@@ -541,6 +649,7 @@ class HostInventory extends Component {
     };
     let url = `${baseUrl}/api/hmd/cpe/cves?page=${page + 1}&pageSize=${discoveredVulnerabilityData.pageSize}`;
     let tempCveNameSearch = {...cveNameSearch};
+    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
     if (discoveredVulnerabilityData.sort.field) {
       url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
@@ -558,13 +667,13 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
-
         if (!data.rows || data.rows.length === 0) {
+          tempCveNameSearch.count = 0;
           tempDiscoveredVulnerabilityData.dataContent = [];
           tempDiscoveredVulnerabilityData.totalCount = 0;
 
           this.setState({
+            cveNameSearch: tempCveNameSearch,
             discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
           });
           return null;
@@ -1077,12 +1186,112 @@ class HostInventory extends Component {
     )
   }
   /**
+   * Determine whether to show department or not
+   * @method
+   * @param {string} id - department tree ID
+   * @returns boolean true/false
+   */
+  checkDepartmentList = (id) => {
+    const {account, limitedDepartment} = this.state;
+
+    if (account.limitedRole) {
+      if (limitedDepartment.length === 0) {
+        return true;
+      }
+
+      if (limitedDepartment.length > 0) {
+        if (!_.includes(limitedDepartment, id)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return false;
+  }
+  /**
+   * Get list of selected checkbox
+   * @method
+   * @param {bool} checked - checkbox on/off
+   * @param {string} type - filterNav type
+   * @param {array.<string>} list - list of selected items
+   * @param {string} [id] - selected checkbox id
+   * @returns array of selected list
+   */
+  getSelectedItems = (checked, type, list, id) => {
+    const {cpeFilter} = this.state;
+
+    if (checked) {
+      return _.concat(cpeFilter[type], ...list, id);
+    } else {
+      return _.without(cpeFilter[type], ...list, id);
+    }
+  }
+  /**
+   * Handle department checkbox check/uncheck
+   * @method
+   * @param {object} tree - department tree data
+   * @param {object} event - event object
+   */
+  toggleDepartmentCheckbox = (tree, event) => {
+    const {departmentNameMapping, cpeFilter, cpeFilterList} = this.state;
+    let tempCpeFilter = {...cpeFilter};
+    let tempCpeFilterList = {...cpeFilterList};
+    let departmentChildList = [];
+
+    _.forEach(tree.children, val => {
+      helper.floorPlanRecursive(val, obj => {
+        departmentChildList.push(obj.id);
+      });
+    })
+
+    tempCpeFilter.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
+
+    tempCpeFilterList.departmentSelected = _.map(tempCpeFilter.departmentSelected, val => {
+      return departmentNameMapping[val];
+    })
+
+    this.setState({
+      cpeFilter: tempCpeFilter,
+      cpeFilterList: tempCpeFilterList
+    });
+  }
+  /**
+   * Display department tree content
+   * @method
+   * @param {object} tree - department tree data
+   * @returns HTML DOM
+   */
+  getDepartmentTreeLabel = (tree) => {
+    return <span><Checkbox checked={_.includes(this.state.cpeFilter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
+  }
+  /**
+   * Display department tree item
+   * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
+   */
+  getDepartmentTreeItem = (val, i) => {
+    if (this.checkDepartmentList(val.id)) return; // Hide the tree items that are not belong to the user's account
+
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={this.getDepartmentTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getDepartmentTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
    * Display filter query content
    * @method
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {systemType, vendorType, cpeFilter, popOverAnchor, activeFilter} = this.state;
+    const {departmentList, systemType, vendorType, cpeFilter, cpeFilterList, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
@@ -1108,15 +1317,45 @@ class HostInventory extends Component {
             horizontal: 'left'
           }}>
           <div className='content'>
-            <MultiInput
-              base={SearchFilter}
-              defaultItemValue={defaultItemValue}
-              value={cpeFilter[activeFilter]}
-              props={data}
-              onChange={this.setSerchFilter.bind(this, activeFilter)} />
+            {activeFilter === 'departmentSelected' &&
+              <React.Fragment>
+                {departmentList.length === 0 &&
+                  <div className='not-found'>{t('txt-notFound')}</div>
+                }
+                {departmentList.length > 0 &&
+                  <TreeView
+                    className='tree-view'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}>
+                    {departmentList.map(this.getDepartmentTreeItem)}
+                  </TreeView>
+                }
+              </React.Fragment>
+            }
+            {activeFilter !== 'departmentSelected' &&
+              <MultiInput
+                base={SearchFilter}
+                defaultItemValue={defaultItemValue}
+                value={cpeFilter[activeFilter]}
+                props={data}
+                onChange={this.setSerchFilter.bind(this, activeFilter)} />
+            }
           </div>
         </PopoverMaterial>
 
+        <div className='group'>
+          <TextField
+            name='departmentSelected'
+            label={f('hostCpeFields.departmentSelected')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={cpeFilterList.departmentSelected.join(', ')}
+            onClick={this.handleFilterclick.bind(this, 'departmentSelected')}
+            InputProps={{
+              readOnly: true
+            }} />
+        </div>
         <div className='group'>
           <Autocomplete
             className='combo-box'
@@ -1178,7 +1417,6 @@ class HostInventory extends Component {
             )}
             onChange={this.handleComboBoxChange.bind(this, 'vendor')} />
         </div>
-
         {FILTER_LIST.map(this.showFilterForm)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>

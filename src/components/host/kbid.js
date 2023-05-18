@@ -194,6 +194,8 @@ class HostKbid extends Component {
         }, () => {
           if (account.limitedRole && account.departmentId) {
             this.setSelectedDepartment();
+          } else {
+            this.getKbidData();
           }
         });
       }
@@ -253,6 +255,7 @@ class HostKbid extends Component {
     };
     let url = `${baseUrl}/api/hmd/kbid/_search?page=${page + 1}&pageSize=${kbidData.pageSize}`;
     let tempKbidSearch = {...kbidSearch};
+    let tempKbidData = {...kbidData};
 
     if (kbidData.sort.field) {
       url += `&orders=${kbidData.sort.field} ${sort}`;
@@ -266,13 +269,13 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
-        let tempKbidData = {...kbidData};
-
         if (!data.rows || data.rows.length === 0) {
+          tempKbidSearch.count = 0;
           tempKbidData.dataContent = [];
           tempKbidData.totalCount = 0;
 
           this.setState({
+            kbidSearch: tempKbidSearch,
             kbidData: tempKbidData
           });
           return null;
@@ -381,6 +384,7 @@ class HostKbid extends Component {
       ...this.getKbidFilterRequestData()
     };
     let tempHostNameSearch = {...hostNameSearch};
+    let tempExposedDevicesData = {...exposedDevicesData};
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
@@ -398,13 +402,13 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
-        let tempExposedDevicesData = {...exposedDevicesData};
-
         if (!data.rows || data.rows.length === 0) {
+          tempHostNameSearch.count = 0;
           tempExposedDevicesData.dataContent = [];
           tempExposedDevicesData.totalCount = 0;
 
           this.setState({
+            hostNameSearch: tempHostNameSearch,
             exposedDevicesData: tempExposedDevicesData
           });
           return null;
@@ -464,6 +468,16 @@ class HostKbid extends Component {
   toggleShowKBID = () => {
     this.setState({
       showKbidInfo: !this.state.showKbidInfo
+    }, () => {
+      if (!this.state.showKbidInfo) {
+        this.setState({
+          hostNameSearch: {
+            keyword: '',
+            count: 0
+          },
+          exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+        });
+      }
     });
   }
   /**
@@ -878,7 +892,7 @@ class HostKbid extends Component {
             horizontal: 'left'
           }}>
           <div className='content'>
-            {activeFilter &&
+            {activeFilter === 'departmentSelected' &&
               <React.Fragment>
                 {departmentList.length === 0 &&
                   <div className='not-found'>{t('txt-notFound')}</div>
