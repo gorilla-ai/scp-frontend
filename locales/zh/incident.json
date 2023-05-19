@@ -87,6 +87,7 @@
 	"txt-send-status": "發布狀態",
 	"txt-send-type": "事件單類型",
 	"txt-download": "下載",
+	"txt-downloadStix": "下載Stix",
 	"txt-required": "必填欄位為空",
 	"txt-required-sign": "必填欄位為空/只能存在-及_特殊符號",
 	"txt-incident-event": "資安監控",

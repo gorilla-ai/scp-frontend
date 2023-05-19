@@ -86,6 +86,7 @@
 	"txt-send-status": "Send Status",
 	"txt-send-type": "Send Incident Type",
 	"txt-download": "Download",
+	"txt-downloadStix": "Download Stix",
 	"txt-required": "Empty Required Fields",
 	"txt-required-sign": "Empty Required Fields / Only - and _ could use",
 	"txt-incident-event": "Security Monitoring",

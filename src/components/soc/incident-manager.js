@@ -4029,7 +4029,7 @@ class IncidentManagement extends Component {
             <MenuItem onClick={this.toggleSendIncident.bind(this, currentData)}>{it('txt-send')}</MenuItem>
           }
 
-          <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+          <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-downloadStix')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>

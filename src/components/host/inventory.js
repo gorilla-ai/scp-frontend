@@ -35,7 +35,7 @@ import SearchFilter from './search-filter'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
-const FILTER_LIST = ['version', 'vulnerabilityNum'];
+const FILTER_LIST = ['departmentSelected', 'system', 'vendor', 'version', 'vulnerabilityNum'];
 const CPE_SEARCH = {
   keyword: '',
   count: 0
@@ -1167,23 +1167,91 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   showFilterForm = (val, i) => {
-    const value = this.state.cpeFilterList[val].join(', ');
+    const {systemType, vendorType, cpeFilter, cpeFilterList} = this.state;
 
-    return (
-      <div key={i} className='group'>
-        <TextField
-          name={val}
-          label={f('hostCpeFields.' + val)}
-          variant='outlined'
-          fullWidth
-          size='small'
-          value={value}
-          onClick={this.handleFilterclick.bind(this, val)}
-          InputProps={{
-            readOnly: true
-          }} />
-      </div>
-    )
+    if (val === 'system') {
+      return (
+        <div key={i} className='group'>
+          <Autocomplete
+            className='combo-box'
+            multiple
+            value={cpeFilter.system}
+            options={systemType}
+            getOptionLabel={(option) => option.text}
+            disableCloseOnSelect
+            noOptionsText={t('txt-notFound')}
+            openText={t('txt-on')}
+            closeText={t('txt-off')}
+            clearText={t('txt-clear')}
+            renderOption={(option, { selected }) => (
+              <React.Fragment>
+                <Checkbox
+                  color='primary'
+                  icon={<CheckBoxOutlineBlankIcon />}
+                  checkedIcon={<CheckBoxIcon />}
+                  checked={selected} />
+                {option.text}
+              </React.Fragment>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label={f('hostCpeFields.system')} variant='outlined' size='small' />
+            )}
+            getOptionSelected={(option, value) => (
+              option.value === value.value
+            )}
+            onChange={this.handleComboBoxChange.bind(this, 'system')} />
+        </div>
+      )
+    } else if (val === 'vendor') {
+      return (
+        <div key={i} className='group'>
+          <Autocomplete
+            className='combo-box'
+            multiple
+            value={cpeFilter.vendor}
+            options={vendorType}
+            getOptionLabel={(option) => option.text}
+            disableCloseOnSelect
+            noOptionsText={t('txt-notFound')}
+            openText={t('txt-on')}
+            closeText={t('txt-off')}
+            clearText={t('txt-clear')}
+            renderOption={(option, { selected }) => (
+              <React.Fragment>
+                <Checkbox
+                  color='primary'
+                  icon={<CheckBoxOutlineBlankIcon />}
+                  checkedIcon={<CheckBoxIcon />}
+                  checked={selected} />
+                {option.text}
+              </React.Fragment>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label={f('hostCpeFields.vendor')} variant='outlined' size='small' />
+            )}
+            getOptionSelected={(option, value) => (
+              option.value === value.value
+            )}
+            onChange={this.handleComboBoxChange.bind(this, 'vendor')} />
+        </div>
+      )
+    } else {
+      return (
+        <div key={i} className='group'>
+          <TextField
+            name={val}
+            label={f('hostCpeFields.' + val)}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={cpeFilterList[val].join(', ')}
+            onClick={this.handleFilterclick.bind(this, val)}
+            InputProps={{
+              readOnly: true
+            }} />
+        </div>
+      )
+    }
   }
   /**
    * Determine whether to show department or not
@@ -1291,7 +1359,7 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {departmentList, systemType, vendorType, cpeFilter, cpeFilterList, popOverAnchor, activeFilter} = this.state;
+    const {departmentList, cpeFilter, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
@@ -1342,81 +1410,6 @@ class HostInventory extends Component {
             }
           </div>
         </PopoverMaterial>
-
-        <div className='group'>
-          <TextField
-            name='departmentSelected'
-            label={f('hostCpeFields.departmentSelected')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={cpeFilterList.departmentSelected.join(', ')}
-            onClick={this.handleFilterclick.bind(this, 'departmentSelected')}
-            InputProps={{
-              readOnly: true
-            }} />
-        </div>
-        <div className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={cpeFilter.system}
-            options={systemType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.system')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange.bind(this, 'system')} />
-        </div>
-
-        <div className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={cpeFilter.vendor}
-            options={vendorType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.vendor')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange.bind(this, 'vendor')} />
-        </div>
         {FILTER_LIST.map(this.showFilterForm)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>

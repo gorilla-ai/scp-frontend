@@ -2946,7 +2946,7 @@ class Incident extends Component {
           <MenuItem onClick={this.getIncident.bind(this, currentData.id, 'view')}>{t('txt-view')}</MenuItem>
           <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
           <MenuItem onClick={this.openIncidentFlow.bind(this, currentData.id)}>{it('txt-view-flow')}</MenuItem>
-          <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+          <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-downloadStix')}</MenuItem>
         </Menu>
 
         <div className='sub-header'>

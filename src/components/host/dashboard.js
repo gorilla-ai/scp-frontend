@@ -37,7 +37,7 @@ import SearchFilter from './search-filter'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
-const FILTER_LIST = ['cvss'];
+const FILTER_LIST = ['departmentSelected', 'severity', 'cvss'];
 const CVE_SEARCH = {
   keyword: '',
   count: 0
@@ -1347,23 +1347,58 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   showFilterForm = (val, i) => {
-    const value = this.state.cveFilterList[val].join(', ');
+    const {severityType, cveFilter, cveFilterList} = this.state;
 
-    return (
-      <div key={i} className='group'>
-        <TextField
-          name={val}
-          label={f('hostDashboardFields.' + val)}
-          variant='outlined'
-          fullWidth
-          size='small'
-          value={value}
-          onClick={this.handleFilterclick.bind(this, val)}
-          InputProps={{
-            readOnly: true
-          }} />
-      </div>
-    )
+    if (val === 'severity') {
+      return (
+        <div key={i} className='group'>
+          <Autocomplete
+            className='combo-box'
+            multiple
+            value={cveFilter.severity}
+            options={severityType}
+            getOptionLabel={(option) => option.text}
+            disableCloseOnSelect
+            noOptionsText={t('txt-notFound')}
+            openText={t('txt-on')}
+            closeText={t('txt-off')}
+            clearText={t('txt-clear')}
+            renderOption={(option, { selected }) => (
+              <React.Fragment>
+                <Checkbox
+                  color='primary'
+                  icon={<CheckBoxOutlineBlankIcon />}
+                  checkedIcon={<CheckBoxIcon />}
+                  checked={selected} />
+                {option.text}
+              </React.Fragment>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label={f('hostDashboardFields.severity')} variant='outlined' size='small' />
+            )}
+            getOptionSelected={(option, value) => (
+              option.value === value.value
+            )}
+            onChange={this.handleComboBoxChange} />
+        </div>
+      )
+    } else {
+      return (
+        <div key={i} className='group'>
+          <TextField
+            name={val}
+            label={f('hostDashboardFields.' + val)}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={cveFilterList[val].join(', ')}
+            onClick={this.handleFilterclick.bind(this, val)}
+            InputProps={{
+              readOnly: true
+            }} />
+        </div>
+      )
+    }
   }
   /**
    * Determine whether to show department or not
@@ -1471,7 +1506,7 @@ class HostDashboard extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {severityType, departmentList, cveFilter, cveFilterList, popOverAnchor, activeFilter} = this.state;
+    const {departmentList, cveFilter, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
@@ -1522,50 +1557,6 @@ class HostDashboard extends Component {
             }
           </div>
         </PopoverMaterial>
-
-        <div className='group'>
-          <TextField
-            name='departmentSelected'
-            label={f('hostDashboardFields.departmentSelected')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={cveFilterList.departmentSelected.join(', ')}
-            onClick={this.handleFilterclick.bind(this, 'departmentSelected')}
-            InputProps={{
-              readOnly: true
-            }} />
-        </div>
-        <div className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={cveFilter.severity}
-            options={severityType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostDashboardFields.severity')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange} />
-        </div>
         {FILTER_LIST.map(this.showFilterForm)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>
