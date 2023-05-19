@@ -10,7 +10,6 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import PopoverMaterial from '@material-ui/core/Popover'
@@ -20,10 +19,8 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
 
-import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-import PieChart from 'react-chart/build/src/components/pie'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -1104,7 +1101,7 @@ class HostInventory extends Component {
   /**
    * Toggle show filter query
    * @method
-   * @param {string} options - option for 'confirm'
+   * @param {string} [options] - option for 'confirm'
    */
   toggleFilterQuery = (options) => {
     if (options === 'confirm') {
@@ -1112,7 +1109,7 @@ class HostInventory extends Component {
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery,
+      showFilterQuery: !this.state.showFilterQuery
     });
   }
   /**

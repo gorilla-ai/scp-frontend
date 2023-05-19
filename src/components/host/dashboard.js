@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import moment from 'moment'
-import cx from 'classnames'
 
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
@@ -12,7 +11,6 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import PopoverMaterial from '@material-ui/core/Popover'
@@ -1285,7 +1283,7 @@ class HostDashboard extends Component {
   /**
    * Toggle show filter query
    * @method
-   * @param {string} options - option for 'confirm'
+   * @param {string} [options] - option for 'confirm'
    */
   toggleFilterQuery = (options) => {
     if (options === 'confirm') {
@@ -1293,7 +1291,7 @@ class HostDashboard extends Component {
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery,
+      showFilterQuery: !this.state.showFilterQuery
     });
   }
   /**

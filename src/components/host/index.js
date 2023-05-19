@@ -3705,7 +3705,7 @@ class HostController extends Component {
    * Toggle safety details dialog and set safety data
    * @method
    * @param {object} safetyData - active safety scan data
-   * @param {string | bool} options - option to show safety scan tab ('basicInfo' or 'showAvailableHost'); option for 'getVansCpe' or 'availableHost'
+   * @param {string | bool} options - option to show safety scan tab ('basicInfo', 'showAvailableHost', 'getVansCpe' or 'availableHost')
    */
   toggleSafetyDetails = (safetyData, options) => {
     const {savedCpeData, safetyScanType, fromSafetyPage} = this.state;
