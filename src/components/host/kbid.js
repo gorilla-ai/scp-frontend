@@ -247,8 +247,6 @@ class HostKbid extends Component {
       ...this.getKbidFilterRequestData()
     };
     let url = `${baseUrl}/api/hmd/kbid/_search?page=${page + 1}&pageSize=${kbidData.pageSize}`;
-    let tempKbidSearch = {...kbidSearch};
-    let tempKbidData = {...kbidData};
 
     if (kbidData.sort.field) {
       url += `&orders=${kbidData.sort.field} ${sort}`;
@@ -262,6 +260,9 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
+        let tempKbidSearch = {...kbidSearch};
+        let tempKbidData = {...kbidData};
+
         if (!data.rows || data.rows.length === 0) {
           tempKbidSearch.count = 0;
           tempKbidData.dataContent = [];
@@ -376,8 +377,6 @@ class HostKbid extends Component {
       kbid: currentKbid,
       ...this.getKbidFilterRequestData()
     };
-    let tempHostNameSearch = {...hostNameSearch};
-    let tempExposedDevicesData = {...exposedDevicesData};
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
@@ -395,6 +394,9 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
+        let tempHostNameSearch = {...hostNameSearch};
+        let tempExposedDevicesData = {...exposedDevicesData};
+
         if (!data.rows || data.rows.length === 0) {
           tempHostNameSearch.count = 0;
           tempExposedDevicesData.dataContent = [];

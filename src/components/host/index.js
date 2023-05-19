@@ -60,6 +60,11 @@ import YaraRule from '../common/yara-rule'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const CONDITION_MODE = {
+  '=': 'eq',
+  '>': 'gt',
+  '<': 'lt'
+};
 const FILTER_LIST = ['ip', 'mac', 'hostName', 'deviceType', 'system', 'safetyScanInfo', 'status', 'annotation', 'userName', 'groups', 'version', 'theLatestTaskResponseDttmArray', 'undoneTask'];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
@@ -1556,21 +1561,9 @@ class HostController extends Component {
 
     if (deviceSearchList.version.length > 0) {
       requestData.versionArray = _.map(deviceSearchList.version, val => {
-        const condition = val.substr(0, 1);
-        const version = val.substr(2);
-        let mode = '';
-
-        if (condition === '=') {
-          mode = 'eq';
-        } else if (condition === '>') {
-          mode = 'gt';
-        } else if (condition === '<') {
-          mode = 'lt';
-        }
-
         return {
-          mode,
-          version
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          version: val.substr(2)
         }
       });
     }

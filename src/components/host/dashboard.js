@@ -35,6 +35,11 @@ import SearchFilter from './search-filter'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
+const CONDITION_MODE = {
+  '=': 'eq',
+  '>': 'gt',
+  '<': 'lt'
+};
 const FILTER_LIST = ['departmentSelected', 'severity', 'cvss'];
 const CVE_SEARCH = {
   keyword: '',
@@ -128,7 +133,7 @@ class HostDashboard extends Component {
       monthlySeverityTrend: null,
       showCveInfo: false,
       showFilterQuery: false,
-      activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware'
+      activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices' or 'relatedSoftware'
       cveData: {
         dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'exposedDevices'],
         dataFields: [],
@@ -516,7 +521,6 @@ class HostDashboard extends Component {
       ...this.getCveFilterRequestData()
     };
     let url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&pageSize=${cveData.pageSize}`;
-    let tempCveSearch = {...cveSearch};
 
     if (cveData.sort.field) {
       url += `&orders=${cveData.sort.field} ${sort}`;
@@ -530,6 +534,7 @@ class HostDashboard extends Component {
     })
     .then(data => {
       if (data) {
+        let tempCveSearch = {...cveSearch};
         let tempCveData = {...cveData};
 
         if (!data.rows || data.rows.length === 0) {
@@ -617,20 +622,6 @@ class HostDashboard extends Component {
     }
   }
   /**
-   * Get condition text
-   * @method
-   * @returns text in string
-   */
-  getConditionMode = (val) => {
-    if (val === '=') {
-      return 'eq';
-    } else if (val === '>') {
-      return 'gt';
-    } else if (val === '<') {
-      return 'lt';
-    }
-  }
-  /**
    * Get CVE filter request data
    * @method
    * @returns requestData object
@@ -657,12 +648,9 @@ class HostDashboard extends Component {
 
     if (cveFilterList.cvss.length > 0) {
       requestData.cvssArray = _.map(cveFilterList.cvss, val => {
-        const condition = val.substr(0, 1);
-        const cvss = val.substr(2);
-
         return {
-          mode: this.getConditionMode(condition),
-          cvss
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          cvss: val.substr(2)
         }
       });
     }
@@ -737,8 +725,6 @@ class HostDashboard extends Component {
     let requestData = {
       cveId: currentCveId
     };
-    let tempHostNameSearch = {...hostNameSearch};
-    let tempExposedDevicesData = {...exposedDevicesData};
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
@@ -760,6 +746,9 @@ class HostDashboard extends Component {
     })
     .then(data => {
       if (data) {
+        let tempHostNameSearch = {...hostNameSearch};
+        let tempExposedDevicesData = {...exposedDevicesData};
+
         if (!data.rows || data.rows.length === 0) {
           tempHostNameSearch.count = 0;
           tempExposedDevicesData.dataContent = [];
@@ -833,8 +822,6 @@ class HostDashboard extends Component {
     let requestData = {
       cveId: currentCveId
     };
-    let tempProductNameSearch = {...productNameSearch};
-    let tempExposedDevicesData = {...relatedSoftwareData};
 
     if (relatedSoftwareData.sort.field) {
       url += `&orders=${relatedSoftwareData.sort.field} ${sort}`;
@@ -856,6 +843,9 @@ class HostDashboard extends Component {
     })
     .then(data => {
       if (data) {
+        let tempProductNameSearch = {...productNameSearch};
+        let tempExposedDevicesData = {...relatedSoftwareData};
+
         if (!data.rows || data.rows.length === 0) {
           tempProductNameSearch.count = 0;
           tempExposedDevicesData.dataContent = [];

@@ -32,6 +32,11 @@ import SearchFilter from './search-filter'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
+const CONDITION_MODE = {
+  '=': 'eq',
+  '>': 'gt',
+  '<': 'lt'
+};
 const FILTER_LIST = ['departmentSelected', 'system', 'vendor', 'version', 'vulnerabilityNum'];
 const CPE_SEARCH = {
   keyword: '',
@@ -337,7 +342,6 @@ class HostInventory extends Component {
       ...this.getCpeFilterRequestData()
     };
     let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
-    let tempCpeSearch = {...cpeSearch};
 
     if (cpeData.sort.field) {
       url += `&orders=${cpeData.sort.field} ${sort}`;
@@ -351,6 +355,7 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
+        let tempCpeSearch = {...cpeSearch};
         let tempCpeData = {...cpeData};
 
         if (!data.rows || data.rows.length === 0) {
@@ -424,20 +429,6 @@ class HostInventory extends Component {
     }
   }
   /**
-   * Get condition text
-   * @method
-   * @returns text in string
-   */
-  getConditionMode = (val) => {
-    if (val === '=') {
-      return 'eq';
-    } else if (val === '>') {
-      return 'gt';
-    } else if (val === '<') {
-      return 'lt';
-    }
-  }
-  /**
    * Get CPE filter request data
    * @method
    * @returns requestData object
@@ -472,24 +463,18 @@ class HostInventory extends Component {
 
     if (cpeFilterList.version.length > 0) {
       requestData.versionArray = _.map(cpeFilterList.version, val => {
-        const condition = val.substr(0, 1);
-        const version = val.substr(2);
-
         return {
-          mode: this.getConditionMode(condition),
-          version
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          version: val.substr(2)
         }
       });
     }
 
     if (cpeFilterList.vulnerabilityNum.length > 0) {
       requestData.vulnerabilityNumArray = _.map(cpeFilterList.vulnerabilityNum, val => {
-        const condition = val.substr(0, 1);
-        const vulnerabilityNum = Number(val.substr(2));
-
         return {
-          mode: this.getConditionMode(condition),
-          vulnerabilityNum
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          vulnerabilityNum: Number(val.substr(2))
         }
       });
     }
@@ -564,8 +549,6 @@ class HostInventory extends Component {
     let requestData = {
       cpeKey: currentCpeKey
     };
-    let tempHostNameSearch = {...hostNameSearch};
-    let tempExposedDevicesData = {...exposedDevicesData};
 
     if (exposedDevicesData.sort.field) {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
@@ -587,6 +570,9 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
+        let tempHostNameSearch = {...hostNameSearch};
+        let tempExposedDevicesData = {...exposedDevicesData};
+
         if (!data.rows || data.rows.length === 0) {
           tempHostNameSearch.count = 0;
           tempExposedDevicesData.dataContent = [];
@@ -645,8 +631,6 @@ class HostInventory extends Component {
       cpeKey: currentCpeKey
     };
     let url = `${baseUrl}/api/hmd/cpe/cves?page=${page + 1}&pageSize=${discoveredVulnerabilityData.pageSize}`;
-    let tempCveNameSearch = {...cveNameSearch};
-    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
     if (discoveredVulnerabilityData.sort.field) {
       url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
@@ -664,6 +648,9 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
+        let tempCveNameSearch = {...cveNameSearch};
+        let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+
         if (!data.rows || data.rows.length === 0) {
           tempCveNameSearch.count = 0;
           tempDiscoveredVulnerabilityData.dataContent = [];
