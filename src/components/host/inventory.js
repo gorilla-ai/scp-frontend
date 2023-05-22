@@ -391,6 +391,18 @@ class HostInventory extends Component {
                       <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
+                } else if (val === 'system') {
+                  return (
+                    <div>
+                      <span>{value[0]}</span>
+                      {value.length > 1 &&
+                        <span>, {value[1]}</span>
+                      }
+                      {value.length > 2 &&
+                        <span title={this.getFullList(value)}>, {t('txt-more')}...</span>
+                      }
+                    </div>
+                  )
                 } else if (val === 'vulnerabilityNum') {
                   return helper.numberWithCommas(value);
                 } else {
@@ -525,12 +537,12 @@ class HostInventory extends Component {
     })
   }
   /**
-   * Get related software list
+   * Get full list in CPE table
    * @method
-   * @param {array.<string>} list - related software list
-   * @returns list of software
+   * @param {array.<string>} list - data list
+   * @returns full list
    */
-  getSoftwareList = (list) => {
+  getFullList = (list) => {
     list.shift();
     list.shift();
     return list.join(', ');
