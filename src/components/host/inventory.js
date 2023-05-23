@@ -134,7 +134,7 @@ class HostInventory extends Component {
       showFilterQuery: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       cpeData: {
-        dataFieldsArr: ['_menu', 'product', 'system', 'vendor', 'version', 'vulnerabilityNum', 'exposedDevices'],
+        dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'vulnerabilityNum', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {

@@ -70,7 +70,7 @@ const EXPOSED_DEVICES_DATA = {
   pageSize: 20
 };
 const RELATED_SOFTWARE_DATA = {
-  dataFieldsArr: ['product', 'system', 'version', 'exposedDevices'],
+  dataFieldsArr: ['product', 'version', 'system', 'exposedDevices'],
   dataFields: [],
   dataContent: null,
   sort: {
