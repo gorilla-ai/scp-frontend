@@ -31,7 +31,6 @@ import SearchFilter from './search-filter'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const CONDITION_MODE = {
   '=': 'eq',
   '>': 'gt',
@@ -60,8 +59,14 @@ const CPE_FILTER_LIST = {
   version: [],
   vulnerabilityNum: []
 };
+const EXPOSED_DEVICES_SEARCH = {
+  hostName: '',
+  ip: '',
+  system: '',
+  count: 0
+};
 const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['hostName', 'system', 'ip', 'daysOpen'],
+  dataFieldsArr: ['hostName', 'ip', 'system', 'daysOpen'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -120,10 +125,6 @@ class HostInventory extends Component {
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
-      hostNameSearch: {
-        keyword: '',
-        count: 0
-      },
       cveNameSearch: {
         keyword: '',
         count: 0
@@ -145,6 +146,7 @@ class HostInventory extends Component {
         currentPage: 0,
         pageSize: 20
       },
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
       tableContextAnchor: null,
@@ -554,7 +556,7 @@ class HostInventory extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {hostNameSearch, cpeFilter, exposedDevicesData, currentCpeKey} = this.state;
+    const {cpeFilter, exposedDevicesSearch, exposedDevicesData, currentCpeKey} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
@@ -566,8 +568,16 @@ class HostInventory extends Component {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
     }
 
-    if (hostNameSearch.keyword) {
-      requestData.hostName = hostNameSearch.keyword;
+    if (exposedDevicesSearch.hostName) {
+      requestData.hostName = exposedDevicesSearch.hostName;
+    }
+
+    if (exposedDevicesSearch.ip) {
+      requestData.ip = exposedDevicesSearch.ip;
+    }
+
+    if (exposedDevicesSearch.system) {
+      requestData.system = exposedDevicesSearch.system;
     }
 
     if (cpeFilter.departmentSelected.length > 0) {
@@ -582,16 +592,16 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        let tempHostNameSearch = {...hostNameSearch};
+        let tempExposedDevicesSearch = {...exposedDevicesSearch};
         let tempExposedDevicesData = {...exposedDevicesData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempHostNameSearch.count = 0;
+          tempExposedDevicesSearch.count = 0;
           tempExposedDevicesData.dataContent = [];
           tempExposedDevicesData.totalCount = 0;
 
           this.setState({
-            hostNameSearch: tempHostNameSearch,
+            exposedDevicesSearch: tempExposedDevicesSearch,
             exposedDevicesData: tempExposedDevicesData
           });
           return null;
@@ -616,10 +626,10 @@ class HostInventory extends Component {
           };
         });
 
-        tempHostNameSearch.count = helper.numberWithCommas(data.count);
+        tempExposedDevicesSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          hostNameSearch: tempHostNameSearch,
+          exposedDevicesSearch: tempExposedDevicesSearch,
           exposedDevicesData: tempExposedDevicesData
         });
       }
@@ -732,10 +742,7 @@ class HostInventory extends Component {
     this.setState({
       showCpeInfo: !this.state.showCpeInfo,
       activeCpeInfo: 'vulnerabilityDetails',
-      hostNameSearch: {
-        keyword: '',
-        count: 0
-      },
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
     });
   }
@@ -763,16 +770,16 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Handle host name search
+   * Handle exposed devices search change
    * @method
    * @param {object} event - event object
    */
-  handleHostNameChange = (event) => {
-    let tempHostNameSearch = {...this.state.hostNameSearch};
-    tempHostNameSearch.keyword = event.target.value;
+  handleDevicesSearchChange = (event) => {
+    let tempExposedDevicesSearch = {...this.state.exposedDevicesSearch};
+    tempExposedDevicesSearch[event.target.name] = event.target.value;
 
     this.setState({
-      hostNameSearch: tempHostNameSearch
+      exposedDevicesSearch: tempExposedDevicesSearch
     });
   }
   /**
@@ -789,12 +796,12 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Handle reset button for host name search
+   * Handle reset button
    * @method
-   * @param {string} type - reset button type ('cpeSearch', 'hostNameSearch' or 'cveNameSearch')
+   * @param {string} type - reset button type ('cpeSearch', 'exposedDevices' or 'cveNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cpeSearch, hostNameSearch, cveNameSearch} = this.state;
+    const {cpeSearch, cveNameSearch} = this.state;
 
     if (type === 'cpeSearch') {
       let tempCpeSearch = {...cpeSearch};
@@ -803,12 +810,9 @@ class HostInventory extends Component {
       this.setState({
         cpeSearch: tempCpeSearch
       });
-    } else if (type === 'hostNameSearch') {
-      let tempHostNameSearch = {...hostNameSearch};
-      tempHostNameSearch.keyword = '';
-
+    } else if (type === 'exposedDevices') {
       this.setState({
-        hostNameSearch: tempHostNameSearch
+        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
       });
     } else if (type === 'cveNameSearch') {
       let tempCveNameSearch = {...cveNameSearch};
@@ -820,29 +824,12 @@ class HostInventory extends Component {
     }
   }
   /**
-   * Handle keyw down for search field
-   * @method
-   * @param {string} type - 'cpeSearch', 'hostNameSearch' or 'cveNameSearch'
-   * @param {object} event - event object
-   */
-  handleKeyDown = (type, event) => {
-    if (event.key === 'Enter') {
-      if (type === 'cpeSearch') {
-        this.getCpeData();
-      } else if (type === 'hostNameSearch') {
-        this.getExposedDevices();
-      } else if (type === 'cveNameSearch') {
-        this.getDiscoveredVulnerability();
-      }
-    }
-  }
-  /**
    * Display CPE info content
    * @method
    * @returns HTML DOM
    */
   displayCpeInfo = () => {
-    const {hostNameSearch, cveNameSearch, activeCpeInfo, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
+    const {cveNameSearch, activeCpeInfo, exposedDevicesSearch, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -903,22 +890,40 @@ class HostInventory extends Component {
           {activeCpeInfo === 'exposedDevices' &&
             <React.Fragment>
               <div className='search-field'>
-                <TextField
-                  name='hostNameSearch'
-                  className='search-text'
-                  label={t('host.dashboard.txt-hostName')}
-                  variant='outlined'
-                  size='small'
-                  value={hostNameSearch.keyword}
-                  onChange={this.handleHostNameChange}
-                  onKeyDown={this.handleKeyDown.bind(this, 'hostNameSearch')} />
+                <div className='group'>
+                  <TextField
+                    name='hostName'
+                    className='search-text'
+                    label={t('host.dashboard.txt-hostName')}
+                    variant='outlined'
+                    size='small'
+                    value={exposedDevicesSearch.hostName}
+                    onChange={this.handleDevicesSearchChange} />
+                </div>
+                <div className='group'>
+                  <TextField
+                    name='ip'
+                    className='search-text'
+                    label={t('host.dashboard.txt-ip')}
+                    variant='outlined'
+                    size='small'
+                    value={exposedDevicesSearch.ip}
+                    onChange={this.handleDevicesSearchChange} />
+                </div>
+                <div className='group'>
+                  <TextField
+                    name='system'
+                    className='search-text'
+                    label={t('host.dashboard.txt-system')}
+                    variant='outlined'
+                    size='small'
+                    value={exposedDevicesSearch.system}
+                    onChange={this.handleDevicesSearchChange} />
+                </div>
                 <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
-                {hostNameSearch.keyword &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
-                }
-
-                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(hostNameSearch.count)}</div>
+                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
               </div>
+              <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(exposedDevicesSearch.count)}</div>
 
               <MuiTableContent
                 tableHeight='auto'
@@ -930,22 +935,20 @@ class HostInventory extends Component {
           {activeCpeInfo === 'discoveredVulnerability' &&
             <React.Fragment>
               <div className='search-field'>
-                <TextField
-                  name='cveNameSearch'
-                  className='search-text'
-                  label={t('host.dashboard.txt-cveName')}
-                  variant='outlined'
-                  size='small'
-                  value={cveNameSearch.keyword}
-                  onChange={this.handleCveNameChange}
-                  onKeyDown={this.handleKeyDown.bind(this, 'cveNameSearch')} />
+                <div className='group'>
+                  <TextField
+                    name='cveNameSearch'
+                    className='search-text'
+                    label={t('host.dashboard.txt-cveName')}
+                    variant='outlined'
+                    size='small'
+                    value={cveNameSearch.keyword}
+                    onChange={this.handleCveNameChange} />
+                </div>
                 <Button variant='contained' color='primary' className='search-btn' onClick={this.getDiscoveredVulnerability}>{t('txt-search')}</Button>
-                {cveNameSearch.keyword &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cveNameSearch')}></i>
-                }
-
-                <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + helper.numberWithCommas(cveNameSearch.count)}</div>
+                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'cveNameSearch')}>{t('txt-clear')}</Button>
               </div>
+              <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + helper.numberWithCommas(cveNameSearch.count)}</div>
 
               <MuiTableContent
                 tableHeight='auto'
@@ -1550,21 +1553,21 @@ class HostInventory extends Component {
 
               <div className='actions-bar'>
                 <div className='search-field'>
-                  <TextField
-                    name='cpeSearch'
-                    className='search-text'
-                    label={t('host.inventory.txt-applicationName')}
-                    variant='outlined'
-                    size='small'
-                    value={cpeSearch.keyword}
-                    onChange={this.handleCpeChange}
-                    onKeyDown={this.handleKeyDown.bind(this, 'cpeSearch')} />
+                  <div className='group'>
+                    <TextField
+                      name='cpeSearch'
+                      className='search-text'
+                      label={t('host.inventory.txt-applicationName')}
+                      variant='outlined'
+                      size='small'
+                      value={cpeSearch.keyword}
+                      onChange={this.handleCpeChange} />
+                  </div>
                   <Button variant='contained' color='primary' className='search-btn' onClick={this.getCpeData}>{t('txt-search')}</Button>
-                  {cpeSearch.keyword &&
-                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}></i>
-                  }
-                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(cpeSearch.count)}</div>
+                  <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}>{t('txt-clear')}</Button>
                 </div>
+
+                <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(cpeSearch.count)}</div>
               </div>
 
               <MuiTableContent

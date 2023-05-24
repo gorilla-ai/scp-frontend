@@ -2995,28 +2995,21 @@ html[data-theme='dark'] {
     }
   }
   .search-field {
-    position: relative;
-    width: 300px;
-    margin: 15px 0;
-    .search-text {
-      float: left;
-      width: 70%;
-      margin-right: 5px;
-      input {
-        width: 78%;
-      }
-    }
-    .fg-close {
-      position: absolute;
-      top: 8px;
-      left: 182px;
+    display: flex;
+    margin-bottom: 15px;
+    .group {
+      margin-right: 10px;
     }
     .search-btn {
-      margin-top: 2px;
+      margin-left: 5px;
+      margin-right: 5px;
     }
-    .search-count {
-      margin-top: 15px;
+    button.clear:hover:not([disabled]) {
+      background: none;
     }
+  }
+  .search-count {
+    margin-bottom: 15px;
   }
 }
 #configEditHost-content {

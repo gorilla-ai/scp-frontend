@@ -52,8 +52,14 @@ const VANS_FORM_VALIDATION = {
     valid: true
   }
 };
+const EXPOSED_DEVICES_SEARCH = {
+  hostName: '',
+  ip: '',
+  system: '',
+  count: 0
+};
 const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['ip', 'hostName', 'system', 'departmentName'],
+  dataFieldsArr: ['hostName', 'ip', 'system', 'departmentName'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -102,10 +108,6 @@ class HostKbid extends Component {
       kbidSearch: _.cloneDeep(KBID_SEARCH),
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
-      hostNameSearch: {
-        keyword: '',
-        count: 0
-      },
       popOverAnchor: null,
       tableContextAnchor: null,
       activeFilter: '', //same as FILTER_LIST
@@ -125,6 +127,7 @@ class HostKbid extends Component {
         currentPage: 0,
         pageSize: 20
       },
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       currentKbid: '',
       hmdVansConfigurations: _.cloneDeep(HMD_VANS_CONFIG),
@@ -369,7 +372,7 @@ class HostKbid extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {hostNameSearch, exposedDevicesData, currentKbid} = this.state;
+    const {exposedDevicesSearch, exposedDevicesData, currentKbid} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     let url = `${baseUrl}/api/hmd/kbid/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
@@ -382,8 +385,16 @@ class HostKbid extends Component {
       url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
     }
 
-    if (hostNameSearch.keyword) {
-      requestData.hostNameOrIp = hostNameSearch.keyword;
+    if (exposedDevicesSearch.hostName) {
+      requestData.hostName = exposedDevicesSearch.hostName;
+    }
+
+    if (exposedDevicesSearch.ip) {
+      requestData.ip = exposedDevicesSearch.ip;
+    }
+
+    if (exposedDevicesSearch.system) {
+      requestData.system = exposedDevicesSearch.system;
     }
 
     this.ah.one({
@@ -394,16 +405,16 @@ class HostKbid extends Component {
     })
     .then(data => {
       if (data) {
-        let tempHostNameSearch = {...hostNameSearch};
+        let tempExposedDevicesSearch = {...exposedDevicesSearch};
         let tempExposedDevicesData = {...exposedDevicesData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempHostNameSearch.count = 0;
+          tempExposedDevicesSearch.count = 0;
           tempExposedDevicesData.dataContent = [];
           tempExposedDevicesData.totalCount = 0;
 
           this.setState({
-            hostNameSearch: tempHostNameSearch,
+            exposedDevicesSearch: tempExposedDevicesSearch,
             exposedDevicesData: tempExposedDevicesData
           });
           return null;
@@ -428,10 +439,10 @@ class HostKbid extends Component {
           };
         });
 
-        tempHostNameSearch.count = helper.numberWithCommas(data.count);
+        tempExposedDevicesSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          hostNameSearch: tempHostNameSearch,
+          exposedDevicesSearch: tempExposedDevicesSearch,
           exposedDevicesData: tempExposedDevicesData
         }, () => {
           if (fromPage === 'open') {
@@ -466,10 +477,7 @@ class HostKbid extends Component {
     }, () => {
       if (!this.state.showKbidInfo) {
         this.setState({
-          hostNameSearch: {
-            keyword: '',
-            count: 0
-          },
+          exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
           exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
         });
       }
@@ -491,25 +499,25 @@ class HostKbid extends Component {
     });
   }
   /**
-   * Handle host name search
+   * Handle exposed devices search change
    * @method
    * @param {object} event - event object
    */
-  handleHostNameChange = (event) => {
-    let tempHostNameSearch = {...this.state.hostNameSearch};
-    tempHostNameSearch.keyword = event.target.value;
+  handleDevicesSearchChange = (event) => {
+    let tempExposedDevicesSearch = {...this.state.exposedDevicesSearch};
+    tempExposedDevicesSearch[event.target.name] = event.target.value;
 
     this.setState({
-      hostNameSearch: tempHostNameSearch
+      exposedDevicesSearch: tempExposedDevicesSearch
     });
   }
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('kbidSearch' or 'hostNameSearch')
+   * @param {string} type - reset button type ('kbidSearch' or 'exposedDevices')
    */
   handleResetBtn = (type, event) => {
-    const {kbidSearch, hostNameSearch} = this.state;
+    const {kbidSearch} = this.state;
 
     if (type === 'kbidSearch') {
       let tempKbidSearch = {...kbidSearch};
@@ -518,28 +526,10 @@ class HostKbid extends Component {
       this.setState({
         kbidSearch: tempKbidSearch
       });
-    } else if (type === 'hostNameSearch') {
-      let tempHostNameSearch = {...hostNameSearch};
-      tempHostNameSearch.keyword = '';
-
+    } else if (type === 'exposedDevices') {
       this.setState({
-        hostNameSearch: tempHostNameSearch
+        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
       });
-    }
-  }
-  /**
-   * Handle keyw down for search field
-   * @method
-   * @param {string} type - 'kbidSearch' or 'hostNameSearch'
-   * @param {object} event - event object
-   */
-  handleKeyDown = (type, event) => {
-    if (event.key === 'Enter') {
-      if (type === 'kbidSearch') {
-        this.getKbidData();
-      } else if (type === 'hostNameSearch') {
-        this.getExposedDevices();
-      }
     }
   }
   /**
@@ -548,7 +538,7 @@ class HostKbid extends Component {
    * @returns HTML DOM
    */
   displayKbidInfo = () => {
-    const {hostNameSearch, activeKbidInfo, exposedDevicesData} = this.state;
+    const {activeKbidInfo, exposedDevicesSearch, exposedDevicesData} = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: '458px',
       onChangePage: (currentPage) => {
@@ -576,22 +566,40 @@ class HostKbid extends Component {
           {activeKbidInfo === 'exposedDevices' &&
             <React.Fragment>
               <div className='search-field'>
-                <TextField
-                  name='hostNameSearch'
-                  className='search-text'
-                  label={t('host.dashboard.txt-hostNameOrIp')}
-                  variant='outlined'
-                  size='small'
-                  value={hostNameSearch.keyword}
-                  onChange={this.handleHostNameChange}
-                  onKeyDown={this.handleKeyDown.bind(this, 'hostNameSearch')} />
+                <div className='group'>
+                  <TextField
+                    name='hostName'
+                    className='search-text'
+                    label={t('host.dashboard.txt-hostName')}
+                    variant='outlined'
+                    size='small'
+                    value={exposedDevicesSearch.hostName}
+                    onChange={this.handleDevicesSearchChange} />
+                </div>
+                <div className='group'>
+                  <TextField
+                    name='ip'
+                    className='search-text'
+                    label={t('host.dashboard.txt-ip')}
+                    variant='outlined'
+                    size='small'
+                    value={exposedDevicesSearch.ip}
+                    onChange={this.handleDevicesSearchChange} />
+                </div>
+                <div className='group'>
+                  <TextField
+                    name='system'
+                    className='search-text'
+                    label={t('host.dashboard.txt-system')}
+                    variant='outlined'
+                    size='small'
+                    value={exposedDevicesSearch.system}
+                    onChange={this.handleDevicesSearchChange} />
+                </div>
                 <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
-                {hostNameSearch.keyword &&
-                  <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'hostNameSearch')}></i>
-                }
-
-                <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(hostNameSearch.count)}</div>
+                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
               </div>
+              <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(exposedDevicesSearch.count)}</div>
 
               <MuiTableContent
                 tableHeight='auto'
@@ -1216,21 +1224,21 @@ class HostKbid extends Component {
 
               <div className='actions-bar'>
                 <div className='search-field'>
-                  <TextField
-                    name='kbidSearch'
-                    className='search-text'
-                    label={t('host.txt-kbidName')}
-                    variant='outlined'
-                    size='small'
-                    value={kbidSearch.keyword}
-                    onChange={this.handleKbidChange}
-                    onKeyDown={this.handleKeyDown.bind(this, 'kbidSearch')} />
+                  <div className='group'>
+                    <TextField
+                      name='kbidSearch'
+                      className='search-text'
+                      label={t('host.txt-kbidName')}
+                      variant='outlined'
+                      size='small'
+                      value={kbidSearch.keyword}
+                      onChange={this.handleKbidChange} />
+                  </div>
                   <Button variant='contained' color='primary' className='search-btn' onClick={this.getKbidData}>{t('txt-search')}</Button>
-                  {kbidSearch.keyword &&
-                    <i class='c-link inline fg fg-close' onClick={this.handleResetBtn.bind(this, 'kbidSearch')}></i>
-                  }
-                  <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(kbidSearch.count)}</div>
+                  <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleResetBtn.bind(this, 'kbidSearch')}>{t('txt-clear')}</Button>
                 </div>
+
+                <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(kbidSearch.count)}</div>
               </div>
 
               <MuiTableContent
