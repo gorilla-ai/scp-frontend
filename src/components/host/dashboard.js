@@ -28,9 +28,11 @@ import PieChart from 'react-chart/build/src/components/pie'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
+import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
 import SearchFilter from './search-filter'
+import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -1050,87 +1052,35 @@ class HostDashboard extends Component {
 
         <div className='main-content'>
           {activeCveInfo === 'vulnerabilityDetails' &&
-            <ul className='vulnerability'>
-              <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {currentCveData.description || NOT_AVAILABLE}</li>
-              <li><span>{t('host.dashboard.txt-name')}</span>: {currentCveData.cveId || NOT_AVAILABLE}</li>
-              <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + currentCveData.severity.toLowerCase())}</li> 
-              <li><span>CVSS</span>: {currentCveData.cvss || NOT_AVAILABLE}</li>
-              <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {currentCveData.cvssVersion || NOT_AVAILABLE}</li>
-              <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(currentCveData.publishedDate, 'local')}</li>
-              <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(currentCveData.lastModifiedDate, 'local')}</li>
-              <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {currentCveData.daysOpen}</li>
-            </ul>
+            <GeneralDialog
+              page='dashboard'
+              type='general-info'
+              data={currentCveData} />
           }
 
           {activeCveInfo === 'exposedDevices' &&
-            <React.Fragment>
-              <div className='search-field'>
-                <div className='group'>
-                  <TextField
-                    name='hostName'
-                    className='search-text'
-                    label={t('host.dashboard.txt-hostName')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.hostName}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <div className='group'>
-                  <TextField
-                    name='ip'
-                    className='search-text'
-                    label={t('host.dashboard.txt-ip')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.ip}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <div className='group'>
-                  <TextField
-                    name='system'
-                    className='search-text'
-                    label={t('host.dashboard.txt-system')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.system}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
-                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
-              </div>
-              <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(exposedDevicesSearch.count)}</div>
-
-              <MuiTableContent
-                tableHeight='auto'
-                data={exposedDevicesData}
-                tableOptions={tableOptionsExposedDevices} />
-            </React.Fragment>
+            <GeneralDialog
+              page='dashboard'
+              type='exposed-devices'
+              search={exposedDevicesSearch}
+              data={exposedDevicesData}
+              tableOptions={tableOptionsExposedDevices}
+              handleSearchChange={this.handleDevicesSearchChange}
+              handleSearchSubmit={this.getExposedDevices}
+              handleResetBtn={this.handleResetBtn} />
           }
 
           {activeCveInfo === 'relatedSoftware' &&
-            <React.Fragment>
-              <div className='search-field'>
-                <div className='group'>
-                  <TextField
-                    name='productNameSearch'
-                    className='search-text'
-                    label={t('host.inventory.txt-productName')}
-                    variant='outlined'
-                    size='small'
-                    value={productNameSearch.keyword}
-                    onChange={this.handleProductChange} />
-                </div>
-
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getRelatedSoftware}>{t('txt-search')}</Button>
-                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'productNameSearch')}>{t('txt-clear')}</Button>
-              </div>
-              <div className='search-count'>{t('host.dashboard.txt-relatedSoftwareCount') + ': ' + helper.numberWithCommas(productNameSearch.count)}</div>
-
-              <MuiTableContent
-                tableHeight='auto'
-                data={relatedSoftwareData}
-                tableOptions={tableOptionsRelatedSoftware} />
-            </React.Fragment>
+            <GeneralDialog
+              page='dashboard'
+              type='general-list'
+              searchType='productNameSearch'
+              search={productNameSearch}
+              data={relatedSoftwareData}
+              tableOptions={tableOptionsRelatedSoftware}
+              handleSearchChange={this.handleProductChange}
+              handleSearchSubmit={this.getRelatedSoftware}
+              handleResetBtn={this.handleResetBtn} />
           }
         </div>
       </div>
@@ -1637,62 +1587,24 @@ class HostDashboard extends Component {
           this.showFilterQueryDialog()
         }
 
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem id='activeCveView' onClick={this.getActiveCveInfo}>{t('txt-view')}</MenuItem>
-        </Menu>
-
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <div className='parent-content'>
-            <div className='main-statistics host'>
-              <div className='statistics-content'>
-                {this.showPieChart(cveSeverityLevel.data)}
-                {this.showBarChart(monthlySeverityTrend)}
-              </div>
-            </div>
-
-            <div className='main-content'>
-              <header className='main-header'>{t('host.dashboard.txt-vulnerabilityList')}</header>
-
-              <div className='content-header-btns with-menu'>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportCveList}>{t('txt-export')}</Button>
-              </div>
-
-              <div className='actions-bar'>
-                <div className='search-field'>
-                  <div className='group'>
-                    <TextField
-                      name='cveSearch'
-                      className='search-text'
-                      label={t('host.dashboard.txt-cveName')}
-                      variant='outlined'
-                      size='small'
-                      value={cveSearch.keyword}
-                      onChange={this.handleCveChange} />
-                  </div>
-                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getCveData}>{t('txt-search')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleResetBtn.bind(this, 'cveSearch')}>{t('txt-clear')}</Button>
-                </div>
-
-                <div className='search-count'>{t('host.dashboard.txt-vulnerabilityCount') + ': ' + helper.numberWithCommas(cveSearch.count)}</div>
-              </div>
-
-              <MuiTableContent
-                data={cveData}
-                tableOptions={tableOptions} />
-            </div>
-          </div>
-        </div>
+        <TableList
+          page='dashboard'
+          searchType='cveSearch'
+          search={cveSearch}
+          data={cveData}
+          options={tableOptions}
+          tableAnchor={contextAnchor}
+          cveSeverityLevel={cveSeverityLevel}
+          monthlySeverityTrend={monthlySeverityTrend}
+          showPieChart={this.showPieChart}
+          showBarChart={this.showBarChart}
+          getData={this.getCveData}
+          getActiveData={this.getActiveCveInfo}
+          exportList={this.exportCveList}
+          toggleFilterQuery={this.toggleFilterQuery}
+          handleSearch={this.handleCveChange}
+          handleReset={this.handleResetBtn}
+          handleCloseMenu={this.handleCloseMenu} />
       </div>
     )
   }

@@ -21,9 +21,11 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
+import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
 import SearchFilter from './search-filter'
+import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -451,7 +453,7 @@ class HostKbid extends Component {
   /**
    * Get exposed devices data
    * @method
-   * @param {string} [fromPage] - option for 'open' or currentPage'
+   * @param {string} [fromPage] - option for 'open' or 'currentPage'
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
@@ -647,48 +649,15 @@ class HostKbid extends Component {
 
         <div className='main-content'>
           {activeKbidInfo === 'exposedDevices' &&
-            <React.Fragment>
-              <div className='search-field'>
-                <div className='group'>
-                  <TextField
-                    name='hostName'
-                    className='search-text'
-                    label={t('host.dashboard.txt-hostName')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.hostName}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <div className='group'>
-                  <TextField
-                    name='ip'
-                    className='search-text'
-                    label={t('host.dashboard.txt-ip')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.ip}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <div className='group'>
-                  <TextField
-                    name='system'
-                    className='search-text'
-                    label={t('host.dashboard.txt-system')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.system}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
-                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
-              </div>
-              <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(exposedDevicesSearch.count)}</div>
-
-              <MuiTableContent
-                tableHeight='auto'
-                data={exposedDevicesData}
-                tableOptions={tableOptionsExposedDevices} />
-            </React.Fragment>
+            <GeneralDialog
+              page='kbid'
+              type='exposed-devices'
+              search={exposedDevicesSearch}
+              data={exposedDevicesData}
+              tableOptions={tableOptionsExposedDevices}
+              handleSearchChange={this.handleDevicesSearchChange}
+              handleSearchSubmit={this.getExposedDevices}
+              handleResetBtn={this.handleResetBtn} />
           }
         </div>
       </div>
@@ -1403,60 +1372,21 @@ class HostKbid extends Component {
           this.showKbidDialog()
         }
 
-        <Menu
-          anchorEl={tableContextAnchor}
-          keepMounted
-          open={Boolean(tableContextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem id='activeKbidView' onClick={this.getExposedDevices.bind(this, 'open')}>{t('txt-view')}</MenuItem>
-        </Menu>
-
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <div className='parent-content'>
-            <div className='main-statistics host'>
-
-            </div>
-
-            <div className='main-content'>
-              <header className='main-header'>{t('host.txt-kbid')}</header>
-
-              <div className='content-header-btns with-menu'>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.exportKbidList}>{t('txt-export')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReport}>{t('host.txt-report-kbid')}</Button>
-              </div>
-
-              <div className='actions-bar'>
-                <div className='search-field'>
-                  <div className='group'>
-                    <TextField
-                      name='kbidSearch'
-                      className='search-text'
-                      label={t('host.txt-kbidName')}
-                      variant='outlined'
-                      size='small'
-                      value={kbidSearch.keyword}
-                      onChange={this.handleKbidChange} />
-                  </div>
-                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getKbidData}>{t('txt-search')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleResetBtn.bind(this, 'kbidSearch')}>{t('txt-clear')}</Button>
-                </div>
-
-                <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(kbidSearch.count)}</div>
-              </div>
-
-              <MuiTableContent
-                data={kbidData}
-                tableOptions={tableOptions} />
-            </div>
-          </div>
-        </div>
+        <TableList
+          page='kbid'
+          searchType='kbidSearch'
+          search={kbidSearch}
+          data={kbidData}
+          options={tableOptions}
+          tableAnchor={tableContextAnchor}
+          getData={this.getKbidData}
+          getActiveData={this.getExposedDevices}
+          exportList={this.exportKbidList}
+          toggleReport={this.toggleReport}
+          toggleFilterQuery={this.toggleFilterQuery}
+          handleSearch={this.handleKbidChange}
+          handleReset={this.handleResetBtn}
+          handleCloseMenu={this.handleCloseMenu} />
       </div>
     )
   }

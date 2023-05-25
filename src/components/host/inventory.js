@@ -25,9 +25,10 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
+import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
-import MuiTableContent from '../common/mui-table-content'
 import SearchFilter from './search-filter'
+import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -90,7 +91,6 @@ const DISCOVERED_VULNERABILITY_DATA = {
   currentPage: 0,
   pageSize: 20
 };
-const NOT_AVAILABLE = 'N/A';
 let ALERT_LEVEL_COLORS = {};
 
 let t = null;
@@ -934,92 +934,35 @@ class HostInventory extends Component {
 
         <div className='main-content'>
           {activeCpeInfo === 'vulnerabilityDetails' &&
-            <ul className='vulnerability'>
-              <li className='header'><span>{t('host.inventory.txt-cpe23uri')}</span>: {currentCpeData.cpe23uri || NOT_AVAILABLE}</li>
-              <li className='header'><span>{t('host.inventory.txt-cpeNameComponents')}</span></li>
-              <li><span>{t('host.inventory.txt-edition')}</span>: {currentCpeData.edition || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-language')}</span>: {currentCpeData.language || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-other')}</span>: {currentCpeData.other || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-part')}</span>: {currentCpeData.part || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-product')}</span>: {currentCpeData.product || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-swEdition')}</span>: {currentCpeData.swEdition || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-targetHw')}</span>: {currentCpeData.targetHw || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-targetSw')}</span>: {currentCpeData.targetSw || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-update')}</span>: {currentCpeData.update || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-vendor')}</span>: {currentCpeData.vendor || NOT_AVAILABLE}</li>
-              <li><span>{t('host.inventory.txt-version')}</span>: {currentCpeData.version || NOT_AVAILABLE}</li>
-              <li className='header'><span>{t('host.inventory.txt-productCpename')}</span>: <span>{currentCpeData.productCpename}</span></li>
-            </ul>
+            <GeneralDialog
+              page='inventory'
+              type='general-info'
+              data={currentCpeData} />
           }
 
           {activeCpeInfo === 'exposedDevices' &&
-            <React.Fragment>
-              <div className='search-field'>
-                <div className='group'>
-                  <TextField
-                    name='hostName'
-                    className='search-text'
-                    label={t('host.dashboard.txt-hostName')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.hostName}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <div className='group'>
-                  <TextField
-                    name='ip'
-                    className='search-text'
-                    label={t('host.dashboard.txt-ip')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.ip}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <div className='group'>
-                  <TextField
-                    name='system'
-                    className='search-text'
-                    label={t('host.dashboard.txt-system')}
-                    variant='outlined'
-                    size='small'
-                    value={exposedDevicesSearch.system}
-                    onChange={this.handleDevicesSearchChange} />
-                </div>
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getExposedDevices}>{t('txt-search')}</Button>
-                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
-              </div>
-              <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(exposedDevicesSearch.count)}</div>
-
-              <MuiTableContent
-                tableHeight='auto'
-                data={exposedDevicesData}
-                tableOptions={tableOptionsExposedDevices} />
-            </React.Fragment>
+            <GeneralDialog
+              page='inventory'
+              type='exposed-devices'
+              search={exposedDevicesSearch}
+              data={exposedDevicesData}
+              tableOptions={tableOptionsExposedDevices}
+              handleSearchChange={this.handleDevicesSearchChange}
+              handleSearchSubmit={this.getExposedDevices}
+              handleResetBtn={this.handleResetBtn} />
           }
 
           {activeCpeInfo === 'discoveredVulnerability' &&
-            <React.Fragment>
-              <div className='search-field'>
-                <div className='group'>
-                  <TextField
-                    name='cveNameSearch'
-                    className='search-text'
-                    label={t('host.dashboard.txt-cveName')}
-                    variant='outlined'
-                    size='small'
-                    value={cveNameSearch.keyword}
-                    onChange={this.handleCveNameChange} />
-                </div>
-                <Button variant='contained' color='primary' className='search-btn' onClick={this.getDiscoveredVulnerability}>{t('txt-search')}</Button>
-                <Button variant='outlined' color='primary' className='clear' onClick={this.handleResetBtn.bind(this, 'cveNameSearch')}>{t('txt-clear')}</Button>
-              </div>
-              <div className='search-count'>{t('host.inventory.txt-discoveredVulnerabilityCount') + ': ' + helper.numberWithCommas(cveNameSearch.count)}</div>
-
-              <MuiTableContent
-                tableHeight='auto'
-                data={discoveredVulnerabilityData}
-                tableOptions={tableOptionsDiscoveredVulnerability} />
-            </React.Fragment>
+            <GeneralDialog
+              page='inventory'
+              type='general-list'
+              searchType='cveNameSearch'
+              search={cveNameSearch}
+              data={discoveredVulnerabilityData}
+              tableOptions={tableOptionsDiscoveredVulnerability}
+              handleSearchChange={this.handleCveNameChange}
+              handleSearchSubmit={this.getDiscoveredVulnerability}
+              handleResetBtn={this.handleResetBtn} />
           }
         </div>
       </div>
@@ -1673,68 +1616,22 @@ class HostInventory extends Component {
           this.showFilterQueryDialog()
         }
 
-        <Menu
-          anchorEl={tableContextAnchor}
-          keepMounted
-          open={Boolean(tableContextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem id='activeCveView' onClick={this.getActiveCpeInfo}>{t('txt-view')}</MenuItem>
-        </Menu>
-
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <div className='parent-content'>
-            <div className='main-statistics host'>
-
-            </div>
-
-            <div className='main-content'>
-              <header className='main-header'>{t('host.inventory.txt-orgSoftwareList')}</header>
-
-              <div className='content-header-btns with-menu'>
-                <Menu
-                  anchorEl={exportContextAnchor}
-                  keepMounted
-                  open={Boolean(exportContextAnchor)}
-                  onClose={this.handleCloseMenu}>
-                  <MenuItem onClick={this.exportCpeList.bind(this, 'cpe')}>{t('host.inventory.txt-inventoryList')}</MenuItem>
-                  <MenuItem onClick={this.exportCpeList.bind(this, 'nccst')}>NCCST</MenuItem>
-                </Menu>
-
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleExportOpenMenu}>{t('txt-export')}</Button>
-              </div>
-
-              <div className='actions-bar'>
-                <div className='search-field'>
-                  <div className='group'>
-                    <TextField
-                      name='cpeSearch'
-                      className='search-text'
-                      label={t('host.inventory.txt-applicationName')}
-                      variant='outlined'
-                      size='small'
-                      value={cpeSearch.keyword}
-                      onChange={this.handleCpeChange} />
-                  </div>
-                  <Button variant='contained' color='primary' className='search-btn' onClick={this.getCpeData}>{t('txt-search')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleResetBtn.bind(this, 'cpeSearch')}>{t('txt-clear')}</Button>
-                </div>
-
-                <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(cpeSearch.count)}</div>
-              </div>
-
-              <MuiTableContent
-                data={cpeData}
-                tableOptions={tableOptions} />
-            </div>
-          </div>
-        </div>
+        <TableList
+          page='inventory'
+          searchType='cpeSearch'
+          search={cpeSearch}
+          data={cpeData}
+          options={tableOptions}
+          tableAnchor={tableContextAnchor}
+          exportAnchor={exportContextAnchor}
+          getData={this.getCpeData}
+          getActiveData={this.getActiveCpeInfo}
+          exportList={this.exportCpeList}
+          toggleFilterQuery={this.toggleFilterQuery}
+          handleSearch={this.handleCpeChange}
+          handleReset={this.handleResetBtn}
+          handleExportMenu={this.handleExportOpenMenu}
+          handleCloseMenu={this.handleCloseMenu} />
       </div>
     )
   }
