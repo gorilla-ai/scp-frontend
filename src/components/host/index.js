@@ -1522,13 +1522,13 @@ class HostController extends Component {
 
     if (deviceSearchList.system.length > 0) {
       const index = deviceSearchList.system.indexOf(t('host.txt-noSystemDetected'));
-      let systemList = _.cloneDeep(deviceSearchList.system);
+      let systemArray = _.cloneDeep(deviceSearchList.system);
 
       if (index > -1) {
-        systemList[index] = 'noExist';
+        systemArray[index] = 'noExist';
       }
 
-      requestData.systemArray = systemList;
+      requestData.systemArray = systemArray;
     }
 
     if (deviceSearchList.safetyScanInfo.length > 0) {

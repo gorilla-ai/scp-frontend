@@ -27,16 +27,18 @@ import SearchFilter from './search-filter'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['departmentSelected'];
+const FILTER_LIST = ['departmentSelected', 'system'];
 const KBID_SEARCH = {
   keyword: '',
   count: 0
 };
 const KBID_FILTER = {
-  departmentSelected: []
+  departmentSelected: [],
+  system: []
 };
 const KBID_FILTER_LIST = {
-  departmentSelected: []
+  departmentSelected: [],
+  system: []
 };
 const VANS_FORM_VALIDATION = {
   oid: {
@@ -105,6 +107,8 @@ class HostKbid extends Component {
       departmentList: [],
       departmentNameMapping: {},
       limitedDepartment: [],
+      originalSystemList: [],
+      systemList: null,
       kbidSearch: _.cloneDeep(KBID_SEARCH),
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
@@ -156,6 +160,7 @@ class HostKbid extends Component {
         account: tempAccount
       }, () => {
         this.getDepartmentTree();
+        this.getSystemList();
       });
     }
   }
@@ -228,6 +233,73 @@ class HostKbid extends Component {
           kbidFilterList: tempKbidFilterList
         }, () => {
           this.getKbidData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get system list
+   * @method
+   */
+  getSystemList = () => {
+    const {baseUrl} = this.context;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.server.os`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.pc.os`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        let systemList = [];
+
+        if (data[0] && data[0].value) {
+          systemList.push({
+            name: 'Server',
+            checked: false,
+            type: 'server',
+            children: _.map(data[0].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        if (data[1] && data[1].value) {
+          systemList.push({
+            name: 'PC',
+            checked: false,
+            type: 'pc',
+            children: _.map(data[1].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        systemList.push({
+          name: t('host.txt-noSystemDetected'),
+          checked: false,
+          type: 'noSystem'
+        });
+
+        this.setState({
+          originalSystemList: _.cloneDeep(systemList),
+          systemList
         });
       }
       return null;
@@ -340,7 +412,7 @@ class HostKbid extends Component {
    * @returns requestData object
    */
   getKbidFilterRequestData = () => {
-    const {kbidSearch, kbidFilter} = this.state;
+    const {kbidSearch, kbidFilter, kbidFilterList} = this.state;
     let requestData = {};
 
     if (kbidSearch.keyword) {
@@ -349,6 +421,17 @@ class HostKbid extends Component {
 
     if (kbidFilter.departmentSelected.length > 0) {
       requestData.departmentArray = kbidFilter.departmentSelected;
+    }
+
+    if (kbidFilterList.system.length > 0) {
+      const index = kbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+      let systemArray = _.cloneDeep(kbidFilterList.system);
+
+      if (index > -1) {
+        systemArray[index] = 'noExist';
+      }
+
+      requestData.systemArray = systemArray;
     }
 
     return requestData;
@@ -872,12 +955,130 @@ class HostKbid extends Component {
     )
   }
   /**
+   * Handle system checkbox check/uncheck
+   * @method
+   * @param {object} tree - system tree data
+   * @param {object} event - event object
+   */
+  toggleSystemCheckbox = (tree, event) => {
+    const {systemList, kbidFilterList} = this.state;
+    let tempSystemList = _.cloneDeep(systemList);
+    let tempKbidFilterList = {...kbidFilterList};
+
+    if (tree.type === 'server' || tree.type === 'pc' || !tree.type) {
+      let systemSelected = [];
+
+      if (tree.children) { //Handle tree header check/uncheck
+        const targetIndex = _.findIndex(systemList, {'name':  tree.name});
+        tempSystemList[targetIndex].checked = event.target.checked;
+        tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
+          return {
+            ...val,
+            checked: event.target.checked
+          };
+        })
+      } else { //Handle tree children check/uncheck
+        let parentIndex = '';
+        let childrenIndex = '';
+        let parentChecked = true;
+
+        _.forEach(systemList, (val, i) => {
+          _.forEach(val.children, (val2, j) => {
+            if (tree.name === val2.name) {
+              parentIndex = i;
+              childrenIndex = j;
+              return false;
+            }
+          })
+        })
+        tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
+
+        _.forEach(tempSystemList[parentIndex].children, val => {
+          if (!val.checked) {
+            parentChecked = false;
+            return false;
+          }
+        })
+        tempSystemList[parentIndex].checked = parentChecked;
+      }
+
+      const index = tempKbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+
+      if (index > -1) {
+        systemSelected.push(t('host.txt-noSystemDetected'));
+      }
+
+      _.forEach(tempSystemList, val => {
+        _.forEach(val.children, val2 => {
+          if (val2.checked) {
+            systemSelected.push(val2.name);
+          }
+        })
+      })
+
+      tempKbidFilterList.system = systemSelected;
+    }
+
+    if (tree.type === 'noSystem') {
+      tempSystemList[2].checked = event.target.checked;
+
+      if (event.target.checked) {
+        tempKbidFilterList.system.push(t('host.txt-noSystemDetected'));
+      } else {
+        const index = tempKbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+        tempKbidFilterList.system.splice(index, 1);
+      }
+    }
+
+    this.setState({
+      systemList: tempSystemList,
+      kbidFilterList: tempKbidFilterList
+    });
+  }
+  /**
+   * Display system tree content
+   * @method
+   * @param {object} tree - system tree data
+   * @returns HTML DOM
+   */
+  getSystemTreeLabel = (tree) => {
+    return (
+      <span>
+        <Checkbox
+          name={tree.name}
+          checked={tree.checked}
+          onChange={this.toggleSystemCheckbox.bind(this, tree)}
+          color='primary' />
+          {tree.name}
+      </span>
+    )
+  }
+  /**
+   * Display system tree item
+   * @method
+   * @param {object} val - system tree data
+   * @param {number} i - index of the system tree data
+   * @returns TreeItem component
+   */
+  getSystemTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.name}
+        nodeId={val.name}
+        label={this.getSystemTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getSystemTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
    * Display filter query content
    * @method
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {departmentList, popOverAnchor, activeFilter} = this.state;
+    const {departmentList, systemList, popOverAnchor, activeFilter} = this.state;
 
     return (
       <div className='filter-section'>
@@ -910,6 +1111,14 @@ class HostKbid extends Component {
                 }
               </React.Fragment>
             }
+            {activeFilter === 'system' &&
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {systemList.map(this.getSystemTreeItem)}
+              </TreeView>
+            }
           </div>
         </PopoverMaterial>
         {FILTER_LIST.map(this.showFilterForm)}
@@ -923,6 +1132,7 @@ class HostKbid extends Component {
    */
   clearFilter = () => {
     this.setState({
+      systemList: _.cloneDeep(this.state.originalSystemList),
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST)
     });

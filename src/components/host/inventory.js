@@ -56,6 +56,7 @@ const CPE_FILTER = {
 };
 const CPE_FILTER_LIST = {
   departmentSelected: [],
+  system: [],
   version: [],
   vulnerabilityNum: []
 };
@@ -117,11 +118,12 @@ class HostInventory extends Component {
         departmentId: '',
         limitedRole: false
       },
-      systemType: [],
-      vendorType: [],
       departmentList: [],
       departmentNameMapping: {},
       limitedDepartment: [],
+      originalSystemList: [],
+      systemList: null,
+      vendorType: [],
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
@@ -177,6 +179,7 @@ class HostInventory extends Component {
         account: tempAccount
       }, () => {
         this.getDepartmentTree();
+        this.getSystemList();
       });
     }
 
@@ -285,6 +288,73 @@ class HostInventory extends Component {
     })
   }
   /**
+   * Get system list
+   * @method
+   */
+  getSystemList = () => {
+    const {baseUrl} = this.context;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.server.os`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.pc.os`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        let systemList = [];
+
+        if (data[0] && data[0].value) {
+          systemList.push({
+            name: 'Server',
+            checked: false,
+            type: 'server',
+            children: _.map(data[0].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        if (data[1] && data[1].value) {
+          systemList.push({
+            name: 'PC',
+            checked: false,
+            type: 'pc',
+            children: _.map(data[1].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        systemList.push({
+          name: t('host.txt-noSystemDetected'),
+          checked: false,
+          type: 'noSystem'
+        });
+
+        this.setState({
+          originalSystemList: _.cloneDeep(systemList),
+          systemList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get and set system and vendor list
    * @method
    */
@@ -305,13 +375,6 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        const systemType = _.map(data.systemGroup, val => {
-          return {
-            value: val,
-            text: val
-          };
-        });
-
         const vendorType = _.map(data.vendorGroup, val => {
           return {
             value: val,
@@ -320,7 +383,6 @@ class HostInventory extends Component {
         });
 
         this.setState({
-          systemType,
           vendorType
         });
       }
@@ -455,10 +517,17 @@ class HostInventory extends Component {
       requestData.product = cpeSearch.keyword;
     }
 
-    if (cpeFilter.system.length > 0) {
-      const systemArray = _.map(cpeFilter.system, val => {
-        return val.value;
-      });
+    if (cpeFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cpeFilter.departmentSelected;
+    }
+
+    if (cpeFilterList.system.length > 0) {
+      const index = cpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+      let systemArray = _.cloneDeep(cpeFilterList.system);
+
+      if (index > -1) {
+        systemArray[index] = 'noExist';
+      }
 
       requestData.systemArray = systemArray;
     }
@@ -469,10 +538,6 @@ class HostInventory extends Component {
       });
 
       requestData.vendorArray = vendorArray;
-    }
-
-    if (cpeFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = cpeFilter.departmentSelected;
     }
 
     if (cpeFilterList.version.length > 0) {
@@ -1166,42 +1231,9 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   showFilterForm = (val, i) => {
-    const {systemType, vendorType, cpeFilter, cpeFilterList} = this.state;
+    const {vendorType, cpeFilter, cpeFilterList} = this.state;
 
-    if (val === 'system') {
-      return (
-        <div key={i} className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={cpeFilter.system}
-            options={systemType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.system')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange.bind(this, 'system')} />
-        </div>
-      )
-    } else if (val === 'vendor') {
+    if (val === 'vendor') {
       return (
         <div key={i} className='group'>
           <Autocomplete
@@ -1353,12 +1385,130 @@ class HostInventory extends Component {
     )
   }
   /**
+   * Handle system checkbox check/uncheck
+   * @method
+   * @param {object} tree - system tree data
+   * @param {object} event - event object
+   */
+  toggleSystemCheckbox = (tree, event) => {
+    const {systemList, cpeFilterList} = this.state;
+    let tempSystemList = _.cloneDeep(systemList);
+    let tempCpeFilterList = {...cpeFilterList};
+
+    if (tree.type === 'server' || tree.type === 'pc' || !tree.type) {
+      let systemSelected = [];
+
+      if (tree.children) { //Handle tree header check/uncheck
+        const targetIndex = _.findIndex(systemList, {'name':  tree.name});
+        tempSystemList[targetIndex].checked = event.target.checked;
+        tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
+          return {
+            ...val,
+            checked: event.target.checked
+          };
+        })
+      } else { //Handle tree children check/uncheck
+        let parentIndex = '';
+        let childrenIndex = '';
+        let parentChecked = true;
+
+        _.forEach(systemList, (val, i) => {
+          _.forEach(val.children, (val2, j) => {
+            if (tree.name === val2.name) {
+              parentIndex = i;
+              childrenIndex = j;
+              return false;
+            }
+          })
+        })
+        tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
+
+        _.forEach(tempSystemList[parentIndex].children, val => {
+          if (!val.checked) {
+            parentChecked = false;
+            return false;
+          }
+        })
+        tempSystemList[parentIndex].checked = parentChecked;
+      }
+
+      const index = tempCpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+
+      if (index > -1) {
+        systemSelected.push(t('host.txt-noSystemDetected'));
+      }
+
+      _.forEach(tempSystemList, val => {
+        _.forEach(val.children, val2 => {
+          if (val2.checked) {
+            systemSelected.push(val2.name);
+          }
+        })
+      })
+
+      tempCpeFilterList.system = systemSelected;
+    }
+
+    if (tree.type === 'noSystem') {
+      tempSystemList[2].checked = event.target.checked;
+
+      if (event.target.checked) {
+        tempCpeFilterList.system.push(t('host.txt-noSystemDetected'));
+      } else {
+        const index = tempCpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+        tempCpeFilterList.system.splice(index, 1);
+      }
+    }
+
+    this.setState({
+      systemList: tempSystemList,
+      cpeFilterList: tempCpeFilterList
+    });
+  }
+  /**
+   * Display system tree content
+   * @method
+   * @param {object} tree - system tree data
+   * @returns HTML DOM
+   */
+  getSystemTreeLabel = (tree) => {
+    return (
+      <span>
+        <Checkbox
+          name={tree.name}
+          checked={tree.checked}
+          onChange={this.toggleSystemCheckbox.bind(this, tree)}
+          color='primary' />
+          {tree.name}
+      </span>
+    )
+  }
+  /**
+   * Display system tree item
+   * @method
+   * @param {object} val - system tree data
+   * @param {number} i - index of the system tree data
+   * @returns TreeItem component
+   */
+  getSystemTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.name}
+        nodeId={val.name}
+        label={this.getSystemTreeLabel(val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getSystemTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
    * Display filter query content
    * @method
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {departmentList, cpeFilter, popOverAnchor, activeFilter} = this.state;
+    const {departmentList, systemList, cpeFilter, popOverAnchor, activeFilter} = this.state;
     const defaultItemValue = {
       condition: '=',
       input: ''
@@ -1399,7 +1549,15 @@ class HostInventory extends Component {
                 }
               </React.Fragment>
             }
-            {activeFilter !== 'departmentSelected' &&
+            {activeFilter === 'system' &&
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {systemList.map(this.getSystemTreeItem)}
+              </TreeView>
+            }
+            {activeFilter !== 'departmentSelected' && activeFilter !== 'system' &&
               <MultiInput
                 base={SearchFilter}
                 defaultItemValue={defaultItemValue}
@@ -1420,6 +1578,7 @@ class HostInventory extends Component {
    */
   clearFilter = () => {
     this.setState({
+      systemList: _.cloneDeep(this.state.originalSystemList),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST)
     });

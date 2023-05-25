@@ -637,16 +637,16 @@ class HostDashboard extends Component {
       requestData.cveId = cveSearch.keyword;
     }
 
+    if (cveFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cveFilter.departmentSelected;
+    }
+
     if (cveFilter.severity.length > 0) {
       const severityArray = _.map(cveFilter.severity, val => {
         return val.value.toUpperCase();
       });
 
       requestData.severityArray = severityArray;
-    }
-
-    if (cveFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = cveFilter.departmentSelected;
     }
 
     if (cveFilterList.cvss.length > 0) {
