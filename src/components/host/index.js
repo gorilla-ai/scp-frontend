@@ -1521,7 +1521,14 @@ class HostController extends Component {
     }
 
     if (deviceSearchList.system.length > 0) {
-      requestData.systemArray = deviceSearchList.system;
+      const index = deviceSearchList.system.indexOf(t('host.txt-noSystemDetected'));
+      let systemList = _.cloneDeep(deviceSearchList.system);
+
+      if (index > -1) {
+        systemList[index] = 'noExist';
+      }
+
+      requestData.systemArray = systemList;
     }
 
     if (deviceSearchList.safetyScanInfo.length > 0) {
@@ -4302,10 +4309,10 @@ class HostController extends Component {
         tempSystemList[parentIndex].checked = parentChecked;
       }
 
-      const index = tempDeviceSearchList.system.indexOf('noExist');
+      const index = tempDeviceSearchList.system.indexOf(t('host.txt-noSystemDetected'));
 
       if (index > -1) {
-        systemSelected.push('noExist');
+        systemSelected.push(t('host.txt-noSystemDetected'));
       }
 
       _.forEach(tempSystemList, val => {
@@ -4323,9 +4330,9 @@ class HostController extends Component {
       tempSystemList[2].checked = event.target.checked;
 
       if (event.target.checked) {
-        tempDeviceSearchList.system.push('noExist');
+        tempDeviceSearchList.system.push(t('host.txt-noSystemDetected'));
       } else {
-        const index = tempDeviceSearchList.system.indexOf('noExist');
+        const index = tempDeviceSearchList.system.indexOf(t('host.txt-noSystemDetected'));
         tempDeviceSearchList.system.splice(index, 1);
       }
     }

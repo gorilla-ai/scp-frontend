@@ -1481,7 +1481,7 @@ class HostInventory extends Component {
       })
 
       url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
-      requestData.exportFields = exportFields
+      requestData.exportFields = exportFields;
     } else if (type === 'nccst') {
       url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
     }
