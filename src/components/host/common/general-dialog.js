@@ -10,8 +10,6 @@ import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-
 const NOT_AVAILABLE = 'N/A';
 
 let t = null;
@@ -29,8 +27,6 @@ class GeneralDialog extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
-
-    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
   }
@@ -199,6 +195,15 @@ class GeneralDialog extends Component {
 GeneralDialog.contextType = BaseDataContext;
 
 GeneralDialog.propTypes = {
+  page: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  data: PropTypes.object.isRequired,
+  search: PropTypes.object,
+  searchType: PropTypes.string,
+  tableOptions: PropTypes.object,
+  handleSearchChange: PropTypes.func,
+  handleSearchSubmit: PropTypes.func,
+  handleResetBtn: PropTypes.func
 };
 
 export default GeneralDialog;

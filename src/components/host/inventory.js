@@ -3,31 +3,18 @@ import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
-import Checkbox from '@material-ui/core/Checkbox'
-import CheckBoxIcon from '@material-ui/icons/CheckBox'
-import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
-import PopoverMaterial from '@material-ui/core/Popover'
-import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
-import TreeItem from '@material-ui/lab/TreeItem'
-import TreeView from '@material-ui/lab/TreeView'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
-import SearchFilter from './search-filter'
 import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -37,7 +24,33 @@ const CONDITION_MODE = {
   '>': 'gt',
   '<': 'lt'
 };
-const FILTER_LIST = ['departmentSelected', 'system', 'vendor', 'version', 'vulnerabilityNum'];
+const FILTER_LIST = [
+  {
+    name: 'departmentSelected',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'system',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'vendor',
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
+  },
+  {
+    name: 'version',
+    displayType: 'text_field',
+    filterType: 'multi_input'
+  },
+  {
+    name: 'vulnerabilityNum',
+    displayType: 'text_field',
+    filterType: 'multi_input'
+  }
+];
 const CPE_SEARCH = {
   keyword: '',
   count: 0
@@ -122,7 +135,7 @@ class HostInventory extends Component {
       departmentNameMapping: {},
       limitedDepartment: [],
       originalSystemList: [],
-      systemList: null,
+      systemList: [],
       vendorType: [],
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
@@ -1111,444 +1124,25 @@ class HostInventory extends Component {
   /**
    * Toggle show filter query
    * @method
-   * @param {string} [options] - option for 'confirm'
+   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
+   * @param {object} [filterData] - filter data
    */
-  toggleFilterQuery = (options) => {
-    if (options === 'confirm') {
-      this.getCpeData();
+  toggleFilterQuery = (type, filterData) => {
+    if (type !== 'open') {
+      this.setState({
+        systemList: filterData.systemList,
+        cpeFilter: filterData.filter,
+        cpeFilterList: filterData.itemFilterList
+      }, () => {
+        if (type === 'confirm') {
+          this.getCpeData();
+        }
+      });
     }
 
     this.setState({
       showFilterQuery: !this.state.showFilterQuery
     });
-  }
-  /**
-   * Handle combo box change
-   * @method
-   * @param {string} type - combo box type ('system' or 'vendor')
-   * @param {object} event - event object
-   * @param {array.<object>} value - selected input value
-   */
-  handleComboBoxChange = (type, event, value) => {
-    let tempCpeFilter = {...this.state.cpeFilter};
-    tempCpeFilter[type] = value;
-
-    this.setState({
-      cpeFilter: tempCpeFilter
-    });
-  }
-  /**
-   * Set search filter data
-   * @method
-   * @param {string} type - filter type
-   * @param {array.<string>} data - filter data
-   */
-  setSerchFilter = (type, data) => {
-    const {cpeFilter, cpeFilterList} = this.state;
-    let tempCpeFilter = {...cpeFilter};
-    let tempCpeFilterList = {...cpeFilterList};
-    let dataList = [];
-    tempCpeFilter[type] = data;
-
-    _.forEach(data, val => {
-      let value = val.input;
-
-      if (value) {
-        value = val.condition + ' ' + value;
-        dataList.push(value);
-      }
-    })
-
-    tempCpeFilterList[type] = dataList;
-
-    this.setState({
-      cpeFilter: tempCpeFilter,
-      cpeFilterList: tempCpeFilterList
-    });
-  }
-  /**
-   * Display filter form
-   * @method
-   * @param {string} val - filter data
-   * @param {number} i - index of the filter data
-   * @returns HTML DOM
-   */
-  showFilterForm = (val, i) => {
-    const {vendorType, cpeFilter, cpeFilterList} = this.state;
-
-    if (val === 'vendor') {
-      return (
-        <div key={i} className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={cpeFilter.vendor}
-            options={vendorType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.vendor')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange.bind(this, 'vendor')} />
-        </div>
-      )
-    } else {
-      return (
-        <div key={i} className='group'>
-          <TextField
-            name={val}
-            label={f('hostCpeFields.' + val)}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={cpeFilterList[val].join(', ')}
-            onClick={this.handleFilterclick.bind(this, val)}
-            InputProps={{
-              readOnly: true
-            }} />
-        </div>
-      )
-    }
-  }
-  /**
-   * Determine whether to show department or not
-   * @method
-   * @param {string} id - department tree ID
-   * @returns boolean true/false
-   */
-  checkDepartmentList = (id) => {
-    const {account, limitedDepartment} = this.state;
-
-    if (account.limitedRole) {
-      if (limitedDepartment.length === 0) {
-        return true;
-      }
-
-      if (limitedDepartment.length > 0) {
-        if (!_.includes(limitedDepartment, id)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-  /**
-   * Get list of selected checkbox
-   * @method
-   * @param {bool} checked - checkbox on/off
-   * @param {string} type - filterNav type
-   * @param {array.<string>} list - list of selected items
-   * @param {string} [id] - selected checkbox id
-   * @returns array of selected list
-   */
-  getSelectedItems = (checked, type, list, id) => {
-    const {cpeFilter} = this.state;
-
-    if (checked) {
-      return _.concat(cpeFilter[type], ...list, id);
-    } else {
-      return _.without(cpeFilter[type], ...list, id);
-    }
-  }
-  /**
-   * Handle department checkbox check/uncheck
-   * @method
-   * @param {object} tree - department tree data
-   * @param {object} event - event object
-   */
-  toggleDepartmentCheckbox = (tree, event) => {
-    const {departmentNameMapping, cpeFilter, cpeFilterList} = this.state;
-    let tempCpeFilter = {...cpeFilter};
-    let tempCpeFilterList = {...cpeFilterList};
-    let departmentChildList = [];
-
-    _.forEach(tree.children, val => {
-      helper.floorPlanRecursive(val, obj => {
-        departmentChildList.push(obj.id);
-      });
-    })
-
-    tempCpeFilter.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
-
-    tempCpeFilterList.departmentSelected = _.map(tempCpeFilter.departmentSelected, val => {
-      return departmentNameMapping[val];
-    })
-
-    this.setState({
-      cpeFilter: tempCpeFilter,
-      cpeFilterList: tempCpeFilterList
-    });
-  }
-  /**
-   * Display department tree content
-   * @method
-   * @param {object} tree - department tree data
-   * @returns HTML DOM
-   */
-  getDepartmentTreeLabel = (tree) => {
-    return <span><Checkbox checked={_.includes(this.state.cpeFilter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
-  }
-  /**
-   * Display department tree item
-   * @method
-   * @param {object} val - department tree data
-   * @param {number} i - index of the department tree data
-   * @returns TreeItem component
-   */
-  getDepartmentTreeItem = (val, i) => {
-    if (this.checkDepartmentList(val.id)) return; // Hide the tree items that are not belong to the user's account
-
-    return (
-      <TreeItem
-        key={val.id + i}
-        nodeId={val.id}
-        label={this.getDepartmentTreeLabel(val)}>
-        {val.children && val.children.length > 0 &&
-          val.children.map(this.getDepartmentTreeItem)
-        }
-      </TreeItem>
-    )
-  }
-  /**
-   * Handle system checkbox check/uncheck
-   * @method
-   * @param {object} tree - system tree data
-   * @param {object} event - event object
-   */
-  toggleSystemCheckbox = (tree, event) => {
-    const {systemList, cpeFilterList} = this.state;
-    let tempSystemList = _.cloneDeep(systemList);
-    let tempCpeFilterList = {...cpeFilterList};
-
-    if (tree.type === 'server' || tree.type === 'pc' || !tree.type) {
-      let systemSelected = [];
-
-      if (tree.children) { //Handle tree header check/uncheck
-        const targetIndex = _.findIndex(systemList, {'name':  tree.name});
-        tempSystemList[targetIndex].checked = event.target.checked;
-        tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
-          return {
-            ...val,
-            checked: event.target.checked
-          };
-        })
-      } else { //Handle tree children check/uncheck
-        let parentIndex = '';
-        let childrenIndex = '';
-        let parentChecked = true;
-
-        _.forEach(systemList, (val, i) => {
-          _.forEach(val.children, (val2, j) => {
-            if (tree.name === val2.name) {
-              parentIndex = i;
-              childrenIndex = j;
-              return false;
-            }
-          })
-        })
-        tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
-
-        _.forEach(tempSystemList[parentIndex].children, val => {
-          if (!val.checked) {
-            parentChecked = false;
-            return false;
-          }
-        })
-        tempSystemList[parentIndex].checked = parentChecked;
-      }
-
-      const index = tempCpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-
-      if (index > -1) {
-        systemSelected.push(t('host.txt-noSystemDetected'));
-      }
-
-      _.forEach(tempSystemList, val => {
-        _.forEach(val.children, val2 => {
-          if (val2.checked) {
-            systemSelected.push(val2.name);
-          }
-        })
-      })
-
-      tempCpeFilterList.system = systemSelected;
-    }
-
-    if (tree.type === 'noSystem') {
-      tempSystemList[2].checked = event.target.checked;
-
-      if (event.target.checked) {
-        tempCpeFilterList.system.push(t('host.txt-noSystemDetected'));
-      } else {
-        const index = tempCpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-        tempCpeFilterList.system.splice(index, 1);
-      }
-    }
-
-    this.setState({
-      systemList: tempSystemList,
-      cpeFilterList: tempCpeFilterList
-    });
-  }
-  /**
-   * Display system tree content
-   * @method
-   * @param {object} tree - system tree data
-   * @returns HTML DOM
-   */
-  getSystemTreeLabel = (tree) => {
-    return (
-      <span>
-        <Checkbox
-          name={tree.name}
-          checked={tree.checked}
-          onChange={this.toggleSystemCheckbox.bind(this, tree)}
-          color='primary' />
-          {tree.name}
-      </span>
-    )
-  }
-  /**
-   * Display system tree item
-   * @method
-   * @param {object} val - system tree data
-   * @param {number} i - index of the system tree data
-   * @returns TreeItem component
-   */
-  getSystemTreeItem = (val, i) => {
-    return (
-      <TreeItem
-        key={val.name}
-        nodeId={val.name}
-        label={this.getSystemTreeLabel(val)}>
-        {val.children && val.children.length > 0 &&
-          val.children.map(this.getSystemTreeItem)
-        }
-      </TreeItem>
-    )
-  }
-  /**
-   * Display filter query content
-   * @method
-   * @returns HTML DOM
-   */
-  displayFilterQuery = () => {
-    const {departmentList, systemList, cpeFilter, popOverAnchor, activeFilter} = this.state;
-    const defaultItemValue = {
-      condition: '=',
-      input: ''
-    };
-    const data = {
-      pageType: 'inventory',
-      activeFilter
-    };
-
-    return (
-      <div className='filter-section'>
-        <PopoverMaterial
-          id='dashboardFilterPopover'
-          open={Boolean(popOverAnchor)}
-          anchorEl={popOverAnchor}
-          onClose={this.handlePopoverClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left'
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left'
-          }}>
-          <div className='content'>
-            {activeFilter === 'departmentSelected' &&
-              <React.Fragment>
-                {departmentList.length === 0 &&
-                  <div className='not-found'>{t('txt-notFound')}</div>
-                }
-                {departmentList.length > 0 &&
-                  <TreeView
-                    className='tree-view'
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}>
-                    {departmentList.map(this.getDepartmentTreeItem)}
-                  </TreeView>
-                }
-              </React.Fragment>
-            }
-            {activeFilter === 'system' &&
-              <TreeView
-                className='tree-view'
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}>
-                {systemList.map(this.getSystemTreeItem)}
-              </TreeView>
-            }
-            {activeFilter !== 'departmentSelected' && activeFilter !== 'system' &&
-              <MultiInput
-                base={SearchFilter}
-                defaultItemValue={defaultItemValue}
-                value={cpeFilter[activeFilter]}
-                props={data}
-                onChange={this.setSerchFilter.bind(this, activeFilter)} />
-            }
-          </div>
-        </PopoverMaterial>
-        {FILTER_LIST.map(this.showFilterForm)}
-        <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
-      </div>
-    )
-  }
-  /**
-   * Clear filter input value
-   * @method
-   */
-  clearFilter = () => {
-    this.setState({
-      systemList: _.cloneDeep(this.state.originalSystemList),
-      cpeFilter: _.cloneDeep(CPE_FILTER),
-      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST)
-    });
-  }
-  /**
-   * Show filter query dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  showFilterQueryDialog = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFilterQuery},
-      confirm: {text: t('txt-confirm'), handler: this.toggleFilterQuery.bind(this, 'confirm')}
-    };
-
-    return (
-      <ModalDialog
-        id='showFilterQueryDialog'
-        className='modal-dialog'
-        title={t('txt-filterQuery')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayFilterQuery()}
-      </ModalDialog>
-    )
   }
   /**
    * Handle export open menu
@@ -1593,7 +1187,7 @@ class HostInventory extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {cpeSearch, showCpeInfo, showFilterQuery, cpeData, tableContextAnchor, exportContextAnchor} = this.state;
+    const {account, limitedDepartment, departmentList, departmentNameMapping, originalSystemList, systemList, vendorType, cpeFilter, cpeFilterList, cpeSearch, showCpeInfo, showFilterQuery, cpeData, tableContextAnchor, exportContextAnchor} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cpe', 'currentPage', currentPage);
@@ -1610,10 +1204,24 @@ class HostInventory extends Component {
       <div>
         {showCpeInfo &&
           this.showCpeDialog()
-        }
+        }    
 
         {showFilterQuery &&
-          this.showFilterQueryDialog()
+          <FilterQuery
+            page='inventory'
+            account={account}
+            limitedDepartment={limitedDepartment}
+            departmentList={departmentList}
+            departmentNameMapping={departmentNameMapping}
+            originalSystemList={originalSystemList}
+            systemList={systemList}
+            vendorType={vendorType}
+            filterList={FILTER_LIST}
+            originalFilter={CPE_FILTER}
+            filter={cpeFilter}
+            originalItemFilterList={CPE_FILTER_LIST}
+            itemFilterList={cpeFilterList}
+            toggleFilterQuery={this.toggleFilterQuery} />
         }
 
         <TableList

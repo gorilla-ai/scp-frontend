@@ -12,8 +12,6 @@ import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-
 let t = null;
 let f = null;
 
@@ -29,8 +27,6 @@ class TableList extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
-
-    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
   }
@@ -90,7 +86,7 @@ class TableList extends Component {
                     <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>NCCST</MenuItem>
                   </Menu>
                 }
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery}>{t('txt-filterQuery')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')}>{t('txt-filterQuery')}</Button>
                 {page === 'dashboard' &&
                   <React.Fragment>
                     <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList}>{t('txt-export')}</Button>
@@ -142,6 +138,25 @@ class TableList extends Component {
 TableList.contextType = BaseDataContext;
 
 TableList.propTypes = {
+  page: PropTypes.string.isRequired,
+  searchType: PropTypes.string.isRequired,
+  search: PropTypes.object.isRequired,
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object.isRequired,
+  tableAnchor: PropTypes.string.isRequired,
+  exportAnchor: PropTypes.string,
+  cveSeverityLevel: PropTypes.object,
+  monthlySeverityTrend: PropTypes.array,
+  getData: PropTypes.func.isRequired,
+  getActiveData: PropTypes.func.isRequired,
+  exportList: PropTypes.func.isRequired,
+  toggleFilterQuery: PropTypes.func.isRequired,
+  handleSearch: PropTypes.func.isRequired,
+  handleReset: PropTypes.func.isRequired,
+  handleCloseMenu: PropTypes.func.isRequired,
+  showPieChart: PropTypes.func,
+  showBarChart: PropTypes.func,
+  toggleReport: PropTypes.func
 };
 
 export default TableList;
