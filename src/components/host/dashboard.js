@@ -28,6 +28,7 @@ import PieChart from 'react-chart/build/src/components/pie'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
@@ -42,7 +43,23 @@ const CONDITION_MODE = {
   '>': 'gt',
   '<': 'lt'
 };
-const FILTER_LIST = ['departmentSelected', 'severity', 'cvss'];
+const FILTER_LIST = [
+  {
+    name: 'departmentSelected',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'severity',
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
+  },
+  {
+    name: 'cvss',
+    displayType: 'text_field',
+    filterType: 'multi_input'
+  }
+];
 const CVE_SEARCH = {
   keyword: '',
   count: 0
@@ -132,8 +149,6 @@ class HostDashboard extends Component {
         data: null,
         count: 0
       },
-      popOverAnchor: null,
-      activeFilter: '',
       monthlySeverityTrend: null,
       showCveInfo: false,
       showFilterQuery: false,
@@ -153,7 +168,7 @@ class HostDashboard extends Component {
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       relatedSoftwareData: _.cloneDeep(RELATED_SOFTWARE_DATA),
-      contextAnchor: null,
+      tableContextAnchor: null,
       currentCveId: '',
       currentCveData: {}
     };
@@ -670,7 +685,7 @@ class HostDashboard extends Component {
    */
   handleOpenMenu = (id, event) => {
     this.setState({
-      contextAnchor: event.currentTarget,
+      tableContextAnchor: event.currentTarget,
       currentCveId: id
     });
   }
@@ -914,7 +929,7 @@ class HostDashboard extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      contextAnchor: null
+      tableContextAnchor: null
     });
   }
   /**
@@ -1205,339 +1220,26 @@ class HostDashboard extends Component {
     });
   }
   /**
-   * Handle filter click
-   * @method
-   * @param {string} activeFilter - active filter type
-   * @param {object} event - event object
-   */
-  handleFilterclick = (activeFilter, event) => {
-    this.setState({
-      popOverAnchor: event.currentTarget,
-      activeFilter
-    });
-  }
-  /**
-   * Handle popover close
-   * @method
-   */
-  handlePopoverClose = () => {
-    this.setState({
-      popOverAnchor: null
-    });
-  }
-  /**
    * Toggle show filter query
    * @method
-   * @param {string} [options] - option for 'confirm'
+   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
+   * @param {object} [filterData] - filter data
    */
-  toggleFilterQuery = (options) => {
-    if (options === 'confirm') {
-      this.getCveData();
+  toggleFilterQuery = (type, filterData) => {
+    if (type !== 'open') {
+      this.setState({
+        cveFilter: filterData.filter,
+        cveFilterList: filterData.itemFilterList
+      }, () => {
+        if (type === 'confirm') {
+          this.getCveData();
+        }
+      });
     }
 
     this.setState({
       showFilterQuery: !this.state.showFilterQuery
     });
-  }
-  /**
-   * Handle combo box change
-   * @method
-   * @param {object} event - event object
-   * @param {array.<object>} value - selected input value
-   */
-  handleComboBoxChange = (event, value) => {
-    let tempCveFilter = {...this.state.cveFilter};
-    tempCveFilter.severity = value;
-
-    this.setState({
-      cveFilter: tempCveFilter
-    });
-  }
-  /**
-   * Set search filter data
-   * @method
-   * @param {string} type - filter type
-   * @param {array.<string>} data - filter data
-   */
-  setSerchFilter = (type, data) => {
-    const {cveFilter, cveFilterList} = this.state;
-    let tempCveFilter = {...cveFilter};
-    let tempCveFilterList = {...cveFilterList};
-    let dataList = [];
-    tempCveFilter[type] = data;
-
-    _.forEach(data, val => {
-      let value = val.input;
-
-      if (value) {
-        value = val.condition + ' ' + value;
-        dataList.push(value);
-      }
-    })
-
-    tempCveFilterList[type] = dataList;
-
-    this.setState({
-      cveFilter: tempCveFilter,
-      cveFilterList: tempCveFilterList
-    });
-  }
-  /**
-   * Display filter form
-   * @method
-   * @param {string} val - filter data
-   * @param {number} i - index of the filter data
-   * @returns HTML DOM
-   */
-  showFilterForm = (val, i) => {
-    const {severityType, cveFilter, cveFilterList} = this.state;
-
-    if (val === 'severity') {
-      return (
-        <div key={i} className='group'>
-          <Autocomplete
-            className='combo-box'
-            multiple
-            value={cveFilter.severity}
-            options={severityType}
-            getOptionLabel={(option) => option.text}
-            disableCloseOnSelect
-            noOptionsText={t('txt-notFound')}
-            openText={t('txt-on')}
-            closeText={t('txt-off')}
-            clearText={t('txt-clear')}
-            renderOption={(option, { selected }) => (
-              <React.Fragment>
-                <Checkbox
-                  color='primary'
-                  icon={<CheckBoxOutlineBlankIcon />}
-                  checkedIcon={<CheckBoxIcon />}
-                  checked={selected} />
-                {option.text}
-              </React.Fragment>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={f('hostDashboardFields.severity')} variant='outlined' size='small' />
-            )}
-            getOptionSelected={(option, value) => (
-              option.value === value.value
-            )}
-            onChange={this.handleComboBoxChange} />
-        </div>
-      )
-    } else {
-      return (
-        <div key={i} className='group'>
-          <TextField
-            name={val}
-            label={f('hostDashboardFields.' + val)}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={cveFilterList[val].join(', ')}
-            onClick={this.handleFilterclick.bind(this, val)}
-            InputProps={{
-              readOnly: true
-            }} />
-        </div>
-      )
-    }
-  }
-  /**
-   * Determine whether to show department or not
-   * @method
-   * @param {string} id - department tree ID
-   * @returns boolean true/false
-   */
-  checkDepartmentList = (id) => {
-    const {account, limitedDepartment} = this.state;
-
-    if (account.limitedRole) {
-      if (limitedDepartment.length === 0) {
-        return true;
-      }
-
-      if (limitedDepartment.length > 0) {
-        if (!_.includes(limitedDepartment, id)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-  /**
-   * Get list of selected checkbox
-   * @method
-   * @param {bool} checked - checkbox on/off
-   * @param {string} type - filterNav type
-   * @param {array.<string>} list - list of selected items
-   * @param {string} [id] - selected checkbox id
-   * @returns array of selected list
-   */
-  getSelectedItems = (checked, type, list, id) => {
-    const {cveFilter} = this.state;
-
-    if (checked) {
-      return _.concat(cveFilter[type], ...list, id);
-    } else {
-      return _.without(cveFilter[type], ...list, id);
-    }
-  }
-  /**
-   * Handle department checkbox check/uncheck
-   * @method
-   * @param {object} tree - department tree data
-   * @param {object} event - event object
-   */
-  toggleDepartmentCheckbox = (tree, event) => {
-    const {departmentNameMapping, cveFilter, cveFilterList} = this.state;
-    let tempCveFilter = {...cveFilter};
-    let tempCveFilterList = {...cveFilterList};
-    let departmentChildList = [];
-
-    _.forEach(tree.children, val => {
-      helper.floorPlanRecursive(val, obj => {
-        departmentChildList.push(obj.id);
-      });
-    })
-
-    tempCveFilter.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
-
-    tempCveFilterList.departmentSelected = _.map(tempCveFilter.departmentSelected, val => {
-      return departmentNameMapping[val];
-    })
-
-    this.setState({
-      cveFilter: tempCveFilter,
-      cveFilterList: tempCveFilterList
-    });
-  }
-  /**
-   * Display department tree content
-   * @method
-   * @param {object} tree - department tree data
-   * @returns HTML DOM
-   */
-  getDepartmentTreeLabel = (tree) => {
-    return <span><Checkbox checked={_.includes(this.state.cveFilter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
-  }
-  /**
-   * Display department tree item
-   * @method
-   * @param {object} val - department tree data
-   * @param {number} i - index of the department tree data
-   * @returns TreeItem component
-   */
-  getDepartmentTreeItem = (val, i) => {
-    if (this.checkDepartmentList(val.id)) return; // Hide the tree items that are not belong to the user's account
-
-    return (
-      <TreeItem
-        key={val.id + i}
-        nodeId={val.id}
-        label={this.getDepartmentTreeLabel(val)}>
-        {val.children && val.children.length > 0 &&
-          val.children.map(this.getDepartmentTreeItem)
-        }
-      </TreeItem>
-    )
-  }
-  /**
-   * Display filter query content
-   * @method
-   * @returns HTML DOM
-   */
-  displayFilterQuery = () => {
-    const {departmentList, cveFilter, popOverAnchor, activeFilter} = this.state;
-    const defaultItemValue = {
-      condition: '=',
-      input: ''
-    };
-    const data = {
-      pageType: 'dashboard',
-      activeFilter
-    };
-
-    return (
-      <div className='filter-section'>
-        <PopoverMaterial
-          id='dashboardFilterPopover'
-          open={Boolean(popOverAnchor)}
-          anchorEl={popOverAnchor}
-          onClose={this.handlePopoverClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left'
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left'
-          }}>
-          <div className='content'>
-            {activeFilter === 'departmentSelected' &&
-              <React.Fragment>
-                {departmentList.length === 0 &&
-                  <div className='not-found'>{t('txt-notFound')}</div>
-                }
-                {departmentList.length > 0 &&
-                  <TreeView
-                    className='tree-view'
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}>
-                    {departmentList.map(this.getDepartmentTreeItem)}
-                  </TreeView>
-                }
-              </React.Fragment>
-            }
-            {activeFilter !== 'departmentSelected' &&
-              <MultiInput
-                base={SearchFilter}
-                defaultItemValue={defaultItemValue}
-                value={cveFilter[activeFilter]}
-                props={data}
-                onChange={this.setSerchFilter.bind(this, activeFilter)} />
-            }
-          </div>
-        </PopoverMaterial>
-        {FILTER_LIST.map(this.showFilterForm)}
-        <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
-      </div>
-    )
-  }
-  /**
-   * Clear filter input value
-   * @method
-   */
-  clearFilter = () => {
-    this.setState({
-      cveFilter: _.cloneDeep(CVE_FILTER),
-      cveFilterList: _.cloneDeep(CVE_FILTER_LIST)
-    });
-  }
-  /**
-   * Show filter query dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  showFilterQueryDialog = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFilterQuery},
-      confirm: {text: t('txt-confirm'), handler: this.toggleFilterQuery.bind(this, 'confirm')}
-    };
-
-    return (
-      <ModalDialog
-        id='showFilterQueryDialog'
-        className='modal-dialog'
-        title={t('txt-filterQuery')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayFilterQuery()}
-      </ModalDialog>
-    )
   }
   /**
    * Export CVE list
@@ -1563,8 +1265,22 @@ class HostDashboard extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   render() {
-    const {baseUrl, contextRoot} = this.context;
-    const {cveSearch, cveSeverityLevel, monthlySeverityTrend, showCveInfo, showFilterQuery, cveData, contextAnchor} = this.state;
+    const {
+      account,
+      severityType,
+      departmentList,
+      departmentNameMapping,
+      limitedDepartment,
+      cveSearch,
+      cveFilter,
+      cveFilterList,
+      cveSeverityLevel,
+      monthlySeverityTrend,
+      showCveInfo,
+      showFilterQuery,
+      cveData,
+      tableContextAnchor
+    } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cve', 'currentPage', currentPage);
@@ -1584,7 +1300,19 @@ class HostDashboard extends Component {
         }
 
         {showFilterQuery &&
-          this.showFilterQueryDialog()
+          <FilterQuery
+            page='dashboard'
+            account={account}
+            departmentList={departmentList}
+            limitedDepartment={limitedDepartment}
+            departmentNameMapping={departmentNameMapping}
+            severityType={severityType}
+            filterList={FILTER_LIST}
+            originalFilter={CVE_FILTER}
+            filter={cveFilter}
+            originalItemFilterList={CVE_FILTER_LIST}
+            itemFilterList={cveFilterList}
+            toggleFilterQuery={this.toggleFilterQuery} />
         }
 
         <TableList
@@ -1593,7 +1321,7 @@ class HostDashboard extends Component {
           search={cveSearch}
           data={cveData}
           options={tableOptions}
-          tableAnchor={contextAnchor}
+          tableAnchor={tableContextAnchor}
           cveSeverityLevel={cveSeverityLevel}
           monthlySeverityTrend={monthlySeverityTrend}
           showPieChart={this.showPieChart}

@@ -4215,6 +4215,16 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
+#hostFilterPopover,
+#dashboardFilterPopover {
+  .safety-scan-filter {
+    display: flex;
+    justify-content: space-between;
+    .scan-operator {
+      width: 100px;
+    }
+  }
+}
 #hostFilterPopover {
   .content {
     width: auto;
@@ -4237,13 +4247,6 @@ button.standard:hover:not([disabled]) {
     .fg-add {
       color: #fff;
       background-color: var(--formCheckRadioColor) !important;
-    }
-    .safety-scan-filter {
-      display: flex;
-      justify-content: space-between;
-      .scan-operator {
-        width: 100px;
-      }
     }
     .date-time-picker {
       float: left;

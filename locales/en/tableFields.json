@@ -776,7 +776,8 @@
     "isMatched": "Matched",
     "system": "System",
     "vulnerabilityNum": "Vulnerability Number",
-    "exposedDevices": "Exposed Devices Count"
+    "exposedDevices": "Exposed Devices Count",
+    "safetyScanInfo": "cpe23Uri"
   },
   "hostDashboardFields": {
     "cveId": "Name",

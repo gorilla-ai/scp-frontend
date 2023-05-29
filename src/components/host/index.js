@@ -414,7 +414,6 @@ class HostController extends Component {
       importCsvOpen: false,
       activeTrackHostTab: 'date', //'date' or 'file'
       importFilterType: '', //'ip' or 'safetyScanInfo'
-      safetyScanInfoScore: '',
       LAconfig: {},
       hmdFile: {},
       cpeFile: {},
@@ -553,7 +552,7 @@ class HostController extends Component {
       limitedDepartment: [],
       patchInfo: {},
       patchSelectedItem: [],
-      safetyScanInfoOperator: 'equal',
+      safetyScanInfoOperator: 'equal', //'equal' or 'like'
       formValidation: _.cloneDeep(FORM_VALIDATION),
       vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION),
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
@@ -4821,12 +4820,12 @@ class HostController extends Component {
     this.handlePopoverClose();
   }
   /**
-   * Handle CSV import confirm 
+   * Handle CSV import confirm
    * @method
    * @param {array.<array>} csvData - upload CSV data
-   * @param {string} [safetyScanInfoScore] - safety scan score
+   * @param {string} [scanScore] - safety scan score
    */
-  confirmCsvImport = (csvData, safetyScanInfoScore) => {
+  confirmCsvImport = (csvData, scanScore) => {
     const {baseUrl} = this.context;
     const {importFilterType} = this.state;
 
@@ -4874,7 +4873,7 @@ class HostController extends Component {
 
       let formData = new FormData();
       formData.append('file', csvData);
-      formData.append('score', safetyScanInfoScore);
+      formData.append('score', scanScore);
 
       this.ah.one({
         url: `${baseUrl}/api/hmd/uploadNistCpe`,

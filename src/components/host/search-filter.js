@@ -25,15 +25,11 @@ class SearchFilter extends Component {
    * Set search filter input
    * @method
    * @param {object} event - event object
-   * @param {object} [value] - selected info
    */
-  handleDataChange = (event, value) => {
-    const {activeFilter} = this.props;
-    let inputValue = event.target.value;
-
+  handleDataChange = (event) => {
     this.props.onChange({
       ...this.props.value,
-      input: inputValue
+      input: event.target.value
     });
   }
   /**
@@ -48,7 +44,7 @@ class SearchFilter extends Component {
     });
   }
   render() {
-    const {pageType, activeFilter, value} = this.props;
+    const {pageType, activeFilter, searchType, value} = this.props;
     const conditionList = ['>', '=', '<'];
     const filterList = _.map(conditionList, (val, i) => {
       let formattedValue = val.toLowerCase();
@@ -63,32 +59,45 @@ class SearchFilter extends Component {
       label = f('hostCpeFields.' + activeFilter);
     }
 
-    return (
-      <div>
-        <TextField
-          name='condition'
-          className='condition-select'
-          style={{float: 'left', width: '30%', marginRight: '3%'}}
-          select
-          variant='outlined'
-          fullWidth
-          size='small'
-          value={value.condition}
-          onChange={this.handleConditionChange}>
-          {filterList}
-        </TextField>
+    if (searchType === 'input') {
+      return (
         <TextField
           name='input'
-          clssName='condition-input'
-          style={{float: 'left', width: '65%'}}
           label={label}
           variant='outlined'
           fullWidth
           size='small'
           value={value.input || ''}
           onChange={this.handleDataChange} />
-      </div>
-    )
+      )
+    } else if (searchType === 'condition_input') {
+      return (
+        <div>
+          <TextField
+            name='condition'
+            className='condition-select'
+            style={{float: 'left', width: '30%', marginRight: '3%'}}
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value.condition}
+            onChange={this.handleConditionChange}>
+            {filterList}
+          </TextField>
+          <TextField
+            name='input'
+            clssName='condition-input'
+            style={{float: 'left', width: '65%'}}
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value.input || ''}
+            onChange={this.handleDataChange} />
+        </div>
+      )
+    }
   }
 }
 

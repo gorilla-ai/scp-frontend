@@ -776,7 +776,8 @@
     "isMatched": "相符",
     "system": "系統",
     "vulnerabilityNum": "弱點數量",
-    "exposedDevices": "暴露裝置數量"
+    "exposedDevices": "暴露裝置數量",
+    "safetyScanInfo": "cpe23Uri"
   },
   "hostDashboardFields": {
     "cveId": "CVE名稱",

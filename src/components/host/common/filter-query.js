@@ -10,6 +10,7 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import MenuItem from '@material-ui/core/MenuItem'
 import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
@@ -40,7 +41,9 @@ class FilterQuery extends Component {
 
     this.state = {
       popOverAnchor: null,
-      activeFilter: '',
+      safetyScanInfoOperator: 'equal', //'equal' or 'like'
+      filterName: '',
+      filterType: '',
       originalSystemList: [],
       systemList: [],
       filter: {},
@@ -64,26 +67,42 @@ class FilterQuery extends Component {
       }
     })
   }
-  ryan = () => {}
+  componentDidUpdate(prevProps) {
+    const {filter, itemFilterList} = this.props;
+
+    if (!prevProps || (prevProps && filter !== prevProps.filter)) {
+      this.setState({
+        filter,
+        itemFilterList
+      });
+    }
+  }
   /**
    * Handle filter click
    * @method
-   * @param {string} activeFilter - active filter type
+   * @param {string} filterName - active filter name
+   * @param {string} filterType - active filter type
    * @param {object} event - event object
    */
-  handleFilterclick = (activeFilter, event) => {
+  handleFilterClick = (filterName, filterType, event) => {
     this.setState({
       popOverAnchor: event.currentTarget,
-      activeFilter
+      filterName,
+      filterType
     });
   }
   /**
    * Handle popover close
    * @method
+   * @param {string} [options] - option for 'csvImport'
    */
-  handlePopoverClose = () => {
+  handlePopoverClose = (options) => {
     this.setState({
       popOverAnchor: null
+    }, () => {
+      if (options === 'csvImport') {
+        this.props.toggleCsvImport();
+      }
     });
   }
   /**
@@ -337,7 +356,10 @@ class FilterQuery extends Component {
       let value = val.input;
 
       if (value) {
-        value = val.condition + ' ' + value;
+        if (val.condition) {
+          value = val.condition + ' ' + value;
+        }
+
         dataList.push(value);
       }
     })
@@ -350,17 +372,142 @@ class FilterQuery extends Component {
     });
   }
   /**
-   * Display filter form
+   * Handle Safety Scan operator change
+   * @method
+   * @param {object} event - event object
+   */
+  handleScanOperatorChange = (event) => {
+    this.setState({
+      safetyScanInfoOperator: event.target.value
+    });
+  }
+  /**
+   * Show filter popover content
+   * @method
+   * @returns HTML DOM
+   */
+  showFilterPopover = () => {
+    const {page, departmentList} = this.props;
+    const {safetyScanInfoOperator, filterName, filterType, systemList, filter} = this.state;
+
+    if (filterType === 'tree') {
+      if (filterName === 'departmentSelected') {
+        return (
+          <React.Fragment>
+            {departmentList.length === 0 &&
+              <div className='not-found'>{t('txt-notFound')}</div>
+            }
+            {departmentList.length > 0 &&
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {departmentList &&
+                  departmentList.map(this.getDepartmentTreeItem)
+                }
+              </TreeView>
+            }
+          </React.Fragment>
+        )
+      } else if (filterName === 'system') {
+        return (
+          <React.Fragment>
+            {systemList.length === 0 &&
+              <div className='not-found'>{t('txt-notFound')}</div>
+            }
+            {systemList.length > 0 &&
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {systemList &&
+                  systemList.map(this.getSystemTreeItem)
+                }
+              </TreeView>
+            }
+          </React.Fragment>
+        )
+      }
+    } else if (filterName === 'safetyScanInfo') {
+      const defaultItemValue = {
+        input: ''
+      };
+      const data = {
+        pageType: page,
+        activeFilter: filterName,
+        searchType: 'input'
+      };
+
+      return (
+        <React.Fragment>
+          <MultiInput
+            base={SearchFilter}
+            defaultItemValue={defaultItemValue}
+            value={filter[filterName]}
+            props={data}
+            onChange={this.setSerchFilter.bind(this, filterName)} />
+          <div className='safety-scan-filter'>
+            <TextField
+              className='scan-operator'
+              select
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={safetyScanInfoOperator}
+              onChange={this.handleScanOperatorChange}>
+              <MenuItem value='equal'>Equal</MenuItem>
+              <MenuItem value='like'>Like</MenuItem>
+            </TextField>
+            <Button variant='contained' color='primary' className='filter' onClick={this.handlePopoverClose.bind(this, 'csvImport')}>{t('network-inventory.txt-batchUpload')}</Button>
+          </div>
+        </React.Fragment>
+      )
+    } else if (filterType === 'multi_input') {
+      const defaultItemValue = {
+        condition: '=',
+        input: ''
+      };
+      const data = {
+        pageType: page,
+        activeFilter: filterName,
+        searchType: 'condition_input'
+      };
+
+      return (
+        <MultiInput
+          base={SearchFilter}
+          defaultItemValue={defaultItemValue}
+          value={filter[filterName]}
+          props={data}
+          onChange={this.setSerchFilter.bind(this, filterName)} />
+      )
+    }
+  }
+  /**
+   * Show filter display
    * @method
    * @param {object} val - filter data
    * @param {number} i - index of the filter data
    * @returns HTML DOM
    */
-  showFilterForm = (val, i) => {
-    const {vendorType} = this.props;
+  showFilterDisplay = (val, i) => {
+    const {page, severityType, vendorType} = this.props;
     const {filter, itemFilterList} = this.state;
     const filterName = val.name;
     const displayType = val.displayType;
+    const filterType = val.filterType;
+    let label = '';
+    let selectOptions = '';
+
+    if (page === 'dashboard') {
+      label = f('hostDashboardFields.' + filterName);
+      selectOptions = severityType;
+    } else if (page === 'inventory') {
+      label = f('hostCpeFields.' + filterName);
+      selectOptions = vendorType;
+    } else if (page === 'kbid') {
+      label = f('hostKbidFields.' + filterName);
+    }
 
     if (displayType === 'text_field') {
       const value = itemFilterList[filterName] ? itemFilterList[filterName].join(', ') : '';
@@ -369,12 +516,12 @@ class FilterQuery extends Component {
         <div key={i} className='group'>
           <TextField
             name={filterName}
-            label={f('hostCpeFields.' + filterName)}
+            label={label}
             variant='outlined'
             fullWidth
             size='small'
             value={value}
-            onClick={this.handleFilterclick.bind(this, filterName)}
+            onClick={this.handleFilterClick.bind(this, filterName, filterType)}
             InputProps={{
               readOnly: true
             }} />
@@ -389,7 +536,7 @@ class FilterQuery extends Component {
             className='combo-box'
             multiple
             value={filter[filterName]}
-            options={vendorType}
+            options={selectOptions}
             getOptionLabel={(option) => option.text}
             disableCloseOnSelect
             noOptionsText={t('txt-notFound')}
@@ -407,7 +554,7 @@ class FilterQuery extends Component {
               </React.Fragment>
             )}
             renderInput={(params) => (
-              <TextField {...params} label={f('hostCpeFields.' + filterName)} variant='outlined' size='small' />
+              <TextField {...params} label={label} variant='outlined' size='small' />
             )}
             getOptionSelected={(option, value) => (
               option.value === value.value
@@ -423,16 +570,8 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {page, departmentList, filterList} = this.props;
-    const {popOverAnchor, activeFilter, systemList, filter, itemFilterList} = this.state;
-    const defaultItemValue = {
-      condition: '=',
-      input: ''
-    };
-    const data = {
-      pageType: page,
-      activeFilter
-    };
+    const {filterList} = this.props;
+    const {popOverAnchor} = this.state;
 
     return (
       <div className='filter-section'>
@@ -450,40 +589,10 @@ class FilterQuery extends Component {
             horizontal: 'left'
           }}>
           <div className='content'>
-            {activeFilter === 'departmentSelected' &&
-              <React.Fragment>
-                {departmentList.length === 0 &&
-                  <div className='not-found'>{t('txt-notFound')}</div>
-                }
-                {departmentList.length > 0 &&
-                  <TreeView
-                    className='tree-view'
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}>
-                    {departmentList.map(this.getDepartmentTreeItem)}
-                  </TreeView>
-                }
-              </React.Fragment>
-            }
-            {activeFilter === 'system' &&
-              <TreeView
-                className='tree-view'
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}>
-                {systemList && systemList.map(this.getSystemTreeItem)}
-              </TreeView>
-            }
-            {activeFilter !== 'departmentSelected' && activeFilter !== 'system' &&
-              <MultiInput
-                base={SearchFilter}
-                defaultItemValue={defaultItemValue}
-                value={filter[activeFilter]}
-                props={data}
-                onChange={this.setSerchFilter.bind(this, activeFilter)} />
-            }
+            {this.showFilterPopover()}
           </div>
         </PopoverMaterial>
-        {filterList.map(this.showFilterForm)}
+        {filterList.map(this.showFilterDisplay)}
         <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>
     )
@@ -496,6 +605,7 @@ class FilterQuery extends Component {
     const {originalSystemList, filterList, originalFilter, originalItemFilterList} = this.props;
 
     this.setState({
+      safetyScanInfoOperator: 'equal',
       filter: _.cloneDeep(originalFilter),
       itemFilterList: _.cloneDeep(originalItemFilterList)
     });
@@ -515,15 +625,17 @@ class FilterQuery extends Component {
    */
   handleFilterToggle = (type) => {
     const {filterList} = this.props;
-    const {systemList, filter, itemFilterList} = this.state;
+    const {safetyScanInfoOperator, systemList, filter, itemFilterList} = this.state;
     let filterData = {
       filter,
-      itemFilterList
+      itemFilterList,
     };
 
     _.forEach(filterList, val => {
       if (val.name === 'system') {
         filterData.systemList = systemList;
+      } else if (val.name === 'safetyScanInfo') {
+        filterData.safetyScanInfoOperator = safetyScanInfoOperator;
       }
     })
 
@@ -555,18 +667,20 @@ FilterQuery.contextType = BaseDataContext;
 FilterQuery.propTypes = {
   page: PropTypes.string.isRequired,
   account: PropTypes.object.isRequired,
-  limitedDepartment: PropTypes.array.isRequired,
   departmentList: PropTypes.array.isRequired,
   departmentNameMapping: PropTypes.object.isRequired,
+  limitedDepartment: PropTypes.array.isRequired,
   originalSystemList: PropTypes.array,
   systemList: PropTypes.array,
+  severityType: PropTypes.array,
   vendorType: PropTypes.array,
   filterList: PropTypes.array.isRequired,
   originalFilter: PropTypes.object.isRequired,
   filter: PropTypes.object.isRequired,
   originalItemFilterList: PropTypes.object.isRequired,
   itemFilterList: PropTypes.object.isRequired,
-  toggleFilterQuery: PropTypes.func.isRequired
+  toggleFilterQuery: PropTypes.func.isRequired,
+  toggleCsvImport: PropTypes.func
 };
 
 export default FilterQuery;

@@ -15,6 +15,7 @@ import {BaseDataContext} from '../common/context'
 import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
+import ImportFile from './import-file'
 import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -49,6 +50,11 @@ const FILTER_LIST = [
     name: 'vulnerabilityNum',
     displayType: 'text_field',
     filterType: 'multi_input'
+  },
+  {
+    name: 'safetyScanInfo',
+    displayType: 'text_field',
+    filterType: 'upload'
   }
 ];
 const CPE_SEARCH = {
@@ -66,13 +72,17 @@ const CPE_FILTER = {
   vulnerabilityNum: [{
     condition: '=',
     input: ''
+  }],
+  safetyScanInfo: [{
+    input: ''
   }]
 };
 const CPE_FILTER_LIST = {
   departmentSelected: [],
   system: [],
   version: [],
-  vulnerabilityNum: []
+  vulnerabilityNum: [],
+  safetyScanInfo: []
 };
 const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
@@ -137,6 +147,8 @@ class HostInventory extends Component {
       originalSystemList: [],
       systemList: [],
       vendorType: [],
+      safetyScanInfoOperator: '',
+      importDialogOpen: false,
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
@@ -144,8 +156,6 @@ class HostInventory extends Component {
         keyword: '',
         count: 0
       },
-      popOverAnchor: null,
-      activeFilter: '',
       showCpeInfo: false,
       showFilterQuery: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
@@ -523,7 +533,7 @@ class HostInventory extends Component {
    * @returns requestData object
    */
   getCpeFilterRequestData = () => {
-    const {cpeSearch, cpeFilter, cpeFilterList} = this.state;
+    const {safetyScanInfoOperator, cpeSearch, cpeFilter, cpeFilterList} = this.state;
     let requestData = {};
 
     if (cpeSearch.keyword) {
@@ -569,6 +579,11 @@ class HostInventory extends Component {
           vulnerabilityNum: Number(val.substr(2))
         }
       });
+    }
+
+    if (cpeFilterList.safetyScanInfo && cpeFilterList.safetyScanInfo.length > 0) {
+      requestData.safetyScanInfoArray = cpeFilterList.safetyScanInfo;
+      requestData.safetyScanInfoOperator = safetyScanInfoOperator;
     }
 
     return requestData;
@@ -1101,27 +1116,6 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Handle filter click
-   * @method
-   * @param {string} activeFilter - active filter type
-   * @param {object} event - event object
-   */
-  handleFilterclick = (activeFilter, event) => {
-    this.setState({
-      popOverAnchor: event.currentTarget,
-      activeFilter
-    });
-  }
-  /**
-   * Handle popover close
-   * @method
-   */
-  handlePopoverClose = () => {
-    this.setState({
-      popOverAnchor: null
-    });
-  }
-  /**
    * Toggle show filter query
    * @method
    * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
@@ -1131,6 +1125,7 @@ class HostInventory extends Component {
     if (type !== 'open') {
       this.setState({
         systemList: filterData.systemList,
+        safetyScanInfoOperator: filterData.safetyScanInfoOperator,
         cpeFilter: filterData.filter,
         cpeFilterList: filterData.itemFilterList
       }, () => {
@@ -1143,6 +1138,82 @@ class HostInventory extends Component {
     this.setState({
       showFilterQuery: !this.state.showFilterQuery
     });
+  }
+  /**
+   * Toggle CSV import dialog on/off
+   * @method
+   */
+  toggleCsvImport = () => {
+    this.setState({
+      importDialogOpen : !this.state.importDialogOpen
+    });
+  }
+  /**
+   * Set filter data
+   * @method
+   * @param {string} type - filter type
+   * @param {array.<string>} data - filter data
+   */
+  setFilterSearch = (type, data) => {
+    const {cpeFilter, cpeFilterList} = this.state;
+    let tempCpeFilter = {...cpeFilter};
+    let tempCpeFilterList = {...cpeFilterList};
+    let dataList = [];
+    tempCpeFilter[type] = data;
+
+    _.forEach(data, val => {
+      let value = val.input;
+
+      if (value) {
+        dataList.push(value);
+      }
+    })
+
+    tempCpeFilterList[type] = dataList;
+
+    this.setState({
+      cpeFilter: tempCpeFilter,
+      cpeFilterList: tempCpeFilterList
+    });
+  }
+  /**
+   * Handle CSV import confirm
+   * @method
+   * @param {array.<array>} csvData - upload CSV data
+   * @param {string} [scanScore] - safety scan score
+   */
+  confirmCsvImport = (csvData, scanScore) => {
+    const {baseUrl} = this.context;
+
+    if (!csvData) {
+      this.toggleCsvImport();
+      return;
+    }
+
+    let formData = new FormData();
+    formData.append('file', csvData);
+    formData.append('score', scanScore);
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/uploadNistCpe`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        const formattedData = _.map(data, val => ({ input: val }));
+
+        this.setFilterSearch('safetyScanInfo', formattedData);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.toggleCsvImport();
   }
   /**
    * Handle export open menu
@@ -1186,8 +1257,24 @@ class HostInventory extends Component {
     this.handleCloseMenu();
   }
   render() {
-    const {baseUrl, contextRoot} = this.context;
-    const {account, limitedDepartment, departmentList, departmentNameMapping, originalSystemList, systemList, vendorType, cpeFilter, cpeFilterList, cpeSearch, showCpeInfo, showFilterQuery, cpeData, tableContextAnchor, exportContextAnchor} = this.state;
+    const {
+      account,
+      departmentList,
+      departmentNameMapping,
+      limitedDepartment,
+      originalSystemList,
+      systemList,
+      vendorType,
+      importDialogOpen,
+      cpeSearch,
+      cpeFilter,
+      cpeFilterList,
+      showCpeInfo,
+      showFilterQuery,
+      cpeData,
+      tableContextAnchor,
+      exportContextAnchor
+    } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('cpe', 'currentPage', currentPage);
@@ -1204,14 +1291,14 @@ class HostInventory extends Component {
       <div>
         {showCpeInfo &&
           this.showCpeDialog()
-        }    
+        }
 
         {showFilterQuery &&
           <FilterQuery
             page='inventory'
             account={account}
-            limitedDepartment={limitedDepartment}
             departmentList={departmentList}
+            limitedDepartment={limitedDepartment}
             departmentNameMapping={departmentNameMapping}
             originalSystemList={originalSystemList}
             systemList={systemList}
@@ -1221,7 +1308,15 @@ class HostInventory extends Component {
             filter={cpeFilter}
             originalItemFilterList={CPE_FILTER_LIST}
             itemFilterList={cpeFilterList}
+            toggleCsvImport={this.toggleCsvImport}
             toggleFilterQuery={this.toggleFilterQuery} />
+        }
+
+        {importDialogOpen &&
+          <ImportFile
+            importFilterType='safetyScanInfo'
+            toggleCsvImport={this.toggleCsvImport}
+            confirmCsvImport={this.confirmCsvImport} />
         }
 
         <TableList

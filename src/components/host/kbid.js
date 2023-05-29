@@ -21,6 +21,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
@@ -29,7 +30,18 @@ import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['departmentSelected', 'system'];
+const FILTER_LIST = [
+  {
+    name: 'departmentSelected',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'system',
+    displayType: 'text_field',
+    filterType: 'tree'
+  }
+];
 const KBID_SEARCH = {
   keyword: '',
   count: 0
@@ -110,17 +122,15 @@ class HostKbid extends Component {
       departmentNameMapping: {},
       limitedDepartment: [],
       originalSystemList: [],
-      systemList: null,
+      systemList: [],
       kbidSearch: _.cloneDeep(KBID_SEARCH),
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
-      popOverAnchor: null,
       tableContextAnchor: null,
-      activeFilter: '', //same as FILTER_LIST
       showFilterQuery: false,
       reportOpen: false,
       showKbidInfo: false,
-      activeKbidInfo: 'exposedDevices',
+      activeKbidInfo: 'exposedDevices', //'exposedDevices'
       kbidData: {
         dataFieldsArr: ['_menu', 'kbid', 'exposedDevices'],
         dataFields: [],
@@ -763,372 +773,27 @@ class HostKbid extends Component {
     });
   }
   /**
-   * Handle filter click
-   * @method
-   * @param {string} activeFilter - active filter type
-   * @param {object} event - event object
-   */
-  handleFilterclick = (activeFilter, event) => {
-    this.setState({
-      popOverAnchor: event.currentTarget,
-      activeFilter
-    });
-  }
-  /**
-   * Handle popover close
-   * @method
-   */
-  handlePopoverClose = () => {
-    this.setState({
-      popOverAnchor: null
-    });
-  }
-  /**
    * Toggle show filter query
    * @method
-   * @param {string} [options] - option for 'confirm'
+   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
+   * @param {object} [filterData] - filter data
    */
-  toggleFilterQuery = (options) => {
-    if (options === 'confirm') {
-      this.getKbidData();
+  toggleFilterQuery = (type, filterData) => {
+    if (type !== 'open') {
+      this.setState({
+        systemList: filterData.systemList,
+        kbidFilter: filterData.filter,
+        kbidFilterList: filterData.itemFilterList
+      }, () => {
+        if (type === 'confirm') {
+          this.getKbidData();
+        }
+      });
     }
 
     this.setState({
       showFilterQuery: !this.state.showFilterQuery
     });
-  }
-  /**
-   * Display filter form
-   * @method
-   * @param {string} val - filter data
-   * @param {number} i - index of the filter data
-   * @returns HTML DOM
-   */
-  showFilterForm = (val, i) => {
-    const value = this.state.kbidFilterList[val].join(', ');
-
-    return (
-      <div key={i} className='group'>
-        <TextField
-          name={val}
-          label={f('hostKbidFields.' + val)}
-          variant='outlined'
-          fullWidth
-          size='small'
-          value={value}
-          onClick={this.handleFilterclick.bind(this, val)}
-          InputProps={{
-            readOnly: true
-          }} />
-      </div>
-    )
-  }
-  /**
-   * Determine whether to show department or not
-   * @method
-   * @param {string} id - department tree ID
-   * @returns boolean true/false
-   */
-  checkDepartmentList = (id) => {
-    const {account, limitedDepartment} = this.state;
-
-    if (account.limitedRole) {
-      if (limitedDepartment.length === 0) {
-        return true;
-      }
-
-      if (limitedDepartment.length > 0) {
-        if (!_.includes(limitedDepartment, id)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-  /**
-   * Get list of selected checkbox
-   * @method
-   * @param {bool} checked - checkbox on/off
-   * @param {string} type - filterNav type
-   * @param {array.<string>} list - list of selected items
-   * @param {string} [id] - selected checkbox id
-   * @returns array of selected list
-   */
-  getSelectedItems = (checked, type, list, id) => {
-    const {kbidFilter} = this.state;
-
-    if (checked) {
-      return _.concat(kbidFilter[type], ...list, id);
-    } else {
-      return _.without(kbidFilter[type], ...list, id);
-    }
-  }
-  /**
-   * Handle department checkbox check/uncheck
-   * @method
-   * @param {object} tree - department tree data
-   * @param {object} event - event object
-   */
-  toggleDepartmentCheckbox = (tree, event) => {
-    const {departmentNameMapping, kbidFilter, kbidFilterList} = this.state;
-    let tempKbidFilter = {...kbidFilter};
-    let tempKbidFilterList = {...kbidFilterList};
-    let departmentChildList = [];
-
-    _.forEach(tree.children, val => {
-      helper.floorPlanRecursive(val, obj => {
-        departmentChildList.push(obj.id);
-      });
-    })
-
-    tempKbidFilter.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
-
-    tempKbidFilterList.departmentSelected = _.map(tempKbidFilter.departmentSelected, val => {
-      return departmentNameMapping[val];
-    })
-
-    this.setState({
-      kbidFilter: tempKbidFilter,
-      kbidFilterList: tempKbidFilterList
-    });
-  }
-  /**
-   * Display department tree content
-   * @method
-   * @param {object} tree - department tree data
-   * @returns HTML DOM
-   */
-  getDepartmentTreeLabel = (tree) => {
-    return <span><Checkbox checked={_.includes(this.state.kbidFilter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
-  }
-  /**
-   * Display department tree item
-   * @method
-   * @param {object} val - department tree data
-   * @param {number} i - index of the department tree data
-   * @returns TreeItem component
-   */
-  getDepartmentTreeItem = (val, i) => {
-    if (this.checkDepartmentList(val.id)) return; // Hide the tree items that are not belong to the user's account
-
-    return (
-      <TreeItem
-        key={val.id + i}
-        nodeId={val.id}
-        label={this.getDepartmentTreeLabel(val)}>
-        {val.children && val.children.length > 0 &&
-          val.children.map(this.getDepartmentTreeItem)
-        }
-      </TreeItem>
-    )
-  }
-  /**
-   * Handle system checkbox check/uncheck
-   * @method
-   * @param {object} tree - system tree data
-   * @param {object} event - event object
-   */
-  toggleSystemCheckbox = (tree, event) => {
-    const {systemList, kbidFilterList} = this.state;
-    let tempSystemList = _.cloneDeep(systemList);
-    let tempKbidFilterList = {...kbidFilterList};
-
-    if (tree.type === 'server' || tree.type === 'pc' || !tree.type) {
-      let systemSelected = [];
-
-      if (tree.children) { //Handle tree header check/uncheck
-        const targetIndex = _.findIndex(systemList, {'name':  tree.name});
-        tempSystemList[targetIndex].checked = event.target.checked;
-        tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
-          return {
-            ...val,
-            checked: event.target.checked
-          };
-        })
-      } else { //Handle tree children check/uncheck
-        let parentIndex = '';
-        let childrenIndex = '';
-        let parentChecked = true;
-
-        _.forEach(systemList, (val, i) => {
-          _.forEach(val.children, (val2, j) => {
-            if (tree.name === val2.name) {
-              parentIndex = i;
-              childrenIndex = j;
-              return false;
-            }
-          })
-        })
-        tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
-
-        _.forEach(tempSystemList[parentIndex].children, val => {
-          if (!val.checked) {
-            parentChecked = false;
-            return false;
-          }
-        })
-        tempSystemList[parentIndex].checked = parentChecked;
-      }
-
-      const index = tempKbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-
-      if (index > -1) {
-        systemSelected.push(t('host.txt-noSystemDetected'));
-      }
-
-      _.forEach(tempSystemList, val => {
-        _.forEach(val.children, val2 => {
-          if (val2.checked) {
-            systemSelected.push(val2.name);
-          }
-        })
-      })
-
-      tempKbidFilterList.system = systemSelected;
-    }
-
-    if (tree.type === 'noSystem') {
-      tempSystemList[2].checked = event.target.checked;
-
-      if (event.target.checked) {
-        tempKbidFilterList.system.push(t('host.txt-noSystemDetected'));
-      } else {
-        const index = tempKbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-        tempKbidFilterList.system.splice(index, 1);
-      }
-    }
-
-    this.setState({
-      systemList: tempSystemList,
-      kbidFilterList: tempKbidFilterList
-    });
-  }
-  /**
-   * Display system tree content
-   * @method
-   * @param {object} tree - system tree data
-   * @returns HTML DOM
-   */
-  getSystemTreeLabel = (tree) => {
-    return (
-      <span>
-        <Checkbox
-          name={tree.name}
-          checked={tree.checked}
-          onChange={this.toggleSystemCheckbox.bind(this, tree)}
-          color='primary' />
-          {tree.name}
-      </span>
-    )
-  }
-  /**
-   * Display system tree item
-   * @method
-   * @param {object} val - system tree data
-   * @param {number} i - index of the system tree data
-   * @returns TreeItem component
-   */
-  getSystemTreeItem = (val, i) => {
-    return (
-      <TreeItem
-        key={val.name}
-        nodeId={val.name}
-        label={this.getSystemTreeLabel(val)}>
-        {val.children && val.children.length > 0 &&
-          val.children.map(this.getSystemTreeItem)
-        }
-      </TreeItem>
-    )
-  }
-  /**
-   * Display filter query content
-   * @method
-   * @returns HTML DOM
-   */
-  displayFilterQuery = () => {
-    const {departmentList, systemList, popOverAnchor, activeFilter} = this.state;
-
-    return (
-      <div className='filter-section'>
-        <PopoverMaterial
-          id='dashboardFilterPopover'
-          open={Boolean(popOverAnchor)}
-          anchorEl={popOverAnchor}
-          onClose={this.handlePopoverClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left'
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left'
-          }}>
-          <div className='content'>
-            {activeFilter === 'departmentSelected' &&
-              <React.Fragment>
-                {departmentList.length === 0 &&
-                  <div className='not-found'>{t('txt-notFound')}</div>
-                }
-                {departmentList.length > 0 &&
-                  <TreeView
-                    className='tree-view'
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}>
-                    {departmentList.map(this.getDepartmentTreeItem)}
-                  </TreeView>
-                }
-              </React.Fragment>
-            }
-            {activeFilter === 'system' &&
-              <TreeView
-                className='tree-view'
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}>
-                {systemList.map(this.getSystemTreeItem)}
-              </TreeView>
-            }
-          </div>
-        </PopoverMaterial>
-        {FILTER_LIST.map(this.showFilterForm)}
-        <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
-      </div>
-    )
-  }
-  /**
-   * Clear filter input value
-   * @method
-   */
-  clearFilter = () => {
-    this.setState({
-      systemList: _.cloneDeep(this.state.originalSystemList),
-      kbidFilter: _.cloneDeep(KBID_FILTER),
-      kbidFilterList: _.cloneDeep(KBID_FILTER_LIST)
-    });
-  }
-  /**
-   * Show filter query dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  showFilterQueryDialog = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFilterQuery},
-      confirm: {text: t('txt-confirm'), handler: this.toggleFilterQuery.bind(this, 'confirm')}
-    };
-
-    return (
-      <ModalDialog
-        id='showFilterQueryDialog'
-        className='modal-dialog'
-        title={t('txt-filterQuery')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayFilterQuery()}
-      </ModalDialog>
-    )
   }
   /**
    * Export KBID list
@@ -1344,8 +1009,22 @@ class HostKbid extends Component {
     })
   }
   render() {
-    const {baseUrl, contextRoot} = this.context;
-    const {reportOpen, kbidSearch, showKbidInfo, showFilterQuery, kbidData, tableContextAnchor} = this.state;
+    const {
+      account,
+      departmentList,
+      departmentNameMapping,
+      limitedDepartment,
+      originalSystemList,
+      systemList,
+      kbidSearch,
+      kbidFilter,
+      kbidFilterList,
+      tableContextAnchor,
+      showFilterQuery,
+      reportOpen,
+      showKbidInfo,
+      kbidData
+    } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('kbid', 'currentPage', currentPage);
@@ -1361,7 +1040,20 @@ class HostKbid extends Component {
     return (
       <div>
         {showFilterQuery &&
-          this.showFilterQueryDialog()
+          <FilterQuery
+            page='kbid'
+            account={account}
+            departmentList={departmentList}
+            limitedDepartment={limitedDepartment}
+            departmentNameMapping={departmentNameMapping}
+            originalSystemList={originalSystemList}
+            systemList={systemList}
+            filterList={FILTER_LIST}
+            originalFilter={KBID_FILTER}
+            filter={kbidFilter}
+            originalItemFilterList={KBID_FILTER_LIST}
+            itemFilterList={kbidFilterList}
+            toggleFilterQuery={this.toggleFilterQuery} />
         }
 
         {reportOpen &&
