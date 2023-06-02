@@ -771,13 +771,12 @@
     "targetHw": "目標硬體",
     "departmentSelected": "部門",
     "other": "其他",
-    "cpe23uri": "CPE名稱",
+    "cpe23uri": "cpe23Uri",
     "productCpename": "產品名稱",
     "isMatched": "相符",
     "system": "系統",
     "vulnerabilityNum": "弱點數量",
-    "exposedDevices": "暴露裝置數量",
-    "safetyScanInfo": "cpe23Uri"
+    "exposedDevices": "暴露裝置數量"
   },
   "hostDashboardFields": {
     "cveId": "CVE名稱",

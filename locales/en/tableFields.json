@@ -771,13 +771,12 @@
     "targetHw": "Target Hardware",
     "departmentSelected": "Department",
     "other": "Other",
-    "cpe23uri": "CPE Name",
+    "cpe23uri": "cpe23Uri",
     "productCpename": "Product Name",
     "isMatched": "Matched",
     "system": "System",
     "vulnerabilityNum": "Vulnerability Number",
-    "exposedDevices": "Exposed Devices Count",
-    "safetyScanInfo": "cpe23Uri"
+    "exposedDevices": "Exposed Devices Count"
   },
   "hostDashboardFields": {
     "cveId": "Name",

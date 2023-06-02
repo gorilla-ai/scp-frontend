@@ -52,7 +52,7 @@ const FILTER_LIST = [
     filterType: 'multi_input'
   },
   {
-    name: 'safetyScanInfo',
+    name: 'cpe23uri',
     displayType: 'text_field',
     filterType: 'upload'
   }
@@ -73,7 +73,7 @@ const CPE_FILTER = {
     condition: '=',
     input: ''
   }],
-  safetyScanInfo: [{
+  cpe23uri: [{
     input: ''
   }]
 };
@@ -82,7 +82,7 @@ const CPE_FILTER_LIST = {
   system: [],
   version: [],
   vulnerabilityNum: [],
-  safetyScanInfo: []
+  cpe23uri: []
 };
 const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
@@ -147,7 +147,7 @@ class HostInventory extends Component {
       originalSystemList: [],
       systemList: [],
       vendorType: [],
-      safetyScanInfoOperator: '',
+      cpe23uriOperator: '',
       importDialogOpen: false,
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
@@ -533,7 +533,7 @@ class HostInventory extends Component {
    * @returns requestData object
    */
   getCpeFilterRequestData = () => {
-    const {safetyScanInfoOperator, cpeSearch, cpeFilter, cpeFilterList} = this.state;
+    const {cpe23uriOperator, cpeSearch, cpeFilter, cpeFilterList} = this.state;
     let requestData = {};
 
     if (cpeSearch.keyword) {
@@ -581,9 +581,9 @@ class HostInventory extends Component {
       });
     }
 
-    if (cpeFilterList.safetyScanInfo && cpeFilterList.safetyScanInfo.length > 0) {
-      requestData.safetyScanInfoArray = cpeFilterList.safetyScanInfo;
-      requestData.safetyScanInfoOperator = safetyScanInfoOperator;
+    if (cpeFilterList.cpe23uri && cpeFilterList.cpe23uri.length > 0) {
+      requestData.cpe23uriArray = cpeFilterList.cpe23uri;
+      requestData.cpe23uriOperator = cpe23uriOperator;
     }
 
     return requestData;
@@ -1125,7 +1125,7 @@ class HostInventory extends Component {
     if (type !== 'open') {
       this.setState({
         systemList: filterData.systemList,
-        safetyScanInfoOperator: filterData.safetyScanInfoOperator,
+        cpe23uriOperator: filterData.cpe23uriOperator,
         cpeFilter: filterData.filter,
         cpeFilterList: filterData.itemFilterList
       }, () => {
@@ -1205,7 +1205,7 @@ class HostInventory extends Component {
       if (data) {
         const formattedData = _.map(data, val => ({ input: val }));
 
-        this.setFilterSearch('safetyScanInfo', formattedData);
+        this.setFilterSearch('cpe23uri', formattedData);
       }
       return null;
     })

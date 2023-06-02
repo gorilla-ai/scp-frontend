@@ -41,7 +41,7 @@ class FilterQuery extends Component {
 
     this.state = {
       popOverAnchor: null,
-      safetyScanInfoOperator: 'equal', //'equal' or 'like'
+      cpe23uriOperator: 'equal', //'equal' or 'like'
       filterName: '',
       filterType: '',
       originalSystemList: [],
@@ -378,7 +378,7 @@ class FilterQuery extends Component {
    */
   handleScanOperatorChange = (event) => {
     this.setState({
-      safetyScanInfoOperator: event.target.value
+      cpe23uriOperator: event.target.value
     });
   }
   /**
@@ -388,7 +388,7 @@ class FilterQuery extends Component {
    */
   showFilterPopover = () => {
     const {page, departmentList} = this.props;
-    const {safetyScanInfoOperator, filterName, filterType, systemList, filter} = this.state;
+    const {cpe23uriOperator, filterName, filterType, systemList, filter} = this.state;
 
     if (filterType === 'tree') {
       if (filterName === 'departmentSelected') {
@@ -428,7 +428,7 @@ class FilterQuery extends Component {
           </React.Fragment>
         )
       }
-    } else if (filterName === 'safetyScanInfo') {
+    } else if (filterName === 'cpe23uri') {
       const defaultItemValue = {
         input: ''
       };
@@ -453,7 +453,7 @@ class FilterQuery extends Component {
               variant='outlined'
               fullWidth
               size='small'
-              value={safetyScanInfoOperator}
+              value={cpe23uriOperator}
               onChange={this.handleScanOperatorChange}>
               <MenuItem value='equal'>Equal</MenuItem>
               <MenuItem value='like'>Like</MenuItem>
@@ -605,7 +605,7 @@ class FilterQuery extends Component {
     const {originalSystemList, filterList, originalFilter, originalItemFilterList} = this.props;
 
     this.setState({
-      safetyScanInfoOperator: 'equal',
+      cpe23uriOperator: 'equal',
       filter: _.cloneDeep(originalFilter),
       itemFilterList: _.cloneDeep(originalItemFilterList)
     });
@@ -625,7 +625,7 @@ class FilterQuery extends Component {
    */
   handleFilterToggle = (type) => {
     const {filterList} = this.props;
-    const {safetyScanInfoOperator, systemList, filter, itemFilterList} = this.state;
+    const {cpe23uriOperator, systemList, filter, itemFilterList} = this.state;
     let filterData = {
       filter,
       itemFilterList,
@@ -634,8 +634,8 @@ class FilterQuery extends Component {
     _.forEach(filterList, val => {
       if (val.name === 'system') {
         filterData.systemList = systemList;
-      } else if (val.name === 'safetyScanInfo') {
-        filterData.safetyScanInfoOperator = safetyScanInfoOperator;
+      } else if (val.name === 'cpe23uri') {
+        filterData.cpe23uriOperator = cpe23uriOperator;
       }
     })
 
