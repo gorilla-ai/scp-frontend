@@ -5995,8 +5995,8 @@ class HostController extends Component {
         }
 
         <div className='sub-header'>
+          <Button id='hostVulnerabilities'><Link to='/SCP/host/vulnerabilities'>.</Link></Button>
           <div className='secondary-btn-group right'>
-            <Button id='hostVulnerabilities' style={{visibility: 'hidden'}} variant='outlined' color='primary'><Link to='/SCP/host/vulnerabilities'>{t('host.txt-vulnerabilities')}</Link></Button>
             <Button variant='outlined' color='primary'><Link to='/SCP/host/cpe'>{t('host.txt-cpePage')}</Link></Button>
             <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, 'endpointSecuritySettings')}>{t('host.txt-endpointSecuritySettings')}</Button>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
