@@ -55,6 +55,9 @@
   "-1014": "Account is not found",
   "-1015": "Failed to deliver mail",
   "-1016": "Account is disabled",
+  "-1017": "Captcha code is incorrect",
+  "-1018": "Please enter the Captcha code",
+  "-1019": "Please set a new password for the new user",
 
   "-2001": "Unknown Target",
   "-2002": "Expired",

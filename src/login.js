@@ -5,8 +5,10 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 import i18n from 'i18next'
+import styled from 'styled-components'
 
 import MenuItem from '@material-ui/core/MenuItem'
+import RefreshIcon from '@material-ui/icons/Refresh'
 import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -21,19 +23,27 @@ let t = null;
 let c = null;
 let et = null;
 
-createInstance(
-  'login',
-  {
-    parseSuccess: resp => resp,
-    parseFail: resp => {
-      return {
-        code: _.get(resp, 'ret', -100),
-        message: _.get(resp, 'message')
-      }
-    },
-    et: i18n.getFixedT(null, 'errors')
-  }
-)
+// createInstance(
+//   'login',
+//   {
+//     parseSuccess: resp => resp,
+//     parseFail: resp => {
+//       return {
+//         code: _.get(resp, 'ret', -100),
+//         message: _.get(resp, 'message')
+//       }
+//     },
+//     et: i18n.getFixedT(null, 'errors')
+//   }
+// )
+
+const RefreshIconContainer = styled(RefreshIcon)`
+  float: right;
+  display: inline-block;
+  margin-top: 10px;
+  color: #001b34;
+  cursor: pointer;
+`;
 
 /**
  * Login
@@ -51,9 +61,11 @@ class Login extends Component {
       openEnterTokenDialog: false,
       openEnterPasswordDialog: false,
       capsLockWarning: false,
+      captchaImage: '',
       login: {
         username: '',
-        password: ''
+        password: '',
+        captcha: ''
       },
       forgotPassword: {
         account: '',
@@ -72,6 +84,9 @@ class Login extends Component {
         password: {
           valid: true
         },
+        captcha: {
+          valid: true
+        },
         forgotAccount: {
           valid: true
         },
@@ -87,10 +102,11 @@ class Login extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'app');
     c = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
-    this.ah = getInstance('login');
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     this.getLanguageList();
+    this.getCaptcha();
     this.checkLicense();
 
     window.addEventListener('keydown', this.wasCapsLockActivated);
@@ -117,6 +133,32 @@ class Login extends Component {
     });
   }
   /**
+   * Get captcha image in base64 format
+   * @method
+   */
+  getCaptcha = () => {
+    const {baseUrl} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/captcha`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          captchaImage: 'data:image/jpeg;base64,' + data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        info: err.message,
+        error: true
+      });
+    })
+  }
+  /**
    * Check license before login
    * @method
    */
@@ -131,8 +173,8 @@ class Login extends Component {
       if (data) {
         let licenseCheck = false;
 
-        if (data.rt.returnCode === '0') {
-          licenseCheck = data.rt.isValid === '1';
+        if (data.returnCode === '0') {
+          licenseCheck = data.isValid === '1';
         }
 
         this.setState({
@@ -168,6 +210,13 @@ class Login extends Component {
       validate = false;
     }
 
+    if (login.captcha) {
+      tempFormValidation.captcha.valid = true;
+    } else {
+      tempFormValidation.captcha.valid = false;
+      validate = false;
+    }
+
     this.setState({
       info: null,
       error: false,
@@ -194,32 +243,35 @@ class Login extends Component {
 
     this.ah.one({
       url: `${baseUrl}/api/login`,
+      headers: {
+       'captcha-code': login.captcha
+      },
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === -2) {
-        this.setState({
-          info: null,
-          error: false
-        }, () => {
-          this.startResetPwd('newSet');
-        });
-      } else {
+      if (data) {
         const redirectURL = window.location.pathname;
         window.location.href = redirectURL;
       }
       return null;
     })
     .catch(err => {
-      if (err.message === et('-1005')) {
+      if (err.message === et('-1005')) { //Password expired
         this.setState({
           info: null,
           error: false
         }, () => {
           this.startResetPwd('reset');
         });
+      } else if (err.message === et('-1019')) { //First time user
+        this.setState({
+          info: null,
+          error: false
+        }, () => {
+          this.startResetPwd('newSet');
+        });        
       } else {
         this.setState({
           info: err.message,
@@ -387,11 +439,11 @@ class Login extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         this.setState({
           openFindAccountDialog: false,
           openEnterTokenDialog: true,
-          userEmail: data.rt.email,
+          userEmail: data.email,
           forgotModalError: ''
         });
       }
@@ -440,7 +492,7 @@ class Login extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         this.setState({
           openEnterTokenDialog: false,
           openEnterPasswordDialog: true,
@@ -493,7 +545,7 @@ class Login extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         helper.showPopupMsg(t('txt-passwordSuccess'));
         this.closeDialog();
       }
@@ -526,6 +578,9 @@ class Login extends Component {
           valid: true
         },
         password: {
+          valid: true
+        },
+        captcha: {
           valid: true
         },
         forgotAccount: {
@@ -608,6 +663,7 @@ class Login extends Component {
       openEnterTokenDialog,
       openEnterPasswordDialog,
       capsLockWarning,
+      captchaImage,
       login,
       info,
       error,
@@ -629,7 +685,7 @@ class Login extends Component {
         }
 
         <div id='loingTitle'>
-          <img src='/SCP/images/nsguard-logo.png' />
+          <img src='https://172.18.0.119/SCP/images/nsguard-logo.png' />
           <span className='title'>{productName}</span>
         </div>
 
@@ -649,7 +705,7 @@ class Login extends Component {
               value={login.username}
               onChange={this.handleDataChange.bind(this, 'login')} />
           </div>
-          <div className='login-group bottom'>
+          <div className='login-group top'>
             <TextField
               id='login-password'
               name='password'
@@ -665,6 +721,24 @@ class Login extends Component {
               onChange={this.handleDataChange.bind(this, 'login')}
               onKeyDown={this.handleKeyDown} />
           </div>
+          {captchaImage &&
+            <div className='login-group bottom'>
+              <TextField
+                id='login-captcha'
+                name='captcha'
+                label={t('login.txt-captcha')}
+                variant='outlined'
+                size='small'
+                required={true}
+                error={!formValidation.captcha.valid}
+                helperText={formValidation.captcha.valid ? '' : t('login.txt-enterCaptcha')}
+                value={login.captcha}
+                onChange={this.handleDataChange.bind(this, 'login')}
+                onKeyDown={this.handleKeyDown} />
+              <img className= 'captcha-image' src={captchaImage} width='80' height='40' />
+              <RefreshIconContainer onClick={this.getCaptcha} />
+            </div>
+          }
           {capsLockWarning &&
             <div className='caps-lock'>{t('txt-capsLockOn')}!</div>
           }

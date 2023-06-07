@@ -64,14 +64,16 @@
     "btn-setting": "Account Setting",
     "lbl-username": "Please Enter Username",
     "lbl-password": "Please Enter Password",
-    "txt-username":"Please enter your username",
-    "txt-password":"Please enter your password",
+    "txt-username": "Please enter your username",
+    "txt-password": "Please enter your password",
+    "txt-enterCaptcha": "Please enter captcha",
     "txt-resetPassword": "Reset Password",
     "txt-changePassword": "Change Password",
     "txt-account": "Account",
     "txt-token": "Token",
     "txt-userAccount": "Username",
-    "txt-userPassword": "Password"
+    "txt-userPassword": "Password",
+    "txt-captcha": "Captcha"
   },
 
   "toggle-theme": "Toggle Theme",

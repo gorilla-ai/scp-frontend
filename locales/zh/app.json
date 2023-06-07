@@ -64,14 +64,16 @@
     "btn-setting": "帳戶設定",
     "lbl-username": "請輸入帳號",
     "lbl-password": "請輸入密碼",
-    "txt-username":"請輸入帳號",
-    "txt-password":"請輸入密碼",
+    "txt-username": "請輸入帳號",
+    "txt-password": "請輸入密碼",
+    "txt-enterCaptcha": "請輸入驗證碼",
     "txt-resetPassword": "重設密碼",
     "txt-changePassword": "修改密碼",
     "txt-account": "帳號",
     "txt-token": "驗證碼",
     "txt-userAccount": "帳號",
-    "txt-userPassword": "密碼"
+    "txt-userPassword": "密碼",
+    "txt-captcha": "驗證碼"
   },
 
   "toggle-theme": "切換佈景",
