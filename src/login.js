@@ -264,6 +264,7 @@ class Login extends Component {
           error: false
         }, () => {
           this.startResetPwd('reset');
+          this.getCaptcha();
         });
       } else if (err.message === et('-1019')) { //First time user
         this.setState({
@@ -271,8 +272,13 @@ class Login extends Component {
           error: false
         }, () => {
           this.startResetPwd('newSet');
+          this.getCaptcha();
         });        
       } else {
+        if (err.message === et('-1007') || err.message === et('-1016') || err.message === et('12107')) {
+          this.getCaptcha();
+        }
+
         this.setState({
           info: err.message,
           error: true
