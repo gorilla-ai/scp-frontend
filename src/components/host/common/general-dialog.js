@@ -38,17 +38,17 @@ class GeneralDialog extends Component {
   showGeneralInfo = () => {
     const {page, data} = this.props;
 
-    if (page === 'dashboard') {
+    if (page === 'vulnerabilities') {
       return (
         <ul className='vulnerability'>
-          <li><span>{t('host.dashboard.txt-vulnerabilityDesc')}</span>: {data.description || NOT_AVAILABLE}</li>
-          <li><span>{t('host.dashboard.txt-name')}</span>: {data.cveId || NOT_AVAILABLE}</li>
-          <li><span>{t('host.dashboard.txt-severity')}</span>: {t('txt-' + data.severity.toLowerCase())}</li> 
+          <li><span>{t('host.vulnerabilities.txt-vulnerabilityDesc')}</span>: {data.description || NOT_AVAILABLE}</li>
+          <li><span>{t('host.vulnerabilities.txt-name')}</span>: {data.cveId || NOT_AVAILABLE}</li>
+          <li><span>{t('host.vulnerabilities.txt-severity')}</span>: {t('txt-' + data.severity.toLowerCase())}</li> 
           <li><span>CVSS</span>: {data.cvss || NOT_AVAILABLE}</li>
-          <li><span>{t('host.dashboard.txt-cvssVersion')}</span>: {data.cvssVersion || NOT_AVAILABLE}</li>
-          <li><span>{t('host.dashboard.txt-publishedDate')}</span>: {helper.getFormattedDate(data.publishedDate, 'local')}</li>
-          <li><span>{t('host.dashboard.txt-updatedDate')}</span>: {helper.getFormattedDate(data.lastModifiedDate, 'local')}</li>
-          <li><span>{t('host.dashboard.txt-daysOpen')}</span>: {data.daysOpen}</li>
+          <li><span>{t('host.vulnerabilities.txt-cvssVersion')}</span>: {data.cvssVersion || NOT_AVAILABLE}</li>
+          <li><span>{t('host.vulnerabilities.txt-publishedDate')}</span>: {helper.getFormattedDate(data.publishedDate, 'local')}</li>
+          <li><span>{t('host.vulnerabilities.txt-updatedDate')}</span>: {helper.getFormattedDate(data.lastModifiedDate, 'local')}</li>
+          <li><span>{t('host.vulnerabilities.txt-daysOpen')}</span>: {data.daysOpen}</li>
         </ul>
       )
     } else if (page === 'inventory') {
@@ -87,7 +87,7 @@ class GeneralDialog extends Component {
             <TextField
               name='hostName'
               className='search-text'
-              label={t('host.dashboard.txt-hostName')}
+              label={t('host.vulnerabilities.txt-hostName')}
               variant='outlined'
               size='small'
               value={search.hostName}
@@ -97,7 +97,7 @@ class GeneralDialog extends Component {
             <TextField
               name='ip'
               className='search-text'
-              label={t('host.dashboard.txt-ip')}
+              label={t('host.vulnerabilities.txt-ip')}
               variant='outlined'
               size='small'
               value={search.ip}
@@ -107,16 +107,16 @@ class GeneralDialog extends Component {
             <TextField
               name='system'
               className='search-text'
-              label={t('host.dashboard.txt-system')}
+              label={t('host.vulnerabilities.txt-system')}
               variant='outlined'
               size='small'
               value={search.system}
               onChange={this.props.handleSearchChange} />
           </div>
-          <Button variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit}>{t('txt-search')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
+          <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit}>{t('txt-search')}</Button>
+          <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
         </div>
-        <div className='search-count'>{t('host.dashboard.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(search.count)}</div>
+        <div className='search-count'>{t('host.vulnerabilities.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(search.count)}</div>
 
         <MuiTableContent
           tableHeight='auto'
@@ -135,14 +135,14 @@ class GeneralDialog extends Component {
     let searchFieldText = '';
     let searchCountHeader = '';
 
-    if (page === 'dashboard') {
+    if (page === 'vulnerabilities') {
       searchFieldText = t('host.inventory.txt-productName');
-      searchCountHeader = t('host.dashboard.txt-relatedSoftwareCount');
+      searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
     } else if (page === 'inventory') {
-      searchFieldText = t('host.dashboard.txt-cveName');
+      searchFieldText = t('host.vulnerabilities.txt-cveName');
       searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
     } else if (page === 'kbid') {
-      searchFieldText = t('host.dashboard.txt-cveName');
+      searchFieldText = t('host.vulnerabilities.txt-cveName');
       searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
     }
 
@@ -159,8 +159,8 @@ class GeneralDialog extends Component {
               value={search.keyword}
               onChange={this.props.handleSearchChange} />
           </div>
-          <Button variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit}>{t('txt-search')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)}>{t('txt-clear')}</Button>
+          <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit}>{t('txt-search')}</Button>
+          <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)}>{t('txt-clear')}</Button>
         </div>
         <div className='search-count'>{searchCountHeader + ': ' + helper.numberWithCommas(search.count)}</div>
 

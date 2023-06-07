@@ -23,7 +23,7 @@ import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
 import Host from './components/host/index'
 import HostCpe from './components/host/cpe'
-import HostDashboard from './components/host/dashboard'
+import HostVulnerabilities from './components/host/vulnerabilities'
 import HostInventory from './components/host/inventory'
 import HostKbid from './components/host/kbid'
 import Incident from './components/soc/incident'
@@ -127,9 +127,9 @@ const HostCpeComp = () => (
   </BaseDataContext.Provider>
 );
 
-const HostDashboardComp = () => (
+const HostVulnerabilitiesComp = () => (
   <BaseDataContext.Provider value={baseData}>
-    <HostDashboard />
+    <HostVulnerabilities />
   </BaseDataContext.Provider>
 );
 
@@ -346,7 +346,7 @@ const Main = () => (
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/host' component={HostComp} />
       <Route exact path='/SCP/host/cpe' component={HostCpeComp} />
-      <Route exact path='/SCP/host/dashboard' component={HostDashboardComp} />
+      <Route exact path='/SCP/host/vulnerabilities' component={HostVulnerabilitiesComp} />
       <Route exact path='/SCP/host/inventory' component={HostInventoryComp} />
       <Route exact path='/SCP/host/kbid' component={HostKbidComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />

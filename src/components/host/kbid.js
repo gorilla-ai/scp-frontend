@@ -380,7 +380,7 @@ class HostKbid extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)}><i className='fg fg-more'></i></Button>
+                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else {
@@ -521,7 +521,7 @@ class HostKbid extends Component {
         tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
           return {
             name: val,
-            label: t('host.dashboard.txt-' + val),
+            label: t('host.vulnerabilities.txt-' + val),
             options: {
               filter: true,
               sort: true,
@@ -654,7 +654,7 @@ class HostKbid extends Component {
           value={activeKbidInfo}
           exclusive
           onChange={this.toggleKbidButtons}>
-          <ToggleButton id='exposedDevices' value='exposedDevices'>{t('host.dashboard.txt-exposedDevices')}</ToggleButton>
+          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>

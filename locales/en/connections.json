@@ -395,8 +395,10 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-cpePage": "CPE",
-    "txt-dashboard": "Dashboard",
-    "dashboard": {
+    "txt-vulnerabilities": "Vulnerabilities",
+    "txt-inventory": "Inventory",
+    "txt-kbid": "KBID",
+    "vulnerabilities": {
       "txt-severityLevelQuery": "Vulnerability Exposure Level",
       "txt-monthlySeverityTrend": "Monthly Vulnerability Level Trend",
       "txt-vulnerabilityList": "Vulnerability List",

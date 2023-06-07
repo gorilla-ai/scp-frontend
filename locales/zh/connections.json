@@ -395,8 +395,10 @@
   "host": {
     "txt-hostList": "主機列表",
     "txt-cpePage": "CPE維護",
-    "txt-dashboard": "Dashboard",
-    "dashboard": {
+    "txt-vulnerabilities": "Vulnerabilities",
+    "txt-inventory": "Inventory",
+    "txt-kbid": "KBID",
+    "vulnerabilities": {
       "txt-severityLevelQuery": "弱點暴露等級",
       "txt-monthlySeverityTrend": "每月漏洞等級趨勢",
       "txt-vulnerabilityList": "弱點漏洞清單",

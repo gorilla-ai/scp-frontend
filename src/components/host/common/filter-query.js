@@ -458,7 +458,7 @@ class FilterQuery extends Component {
               <MenuItem value='equal'>Equal</MenuItem>
               <MenuItem value='like'>Like</MenuItem>
             </TextField>
-            <Button variant='contained' color='primary' className='filter' onClick={this.handlePopoverClose.bind(this, 'csvImport')}>{t('network-inventory.txt-batchUpload')}</Button>
+            <Button id='hostOpenUploadDialog' variant='contained' color='primary' className='filter' onClick={this.handlePopoverClose.bind(this, 'csvImport')}>{t('network-inventory.txt-batchUpload')}</Button>
           </div>
         </React.Fragment>
       )
@@ -499,7 +499,7 @@ class FilterQuery extends Component {
     let label = '';
     let selectOptions = '';
 
-    if (page === 'dashboard') {
+    if (page === 'vulnerabilities') {
       label = f('hostDashboardFields.' + filterName);
       selectOptions = severityType;
     } else if (page === 'inventory') {
@@ -593,7 +593,7 @@ class FilterQuery extends Component {
           </div>
         </PopoverMaterial>
         {filterList.map(this.showFilterDisplay)}
-        <Button variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+        <Button id='hostClearFilter' variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
       </div>
     )
   }

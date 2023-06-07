@@ -113,12 +113,12 @@ let t = null;
 let f = null;
 
 /**
- * Host Dashboard
+ * Host Vulnerabilities
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the Host Dashboard page
+ * @summary A react component to show the Host Vulnerabilities page
  */
-class HostDashboard extends Component {
+class HostVulnerabilities extends Component {
   constructor(props) {
     super(props);
 
@@ -420,19 +420,19 @@ class HostDashboard extends Component {
       <div className='chart-group'>
         {!cveSeverityLevel &&
           <div className='empty-data'>
-            <header>{t('host.dashboard.txt-severityLevelQuery')}</header>
+            <header>{t('host.vulnerabilities.txt-severityLevelQuery')}</header>
             <span><i className='fg fg-loading-2'></i></span>
           </div>
         }
         {cveSeverityLevel && cveSeverityLevel.length === 0 &&
           <div className='empty-data'>
-            <header>{t('host.dashboard.txt-severityLevelQuery')}</header>
+            <header>{t('host.vulnerabilities.txt-severityLevelQuery')}</header>
             <span>{t('txt-notFound')}</span>
           </div>
         }
         {cveSeverityLevel && cveSeverityLevel.length > 0 &&
           <PieChart
-            title={t('host.dashboard.txt-severityLevelQuery')}
+            title={t('host.vulnerabilities.txt-severityLevelQuery')}
             holeSize={45}
             centerText={centerText}
             data={cveSeverityLevel}
@@ -468,13 +468,13 @@ class HostDashboard extends Component {
       <div className='chart-group'>
         {!monthlySeverityTrend &&
           <div className='empty-data'>
-            <header>{t('host.dashboard.txt-monthlySeverityTrend')}</header>
+            <header>{t('host.vulnerabilities.txt-monthlySeverityTrend')}</header>
             <span><i className='fg fg-loading-2'></i></span>
           </div>
         }
         {monthlySeverityTrend && monthlySeverityTrend.length === 0 &&
           <div className='empty-data'>
-            <header>{t('host.dashboard.txt-monthlySeverityTrend')}</header>
+            <header>{t('host.vulnerabilities.txt-monthlySeverityTrend')}</header>
             <span>{t('txt-notFound')}</span>
           </div>
         }
@@ -482,7 +482,7 @@ class HostDashboard extends Component {
           <BarChart
             stacked
             vertical
-            title={t('host.dashboard.txt-monthlySeverityTrend')}
+            title={t('host.vulnerabilities.txt-monthlySeverityTrend')}
             legend={{
               enabled: true
             }}
@@ -587,7 +587,7 @@ class HostDashboard extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)}><i className='fg fg-more'></i></Button>
+                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)}><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'severity' && value) {
@@ -795,7 +795,7 @@ class HostDashboard extends Component {
         tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
           return {
             name: val,
-            label: t('host.dashboard.txt-' + val),
+            label: t('host.vulnerabilities.txt-' + val),
             options: {
               filter: true,
               sort: true,
@@ -1060,22 +1060,22 @@ class HostDashboard extends Component {
           value={activeCveInfo}
           exclusive
           onChange={this.toggleCveButtons}>
-          <ToggleButton id='vulnerabilityDetails' value='vulnerabilityDetails'>{t('host.dashboard.txt-vulnerabilityDetails')}</ToggleButton>
-          <ToggleButton id='exposedDevices' value='exposedDevices'>{t('host.dashboard.txt-exposedDevices')}</ToggleButton>
-          <ToggleButton id='relatedSoftware' value='relatedSoftware'>{t('host.dashboard.txt-relatedSoftware')}</ToggleButton>
+          <ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}</ToggleButton>
+          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
+          <ToggleButton id='hostDialogRelatedSoftware' value='relatedSoftware'>{t('host.vulnerabilities.txt-relatedSoftware')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
           {activeCveInfo === 'vulnerabilityDetails' &&
             <GeneralDialog
-              page='dashboard'
+              page='vulnerabilities'
               type='general-info'
               data={currentCveData} />
           }
 
           {activeCveInfo === 'exposedDevices' &&
             <GeneralDialog
-              page='dashboard'
+              page='vulnerabilities'
               type='exposed-devices'
               search={exposedDevicesSearch}
               data={exposedDevicesData}
@@ -1087,7 +1087,7 @@ class HostDashboard extends Component {
 
           {activeCveInfo === 'relatedSoftware' &&
             <GeneralDialog
-              page='dashboard'
+              page='vulnerabilities'
               type='general-list'
               searchType='productNameSearch'
               search={productNameSearch}
@@ -1301,7 +1301,7 @@ class HostDashboard extends Component {
 
         {showFilterQuery &&
           <FilterQuery
-            page='dashboard'
+            page='vulnerabilities'
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -1316,7 +1316,7 @@ class HostDashboard extends Component {
         }
 
         <TableList
-          page='dashboard'
+          page='vulnerabilities'
           searchType='cveSearch'
           search={cveSearch}
           data={cveData}
@@ -1338,9 +1338,9 @@ class HostDashboard extends Component {
   }
 }
 
-HostDashboard.contextType = BaseDataContext;
+HostVulnerabilities.contextType = BaseDataContext;
 
-HostDashboard.propTypes = {
+HostVulnerabilities.propTypes = {
 };
 
-export default HostDashboard;
+export default HostVulnerabilities;

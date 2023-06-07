@@ -35,9 +35,9 @@ class TableList extends Component {
     let headerTitle = '';
     let searchLabel = '';
 
-    if (page === 'dashboard') {
-      headerTitle = t('host.dashboard.txt-vulnerabilityList');
-      searchLabel = t('host.dashboard.txt-cveName');
+    if (page === 'vulnerabilities') {
+      headerTitle = t('host.vulnerabilities.txt-vulnerabilityList');
+      searchLabel = t('host.vulnerabilities.txt-cveName');
     } else if (page === 'inventory') {
       headerTitle = t('host.inventory.txt-orgSoftwareList');
       searchLabel = t('host.inventory.txt-applicationName');
@@ -58,13 +58,17 @@ class TableList extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
+            <Button id='hostVulnerabilities' variant='outlined' color='primary'><Link to='/SCP/host/vulnerabilities'>{t('host.txt-vulnerabilities')}</Link></Button>
+            <Button id='hostInventory' variant='outlined' color='primary'><Link to='/SCP/host/inventory'>{t('host.txt-inventory')}</Link></Button>
+            <Button id='hostKbid' variant='outlined' color='primary'><Link to='/SCP/host/kbid'>{t('host.txt-kbid')}</Link></Button>
+
+            <Button id='hostIndex' variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
           </div>
         </div>
 
         <div className='data-content'>
           <div className='parent-content'>
-            {page === 'dashboard' &&
+            {page === 'vulnerabilities' &&
               <div className='main-statistics host'>
                 <div className='statistics-content'>
                   {this.props.showPieChart(cveSeverityLevel.data)}
@@ -86,21 +90,21 @@ class TableList extends Component {
                     <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>NCCST</MenuItem>
                   </Menu>
                 }
-                <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')}>{t('txt-filterQuery')}</Button>
-                {page === 'dashboard' &&
+                <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')}>{t('txt-filterQuery')}</Button>
+                {page === 'vulnerabilities' &&
                   <React.Fragment>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList}>{t('txt-export')}</Button>
+                    <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList}>{t('txt-export')}</Button>
                   </React.Fragment>
                 }
                 {page === 'inventory' &&
                   <React.Fragment>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu}>{t('txt-export')}</Button>
+                    <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu}>{t('txt-export')}</Button>
                   </React.Fragment>
                 }
                 {page === 'kbid' &&
                   <React.Fragment>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList}>{t('txt-export')}</Button>
-                    <Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport}>{t('host.txt-report-kbid')}</Button>
+                    <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList}>{t('txt-export')}</Button>
+                    <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport}>{t('host.txt-report-kbid')}</Button>
                   </React.Fragment>
                 }
               </div>
@@ -117,8 +121,8 @@ class TableList extends Component {
                       value={search.keyword}
                       onChange={this.props.handleSearch} />
                   </div>
-                  <Button variant='contained' color='primary' className='search-btn' onClick={this.props.getData}>{t('txt-search')}</Button>
-                  <Button variant='outlined' color='primary' className='standard btn clear' onClick={this.props.handleReset.bind(this, searchType)}>{t('txt-clear')}</Button>
+                  <Button id='hostSearchData' variant='contained' color='primary' className='search-btn' onClick={this.props.getData}>{t('txt-search')}</Button>
+                  <Button id='hostClearData' variant='outlined' color='primary' className='standard btn clear' onClick={this.props.handleReset.bind(this, searchType)}>{t('txt-clear')}</Button>
                 </div>
 
                 <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(search.count)}</div>
