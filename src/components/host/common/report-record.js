@@ -14,26 +14,6 @@ import helper from '../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const HMD_VANS_CONFIG = {
-  oid: '',
-  unitName: '',
-  apiKey: '',
-  apiUrl: ''
-};
-const VANS_FORM_VALIDATION = {
-  oid: {
-    valid: true
-  },
-  unitName: {
-    valid: true
-  },
-  apiKey: {
-    valid: true
-  },
-  apiUrl: {
-    valid: true
-  }
-};
 const NOT_AVAILABLE = 'N/A';
 
 let t = null;
@@ -51,8 +31,26 @@ class ReportRecord extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
 
     this.state = {
-      hmdVansConfigurations: _.cloneDeep(HMD_VANS_CONFIG),
-      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
+      hmdVansConfigurations: {
+        oid: '',
+        unitName: '',
+        apiKey: '',
+        apiUrl: ''
+      },
+      vansFormValidation: {
+        oid: {
+          valid: true
+        },
+        unitName: {
+          valid: true
+        },
+        apiKey: {
+          valid: true
+        },
+        apiUrl: {
+          valid: true
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
