@@ -445,6 +445,10 @@
       "txt-version": "Version",
       "txt-productName": "Product Name"
     },
+    "kbid": {
+      "txt-kbidList": "KBID List",
+      "txt-vulnerabilityList": "Vulnerability List"
+    },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",
     "txt-hostItem": "Host Item",
@@ -458,11 +462,15 @@
     "txt-trackHostList": "Track Host List",
     "txt-downloadTrackList": "Download Track List",
     "txt-deviceNotAvailable": "Device is not available",
+    "txt-report-vans": "Report VANS",
     "txt-report-nccst": "Report NCCST",
     "txt-report-kbid": "Report KBID",
     "txt-kbid": "KBID",
     "txt-kbidName": "KBID Name",
     "txt-exposedDevices": "Exposed Devices",
+    "txt-departmentName": "Department",
+    "txt-ip": "IP",
+    "txt-system": "System",
     "txt-report-nccst-success": "Report Success",
     "txt-report-nccst-fail": "Report Failed",
     "txt-uploadMergedCpe": "Upload CPE",

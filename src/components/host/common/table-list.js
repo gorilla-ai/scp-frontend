@@ -90,6 +90,16 @@ class TableList extends Component {
                     <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>NCCST</MenuItem>
                   </Menu>
                 }
+                {page === 'kbid' &&
+                  <Menu
+                    anchorEl={exportAnchor}
+                    keepMounted
+                    open={Boolean(exportAnchor)}
+                    onClose={this.props.handleCloseMenu}>
+                    <MenuItem onClick={this.props.exportList.bind(this, 'kbid')}>{t('host.kbid.txt-kbidList')}</MenuItem>
+                    <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-vulnerabilityList')}</MenuItem>
+                  </Menu>
+                }
                 <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')}>{t('txt-filterQuery')}</Button>
                 {page === 'vulnerabilities' &&
                   <React.Fragment>
@@ -99,11 +109,12 @@ class TableList extends Component {
                 {page === 'inventory' &&
                   <React.Fragment>
                     <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu}>{t('txt-export')}</Button>
+                    <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport}>{t('host.txt-report-vans')}</Button>
                   </React.Fragment>
                 }
                 {page === 'kbid' &&
                   <React.Fragment>
-                    <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList}>{t('txt-export')}</Button>
+                    <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu}>{t('txt-export')}</Button>
                     <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport}>{t('host.txt-report-kbid')}</Button>
                   </React.Fragment>
                 }

@@ -25,6 +25,7 @@ import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import MuiTableContent from '../common/mui-table-content'
+import ReportRecord from './common/report-record'
 import SearchFilter from './search-filter'
 import TableList from './common/table-list'
 
@@ -54,20 +55,6 @@ const KBID_FILTER_LIST = {
   departmentSelected: [],
   system: []
 };
-const VANS_FORM_VALIDATION = {
-  oid: {
-    valid: true
-  },
-  unitName: {
-    valid: true
-  },
-  apiKey: {
-    valid: true
-  },
-  apiUrl: {
-    valid: true
-  }
-};
 const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
   ip: '',
@@ -85,12 +72,6 @@ const EXPOSED_DEVICES_DATA = {
   totalCount: 0,
   currentPage: 0,
   pageSize: 20
-};
-const HMD_VANS_CONFIG = {
-  oid: '',
-  unitName: '',
-  apiKey: '',
-  apiUrl: ''
 };
 
 let t = null;
@@ -127,6 +108,7 @@ class HostKbid extends Component {
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
       tableContextAnchor: null,
+      exportContextAnchor: null,
       showFilterQuery: false,
       reportOpen: false,
       showKbidInfo: false,
@@ -145,9 +127,7 @@ class HostKbid extends Component {
       },
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
-      currentKbid: '',
-      hmdVansConfigurations: _.cloneDeep(HMD_VANS_CONFIG),
-      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
+      currentKbid: ''
     };
 
     this.ah = getInstance('chewbacca');
@@ -559,7 +539,8 @@ class HostKbid extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      tableContextAnchor: null
+      tableContextAnchor: null,
+      exportContextAnchor: null
     });
   }
   /**
@@ -796,14 +777,33 @@ class HostKbid extends Component {
     });
   }
   /**
+   * Handle export open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleExportOpenMenu = (event) => {
+    this.setState({
+      exportContextAnchor: event.currentTarget
+    });
+  }
+  /**
    * Export KBID list
    * @method
+   * @param {string} type - export type ('kbid' or 'nccst')
    */
-  exportKbidList = () => {
+  exportKbidList = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/hmd/kbid/_export`;
-    const fieldsList = ['kbid', 'exposedDevices'];
+    let url = '';
+    let fieldsList = [];
     let exportFields = {};
+
+    if (type === 'kbid') {
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/_export`;
+      fieldsList = ['kbid', 'exposedDevices'];
+    } else if (type === 'nccst') {
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/devices/_export`;
+      fieldsList = ['departmentName', 'ip', 'system', 'kbid'];
+    }
 
     _.forEach(fieldsList, val => {
       exportFields[val] = t('host.txt-' + val);
@@ -822,165 +822,17 @@ class HostKbid extends Component {
    */
   toggleReport = () => {
     this.setState({
-      reportOpen: !this.state.reportOpen,
-      hmdVansConfigurations: _.cloneDeep(HMD_VANS_CONFIG),
-      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
+      reportOpen: !this.state.reportOpen
     });
-  }
-  /**
-   * Set input data change
-   * @method
-   * @param {object} event - event object
-   */
-  handleVansConfigChange = (event) => {
-    const {name, value} = event.target;
-    let tempHmdVansConfigurations = {...this.state.hmdVansConfigurations};
-    tempHmdVansConfigurations[name] = value;
-
-    this.setState({
-      hmdVansConfigurations: tempHmdVansConfigurations
-    });
-  }
-  /**
-   * Display report form content
-   * @method
-   * @returns HTML DOM
-   */
-  displayReportForm = () => {
-    const {hmdVansConfigurations, vansFormValidation} = this.state;
-
-    return (
-      <div className='vans-config-form'>
-        <div className='group'>
-          <TextField
-            id='vansConfigOID'
-            name='oid'
-            label={t('host.txt-vansConfigOID')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!vansFormValidation.oid.valid}
-            helperText={vansFormValidation.oid.valid ? '' : t('txt-required')}
-            value={hmdVansConfigurations.oid}
-            onChange={this.handleVansConfigChange} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='vansConfigUnitName'
-            name='unitName'
-            label={t('host.txt-vansConfigUnitName')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!vansFormValidation.unitName.valid}
-            helperText={vansFormValidation.unitName.valid ? '' : t('txt-required')}
-            value={hmdVansConfigurations.unitName}
-            onChange={this.handleVansConfigChange} />
-        </div>
-        <div className='group'>
-          <TextField
-            id='vansConfigApiKey'
-            name='apiKey'
-            label={t('host.txt-vansConfigApiKey')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!vansFormValidation.apiKey.valid}
-            helperText={vansFormValidation.apiKey.valid ? '' : t('txt-required')}
-            value={hmdVansConfigurations.apiKey}
-            onChange={this.handleVansConfigChange} />
-        </div>
-        <div className='group'>    
-          <TextField
-            id='vansConfigApiUrl'
-            name='apiUrl'
-            label={t('host.txt-vansConfigApiUrl')}
-            variant='outlined'
-            fullWidth
-            size='small'
-            required
-            error={!vansFormValidation.apiUrl.valid}
-            helperText={vansFormValidation.apiUrl.valid ? '' : t('txt-required')}
-            value={hmdVansConfigurations.apiUrl}
-            onChange={this.handleVansConfigChange} />
-        </div>
-      </div>
-    )
-  }
-  /**
-   * Show report list modal dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  showReportList = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleReport},
-      confirm: {text: t('txt-confirm'), handler: this.confirmReportList}
-    };
-
-    return (
-      <ModalDialog
-        id='reportNCCSTdialog'
-        className='modal-dialog'
-        title={t('host.txt-report-kbid')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayReportForm()}
-      </ModalDialog>
-    )
   }
   /**
    * Handle report list confirm
    * @method
+   * @param {object} hmdVansConfigurations - HMD vans config data
    */
-  confirmReportList = () => {
+  confirmReportList = (hmdVansConfigurations) => {
     const {baseUrl} = this.context;
-    const {hmdVansConfigurations, vansFormValidation} = this.state;
     const url = `${baseUrl}/api/hmd/kbid/_report`;
-    let tempVansFormValidation = {...vansFormValidation};
-    let validate = true;
-
-    if (hmdVansConfigurations.oid) {
-      tempVansFormValidation.oid.valid = true;
-    } else {
-      tempVansFormValidation.oid.valid = false;
-      validate = false;
-    }
-
-    if (hmdVansConfigurations.unitName) {
-      tempVansFormValidation.unitName.valid = true;
-    } else {
-      tempVansFormValidation.unitName.valid = false;
-      validate = false;
-    }
-
-    if (hmdVansConfigurations.apiKey) {
-      tempVansFormValidation.apiKey.valid = true;
-    } else {
-      tempVansFormValidation.apiKey.valid = false;
-      validate = false;
-    }
-
-    if (hmdVansConfigurations.apiUrl) {
-      tempVansFormValidation.apiUrl.valid = true;
-    } else {
-      tempVansFormValidation.apiUrl.valid = false;
-      validate = false;
-    }
-
-    this.setState({
-      vansFormValidation: tempVansFormValidation
-    });
-
-    if (!validate) {
-      return;
-    }
-
     const requestData = {
       ...this.getKbidFilterRequestData(),
       hmdKbidConfigurations: {
@@ -1020,6 +872,7 @@ class HostKbid extends Component {
       kbidFilter,
       kbidFilterList,
       tableContextAnchor,
+      exportContextAnchor,
       showFilterQuery,
       reportOpen,
       showKbidInfo,
@@ -1057,7 +910,11 @@ class HostKbid extends Component {
         }
 
         {reportOpen &&
-          this.showReportList()
+          <ReportRecord
+            page='kbid'
+            filter={kbidFilter}
+            toggleReport={this.toggleReport}
+            confirmReportList={this.confirmReportList} />
         }
 
         {showKbidInfo &&
@@ -1071,6 +928,7 @@ class HostKbid extends Component {
           data={kbidData}
           options={tableOptions}
           tableAnchor={tableContextAnchor}
+          exportAnchor={exportContextAnchor}
           getData={this.getKbidData}
           getActiveData={this.getExposedDevices}
           exportList={this.exportKbidList}
@@ -1078,6 +936,7 @@ class HostKbid extends Component {
           toggleFilterQuery={this.toggleFilterQuery}
           handleSearch={this.handleKbidChange}
           handleReset={this.handleResetBtn}
+          handleExportMenu={this.handleExportOpenMenu}
           handleCloseMenu={this.handleCloseMenu} />
       </div>
     )

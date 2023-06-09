@@ -445,6 +445,10 @@
       "txt-version": "版號",
       "txt-productName": "產品名稱"
     },
+    "kbid": {
+      "txt-kbidList": "KBID清單",
+      "txt-vulnerabilityList": "弱點主機清單"
+    },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",
     "txt-hostItem": "主機項目",
@@ -458,11 +462,15 @@
     "txt-trackHostList": "弱點修復追蹤",
     "txt-downloadTrackList": "下載追蹤清單",
     "txt-deviceNotAvailable": "主機不存在",
+    "txt-report-vans": "回報VANS",
     "txt-report-nccst": "回報NCCST",
     "txt-report-kbid": "回報KBID",
     "txt-kbid": "KBID",
     "txt-kbidName": "KBID名稱",
     "txt-exposedDevices": "資產數量",
+    "txt-departmentName": "部門",
+    "txt-ip": "IP",
+    "txt-system": "系統",
     "txt-report-nccst-success": "回報成功",
     "txt-report-nccst-fail": "回報失敗",
     "txt-uploadMergedCpe": "上傳合併CPE",

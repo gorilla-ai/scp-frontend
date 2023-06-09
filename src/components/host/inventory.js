@@ -16,6 +16,7 @@ import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import ImportFile from './import-file'
+import ReportRecord from './common/report-record'
 import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -158,6 +159,7 @@ class HostInventory extends Component {
       },
       showCpeInfo: false,
       showFilterQuery: false,
+      reportOpen: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       cpeData: {
         dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'vulnerabilityNum', 'exposedDevices'],
@@ -1256,6 +1258,50 @@ class HostInventory extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
     this.handleCloseMenu();
   }
+  /**
+   * Toggle report modal dialog on/off
+   * @method
+   */
+  toggleReport = () => {
+    this.setState({
+      reportOpen: !this.state.reportOpen
+    });
+  }
+  /**
+   * Handle report list confirm
+   * @method
+   * @param {object} hmdVansConfigurations - HMD vans config data
+   */
+  confirmReportList = (hmdVansConfigurations) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/_report`;
+    const requestData = {
+      ...this.getCpeFilterRequestData(),
+      hmdKbidConfigurations: {
+        oid: hmdVansConfigurations.oid,
+        unit_name: hmdVansConfigurations.unitName,
+        api_key: hmdVansConfigurations.apiKey,
+        api_url: hmdVansConfigurations.apiUrl
+      }
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
+        this.toggleReport();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {
       account,
@@ -1271,6 +1317,7 @@ class HostInventory extends Component {
       cpeFilterList,
       showCpeInfo,
       showFilterQuery,
+      reportOpen,
       cpeData,
       tableContextAnchor,
       exportContextAnchor
@@ -1312,6 +1359,14 @@ class HostInventory extends Component {
             toggleFilterQuery={this.toggleFilterQuery} />
         }
 
+        {reportOpen &&
+          <ReportRecord
+            page='inventory'
+            filter={cpeFilter}
+            toggleReport={this.toggleReport}
+            confirmReportList={this.confirmReportList} />
+        }
+
         {importDialogOpen &&
           <ImportFile
             importFilterType='safetyScanInfo'
@@ -1330,6 +1385,7 @@ class HostInventory extends Component {
           getData={this.getCpeData}
           getActiveData={this.getActiveCpeInfo}
           exportList={this.exportCpeList}
+          toggleReport={this.toggleReport}
           toggleFilterQuery={this.toggleFilterQuery}
           handleSearch={this.handleCpeChange}
           handleReset={this.handleResetBtn}
