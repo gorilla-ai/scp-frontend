@@ -815,6 +815,7 @@ class HostKbid extends Component {
     };
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    this.handleCloseMenu();
   }
   /**
    * Toggle report modal dialog on/off
