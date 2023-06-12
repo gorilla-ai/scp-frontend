@@ -148,7 +148,7 @@ class ReportRecord extends Component {
     requestData.recordType = recordType;
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/vans/report/record`,
+      url: `${baseUrl}/api/hmd/nccst/report/record`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'

@@ -2145,13 +2145,22 @@ class HostController extends Component {
    */
   getVansRecord = () => {
     const {baseUrl} = this.context;
-    const {filterNav} = this.state;
-    const requestData = {
+    const {reportType, filterNav} = this.state;
+    let requestData = {
       departmentArray: filterNav.departmentSelected
     };
+    let recordType = '';
+
+    if (reportType === 'nccst') {
+      recordType = 'vans';
+    } else if (reportType === 'kbid') {
+      recordType = 'kbid';
+    }
+
+    requestData.recordType = recordType;
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/vans/report/record`,
+      url: `${baseUrl}/api/hmd/nccst/report/record`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
@@ -2184,10 +2193,13 @@ class HostController extends Component {
         {reportType === 'nccst' &&
           <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
         }
+        {reportType === 'kbid' &&
+          <Button id='uploadMergedCpe' style={{visibility: 'hidden'}} variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
+        }
         {reportType === 'nccst' && uploadedCPE &&
           <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedCpe')}</Button>
         }
-        {reportType === 'nccst' &&
+        {(reportType === 'nccst' || reportType === 'kbid') &&
           <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
         }
         <div className='group'>
