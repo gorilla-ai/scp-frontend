@@ -4870,7 +4870,7 @@ class HostController extends Component {
     if (reportType === 'nccst') {
       url = `${baseUrl}${contextRoot}/api/hmd/cpeFile/merge/_download`;
     } else if (reportType === 'kbid') {
-      recordType = `${baseUrl}${contextRoot}/api/hmd/kbid/merge/_download`;
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/merge/_download`;
     }
 
     window.open(url, '_blank');
