@@ -475,6 +475,8 @@
     "txt-report-nccst-fail": "Report Failed",
     "txt-uploadMergedCpe": "Upload CPE",
     "txt-downloadMergedCpe": "Download CPE",
+    "txt-uploadMergedKbid": "Upload KBID",
+    "txt-downloadMergedKbid": "Download KBID",
     "txt-vansRecord": "Vans Record",
     "txt-vansConfigOID": "Unit OID",
     "txt-vansConfigUnitName": "Unit Name",

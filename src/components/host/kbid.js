@@ -360,7 +360,7 @@ class HostKbid extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)}><i className='fg fg-more'></i></Button>
+                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else {
@@ -635,7 +635,7 @@ class HostKbid extends Component {
           value={activeKbidInfo}
           exclusive
           onChange={this.toggleKbidButtons}>
-          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
+          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>

@@ -417,6 +417,7 @@ class HostController extends Component {
       LAconfig: {},
       hmdFile: {},
       cpeFile: {},
+      kbidFile: {},
       notifyEmailData: [],
       queryModalType: '',
       queryData: {
@@ -543,6 +544,7 @@ class HostController extends Component {
       vansPieChartData: {},
       showLoadingIcon: false,
       uploadedCPE: false,
+      uploadedKBID: false,
       hmdVansConfigurations: {
         oid: '',
         unitName: '',
@@ -2033,39 +2035,45 @@ class HostController extends Component {
   toggleReport = (type) => {
     const {baseUrl} = this.context;
     const {reportOpen} = this.state;
+    let url = '';
 
-    if (type === 'nccst' && !reportOpen) {
+    if (reportOpen) {
+      this.setState({
+        reportOpen: !reportOpen,
+        hmdVansConfigurations: {
+          oid: '',
+          unitName: '',
+          apiKey: '',
+          apiUrl: ''
+        },
+        vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
+      });
+    } else {
+      if (type === 'nccst') {
+        url = `${baseUrl}/api/hmd/cpeFile/merge/_delete`;
+      } else if (type === 'kbid') {
+        url = `${baseUrl}/api/hmd/kbid/merge/_delete`;
+      }
+
       this.ah.one({
-        url: `${baseUrl}/api/hmd/cpeFile/merge/_delete`,
+        url,
         data: JSON.stringify({}),
         type: 'POST',
         contentType: 'text/plain'
       })
       .then(data => {
+        this.setState({
+          reportOpen: !reportOpen,
+          reportType: type,
+          uploadedCPE: false,
+          uploadedKBID: false
+        });
         return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
     }
-
-    if (type === 'nccst') {
-      this.setState({
-        uploadedCPE: false
-      });
-    }
-
-    this.setState({
-      reportOpen: !reportOpen,
-      reportType: type,
-      hmdVansConfigurations: {
-        oid: '',
-        unitName: '',
-        apiKey: '',
-        apiUrl: ''
-      },
-      vansFormValidation: _.cloneDeep(VANS_FORM_VALIDATION)
-    });
 
     this.handleCloseMenu();
   }
@@ -2186,18 +2194,25 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displayReportForm = () => {
-    const {reportType, uploadedCPE, hmdVansConfigurations, vansFormValidation} = this.state;
+    const {reportType, uploadedCPE, uploadedKBID, hmdVansConfigurations, vansFormValidation} = this.state;
+    let uploadTitle = '';
+
+    if (reportType === 'nccst') {
+      uploadTitle = t('host.txt-uploadMergedCpe');
+    } else if (reportType === 'kbid') {
+      uploadTitle = t('host.txt-uploadMergedKbid');
+    }
 
     return (
       <div className='vans-config-form'>
-        {reportType === 'nccst' &&
-          <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
-        }
-        {reportType === 'kbid' &&
-          <Button id='uploadMergedCpe' style={{visibility: 'hidden'}} variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
+        {(reportType === 'nccst' || reportType === 'kbid') &&
+          <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{uploadTitle}</Button>
         }
         {reportType === 'nccst' && uploadedCPE &&
           <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedCpe')}</Button>
+        }
+        {reportType === 'kbid' && uploadedKBID &&
+          <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.cpeDownload}>{t('host.txt-downloadMergedKbid')}</Button>
         }
         {(reportType === 'nccst' || reportType === 'kbid') &&
           <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
@@ -4727,9 +4742,17 @@ class HostController extends Component {
    * @param {object} file - file uploaded by the user
    */
   getCpeSetupFile = (file) => {
-    this.setState({
-      cpeFile: file
-    });
+    const {reportType} = this.state;
+
+    if (reportType === 'nccst') {
+      this.setState({
+        cpeFile: file
+      });
+    } else if (reportType === 'kbid') {
+      this.setState({
+        kbidFile: file
+      });
+    }
   }
   /**
    * Handle upload CPE setup file
@@ -4737,11 +4760,18 @@ class HostController extends Component {
    * @returns ModalDialog component
    */
   uploadCpeFileDialog = () => {
+    const {reportType} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleCpeUploadFile},
       confirm: {text: t('txt-confirm'), handler: this.confirmCpeFileUpload}
     };
-    const title = t('host.txt-uploadMergedCpe');
+    let title = '';
+
+    if (reportType === 'nccst') {
+      title = t('host.txt-uploadMergedCpe');
+    } else if (reportType === 'kbid') {
+      title = t('host.txt-uploadMergedKbid');
+    }
 
     return (
       <ModalDialog
@@ -4767,7 +4797,7 @@ class HostController extends Component {
    */
   confirmCpeFileUpload = () => {
     const {baseUrl} = this.context;
-    const {cpeFile} = this.state;
+    const {reportType, cpeFile, kbidFile} = this.state;
     const requestData = {
       hmdScanDistribution: {
         taskName: 'getVans',
@@ -4775,18 +4805,30 @@ class HostController extends Component {
       },
       ...this.getHostSafetyRequestData()
     };
+    let url = '';
     let formData = new FormData();
     formData.append('payload', JSON.stringify(requestData));
-    formData.append('file', cpeFile);
 
-    if (!cpeFile.name) {
-      return;
+    if (reportType === 'nccst') {
+      if (!cpeFile.name) {
+        return;
+      }
+
+      url = `${baseUrl}/api/hmd/cpeFile/merge/_upload`;
+      formData.append('file', cpeFile);
+    } else if (reportType === 'kbid') {
+      if (!kbidFile.name) {
+        return;
+      }
+
+      url = `${baseUrl}/api/hmd/kbid/merge/_upload`;
+      formData.append('file', kbidFile);
     }
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/cpeFile/merge/_upload`,
+      url,
       data: formData,
       type: 'POST',
       processData: false,
@@ -4796,10 +4838,17 @@ class HostController extends Component {
       if (data) {
         helper.showPopupMsg(t('txt-uploadSuccess'));
 
-        this.setState({
-          cpeFile: {},
-          uploadedCPE: data
-        });
+        if (reportType === 'nccst') {
+          this.setState({
+            cpeFile: {},
+            uploadedCPE: data
+          });
+        } else if (reportType === 'kbid') {
+          this.setState({
+            kbidFile: {},
+            uploadedKBID: data
+          });
+        }
 
         this.toggleCpeUploadFile();
       }
@@ -4815,7 +4864,15 @@ class HostController extends Component {
    */
   cpeDownload = () => {
     const {baseUrl, contextRoot} = this.context;
-    const url = `${baseUrl}${contextRoot}/api/hmd/cpeFile/merge/_download`;
+    const {reportType} = this.state;
+    let url = '';
+
+    if (reportType === 'nccst') {
+      url = `${baseUrl}${contextRoot}/api/hmd/cpeFile/merge/_download`;
+    } else if (reportType === 'kbid') {
+      recordType = `${baseUrl}${contextRoot}/api/hmd/kbid/merge/_download`;
+    }
+
     window.open(url, '_blank');
   }
   /**

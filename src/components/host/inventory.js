@@ -477,7 +477,7 @@ class HostInventory extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)}><i className='fg fg-more'></i></Button>
+                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'system') {
@@ -957,9 +957,9 @@ class HostInventory extends Component {
           value={activeCpeInfo}
           exclusive
           onChange={this.toggleCpeButtons}>
-          <ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}</ToggleButton>
-          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
-          <ToggleButton id='hostDialogDiscoveredVulnerability' value='discoveredVulnerability'>{t('host.inventory.txt-discoveredVulnerability')}</ToggleButton>
+          <ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}</ToggleButton>
+          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
+          <ToggleButton id='hostDialogDiscoveredVulnerability' value='discoveredVulnerability' data-cy='hostInfoDialogVulnerabilityBtn'>{t('host.inventory.txt-discoveredVulnerability')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>

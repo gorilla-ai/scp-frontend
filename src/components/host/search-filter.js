@@ -68,7 +68,8 @@ class SearchFilter extends Component {
           fullWidth
           size='small'
           value={value.input || ''}
-          onChange={this.handleDataChange} />
+          onChange={this.handleDataChange}
+          data-cy='hostSearchFilterTextField' />
       )
     } else if (searchType === 'condition_input') {
       return (
@@ -82,7 +83,8 @@ class SearchFilter extends Component {
             fullWidth
             size='small'
             value={value.condition}
-            onChange={this.handleConditionChange}>
+            onChange={this.handleConditionChange}
+            data-cy='hostSearchFilterConditionTextField'>
             {filterList}
           </TextField>
           <TextField
@@ -94,7 +96,8 @@ class SearchFilter extends Component {
             fullWidth
             size='small'
             value={value.input || ''}
-            onChange={this.handleDataChange} />
+            onChange={this.handleDataChange}
+            data-cy='hostSearchFilterDataTextField' />
         </div>
       )
     }

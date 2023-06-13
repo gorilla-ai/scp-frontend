@@ -587,7 +587,7 @@ class HostVulnerabilities extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)}><i className='fg fg-more'></i></Button>
+                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'severity' && value) {
@@ -1060,9 +1060,9 @@ class HostVulnerabilities extends Component {
           value={activeCveInfo}
           exclusive
           onChange={this.toggleCveButtons}>
-          <ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}</ToggleButton>
-          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
-          <ToggleButton id='hostDialogRelatedSoftware' value='relatedSoftware'>{t('host.vulnerabilities.txt-relatedSoftware')}</ToggleButton>
+          <ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}</ToggleButton>
+          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
+          <ToggleButton id='hostDialogRelatedSoftware' value='relatedSoftware' data-cy='hostInfoDialogSoftwareBtn'>{t('host.vulnerabilities.txt-relatedSoftware')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
@@ -1119,7 +1119,8 @@ class HostVulnerabilities extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='cancel'
+        data-cy='showCveDialog'>
         {this.displayCveInfo()}
       </ModalDialog>
     )

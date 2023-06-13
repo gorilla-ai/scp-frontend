@@ -183,7 +183,7 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   getDepartmentTreeLabel = (tree) => {
-    return <span><Checkbox checked={_.includes(this.state.filter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' />{tree.name}</span>
+    return <span><Checkbox checked={_.includes(this.state.filter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' data-cy='hostDepartmentTreeCheckbox' />{tree.name}</span>
   }
   /**
    * Display department tree item
@@ -300,7 +300,8 @@ class FilterQuery extends Component {
           name={tree.name}
           checked={tree.checked}
           onChange={this.toggleSystemCheckbox.bind(this, tree)}
-          color='primary' />
+          color='primary'
+          data-cy='hostSystemTreeCheckbox' />
           {tree.name}
       </span>
     )
@@ -454,11 +455,12 @@ class FilterQuery extends Component {
               fullWidth
               size='small'
               value={cpe23uriOperator}
-              onChange={this.handleScanOperatorChange}>
+              onChange={this.handleScanOperatorChange}
+              data-cy='hostScanFilterDropDownMenu'>
               <MenuItem value='equal'>Equal</MenuItem>
               <MenuItem value='like'>Like</MenuItem>
             </TextField>
-            <Button id='hostOpenUploadDialog' variant='contained' color='primary' className='filter' onClick={this.handlePopoverClose.bind(this, 'csvImport')}>{t('network-inventory.txt-batchUpload')}</Button>
+            <Button id='hostBatchUploadBtn' variant='contained' color='primary' className='filter' onClick={this.handlePopoverClose.bind(this, 'csvImport')} data-cy='hostBatchUploadBtn'>{t('network-inventory.txt-batchUpload')}</Button>
           </div>
         </React.Fragment>
       )
@@ -593,7 +595,7 @@ class FilterQuery extends Component {
           </div>
         </PopoverMaterial>
         {filterList.map(this.showFilterDisplay)}
-        <Button id='hostClearFilter' variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+        <Button id='hostClearFilter' variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter} data-cy='hostFilterQueryClearBtn'>{t('txt-clear')}</Button>
       </div>
     )
   }

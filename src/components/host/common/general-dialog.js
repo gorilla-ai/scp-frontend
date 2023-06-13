@@ -91,7 +91,8 @@ class GeneralDialog extends Component {
               variant='outlined'
               size='small'
               value={search.hostName}
-              onChange={this.props.handleSearchChange} />
+              onChange={this.props.handleSearchChange}
+              data-cy='hostInfoDialogDeviceHostTextField' />
           </div>
           <div className='group'>
             <TextField
@@ -101,7 +102,8 @@ class GeneralDialog extends Component {
               variant='outlined'
               size='small'
               value={search.ip}
-              onChange={this.props.handleSearchChange} />
+              onChange={this.props.handleSearchChange}
+              data-cy='hostInfoDialogDeviceIpTextField' />
           </div>
           <div className='group'>
             <TextField
@@ -111,10 +113,11 @@ class GeneralDialog extends Component {
               variant='outlined'
               size='small'
               value={search.system}
-              onChange={this.props.handleSearchChange} />
+              onChange={this.props.handleSearchChange}
+              data-cy='hostInfoDialogDeviceSystemTextField' />
           </div>
-          <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit}>{t('txt-search')}</Button>
-          <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')}>{t('txt-clear')}</Button>
+          <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
+          <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
         </div>
         <div className='search-count'>{t('host.vulnerabilities.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(search.count)}</div>
 
@@ -157,10 +160,11 @@ class GeneralDialog extends Component {
               variant='outlined'
               size='small'
               value={search.keyword}
-              onChange={this.props.handleSearchChange} />
+              onChange={this.props.handleSearchChange}
+              data-cy='hostInfoDialogSoftwareCveTextField' />
           </div>
-          <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit}>{t('txt-search')}</Button>
-          <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)}>{t('txt-clear')}</Button>
+          <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogSoftwareSubmitBtn'>{t('txt-search')}</Button>
+          <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-clear')}</Button>
         </div>
         <div className='search-count'>{searchCountHeader + ': ' + helper.numberWithCommas(search.count)}</div>
 
