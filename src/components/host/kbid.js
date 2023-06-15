@@ -28,6 +28,7 @@ import MuiTableContent from '../common/mui-table-content'
 import ReportRecord from './common/report-record'
 import SearchFilter from './search-filter'
 import TableList from './common/table-list'
+import UploadFile from './common/upload-file'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -111,6 +112,8 @@ class HostKbid extends Component {
       exportContextAnchor: null,
       showFilterQuery: false,
       reportOpen: false,
+      uploadKbidFileOpen: false,
+      uploadedKBID: false,
       showKbidInfo: false,
       activeKbidInfo: 'exposedDevices', //'exposedDevices'
       kbidData: {
@@ -823,7 +826,8 @@ class HostKbid extends Component {
    */
   toggleReport = () => {
     this.setState({
-      reportOpen: !this.state.reportOpen
+      reportOpen: !this.state.reportOpen,
+      uploadedKBID: false
     });
   }
   /**
@@ -861,6 +865,16 @@ class HostKbid extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Toggle KBID file upload dialog on/off
+   * @method
+   */
+  toggleKbidUploadFile = (data) => {
+    this.setState({
+      uploadKbidFileOpen: !this.state.uploadKbidFileOpen,
+      uploadedKBID: data === true
+    });
+  }
   render() {
     const {
       account,
@@ -876,6 +890,8 @@ class HostKbid extends Component {
       exportContextAnchor,
       showFilterQuery,
       reportOpen,
+      uploadKbidFileOpen,
+      uploadedKBID,
       showKbidInfo,
       kbidData
     } = this.state;
@@ -914,8 +930,17 @@ class HostKbid extends Component {
           <ReportRecord
             page='kbid'
             filter={kbidFilter}
+            uploadedFile={uploadedKBID}
             toggleReport={this.toggleReport}
+            toggleUploadFile={this.toggleKbidUploadFile}
             confirmReportList={this.confirmReportList} />
+        }
+
+        {uploadKbidFileOpen &&
+          <UploadFile
+            page='kbid'
+            toggleUploadFile={this.toggleKbidUploadFile}
+            getFilterRequestData={this.getKbidFilterRequestData} />
         }
 
         {showKbidInfo &&

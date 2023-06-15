@@ -18,6 +18,8 @@ import helper from '../common/helper'
 import ImportFile from './import-file'
 import ReportRecord from './common/report-record'
 import TableList from './common/table-list'
+import UploadFile from './common/upload-file'
+
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -153,6 +155,8 @@ class HostInventory extends Component {
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
+      tableContextAnchor: null,
+      exportContextAnchor: null,
       cveNameSearch: {
         keyword: '',
         count: 0
@@ -160,6 +164,8 @@ class HostInventory extends Component {
       showCpeInfo: false,
       showFilterQuery: false,
       reportOpen: false,
+      uploadCpeFileOpen: false,
+      uploadedCPE: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       cpeData: {
         dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'vulnerabilityNum', 'exposedDevices'],
@@ -176,8 +182,6 @@ class HostInventory extends Component {
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
-      tableContextAnchor: null,
-      exportContextAnchor: null,
       currentCpeKey: '',
       currentCpeData: {}
     };
@@ -1264,7 +1268,8 @@ class HostInventory extends Component {
    */
   toggleReport = () => {
     this.setState({
-      reportOpen: !this.state.reportOpen
+      reportOpen: !this.state.reportOpen,
+      uploadedCPE: false
     });
   }
   /**
@@ -1302,6 +1307,17 @@ class HostInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Toggle CPE file upload dialog on/off
+   * @method
+   * @param {boolean} data - true
+   */
+  toggleCpeUploadFile = (data) => {
+    this.setState({
+      uploadCpeFileOpen: !this.state.uploadCpeFileOpen,
+      uploadedCPE: data === true
+    });
+  }
   render() {
     const {
       account,
@@ -1316,11 +1332,13 @@ class HostInventory extends Component {
       cpeFilter,
       cpeFilterList,
       showCpeInfo,
+      tableContextAnchor,
+      exportContextAnchor,
       showFilterQuery,
       reportOpen,
-      cpeData,
-      tableContextAnchor,
-      exportContextAnchor
+      uploadCpeFileOpen,
+      uploadedCPE,
+      cpeData
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -1363,8 +1381,17 @@ class HostInventory extends Component {
           <ReportRecord
             page='inventory'
             filter={cpeFilter}
+            uploadedFile={uploadedCPE}
             toggleReport={this.toggleReport}
+            toggleUploadFile={this.toggleCpeUploadFile}
             confirmReportList={this.confirmReportList} />
+        }
+
+        {uploadCpeFileOpen &&
+          <UploadFile
+            page='inventory'
+            toggleUploadFile={this.toggleCpeUploadFile}
+            getFilterRequestData={this.getCpeFilterRequestData} />
         }
 
         {importDialogOpen &&

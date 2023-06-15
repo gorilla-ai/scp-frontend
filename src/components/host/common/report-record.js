@@ -56,6 +56,35 @@ class ReportRecord extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.deleteFileRecord();    
+  }
+  /**
+   * Delete file record before showing the dialog
+   * @method
+   */
+  deleteFileRecord = () => {
+    const {baseUrl} = this.context;
+    const {page} = this.props;
+    let url = '';
+
+    if (page === 'inventory') {
+      url = `${baseUrl}/api/hmd/cpeUpdateToDate/merge/_delete`;
+    } else if (page === 'kbid') {
+      url = `${baseUrl}/api/hmd/kbid/merge/_delete`;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })    
   }
   /**
    * Handle input data change
@@ -128,6 +157,23 @@ class ReportRecord extends Component {
     )
   }
   /**
+   * Handle CPE download button
+   * @method
+   */
+  fileDownload = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {page} = this.props;
+    let url = '';
+
+    if (page === 'inventory') {
+      url = `${baseUrl}${contextRoot}/api/hmd/cpeFile/merge/_download`;
+    } else if (page === 'kbid') {
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/merge/_download`;
+    }
+
+    window.open(url, '_blank');
+  }
+  /**
    * Get Vans Record
    * @method
    */
@@ -174,11 +220,30 @@ class ReportRecord extends Component {
    * @returns HTML DOM
    */
   displayReportForm = () => {
+    const {page, uploadedFile} = this.props;
     const {hmdVansConfigurations, vansFormValidation} = this.state;
+    let uploadTitle = '';
+
+    if (page === 'inventory') {
+      uploadTitle = t('host.txt-uploadMergedCpe');
+    } else if (page === 'kbid') {
+      uploadTitle = t('host.txt-uploadMergedKbid');
+    }    
 
     return (
       <div className='vans-config-form'>
-        <Button id='uploadMergedCpe' style={{visibility: 'hidden'}} variant='outlined' color='primary' className='standard btn' onClick={this.toggleCpeUploadFile}>{t('host.txt-uploadMergedCpe')}</Button>
+        {(page === 'inventory' || page === 'kbid') &&
+          <Button id='uploadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleUploadFile}>{uploadTitle}</Button>
+        }
+
+        {page === 'inventory' && uploadedFile &&
+          <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.fileDownload}>{t('host.txt-downloadMergedCpe')}</Button>
+        }
+
+        {page === 'kbid' && uploadedFile &&
+          <Button id='downloadMergedCpe' variant='outlined' color='primary' className='standard btn' onClick={this.fileDownload}>{t('host.txt-downloadMergedKbid')}</Button>
+        }
+
         <Button id='vansRecordCpe' variant='outlined' color='primary' className='standard btn' onClick={this.getVansRecord}>{t('host.txt-vansRecord')}</Button>
         <div className='group'>
           <TextField
@@ -319,7 +384,9 @@ ReportRecord.contextType = BaseDataContext;
 ReportRecord.propTypes = {
   page: PropTypes.string.isRequired,
   filter: PropTypes.object.isRequired,
+  uploadedFile: PropTypes.boolean,
   toggleReport: PropTypes.func.isRequired,
+  toggleUploadFile: PropTypes.func.isRequired,
   confirmReportList: PropTypes.func.isRequired
 };
 
