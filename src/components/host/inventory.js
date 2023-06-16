@@ -1282,7 +1282,7 @@ class HostInventory extends Component {
     const url = `${baseUrl}/api/hmd/cpeUpdateToDate/_report`;
     const requestData = {
       ...this.getCpeFilterRequestData(),
-      hmdKbidConfigurations: {
+      hmdVansConfigurations: {
         oid: hmdVansConfigurations.oid,
         unit_name: hmdVansConfigurations.unitName,
         api_key: hmdVansConfigurations.apiKey,
