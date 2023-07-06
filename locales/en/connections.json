@@ -420,7 +420,9 @@
       "txt-cvssVersion": "CVSS Version",
       "txt-publishedDate": "Published on",
       "txt-updatedDate": "Updatd on",
-      "txt-cveName": "CVE Name"
+      "txt-cveName": "CVE Name",
+      "txt-reference": "Reference",
+      "txt-kibd": "KBID"
     },
     "inventory": {
       "txt-discoveredVulnerability": "Discovered Vulnerability",

@@ -420,7 +420,9 @@
       "txt-cvssVersion": "CVSS版本",
       "txt-publishedDate": "官方發表時間",
       "txt-updatedDate": "最近更新時間",
-      "txt-cveName": "CVE名稱"
+      "txt-cveName": "CVE名稱",
+      "txt-reference": "參考",
+      "txt-kibd": "可修補KBID"
     },
     "inventory": {
       "txt-discoveredVulnerability": "軟體漏洞清單",

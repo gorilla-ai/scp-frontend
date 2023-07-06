@@ -31,6 +31,26 @@ class GeneralDialog extends Component {
   componentDidMount() {
   }
   /**
+   * Set reference list
+   * @method
+   * @param {object} val - reference list data
+   * @param {number} i - index of the reference list
+   * @returns HTML DOM
+   */
+  showReferenceList = (val, i) => {
+    return <div key={i}><a href={val} className='c-link blue-color' target='_blank'>{val}</a></div>
+  }
+  /**
+   * Set KBID list
+   * @method
+   * @param {object} val - KBID list data
+   * @param {number} i - index of the KBID list
+   * @returns HTML DOM
+   */
+  showKbidList = (val, i) => {
+    return <div key={i}>{val}</div>
+  }
+  /**
    * Display general info
    * @method
    * @returns HTML DOM
@@ -40,35 +60,124 @@ class GeneralDialog extends Component {
 
     if (page === 'vulnerabilities') {
       return (
-        <ul className='vulnerability'>
-          <li><span>{t('host.vulnerabilities.txt-vulnerabilityDesc')}</span>: {data.description || NOT_AVAILABLE}</li>
-          <li><span>{t('host.vulnerabilities.txt-name')}</span>: {data.cveId || NOT_AVAILABLE}</li>
-          <li><span>{t('host.vulnerabilities.txt-severity')}</span>: {t('txt-' + data.severity.toLowerCase())}</li> 
-          <li><span>CVSS</span>: {data.cvss || NOT_AVAILABLE}</li>
-          <li><span>{t('host.vulnerabilities.txt-cvssVersion')}</span>: {data.cvssVersion || NOT_AVAILABLE}</li>
-          <li><span>{t('host.vulnerabilities.txt-publishedDate')}</span>: {helper.getFormattedDate(data.publishedDate, 'local')}</li>
-          <li><span>{t('host.vulnerabilities.txt-updatedDate')}</span>: {helper.getFormattedDate(data.lastModifiedDate, 'local')}</li>
-          <li><span>{t('host.vulnerabilities.txt-daysOpen')}</span>: {data.daysOpen}</li>
-        </ul>
+        <table className='c-table main-table'>
+          <tbody>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-vulnerabilityDesc')}</span></td>
+              <td><span>{data.description || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-name')}</span></td>
+              <td>{data.cveId || NOT_AVAILABLE}</td>
+            </tr>
+
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-severity')}</span></td>
+              <td>{t('txt-' + data.severity.toLowerCase())}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>CVSS</span></td>
+              <td>{data.cvss || NOT_AVAILABLE}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-cvssVersion')}</span></td>
+              <td>{data.cvssVersion || NOT_AVAILABLE}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-publishedDate')}</span></td>
+              <td>{helper.getFormattedDate(data.publishedDate, 'local')}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-updatedDate')}</span></td>
+              <td>{helper.getFormattedDate(data.lastModifiedDate, 'local')}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-daysOpen')}</span></td>
+              <td>{data.daysOpen}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-reference')}</span></td>
+              <td>
+                {data.referenceData && data.referenceData.length > 0 &&
+                  data.referenceData.map(this.showReferenceList)
+                }
+                {data.referenceData && data.referenceData.length === 0 &&
+                  <span>{NOT_AVAILABLE}</span>
+                }
+              </td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.vulnerabilities.txt-kibd')}</span></td>
+              <td>
+                {data.kbids && data.kbids.length > 0 &&
+                  data.kbids.map(this.showKbidList)
+                }
+                {data.kbids && data.kbids.length === 0 &&
+                  <span>{NOT_AVAILABLE}</span>
+                }
+              </td>
+            </tr>
+          </tbody>
+        </table>
       )
     } else if (page === 'inventory') {
       return (
-        <ul className='vulnerability'>
-          <li className='header'><span>{t('host.inventory.txt-cpe23uri')}</span>: {data.cpe23uri || NOT_AVAILABLE}</li>
-          <li className='header'><span>{t('host.inventory.txt-cpeNameComponents')}</span></li>
-          <li><span>{t('host.inventory.txt-edition')}</span>: {data.edition || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-language')}</span>: {data.language || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-other')}</span>: {data.other || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-part')}</span>: {data.part || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-product')}</span>: {data.product || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-swEdition')}</span>: {data.swEdition || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-targetHw')}</span>: {data.targetHw || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-targetSw')}</span>: {data.targetSw || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-update')}</span>: {data.update || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-vendor')}</span>: {data.vendor || NOT_AVAILABLE}</li>
-          <li><span>{t('host.inventory.txt-version')}</span>: {data.version || NOT_AVAILABLE}</li>
-          <li className='header'><span>{t('host.inventory.txt-productCpename')}</span>: <span>{data.productCpename}</span></li>
-        </ul>
+        <table className='c-table main-table'>
+          <tbody>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-cpe23uri')}</span></td>
+              <td><span>{data.cpe23uri || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-edition')}</span></td>
+              <td><span>{data.edition || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-language')}</span></td>
+              <td><span>{data.language || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-other')}</span></td>
+              <td><span>{data.other || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-part')}</span></td>
+              <td><span>{data.part || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-product')}</span></td>
+              <td><span>{data.product || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-swEdition')}</span></td>
+              <td><span>{data.swEdition || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-targetHw')}</span></td>
+              <td><span>{data.targetHw || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-targetSw')}</span></td>
+              <td><span></span>{data.targetSw || NOT_AVAILABLE}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-update')}</span></td>
+              <td><span></span>{data.update || NOT_AVAILABLE}</td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-vendor')}</span></td>
+              <td><span>{data.vendor || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-version')}</span></td>
+              <td><span>{data.version || NOT_AVAILABLE}</span></td>
+            </tr>
+            <tr>
+              <td><span className='blue-color'>{t('host.inventory.txt-productCpename')}</span></td>
+              <td><span>{data.productCpename}</span></td>
+            </tr>
+          </tbody>
+        </table>
       )
     }
   }

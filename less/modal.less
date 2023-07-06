@@ -3094,3 +3094,20 @@ html[data-theme='dark'] {
     margin-top: 10px;
   }
 }
+#showCveDialog-content,
+#showCpeDialog-content {
+  .main-table {
+    .blue-color {
+      color: var(--primaryContentHeader);
+    }
+    td {
+      vertical-align: top;
+      padding: 10px !important;
+      border: 1px solid var(--primaryBorder) !important;
+      white-space: pre-wrap;
+      &:nth-child(odd) {
+        width: 180px;
+      }
+    }
+  }
+}

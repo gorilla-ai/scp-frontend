@@ -6064,7 +6064,7 @@ class HostController extends Component {
         }
 
         <div className='sub-header'>
-          <Button id='hostVulnerabilities2'><Link to='/SCP/host/vulnerabilities'>.</Link></Button>
+          <Button id='hostVulnerabilitiesHidden'><Link to='/SCP/host/vulnerabilities'>.</Link></Button>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary'><Link to='/SCP/host/cpe'>{t('host.txt-cpePage')}</Link></Button>
             <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, 'endpointSecuritySettings')}>{t('host.txt-endpointSecuritySettings')}</Button>
