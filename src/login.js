@@ -691,7 +691,7 @@ class Login extends Component {
         }
 
         <div id='loingTitle'>
-          <img src='https://172.18.0.119/SCP/images/nsguard-logo.png' />
+          <img src='/SCP/images/nsguard-logo.png' />
           <span className='title'>{productName}</span>
         </div>
 
