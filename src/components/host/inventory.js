@@ -1239,6 +1239,7 @@ class HostInventory extends Component {
   exportCpeList = (type) => {
     const {baseUrl, contextRoot} = this.context;
     const {cpeData} = this.state;
+    const sort = cpeData.sort.desc ? 'desc' : 'asc';
     let url = '';
     let requestData = {
       ...this.getCpeFilterRequestData()
@@ -1257,6 +1258,10 @@ class HostInventory extends Component {
       requestData.exportFields = exportFields;
     } else if (type === 'nccst') {
       url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
+    }
+
+    if (cpeData.sort.field) {
+      url += `?orders=${cpeData.sort.field} ${sort}`;
     }
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
