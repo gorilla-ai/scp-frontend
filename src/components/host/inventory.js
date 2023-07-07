@@ -1255,13 +1255,14 @@ class HostInventory extends Component {
       })
 
       url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
+
+      if (cpeData.sort.field) {
+        url += `?orders=${cpeData.sort.field} ${sort}`;
+      }
+
       requestData.exportFields = exportFields;
     } else if (type === 'nccst') {
       url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
-    }
-
-    if (cpeData.sort.field) {
-      url += `?orders=${cpeData.sort.field} ${sort}`;
     }
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
