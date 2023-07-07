@@ -776,6 +776,7 @@
     "isMatched": "Matched",
     "system": "System",
     "vulnerabilityNum": "Vulnerability Number",
+    "riskValue": "Risk Value",
     "exposedDevices": "Exposed Devices Count"
   },
   "hostDashboardFields": {

@@ -168,7 +168,7 @@ class HostInventory extends Component {
       uploadedCPE: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       cpeData: {
-        dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'vulnerabilityNum', 'exposedDevices'],
+        dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'vulnerabilityNum', 'riskValue', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {

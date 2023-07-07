@@ -776,6 +776,7 @@
     "isMatched": "相符",
     "system": "系統",
     "vulnerabilityNum": "弱點數量",
+    "riskValue": "風險指數",
     "exposedDevices": "暴露裝置數量"
   },
   "hostDashboardFields": {
