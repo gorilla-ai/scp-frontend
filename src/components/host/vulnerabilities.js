@@ -83,7 +83,7 @@ const EXPOSED_DEVICES_SEARCH = {
   count: 0
 };
 const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['hostName', 'group', 'ip', 'system', 'relatedSoftware', 'daysOpen'],
+  dataFieldsArr: ['hostName', 'group', 'ip', 'system', 'relatedSoftware', 'daysOpen', 'fix'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -154,7 +154,7 @@ class HostVulnerabilities extends Component {
       showFilterQuery: false,
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices' or 'relatedSoftware'
       cveData: {
-        dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'exposedDevices'],
+        dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'exposedDevices', 'fixedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -633,7 +633,7 @@ class HostVulnerabilities extends Component {
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const unSortableFields = ['_menu', 'relatedSoftware', 'exposedDevices'];
+    const unSortableFields = ['_menu', 'relatedSoftware', 'exposedDevices', 'fixedDevices'];
 
     if (_.includes(unSortableFields, field)) {
       return false;
@@ -762,6 +762,10 @@ class HostVulnerabilities extends Component {
       requestData.system = exposedDevicesSearch.system;
     }
 
+    if (exposedDevicesSearch.fix && exposedDevicesSearch.fix !== 'all') {
+      requestData.fix = (exposedDevicesSearch.fix === 'true');
+    }
+
     if (cveFilter.departmentSelected.length > 0) {
       requestData.departmentArray = cveFilter.departmentSelected;
     }
@@ -815,6 +819,8 @@ class HostVulnerabilities extends Component {
                       }
                     </div>
                   )
+                } else if (val === 'fix') {
+                  return value ? t('txt-fixed') : t('txt-notFixed');
                 } else {
                   return value;
                 }

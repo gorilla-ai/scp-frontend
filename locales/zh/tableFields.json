@@ -786,6 +786,7 @@
     "relatedSoftware": "相關軟體",
     "daysOpen": "已存在天數",
     "exposedDevices": "暴露裝置數量",
+    "fixedDevices": "已修補裝置數量",
     "departmentSelected": "部門",
     "cpeKey": "CPE Key",
     "product": "產品",

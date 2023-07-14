@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button'
+import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 
 import {BaseDataContext} from '../../common/context'
@@ -187,7 +188,7 @@ class GeneralDialog extends Component {
    * @returns HTML DOM
    */
   showExposedDevices = () => {
-    const {search, data, tableOptions} = this.props;
+    const {page, search, data, tableOptions} = this.props;
 
     return (
       <React.Fragment>
@@ -225,6 +226,25 @@ class GeneralDialog extends Component {
               onChange={this.props.handleSearchChange}
               data-cy='hostInfoDialogDeviceSystemTextField' />
           </div>
+          {page === 'vulnerabilities' &&
+            <div className='group'>
+              <TextField
+                name='fix'
+                style={{width: '115px'}}
+                select
+                label={t('host.vulnerabilities.txt-fix')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={search.fix}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogDeviceFixTextField'>
+                <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                <MenuItem value='true'>{t('txt-fixed')}</MenuItem>
+                <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
+              </TextField>
+            </div>
+          }
           <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
           <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
         </div>
