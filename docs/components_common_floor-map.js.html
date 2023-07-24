@@ -28,26 +28,29 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
-import cx from 'classnames'
+
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
 
 import FileInput from 'react-ui/build/src/components/file-input'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TreeView from 'react-ui/build/src/components/tree'
 
+import {BaseDataContext} from './context';
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+let et = null;
 
 /**
  * Floor Map
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the floor map and its settings
  */
 class FloorMap extends Component {
@@ -56,21 +59,23 @@ class FloorMap extends Component {
 
     this.state = {
       floorPlan: {
-        treeData: {},
+        treeData: [],
         type: '',
         rootAreaUUID: '',
         currentAreaUUID: '',
         currentAreaName: '',
         name: '',
-        map: ''
+        map: null
       },
       mapAreaUUID: '',
       currentMap: '',
       currentBaseLayers: {},
-      previewFloorMap: ''
+      previewFloorMap: '',
+      floorNameError: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -81,28 +86,47 @@ class FloorMap extends Component {
    * @method
    */
   getFloorPlan = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
       type: 'GET'
     })
     .then(data => {
-      if (data &amp;&amp; data.length > 0) {
-        const floorPlanData = data[0];
-        const areaUUID = floorPlanData.areaUUID;
+      if (data) {
         let tempFloorPlan = {...this.state.floorPlan};
-        tempFloorPlan.treeData = data;
-        tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
-        tempFloorPlan.currentAreaUUID = areaUUID;
-        tempFloorPlan.currentAreaName = floorPlanData.areaName;
-        tempFloorPlan.name = floorPlanData.areaName;
 
-        this.setState({
-          floorPlan: tempFloorPlan
-        }, () => {
-          this.getAreaData(areaUUID);
-        });
+        if (data.length > 0) {
+          const floorPlanData = data[0];
+          const areaUUID = floorPlanData.areaUUID;
+          tempFloorPlan.treeData = data;
+          tempFloorPlan.type = 'edit';
+          tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
+          tempFloorPlan.currentAreaUUID = areaUUID;
+          tempFloorPlan.currentAreaName = floorPlanData.areaName;
+          tempFloorPlan.name = floorPlanData.areaName;
+          tempFloorPlan.map = null;
+
+          this.setState({
+            floorPlan: tempFloorPlan,
+            previewFloorMap: ''
+          }, () => {
+            this.getAreaData(areaUUID);
+          });
+        } else {
+          this.setState({
+            floorPlan: {
+              treeData: [],
+              type: 'add',
+              rootAreaUUID: '',
+              currentAreaUUID: '',
+              currentAreaName: '',
+              name: '',
+              map: null
+            },
+            previewFloorMap: ''
+          });
+        }
       }
       return null;
     })
@@ -116,44 +140,49 @@ class FloorMap extends Component {
    * @param {string} areaUUID - area UUID
    */
   getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
+
+    if (!floorPlan) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = '';
+      if (data) {
+        let currentMap = '';
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: data.areaName,
+            images: [
+              {
+                id: data.areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
         };
+
+        this.setState({
+          mapAreaUUID: floorPlan,
+          currentMap,
+          currentBaseLayers
+        });
+        return null;
       }
-
-      const currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
-
-      this.setState({
-        mapAreaUUID: floorPlan,
-        currentMap,
-        currentBaseLayers
-      });
-      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -162,129 +191,110 @@ class FloorMap extends Component {
   /**
    * Set input data change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input data to be set
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempFloorPlan = {...this.state.floorPlan};
-    tempFloorPlan[type] = value;
-
-    if (type === 'map') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewFloorMap: file
-      });
-    }
+    tempFloorPlan[event.target.name] = event.target.value;  
 
     this.setState({
       floorPlan: tempFloorPlan
     });
   }
   /**
-   * Set floor plan based on user actions
+   * Set map data change
    * @method
-   * @param {string} type - action type ('add', 'edit' or 'clear')
+   * @param {string | object} value - input data to be set
    */
-  handleMapActions = (type) => {
-    if (type === 'clear') {
-      this.setState({
-        floorPlan: this.clearData('floorPlanData'),
-        currentMap: this.clearData('mapData')
-      });
-    } else {
-      const {floorPlan} = this.state;
-      let tempFloorPlan = {...floorPlan};
+  handleMapChange = (value) => {
+    const specialCharacterCheck = /[!@#$%^&amp;*+\=\[\]{};':"\\|,&lt;>\/?~]/;
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan.map = value;
 
-      if (type === 'add') {
-        tempFloorPlan.type = type;
-        tempFloorPlan.name = '';
-      } else if (type === 'edit') {
-        if (_.isEmpty(floorPlan.treeData)) {
-          tempFloorPlan.type = 'add';
-          tempFloorPlan.name = '';
-        }
-      }
-
-      this.setState({
-        floorPlan: tempFloorPlan
-      });
+    if (value &amp;&amp; specialCharacterCheck.test(value.name)) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-specialCharacterError'));
+      return;
     }
+
+    this.setState({
+      previewFloorMap: value ? URL.createObjectURL(value) : '',
+      floorPlan: tempFloorPlan
+    });
+  }
+  /**
+   * Handle tree selection
+   * @param {object} val - tree data
+   * @method
+   */
+  handleSelectTree = (val) => {
+    const areaUUID = val.areaUUID;
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan.currentAreaName = val.areaName;
+    tempFloorPlan.currentAreaUUID = areaUUID;
+    tempFloorPlan.currentParentAreaUUID = val.parentAreaUUID;
+    tempFloorPlan.name = val.areaName;
+    tempFloorPlan.type = 'edit';
+
+    this.setState({
+      floorPlan: tempFloorPlan,
+      previewFloorMap: '',
+      floorNameError: false
+    }, () => {
+      this.fileInput.handleClick();
+      this.getAreaData(areaUUID);
+    });
+  }
+  /**
+   * Display tree item
+   * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
+   */
+  getTreeItem = (val, i) => {
+    return (
+      &lt;TreeItem
+        key={val.id + i}
+        id={'floorMapTree_'+ val.label}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={this.handleSelectTree.bind(this, val)}>
+        {val.children &amp;&amp; val.children.length > 0 &amp;&amp;
+          val.children.map(this.getTreeItem)
+        }
+      &lt;/TreeItem>
+    )
   }
   /**
    * Get tree data
    * @method
    * @param {object} tree - tree data
-   * @param {string} selectedID - selected area UUID
    * @param {number} i - index of the floorPlan tree data
    * @returns TreeView component
    */
-  getTreeView = (tree, selectedID, i) => {
+  displayTreeView = (tree, i) => {
     return (
       &lt;TreeView
-        id={tree.areaUUID}
-        key={tree.areaUUID}
-        data={tree}
-        selected={selectedID}
-        defaultOpened={[tree.areaUUID]}
-        onSelect={this.selectTree.bind(this, i)} />
-    )
-  }
-  /**
-   * Display tree data for lefe nav
-   * @method
-   * @param {string} currentAreaUUID - current active area UUID
-   * @param {object} value - floor plan data
-   * @param {number} i - index of the tree array
-   * @returns content of the TreeView component
-   */
-  displayTreeView = (currentAreaUUID, value, i) => {
-    return this.getTreeView(value, currentAreaUUID, i); 
-  }
-  /**
-   * Set floor plan based on user's section of the tree
-   * @method
-   * @param {number} i - index of the tree array
-   * @param {string} areaUUID - current active area UUID
-   * @param {object} eventData - event data
-   */
-  selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.props;
-    let tempFloorPlan = {...this.state.floorPlan};
-    let tempArr = [];
-    let pathStr = '';
-    let pathNameStr = '';
-    let pathParentStr = '';
-
-    if (eventData.path.length > 0) {
-      _.forEach(eventData.path, val => {
-        if (val.index >= 0) {
-          tempArr.push(val.index);
+        key={i}
+        id='floorMapTreeView'
+        defaultCollapseIcon={&lt;ExpandMoreIcon />}
+        defaultExpandIcon={&lt;ChevronRightIcon />}
+        defaultSelected={tree.areaUUID}
+        defaultExpanded={[tree.areaUUID]}
+        selected={this.state.floorPlan.currentAreaUUID}>
+        {tree.areaUUID &amp;&amp;
+          &lt;TreeItem
+            id={'floorMapTree_'+ tree.areaName}
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            {tree.children.length > 0 &amp;&amp;
+              tree.children.map(this.getTreeItem)
+            }
+          &lt;/TreeItem>
         }
-      })
-    }
-
-    _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].'
-    })
-
-    pathNameStr = pathStr + 'label';
-    pathParentStr = pathStr + 'parentAreaUUID';
-
-    if (eventData.path[0].id) {
-      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
-    }
-    tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
-    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
-    tempFloorPlan.name = tempFloorPlan.currentAreaName;
-    tempFloorPlan.type = 'edit';
-
-    this.setState({
-      floorPlan: tempFloorPlan
-    }, () => {
-      this.getAreaData(areaUUID);
-    });
+      &lt;/TreeView>
+    )
   }
   /**
    * Display delete area content
@@ -292,11 +302,9 @@ class FloorMap extends Component {
    * @returns HTML DOM
    */
   getDeleteAreaContent = () => {
-    const {floorPlan} = this.state;
-
     return (
       &lt;div className='content delete'>
-        &lt;span>{t('txt-delete-msg')}: {floorPlan.currentAreaName}?&lt;/span>
+        &lt;span>{t('network-topology.txt-deleteFloorMsg')}: {this.state.floorPlan.currentAreaName}?&lt;/span>
       &lt;/div>
     )
   }
@@ -323,8 +331,14 @@ class FloorMap extends Component {
    * @method
    */
   deleteAreaMap = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {floorPlan} = this.state;
+
+    if (!floorPlan.currentAreaUUID) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
@@ -333,34 +347,120 @@ class FloorMap extends Component {
     .then(data => {
       if (data.ret === 0) {
         this.setState({
-          currentMap: this.clearData('mapData'),
-          floorPlan: this.clearData('floorPlanData')
+          floorPlan: this.clearFloorPlanData('edit'),
+          currentMap: ''
         }, () => {
           this.getFloorPlan();
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
     })
   }
   /**
-   * Display Add Floor content
+   * Display delete floor content
+   * @method
+   * @returns HTML DOM
+   */
+  getDeleteFloorContent = () => {
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('network-topology.txt-deleteFloorMapMsg')} ({this.state.floorPlan.currentAreaName})?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show the delete single area modal dialog
    * @method
    */
-  displayAddFloor = () => {
-    const {currentMap, floorPlan, previewFloorMap} = this.state;
-    const addTree = t('network-topology.txt-addTree');
-    const selectTree = t('network-topology.txt-selectTree');
-    const deselectTree = t('network-topology.txt-deselectTree');
-    const editTree = t('network-topology.txt-editTree');
-    const removeTree = t('network-topology.txt-removeTree');
-    const removeMap = t('network-topology.txt-deleteFloorMap');
-    let showMap = true;
+  openDeleteSingleAreaModal = () => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteFloorMap'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteFloorContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFloorMap();
+        }
+      }
+    });
+  }
+  /**
+   * Delete single floor map file
+   * @method
+   */
+  deleteFloorMap = () => {
+    const {baseUrl} = this.context;
+    const {floorPlan} = this.state;
+    const requestType = 'PATCH';
+    let formData = new FormData();
+    formData.append('areaName', floorPlan.name);
+    formData.append('scale', 0);
+    formData.append('areaUUID', floorPlan.currentAreaUUID);
+    formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
+    formData.append('areaRoute', '');
 
-    if (floorPlan.type === 'add') {
-      showMap = false;
+    if (floorPlan.currentParentAreaUUID) {
+      formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
+    } else {
+      formData.append('parentAreaUUID', '');
     }
+
+    formData.append('file', '');
+    formData.append('updatePic', true);
+
+    this.ah.one({
+      url: `${baseUrl}/api/area`,
+      data: formData,
+      type: requestType,
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      this.setState({
+        floorPlan: this.clearFloorPlanData('edit'),
+        currentMap: ''
+      }, () => {
+        this.getFloorPlan();
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set floor plan based on user's actions
+   * @method
+   * @param {string} type - action type ('add' or 'clear')
+   */
+  handleMapActions = (type) => {
+    if (type === 'add') {
+      let tempFloorPlan = {...this.state.floorPlan};
+      tempFloorPlan.type = type;
+      tempFloorPlan.name = '';
+
+      this.setState({
+        floorPlan: tempFloorPlan
+      });
+    } else if (type === 'clear') {
+      this.setState({
+        floorPlan: this.clearFloorPlanData('clear'),
+        currentMap: ''
+      });
+    }
+  }
+  /**
+   * Display Add Floor content
+   * @method
+   * @returns HTML DOM
+   */
+  displayAddFloor = () => {
+    const {floorPlan, currentMap, previewFloorMap, floorNameError} = this.state;
 
     return (
       &lt;div>
@@ -371,21 +471,21 @@ class FloorMap extends Component {
         &lt;/div>
         &lt;div className='left'>
           &lt;header>
-            {floorPlan.currentAreaUUID &amp;&amp;
-              &lt;i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={deselectTree}>&lt;/i>
+            {(!floorPlan.currentAreaUUID || floorPlan.type === 'add') &amp;&amp;
+              &lt;i className='fg fg-add active' title={t('network-topology.txt-addTree')}>&lt;/i>
             }
-            &lt;i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.handleMapActions.bind(this, 'add')} title={addTree}>&lt;/i>
-            {floorPlan.currentAreaUUID &amp;&amp;
+            {floorPlan.currentAreaUUID &amp;&amp; floorPlan.type === 'edit' &amp;&amp;
               &lt;span>
-                &lt;i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.handleMapActions.bind(this, 'edit')} title={editTree}>&lt;/i>
-                &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}>&lt;/i>
+                &lt;i id='floorMapClearTree' className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}>&lt;/i>
+                &lt;i id='floorMapAddTree' className='c-link fg fg-add' onClick={this.handleMapActions.bind(this, 'add')} title={t('network-topology.txt-addTree')}>&lt;/i>
+                &lt;i id='floorMapRemoveTree' className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={t('network-topology.txt-removeTree')}>&lt;/i>
               &lt;/span>
             }
           &lt;/header>
 
           &lt;div className='display-tree'>
             {floorPlan.treeData &amp;&amp; floorPlan.treeData.length > 0 &amp;&amp;
-              floorPlan.treeData.map(this.displayTreeView.bind(this, floorPlan.currentAreaUUID))
+              floorPlan.treeData.map(this.displayTreeView)
             }
           &lt;/div>
         &lt;/div>
@@ -393,19 +493,25 @@ class FloorMap extends Component {
         &lt;div className='right'>
           &lt;header className='add-floor'>
             &lt;div className='field'>
-              &lt;label htmlFor='areaMapName'>{t('txt-name')}&lt;/label>
-              &lt;Input
-                id='areaMapName'
-                className='add'
-                onChange={this.handleDataChange.bind(this, 'name')}
-                value={floorPlan.name} />
+              &lt;label htmlFor='areaMapUpload'>{t('txt-name')}&lt;/label>
+              &lt;TextField
+                id='floorMapAreaName'
+                name='name'
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                error={floorNameError}
+                helperText={floorNameError ? t('txt-required') : ''}
+                value={floorPlan.name}
+                onChange={this.handleDataChange} />
             &lt;/div>
-
-            &lt;div className='field'>
+            &lt;div className='field upload'>
               &lt;label htmlFor='areaMapUpload'>{t('txt-network-map')}&lt;/label>
               &lt;FileInput
+                ref={ref => { this.fileInput = ref }}
                 id='areaMapUpload'
-                className='area-upload'
+                className='file-input area-upload'
                 name='file'
                 btnText={t('txt-upload')}
                 validate={{
@@ -417,18 +523,20 @@ class FloorMap extends Component {
                     }
                   }
                 }}
-                onChange={this.handleDataChange.bind(this, 'map')} />
+                onChange={this.handleMapChange} />
             &lt;/div>
 
-            {showMap &amp;&amp; currentMap &amp;&amp; floorPlan.currentAreaUUID &amp;&amp;
-              &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={removeMap}>&lt;/i>
+            &lt;i id='floorMapSaveFloor' className='c-link fg fg-save' onClick={this.handleFloorSave} title={t('network-topology.txt-saveFloor')}>&lt;/i>
+
+            {floorPlan.type !== 'add' &amp;&amp; floorPlan.currentAreaUUID &amp;&amp; currentMap &amp;&amp;
+              &lt;i id='floorMapDeleteFloor' className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={t('network-topology.txt-deleteFloorMap')}>&lt;/i>
             }
           &lt;/header>
           &lt;div className='map'>
             {previewFloorMap &amp;&amp;
               &lt;img src={previewFloorMap} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
             }
-            {!previewFloorMap &amp;&amp; showMap &amp;&amp; currentMap.images &amp;&amp;
+            {!previewFloorMap &amp;&amp; floorPlan.type !== 'add' &amp;&amp; currentMap.images &amp;&amp;
               &lt;img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
             }
           &lt;/div>
@@ -439,27 +547,25 @@ class FloorMap extends Component {
   /**
    * Add/Edit area floor map and reload the map/table
    * @method
-   */
-  handleFloorConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+   */  
+  handleFloorSave = () => {
+    const {baseUrl} = this.context;
     const {floorPlan} = this.state;
     let formData = new FormData();
     let requestType = 'POST';
-    let floorName = '';
-
-    if (floorPlan.type === '') {
-      this.closeDialog();
-      return;
-    }
 
     if (floorPlan.name) {
-      floorName = floorPlan.name;
+      this.setState({
+        floorNameError: false
+      });
     } else {
-      helper.showPopupMsg(t('network-topology.txt-enterFloor'), t('txt-error'));
+      this.setState({
+        floorNameError: true
+      });
       return;
     }
 
-    formData.append('areaName', floorName);
+    formData.append('areaName', floorPlan.name);
     formData.append('scale', 0);
 
     if (floorPlan.type === 'add') {
@@ -475,7 +581,6 @@ class FloorMap extends Component {
       formData.append('areaUUID', floorPlan.currentAreaUUID);
       formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
       formData.append('areaRoute', '');
-      floorPlan.currentAreaName = floorName;
 
       if (floorPlan.currentParentAreaUUID) {
         formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
@@ -490,9 +595,16 @@ class FloorMap extends Component {
         formData.append('file', '');
         formData.append('updatePic', false);
       }
+    } else if (floorPlan.type === 'clear') {
+      if (floorPlan.map) {
+        formData.append('file', floorPlan.map);
+        formData.append('updatePic', true);
+      }
     }
 
-    this.ah.one({
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
       url: `${baseUrl}/api/area`,
       data: formData,
       type: requestType,
@@ -500,15 +612,18 @@ class FloorMap extends Component {
       contentType: false
     })
     .then(data => {
-      this.getFloorPlan();
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('network-topology.txt-saveSuccess'));
 
-      if (data) {
-        this.getAreaData(data, 'setAreaUUID');
-      } else {
-        this.getAreaData();
+        this.setState({
+          floorPlan: this.clearFloorPlanData('edit'),
+          currentMap: ''
+        }, () => {
+          this.fileInput.handleClick();
+          this.getFloorPlan();
+          this.getAreaData(data.rt); //areaUUID
+        });
       }
-
-      this.closeDialog('reload');
       return null;
     })
     .catch(err => {
@@ -518,35 +633,34 @@ class FloorMap extends Component {
   /**
    * Clear floor plan data
    * @method
-   * @param {string} type - data type to be cleared
+   * @param {string} actionType - action type to be cleared ('clear' or 'edit')
+   * @returns data object
    */
-  clearData = (type) => {
-    const {floorPlan} = this.state;
-    let tempData = {};
-
-    if (type === 'mapData') {
-      tempData = {
-        currentMap: ''
-      };
-    } else if (type === 'floorPlanData') {
-      tempData = {
-        treeData: floorPlan.treeData,
-        type: '',
-        rootAreaUUID: '',
-        currentAreaUUID: '',
-        currentAreaName: '',
-        name: '',
-        map: ''
-      };
-    }
-    return tempData;
+  clearFloorPlanData = (type) => {
+    return {
+      treeData: this.state.floorPlan.treeData,
+      type,
+      rootAreaUUID: '',
+      currentAreaUUID: '',
+      currentAreaName: '',
+      name: '',
+      map: ''
+    };
+  }
+  /**
+   * Close dialog and reload the map/table
+   * @method
+   */
+  handleFloorConfirm = () => {
+    this.closeDialog('reload');
   }
   /**
    * Reset floor plan data before closing the modal dialog
    * @method
-   * @param {string} option - option to reload the data
+   * @param {string} options - option to reload the data
+   * @param {string} type - option for 'confirm' or 'cancel'
    */
-  closeDialog = (option) => {
+  closeDialog = (options, type) => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
     tempFloorPlan.name = tempFloorPlan.currentAreaName;
@@ -556,22 +670,22 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
-      this.props.closeDialog(option, 'all');
+      this.fileInput.handleClick();
+
+      if (type) {
+        if (type === 'cancel') {
+          this.props.closeDialog();
+        }
+      } else {
+        this.props.closeDialog(options, 'fromFloorMap');
+      }
     });
   }
   render() {
-    const {floorPlan} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm}
+      confirm: {text: t('txt-close'), handler: this.handleFloorConfirm}
     };
-    let titleText = '';
-
-    if (floorPlan.type === 'edit' || floorPlan.type === 'map') {
-      titleText = t('network-topology.txt-editFloorMap');
-    } else {
-      titleText = t('network-topology.txt-addFloorMap');
-    }
+    const titleText = t('network-topology.txt-editFloorMap');
 
     return (
       &lt;ModalDialog
@@ -581,18 +695,19 @@ class FloorMap extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='confirm'>
         {this.displayAddFloor()}
       &lt;/ModalDialog>
     )
   }
 }
 
+FloorMap.contextType = BaseDataContext;
+
 FloorMap.propTypes = {
 };
 
-const HocFloorMap = withLocale(FloorMap);
-export { FloorMap, HocFloorMap };</code></pre>
+export default FloorMap;</code></pre>
         </article>
     </section>
 
@@ -602,13 +717,13 @@ export { FloorMap, HocFloorMap };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

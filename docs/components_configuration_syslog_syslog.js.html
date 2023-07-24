@@ -27,122 +27,228 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
-import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
+import momentTimezone from 'moment-timezone'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
+
+import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormLabel from '@material-ui/core/FormLabel'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
+import UpdateIcon from '@material-ui/icons/Update'
+
 import DataTable from 'react-ui/build/src/components/table'
-import DateRange from 'react-ui/build/src/components/date-range'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
-import {HocConfig as Config} from '../../common/configuration'
-import EditHosts from './edit-hosts'
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
+import ExportCharts from './export-charts'
+import ExportCSV from '../../common/export-csv'
 import helper from '../../common/helper'
-import Relationships from './relationships'
-import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
+import SyslogConfig from './syslog-config'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const DEFAULT_INPUT = 'streaming log sample';
+const DEFAULT_PATTERN = '%{GREEDYDATA}';
+const INIT_PATTERN_NAME = 'Pattern1';
+const INIT_CONFIG = {
+  type: 'formatSettings',
+  id: '',
+  loghostIp: '',
+  name: '',
+  port: '',
+  format: '',
+  patternSetting: [{
+    patternName: INIT_PATTERN_NAME,
+    input: DEFAULT_INPUT,
+    pattern: DEFAULT_PATTERN,
+    property: null,
+    relationships: [
+      {name: '', srcNode: '', dstNode: '', conditions:[]}
+    ],
+    rawOptions: []
+  }]
+};
+const SYSLOG_SEARCH = {
+  name: '',
+  loghostip: '',
+  port: '',
+  isactive: '',
+  netproxyname: ''
+};
+const FORM_VALIDATION = {
+  editHostsHost: {
+    valid: true
+  },
+  sshAccountName: {
+    valid: true
+  }
+};
+
+let a = null;
 let t = null;
 let f = null;
 let et = null;
 
-const default_pattern = '%{GREEDYDATA}';
-const default_input = 'streaming log sample';
-
-const INIT_CONFIG = {
-  type: 'filter',
-  id: '',
-  name: '',
-  port: '',
-  format: '',
-  input: default_input,
-  pattern: default_pattern,
-  property: null,
-  relationships: [
-    {name: '', srcNode: '', dstNode: '', conditions:[]}
-  ]
-};
-
-const INIT = {
-  openFilter: false,
-  dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
-  dataFields: {},
-  syslog: {
-    dataContent: [],
-    sort: {
-      field: 'name',
-      desc: false
-    },
-    totalCount: 0,
-    currentPage: 1,
-    pageSize: 20,
-  },
-  openFilter: false,
-  search: {
-    port: '',
-    format: ''
-  },
-  openSyslog: false,
-  openTimeline: false,
-  openEditHosts: false,
-  clickTimeline: false,
-  activeTimeline: '',
-  activeConfigId: '',
-  activeConfigName: '',
-  datetime: {
-    from: helper.getStartDate('day'),
-    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-  },
-  eventsData: {},
-  hostsData: {},
-  modalTitle: '',
-  config: INIT_CONFIG,
-  configRelationships: [],
-  rawOptions: [],
-  error: false,
-  info: ''
-};
-
 /**
  * Syslog Management
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to manage the System Syslog
  */
 class Syslog extends Component {
   constructor(props) {
     super(props);
 
-    this.state = _.cloneDeep(INIT);
+    this.state = {
+      openFilter: false,
+      activeContent: 'syslogData', //'syslogData', 'hostInfo' or 'editSyslog'
+      dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'patternName', 'notify', '_menu'],
+      dataFields: {},
+      syslog: {
+        dataContent: null,
+        sort: {
+          field: 'name',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+      },
+      hostsFieldsArr: ['id', 'host', 'name', '_menu'],
+      hostsFields: {}, 
+      hosts: {
+        dataContent: [],
+        sort: {
+          field: 'ip',
+          desc: false
+        }
+      },
+      syslogSearch: _.cloneDeep(SYSLOG_SEARCH),
+      activeHostInfo: {
+        id: '',
+        ip: ''
+      },
+      newHostName: '',
+      hostNotifyStatus: '',
+      sshDataFieldArr: ['id', 'account', 'option'],
+      sshData: [],
+      sshAccountName: '',
+      activeSyslogData: {},
+      editSyslogType: '', //'edit' or 'save'
+      editHostsType: '',
+      editHosts: {
+        host: '',
+        name: ''
+      },
+      showPatternLeftNav: true,
+      openExportCharts: false,
+      openEditHost: false,
+      openTimeline: false,
+      openEditHosts: false,
+      openEditPatternName: false,
+      clickTimeline: false,
+      showSshAccount: false,
+      showAddSshAccount: false,
+      contextAnchorCharts: null,
+      activeTimeline: '',
+      activeConfigId: '',
+      activeConfigName: '',
+      chartIntervalList: [],
+      chartIntervalValue: '',
+      datetime: {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      chartExportType: 'securityLog', //'securityLog' or 'syslog'
+      datetimeExport: {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      netProxyData: {
+        list: [],
+        configs: {}
+      },
+      netProxyLookUp: {},
+      exportChartsIpList: [],
+      exportCharts: [{
+        hostIp: '',
+        hostName: '',
+        configList: []
+      }],
+      exportType: '',
+      popOverAnchor: null,
+      taskServiceList: {
+        data: null,
+        scrollCount: 0,
+        pageSize: 10,
+        hasMore: true
+      },
+      eventsData: {},
+      hostsData: {},
+      configRelationships: [],
+      syslogPatternConfig: {},
+      activeHost: {},
+      currentHostData: {},
+      currentConfigData: {},
+      activePatternIndex: '',
+      activePatternName: INIT_PATTERN_NAME,
+      activePatternMouse: '',
+      newPatternName: '',
+      info: '',
+      editPatternType: 'edit',
+      contextAnchor: null,
+      currentPattern: {
+        index: '',
+        data: {}
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors')
+    a = global.chewbaccaI18n.getFixedT(null, 'accounts');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
     this.getRelationship();
-    this.getSyslogList(false);
+    this.getSyslogData();
+    this.getSshAccountList();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
   }
   /**
    * Get and set the relationships data
    * @method
    */
   getRelationship = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/log/relationships`,
@@ -154,425 +260,742 @@ class Syslog extends Component {
           configRelationships: data.relationships
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Disable the delete functionality based on conditions
-   * @method
-   * @param {string} name - syslog type
-   */
-  checkDisabled = (name) => {
-    return (name === 'syslog' || name === 'eventlog') ? true : false;
-  }
-  /**
-   * Construct and display table context menu
-   * @method
-   * @param {object} allValue - syslog data
-   * @param {object} evt - mouseClick events
-   */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: t('txt-edit'),
-        action: () => this.openSyslog(allValue.id)
-      },
-      {
-        id: 'delete',
-        text: t('txt-delete'),
-        action: () => this.modalDelete(allValue),
-        disabled: this.checkDisabled(allValue.name)
-      },
-      {
-        id: 'eventDist',
-        text: t('syslogFields.txt-eventDist'),
-        action: () => this.openTimeline('configId', allValue)
-      },
-      {
-        id: 'events',
-        text: t('syslogFields.txt-viewEvents'),
-        action: () => this.forwardSyslog(allValue)
-      },
-      {
-        id: 'hosts',
-        text: t('syslogFields.txt-editHosts'),
-        action: () => this.openEditHosts(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configSyslogMenu');
-    evt.stopPropagation();
-  }
-  /**
-   * Display list for property table column
-   * @method
-   * @param {string} value - property data
-   */
-  displayProperty = (value) => {
-    const propertyList = _.map(JSON.parse(value), (val, key) => { //Convert data string to array
-      return &lt;span key={key} className='permit'>{key}&lt;/span>
-    });
-
-    return propertyList;
   }
   /**
    * Get and set syslog data
    * @method
-   * @param {boolean} flag - flog for port and format
    */
-  getSyslogList = (flag) => {
-    const {baseUrl} = this.props;
-    const {dataFieldsArr, syslog, search} = this.state;
-    let uri = `?page=${syslog.currentPage}&amp;pageSize=${syslog.pageSize}&amp;sort=${syslog.sort.field}&amp;order=${syslog.sort.desc ? 'desc' : 'asc'}`;
+  getSyslogData = () => {
+    const {baseUrl} = this.context;
+    const {dataFieldsArr, syslog, syslogSearch} = this.state;
+    let urlParams = '';
 
-    // by filter
-    if (flag) {
-      if (search.port) {
-        uri += `&amp;port=${search.port}`;
-      }
+    if (syslogSearch.name) {
+      urlParams += `&amp;name=${syslogSearch.name}`;
+    }
 
-      if (search.format) {
-        uri += `&amp;format=${search.format}`;
-      }
+    if (syslogSearch.loghostip) {
+      urlParams += `&amp;loghostip=${syslogSearch.loghostip}`;
+    }
+
+    if (syslogSearch.port) {
+      urlParams += `&amp;port=${syslogSearch.port}`;
+    }
+
+    if (syslogSearch.isactive === true || syslogSearch.isactive === false) {
+      urlParams += `&amp;isactive=${syslogSearch.isactive}`;
+    }
+
+    if (syslogSearch.netproxyname) {
+      urlParams += `&amp;netproxyname=${syslogSearch.netproxyname}`;
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config${uri}`,
+      url: `${baseUrl}/api/v3/log/config?${urlParams}`,
       type: 'GET'
     })
     .then(data => {
-      let tempSyslog = {...syslog};
-      tempSyslog.dataContent = data.rows;
-      tempSyslog.totalCount = data.counts;
-      tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
+      if (data) {
+        let tempSyslog = {...syslog};
+        tempSyslog.dataContent = data.rows;
 
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
-          sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                &lt;div className={cx('table-menu', {'active': value})}>
-                  &lt;button onClick={this.handleRowContextMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/button>
-                &lt;/div>
-              )
-            } else if (tempData === 'property') {
-              return &lt;div className='flex-item'>{this.displayProperty(value)}&lt;/div>
-            } else {
-              return &lt;span>{value}&lt;/span>;
+        if (!data.rows || data.rows.length === 0) {
+          tempSyslog.dataContent = [];
+          tempSyslog.totalCount = 0;
+
+          this.setState({
+            syslog: tempSyslog
+          });
+          return null;
+        }
+
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: (tempData === '_menu' || tempData === 'patternName') ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'avgLogSizeB') {
+                return &lt;span>{value > 0 ? value : 'N/A'}&lt;/span>;
+              } else if (tempData === 'patternName') {
+                if (allValue.patternSetting.length > 0) {
+                  return &lt;div className='flex-item'>{allValue.patternSetting.map(this.displayPatternName)}&lt;/div>
+                }
+              } else if (tempData === 'notify') {
+                return &lt;span>{value ? t('txt-statusOn') : t('txt-statusOff')}&lt;/span>
+              } else if (tempData === '_menu') {
+                return (
+                  &lt;div className='table-menu menu active'>
+                    &lt;i className='fg fg-edit' onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}>&lt;/i>
+                    &lt;i className='fg fg-trashcan' onClick={this.openDeleteConfigModal.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                    &lt;i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}>&lt;/i>
+                    &lt;i className='fg fg-list' onClick={this.redirectSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}>&lt;/i>
+                    &lt;i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}>&lt;/i>
+                  &lt;/div>
+                )
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
             }
           }
-        }
-      })
-
-      this.setState({
-        syslog: tempSyslog,
-        dataFields: tempFields
-      }, () => {
-        this.closeSyslog();
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Handle table sort functionality
-   * @method
-   * @param {object} sort - sort data object
-   */
-  handleTableSort = (sort) => {
-    let tempSyslog = {...this.state.syslog};
-    tempSyslog.sort.field = sort.field;
-    tempSyslog.sort.desc = sort.desc;
-
-    this.setState({
-      syslog: tempSyslog
-    }, () => {
-      this.getSyslogList();
-    });
-  }
-  /**
-   * Handle table row mouse over
-   * @method
-   * @param {string} index - index of the syslog data
-   * @param {object} allValue - syslog data
-   * @param {object} evt - MouseoverEvents
-   */
-  handleRowMouseOver = (index, allValue, evt) => {
-    let tempSyslog = {...this.state.syslog};
-    tempSyslog['dataContent'] = _.map(tempSyslog['dataContent'], el => {
-      return {
-        ...el,
-        _menu: el.id === allValue.id ? true : false
-      };
-    });
-
-    this.setState({
-      syslog: tempSyslog
-    });
-  }
-  /**
-   * Get and set config data
-   * @method
-   */
-  getRaw = () => {
-    const {baseUrl} = this.props;
-    const {config} = this.state;
-    const dataObj = {
-      input: config.input,
-      pattern: config.pattern
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/log/grok`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        config.property = data;
-        let rawOptions = [];
-
-        _.forEach(data, (value, key) => {
-          rawOptions.push({
-            value: key,
-            text: key
-          });
         })
 
         this.setState({
-          config,
-          rawOptions
+          syslog: tempSyslog,
+          dataFields: tempFields
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  /**
-   * Handle syslog edit confirm
+ /**
+   * Get and set SSH account list data
    * @method
    */
-  confirmSyslog = () => {
-    const {baseUrl} = this.props;
-    const {config} = this.state;
-    let flag = false;
-
-    if (!config.port || !config.format || !config.input || !config.pattern) {
-      flag = true;
-    }
-
-    _.forEach(config.relationship, el => {
-      if (!el.name || !el.srcNode || !el.dstNode) {
-        flag = true;
-      }
-      _.forEach(el.conditions, cond => {
-        if (!cond.node) {
-          flag = true;
-        }
-      })
-    })
-
-    if (flag) {
-      this.setState({
-        error: true,
-        info: et('fill-required-fields')
-      });
-      return;
-    } else {
-      this.setState({
-        error: false,
-        info: ''
-      });
-    }
-
-    let dataObj = {
-      name: config.name,
-      port: config.port,
-      format: config.format,
-      input: config.input,
-      pattern: config.pattern,
-      relationships: JSON.stringify(config.relationships)
-    };
-    let method = 'POST';
-
-    if (config.id) {
-      method = 'PATCH';
-      dataObj.id = config.id;
-    }
+  getSshAccountList = () => {
+    const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config`,
-      data: JSON.stringify(dataObj),
-      type: method,
-      contentType: 'text/plain'
+      url: `${baseUrl}/api/log/netproxy/sshaccount`,
+      type: 'GET'
     })
     .then(data => {
-      this.getSyslogList(false);
+      if (data) {
+        this.setState({
+          sshData: data.rows
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Open delete syslog dialog
+   * Toggle SSH dialog on/off
    * @method
-   * @param {object} allValue - syslog data
    */
-  modalDelete = (allValue) => {
-    const eventNme = allValue.name;
+  toggleSshDialog = () => {
+    this.setState({
+      showSshAccount: !this.state.showSshAccount
+    });
 
-    if (eventNme === 'syslog' || eventNme === 'eventlog') {
-      return null;
-    }
-
+    this.handleCloseMenu();
+  }
+  /**
+   * Open delete name modal dialog
+   * @method
+   * @param {string} id - account ID
+   * @param {string} account - selected account name
+   */
+  openDeleteSshAccount = (id, account) => {
     PopupDialog.prompt({
-      title: t('syslogFields.txt-deleteSyslog'),
+      title: t('txt-deleteAccount'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: (
         &lt;div className='content delete'>
-          &lt;span>{t('txt-delete-msg')}: {allValue.name}?&lt;/span>
+          &lt;span>{t('txt-delete-msg')}: {account}?&lt;/span>
         &lt;/div>
       ),
-      act: (confirmed) => {
+      act: (confirmed, data) => {
         if (confirmed) {
-          this.deleteSyslog(allValue.id);
+          this.deleteSshAccount(id);
         }
       }
     });
   }
   /**
-   * Handle delete syslog confirm
+   * Handle delete SSH account confirm
    * @method
-   * @param {string} id - syslog id
+   * @param {string} id - selected account ID
    */
-  deleteSyslog = (id) => {
-    const {baseUrl} = this.props;
+  deleteSshAccount = (id) => {
+    const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config?id=${id}`,
+      url: `${baseUrl}/api/log/netproxy/sshaccount?id=${id}`,
       type: 'DELETE'
     })
     .then(data => {
-      this.getSyslogList(false);
+      this.getSshAccountList();
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    })  
+    })
+  }
+  /**
+   * Display list of SSH accounts
+   * @method
+   * @returns HTML DOM
+   */
+  displaySshAccount = () => {
+    const {sshDataFieldArr, sshData} = this.state;
+
+    let dataFields = {};
+    sshDataFieldArr.forEach(tempData => {
+      dataFields[tempData] = {
+        hide: tempData === 'id' ? true : false,
+        label: tempData === 'account' ? t('txt-account') : '',
+        sortable: false,
+        formatter: (value, allValue) => {
+          if (tempData === 'option') {
+            return (
+              &lt;div>
+                &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteSshAccount.bind(this, allValue.id, allValue.account)} title={t('txt-delete')} />
+              &lt;/div>
+            )
+          } else {
+            return &lt;span>{value}&lt;/span>
+          }
+        }
+      };
+    })
+
+    return (
+      &lt;div>
+        &lt;i className='c-link fg fg-add' onClick={this.openAddSshAccount} title={a('txt-add-account')}>&lt;/i>
+        &lt;div className='table-data'>
+          &lt;DataTable
+            fields={dataFields}
+            data={sshData} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Open Add SSH account
+   * @method
+   */
+  openAddSshAccount = () => {
+    this.setState({
+      showAddSshAccount: true
+    });
+  }
+  /**
+   * Show SSH account dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showSshAccountDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.toggleSshDialog}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='showSshAccountDialog'
+        className='modal-dialog'
+        title={a('txt-addSshAccount')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displaySshAccount()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle SSH account name input value change
+   * @method
+   * @param {string} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      sshAccountName: event.target.value
+    });
+  }
+  /**
+   * Display add SSH account content
+   * @method
+   * @returns TextField component
+   */
+  displayAddSshAccount = () => {
+    const {sshAccountName, formValidation} = this.state;
+
+    return (
+      &lt;TextField
+        name='sshAccountName'
+        label={t('txt-plsEnterName')}
+        variant='outlined'
+        fullWidth
+        size='small'
+        required
+        error={!formValidation.sshAccountName.valid}
+        helperText={formValidation.sshAccountName.valid ? '' : t('txt-required')}
+        value={sshAccountName}
+        onChange={this.handleDataChange} />
+    )
+  }
+  /**
+   * Display add SSH acount dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  addSshAccountDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddSshAccount},
+      confirm: {text: t('txt-confirm'), handler: this.confirmAddSshAccount}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='addSshAccountDialog'
+        className='modal-dialog'
+        title={a('txt-add-account')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayAddSshAccount()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle add SSH account modal confirm
+   * @method
+   */
+  confirmAddSshAccount = () => {
+    const {baseUrl} = this.context;
+    const {sshAccountName, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (sshAccountName) {
+      tempFormValidation.sshAccountName.valid = true;
+    } else {
+      tempFormValidation.sshAccountName.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/netproxy/sshaccount?account=${sshAccountName}`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          sshAccountName: '',
+          showAddSshAccount: false
+        });
+
+        this.getSshAccountList();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close add SSH account dialog
+   * @method
+   */
+  closeAddSshAccount = () => {
+    this.setState({
+      sshAccountName: '',
+      showAddSshAccount: false,
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    });
+  }
+  /**
+   * Display list for pattern name
+   * @method
+   * @param {object} val - pattern data
+   * @param {number} i - index of pattern name array
+   * @returns HTML DOM
+   */
+  displayPatternName = (val, i) => {
+    return &lt;span key={i} className='item'>{val.patternName}&lt;/span>
+  }
+  /**
+   * Reset config value to initial value
+   * @method
+   */
+  resetConfigValue = () => {
+    this.setState({
+      syslogPatternConfig: _.cloneDeep(INIT_CONFIG),
+      activePatternName: INIT_PATTERN_NAME
+    });
+  }
+  /**
+   * Toggle different content
+   * @method
+   * @param {string} activeContent - page type ('syslogData', 'hostInfo' or 'editSyslog')
+   * @param {string} type - edit syslog type (edit' or 'save')
+   */
+  toggleContent = (activeContent, type) => {
+    const editSyslogType = type === 'save' ? '' : type;
+
+    if (type) {
+      this.setState({
+        editSyslogType
+      });
+
+      if (type === 'save') {
+        this.getSyslogData();
+      }
+    }
+
+    if (activeContent === 'syslogData') { //Reset config data
+      this.resetConfigValue();
+
+      this.setState({
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
+    }
+
+    this.setState({
+      activeContent
+    });
+  }
+  /**
+   * Display delete host content
+   * @method
+   * @param {object} value - host data
+   * @returns HTML DOM
+   */
+  getDeleteHostContent = (value) => {
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {value.netProxyHostName}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display delete host modal dialog
+   * @method
+   * @param {object} value - host data
+   */
+  openDeleteHostModal = (value) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deleteHost'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteHostContent(value),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteHostIP(value);
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete host IP
+   * @method
+   * @param {object} value - host data
+   */
+  deleteHostIP = (value) => {
+    const {baseUrl} = this.context;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/log/netproxy/deletehost?id=${value.netProxyHostId}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSyslogData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display main syslog host info
+   * @method
+   * @param {object} val - syslog data
+   * @param {number} i - index of the syslog data
+   * @returns HTML DOM
+   */
+  displayHostInfo = (val, i) => {
+    const {syslog, dataFields} = this.state;
+    const fullHostName = val.netProxyHostName;
+    let hostName = val.netProxyHostName;
+    let status = {
+      notify: {},
+      netproxy: {}
+    };
+
+    if (val.netProxyNotify) {
+      status.notify.title = t('txt-statusOn');
+    } else {
+      status.notify.title = t('txt-statusOff');
+    }
+
+    if (val.netProxyStatus.toLowerCase() === 'active') {
+      status.netproxy.color = '#22ac38';
+      status.netproxy.title = t('txt-online');
+    } else if (val.netProxyStatus.toLowerCase() === 'inactive') {
+      status.netproxy.color = '#d10d25';
+      status.netproxy.title = t('txt-offline');
+
+      if (val.inactive.length > 0) {
+        status.netproxy.errorText = val.inactive.join(', ');
+      }
+    }
+
+    if (fullHostName.length > 10) {
+      hostName = fullHostName.substr(0, 9) + '...';
+    }
+
+    return (
+      &lt;div key={i} className='host-info'>
+        &lt;header>
+          &lt;div className='title'>{t('syslogFields.txt-hostIP')}: {val.netProxyIp}&lt;/div>
+          &lt;div className='name'>{t('txt-name')}: &lt;span title={fullHostName}>{hostName}&lt;/span>&lt;/div>
+          &lt;span className='status'>{t('txt-notifyStatus')}: {status.notify.title}&lt;/span>
+          &lt;span className='status'>NetProxy {t('txt-status')}: &lt;i className='fg fg-recode' style={{color: status.netproxy.color}} title={status.netproxy.title} />&lt;/span>
+          &lt;span className='status'>NetProxy {t('syslogFields.txt-lastUpdate')}: {helper.getFormattedDate(val.updatetime, 'local')}&lt;/span>
+          {val.netProxyStatus === 'INACTIVE' &amp;&amp;
+            &lt;i className='fg fg-trashcan host' onClick={this.openDeleteHostModal.bind(this, val)} title={t('txt-delete')}>&lt;/i>
+          }
+          &lt;i className='fg fg-edit host' onClick={this.toggleHostEdit.bind(this, val)} title={t('txt-edit')}>&lt;/i>
+        &lt;/header>
+        &lt;div className='content-header-btns'>
+        &lt;/div>
+        &lt;div className='host-content'>
+          {status.netproxy.errorText &amp;&amp;
+            &lt;span className='error-text'>&lt;i className='fg fg-alert-1'>&lt;/i>NetProxy: {status.netproxy.errorText}&lt;/span>
+          }
+          &lt;DataTable
+            className='main-table syslog-config'
+            fields={dataFields}
+            data={val.configs}
+            defaultSort={syslog.sort} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Get and set syslog grok data
+   * @method
+   * @param {number} i - index of the syslogPatternConfig pattern list
+   */
+  getSyslogGrok = (i) => {
+    const {baseUrl} = this.context;
+    const {syslogPatternConfig} = this.state;
+    const requestData = {
+      input: syslogPatternConfig.patternSetting[i].input,
+      pattern: syslogPatternConfig.patternSetting[i].pattern
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/grok`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempSyslogPatternConfig = {...syslogPatternConfig};
+        tempSyslogPatternConfig.patternSetting[i].property = data;
+        tempSyslogPatternConfig.patternSetting[i].rawOptions = _.map(data, (value, key) => {
+          return {
+            value: key,
+            text: key
+          };
+        });
+
+        this.setState({
+          syslogPatternConfig: tempSyslogPatternConfig
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Open add/edit syslog dialog
    * @method
-   * @param {string} id - syslog id
+   * @param {object} allValue - syslog data
    */
-  openSyslog = (id) => {
-    const {baseUrl} = this.props
+  openSyslogV2 = (allValue) => {
+    const {baseUrl} = this.context;
 
-    if (!id) { //Add new syslog
+    if (allValue.patternSetting.length > 0) {
       this.setState({
-        openSyslog: true,
-        config: INIT_CONFIG,
-        modalTitle: t('txt-add')
+        activePatternName: allValue.patternSetting[0].patternName
       });
-      return;
     }
 
     this.ah.one({ //Edit existing syslog
-      url: `${baseUrl}/api/log/config?id=${id}`,
+      url: `${baseUrl}/api/v2/log/config?id=${allValue.id}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        const config = {
-          type: 'filter',
-          id: data.id,
-          name: data.name,
-          port: data.port,
-          format: data.format,
-          input: data.input,
-          pattern: data.pattern,
-          property: JSON.parse(data.property),
-          relationships: JSON.parse(data.relationships)
-        };
-        let rawOptions = [];
+        let syslogPatternConfig = {...data};
+        syslogPatternConfig.type = 'formatSettings';
 
-        _.forEach(config.property, (value, key) => {
-          rawOptions.push({
-            value: key,
-            text: key
+        _.forEach(data.patternSetting, (val, i) => {
+          syslogPatternConfig.patternSetting[i].rawOptions = _.map(val.property, (val, key) => {
+            return {
+              value: key,
+              text: key
+            };
           });
         })
 
         this.setState({
-          config,
-          openSyslog: true,
-          rawOptions,
-          modalTitle: t('txt-edit')
+          syslogPatternConfig
+        }, () => {
+          this.toggleContent('editSyslog', 'edit');
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Close syslog dialog
+   * Display delete config content
    * @method
+   * @param {object} allValue - config data
+   * @returns HTML DOM
    */
-  closeSyslog = () => {
+  getDeleteConfigContent = (allValue) => {
     this.setState({
-      openSyslog: false,
-      error: false,
-      info: ''
+      currentConfigData: allValue
+    });
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {allValue.name}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display delete config modal dialog
+   * @method
+   * @param {object} allValue - config data
+   */
+  openDeleteConfigModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deleteConfig'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteConfigContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteConfig();
+        }
+      }
     });
   }
   /**
-   * Construct URL and redirect to events page
+   * Handle delete config
    * @method
-   * @param {object} allValue - syslog data
    */
-  forwardSyslog = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
+  deleteConfig = () => {
+    const {baseUrl} = this.context;
+    const {currentConfigData} = this.state;
 
-    window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${allValue.id}`;
-  }
-  /**
-   * Open edit hosts dialog
-   * @method
-   * @param {object} allValue - syslog data
-   */
-  openEditHosts = (allValue) => {
-    const splitHostsData = allValue.hosts.split(', ');
-    let formattedHostsData = [];
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-    _.forEach(splitHostsData, val => {
-      val = val.replace('[', '');
-      val = val.replace(']', '');
-
-      formattedHostsData.push({
-        host: val
-      });
+    ah.one({
+      url: `${baseUrl}/api/log/netproxy/config?port=${currentConfigData.port}&amp;hostIp=${currentConfigData.loghostIp}`,
+      type: 'DELETE'
     })
-
-    const hostsData = {
-      ...allValue,
-      formattedHostsData
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSyslogData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set chart interval buttons
+   * @method
+   */
+  setChartInterval = () => {
+    const {datetime} = this.state;
+    const dateTime = {
+      from: moment(datetime.from),
+      to: moment(datetime.to)
     };
+    const day = dateTime.to.diff(dateTime.from, 'days');
+    let chartIntervalList = [];
+    let chartIntervalValue = '';
+
+    if (day &lt; 1) {
+      chartIntervalList = ['1h'];
+      chartIntervalValue = '1h';
+    } else if (day >= 1 &amp;&amp; day &lt;= 7) {
+      chartIntervalList = ['1h', '1d'];
+      chartIntervalValue = '1h';
+    } else if (day > 7 &amp;&amp; day &lt;= 28) {
+      chartIntervalList = ['1d', '1w'];
+      chartIntervalValue = '1d';
+    } else if (day > 28) {
+      chartIntervalList = ['1d', '1w'];
+      chartIntervalValue = '1w';
+    }
+
+    chartIntervalList = _.map(chartIntervalList, val => {
+      return &lt;ToggleButton id={'chartInterval' + val} value={val}>{t('time-interval.txt-' + val)}&lt;/ToggleButton>
+    });
 
     this.setState({
-      openEditHosts: true,
-      hostsData
+      chartIntervalList,
+      chartIntervalValue
+    }, () => {
+      this.getTimeline();
     });
+  }
+  /**
+   * Handle restart logstash
+   * @method
+   */
+  restartLogstash = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/maintain/service/logstash`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data === 'success') {
+        helper.showPopupMsg(t('syslogFields.txt-logStashRestarted'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Open syslog events chart dialog
@@ -587,287 +1010,247 @@ class Syslog extends Component {
       activeConfigId: allValue.id,
       activeConfigName: allValue.name
     }, () => {
-      this.getTimeline();
+      this.setChartInterval();
     });
   }
   /**
-   * Close syslog events chart dialog
+   * Construct URL and redirect to events page
    * @method
+   * @param {object} allValue - syslog data
    */
-  closeTimeline = () => {
+  redirectSyslog = (allValue) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${allValue.name}&amp;loghostIp=${allValue.loghostIp}&amp;lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
+   * Open edit hosts dialog
+   * @method
+   * @param {string} type - edit type ('add' or 'edit')
+   * @param {object} allValue - syslog data
+   */
+  openEditHostsV1 = (type, allValue) => {
+    let tempEditHosts = {...this.state.editHosts};
+
+    if (type === 'add') {
+      tempEditHosts.host = '';
+      tempEditHosts.name = '';
+    } else if (type === 'edit') {
+      tempEditHosts.host = allValue.host;
+      tempEditHosts.name = allValue.name;
+    }
+
     this.setState({
-      openTimeline: false,
-      clickTimeline: false,
-      activeTimeline: '',
-      activeConfigId: '',
-      activeConfigName: '',
-      datetime: {
-        from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      },
-      eventsData: {}
+      openEditHosts: true,
+      editHostsType: type,
+      editHosts: tempEditHosts
     });
   }
   /**
    * Handle syslog edit input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {number} [i] - index of the config pattern list
+   * @param {string} type - input type ('form' or 'type')
+   * @param {string | object} event - event object
    */
-  handleConfigChange = (type, value) => {
-    let tempConfig = {...this.state.config};
-    tempConfig[type] = value;
+  handleConfigChange = (i, type, event) => {
+    const value = event.target ? event.target.value : event;
+    const field = type === 'form' ? event.target.name : type;
+    let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+
+    if (typeof i === 'number') {
+      tempSyslogPatternConfig.patternSetting[i][type] = value;
+    } else {
+      tempSyslogPatternConfig[field] = value;
+    }
 
     this.setState({
-      config: tempConfig
+      syslogPatternConfig: tempSyslogPatternConfig
     });
   }
   /**
-   * Get pattern data
+   * Handle syslog edit notify change
    * @method
    */
-  convertPattern = () => {
-    const {baseUrl} = this.props;
-    const {config} = this.state;
-    const dataObj = {
-      input: config.input
-    };
+  handleConfigNotifyChange = () => {
+    let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+    tempSyslogPatternConfig.notify = !tempSyslogPatternConfig.notify;
+
+    this.setState({
+      syslogPatternConfig: tempSyslogPatternConfig
+    });
+  }
+  /**
+   * Get and set the latest event sample data
+   * @method
+   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @param {string} configId - config ID
+   */
+  getLatestInput = (i, configId) => {
+    const {baseUrl} = this.context;
+
+    if (!configId) {
+      return;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/pattern`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
+      url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
+      type: 'GET'
     })
     .then(data => {
-      this.handleConfigChange('pattern', data);
+      if (data) {
+        let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+        tempSyslogPatternConfig.patternSetting[i].input = data;
+
+        this.setState({
+          syslogPatternConfig: tempSyslogPatternConfig
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Get and set the latest event sample data
-   * @method
-   * @param {string} configId - config ID
-   */
-  getLatestInput = (configId) => {
-    const {baseUrl} = this.props;
-
-    if (configId) {
-      this.ah.one({
-        url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
-        type: 'GET'
-      })
-      .then(data => {
-        let tempConfig = {...this.state.config};
-        tempConfig.input = data;
-
-        this.setState({
-          config: tempConfig
-        });
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
-  }
-  /**
-   * Display content for the Filter tab
-   * @method
-   * @returns HTML DOM
-   */
-  renderTabFilter = () => {
-    const {config, rawOptions} = this.state;
-
-    return (
-      &lt;div className='filters'>
-        &lt;div className='left-syslog'>
-          &lt;div style={{display: 'flex'}}>
-            &lt;div style={{width: '90%', position: 'relative'}}>
-              {config.id &amp;&amp;
-                &lt;button onClick={this.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}&lt;/button>
-              }
-              &lt;label>Data Sample Input&lt;/label>
-              &lt;Textarea
-                rows={8}
-                value={config.input}
-                onChange={this.handleConfigChange.bind(this, 'input')} />
-              &lt;i className='c-link fg fg-down' title={t('txt-convert')} onClick={this.convertPattern} />
-              &lt;label>Match Pattern&lt;/label>
-              &lt;Textarea
-                rows={10}
-                value={config.pattern}
-                onChange={this.handleConfigChange.bind(this, 'pattern')} />
-            &lt;/div>
-            &lt;i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} title={t('txt-parse')} onClick={this.getRaw} />
-          &lt;/div>
-        &lt;/div>
-        &lt;div>
-          &lt;label style={{marginLeft: '540px'}}>Data Property&lt;/label>
-          &lt;div className='right-syslog scrollY'>
-            {
-              _.map(config.property, (val, key) => {
-                if (key != '_Raw') {
-                  return &lt;div key={key}>&lt;label>{key}&lt;/label>&lt;Input value={val} />&lt;/div>
-                }
-              })
-            }
-          &lt;/div>
-        &lt;/div>
-      &lt;/div>
-    )
-  }
-  /**
    * Handle add/remove for the relationship box
    * @method
+   * @param {number} i - index of the syslogPatternConfig pattern list
    * @param {array} val - relationship list array
    */
-  handleRelationshipChange = (val) => {
-    let tempConfig = {...this.state.config};
-    tempConfig.relationships = val;
+  handleRelationshipChange = (i, val) => {
+    let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+    tempSyslogPatternConfig.patternSetting[i].relationships = val;
 
     this.setState({
-      config: tempConfig
+      syslogPatternConfig: tempSyslogPatternConfig
     });
   }
   /**
-   * Display contnet for the relationship tab
+   * Handle syslog edit confirm
    * @method
-   * @returns MultiInput component
    */
-  renderTabRelationship = () => {
-    const {config, configRelationships, rawOptions} = this.state;
-    const data = {
-      relationships: configRelationships,
-      rawOptions
+  confirmSyslogSave = () => {
+    const {baseUrl} = this.context;
+    const {syslogPatternConfig} = this.state;
+    const url = `${baseUrl}/api/v3/log/config`;
+    let validate = true;
+
+    _.forEach(syslogPatternConfig.patternSetting, val => { //Check input and pattern for each pattern
+      if (!val.input || !val.pattern) {
+        validate = false;
+        return false;
+      }
+
+      _.forEach(val.relationships, val2 => { //Validate relationships data
+        if (val2.name || val2.srcNode || val2.dstNode) {
+          if (!val2.name) {
+            validate = false;
+            return false;
+          }
+          if (!val2.srcNode) {
+            validate = false;
+            return false;
+          }
+          if (!val2.dstNode) {
+            validate = false;
+            return false;
+          }
+        }
+      })
+    })
+
+    if (!validate) {
+      helper.showPopupMsg(t('txt-checkRequiredFieldType'), t('txt-error'));
+      return;
+    }
+
+    let requestType = 'POST';
+    let requestData = {
+      loghostIp: syslogPatternConfig.loghostIp,
+      name: syslogPatternConfig.name,
+      port: Number(syslogPatternConfig.port),
+      format: syslogPatternConfig.format,
+      notify: syslogPatternConfig.notify
     };
 
-    return (
-      &lt;MultiInput
-        className='relationships'
-        base={Relationships}
-        value={config.relationships}
-        props={data}
-        onChange={this.handleRelationshipChange} />
-    )
-  }
-  /**
-   * Display syslog content
-   * @method
-   * @returns HTML DOM
-   */
-  displaySyslogDialog = () => {
-    const {config} = this.state;
+    requestData.patternSetting = _.map(syslogPatternConfig.patternSetting, val => {
+      return {
+        patternName: val.patternName,
+        input: val.input,
+        pattern: val.pattern,
+        relationships: JSON.stringify(val.relationships)
+      };
+    });
 
-    return (
-      &lt;div>
-        &lt;div className='syslogs'>
-          &lt;div className='syslog'>
-            &lt;label>{t('syslogFields.name')}&lt;/label>
-            &lt;Input 
-              required={true} 
-              validate={{t: et}}
-              value={config.name}
-              onChange={this.handleConfigChange.bind(this, 'name')} />
-          &lt;/div>
-          &lt;div className='syslog'>
-            &lt;label>{t('syslogFields.port')}&lt;/label>
-            &lt;Input
-              required={true}
-              validate={{t: et}}
-              value={config.port}
-              onChange={this.handleConfigChange.bind(this, 'port')} />
-          &lt;/div>
-          &lt;div className='syslog'>
-            &lt;label>{t('syslogFields.format')}&lt;/label>
-            &lt;Input
-              validate={{t: et}}
-              value={config.format}
-              onChange={this.handleConfigChange.bind(this, 'format')} />
-          &lt;/div>
-        &lt;/div>
-        &lt;ButtonGroup
-          list={[
-            {value:'filter', text:'Filter'},
-            {value:'relationship', text:'Relationship'}
-          ]}
-          onChange={this.handleConfigChange.bind(this, 'type')}
-          value={config.type} />
+    if (syslogPatternConfig.id) { //Update existing pattern
+      requestType = 'PATCH';
+      requestData.id = syslogPatternConfig.id;
+    }
 
-        {config.type === 'filter' &amp;&amp; 
-          this.renderTabFilter()
-        }
-
-        {config.type === 'relationship' &amp;&amp;
-          this.renderTabRelationship()
-        }
-      &lt;/div>
-    )    
-  }
-  /**
-   * Display syslog modal dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  modalSyslog = () => {
-    const {error, info, modalTitle} = this.state;
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog},
-      confirm: {text: t('txt-confirm'), handler: this.confirmSyslog}
-    };
-
-    return (
-      &lt;ModalDialog
-        id='syslogModalDialog'
-        className='modal-dialog'
-        title={modalTitle}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'
-        infoClassName={cx({'c-error':error})}
-        info={info}>
-        {this.displaySyslogDialog()}
-      &lt;/ModalDialog>
-    )
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.toggleContent('syslogData', 'save');
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set timeline events data
    * @method
    */
   getTimeline = () => {
-    const {baseUrl} = this.props;
-    const {activeTimeline, activeConfigId, datetime} = this.state;
-    const startDttm = Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    let configId = '';
+    const {baseUrl} = this.context;
+    const {activeTimeline, activeConfigId, chartIntervalValue, datetime} = this.state;
+    const startDttm = moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const configId = activeTimeline === 'configId' ? activeConfigId : '';
+    let uri = '';
 
-    if (activeTimeline === 'configId') {
-      configId = activeConfigId;
+    if (moment(datetime.from).isAfter()) {
+      helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
+      return;
+    }
+
+    if (configId) {
+      uri += `&amp;configId=${configId}`;
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&amp;endDttm=${endDttm}&amp;configId=${configId}`,
+      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&amp;endDttm=${endDttm}&amp;interval=${chartIntervalValue}${uri}`,
       type: 'GET'
     })
     .then(data => {
-      const hostsArr = _.map(data.hosts, (key, value) => {
-        return {
-          ip: value,
-          events: key
+      if (data) {
+        const hostsArr = _.map(data.hosts, (key, value) => {
+          return {
+            ip: value,
+            events: key
+          };
+        });
+
+        const eventsData = {
+          hosts: hostsArr,
+          hostOverTime: data.hostOverTime
         };
-      });
 
-      const tempEventsData = {
-        events: data.events,
-        hosts: hostsArr
-      };
-
-      this.setState({
-        clickTimeline: true,
-        eventsData: tempEventsData
-      });
+        this.setState({
+          clickTimeline: true,
+          eventsData
+        });     
+      } else {
+        this.setState({
+          eventsData: {}
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -877,26 +1260,83 @@ class Syslog extends Component {
    * Show tooltip info when mouseover the chart
    * @method
    * @param {object} eventInfo - MouseoverEvents
-   * @param {object} data - chart data
+   * @param {array.&lt;object>} data - chart data
    * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
     return (
       &lt;section>
-        &lt;span>{data[0].type}&lt;/span>&lt;br />
-        &lt;span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}&lt;/span>&lt;br />
-        &lt;span>{t('txt-count')}: {data[0].events}&lt;/span>
+        &lt;span>{t('txt-ipAddress')}: {data[0].IP}&lt;br />&lt;/span>
+        &lt;span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}&lt;br />&lt;/span>
+        &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
       &lt;/section>
     )
   }
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - datetime object
+   * @param {string} type - form type ('timeline' or 'exportCharts')
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (form, type, newDatetime) => {
+    if (form === 'timeline') {
+      let tempDatetime = {...this.state.datetime};
+      tempDatetime[type] = newDatetime;
+
+      this.setState({
+        datetime: tempDatetime
+      });
+    } else if (form === 'exportCharts') {
+      let tempDatetimeExport = {...this.state.datetimeExport};
+      tempDatetimeExport[type] = newDatetime;
+
+      this.setState({
+        datetimeExport: tempDatetimeExport
+      });
+    }
+  }
+  /**
+   * Handle chart export type change
+   * @method
+   * @param {object} event - event object
+   */
+  handleChartExportTypeChange = (event) => {
+    const chartExportType = event.target.value;
+    let datetimeExport = {};
+
+    if (chartExportType === 'securityLog') {
+      datetimeExport = {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      };
+    } else if (chartExportType === 'syslog') {
+      datetimeExport = {
+        from: moment().local().startOf('day').format('YYYY-MM-DD'),
+        to: moment().local().format('YYYY-MM-DD')
+      };
+    }
+
     this.setState({
-      datetime
+      chartExportType,
+      datetimeExport
+    });
+  }
+  /**
+   * Handle chart interval change for Config Syslog
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - interval type ('1h', '1d' or '1w')
+   */
+  handleIntervalChange = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      chartIntervalValue: type
+    }, () => {
+      this.getTimeline();
     });
   }
   /**
@@ -905,7 +1345,16 @@ class Syslog extends Component {
    * @returns HTML DOM
    */
   displayEventsTimeline = () => {
-    const {activeTimeline, activeConfigName, clickTimeline, datetime, eventsData} = this.state;
+    const {locale} = this.context;
+    const {
+      activeTimeline,
+      activeConfigName,
+      clickTimeline,
+      chartIntervalList,
+      chartIntervalValue,
+      datetime,
+      eventsData
+    } = this.state;
     let type = '';
 
     if (activeTimeline === 'configId') {
@@ -914,32 +1363,32 @@ class Syslog extends Component {
       type = 'overall';
     }
 
-    const dataArr = _.map(eventsData.events, (value, key) => {
+    const dataArr = _.map(eventsData.hostOverTime, val => {
       return {
-        time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-        events: value,
-        type: type
+        time: val.time,
+        count: val.count,
+        IP: val.IP
       };
     });
+
     const chartAttributes = {
       data: dataArr,
-      onTooltip: this.onTooltip,
       dataCfg: {
         x: 'time',
-        y: 'events',
-        splitSeries: 'type'
+        y: 'count',
+        splitSeries: 'IP'
       },
       xAxis: {
-        type: 'datetime',
-        dateTimeLabelFormats: {
-          day: '%H:%M'
-        }
+        type: 'datetime'
+      },
+      tooltip: {
+        formatter: this.onTooltip
       }
     };
     let showTimeline = false;
     let showTable = false;
 
-    if (!_.isEmpty(eventsData.events)) {
+    if (!_.isEmpty(eventsData.hostOverTime)) {
       showTimeline = true;
     }
 
@@ -947,22 +1396,57 @@ class Syslog extends Component {
       showTable = true;
     }
 
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
     return (
       &lt;div>
+        &lt;div className='interval-section'>
+          &lt;ToggleButtonGroup
+            id='chartIntervalBtn'
+            className='chart-btn'
+            value={chartIntervalValue}
+            exclusive
+            onChange={this.handleIntervalChange}>
+            {chartIntervalList}
+          &lt;/ToggleButtonGroup>
+        &lt;/div>
         &lt;div className='calendar-section'>
-          &lt;DateRange
-            id='datetime'
-            className='daterange'
-            onChange={this.handleDateChange}
-            enableTime={true}
-            value={datetime}
-            t={et} />
-          &lt;button onClick={this.getTimeline}>{t('txt-search')}&lt;/button>
+          &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            &lt;KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              ampm={false}
+              value={datetime.from}
+              onChange={this.handleDateChange.bind(this, 'timeline', 'from')} />
+            &lt;div className='between'>~&lt;/div>
+            &lt;KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              invalidDateMessage={t('txt-invalidDateMessage')}
+              maxDateMessage={t('txt-maxDateMessage')}
+              minDateMessage={t('txt-minDateMessage')}
+              ampm={false}
+              value={datetime.to}
+              onChange={this.handleDateChange.bind(this, 'timeline', 'to')} />
+          &lt;/MuiPickersUtilsProvider>
+          &lt;Button variant='contained' color='primary' onClick={this.setChartInterval}>{t('txt-search')}&lt;/Button>
           &lt;/div>
         &lt;div className='chart-section'>
           {showTimeline &amp;&amp;
             &lt;LineChart
-              stacked
               className='chart fixed'
               {...chartAttributes} />
           }
@@ -1020,32 +1504,801 @@ class Syslog extends Component {
     )
   }
   /**
-   * Display Events timeline modal dialog
+   * Toggle export charts on/off
    * @method
-   * @param {array} data - edit host input data
    */
-  handleEditHostsChange = (data) => {
-    let tempHostsData = {...this.state.hostsData};
-    tempHostsData.formattedHostsData = data;
+  toggleExportCharts = () => {
+    const {baseUrl, session} = this.context;
+    const {openExportCharts, exportCharts} = this.state;
+
+    if (openExportCharts) {
+      this.setState({
+        openExportCharts: false,
+        chartExportType: 'securityLog',
+        datetimeExport: {
+          from: helper.getStartDate('day'),
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        }
+      });
+    } else {
+      this.ah.one({
+        url: `${baseUrl}/api/log/config/exportItem`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          const netProxyData = {
+            list: data.netProxyList,
+            configs: data.configs
+          };
+          const exportChartsIpList = _.map(data.netProxyList, (val, i) => {
+            return &lt;MenuItem key={i} value={val.netProxyIp}>{val.netProxyIp}&lt;/MenuItem>
+          });
+          let netProxyLookUp = {};
+
+          _.forEach(data.netProxyList, val => {
+            netProxyLookUp[val.netProxyIp] = val.netProxyName
+          })
+
+          this.setState({
+            openExportCharts: true,
+            netProxyData,
+            netProxyLookUp,
+            exportChartsIpList
+          });
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+
+      this.handleCloseChartsMenu();
+    }
 
     this.setState({
-      hostsData: tempHostsData
+      exportCharts: [{
+        hostIp: '',
+        hostName: '',
+        configList: []
+      }]
     });
+  }
+  /**
+   * Handle add/remove the export charts box
+   * @method
+   * @param {array.&lt;object>} data - export charts list array
+   */
+  handleExportChartsChange = (data) => {
+    const exportCharts = _.map(data, val => {
+      return {
+        ...val,
+        hostName: this.state.netProxyLookUp[val.hostIp]
+      }
+    });
+
+    this.setState({
+      exportCharts
+    });
+  }
+  /**
+   * Display export charts content
+   * @method
+   * @returns HTML DOM
+   */
+  displayExportCharts = () => {
+    const {locale} = this.context;
+    const {chartExportType, datetimeExport, netProxyData, exportChartsIpList, exportCharts} = this.state;
+    const data = {
+      netProxyData,
+      exportChartsIpList
+    };
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      &lt;div>
+        &lt;div className='form-group normal'>
+          &lt;RadioGroup
+            id='chartExportType'
+            className='radio-group'
+            value={chartExportType}
+            onChange={this.handleChartExportTypeChange}>
+            &lt;FormControlLabel
+              value='securityLog'
+              control={
+                &lt;Radio
+                  id='chartExportSecurityLog'
+                  className='radio-ui'
+                  color='primary' />
+              }
+              label={t('syslogFields.txt-securityLog')} />
+            &lt;FormControlLabel
+              value='syslog'
+              control={
+                &lt;Radio
+                  id='chartExportSyslog'
+                  className='radio-ui'
+                  color='primary' />
+              }
+              label={t('syslogFields.txt-syslog')} />
+          &lt;/RadioGroup>
+        &lt;/div>  
+        &lt;div className='calendar-section'>
+          {chartExportType === 'securityLog' &amp;&amp;
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                ampm={false}
+                value={datetimeExport.from}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'from')} />
+              &lt;div className='between'>~&lt;/div>
+              &lt;KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                ampm={false}
+                value={datetimeExport.to}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'to')} />
+            &lt;/MuiPickersUtilsProvider>
+          }
+          {chartExportType === 'syslog' &amp;&amp;
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDatePicker
+                className='date-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={datetimeExport.from}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'from')} />
+              &lt;div className='between'>~&lt;/div>
+              &lt;KeyboardDatePicker
+                className='date-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={datetimeExport.to}
+                onChange={this.handleDateChange.bind(this, 'exportCharts', 'to')} />
+            &lt;/MuiPickersUtilsProvider>
+          }
+        &lt;/div>
+        &lt;div className='host-section'>
+          &lt;MultiInput
+            id='exportChartsMultiInputs'
+            base={ExportCharts}
+            defaultItemValue={{
+              hostIp: '',
+              hostName: '',
+              configList: []
+            }}
+            value={exportCharts}
+            props={data}
+            onChange={this.handleExportChartsChange} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display export charts dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showExportChartsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleExportCharts},
+      confirm: {text: t('txt-export'), handler: this.confirmExportCharts}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='exprotChartsDialog'
+        className='modal-dialog'
+        title={t('syslogFields.txt-exportSyslogCharts')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayExportCharts()}    
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle export charts confirm
+   * @method
+   */
+  confirmExportCharts = () => {
+    const {baseUrl, session} = this.context;
+    const {chartExportType, datetimeExport, exportCharts} = this.state;
+    const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone object
+    const utc_offset = timezone._offset / 60; //Convert minute to hour
+    let startDttm = '';
+    let endDttm = '';
+    let totalConfigList = [];
+
+    _.forEach(exportCharts, val => {
+      Object.keys(val.configList).map(val2 => {
+        if (val.configList[val2] &amp;&amp; totalConfigList.indexOf(val2) &lt; 0) {
+          totalConfigList.push(val2);
+        }
+      });
+    })
+
+    let requestData = {
+      accountId: session.accountId,
+      configIds: totalConfigList
+    };
+
+    if (chartExportType === 'securityLog') {
+      startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.type = ['exportLogTrendStatistics'];
+      requestData.timeZone = utc_offset;
+    } else if (chartExportType === 'syslog') {
+      startDttm = moment(datetimeExport.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      endDttm = moment(datetimeExport.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.type = ['exportRawDataStatistics'];
+    }
+
+    requestData.timestamp = [startDttm, endDttm];
+
+    if (startDttm &amp;&amp; endDttm) {
+      if (moment(endDttm).isBefore(moment(startDttm))) {
+        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+        return;
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/taskService`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.toggleExportCharts();
+  }
+  /**
+   * Toggle export schedule list on/off
+   * @method
+   * @param {string} type - export type ('securityLog' or 'syslog')
+   */
+  toggleExportScheduleList = (type) => {
+    this.setState({
+      exportType: type,
+      popOverAnchor: {top: 83, right: 10}
+    }, () => {
+      this.getTaskService('firstLoad');
+    });
+
+    this.handleCloseChartsMenu();
+  }
+  /**
+   * Get list of task service
+   * @method
+   * @param {string} options - option for 'firstLoad'
+   */
+  getTaskService = (options) => {
+    const {exportType, taskServiceList} = this.state;
+    const {baseUrl} = this.context;
+    const datetime = {
+      from: moment(helper.getSubstractDate(7, 'day', moment().utc())).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    let type = '';
+    let fromItem = 0;
+
+    if (options !== 'firstLoad') {
+      fromItem = taskServiceList.pageSize - 1; //index starts from zero
+
+      if (taskServiceList.scrollCount > 0) {
+        fromItem = taskServiceList.scrollCount + taskServiceList.pageSize;
+      }
+    }
+
+    if (exportType === 'securityLog') {
+      type = 'exportLogTrendStatistics';
+    } else if (exportType === 'syslog') {
+      type = 'exportRawDataStatistics';
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/taskService/list?source=SCP&amp;type=${type}&amp;createStartDttm=${datetime.from}&amp;from=${fromItem}&amp;size=${taskServiceList.pageSize}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempTaskServiceList = {...taskServiceList};
+        tempTaskServiceList.data = [];
+
+        if (options === 'firstLoad') {
+          if (data.list &amp;&amp; data.list.length > 0) {
+            tempTaskServiceList.data = data.list;
+          }
+        } else {
+          tempTaskServiceList.scrollCount = fromItem;
+
+          if (data.list &amp;&amp; data.list.length > 0) {
+            tempTaskServiceList.data = _.concat(taskServiceList.data, data.list);
+            tempTaskServiceList.hasMore = true;
+          } else {
+            tempTaskServiceList.hasMore = false;
+          }
+        }
+
+        this.setState({
+          taskServiceList: tempTaskServiceList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  handlePopoverClose = () => {
+    let tempTaskServiceList = {...this.state.taskServiceList};
+    tempTaskServiceList.data = null;
+    tempTaskServiceList.scrollCount = 0;
+
+    this.setState({
+      popOverAnchor: null,
+      taskServiceList: tempTaskServiceList
+    });
+  }
+  /**
+   * Toggle host edit dialog on/off
+   * @method
+   * @param {object} [val] - host info
+   */
+  toggleHostEdit = (val) => {
+    this.setState({
+      openEditHost: !this.state.openEditHost
+    }, () => {
+      if (val &amp;&amp; val.netProxyHostId) {
+        this.setState({
+          activeHostInfo: {
+            id: val.netProxyHostId,
+            ip: val.netProxyIp
+          },
+          newHostName: val.netProxyHostName,
+          hostNotifyStatus: val.netProxyNotify
+        });
+      }
+    });
+  }
+  /**
+   * Handle edit host name input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleEditHostNameChange = (event) => {
+    this.setState({
+      newHostName:  event.target.value
+    });
+  }
+  /**
+   * Toggle notifiy status switch
+   * @method
+   */
+  handleNotifyStatusChange = () => {
+    this.setState({
+      hostNotifyStatus: !this.state.hostNotifyStatus
+    });
+  }
+  /**
+   * Display edit host content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditHost = () => {
+    const {newHostName, hostNotifyStatus} = this.state;
+
+    return (
+      &lt;React.Fragment>
+        &lt;div className='group'>
+          &lt;TextField
+            name='name'
+            label={t('syslogFields.txt-hostName')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={newHostName}
+            onChange={this.handleEditHostNameChange} />
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;FormLabel className='notify'>{t('txt-notifyStatus')}&lt;/FormLabel>
+          &lt;FormControlLabel
+            className='switch-control'
+            control={
+              &lt;Switch
+                checked={hostNotifyStatus}
+                onChange={this.handleNotifyStatusChange}
+                color='primary' />
+            }
+            label={t('txt-switch')} />
+        &lt;/div>
+      &lt;/React.Fragment>
+    )
+  }
+  /**
+   * Display edit host dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showEditHostDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleHostEdit},
+      confirm: {text: t('txt-confirm'), handler: this.confirmEditHost}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='configEditHost'
+        className='modal-dialog'
+        title={t('syslogFields.txt-editHostInfo')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayEditHost()}    
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle edit host confirm
+   * @method
+   */
+  confirmEditHost = () => {
+    const {baseUrl} = this.context;
+    const {activeHostInfo, newHostName, hostNotifyStatus} = this.state;
+    const url = `${baseUrl}/api/log/netproxy/updatehost`;
+    const requestData = {
+      ...activeHostInfo,
+      hostName: newHostName,
+      notify: hostNotifyStatus
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getSyslogData();
+        this.toggleHostEdit();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle pattern edit name dialog on/off
+   * @method
+   * @param {string} [type] - edit type ('new')
+   */
+  toggleEditPatternName = (type) => {
+    const {openEditPatternName} = this.state;
+
+    if (openEditPatternName) {
+      this.setState({
+        activePatternIndex: '',
+        newPatternName: ''
+      });
+    };
+
+    this.setState({
+      openEditPatternName: !openEditPatternName,
+      info: '',
+      editPatternType: type || 'edit'
+    });
+  }
+  /**
+   * Handle Pattern name input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleEditPatternNameChange = (event) => {
+    this.setState({
+      newPatternName: event.target.value
+    });
+  }
+  /**
+   * Display Pattern name edit content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditPatternName = () => {
+    return (
+      &lt;div className='parent'>
+        &lt;TextField
+          id='syslogHostIP'
+          name='loghostIp'
+          label={t('syslogFields.txt-patternName')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={this.state.newPatternName}
+          onChange={this.handleEditPatternNameChange} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display Pattern name edit dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  modalEditPatternName = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleEditPatternName},
+      confirm: {text: t('txt-confirm'), handler: this.confirmEditPatternName}
+    };
+    const title = this.state.editPatternType === 'new' ? t('syslogFields.txt-addPattern') : t('syslogFields.txt-editName');
+
+    return (
+      &lt;ModalDialog
+        id='editPatternName'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayEditPatternName()}    
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle Pattern edit name confirm
+   * @method
+   */
+  confirmEditPatternName = () => {
+    const {syslogPatternConfig, activePatternIndex, newPatternName, editPatternType} = this.state;
+    let tempSyslogPatternConfig = _.cloneDeep(syslogPatternConfig);
+    let newPatternNameList = [];
+
+    if (!newPatternName) {
+      this.setState({
+        info: t('txt-checkRequiredFieldType')
+      });
+      return;
+    }
+
+    if (editPatternType === 'new') { //For adding new pattern
+      tempSyslogPatternConfig.type = 'formatSettings';
+      tempSyslogPatternConfig.patternSetting.push({
+        input: DEFAULT_INPUT,
+        pattern: DEFAULT_PATTERN,
+        patternName: newPatternName,
+        property: {},
+        relationships: [
+          {name: '', srcNode: '', dstNode: '', conditions:[]}
+        ]
+      });
+
+      _.forEach(syslogPatternConfig.patternSetting, (val, i) => {
+        newPatternNameList.push(val.patternName);
+      })
+
+      newPatternNameList.push(newPatternName);
+    } else if (editPatternType === 'edit') { //For editing existing pattern
+      _.forEach(syslogPatternConfig.patternSetting, (val, i) => {
+        if (i === activePatternIndex) {
+          tempSyslogPatternConfig.patternSetting[i].patternName = newPatternName;
+          newPatternNameList.push(newPatternName);
+        } else {
+          newPatternNameList.push(val.patternName);
+        }
+      })
+    }
+
+    if (_.uniq(newPatternNameList).length === newPatternNameList.length) { //Check duplicated pattern name
+      this.setState({
+        syslogPatternConfig: tempSyslogPatternConfig,
+        activePatternName: newPatternName,
+        info: ''
+      });
+
+      this.toggleEditPatternName();
+    } else { //Pattern name is duplicated
+      this.setState({
+        info: t('txt-duplicatedName')
+      });
+    }
+  }
+  /**
+   * Close syslog events chart dialog
+   * @method
+   */
+  closeTimeline = () => {
+    this.setState({
+      openTimeline: false,
+      clickTimeline: false,
+      activeTimeline: '',
+      activeConfigId: '',
+      activeConfigName: '',
+      datetime: {
+        from: helper.getStartDate('day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      eventsData: {}
+    });
+  }
+  /**
+   * Open new tab for Inventory page
+   * @method
+   * @param {object} allValue - Host data
+   */
+  redirectIp = (allValue) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${allValue.host}&amp;type=edit&amp;hostName=${allValue.name}&amp;lng=${language}`;
+
+    if (IP_PATTERN.test(allValue.host)) { //Check IP format
+      window.open(url, '_blank');
+    }
+  }
+  /**
+   * Get Hosts info by config ID
+   * @method
+   * @param {string} id - config ID
+   */
+  getHostsInfoById = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/log/config?id=${id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const {hostsFieldsArr, hosts} = this.state;
+        let tempHosts = {...hosts};
+        let hostsDataArr = [];
+
+        _.forEach(data.hostname, (val, key) => {
+          hostsDataArr.push({
+            id: data.id,
+            host: key,
+            name: val
+          });
+        })
+
+        tempHosts.dataContent = hostsDataArr;
+
+        let tempFields = {};
+        hostsFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            hide: tempData === 'id' ? true : false,
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: tempData === '_menu' ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === '_menu') {
+                return (
+                  &lt;div className='table-menu menu active'>
+                    &lt;i className='fg fg-edit' onClick={this.openEditHostsV1.bind(this, 'edit', allValue)} title={t('txt-edit')}>&lt;/i>
+                    &lt;i className={cx('fg fg-setting', {'not-allowed': !IP_PATTERN.test(allValue.host)})} onClick={this.redirectIp.bind(this, allValue)} title={t('txt-settings')}>&lt;/i>
+                    &lt;i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                  &lt;/div>
+                )
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
+            }
+          }
+        })
+
+        this.setState({
+          hosts: tempHosts,
+          hostsFields: tempFields,
+          activeHost: data
+        }, () => {
+          this.toggleContent('hostInfo');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle edit hosts input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleEditHostsChange = (event) => {
+    let tempEditHosts = {...this.state.editHosts};
+    tempEditHosts[event.target.name] = event.target.value.trim();
+
+    this.setState({
+      editHosts: tempEditHosts
+    });
+  }
+  /**
+   * Display edit hosts content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditHosts = () => {
+    const {editHostsType, editHosts, formValidation} = this.state;
+
+    return (
+      &lt;div className='parent'>
+        &lt;div className='group'>
+          &lt;TextField
+            name='host'
+            label={t('txt-host')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.editHostsHost.valid}
+            helperText={formValidation.editHostsHost.valid ? '' : t('txt-required')}
+            value={editHosts.host}
+            onChange={this.handleEditHostsChange}
+            disabled={editHostsType === 'edit'} />
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;TextField
+            name='name'
+            label={t('syslogFields.name')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={editHosts.name}
+            onChange={this.handleEditHostsChange} />
+        &lt;/div>
+      &lt;/div>
+    )
   }
   /**
    * Display edit hosts modal dialog
    * @method
+   * @returns ModalDialog component
    */
   modalEditHosts = () => {
-    const {hostsData} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeEditHosts},
       confirm: {text: t('txt-confirm'), handler: this.confirmEditHosts}
     }
     const title = t('syslogFields.txt-editHosts');
-    const data = {
-      ...hostsData
-    };
 
     return (
       &lt;ModalDialog
@@ -1055,13 +2308,8 @@ class Syslog extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='confirm'>
-        &lt;MultiInput
-          className='edit-hosts-group'
-          base={EditHosts}
-          props={data}
-          value={hostsData.formattedHostsData}
-          onChange={this.handleEditHostsChange} />
+        closeAction='cancel'>
+        {this.displayEditHosts()}
       &lt;/ModalDialog>
     )
   }
@@ -1070,29 +2318,49 @@ class Syslog extends Component {
    * @method
    */
   confirmEditHosts = () => {
-    const {baseUrl} = this.props;
-    const {hostsData} = this.state;
-    const url = `${baseUrl}/api/log/config/hosts`;
-    let hostsArray = [];
-
-    _.forEach(hostsData.formattedHostsData, val => {
-      if (val.host) {
-        hostsArray.push(val.host);
-      }
-    })
-
-    const data = {
-      id: hostsData.id,
-      hosts: hostsArray
+    const {baseUrl} = this.context;
+    const {editHosts, activeHost, formValidation} = this.state;
+    const url = `${baseUrl}/api/v1/log/config/hosts`;
+    const requestData = {
+      id: activeHost.id,
+      hostip: editHosts.host,
+      hostname: editHosts.name
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    helper.getAjaxData('PATCH', url, data)
+    if (editHosts.host) {
+      tempFormValidation.editHostsHost.valid = true;
+      tempFormValidation.editHostsHost.msg = '';
+    } else {
+      tempFormValidation.editHostsHost.valid = false;
+      tempFormValidation.editHostsHost.msg = t('txt-required');
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
-        this.getSyslogList(false);
+        this.getHostsInfoById(activeHost.id);
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
     this.closeEditHosts();
   }
   /**
@@ -1101,41 +2369,90 @@ class Syslog extends Component {
    */
   closeEditHosts = () => {
     this.setState({
-      openEditHosts: false
+      openEditHosts: false,
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
+  }
+  /**
+   * Display delete Host content
+   * @method
+   * @param {object} allValue - Host data
+   * @returns HTML DOM
+   */
+  displayDeleteHostContent = (allValue) => {
+    this.setState({
+      currentHostData: allValue
+    });
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {allValue.host}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show Delete Host IP dialog
+   * @method
+   * @param {object} allValue - Host data
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deleteHost'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.displayDeleteHostContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteHost();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Host confirm
+   * @method
+   */
+  deleteHost = () => {
+    const {baseUrl} = this.context;
+    const {activeHost, currentHostData} = this.state;
+    const url = `${baseUrl}/api/log/config/hosts`;
+    const requestData = {
+      id: currentHostData.id,
+      hosts: currentHostData.host
+    }
+
+    if (!currentHostData.id) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getHostsInfoById(activeHost.id);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string} event - event object
    */
-  handleSearchChange = (type, value) => {
-    let tempSearch = {...this.state.search};
-    tempSearch[type] = value.trim();
+  handleSearchChange = (event) => {
+    let tempSyslogSearch = {...this.state.syslogSearch};
+    tempSyslogSearch[event.target.name] = event.target.value;
 
     this.setState({
-      search: tempSearch
-    });
-  }
-  /**
-   * Handle table pagination change
-   * @method
-   * @param {string} type - page type ('currentPage' or 'pageSize')
-   * @param {string} value - new page number
-   */
-  handlePaginationChange = (type, value) => {
-    let tempSyslog = {...this.state.syslog};
-    tempSyslog[type] = value;
-
-    if (type === 'pageSize') {
-      tempSyslog.currentPage = 1;
-    }
-
-    this.setState({
-      syslog: tempSyslog
-    }, () => {
-      this.getSyslogList();
+      syslogSearch: tempSyslogSearch
     });
   }
   /**
@@ -1152,14 +2469,8 @@ class Syslog extends Component {
    * @method
    */
   clearFilter = () => {
-    const search = {
-      name: '',
-      port: '',
-      format: ''
-    };
-
     this.setState({
-      search
+      syslogSearch: _.cloneDeep(SYSLOG_SEARCH)
     });
   }
   /**
@@ -1168,7 +2479,7 @@ class Syslog extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {search, openFilter} = this.state;
+    const {syslogSearch, openFilter} = this.state;
 
     return (
       &lt;div className={cx('main-filter', {'active': openFilter})}>
@@ -1176,29 +2487,303 @@ class Syslog extends Component {
         &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
         &lt;div className='filter-section config'>
           &lt;div className='group'>
-            &lt;label className='first-label'>{t('syslogFields.port')}&lt;/label>
-            &lt;Input onChange={this.handleSearchChange.bind(this, 'port')} value={search.port} />
+            &lt;TextField
+              id='syslogName'
+              name='name'
+              label={t('syslogFields.name')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={syslogSearch.name}
+              onChange={this.handleSearchChange} />
           &lt;/div>
           &lt;div className='group'>
-            &lt;label className='first-label'>{t('syslogFields.format')}&lt;/label>
-            &lt;Input onChange={this.handleSearchChange.bind(this, 'format')} value={search.format} />
+            &lt;TextField
+              id='syslogLogHostIP'
+              name='loghostip'
+              label={t('syslogFields.txt-hostIP')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={syslogSearch.loghostip}
+              onChange={this.handleSearchChange} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;TextField
+              id='syslogPort'
+              name='port'
+              type='number'
+              label={t('syslogFields.port')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={syslogSearch.port}
+              onChange={this.handleSearchChange} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;TextField
+              id='syslogNetProxyStatus'
+              name='isactive'
+              select
+              label={t('syslogFields.txt-netProxyStatus')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={syslogSearch.isactive}
+              onChange={this.handleSearchChange}>
+              &lt;MenuItem value='all'>{t('txt-all')}&lt;/MenuItem>
+              &lt;MenuItem value={true}>{t('txt-online')}&lt;/MenuItem>
+              &lt;MenuItem value={false}>{t('txt-offline')}&lt;/MenuItem>
+            &lt;/TextField>
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;TextField
+              id='syslogNetProxyName'
+              name='netproxyname'
+              label={t('syslogFields.txt-netProxyName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={syslogSearch.netproxyname}
+              onChange={this.handleSearchChange} />
           &lt;/div>
         &lt;/div>
         &lt;div className='button-group'>
-          &lt;button className='filter' onClick={this.getSyslogList.bind(this, true)}>{t('txt-filter')}&lt;/button>
-          &lt;button className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/button>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.getSyslogData}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
         &lt;/div>
       &lt;/div>
     )
   }
+  /**
+   * Toggle (show/hide) the left menu
+   * @method
+   */
+  toggleLeftNav = () => {
+    this.setState({
+      showPatternLeftNav: !this.state.showPatternLeftNav
+    });
+  }
+  /**
+   * Display Syslog Config content
+   * @method
+   * @param {object} val - content of the syslogPatternConfig
+   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @returns SyslogConfig component
+   */
+  getSyslogConfig = (val, i) => {
+    const {showPatternLeftNav, configRelationships, syslogPatternConfig, activePatternName} = this.state;
+
+    if (val.patternName === activePatternName) {
+      return (
+        &lt;SyslogConfig
+          key={val.patternName + i}
+          config={syslogPatternConfig}
+          index={i}
+          data={{
+            relationships: configRelationships,
+            rawOptions: syslogPatternConfig.patternSetting[i].rawOptions,
+            showPatternLeftNav
+          }}
+          handleConfigChange={this.handleConfigChange.bind(this, i)}
+          getLatestInput={this.getLatestInput.bind(this, i)}
+          getSyslogGrok={this.getSyslogGrok.bind(this, i)}
+          handleRelationshipChange={this.handleRelationshipChange.bind(this, i)} />
+      )
+    }
+  }
+  /**
+   * Handle active pattern change
+   * @method
+   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @param {string} activePatternName - active pattern name
+   */
+  handleActivePatternChange = (i , activePatternName) => {
+    let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+    tempSyslogPatternConfig.type = 'formatSettings';
+
+    this.setState({
+      syslogPatternConfig: tempSyslogPatternConfig,
+      activePatternName
+    });
+  }
+  /**
+   * Handle pattern item mouse over
+   * @method
+   * @param {string} activePatternMouse - active pattern mouse over name
+   */
+  handlePatternMouseOver = (activePatternMouse) => {
+    this.setState({
+      activePatternMouse
+    });
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} val - active mouse over pattern data
+   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (val, i, event) => {
+    let tempCurrentPattern = {...this.state.currentPattern};
+    tempCurrentPattern.index = i;
+    tempCurrentPattern.data = val;
+
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentPattern: tempCurrentPattern
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentPattern: {
+        index: '',
+        data: {}
+      }
+    });
+  }
+  /**
+   * handle edit/delete Pattern name
+   * @method
+   * @param {string} type - action type ('edit' or 'delete')
+   */
+  handlePatternAction = (type) => {
+    const {currentPattern} = this.state;
+
+    if (type === 'edit') {
+      this.setState({
+        activePatternIndex: currentPattern.index,
+        newPatternName: currentPattern.data.patternName
+      }, () => {
+        this.toggleEditPatternName();
+      });
+    } else if (type === 'delete') {
+      let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
+      let activePatternName = '';
+      tempSyslogPatternConfig.patternSetting.splice(currentPattern.index, 1);
+      activePatternName = tempSyslogPatternConfig.patternSetting[tempSyslogPatternConfig.patternSetting.length - 1].patternName;
+
+      this.setState({
+        syslogPatternConfig: tempSyslogPatternConfig,
+        activePatternName
+      });
+    }
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Display Syslog Config content
+   * @method
+   * @param {object} val - content of the syslogPatternConfig
+   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @returns HTML DOM
+   */
+  getPatternItem = (val, i) => {
+    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor} = this.state;
+    const patternName = val.patternName;
+    let formattedPatternName = '';
+
+    if (patternName.length > 9) {
+      formattedPatternName = patternName.substr(0, 9) + '...';
+    }
+
+    return (
+      &lt;div className='item'>
+        &lt;div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, patternName)} onMouseOver={this.handlePatternMouseOver.bind(this, patternName)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
+          &lt;span title={patternName}>{formattedPatternName || patternName}&lt;/span>
+          &lt;i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, val, i)}>&lt;/i>
+          &lt;i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}>&lt;/i>
+        &lt;/div>
+
+        &lt;Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          &lt;MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}&lt;/MenuItem>
+          {syslogPatternConfig.patternSetting.length > 1 &amp;&amp;
+            &lt;MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}&lt;/MenuItem>
+          }
+        &lt;/Menu>
+
+        {activePatternName === patternName &amp;&amp;
+          &lt;div className='item'>
+            &lt;div className='subframe' onClick={this.handleConfigChange.bind(this, '', 'type', 'formatSettings')}>
+              &lt;span className={syslogPatternConfig.type === 'formatSettings' ? 'true' : ''}>{t('syslogFields.txt-formatSettings')}&lt;/span>
+            &lt;/div>
+            &lt;div className='subframe' onClick={this.handleConfigChange.bind(this, '', 'type', 'relationship')}>
+              &lt;span className={syslogPatternConfig.type === 'relationship' ? 'true' : ''}>{t('syslogFields.txt-relationship')}&lt;/span>
+            &lt;/div>
+          &lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle open charts menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenChartsMenu = (event) => {
+    this.setState({
+      contextAnchorCharts: event.currentTarget
+    });
+  }
+  /**
+   * Handle close charts menu
+   * @method
+   */
+  handleCloseChartsMenu = () => {
+    this.setState({
+      contextAnchorCharts: null
+    });
+  }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
+    const {baseUrl, contextRoot} = this.context;
+    const {
+      openFilter,
+      activeContent,
+      syslog,
+      hostsFields,
+      hosts,
+      editSyslogType,
+      showPatternLeftNav,
+      openExportCharts,
+      openEditHost,
+      openTimeline,
+      openEditHosts,
+      openEditPatternName,
+      showSshAccount,
+      showAddSshAccount,
+      contextAnchorCharts,
+      activeHost,
+      exportType,
+      popOverAnchor,
+      taskServiceList,
+      syslogPatternConfig,
+      contextAnchor
+    } = this.state;
+    let exportTitle = '';
+
+    if (exportType === 'securityLog') {
+      exportTitle = t('txt-exportSecurityLog');
+    } else if (exportType === 'syslog') {
+      exportTitle = t('txt-exportSyslog');
+    }
 
     return (
       &lt;div>
-        {openSyslog &amp;&amp;
-          this.modalSyslog()
+        {openExportCharts &amp;&amp;
+          this.showExportChartsDialog()
+        }
+
+        {openEditHost &amp;&amp;
+          this.showEditHostDialog()
         }
 
         {openTimeline &amp;&amp;
@@ -1209,53 +2794,208 @@ class Syslog extends Component {
           this.modalEditHosts()
         }
 
+        {openEditPatternName &amp;&amp;
+          this.modalEditPatternName()
+        }
+
+        {showSshAccount &amp;&amp;
+          this.showSshAccountDialog()
+        }
+
+        {showAddSshAccount &amp;&amp;
+          this.addSshAccountDialog()
+        }
+
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            &lt;button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}>&lt;i className='fg fg-chart-kpi'>&lt;/i>&lt;/button>
-            &lt;button onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}>&lt;i className='fg fg-add'>&lt;/i>&lt;/button>
-            &lt;button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+            {activeContent === 'syslogData' &amp;&amp;
+              &lt;div>
+                &lt;Button variant='outlined' color='primary' onClick={this.restartLogstash} title={t('syslogFields.txt-restartLogstash')}>&lt;UpdateIcon className='fg-update' fontSize='large' />&lt;/Button>
+                &lt;Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}>&lt;i className='fg fg-chart-kpi'>&lt;/i>&lt;/Button>
+                &lt;Button variant='outlined' color='primary' onClick={this.toggleSshDialog} title={a('txt-addSshAccount')}>&lt;i className='fg fg-add'>&lt;/i>&lt;/Button>
+                &lt;Button variant='outlined' color='primary' className={cx({'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+                &lt;Button variant='outlined' color='primary' className='last' onClick={this.handleOpenChartsMenu}>&lt;i className='fg fg-data-download-2'>&lt;/i>&lt;/Button>
+              &lt;/div>
+            }
+
+            &lt;Menu
+              anchorEl={contextAnchorCharts}
+              keepMounted
+              open={Boolean(contextAnchorCharts)}
+              onClose={this.handleCloseChartsMenu}>
+              &lt;MenuItem onClick={this.toggleExportCharts}>{t('syslogFields.txt-exportSyslogCharts')}&lt;/MenuItem>
+              &lt;MenuItem onClick={this.toggleExportScheduleList.bind(this, 'securityLog')}>{t('txt-exportSecurityLog')}&lt;/MenuItem>
+              &lt;MenuItem onClick={this.toggleExportScheduleList.bind(this, 'syslog')}>{t('txt-exportSyslog')}&lt;/MenuItem>
+            &lt;/Menu>
           &lt;/div>
+
+          &lt;ExportCSV
+            title={exportTitle}
+            anchorPosition={popOverAnchor}
+            taskServiceList={taskServiceList}
+            handlePopoverClose={this.handlePopoverClose}
+            getTaskService={this.getTaskService} />
         &lt;/div>
 
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
-          &lt;div className='parent-content'>
-            { this.renderFilter() }
+          {activeContent === 'syslogData' &amp;&amp;
+            &lt;div className='parent-content'>
+              {this.renderFilter()}
 
-            &lt;div className='main-content'>
-              &lt;header className='main-header'>{t('txt-syslogManage')}&lt;/header>
-              &lt;TableContent
-                dataTableData={syslog.dataContent}
-                dataTableFields={dataFields}
-                dataTableSort={syslog.sort}
-                paginationTotalCount={syslog.totalCount}
-                paginationPageSize={syslog.pageSize}
-                paginationCurrentPage={syslog.currentPage}
-                handleTableSort={this.handleTableSort}
-                handleRowMouseOver={this.handleRowMouseOver}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{t('txt-syslogManage')}&lt;/header>
+                &lt;div className='config-syslog mui-table-content' style={{height: '78vh', overflow: 'auto'}}>
+                  {syslog.dataContent &amp;&amp; syslog.dataContent.length > 0 &amp;&amp;
+                    syslog.dataContent.map(this.displayHostInfo)
+                  }
+                  {syslog.dataContent &amp;&amp; syslog.dataContent.length === 0 &amp;&amp;
+                    &lt;div className='no-result'>{t('txt-notFound')}&lt;/div>
+                  }
+                &lt;/div>
+              &lt;/div>
             &lt;/div>
-          &lt;/div>
+          }
+
+          {activeContent === 'editSyslog' &amp;&amp;
+            &lt;div className='parent-content'>
+              &lt;div className='main-content basic-form'>
+                &lt;header className='main-header'>{t('syslogFields.txt-editSyslogInfo')}&lt;/header>
+                &lt;div className='edit-syslog-config'>
+                  &lt;div className='form-group normal'>
+                    &lt;header>{t('syslogFields.txt-syslogInfo')}&lt;/header>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='syslogHostIP'
+                        name='loghostIp'
+                        label={t('syslogFields.ip')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={syslogPatternConfig.loghostIp}
+                        disabled />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='syslogName'
+                        name='name'
+                        label={t('syslogFields.name')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={syslogPatternConfig.name}
+                        disabled />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='syslogReceivedPort'
+                        name='port'
+                        type='number'
+                        label={t('syslogFields.port')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={syslogPatternConfig.port}
+                        disabled />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='syslogDataFormat'
+                        name='format'
+                        label={t('syslogFields.format')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={syslogPatternConfig.format}
+                        disabled />
+                    &lt;/div>
+                  &lt;/div>
+
+                  &lt;div className='notify-status'>
+                    &lt;FormLabel className='notify'>{t('txt-notifyStatus')}&lt;/FormLabel>
+                    &lt;FormControlLabel
+                      className='switch-control'
+                      control={
+                        &lt;Switch
+                          checked={syslogPatternConfig.notify}
+                          onChange={this.handleConfigNotifyChange}
+                          color='primary' />
+                      }
+                      label={t('txt-switch')} />
+                  &lt;/div>
+
+                  &lt;div className='pattern-content'>
+                    &lt;header>{t('syslogFields.matchPattern')}&lt;/header>
+                    &lt;Button variant='outlined' color='primary' className='standard add-pattern' onClick={this.toggleEditPatternName.bind(this, 'new')}>{t('syslogFields.txt-addPattern')}&lt;/Button>
+
+                    &lt;div className='syslog-config'>
+                      &lt;div className={cx('left-nav', {'collapse': !showPatternLeftNav})}>
+                        {syslogPatternConfig.patternSetting.map(this.getPatternItem)}
+                        &lt;div className='expand-collapse' onClick={this.toggleLeftNav}>&lt;i className={`fg fg-arrow-${showPatternLeftNav ? 'left' : 'right'}`}>&lt;/i>&lt;/div>
+                      &lt;/div>
+                      {syslogPatternConfig.patternSetting.map(this.getSyslogConfig)}
+                    &lt;/div>
+                  &lt;/div>
+                  &lt;footer>
+                    &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}&lt;/Button>
+                    &lt;Button variant='contained' color='primary' onClick={this.confirmSyslogSave}>{t('txt-save')}&lt;/Button>
+                  &lt;/footer>
+                &lt;/div>
+              &lt;/div>
+            &lt;/div>
+          }
+
+          {activeContent === 'hostInfo' &amp;&amp;
+            &lt;div className='parent-content'>
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{t('syslogFields.txt-syslogHost')}&lt;/header>
+
+                &lt;div className='content-header-btns'>
+                  &lt;Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-back')}&lt;/Button>
+                &lt;/div>
+
+                &lt;div className='config-syslog'>
+                  &lt;div className='host-list'>
+                    &lt;header>{t('syslogFields.txt-syslogInfo')}&lt;/header>
+                    &lt;table className='c-table main-table info'>
+                      &lt;tbody>
+                        &lt;tr>
+                          &lt;td style={{width: '30%'}}>IP&lt;/td>
+                          &lt;td>{activeHost.loghostIp}&lt;/td>
+                        &lt;/tr>
+                        &lt;tr>
+                          &lt;td style={{width: '30%'}}>{t('txt-name')}&lt;/td>
+                          &lt;td>{activeHost.name}&lt;/td>
+                        &lt;/tr>
+                      &lt;/tbody>
+                    &lt;/table>
+
+                    &lt;header>{t('syslogFields.txt-syslogHostList')}&lt;/header>
+                    &lt;Button variant='outlined' color='primary' className='standard btn add-host' onClick={this.openEditHostsV1.bind(this, 'add')}>{t('syslogFields.txt-addHost')}&lt;/Button>
+                    &lt;DataTable
+                      className='main-table'
+                      fields={hostsFields}
+                      data={hosts.dataContent} />
+                  &lt;/div>
+                &lt;/div>
+              &lt;/div>
+            &lt;/div>
+          }
         &lt;/div>
       &lt;/div>
     )
   }
 }
 
-Syslog.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
-}
+Syslog.contextType = BaseDataContext;
 
-const HocSyslog = withLocale(Syslog);
-export { Syslog, HocSyslog };</code></pre>
+Syslog.propTypes = {
+};
+
+export default Syslog;</code></pre>
         </article>
     </section>
 
@@ -1265,13 +3005,13 @@ export { Syslog, HocSyslog };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

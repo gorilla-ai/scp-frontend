@@ -26,18 +26,21 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import React, {Component} from 'react'
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import i18n from 'i18next'
-import PropTypes from 'prop-types';
-import cx from 'classnames'
+import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DataTable from 'react-ui/build/src/components/table'
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {HocConfig as Config} from '../../../common/configuration'
+import {BaseDataContext} from '../../../common/context'
+import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
+import MuiTableContent from '../../../common/mui-table-content'
 import PrivilegeAdd from './add'
 import PrivilegeEdit from './edit'
 
@@ -51,7 +54,7 @@ const gt =  i18n.getFixedT(null, 'app');
 /**
  * Account Privileges
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the account privileges
  */
 class Roles extends Component {
@@ -59,59 +62,90 @@ class Roles extends Component {
     super(props);
 
     this.state = {
-      data: [],
-      dataFieldsArr: ['_menu', 'privilegeid', 'name', 'permits'],
-      dataFields: {}
+      userPrivileges: {
+        dataFieldsArr: ['_menu', 'name', 'permits'],
+        dataFields: [],
+        dataContent: null
+      },
+      contextAnchor: null,
+      currentRolesData: {}
     };
+
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.loadList();
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.getPrivilegesData();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
   }
   /**
    * Get and set privileges list
    * @method
    */
-  loadList = () => {
-    const {baseUrl} = this.props;
-    const {dataFieldsArr} = this.state;
+  getPrivilegesData = () => {
+    const {baseUrl} = this.context;
+    const {userPrivileges} = this.state;
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/privileges?getPermits=true`,
       type: 'GET'
     })
     .then(data => {
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          hide: tempData === 'privilegeid' ? true : false,
-          label: tempData === '_menu' ? '' : t(`privilegeFields.${tempData}`),
-          sortable: tempData === 'name' ? true : null,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                &lt;div className={cx('table-menu', {'active': value})}>
-                  &lt;button onClick={this.handleRowContextMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/button>
-                &lt;/div>
-              )
-            } else if (tempData === 'permits') {
-              return &lt;div className='flex-item'>{this.displayPermit(value)}&lt;/div>
-            } else {
-              return &lt;span>{value}&lt;/span>;
-            }
-          }
-        }
-      })
+      if (data) {
+        let tempUserPrivileges = {...userPrivileges};
 
-      this.setState({
-        data: data.rt,
-        dataFields: tempFields
-      });
+        if (data.length === 0) {
+          tempUserPrivileges.dataContent = [];
+
+          this.setState({
+            userPrivileges: tempUserPrivileges
+          });
+          return null;
+        }
+
+        tempUserPrivileges.dataContent = data;
+        tempUserPrivileges.dataFields = _.map(userPrivileges.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : t('privilegeFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempUserPrivileges.dataContent[dataIndex];
+                const value = tempUserPrivileges.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu active'>
+                      &lt;Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/Button>
+                    &lt;/div>
+                  )
+                } else if (val === 'permits') {
+                  return &lt;div className='flex-item'>{this.displayPermit(value)}&lt;/div>
+                } else {
+                  return &lt;span>{value}&lt;/span>
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          userPrivileges: tempUserPrivileges
+        });
+      }
+      return null;
     })
     .catch(err => {
-      this.setState({
-        error: true,
-        info: err
-      });
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -121,6 +155,7 @@ class Roles extends Component {
    */
   showEditDialog = (id) => {
     this.editor.openPrivilegeEdit(id);
+    this.handleCloseMenu();
   }
   /**
    * Open account privilege add dialog
@@ -151,7 +186,7 @@ class Roles extends Component {
    * @param {string} id - selected privilege id
    */
   showDeleteDialog = (allValue, id) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     PopupDialog.prompt({
       title: c('txt-deletePrivilege'),
@@ -160,110 +195,103 @@ class Roles extends Component {
       cancelText: c('txt-cancel'),
       display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
-        if (confirmed) {
+        if (confirmed &amp;&amp; id) {
+          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
           ah.one({
             url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
             type: 'DELETE',
             contentType: 'application/json'
           })
           .then(data => {
-            setTimeout(this.loadList, 1000);
+            if (!data.rt) {
+              helper.showPopupMsg(c('txt-privilegeError'), c('txt-error'));
+            }
+
+            this.getPrivilegesData();
+            return null;
           })
           .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message);
+            helper.showPopupMsg('', c('txt-error'), err.message);
           })
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - owner data
-   * @param {object} evt - mouseClick events
+   * @param {object} roles - active roles data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDeleteDialog(allValue, allValue.privilegeid)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configUserPrivilegesMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (roles, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentRolesData: roles
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentRolesData: {}
+    });
   }
   /**
    * Display role privilege data
    * @method
    * @param {array} value - role list
-   * @returns HTML DOM
+   * @returns permitList array
    */
   displayPermit = (value) => {
     const permitList = _.map(value, (val, i) => {
-      return &lt;span key={i} className='permit'>{val.dispname}&lt;/span>
+      return &lt;span key={i} className='item'>{c('txt-' + val.name)}&lt;/span>
     });
 
     return permitList;
   }
-  /**
-   * Handle table row mouse over
-   * @method
-   * @param {string} id - selected privilege id
-   * @param {object} allValue - privilege data
-   * @param {object} evt - MouseoverEvents
-   */
-  handleRowMouseOver = (id, allValue, evt) => {
-    let tempData = {...this.state.data};
-    tempData = _.map(tempData, el => {
-      return {
-        ...el,
-        _menu: el.privilegeid === allValue.privilegeid ? true : false
-      };
-    });
-
-    this.setState({
-      data: tempData
-    });
-  }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {data, dataFields, info, error} = this.state;
+    const {baseUrl, contextRoot} = this.context;
+    const {userPrivileges, contextAnchor, currentRolesData} = this.state;
+    const tableOptions = {
+      pagination: false,
+      tableBodyHeight: '78vh'
+    };
 
     return (
       &lt;div>
+        &lt;Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          &lt;MenuItem id='privilegesEditBtn' onClick={this.showEditDialog.bind(this, currentRolesData)}>{c('txt-edit')}&lt;/MenuItem>
+          &lt;MenuItem id='privilegesDeleteBtn' onClick={this.showDeleteDialog.bind(this, currentRolesData, currentRolesData.privilegeid)}>{c('txt-delete')}&lt;/MenuItem>
+        &lt;/Menu>
+
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            &lt;button className='last' onClick={this.showAddDialog} title={t('txt-add')}>&lt;i className='fg fg-add'>&lt;/i>&lt;/button>
+            &lt;Button id='privilegesAddBtn' variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')} data-cy='add-role'>&lt;i className='fg fg-add'>&lt;/i>&lt;/Button>
           &lt;/div>
         &lt;/div>
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           &lt;div className='parent-content'>
             &lt;div className='main-content'>
               &lt;header className='main-header'>{c('txt-privileges')}&lt;/header>
               &lt;div className='table-content'>
                 &lt;div className='table no-pagination'>
-                  &lt;DataTable
-                    className='main-table'
-                    data={data}
-                    fields={dataFields}
-                    rowIdField='privilegeid'
-                    onRowMouseOver={this.handleRowMouseOver}
-                    info={info}
-                    infoClassName={cx({'c-error':error})} />
+                  &lt;MuiTableContent
+                    data={userPrivileges}
+                    tableOptions={tableOptions} />
                 &lt;/div>
               &lt;/div>
             &lt;/div>
@@ -272,23 +300,19 @@ class Roles extends Component {
 
         &lt;PrivilegeEdit
           ref={ref => { this.editor = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          onDone={() => setTimeout(this.loadList, 1000)} />
+          onDone={() => setTimeout(this.getPrivilegesData, 1000)} />
 
         &lt;PrivilegeAdd
           ref={ref => { this.addor = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          onDone={() => setTimeout(this.loadList, 1000)} />
+          onDone={() => setTimeout(this.getPrivilegesData, 1000)} />
       &lt;/div>
     )
   }
 }
 
+Roles.contextType = BaseDataContext;
+
 Roles.defaultProps = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
 export default Roles;</code></pre>
@@ -301,13 +325,13 @@ export default Roles;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

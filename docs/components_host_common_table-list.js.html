@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/common/table-list.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/common/table-list.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
+
+let t = null;
+let f = null;
+
+/**
+ * Host table list component
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the table list
+ */
+class TableList extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+  }
+  componentDidMount() {
+  }
+  render() {
+    const {page, searchType, search, data, options, tableAnchor, exportAnchor, cveSeverityLevel, monthlySeverityTrend} = this.props;
+    let headerTitle = '';
+    let searchLabel = '';
+
+    if (page === 'vulnerabilities') {
+      headerTitle = t('host.vulnerabilities.txt-vulnerabilityList');
+      searchLabel = t('host.vulnerabilities.txt-cveName');
+    } else if (page === 'inventory') {
+      headerTitle = t('host.inventory.txt-orgSoftwareList');
+      searchLabel = t('host.inventory.txt-applicationName');
+    } else if (page === 'kbid') {
+      headerTitle = t('host.txt-kbid');
+      searchLabel = t('host.txt-kbidName');
+    }
+
+    return (
+      &lt;div>
+        &lt;Menu
+          anchorEl={tableAnchor}
+          keepMounted
+          open={Boolean(tableAnchor)}
+          onClose={this.props.handleCloseMenu}>
+          &lt;MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}&lt;/MenuItem>
+        &lt;/Menu>
+
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;Button id='hostVulnerabilities' variant='outlined' color='primary' data-cy='hostVulnerabilitiesBtn'>&lt;Link to='/SCP/host/vulnerabilities'>{t('host.txt-vulnerabilities')}&lt;/Link>&lt;/Button>
+            &lt;Button id='hostInventory' variant='outlined' color='primary' data-cy='hostInventoryBtn'>&lt;Link to='/SCP/host/inventory'>{t('host.txt-inventory')}&lt;/Link>&lt;/Button>
+            &lt;Button id='hostKbid' variant='outlined' color='primary' data-cy='hostKbidBtn'>&lt;Link to='/SCP/host/kbid'>{t('host.txt-kbid')}&lt;/Link>&lt;/Button>
+
+            &lt;Button id='hostIndex' variant='outlined' color='primary' data-cy='hostListBtn'>&lt;Link to='/SCP/host'>{t('host.txt-hostList')}&lt;/Link>&lt;/Button>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;div className='parent-content'>
+            {page === 'vulnerabilities' &amp;&amp;
+              &lt;div className='main-statistics host'>
+                &lt;div className='statistics-content'>
+                  {this.props.showPieChart(cveSeverityLevel.data)}
+                  {this.props.showBarChart(monthlySeverityTrend)}
+                &lt;/div>
+              &lt;/div>
+            }
+
+            &lt;div className='main-content'>
+              &lt;header className='main-header'>{headerTitle}&lt;/header>
+              &lt;div className='content-header-btns with-menu'>
+                {page === 'inventory' &amp;&amp;
+                  &lt;Menu
+                    anchorEl={exportAnchor}
+                    keepMounted
+                    open={Boolean(exportAnchor)}
+                    onClose={this.props.handleCloseMenu}>
+                    &lt;MenuItem onClick={this.props.exportList.bind(this, 'cpe')}>{t('host.inventory.txt-inventoryList')}&lt;/MenuItem>
+                    &lt;MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>NCCST&lt;/MenuItem>
+                  &lt;/Menu>
+                }
+                {page === 'kbid' &amp;&amp;
+                  &lt;Menu
+                    anchorEl={exportAnchor}
+                    keepMounted
+                    open={Boolean(exportAnchor)}
+                    onClose={this.props.handleCloseMenu}>
+                    &lt;MenuItem onClick={this.props.exportList.bind(this, 'kbid')}>{t('host.kbid.txt-kbidList')}&lt;/MenuItem>
+                    &lt;MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-vulnerabilityList')}&lt;/MenuItem>
+                  &lt;/Menu>
+                }
+                &lt;Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}&lt;/Button>
+                {page === 'vulnerabilities' &amp;&amp;
+                  &lt;React.Fragment>
+                    &lt;Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList} data-cy='hostExportBtn'>{t('txt-export')}&lt;/Button>
+                  &lt;/React.Fragment>
+                }
+                {page === 'inventory' &amp;&amp;
+                  &lt;React.Fragment>
+                    &lt;Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}&lt;/Button>
+                    &lt;Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-vans')}&lt;/Button>
+                  &lt;/React.Fragment>
+                }
+                {page === 'kbid' &amp;&amp;
+                  &lt;React.Fragment>
+                    &lt;Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}&lt;/Button>
+                    &lt;Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-kbid')}&lt;/Button>
+                  &lt;/React.Fragment>
+                }
+              &lt;/div>
+
+              &lt;div className='actions-bar'>
+                &lt;div className='search-field'>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      name='search'
+                      className='search-text'
+                      label={searchLabel}
+                      variant='outlined'
+                      size='small'
+                      value={search.keyword}
+                      onChange={this.props.handleSearch}
+                      data-cy='hostSearchTextField' />
+                  &lt;/div>
+                  &lt;Button id='hostSearchData' variant='contained' color='primary' className='search-btn' onClick={this.props.getData} data-cy='hostSearchSubmitBtn'>{t('txt-search')}&lt;/Button>
+                  &lt;Button id='hostClearData' variant='outlined' color='primary' className='standard btn clear' onClick={this.props.handleReset.bind(this, searchType)} data-cy='hostSearchClearBtn'>{t('txt-clear')}&lt;/Button>
+                &lt;/div>
+
+                &lt;div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(search.count)}&lt;/div>
+              &lt;/div>
+
+              &lt;MuiTableContent
+                data={data}
+                tableOptions={options} />
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+TableList.contextType = BaseDataContext;
+
+TableList.propTypes = {
+  page: PropTypes.string.isRequired,
+  searchType: PropTypes.string.isRequired,
+  search: PropTypes.object.isRequired,
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object.isRequired,
+  tableAnchor: PropTypes.string.isRequired,
+  exportAnchor: PropTypes.string,
+  cveSeverityLevel: PropTypes.object,
+  monthlySeverityTrend: PropTypes.array,
+  getData: PropTypes.func.isRequired,
+  getActiveData: PropTypes.func.isRequired,
+  exportList: PropTypes.func.isRequired,
+  toggleFilterQuery: PropTypes.func.isRequired,
+  handleSearch: PropTypes.func.isRequired,
+  handleReset: PropTypes.func.isRequired,
+  handleCloseMenu: PropTypes.func.isRequired,
+  showPieChart: PropTypes.func,
+  showBarChart: PropTypes.func,
+  toggleReport: PropTypes.func
+};
+
+export default TableList;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

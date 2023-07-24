@@ -27,20 +27,23 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
 import Gis from 'react-gis/build/src/components'
 
-import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import AlertDetails from '../common/alert-details'
+import {BaseDataContext} from '../common/context'
+import SearchOptions from '../common/search-options'
 import helper from '../common/helper'
-import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -48,6 +51,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const ALERT_LEVEL_COLORS = {
@@ -57,7 +61,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-
 const MAPS_PUBLIC_DATA = {
   alertDetails: {
     publicFormatted: {
@@ -65,7 +68,7 @@ const MAPS_PUBLIC_DATA = {
       destIp: {}
     },
     private: {
-      tree: [],
+      tree: null,
       data: '',
       currentFloorPrivateData: [],
       allFloorPrivateData: []
@@ -97,7 +100,7 @@ const MAPS_PRIVATE_DATA = {
 /**
  * Dashboard Maps
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Dashboard Maps
  */
 class DashboardMaps extends Component {
@@ -106,13 +109,12 @@ class DashboardMaps extends Component {
 
     this.state = {
       datetime: {
-        from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-08-06T01:00:00Z',
-        //to: '2019-08-07T02:02:13Z'
+        from: helper.getSubstractDate(24, 'hours'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        //from: '2020-08-02T01:00:00Z',
+        //to: '2020-08-02T01:10:00Z'
       },
-      updatedTime: helper.getFormattedDate(Moment()),
-      mapType: PRIVATE, //PRIVATE PUBLIC
+      mapType: PRIVATE, //'private' or 'public'
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
@@ -132,22 +134,27 @@ class DashboardMaps extends Component {
    * @method
    */
   loadAlertData = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=10000`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'Top10ExternalPotSrcIp'
+        query: 'ExternalSrcCountry'
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         const tempArray = _.map(data.data.rows, val => {
@@ -177,7 +184,6 @@ class DashboardMaps extends Component {
         tempAlertDetails.publicFormatted.destIp = publicData.destIp;
 
         this.setState({
-          updatedTime: helper.getFormattedDate(Moment()),
           alertDetails: tempAlertDetails,
           alertMapData: tempArray
         }, () => {
@@ -185,7 +191,10 @@ class DashboardMaps extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set map geoJson and attacks data
@@ -211,7 +220,7 @@ class DashboardMaps extends Component {
     });
 
     _.forEach(alertMapData, val => {
-      const timestamp = helper.getFormattedDate(val.timestamp, 'local');
+      const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
 
       if (val.srcLatitude &amp;&amp; val.srcLongitude) {
         const count = alertDetails.publicFormatted.srcIp[val.srcIp].length;
@@ -274,11 +283,43 @@ class DashboardMaps extends Component {
     });
   }
   /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
+    this.setState({
+      datetime: tempDatetime
+    });
+  }
+  /**
+   * Handle filter search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    this.setState({
+      ..._.cloneDeep(MAPS_PUBLIC_DATA),
+      ..._.cloneDeep(MAPS_PRIVATE_DATA)
+    }, () => {
+      this.loadAlertData();
+      this.getFloorPlan();
+    });
+  }
+  /**
    * Toggle public and private maps content
    * @method
+   * @param {object} event - event object
    * @param {string} type - content type ('private' or 'public')
    */
-  toggleMaps = (type) => {
+  toggleMaps = (event, type) => {
+    if (!type) {
+      return;
+    }
+
     this.setState({
       mapType: type,
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
@@ -297,11 +338,11 @@ class DashboardMaps extends Component {
    * Get and set selected alert data
    * @method
    * @param {string} type - alert type ('private' or 'public')
-   * @param {string} id - selected seat UUID
+   * @param {string} id - selected seat UUID or IP
    * @param {object} eventInfo - MouseClick events
    */
   showTopoDetail = (type, id, eventInfo) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
     let alertData = '';
@@ -322,13 +363,13 @@ class DashboardMaps extends Component {
     tempAlertDetails.currentID = id;
 
     if (type === PUBLIC) {
-      const uniqueIP = id;
+      const ip = id;
 
-      if (id.indexOf('.') &lt; 0) {
+      if (ip.indexOf('.') &lt; 0) { //Check if id is an IP address
         return;
       }
 
-      alertData = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
+      alertData = alertDetails.publicFormatted.srcIp[ip] || alertDetails.publicFormatted.destIp[ip];
       tempAlertDetails.currentLength = alertData.length;
 
       this.setState({
@@ -338,36 +379,48 @@ class DashboardMaps extends Component {
       });
     } else if (type === PRIVATE) {
       const {datetime, alertDetails, currentFloor} = this.state;
+      const ip = id;
       const dateTime = {
-        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+        from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
       const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=10000`;
       const requestData = {
         timestamp: [dateTime.from, dateTime.to],
         filters: [{
           condition: 'must',
-          query: 'srcIp:' + id + ' OR ipSrc:' + id
+          query: 'srcIp: ' + ip
         }]
       };
 
-      helper.getAjaxData('POST', url, requestData)
+      this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
       .then(data => {
-        const tempArray = _.map(data.data.rows, val => {
-          val._source.id = val._id;
-          val._source.index = val._index;
-          return val._source;
-        });
-        tempAlertDetails.private.data = tempArray;
-        tempAlertDetails.currentLength = data.data.counts;
-        alertData = tempArray[0];
+        if (data) {
+          const tempArray = _.map(data.data.rows, val => {
+            val._source.id = val._id;
+            val._source.index = val._index;
+            return val._source;
+          });
+          tempAlertDetails.private.data = tempArray;
+          tempAlertDetails.currentLength = data.data.counts;
+          alertData = tempArray[0];
 
-        this.setState({
-          alertDetails: tempAlertDetails
-        }, () => {
-          this.openDetailInfo(type, alertData);
-        });
-      });
+          this.setState({
+            alertDetails: tempAlertDetails
+          }, () => {
+            this.openDetailInfo(type, alertData);
+          });
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
   }
   /**
@@ -439,25 +492,25 @@ class DashboardMaps extends Component {
    * @returns AlertDetails component
    */
   alertDialog = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
-    const {alertDetails, alertData, locationType} = this.state;
+    const {datetime, alertDetails, alertData, locationType} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
     return (
       &lt;AlertDetails
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
         titleText={t('alert.txt-alertInfo')}
+        datetime={dateTime}
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}
+        locationType={locationType}
         showAlertData={this.showAlertData}
-        fromPage='dashboard'
-        locationType={locationType} />
+        fromPage='dashboard' />
     )
   }
   /**
@@ -482,12 +535,12 @@ class DashboardMaps extends Component {
    * @method
    */
   getFloorPlan = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data &amp;&amp; data.length > 0) {
         const floorPlanData = data[0];
@@ -502,7 +555,10 @@ class DashboardMaps extends Component {
         }, () => {
           this.getFloorList();
         });
+      } else {
+        this.loadAlertPrivateData(); //No floor map
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -515,18 +571,21 @@ class DashboardMaps extends Component {
   getFloorList = () => {
     const {floorPlan} = this.state;
     let floorList = [];
-    let currentFloor = '';
+    let floorListArr = [];
 
     _.forEach(floorPlan.treeData, val => {
       helper.floorPlanRecursive(val, obj => {
-        floorList.push({
-          value: obj.areaUUID,
-          text: obj.areaName
+        floorList.push(
+          &lt;MenuItem key={obj.areaUUID} value={obj.areaUUID}>{obj.areaName}&lt;/MenuItem>
+        );
+
+        floorListArr.push({
+          value: obj.areaUUID
         });
       });
     })
 
-    currentFloor = floorList[0].value; //Default to the top parent floor
+    const currentFloor = floorListArr[0].value; //Default to the top parent floor
 
     this.setState({
       floorList,
@@ -538,102 +597,157 @@ class DashboardMaps extends Component {
   /**
    * Get and set area related data
    * @method
-   * @param {string} areaUUID - area UUID
+   * @param {string | object} event - event object
    */
-  getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
-    const floorPlan = areaUUID;
+  getAreaData = (event) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {alertDetails} = this.state;
+    const floorPlan = event.target ? event.target.value : event;
+
+    if (!floorPlan) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = '';
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = '';
+        let tempAlertDetails = {...alertDetails};
+        tempAlertDetails.private.tree = null;
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
         };
+
+        this.setState({
+          alertDetails: tempAlertDetails,
+          currentMap,
+          currentBaseLayers,
+          currentFloor: areaUUID
+        }, () => {
+          this.loadAlertPrivateData();
+        });
       }
-
-      let currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
-
-      this.setState({
-        currentMap,
-        currentBaseLayers,
-        currentFloor: areaUUID
-      }, () => {
-        this.loadAlertPrivateData();
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
+   * Get sorted tree array by severity, alert count, ip
+   * @method
+   * @param {array.&lt;object>} treeArr - tree data
+   * @returns sorted tree array
+   */
+  getOrderedTree = (treeArr) => {
+    let alertTreeObj = {};
+    let finalPrivateTree = [];
+
+    _.forEach(SEVERITY_TYPE, val => { //Create object of array by severity
+      let orderedPrivateTree = [];
+
+      _.forEach(treeArr, val2 => {
+        if (val2._severity_ === val) {
+          orderedPrivateTree.push(val2);
+        }
+      })
+      alertTreeObj[val] = orderedPrivateTree;
+    })
+
+    _.forEach(SEVERITY_TYPE, val => { //Sort alert count and IP
+      alertTreeObj[val] = _.orderBy(alertTreeObj[val], ['doc_count', 'key'], ['desc', 'asc']);
+    })
+
+    finalPrivateTree = _.concat(alertTreeObj.Emergency, alertTreeObj.Alert, alertTreeObj.Critical, alertTreeObj.Warning, alertTreeObj.Notice);
+
+    return finalPrivateTree;
+  }
+  /**
    * Get and set the alert tree data
    * @method
    */
   loadAlertPrivateData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {datetime, alertDetails, currentFloor} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'Top10InternalMaskedIp'
+        query: 'InternalMaskedIpWithLoc'
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
-      const allPrivateData = data.aggregations.Top10InternalMaskedIp;
-      let tempAlertDetails = {...alertDetails};
-      let currentFloorPrivateData = [];
-      let allFloorPrivateData = [];
+      if (data) {
+        const allPrivateData = data.aggregations.InternalMaskedIpWithLoc;
+        let tempAlertDetails = {...alertDetails};
+        let currentFloorPrivateData = [];
+        let allFloorPrivateData = [];
 
-      _.forEach(_.keys(allPrivateData), val => {
-        if (val !== 'doc_count' &amp;&amp; allPrivateData[val].doc_count) {
-          _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
-            if (val2.srcTopoInfo.areaUUID === currentFloor) {
-              currentFloorPrivateData.push(val2);
-            } else {
-              allFloorPrivateData.push(val2);
-            }
-          })
-        }
-      })
+        _.forEach(_.keys(allPrivateData), val => {
+          if (val !== 'doc_count' &amp;&amp; allPrivateData[val].doc_count) {
+            _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
+              if (val2.srcTopoInfo &amp;&amp; val2.srcTopoInfo.areaUUID === currentFloor) {
+                currentFloorPrivateData.push(val2);
+              } else if (!val2.srcTopoInfo.areaUUID) {
+                allFloorPrivateData.push(val2);
+              }
+            })
+          }
+        })
 
-      tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
-      tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
-      tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
+        currentFloorPrivateData = this.getOrderedTree(currentFloorPrivateData);
+        allFloorPrivateData = this.getOrderedTree(allFloorPrivateData);
 
-      this.setState({
-        alertDetails: tempAlertDetails
-      }, () => {
-        this.getSeatData();
-      });
-    });
+        tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
+        tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
+        tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
+
+        this.setState({
+          alertDetails: tempAlertDetails
+        }, () => {
+          this.getSeatData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set individual floor area data
@@ -672,8 +786,8 @@ class DashboardMaps extends Component {
             count: val.doc_count,
             seatName: val.srcTopoInfo.seatName,
             areaFullName: val.srcTopoInfo.areaFullName,
-            srcIp: val.srcTopoInfo.srcIp,
-            srcMac: val.srcTopoInfo.srcMac,
+            srcIp: val.srcTopoInfo.ip,
+            srcMac: val.srcTopoInfo.mac,
             ownerName: val.srcTopoInfo.ownerName,
             tag: 'red'
           }
@@ -700,8 +814,8 @@ class DashboardMaps extends Component {
       return `
         &lt;div class='map-tooltip'>
           &lt;div>&lt;span class='key'>${t('payloadsFields.attacksCount')}:&lt;/span> &lt;span class='count'>${data.count}&lt;/span>&lt;/div>
-          &lt;div>&lt;span class='key'>${t('attacksFields.srcIp')}:&lt;/span> &lt;span class='value'>${data.srcIp}&lt;/span>&lt;/div>
-          &lt;div>&lt;span class='key'>${t('ipFields.mac')}:&lt;/span> &lt;span class='value'>${data.srcMac}&lt;/span>&lt;/div>
+          &lt;div>&lt;span class='key'>${t('ipFields.ip')}:&lt;/span> &lt;span class='value'>${data.ip || data.srcIp}&lt;/span>&lt;/div>
+          &lt;div>&lt;span class='key'>${t('ipFields.mac')}:&lt;/span> &lt;span class='value'>${data.mac || data.srcMac}&lt;/span>&lt;/div>
           &lt;div>&lt;span class='key'>${t('ipFields.areaFullName')}:&lt;/span> &lt;span class='value'>${data.areaFullName}&lt;/span>&lt;/div>
           &lt;div>&lt;span class='key'>${t('ipFields.seat')}:&lt;/span> &lt;span class='value'>${data.seatName}&lt;/span>&lt;/div>
           &lt;div>&lt;span class='key'>${t('ipFields.owner')}:&lt;/span> &lt;span class='value'>${data.ownerName}&lt;/span>&lt;/div>
@@ -735,15 +849,15 @@ class DashboardMaps extends Component {
       &lt;li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
         &lt;div className={cx('info', {'faded': this.getTreeColor(i)})}>
           &lt;span className='ip'>{val.key}&lt;/span>
-          &lt;span className='host'>{val.srcTopoInfo.hostName}&lt;/span>
+          &lt;span className='host'>{val.srcTopoInfo &amp;&amp; val.srcTopoInfo.hostName}&lt;/span>
         &lt;/div>
-        &lt;span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.doc_count}&lt;/span>
+        &lt;span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{helper.numberWithCommas(val.doc_count)}&lt;/span>
       &lt;/li>
     )
   }
   render() {
     const {
-      updatedTime,
+      datetime,
       mapType,
       alertDetails,
       geoJson,
@@ -763,65 +877,91 @@ class DashboardMaps extends Component {
 
         &lt;div className='sub-header'>
           {helper.getDashboardMenu('maps')}
-          &lt;span className='date-time'>{updatedTime}&lt;/span>
+
+          &lt;SearchOptions
+            datetime={datetime}
+            handleDateChange={this.handleDateChange}
+            handleSearchSubmit={this.handleSearchSubmit} />
         &lt;/div>
 
         &lt;div className='main-dashboard'>
           &lt;div className='maps'>
-          &lt;ButtonGroup
-            className='left'
-            list={[
-              {value: PRIVATE, text: t('dashboard.txt-private')},
-              {value: PUBLIC, text: t('dashboard.txt-public')}
-            ]}
-            onChange={this.toggleMaps}
-            value={mapType} />
+            &lt;ToggleButtonGroup
+              id='mainDashboardBtn'
+              className='button-group'
+              value={mapType}
+              exclusive
+              onChange={this.toggleMaps}>
+              &lt;ToggleButton id='mainDashboardPrivate' value={PRIVATE}>{t('dashboard.txt-private')}&lt;/ToggleButton>
+              &lt;ToggleButton id='mainDashboardPublic' value={PUBLIC}>{t('dashboard.txt-public')}&lt;/ToggleButton>
+            &lt;/ToggleButtonGroup>
+
+            {floorList.length > 0 &amp;&amp; mapType === PRIVATE &amp;&amp;
+              &lt;TextField
+                className='drop-down'
+                select
+                variant='outlined'
+                size='small'
+                value={currentFloor}
+                onChange={this.getAreaData}>
+                {floorList}
+              &lt;/TextField>
+            }
 
             {mapType === PRIVATE &amp;&amp;
               &lt;div className='floor-map'>
-                &lt;DropDownList
-                  className='drop-down'
-                  list={floorList}
-                  onChange={this.getAreaData}
-                  required={true}
-                  value={currentFloor} />
-                &lt;div className='content'>
-                  &lt;ul>
-                    {alertDetails.private.tree.length > 0 &amp;&amp;
-                      alertDetails.private.tree.map(this.displayPrivateHost)
-                    }
-                  &lt;/ul>
-                  &lt;div className='map'>
-                    {currentMap &amp;&amp;
-                      &lt;Gis
-                        className='floor-map-area'
-                        _ref={(ref) => {this.gisNode = ref}}
-                        data={_.get(seatData, [currentFloor, 'data'])}
-                        baseLayers={currentBaseLayers}
-                        baseLayer={currentFloor}
-                        layouts={['standard']}
-                        dragModes={['pan']}
-                        scale={{enabled: false}}
-                        onClick={this.showTopoDetail.bind(this, PRIVATE)}
-                        symbolOptions={[{
-                          match: {
-                            data: {tag: 'red'}
-                          },
-                          props: {
-                            backgroundColor: 'red',
-                            tooltip: ({data}) => {
-                              return this.showPrivateTooltip(data);
-                            }
-                          }
-                        }]} />
-                    }
-                  &lt;/div>
+                &lt;div className='left-tree'>
+                  {!alertDetails.private.tree &amp;&amp;
+                    &lt;span className='empty'>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+                  }
+                  {alertDetails.private.tree &amp;&amp; alertDetails.private.tree.length === 0 &amp;&amp;
+                    &lt;div className='empty'>{t('txt-notFound')}&lt;/div>
+                  }
+                  {alertDetails.private.tree &amp;&amp; alertDetails.private.tree.length > 0 &amp;&amp;
+                    &lt;ul>
+                      {alertDetails.private.tree.map(this.displayPrivateHost)}
+                    &lt;/ul>
+                  }
                 &lt;/div>
+                &lt;div className='map'>
+                  {currentMap &amp;&amp;
+                    &lt;Gis
+                      className='floor-map-area'
+                      _ref={(ref) => {this.gisNode = ref}}
+                      data={_.get(seatData, [currentFloor, 'data'])}
+                      baseLayers={currentBaseLayers}
+                      baseLayer={currentFloor}
+                      layouts={['standard']}
+                      dragModes={['pan']}
+                      scale={{enabled: false}}
+                      mapOptions={{
+                        maxZoom: 2
+                      }}
+                      onClick={this.showTopoDetail.bind(this, PRIVATE)}
+                      symbolOptions={[{
+                        match: {
+                          data: {tag: 'red'}
+                        },
+                        props: {
+                          backgroundColor: 'red',
+                          tooltip: ({data}) => {
+                            return this.showPrivateTooltip(data);
+                          }
+                        }
+                      }]} />
+                  }
+                &lt;/div>
+              &lt;/div>
+            }
+            {mapType === PUBLIC &amp;&amp; geoJson.mapDataArr.length === 0 &amp;&amp;
+              &lt;div className='loader-wrap'>
+                &lt;i className='fg fg-loading-2'>&lt;/i>
               &lt;/div>
             }
             {mapType === PUBLIC &amp;&amp; geoJson.mapDataArr.length > 0 &amp;&amp;
               &lt;Gis
                 id='gisMap'
+                className='custom-bg'
                 data={geoJson.mapDataArr}
                 layers={{
                   world: {
@@ -841,29 +981,31 @@ class DashboardMaps extends Component {
                   crs: L.CRS.Simple
                 }}
                 onClick={this.showTopoDetail.bind(this, PUBLIC)}
-                symbolOptions={[{
-                  match: {
-                    type:'geojson'
-                  },
-                  selectedProps: {
-                    'fill-color': 'white',
-                    color: 'black',
-                    weight: 0.6,
-                    'fill-opacity': 1
-                  }
-                },
-                {
-                  match: {
-                    type: 'spot'
-                  },
-                  props: {
-                    'background-color': ({data}) => {
-                      return data.tag === 'red' ? 'red' : 'yellow';
+                symbolOptions={[
+                  {
+                    match: {
+                      type:'geojson'
                     },
-                    'border-color': '#333',
-                    'border-width': '1px'
+                    selectedProps: {
+                      'fill-color': 'white',
+                      color: 'black',
+                      weight: 0.6,
+                      'fill-opacity': 1
+                    }
+                  },
+                  {
+                    match: {
+                      type: 'spot'
+                    },
+                    props: {
+                      'background-color': ({data}) => {
+                        return data.tag === 'red' ? 'red' : 'yellow';
+                      },
+                      'border-color': '#333',
+                      'border-width': '1px'
+                    }
                   }
-                }]}
+                ]}
                 layouts={['standard']}
                 dragModes={['pan']} />
             }
@@ -874,16 +1016,12 @@ class DashboardMaps extends Component {
   }
 }
 
+DashboardMaps.contextType = BaseDataContext;
+
 DashboardMaps.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
-const HocDashboardMaps = withRouter(withLocale(DashboardMaps));
-export { DashboardMaps, HocDashboardMaps };</code></pre>
+export default withRouter(DashboardMaps);</code></pre>
         </article>
     </section>
 
@@ -893,13 +1031,13 @@ export { DashboardMaps, HocDashboardMaps };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

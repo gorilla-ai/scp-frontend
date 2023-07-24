@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soar/soar-settings.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soar/soar-settings.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import { ReactMultiEmail } from 'react-multi-email'
+
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import requestHeaders from './request-headers'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import 'react-multi-email/style.css';
+
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const EMAIL_PATTERN = /^(([^&lt;>()\[\]\\.,;:\s@"]+(\.[^&lt;>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const ACTION_TYPE = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume'];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const REQUEST_TYPE = ['GET', 'POST', 'DELETE', 'PATCH'];
+const FORM_VALIDATION = {
+  ip: {
+    valid: true,
+    msg: ''
+  },
+  email: {
+    smtpServer: {
+      valid: true
+    },
+    sender: {
+      valid: true,
+      msg: ''
+    },
+    senderAccount: {
+      valid: true
+    },
+    senderPassword: {
+      valid: true
+    }
+  }
+};
+
+let t = null;
+let et = null;
+let c = null;
+
+/**
+ * SoarSettings
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the SOAR main settings page
+ */
+class SoarSettings extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      activeContent: 'viewMode', //'viewMode' or 'editMode'
+      openEmailDialog: false,
+      testEmails: [],
+      info: '',
+      actionTypeList: [],
+      severityTypeList: [],
+      requestTypeList: [],
+      originalSoarIP: {},
+      soarIP: '',
+      originalSoarAdapter: {},
+      soarAdapter: {
+        scp: {
+          gap: ''
+        },
+        socket: {
+          protocol: '',
+          port: ''
+        }
+      },
+      originalSoarAction: {},
+      soarAction: {
+        dump: {
+          element: '',
+          file: ''
+        },
+        email: {
+          smtpServer: '',
+          smtpPort: '',
+          smtpConnectType: '',
+          emailAuthentication: '',
+          sender: '',
+          senderAccount: '',
+          senderPassword: '',
+          receiver: [],
+          title: '',
+          content: ''
+        },
+        hmd: {
+          id: '',
+          action: ''
+        },
+        netprobe: {
+          ip: '',
+          drop: '',
+          severityType: ''
+        },
+        restful_api: {
+          headers: [],
+          method: '',
+          requestBody: '',
+          url: ''
+        },
+        ssh: {
+          username: '',
+          password: '',
+          target_ip: '',
+          target_port: 22,
+          use_password: true,
+          command: ''
+        },
+        fortigatefirewallpolicy: {
+          username: '',
+          password: '',
+          target_ip: '',
+          target_port: 22,
+          command: '',
+          use_password: true,
+          policy_id: 0,
+          name: '',
+          srcintf: '',
+          dstintf: '',
+          srcaddr: '',
+          dstaddr: '',
+          action: '',
+          schedule: '',
+          service: '',
+          nat: 'enable',
+          comment: ''
+        }
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    c = global.chewbaccaI18n.getFixedT(null, 'accounts');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getDropDownList();
+    this.getSoarSettingsInfo();
+    this.setRequestTypeList();
+  }
+  /**
+   * Set dropdown list for HMD Action and Severity type
+   * @method
+   */
+  getDropDownList = () => {
+    const actionTypeList = _.map(ACTION_TYPE, val => {
+      return &lt;MenuItem value={val}>{t('hmd-scan.txt-' + val)}&lt;/MenuItem>
+    });
+
+    const severityTypeList = _.map(SEVERITY_TYPE, val => {
+      return &lt;MenuItem value={'DEFINED_IOC_' + val.toUpperCase()}>{val}&lt;/MenuItem>
+    });
+
+    this.setState({
+      actionTypeList,
+      severityTypeList
+    });
+  }
+  /**
+   * Get and set mail and notification data
+   * @method
+   */
+  getSoarSettingsInfo = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/configuration`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const soarIP = data['soar.ip'];
+        const soarAdapter = data['soar.adapter'];
+        const soarAction = data['soar.action'];
+
+        this.setState({
+          originalSoarIP: _.cloneDeep(soarIP),
+          soarIP,
+          originalSoarAdapter: _.cloneDeep(soarAdapter),
+          soarAdapter,
+          originalSoarAction: _.cloneDeep(soarAction),
+          soarAction
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set dropdown list for request type
+   * @method
+   */
+  setRequestTypeList = () => {
+    const requestTypeList = _.map(REQUEST_TYPE, val => {
+      return &lt;MenuItem value={val}>{val}&lt;/MenuItem>
+    });
+
+    this.setState({
+      requestTypeList
+    });
+  }
+  /**
+   * Check IP connections
+   * @method
+   */
+  handleTestConnections = () => {
+    const {baseUrl} = this.context;
+    const {soarIP, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (soarIP) {
+      if (IP_PATTERN.test(soarIP)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.ip.valid = false;
+      tempFormValidation.ip.msg = t('txt-required');
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/ipCheck?ip=${soarIP}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempFormValidation = {...this.state.formValidation};
+        tempFormValidation.ip = {
+          valid: true,
+          msg: ''
+        };
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
+
+        helper.showPopupMsg('', '', t('soar.txt-successConnections'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle email settings input data change
+   * @method
+   * @param {string} type - data type ('soarIP', soarAdapter' or 'soarAction')
+   * @param {string} [subType] - data sub type
+   * @param {string | object} [options] - option for 'number' or event
+   * @param {object} event - event object
+   */
+  handleDataChange = (type, subType, options, event) => {
+    const {soarAdapter, soarAction} = this.state;
+    
+    if (type === 'soarIP') {
+      this.setState({
+        soarIP: event.target.value
+      });
+    } else if (type === 'soarAdapter') {
+      let tempSoarAdapter = {...soarAdapter};
+
+      if (typeof options === 'string') {
+        tempSoarAdapter[subType][event.target.name] = Number(event.target.value);
+      } else {
+        tempSoarAdapter[subType][options.target.name] = options.target.value;
+      }
+      
+      this.setState({
+        soarAdapter: tempSoarAdapter
+      });
+    } else if (type === 'soarAction') {
+      let tempSoarAction = {...soarAction};
+
+      if (typeof options === 'string') {
+        tempSoarAction[subType][event.target.name] = Number(event.target.value);
+      } else {
+        tempSoarAction[subType][options.target.name] = options.target.value;
+      }
+
+      this.setState({
+        soarAction: tempSoarAction
+      });
+    }
+  }
+  /**
+   * Set request header data
+   * @method
+   * @param {array} requestHeadersData - request headers data
+   */
+  setRequestHeaderData = (requestHeadersData) => {
+    let tempSoarAction = {...this.state.soarAction};
+    tempSoarAction.restful_api.headers = requestHeadersData;
+
+    this.setState({
+      soarAction: tempSoarAction
+    });
+  }
+  /**
+   * Toggle different content
+   * @method
+   * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
+   */
+  toggleContent = (type) => {
+    const {originalSoarIP, originalSoarAdapter, originalSoarAction} = this.state;
+    let showPage = type;
+
+    if (type === 'save') {
+      this.handleSoarSettingsConfirm();
+      return;
+    } else if (type === 'viewMode' || type === 'cancel') {
+      showPage = 'viewMode';
+
+      this.setState({
+        soarIP: _.cloneDeep(originalSoarIP),
+        soarAdapter: _.cloneDeep(originalSoarAdapter),
+        soarAction: _.cloneDeep(originalSoarAction),
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
+    }
+
+    this.setState({
+      activeContent: showPage
+    });
+  }
+  /**
+   * Handle edit confirm
+   * @method
+   */
+  handleSoarSettingsConfirm = () => {
+    const {baseUrl} = this.context;
+    const {soarIP, soarAdapter, soarAction, formValidation} = this.state;
+    const requestData = {
+      'soar.ip': soarIP,
+      'soar.adapter': soarAdapter,
+      'soar.action': soarAction
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (soarIP) {
+      if (IP_PATTERN.test(soarIP)) {
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    }
+
+    if (soarAction.email.smtpServer) {
+      tempFormValidation.email.smtpServer.valid = true;
+    } else {
+      tempFormValidation.email.smtpServer.valid = false;
+      validate = false;
+    }
+
+    if (soarAction.email.sender) {
+      if (EMAIL_PATTERN.test(soarAction.email.sender)) { //Check email format
+        tempFormValidation.email.sender.valid = true;
+        tempFormValidation.email.sender.msg = '';
+      } else {
+        tempFormValidation.email.sender.valid = false;
+        tempFormValidation.email.sender.msg = c('txt-email-invalid');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.email.sender.valid = false;
+      tempFormValidation.email.sender.msg = t('txt-required');
+      validate = false;
+    }
+
+    if (soarAction.email.senderAccount) {
+      tempFormValidation.email.senderAccount.valid = true;
+    } else {
+      tempFormValidation.email.senderAccount.valid = false;
+      validate = false;
+    }
+
+    if (soarAction.email.senderPassword) {
+      tempFormValidation.email.senderPassword.valid = true;
+    } else {
+      tempFormValidation.email.senderPassword.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/configuration`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getSoarSettingsInfo();
+        this.toggleContent('viewMode');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getLabel = (email, index, removeEmail) => {
+    return (
+      &lt;div data-tag key={index}>
+        {email}
+        &lt;span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> &lt;span className='font-bold'>x&lt;/span>&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Toggle Email notifications checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleEmailCheckbox = (event) => {
+    let tempEmails = {...this.state.emails};
+    tempEmails[event.target.name].enable = event.target.checked;
+
+    this.setState({
+      emails: tempEmails
+    })
+  }
+  /**
+   * Set test email dialog
+   * @method
+   */
+  openEmailDialog = () => {
+    this.setState({
+      openEmailDialog: true
+    });
+  }
+  /**
+   * Set test emails list
+   * @method
+   * @param {array} newEmails - new emails list
+   */
+  handleTestEmailChange = (newEmails) => {
+    this.setState({
+      testEmails: newEmails
+    });
+  }
+  /**
+   * Display test email content
+   * @method
+   * @returns HTML DOM
+   */
+  displayTestEmail = () => {
+    return (
+      &lt;div>
+        &lt;label>{t('notifications.txt-recipientEmail')}&lt;/label>
+        &lt;ReactMultiEmail
+          emails={this.state.testEmails}
+          onChange={this.handleTestEmailChange}
+          getLabel={this.getLabel}
+        />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display test email dialog content
+   * @method
+   * @returns ModalDialog component
+   */
+  testEmailDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-send'), handler: this.handleTestEmailConfirm}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='testEmailDialog'
+        className='modal-dialog'
+        title={t('notifications.txt-testEmails')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayTestEmail()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle test email confirm
+   * @method
+   */
+  handleTestEmailConfirm = () => {
+    const {baseUrl} = this.context;
+    const {testEmails} = this.state;
+    let dataParams = '';
+
+    if (testEmails.length === 0) {
+      this.setState({
+        info: t('notifications.txt-emailInvalid')
+      });
+      return;
+    }
+
+    _.forEach(testEmails, val => {
+      dataParams += '&amp;receipts=' + val;
+    })
+
+    this.ah.one({
+      url: `${baseUrl}/api/soar/mailServer/_test?${dataParams}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('notifications.txt-sendSuccess'));
+        this.closeDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display individual email
+   * @method
+   * @param {string} val - email value
+   * @param {string} i - index of the emails array
+   * @returns HTML DOM
+   */
+  displayEmail = (val, i) => {
+    return &lt;span key={i}>{val}&lt;/span>
+  }
+  /**
+   * Handle email input change
+   * @method
+   * @param {array} newEmails - new emails list
+   */
+  handleEmailChange = (newEmails) => {
+    let tempSoarAction = {...this.state.soarAction};
+    tempSoarAction.email.receiver = newEmails;
+
+    this.setState({
+      soarAction: tempSoarAction
+    });
+  }
+  /**
+   * Close test email dialog
+   * @method
+   */
+  closeDialog = () => {
+    this.setState({
+      openEmailDialog: false,
+      testEmails: [],
+      info: ''
+    });
+  }
+  render() {
+    const {baseUrl, contextRoot} = this.context;
+    const {
+      activeContent,
+      openEmailDialog,
+      actionTypeList,
+      severityTypeList,
+      requestTypeList,
+      soarIP,
+      soarAdapter,
+      soarAction,
+      formValidation
+    } = this.state;
+    const data = {
+      activeContent
+    };
+
+    return (
+      &lt;div>
+        {openEmailDialog &amp;&amp;
+          this.testEmailDialog()
+        }
+
+        &lt;div className='sub-header'>
+        &lt;/div>
+
+        &lt;div className='data-content soar-settings'>
+          &lt;div className='parent-content'>
+            &lt;div className='main-content basic-form'>
+              &lt;header className='main-header'>{t('soar.txt-soarSettings')}&lt;/header>
+
+              {activeContent === 'viewMode' &amp;&amp;
+                &lt;div className='content-header-btns'>
+                  &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleContent.bind(this, 'table', 'refresh')}>{t('txt-backToList')}&lt;/Button>
+                  &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}&lt;/Button>
+                &lt;/div>
+              }
+
+              &lt;div className='config-notify' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+                &lt;div className='form-group normal short'>
+                  &lt;header>IP&lt;/header>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarIP'
+                      name='gap'
+                      label='IP'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      error={!formValidation.ip.valid}
+                      helperText={formValidation.ip.msg}
+                      value={soarIP}
+                      onChange={this.handleDataChange.bind(this, 'soarIP', '', '')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;Button variant='contained' color='primary' className='soar-test-btn' onClick={this.handleTestConnections}>{t('soar.txt-testConnections')}&lt;/Button>
+                &lt;/div>
+
+                &lt;div className='form-group normal short'>
+                  &lt;header>{t('soar.txt-adapter')}&lt;/header>
+                  &lt;div className='group-header'>SCP&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarAdapterGap'
+                      name='gap'
+                      type='number'
+                      label={'Gap (' + t('txt-minutes') + ')'}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      InputProps={{inputProps: { min: 0 }}}
+                      value={soarAdapter.scp.gap}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'scp', 'number')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+
+                  &lt;div className='group-header'>Socket&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarAdapterProtocol'
+                      name='protocol'
+                      label='Protocol'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAdapter.socket.protocol}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'socket')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarAdapterPort'
+                      name='port'
+                      type='number'
+                      label='Port'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAdapter.socket.port}
+                      onChange={this.handleDataChange.bind(this, 'soarAdapter', 'socket', 'number')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                &lt;/div>
+
+                &lt;div className='form-group normal short'>
+                  &lt;header>{t('soar.txt-action')}&lt;/header>
+                  &lt;Button variant='contained' color='primary' className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}&lt;/Button>
+                  &lt;div className='group-header'>Dump&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionPath'
+                      name='element'
+                      label='Element (JSON Path)'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.dump.element}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'dump')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFile'
+                      name='file'
+                      label='File'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.dump.file}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'dump')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+
+                  &lt;div className='group-header'>Email&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionServer'
+                      name='smtpServer'
+                      label={t('notifications.txt-smtpServer')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.email.smtpServer.valid}
+                      helperText={formValidation.email.smtpServer.valid ? '' : t('txt-required')}
+                      value={soarAction.email.smtpServer}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionPort'
+                      name='smtpPort'
+                      select
+                      label={t('notifications.txt-smtpPort')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.email.smtpPort}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={25}>25&lt;/MenuItem>
+                      &lt;MenuItem value={465}>465&lt;/MenuItem>
+                      &lt;MenuItem value={587}>587&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSender'
+                      name='sender'
+                      label={t('notifications.txt-sender')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.email.sender.valid}
+                      helperText={formValidation.email.sender.msg}
+                      value={soarAction.email.sender}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionConnectType'
+                      name='smtpConnectType'
+                      select
+                      label={t('notifications.txt-smtpConnectType')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.email.smtpConnectType}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value='standard'>standard&lt;/MenuItem>
+                      &lt;MenuItem value='ssl'>SSL&lt;/MenuItem>
+                      &lt;MenuItem value='tls'>TLS&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionEmailAuth'
+                      name='emailAuthentication'
+                      select
+                      label={t('notifications.txt-authentication')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.email.emailAuthentication}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={true}>True&lt;/MenuItem>
+                      &lt;MenuItem value={false}>False&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionAccount'
+                      name='senderAccount'
+                      label={t('notifications.txt-senderAccount')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.email.senderAccount.valid}
+                      helperText={formValidation.email.senderAccount.valid ? '' : t('txt-required')}
+                      value={soarAction.email.senderAccount}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSenderPassword'
+                      name='senderPassword'
+                      type='password'
+                      label={t('notifications.txt-senderPassword')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.email.senderPassword.valid}
+                      helperText={formValidation.email.senderPassword.valid ? '' : t('txt-required')}
+                      value={soarAction.email.senderPassword}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionTitle'
+                      name='title'
+                      label={t('soar.txt-title')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.email.title}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'email')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group' style={{width: '50%'}}>
+                    &lt;label>{t('notifications.txt-recipientEmail')}&lt;/label>
+                    {activeContent === 'viewMode' &amp;&amp; soarAction.email.receiver.length > 0 &amp;&amp;
+                      &lt;div className='flex-item'>{soarAction.email.receiver.map(this.displayEmail)}&lt;/div>
+                    }
+                    {activeContent === 'editMode' &amp;&amp;
+                      &lt;ReactMultiEmail
+                        emails={soarAction.email.receiver}
+                        onChange={this.handleEmailChange}
+                        getLabel={this.getLabel} />
+                    }
+                  &lt;/div>
+                  &lt;div className='group' style={{width: '50%'}}>
+                    {activeContent === 'viewMode' &amp;&amp;
+                      &lt;TextField
+                        id='soarActionContent'
+                        name='content'
+                        className='text-area'
+                        label={t('soar.txt-content')}
+                        multiline
+                        rows={3}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={soarAction.email.content}
+                        disabled={true} />
+                    }
+                    {activeContent === 'editMode' &amp;&amp;
+                      &lt;React.Fragment>
+                        &lt;label>{t('soar.txt-content')}&lt;/label>
+                        &lt;TextareaAutosize
+                          name='content'
+                          className='textarea-autosize'
+                          rows={3}
+                          value={soarAction.email.content}
+                          onChange={this.handleDataChange.bind(this, 'soarAction', 'email')} />
+                      &lt;/React.Fragment>
+                    }
+                  &lt;/div>
+
+                  &lt;div className='group-header'>HMD&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionId'
+                      name='id'
+                      label='Host ID (JSON Path)'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.hmd.id || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionAction'
+                      name='action'
+                      select
+                      label='Action'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.hmd.action || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'hmd')}
+                      disabled={activeContent === 'viewMode'}>
+                      {actionTypeList}
+                    &lt;/TextField>
+                  &lt;/div>
+
+                  &lt;div className='group-header'>NetProbe&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionNetApiAuth'
+                      name='ip'
+                      label='IP (JSON Path)'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.netprobe.ip || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionDrop'
+                      name='drop'
+                      select
+                      label='Drop'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.netprobe.drop || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={true}>True&lt;/MenuItem>
+                      &lt;MenuItem value={false}>False&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSeverityType'
+                      name='severityType'
+                      select
+                      label='Severity Type'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.netprobe.severityType || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'netprobe')}
+                      disabled={activeContent === 'viewMode'}>
+                      {severityTypeList}
+                    &lt;/TextField>
+                  &lt;/div>
+
+                  &lt;div className='group-header'>Restful API&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionRestfulUrl'
+                      name='url'
+                      label='URL'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.restful_api.url || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionRestfulMethod'
+                      name='method'
+                      select
+                      label='Method'
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.restful_api.method || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
+                      disabled={activeContent === 'viewMode'}>
+                      {requestTypeList}
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group full'>
+                    &lt;MultiInput
+                      className='request-multi'
+                      base={requestHeaders}
+                      defaultItemValue={{
+                          header: '',
+                          value: ''
+                        }
+                      }
+                      value={soarAction.restful_api.headers}
+                      props={data}
+                      onChange={this.setRequestHeaderData} />
+                  &lt;/div>
+
+                  {activeContent === 'viewMode' &amp;&amp;
+                    &lt;div className='group' style={{marginTop: '-10px'}}>
+                      &lt;TextField
+                        id='soarActionRestfulRequestBody'
+                        name='content'
+                        className='text-area'
+                        label='Request Body'
+                        multiline
+                        rows={3}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={soarAction.restful_api.requestBody}
+                        disabled={true} />
+                    &lt;/div>
+                  }
+                  {activeContent === 'editMode' &amp;&amp;
+                    &lt;div className='group' style={{marginTop: '-15px'}}>
+                      &lt;label>Request Body&lt;/label>
+                      &lt;TextareaAutosize
+                        className='textarea-autosize'
+                        name='requestBody'
+                        rows={3}
+                        value={soarAction.restful_api.requestBody}
+                        onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
+                        disabled={activeContent === 'viewMode'} />
+                    &lt;/div>
+                  }
+
+                  &lt;div className='group-header'>SSH&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshUsername'
+                      name='username'
+                      label={t('soar.txt-username')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.username || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshPassword'
+                      name='password'
+                      type='password'
+                      label={t('soar.txt-password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.password || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshTargetIp'
+                      name='target_ip'
+                      label={t('soar.txt-target_ip')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.target_ip || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshTargetPort'
+                      name='target_port'
+                      type='number'
+                      label={t('soar.txt-target_port')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.target_port || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshUsePassword'
+                      name='use_password'
+                      select
+                      label={t('soar.txt-use_password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.use_password}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={true}>True&lt;/MenuItem>
+                      &lt;MenuItem value={false}>False&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshCommand'
+                      name='command'
+                      label={t('soar.txt-command')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.ssh.command || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'ssh')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+
+                  &lt;div className='group-header'>FortiGate Firewall Policy&lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallUsername'
+                      name='username'
+                      label={t('soar.txt-username')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.username || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallUsername'
+                      name='username'
+                      label={t('soar.txt-username')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.username || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallPassword'
+                      name='password'
+                      label={t('soar.txt-password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.password || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallTargetIP'
+                      name='target_ip'
+                      label={t('soar.txt-target_ip')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.target_ip || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallTargetPort'
+                      name='target_port'
+                      type='number'
+                      label={t('soar.txt-target_port')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.target_port || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionSshUsePassword'
+                      name='use_password'
+                      select
+                      label={t('soar.txt-use_password')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.use_password}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={true}>True&lt;/MenuItem>
+                      &lt;MenuItem value={false}>False&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallPolicyID'
+                      name='policy_id'
+                      type='number'
+                      label={t('soar.txt-policy_id')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.policy_id || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallName'
+                      name='name'
+                      label={t('soar.txt-name')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.name || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallSrcInterface'
+                      name='srcintf'
+                      label={t('soar.txt-srcintf')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.srcintf || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallDestInterface'
+                      name='dstintf'
+                      label={t('soar.txt-dstintf')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.dstintf || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallSrcAddress'
+                      name='srcaddr'
+                      label={t('soar.txt-srcaddr')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.srcaddr || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallDestAddress'
+                      name='dstaddr'
+                      label={t('soar.txt-dstaddr')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.dstaddr || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallAction'
+                      name='action'
+                      label={t('soar.txt-action')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.action || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallSchedule'
+                      name='schedule'
+                      label={t('soar.txt-schedule')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.schedule || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallService'
+                      name='service'
+                      label={t('soar.txt-service')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.service || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallNat'
+                      name='nat'
+                      select
+                      label={t('soar.txt-nat')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.nat}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value='enable'>{t('soar.txt-enable')}&lt;/MenuItem>
+                      &lt;MenuItem value='disable'>{t('soar.txt-disable')}&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='soarActionFirewallComment'
+                      name='comment'
+                      label={t('soar.txt-comment')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={soarAction.fortigatefirewallpolicy.comment || ''}
+                      onChange={this.handleDataChange.bind(this, 'soarAction', 'fortigatefirewallpolicy')}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                &lt;/div>
+              &lt;/div>
+
+              {activeContent === 'editMode' &amp;&amp;
+                &lt;footer>
+                  &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+                  &lt;Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}&lt;/Button>
+                &lt;/footer>
+              }
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+SoarSettings.contextType = BaseDataContext;
+
+SoarSettings.propTypes = {
+  toggleContent: PropTypes.func.isRequired
+};
+
+export default SoarSettings;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -28,16 +28,18 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
-import cx from 'classnames'
+import moment from 'moment'
 
-import DateRange from 'react-ui/build/src/components/date-range'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
+import Button from '@material-ui/core/Button'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from './context'
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 let et = null;
@@ -45,7 +47,7 @@ let et = null;
 /**
  * Search Options
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component for the search options in Alert and Events pages
  */
 class SearchOptions extends Component {
@@ -54,13 +56,12 @@ class SearchOptions extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
-
-    this.state = {
-      intervalModalOpen: false
-    };
   }
   componentDidMount() {
     this.loadSearchOptions();
+  }
+  componentDidUpdate(prevProps) {
+    this.loadSearchOptions('', prevProps);
   }
   componentWillUnmount() {
     this.intervalId &amp;&amp; clearInterval(this.intervalId);
@@ -71,11 +72,23 @@ class SearchOptions extends Component {
    * @method
    * @param {string} search - search option
    */
-  loadSearchOptions = (search) => {
-    const {searchInput} = this.props;
+  loadSearchOptions = (search, prevProps) => {
+    const {datetime, searchInput} = this.props;
 
     if (search) {
+      if (datetime.from &amp;&amp; datetime.to) {
+        if (moment(datetime.to).isBefore(moment(datetime.from))) {
+          helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+          return;
+        }
+      }
       this.props.handleSearchSubmit('search');
+    }
+
+    if (prevProps &amp;&amp; prevProps.searchInput &amp;&amp; searchInput) {
+      if (prevProps.searchInput.searchInterval !== searchInput.searchInterval) {
+        this.setNewDatetime(searchInput.searchType);
+      }
     }
 
     if (searchInput &amp;&amp; searchInput.searchType === 'auto') {
@@ -83,238 +96,200 @@ class SearchOptions extends Component {
         clearInterval(this.intervalId);
         this.intervalId = null;
       }
-      this.intervalId = setInterval(this.setNewDatetime, Number(searchInput.refreshTime));
+      this.intervalId = setInterval(this.setNewDatetime.bind(this, searchInput.searchType), Number(searchInput.refreshTime));
     }
-  }
-  /**
-   * Set new datetime based on time interval
-   * @method
-   */
-  setNewDatetime = () => {
-    const {searchInput} = this.props;
-    const dataObj = this.getTimeAndText(searchInput.searchInterval);
-    const datetime = {
-      from: dataObj.time,
-      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
-    };
-
-    this.props.handleDateChange(datetime, 'refresh');
-  }
-  /**
-   * Get text and time to be displayed in the search bar based on user's selection
-   * @method
-   * @param {string} type - time options
-   * @returns text and time
-   */
-  getTimeAndText = (type) => {
-    let text = '';
-    let time = '';
-
-    switch(type) {
-      case '15m':
-        text = t('events.connections.txt-last15m');
-        time = helper.getSubstractDate(15, 'minutes');
-        break;
-      case '30m':
-        text = t('events.connections.txt-last30m');
-        time = helper.getSubstractDate(30, 'minutes');
-        break;
-      case '1h':
-        text = t('events.connections.txt-last1h');
-        time = helper.getSubstractDate(1, 'hours');
-        break;
-      case '2h':
-        text = t('events.connections.txt-last2h');
-        time = helper.getSubstractDate(2, 'hours');
-        break;
-      case '12h':
-        text = t('events.connections.txt-last12h');
-        time = helper.getSubstractDate(12, 'hours');
-        break;
-      case '24h':
-        text = t('events.connections.txt-last24h');
-        time = helper.getSubstractDate(24, 'hours');
-        break;
-      case 'today':
-        text = t('events.connections.txt-today');
-        time = helper.getStartDate('day');
-        break;
-      case 'week':
-        text = t('events.connections.txt-week');
-        time = helper.getStartDate('week');
-        break;
-      case '15000':
-        text = t('events.connections.txt-15s');
-        break;
-      case '30000':
-        text = t('events.connections.txt-30s');
-        break;
-      case '60000':
-        text = t('events.connections.txt-1m');
-        break;
-      case '300000':
-        text = t('events.connections.txt-5m');
-        break;
-      case '600000':
-        text = t('events.connections.txt-10m');
-        break;
-    }
-
-    return {
-      text,
-      time
-    };
-  }
-  /**
-   * Toggle interval dialog on/off
-   * @method
-   */
-  toggleIntervalDialog = () => {
-    this.setState({
-      intervalModalOpen: !this.state.intervalModalOpen
-    });
   }
   /**
    * Set search type and interval based on user's selection
    * @method
-   * @param {string} type - input value ('manual' or 'auto')
+   * @param {object} event - event object ('manual' or 'auto')
    */
-  handleSearchTypeChange = (type) => {
-    this.props.setSearchData('all', {
-      searchType: type,
-      searchInterval: '1h',
-      refreshTime: '600000',
-      inputManual: t('events.connections.txt-last1h'),
-      inputAuto: t('txt-interval') + ': ' + t('events.connections.txt-10m')
-    });
+  handleSearchTypeChange = (event) => {
+    this.props.setSearchData({
+      searchType: event.target.value
+    }, event.target.name);
 
-    if (this.intervalId) {
+    if (event.target.value === 'manual' &amp;&amp; this.intervalId) { //clear time interval for manual search type
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
   }
   /**
-   * Display interval options content
+   * Set new datetime based on time interval
    * @method
-   * @returns HTML DOM
+   * @param {string} searchType - search type ('manual' or 'auto')
    */
-  displayIntervalOptions = () => {
+  setNewDatetime = (searchType) => {
     const {searchInput} = this.props;
+    const currentTime = moment().local().format('YYYY-MM-DDTHH:mm:ss');
+    let dateType = '';
+    let datetime = '';
 
-    if (searchInput.searchType === 'manual') {
-      return (
-        &lt;div className='interval-options manual'>
-          &lt;label>{t('events.connections.txt-time-frame')}&lt;/label>
-          &lt;RadioGroup
-            id='timeInterval'
-            list={[
-              {value: '30m', text: t('events.connections.txt-last30m')},
-              {value: '1h', text: t('events.connections.txt-last1h')},
-              {value: '2h', text: t('events.connections.txt-last2h')},
-              {value: '24h', text: t('events.connections.txt-last24h')},
-              {value: 'today', text: t('events.connections.txt-today')},
-              {value: 'week', text: t('events.connections.txt-week')}
-            ]}
-            onChange={this.props.setSearchData.bind(this, 'searchInterval')}
-            value={searchInput.searchInterval} />
-        &lt;/div>
-      )
-    } else if (searchInput.searchType === 'auto') {
-      return (
-        &lt;div className='interval-options auto'>
-          &lt;label>{t('events.connections.txt-time-frame')}&lt;/label>
-          &lt;RadioGroup
-            id='timeInterval'
-            list={[
-              {value: '15m', text: t('events.connections.txt-last15m')},
-              {value: '30m', text: t('events.connections.txt-last30m')},
-              {value: '1h', text: t('events.connections.txt-last1h')},
-              {value: '12h', text: t('events.connections.txt-last12h')}
-            ]}
-            onChange={this.props.setSearchData.bind(this, 'searchInterval')}
-            value={searchInput.searchInterval} />
-
-          &lt;label>{t('events.connections.txt-auto-update')}&lt;/label>
-          &lt;RadioGroup
-            id='updateInterval'
-            list={[
-              {value: '15000', text: t('events.connections.txt-15s')},
-              {value: '30000', text: t('events.connections.txt-30s')},
-              {value: '60000', text: t('events.connections.txt-1m')},
-              {value: '300000', text: t('events.connections.txt-5m')},
-              {value: '600000', text: t('events.connections.txt-10m')}
-            ]}
-            onChange={this.props.setSearchData.bind(this, 'refreshTime')}
-            value={searchInput.refreshTime} />
-        &lt;/div>
-      )
+    if (searchType === 'manual') {
+      dateType = 'customTime';
+    } else if (searchType === 'auto') {
+      dateType = 'refresh';
+      datetime = currentTime;
     }
-  }
-  /**
-   * Display interval options modal dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  intervalModalDialog = () => {
-    const {activeTab} = this.state;
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.handleIntervalConfirm}
-    };
-    const titleText = t('events.connections.txt-time-frame');
 
-    return (
-      &lt;ModalDialog
-        id='intervalModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayIntervalOptions()}
-      &lt;/ModalDialog>
-    )
-  }
-  /**
-   * Set search data based on user's selection
-   * @method
-   */
-  handleIntervalConfirm = () => {
-    const {searchInput} = this.props;
-    let dataObj = this.getTimeAndText(searchInput.searchInterval);
-    let inputManual = '';
-    let inputAuto = '';
-
-    this.props.handleDateChange({
-      from: dataObj.time,
-      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    this.props.handleDateChange(dateType, {
+      from: this.getCalculatedTime(searchInput.searchInterval, datetime),
+      to: currentTime //set to current time
     });
+  }
+  /**
+   * Get calculated time based on user's time selection
+   * @method
+   * @param {string} type - time options
+   * @param {string} [datetime] - datetime
+   * @returns calculated time
+   */
+  getCalculatedTime = (type, datetime) => {
+    let time = '';
 
-    if (searchInput.searchType === 'manual') {
-      inputManual = dataObj.text;
-    } else if (searchInput.searchType === 'auto') {
-      dataObj = this.getTimeAndText(searchInput.refreshTime);
-      inputAuto = t('txt-interval') + ': ' + dataObj.text;
+    switch (type) {
+      case '15m':
+        time = helper.getSubstractDate(15, 'minutes', datetime);
+        break;
+      case '30m':
+        time = helper.getSubstractDate(30, 'minutes', datetime);
+        break;
+      case '1h':
+        time = helper.getSubstractDate(1, 'hours', datetime);
+        break;
+      case '2h':
+        time = helper.getSubstractDate(2, 'hours', datetime);
+        break;
+      case '12h':
+        time = helper.getSubstractDate(12, 'hours', datetime);
+        break;
+      case '24h':
+        time = helper.getSubstractDate(24, 'hours', datetime);
+        break;
+      case 'today':
+        time = helper.getStartDate('day');
+        break;
+      case 'week':
+        time = helper.getStartDate('week');
+        break;
     }
 
-    this.props.setSearchData('inputManual', inputManual);
-    this.props.setSearchData('inputAuto', inputAuto);
-    this.toggleIntervalDialog();
+    return time;
+  }
+  /**
+   * Display date range
+   * @method
+   * @returns MuiPickersUtilsProvider component
+   */
+  showDataRange = () => {
+    const {locale} = this.context;
+    const {enableTime, datetime, searchInput} = this.props;
+    const showTime = typeof enableTime === 'boolean' ? enableTime : true;
+    let dateLocale = locale;
+    let searchType = '';
+
+    if (searchInput &amp;&amp; searchInput.searchType) {
+      searchType = searchInput.searchType;
+    }
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    if (showTime) {
+      return (
+        &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+          &lt;KeyboardDateTimePicker
+            id='searchDateTimePickerFrom'
+            className='date-time-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD HH:mm'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
+            ampm={false}
+            value={datetime.from}
+            onChange={this.props.handleDateChange.bind(this, 'from')} />
+          &lt;div className='between'>~&lt;/div>
+          &lt;KeyboardDateTimePicker
+            id='searchDateTimePickerTo'
+            className='date-time-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD HH:mm'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
+            ampm={false}
+            value={datetime.to}
+            onChange={this.props.handleDateChange.bind(this, 'to')}
+            disabled={searchType &amp;&amp; searchType === 'auto'} />
+        &lt;/MuiPickersUtilsProvider>
+      )
+    } else {
+      return (
+        &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+          &lt;KeyboardDatePicker
+            id='searchDatePickerFrom'
+            className='date-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
+            value={datetime.from}
+            onChange={this.props.handleDateChange.bind(this, 'from')} />
+          &lt;div className='between'>~&lt;/div>
+          &lt;KeyboardDatePicker
+            id='searchDatePickerTo'
+            className='date-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD'
+            invalidDateMessage={t('txt-invalidDateMessage')}
+            maxDateMessage={t('txt-maxDateMessage')}
+            minDateMessage={t('txt-minDateMessage')}
+            value={datetime.to}
+            onChange={this.props.handleDateChange.bind(this, 'to')}
+            disabled={searchType &amp;&amp; searchType === 'auto'} />
+        &lt;/MuiPickersUtilsProvider>
+      )
+    }
   }
   /**
    * Display date picker
    * @method
-   * @returns DateRange component
+   * @returns MuiPickersUtilsProvider component
    */
-  showDataRange = () => {
+  showDatePicker = () => {
+    const {locale} = this.context;
+    const {datetime} = this.props;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
     return (
-      &lt;DateRange
-        id='datetime'
-        className='daterange'
-        onChange={this.props.handleDateChange}
-        enableTime={true}
-        value={this.props.datetime}
-        t={et} />
+      &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+        &lt;KeyboardDatePicker
+          id='searchDatePicker'
+          className='date-picker'
+          inputVariant='outlined'
+          variant='inline'
+          format='YYYY-MM-DD'
+          invalidDateMessage={t('txt-invalidDateMessage')}
+          maxDateMessage={t('txt-maxDateMessage')}
+          minDateMessage={t('txt-minDateMessage')}
+          value={datetime}
+          onChange={this.props.handleDateChange} />
+      &lt;/MuiPickersUtilsProvider>
     )
   }
   /**
@@ -324,8 +299,8 @@ class SearchOptions extends Component {
    * @returns input box width
    */
   getInputWidth = (type) => {
-    const {locale, searchInput} = this.props;
-    const searchType = searchInput.searchType;
+    const {locale} = this.context;
+    const searchType = this.props.searchInput.searchType;
 
     if (searchType === 'manual') {
       return '110px';
@@ -338,67 +313,114 @@ class SearchOptions extends Component {
     }
   }
   render() {
-    const {position, showFilter, showInterval, searchInput} = this.props;
-    const {intervalModalOpen} = this.state;
-    const searchStyle = position ? position : '10px';
-    let searchManualText = '';
-    let searchAutoText = '';
-    let searchInputValue = '';
-
-    if (searchInput) {
-      searchManualText = searchInput.inputManual ? searchInput.inputManual : t('events.connections.txt-last1h');
-      searchAutoText = searchInput.inputAuto ? searchInput.inputAuto : t('txt-interval') + ': ' + t('events.connections.txt-10m');
-
-      if (searchInput.searchType === 'manual') {
-        searchInputValue = searchManualText;
-      } else if (searchInput.searchType === 'auto') {
-        searchInputValue = searchAutoText;
-      }
-    }
+    const {dateType, showFilter, showInterval, searchInput} = this.props;
 
     return (
-      &lt;div className='search-options' style={{right: searchStyle}}>
-        {intervalModalOpen &amp;&amp;
-          this.intervalModalDialog()
-        }
-
+      &lt;div className='search-options'>
         {showInterval &amp;&amp;
-          &lt;DropDownList
+          &lt;TextField
+            id='searhType'
             className='search-type'
-            list={[
-              {value: 'manual', text: t('events.connections.txt-search-manual')},
-              {value: 'auto', text: t('events.connections.txt-search-auto')}
-            ]}
-            required={true}
-            onChange={this.handleSearchTypeChange}
-            value={searchInput.searchType} />
+            name='searchType'
+            select
+            variant='outlined'
+            size='small'
+            value={searchInput.searchType}
+            onChange={this.handleSearchTypeChange}>
+            &lt;MenuItem id='searhTypeManual' value={'manual'}>{t('time-interval.txt-search-manual')}&lt;/MenuItem>
+            &lt;MenuItem id='searhTypeAuto' value={'auto'}>{t('time-interval.txt-search-auto')}&lt;/MenuItem>
+          &lt;/TextField>
         }
 
         {showInterval &amp;&amp;
           &lt;div className='search-interval'>
-            &lt;input className='time-interval' style={{width: this.getInputWidth()}} value={searchInputValue} onClick={this.toggleIntervalDialog} readOnly />
+            {searchInput.searchType === 'auto' &amp;&amp;
+              &lt;div>
+                &lt;div className='update-interval'>
+                  &lt;TextField
+                    id='updateInterval'
+                    className='select-field'
+                    name='refreshTime'
+                    select
+                    variant='outlined'
+                    size='small'
+                    value={searchInput.refreshTime}
+                    onChange={this.props.setSearchData}>
+                    &lt;MenuItem id='updateInterval15s' value={'15000'}>{t('time-interval.txt-15s')}&lt;/MenuItem>
+                    &lt;MenuItem id='updateInterval30s' value={'30000'}>{t('time-interval.txt-30s')}&lt;/MenuItem>
+                    &lt;MenuItem id='updateInterval1m' value={'60000'}>{t('time-interval.txt-1m')}&lt;/MenuItem>
+                    &lt;MenuItem id='updateInterval5m' value={'300000'}>{t('time-interval.txt-5m')}&lt;/MenuItem>
+                    &lt;MenuItem id='updateInterval10m' value={'600000'}>{t('time-interval.txt-10m')}&lt;/MenuItem>
+                  &lt;/TextField>
+                &lt;/div>
+
+                &lt;div className='time-interval'>
+                  &lt;TextField
+                    id='timeInterval'
+                    className='select-field'
+                    name='searchInterval'
+                    select
+                    variant='outlined'
+                    size='small'
+                    value={searchInput.searchInterval}
+                    onChange={this.props.setSearchData}>
+                    &lt;MenuItem id='timeInterval15m' value={'15m'}>{t('time-interval.txt-last15m')}&lt;/MenuItem>
+                    &lt;MenuItem id='timeInterval30m' value={'30m'}>{t('time-interval.txt-last30m')}&lt;/MenuItem>
+                    &lt;MenuItem id='timeInterval1h' value={'1h'}>{t('time-interval.txt-last1h')}&lt;/MenuItem>
+                    &lt;MenuItem id='timeInterval12h' value={'12h'}>{t('time-interval.txt-last12h')}&lt;/MenuItem>
+                  &lt;/TextField>
+                &lt;/div>
+              &lt;/div>
+            }
+            {searchInput.searchType === 'manual' &amp;&amp;
+              &lt;TextField
+                id='timeInterval'
+                className='select-field'
+                name='searchInterval'
+                select
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={searchInput.searchInterval}
+                onChange={this.props.setSearchData}>
+                &lt;MenuItem id='timeInterval30m' value={'30m'}>{t('time-interval.txt-last30m')}&lt;/MenuItem>
+                &lt;MenuItem id='timeInterval1h' value={'1h'}>{t('time-interval.txt-last1h')}&lt;/MenuItem>
+                &lt;MenuItem id='timeInterval2h' value={'2h'}>{t('time-interval.txt-last2h')}&lt;/MenuItem>
+                &lt;MenuItem id='timeIntervalToday' value={'today'}>{t('time-interval.txt-today')}&lt;/MenuItem>
+                &lt;MenuItem id='timeInterval24h' value={'24h'}>{t('time-interval.txt-last24h')}&lt;/MenuItem>
+                &lt;MenuItem id='timeIntervalWeek' value={'week'}>{t('time-interval.txt-week')}&lt;/MenuItem>
+              &lt;/TextField>
+            }
           &lt;/div>
         }
-        
+
         &lt;div className='datepicker'>
-          &lt;label htmlFor='datetime' className='datetime'>&lt;/label>
-          {this.showDataRange()}
+          {dateType === 'datepicker' &amp;&amp;
+            this.showDatePicker()
+          }
+
+          {(!dateType || dateType === 'daterange') &amp;&amp;
+            this.showDataRange()
+          }
         &lt;/div>
 
-        &lt;button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter}>{t('events.connections.txt-toggleFilter')}&lt;/button>
+        &lt;Button id='searchBarButton' variant='contained' color='primary' className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}&lt;/Button>
       &lt;/div>
     )
   }
 }
 
+SearchOptions.contextType = BaseDataContext;
+
 SearchOptions.propTypes = {
-  datetime: PropTypes.object.isRequired,
-  handleDateChange: PropTypes.func.isRequired,
+  dateType: PropTypes.string,
+  datetime: PropTypes.object,
+  showFilter: PropTypes.bool,
+  handleDateChange: PropTypes.func,
   handleSearchSubmit: PropTypes.func.isRequired
 };
 
-const HocSearchOptions = withLocale(SearchOptions);
-export { SearchOptions, HocSearchOptions };</code></pre>
+export default SearchOptions;</code></pre>
         </article>
     </section>
 
@@ -408,13 +430,13 @@ export { SearchOptions, HocSearchOptions };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

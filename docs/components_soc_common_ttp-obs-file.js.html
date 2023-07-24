@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soc/common/ttp-obs-file.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soc/common/ttp-obs-file.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
+import styled from 'styled-components'
+
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
+
+import Button from '@material-ui/core/Button'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import Input from 'react-ui/build/src/components/input'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
+import {BaseDataContext} from '../../common/context'
+import EventProcess from './event-process'
+import FileUpload from '../../common/file-upload'
+import helper from '../../common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+let it = null;
+
+const CheckBoxIconContainer = styled(CheckBoxIcon)`
+  color: #7ACC29;
+`;
+
+class TtpObsFile extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+
+    this.state = {
+      file: {},
+      uploadFileName: ''
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+  }
+  /**
+   * Handle input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChangeMui = (event) => {
+    this.props.onChange({
+      ...this.props.value,
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Handle date change
+   * @method
+   * @param {string} type - date type ('createDttm', 'modifyDttm' or 'accessDttm')
+   * @param {string} value - input value
+   */
+  handleDateChange = (type, value) => {
+    this.props.onChange({
+      ...this.props.value,
+      [type]: value
+    });
+  }
+  /**
+   * Handle events change
+   * @method
+   * @param {string} value - input value
+   */
+  handleEventsChange = (value) => {
+    this.props.onChange({
+      ...this.props.value,
+      eventProcessList: value
+    });
+  }
+  /**
+   * Handle file upload input value change
+   * @method
+   * @param {object} value - file data to be set
+   */
+  handleFileChange = (value) => {
+    if (value) {
+      this.setState({
+        file: value,
+        uploadFileName: value.name
+      });
+    } else {
+      this.setState({
+        file: {},
+        uploadFileName: ''
+      });
+
+      this.props.onChange({
+        ...this.props.value,
+        uploadFileName: '',
+        tmpFileId: ''
+      });
+    }
+  }
+  /**
+   * Handle file upload
+   * @method
+   */
+  handleFileUpload = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {file, uploadFileName} = this.state;
+    let formData = new FormData();
+    formData.append('file', file);
+
+    this.ah.one({
+      url: `${baseUrl}/api/soc/malware/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        this.props.onChange({
+          ...this.props.value,
+          uploadFileName,
+          tmpFileId: data
+        });
+
+        helper.showPopupMsg(t('txt-uploadSuccess'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  render() {
+    const {locale} = this.context;
+    const {
+      incidentFormType,
+      disabledStatus,
+      value: {
+        fileName,
+        fileExtension,
+        fileSize,
+        createDttm,
+        modifyDttm,
+        accessDttm,
+        md5,
+        sha1,
+        sha256,
+        product,
+        isFamily,
+        resultName,
+        result,
+        uploadFileName: originalUploadFileName,
+        tmpFileId,
+        malwareTypes,
+        eventProcessList
+      }
+    } = this.props;
+    const {uploadFileName} = this.state;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      &lt;div className='event-content'>
+        &lt;div className='line'>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileName'>{f('incidentFields.fileName')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileName'
+              name='fileName'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={fileName}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileExtension'>{f('incidentFields.fileExtension')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileExtension'
+              name='fileExtension'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={fileExtension}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileSize'>{f('incidentFields.fileSize')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileSize'
+              name='fileSize'
+              type='number'
+              variant='outlined'
+              size='small'
+              InputProps={{inputProps: { min: 1 }}}
+              value={fileSize}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+          &lt;div className='group' style={{width: '25vh', marginRight: '10px'}}>
+            &lt;label htmlFor='expireDttm'>{f('incidentFields.fileCreateDttm')}&lt;/label>
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                id='fileCreateDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                value={createDttm}
+                onChange={this.handleDateChange.bind(this, 'createDttm')}
+                disabled={disabledStatus} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+          &lt;div className='group' style={{width: '25vh', marginRight: '10px'}}>
+            &lt;label htmlFor='expireDttm'>{f('incidentFields.fileModifyDttm')}&lt;/label>
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                id='fileModifyDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                value={modifyDttm}
+                onChange={this.handleDateChange.bind(this, 'modifyDttm')}
+                disabled={disabledStatus} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+          &lt;div className='group' style={{width: '25vh', marginRight: '10px'}}>
+            &lt;label htmlFor='expireDttm'>{f('incidentFields.fileAccessDttm')}&lt;/label>
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                id='fileAccessDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                value={accessDttm}
+                onChange={this.handleDateChange.bind(this, 'accessDttm')}
+                disabled={disabledStatus} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;div className='group'>
+            &lt;label htmlFor='md5'>MD5&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='md5'
+              name='md5'
+              variant='outlined'
+              fullWidth
+              size='small'
+              maxLength={32}
+              value={md5}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='sha1'>SHA1&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='sha1'
+              name='sha1'
+              variant='outlined'
+              fullWidth
+              size='small'
+              maxLength={40}
+              value={sha1}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;div className='group full'>
+            &lt;label htmlFor='sha256'>SHA256&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='sha256'
+              name='sha256'
+              variant='outlined'
+              fullWidth
+              size='small'
+              maxLength={64}
+              value={sha256}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileProduct'>{f('incidentFields.fileProduct')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileProduct'
+              name='product'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={product}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileIsFamily'>{f('incidentFields.fileFamily')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileIsFamily'
+              name='isFamily'
+              variant='outlined'
+              fullWidth
+              size='small'
+              select
+              value={isFamily}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus}>
+              &lt;MenuItem value={true}>True&lt;/MenuItem>
+              &lt;MenuItem value={false}>False&lt;/MenuItem>
+            &lt;/TextField>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileResultName'>{f('incidentFields.fileSeverity')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileResultName'
+              name='resultName'
+              placeholder='8/10'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={resultName}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='fileResult'>{f('incidentFields.fileResult')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='fileResult'
+              name='result'
+              variant='outlined'
+              fullWidth
+              size='small'
+              select
+              value={result}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus}>
+              &lt;MenuItem value='Malicious'>Malicious&lt;/MenuItem>
+              &lt;MenuItem value='suspicious'>Suspicious&lt;/MenuItem>
+              &lt;MenuItem value='benign'>Benign&lt;/MenuItem>
+              &lt;MenuItem value='unknown'>Unknown&lt;/MenuItem>
+            &lt;/TextField>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;div className='group'>
+            {(uploadFileName || originalUploadFileName) &amp;&amp;
+              &lt;React.Fragment>
+                &lt;div className='upload-file'>{t('txt-fileName')}: {uploadFileName || originalUploadFileName}&lt;/div>
+                {tmpFileId &amp;&amp;
+                  &lt;CheckBoxIconContainer />
+                }
+              &lt;/React.Fragment>
+            }
+            &lt;div className='upload-header'>{f('incidentFields.fileUpload')} (.zip) ({it('txt-zipPassword')})&lt;/div>
+            &lt;FileUpload
+              id='fileUpload'
+              fileType='zip'
+              btnText={t('txt-selectFile')}
+              handleFileChange={this.handleFileChange} />
+            &lt;Button variant='contained' color='primary' className='upload-btn' onClick={this.handleFileUpload} disabled={!uploadFileName}>{t('txt-upload')}&lt;/Button>
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='malwareTypes'>{f('incidentFields.malwareTypes')}&lt;/label>
+            &lt;TextField style={{paddingRight: '2em'}}
+              id='malwareTypes'
+              name='malwareTypes'
+              variant='outlined'
+              fullWidth
+              size='small'
+              select
+              value={malwareTypes}
+              onChange={this.handleDataChangeMui}
+              disabled={disabledStatus}>
+              &lt;MenuItem value='adware'>Adware&lt;/MenuItem>
+              &lt;MenuItem value='backdoor'>Backdoor&lt;/MenuItem>
+              &lt;MenuItem value='bootkit'>Bootkit&lt;/MenuItem>
+              &lt;MenuItem value='bot'>Bot&lt;/MenuItem>
+              &lt;MenuItem value='ddos'>Ddos&lt;/MenuItem>
+              &lt;MenuItem value='downloader'>Downloader&lt;/MenuItem>
+              &lt;MenuItem value='dropper'>Dropper&lt;/MenuItem>
+              &lt;MenuItem value='exploit-kit'>Exploit Kit&lt;/MenuItem>
+              &lt;MenuItem value='keylogger'>Keylogger&lt;/MenuItem>
+              &lt;MenuItem value='ransomware'>Ransomware&lt;/MenuItem>
+              &lt;MenuItem value='remote-access-trojan'>Remote Access Trojan&lt;/MenuItem>
+              &lt;MenuItem value='resource-exploitation'>Resource Exploitation&lt;/MenuItem>
+              &lt;MenuItem value='rogue-security-software'>Rogue Security Software&lt;/MenuItem>
+              &lt;MenuItem value='rootkit'>Rootkit&lt;/MenuItem>
+              &lt;MenuItem value='screen-capture'>Screen Capture&lt;/MenuItem>
+              &lt;MenuItem value='spyware'>Spyware&lt;/MenuItem>
+              &lt;MenuItem value='trojan'>Trojan&lt;/MenuItem>
+              &lt;MenuItem value='virus'>Virus&lt;/MenuItem>
+              &lt;MenuItem value='webshell'>Web Shell&lt;/MenuItem>
+              &lt;MenuItem value='wiper'>Wiper&lt;/MenuItem>
+              &lt;MenuItem value='worm'>Worm&lt;/MenuItem>
+              &lt;MenuItem value='unknown'>Unknown&lt;/MenuItem>
+            &lt;/TextField>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='line'>
+          &lt;MultiInput
+            id='eventProcess'
+            className='event-process-group'
+            base={EventProcess}
+            defaultItemValue={{
+              process: ''
+            }}
+            value={eventProcessList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.handleEventsChange}
+            readOnly={disabledStatus} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+TtpObsFile.contextType = BaseDataContext;
+TtpObsFile.propTypes = {
+};
+
+export default TtpObsFile;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -30,17 +30,17 @@
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import {BaseDataContext} from './context'
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
-const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
+const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_', '_Raw', 'message', 'msg'];
 
 let t = null;
 
 /**
  * Table Cell
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to display formatted data in the table
  */
 class TableCell extends Component {
@@ -51,7 +51,7 @@ class TableCell extends Component {
       showIcon: false
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   /**
    * Toggle the filter icon on/off
@@ -74,7 +74,16 @@ class TableCell extends Component {
     let tempMarkData = [];
     let color = '';
 
-    if (!value) {
+    if (value) {
+      if (typeof value === 'string') {
+        value = value.toLowerCase();
+      } else if (typeof value === 'number') {
+        value = value.toString();
+        value = value.toLowerCase();
+      } else {
+        return;
+      }
+    } else {
       return;
     }
 
@@ -86,13 +95,31 @@ class TableCell extends Component {
     })
 
     _.forEach(tempMarkData, val => {
-      if (val.data.toLowerCase() === value.toLowerCase()) {
+      const data = val.data.toLowerCase();
+
+      if (!data) {
+        return;
+      }
+
+      if (data === value || value.indexOf(data) > -1) {
         color = val.color;
         return false; //Exit the loop
       }
     })
 
     return color;
+  }
+  /**
+   * Get title for specific fields
+   * @method
+   * @param {string} fieldName - field name
+   * @param {string} fieldValue - field value
+   * @returns title content
+   */
+  getTitleContent = (fieldName, fieldValue) => {
+    if (fieldName === '_Raw' || fieldName === 'message' || fieldName === 'msg') {
+      return fieldValue;
+    }
   }
   /**
    * Get table field content
@@ -104,35 +131,35 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldContent = (type, tooltip, picPath, country) => {
-    const {activeTab, fieldName, fieldValue, alertLevelColors} = this.props;
+    const {activeTab, fieldName, fieldValue, displayValue, alertLevelColors} = this.props;
     const {showIcon} = this.state;
 
     if (fieldValue) {
       if (type === 'internet' || type === 'intranet') {
         return (
           &lt;div className={this.getBackgroundColor(fieldValue)}>
-            {type === 'internet' &amp;&amp;
+            {type === 'internet' &amp;&amp; picPath &amp;&amp; country &amp;&amp;
               &lt;img src={picPath} className='flag-icon' title={country} />
             }
             {type === 'intranet' &amp;&amp;
               &lt;i className='fg fg-network' title={tooltip}>&lt;/i>
             }
             &lt;span className='ip'>{fieldValue}&lt;/span>
-            &lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}>&lt;/i>
+            &lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}>&lt;/i>
           &lt;/div>
         )
       } else {
-        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Dont' show filter icon
-          return &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;/span>
-        } else if (fieldName === '_severity_') {
+        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Filter icon not show
+          return &lt;span className={this.getBackgroundColor(fieldValue)} title={this.getTitleContent(fieldName, fieldValue)}>{displayValue || fieldValue}&lt;/span>
+        } else if (activeTab === 'alert' &amp;&amp; fieldName === '_severity_') {
           return ( //Special case for Severity in Alerts
             &lt;div>
-              &lt;span className='severity' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}&lt;/span>
-              &lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}>&lt;/i>
+              &lt;span className='severity-level' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}&lt;/span>
+              &lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}>&lt;/i>
             &lt;/div>
           )
         } else { //Everythig else
-          return &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}>&lt;/i>&lt;/span>
+          return &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}>&lt;/i>&lt;/span>
         }
       }
     }
@@ -143,37 +170,76 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldValue = () => {
-    const {contextRoot, fieldName, allValue} = this.props;
+    const {contextRoot} = this.context;
+    const {fieldName, allValue} = this.props;
 
     if (fieldName === 'destIp' || fieldName === 'srcIp' || fieldName === 'ipDst' || fieldName === 'ipSrc') {
       let picPath = '';
       let country = '';
 
       if (fieldName === 'srcIp' || fieldName === 'ipSrc') {
-        if (allValue.srcTopoInfo) {
-          const ownerName = allValue.srcTopoInfo.ownerName;
-          const areaName = allValue.srcTopoInfo.areaFullName;
-          const seatName = allValue.srcTopoInfo.seatName;
-          const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+        if (allValue.srcLocType === 2) {
+          let tooltip = '';
+
+          if (allValue.srcTopoInfo) {
+            const ownerName = allValue.srcTopoInfo.ownerName;
+            const areaName = allValue.srcTopoInfo.areaFullName;
+            const seatName = allValue.srcTopoInfo.seatName;
+
+            if (ownerName) {
+              tooltip += t('ipFields.owner') + ': ' + ownerName;
+            }
+
+            if (areaName) {
+              tooltip += ', ' + t('ipFields.areaFullName') + ': ' + areaName;
+            }
+
+            if (seatName) {
+              tooltip += ', ' + t('ipFields.seat') + ': ' + seatName;
+            }
+          }
           return this.getFieldContent('intranet', tooltip);
-        } else if (allValue.srcCountryCode) {
-          picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
-          country = allValue.srcCountry;
+        } else if (allValue.srcLocType === 1) {
+          if (allValue.srcCountryCode) {
+            picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
+          }
+          if (allValue.srcCountry) {
+            country = allValue.srcCountry;
+          }
           return this.getFieldContent('internet', '', picPath, country);
         } else {
           return this.getFieldContent();
         }
       } else if (fieldName === 'destIp' || fieldName === 'ipDst') {
-        if (allValue.destTopoInfo) {
-          const ownerName = allValue.destTopoInfo.ownerName;
-          const areaName = allValue.destTopoInfo.areaFullName;
-          const seatName = allValue.destTopoInfo.seatName;
-          const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+        if (allValue.destLocType === 2) {
+          let tooltip = '';
+
+          if (allValue.destTopoInfo) {
+            const ownerName = allValue.destTopoInfo.ownerName;
+            const areaName = allValue.destTopoInfo.areaFullName;
+            const seatName = allValue.destTopoInfo.seatName;
+
+            if (ownerName) {
+              tooltip += t('ipFields.owner') + ': ' + ownerName;
+            }
+
+            if (areaName) {
+              tooltip += ', ' + t('ipFields.areaFullName') + ': ' + areaName;
+            }
+
+            if (seatName) {
+              tooltip += ', ' + t('ipFields.seat') + ': ' + seatName;
+            }
+          }
           return this.getFieldContent('intranet', tooltip);
-        } else if (allValue.destCountryCode) {
-          picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
-          country = allValue.destCountry;
-          return this.getFieldContent('internet', '', picPath, country);          
+        } else if (allValue.destLocType === 1) {
+          if (allValue.destCountryCode) {
+            picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
+          }
+          if (allValue.destCountry) {
+            country = allValue.destCountry;
+          }
+          return this.getFieldContent('internet', '', picPath, country);
         } else {
           return this.getFieldContent();
         }
@@ -184,22 +250,29 @@ class TableCell extends Component {
   }
   render() {
     return (
-      &lt;div className='table-cell' onMouseOver={this.showFilterIcon.bind(this, true)} onMouseOut={this.showFilterIcon.bind(this, false)}>
+      &lt;div
+        className='table-cell'
+        onMouseOver={this.showFilterIcon.bind(this, true)}
+        onMouseOut={this.showFilterIcon.bind(this, false)}
+        onDoubleClick={this.props.handleRowDoubleClick}>
         {this.getFieldValue()}
       &lt;/div>
     )
   }
 }
 
+TableCell.contextType = BaseDataContext;
+
 TableCell.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  fieldName: PropTypes.string.isRequired,
-  allValue: PropTypes.object.isRequired
+  activeTab: PropTypes.string,
+  fieldName: PropTypes.string,
+  allValue: PropTypes.object.isRequired,
+  alertLevelColors: PropTypes.object,
+  handleOpenQueryMenu: PropTypes.func,
+  handleRowDoubleClick: PropTypes.func
 };
 
-const HocTableCell = withLocale(TableCell);
-export { TableCell, HocTableCell };</code></pre>
+export default TableCell;</code></pre>
         </article>
     </section>
 
@@ -209,13 +282,13 @@ export { TableCell, HocTableCell };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

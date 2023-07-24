@@ -26,26 +26,37 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import React, {Component} from 'react'
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
 import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DataTable from 'react-ui/build/src/components/table'
-import Input from 'react-ui/build/src/components/input'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
-import {HocConfig as Config} from '../../../common/configuration'
+import AdConfig from './ad-config'
+import {BaseDataContext} from '../../../common/context'
+import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
+import MuiTableContent from '../../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const log = require('loglevel').getLogger('user/accounts')
+const FORM_VALIDATION = {
+  password: {
+    valid: true
+  }
+};
+
 const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
 const gt =  i18n.getFixedT(null, 'app');
@@ -53,7 +64,7 @@ const gt =  i18n.getFixedT(null, 'app');
 /**
  * Account List
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the account list
  */
 class AccountList extends Component {
@@ -61,134 +72,285 @@ class AccountList extends Component {
     super(props);
 
     this.state = {
-      originalAccountData: [],
-      accountData: [],
-      dataFieldsArr: ['_menu', 'accountid', 'account', 'name', 'email', 'unit', 'title', 'phone'],
-      param: {
+      showFilter: false,
+      list: {
+        department: [],
+        title: [],
+        privilege: []
+      },
+      accountSearch: {
         name: '',
-        account: ''
+        account: '',
+        privilege: {}
+      },
+      userAccount: {
+        dataFieldsArr: ['_menu', 'account', 'name', 'email', 'unit', 'title', 'phone', 'enabled'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'account',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
       },
       accountID: '',
-      dataFields: {},
-      showFilter: false
+      accountName: '',
+      contextAnchor: null,
+      currentAccountData: {},
+      showNewPassword: false,
+      newPassword: '',
+      info: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
+
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.loadAccounts();
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.getTitleData();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
   }
   /**
-   * Get and set account list data
+   * Get and set title data
    * @method
    */
-  loadAccounts = () => {
-    const {baseUrl} = this.props;
-    const {dataFieldsArr} = this.state;
+  getTitleData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
 
-    ah.one({
-      url: `${baseUrl}/api/account/_search`,
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
       type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
+      contentType: 'text/plain'
     })
     .then(data => {
-      const accountData = data.rt.rows;
+      if (data) {
+        let tempList = {...list};
+        let titleList = [];
 
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          hide: tempData === 'accountid' ? true : false,
-          label: tempData === '_menu' ? '' : t(`accountFields.${tempData}`),
-          sortable: tempData === '_menu' ? null : true,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                &lt;div className={cx('table-menu', {'active': value})}>
-                  &lt;button onClick={this.handleRowContextMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/button>
-                &lt;/div>
-              )
-            } else {
-              return &lt;span>{value}&lt;/span>;
-            }
-          }
-        }
-      })
+        _.forEach(data, val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
 
-      this.setState({
-        originalAccountData: _.cloneDeep(accountData),
-        accountData,
-        dataFields: tempFields
-      });
+        tempList.title = _.cloneDeep(titleList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getDepartmentData();
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Construct and display table context menu
+   * Get and set department data
    * @method
-   * @param {object} allValue - account data
-   * @param {object} evt - mouseClick events
    */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue.accountid)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDialog('delete', allValue, allValue.accountid)
-      },
-      {
-        id: 'unlock',
-        text: c('txt-unlock'),
-        action: () => this.showDialog('unlock', allValue, allValue.accountid)
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getPrivilegesData();
+        });
       }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
-    evt.stopPropagation();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
-   * Handle table row mouse over
+   * Get and set privileges list
    * @method
-   * @param {string} index - index of the account data
-   * @param {object} allValue - account data
-   * @param {object} evt - MouseoverEvents
    */
-  handleRowMouseOver = (value, allValue, evt) => {
-    let tempAccountData = {...this.state.accountData};
-    tempAccountData = _.map(tempAccountData, el => {
-      return {
-        ...el,
-        _menu: el.accountid === allValue.accountid ? true : false
-      };
-    });
+  getPrivilegesData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
 
-    this.setState({
-      accountData: tempAccountData
-    });
+    this.ah.one({
+      url: `${baseUrl}/api/account/privileges?getPermits=true`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let privilegeList = [];
+
+        _.forEach(data, val => {
+          privilegeList.push({
+            value: val.privilegeid,
+            text: val.name
+          });
+        })        
+
+        tempList.privilege = _.cloneDeep(privilegeList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getAccountsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
-   * Handle account filter action
+   * Get and set account list data
    * @method
+   * @param {string} options - option for 'currentPage'
    */
-  getAccountFilterData = () => {
-    const {originalAccountData, accountData, param} = this.state;
-    let filteredAccountArr = [];
+  getAccountsData = (options) => {
+    const {baseUrl} = this.context;
+    const {accountSearch, userAccount} = this.state;
+    const sort = userAccount.sort.desc ? 'desc' : 'asc';
+    const page = options === 'currentPage' ? userAccount.currentPage : 0;
+    const url = `${baseUrl}/api/account/v2/_search?page=${page + 1}&amp;pageSize=${userAccount.pageSize}&amp;orders=${userAccount.sort.field} ${sort}`;
+    let requestData = {};
 
-    if (param.name || param.account) { //If filters are set
-      filteredAccountArr = _.filter(accountData, ({name, account}) => {
-        return (_.includes(name, param.name) &amp;&amp; _.includes(account, param.account));
-      });
-    } else  {
-      filteredAccountArr = originalAccountData;
+    if (accountSearch.account) {
+      requestData.account = accountSearch.account;
     }
 
+    if (accountSearch.name) {
+      requestData.name = accountSearch.name;
+    }
+
+    if (accountSearch.privilege &amp;&amp; accountSearch.privilege.value) {
+      requestData.privilegeId = accountSearch.privilege.value;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        let tempUserAccount = {...userAccount};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempUserAccount.dataContent = [];
+          tempUserAccount.totalCount = 0;
+
+          this.setState({
+            userAccount: tempUserAccount
+          });
+          return null;
+        }
+
+        tempUserAccount.dataContent = data.rows;
+        tempUserAccount.totalCount = data.counts;
+        tempUserAccount.currentPage = page;
+        tempUserAccount.dataFields = _.map(userAccount.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : t('accountFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempUserAccount.dataContent[dataIndex];
+                const value = tempUserAccount.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu active'>
+                      &lt;Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/Button>
+                    &lt;/div>
+                  )
+                } else if (val === 'unit') {
+                  return &lt;span>{allValue.unitName}&lt;/span>
+                } else if (val === 'title') {
+                  return &lt;span>{allValue.titleName}&lt;/span>
+                } else if (val === 'account' &amp;&amp; allValue.isLock) {
+                  return &lt;span>&lt;i className='fg fg-key' title={c('txt-account-unlocked')}>&lt;/i>{value}&lt;/span>;
+                } else if (val === 'enabled') {
+                  return &lt;span>{value ? t('enabled') : t('disabled')}&lt;/span>
+                } else {
+                  return &lt;span>{value}&lt;/span>
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          userAccount: tempUserAccount
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} account - active account data
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (account, event) => {
     this.setState({
-      accountData: filteredAccountArr
+      contextAnchor: event.currentTarget,
+      currentAccountData: account
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
     });
   }
   /**
@@ -197,7 +359,15 @@ class AccountList extends Component {
    * @param {string} id - selected account ID
    */
   showEditDialog = (id) => {
-    this.editor._component.openAccount(id);
+    this.editor.openAccount(id, 'fromAccount');
+    this.handleCloseMenu();
+  }
+  /**
+   * Open AD config dialog
+   * @method
+   */
+  showAdDialog = () => {
+    this.config.openADconfig();
   }
   /**
    * Display delete and unlock content
@@ -211,7 +381,7 @@ class AccountList extends Component {
     let msg = '';
 
     if (type === 'delete') {
-      msg = c('txt-delete-msg') + ': ' + allValue.account;
+      msg = c('txt-account-delete') + ': ' + allValue.account;
     } else if (type === 'unlock') {
       msg = c('txt-account-unlock') + ': ' + allValue.account;
     }
@@ -221,7 +391,7 @@ class AccountList extends Component {
     });
 
     return (
-      &lt;div className='content delete'>
+      &lt;div className={cx('content', {'delete': type === 'delete'})}>
         &lt;span>{msg}?&lt;/span>
       &lt;/div>
     )
@@ -246,6 +416,39 @@ class AccountList extends Component {
         }
       }
     });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Toggle account status
+   * @method
+   */
+  toggleStatus = () => {
+    const {baseUrl} = this.context;
+    const {currentAccountData} = this.state;
+    const url = `${baseUrl}/api/account/enabled`;
+    const requestData = {
+      id: currentAccountData.accountid,
+      enabled: !currentAccountData.enabled
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getAccountsData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
+
+    this.handleCloseMenu();
   }
   /**
    * Handle delete/unlock modal confirm
@@ -253,49 +456,188 @@ class AccountList extends Component {
    * @param {string} type - action type ('delete' or 'unlock')
    */
   accountAction = (type) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {accountID} = this.state;
+    let url = '';
+    let requestType = '';
+    let msg = '';
+
+    if (!accountID) {
+      return;
+    }
 
     if (type === 'delete') {
-      ah.one({
-        url: `${baseUrl}/api/account/?accountid=${accountID}`,
-        type: 'DELETE'
-      })
-      .then(() => {
-        this.loadAccounts();
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+      url = `${baseUrl}/api/account/?accountid=${accountID}`;
+      requestType = 'DELETE';
+      msg = t('txt-deleteAccountSuccess');
     } else if (type === 'unlock') {
-      ah.one({
-        url: `${baseUrl}/api/account/_unlock?accountid=${accountID}`,
-        type: 'PATCH'
-      })
-      .then(() => {
-        PopupDialog.alertId('modalWindowSmall', {
-          id: 'modalWindowSmall',
-          confirmText: c('txt-confirm'),
-          display: t('txt-unlockAccountSuccess')
-        });
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+      url = `${baseUrl}/api/account/_unlock?accountid=${accountID}`;
+      requestType = 'PATCH';
+      msg = t('txt-unlockAccountSuccess');
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      type: requestType
+    })
+    .then(() => {
+      helper.showPopupMsg(msg);
+      this.getAccountsData();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
+  }
+  /**
+   * Show reset password dialog and set active account name
+   * @method
+   * @returns HTML DOM
+   */
+  showResetPassword = (accountName) => {
+    this.setState({
+      accountName,
+      showNewPassword: true
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle password input box
+   * @method
+   * @param {object} event - event object
+   */
+  handlePasswordChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Display new password content
+   * @method
+   * @returns HTML DOM
+   */
+  displayNewPassword = () => {
+    const {newPassword, formValidation} = this.state;
+
+    return (
+      &lt;div className='group'>
+        &lt;TextField
+          id='resetPassword'
+          name='newPassword'
+          type='password'
+          label={c('txt-password')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          required
+          error={!formValidation.password.valid}
+          helperText={formValidation.password.valid ? '' : c('txt-required')}
+          value={newPassword}
+          onChange={this.handlePasswordChange} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Show password reset dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showNewPasswordDialog = () => {
+    const actions = {
+      cancel: {text: c('txt-cancel'), className: 'standard', handler: this.closeResetPasswordDialog},
+      confirm: {text: c('txt-confirm'), handler: this.handleResetPasswordConfirm}
+    };
+    const titleText = c('txt-resetPassword');
+
+    return (
+      &lt;ModalDialog
+        id='adminResetPasswordDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayNewPassword()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle reset password confirm
+   * @method
+   */
+  handleResetPasswordConfirm = () => {
+    const {baseUrl} = this.context;
+    const {accountName, newPassword, formValidation} = this.state;
+    const url = `${baseUrl}/api/account/password/_reset`;
+    const requestData = {
+      account: accountName,
+      newPassword
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (newPassword) {
+      formValidation.password.valid = true;
+    } else {
+      formValidation.password.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(c('txt-resetPasswordSuccess'));
+        this.closeResetPasswordDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        info: err.message
+      });
+    })
+  }
+  /**
+   * Handle reset password cancel
+   * @method
+   */
+  closeResetPasswordDialog = () => {
+    this.setState({
+      showNewPassword: false,
+      newPassword: '',
+      info: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    });
   }
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleSearchChange = (type, value) => {
-    let tempParam = {...this.state.param}
-    tempParam[type] = value.trim()
+  handleSearchChange = (event) => {
+    let tempAccountSearch = {...this.state.accountSearch};
+    tempAccountSearch[event.target.name] = event.target.value;
 
     this.setState({
-      param: tempParam
+      accountSearch: tempAccountSearch
     });
   }
   /**
@@ -313,11 +655,63 @@ class AccountList extends Component {
    */
   clearFilter = () => {
     this.setState({
-      param: {
+      accountSearch: {
         name: '',
         account: ''
       }
     });
+  }
+  /**
+   * Handle filter search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    let tempUserAccount = {...this.state.userAccount};
+    tempUserAccount.dataFields = [];
+    tempUserAccount.dataContent = [];
+    tempUserAccount.totalCount = 0;
+    tempUserAccount.currentPage = 1;
+    tempUserAccount.pageSize = 20;
+    
+    this.setState({
+      userAccount: tempUserAccount
+    }, () => {
+      this.getAccountsData();
+    });
+  }
+  /**
+   * Display privilege list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderPrivilegeList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={c('ownerFields.privilege')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle privilege combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected privilege info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {list, accountSearch} = this.state;
+    let tempAccountSearch = {...accountSearch};
+
+    if (value &amp;&amp; value.value) {
+      const selectedPrivilegeIndex = _.findIndex(list.privilege, { 'value': value.value });
+      tempAccountSearch.privilege = list.privilege[selectedPrivilegeIndex];
+
+      this.setState({
+        accountSearch: tempAccountSearch
+      });
+    }
   }
   /**
    * Display filter content
@@ -325,7 +719,7 @@ class AccountList extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {param, showFilter} = this.state
+    const {showFilter, list, accountSearch} = this.state;
 
     return (
       &lt;div className={cx('main-filter', {'active': showFilter})}>
@@ -333,73 +727,175 @@ class AccountList extends Component {
         &lt;div className='header-text'>{c('txt-filter')}&lt;/div>
         &lt;div className='filter-section config'>
           &lt;div className='group'>
-            &lt;label htmlFor='account' >{t('l-account')}&lt;/label>
-            &lt;Input id='account' placeholder={t('ph-account')} onChange={this.handleSearchChange.bind(this, 'account')} value={param.account} />
+            &lt;TextField
+              id='accountFilter'
+              name='account'
+              label={t('l-account')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={accountSearch.account}
+              onChange={this.handleSearchChange} />
           &lt;/div>
           &lt;div className='group'>
-            &lt;label htmlFor='name'>{t('l-name')}&lt;/label>
-            &lt;Input id='name' placeholder={t('ph-name')} onChange={this.handleSearchChange.bind(this, 'name')} value={param.name} />
+            &lt;TextField
+              id='nameFilter'
+              name='name'
+              label={t('l-name')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={accountSearch.name}
+              onChange={this.handleSearchChange} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;Autocomplete
+              id='filterComboPrivilege'
+              className='combo-box'
+              style={{width: '240px'}}
+              options={list.privilege}
+              value={accountSearch.privilege}
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderPrivilegeList}
+              onChange={this.handleComboBoxChange} />
           &lt;/div>
         &lt;/div>
         &lt;div className='button-group'>
-          &lt;button className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}&lt;/button>
-          &lt;button className='clear' onClick={this.clearFilter}>{c('txt-clear')}&lt;/button>
+          &lt;Button id='account-btn-filter' variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{c('txt-filter')}&lt;/Button>
+          &lt;Button id='account-btn-clear' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{c('txt-clear')}&lt;/Button>
         &lt;/div>
       &lt;/div>
     )
   }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempUserAccount = {...this.state.userAccount};
+    tempUserAccount[type] = Number(value);
+
+    if (type === 'pageSize') {
+      tempUserAccount.currentPage = 0;
+    }
+
+    this.setState({
+      userAccount: tempUserAccount
+    }, () => {
+      this.getAccountsData(type);
+    });
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let tempUserAccount = {...this.state.userAccount};
+    tempUserAccount.sort.field = field;
+    tempUserAccount.sort.desc = sort;
+
+    this.setState({
+      userAccount: tempUserAccount
+    }, () => {
+      this.getAccountsData();
+    });
+  }
+  /**
+   * Check admin role
+   * @method
+   * @returns boolean true/false
+   */
+  checkAdmin = () => {
+    const {session} = this.context;
+
+    if (_.includes(session.roles, 'Default Admin Privilege')) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {accountData, dataFields, showFilter} = this.state;
+    const {baseUrl, contextRoot} = this.context;
+    const {showFilter, list, userAccount, contextAnchor, currentAccountData, showNewPassword} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+    const statusText = currentAccountData.enabled ? t('disableAccount') : t('enableAccount');
 
     return (
       &lt;div>
+        {showNewPassword &amp;&amp;
+          this.showNewPasswordDialog()
+        }
+
+        &lt;Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          &lt;MenuItem id='account-menu-edit' onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}&lt;/MenuItem>
+          &lt;MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}&lt;/MenuItem>
+          &lt;MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)} disabled={currentAccountData.syncAD}>{c('txt-resetPassword')}&lt;/MenuItem>
+          {currentAccountData.isLock &amp;&amp;
+            &lt;MenuItem id='account-menu-unlock' onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}&lt;/MenuItem>
+          }
+          {this.checkAdmin() &amp;&amp;
+            &lt;MenuItem id='account-menu-status' onClick={this.toggleStatus}>{statusText}&lt;/MenuItem>
+          }
+        &lt;/Menu>
+
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            &lt;button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}>&lt;i className='fg fg-add'>&lt;/i>&lt;/button>
-            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+            &lt;Button id='accountShowAd' variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')} data-cy='ad-account'>&lt;i className='fg fg-signage-ad'>&lt;/i>&lt;/Button>
+            &lt;Button id='accountShowAdd' variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')} data-cy='add-account'>&lt;i className='fg fg-add'>&lt;/i>&lt;/Button>
+            &lt;Button id='accountShowFilter' variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
           &lt;/div>
         &lt;/div>
 
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           &lt;div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             &lt;div className='main-content'>
               &lt;header className='main-header'>{c('txt-account')}&lt;/header>
-              &lt;div className='table-content'>
-                &lt;div className='table no-pagination'>
-                  &lt;DataTable
-                    className='main-table'
-                    fields={dataFields}
-                    onRowMouseOver={this.handleRowMouseOver}
-                    data={accountData} />
-                &lt;/div>
-              &lt;/div>
+              &lt;MuiTableContent
+                data={userAccount}
+                tableOptions={tableOptions} />
             &lt;/div>
           &lt;/div>
         &lt;/div>
 
         &lt;AccountEdit
           ref={ref => { this.editor = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          onDone={this.loadAccounts} />
+          list={list}
+          currentAccountData={currentAccountData}
+          onDone={this.getAccountsData} />
+
+        &lt;AdConfig ref={ref => { this.config = ref }} />
       &lt;/div>
     )
   }
 }
 
+AccountList.contextType = BaseDataContext;
+
 AccountList.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
 export default AccountList;</code></pre>
@@ -412,13 +908,13 @@ export default AccountList;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/common/filter-query.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/common/filter-query.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import MenuItem from '@material-ui/core/MenuItem'
+import PopoverMaterial from '@material-ui/core/Popover'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
+import SearchFilter from '../search-filter'
+
+let t = null;
+let f = null;
+
+/**
+ * Host filter query component
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the filter query
+ */
+class FilterQuery extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      popOverAnchor: null,
+      cpe23uriOperator: 'equal', //'equal' or 'like'
+      filterName: '',
+      filterType: '',
+      originalSystemList: [],
+      systemList: [],
+      filter: {},
+      itemFilterList: {}
+    };
+  }
+  componentDidMount() {
+    const {originalSystemList, systemList, filterList, filter, itemFilterList} = this.props;
+
+    this.setState({
+      filter,
+      itemFilterList
+    });
+
+    _.forEach(filterList, val => {
+      if (val.name === 'system') {
+        this.setState({
+          originalSystemList,
+          systemList
+        });
+      }
+    })
+  }
+  componentDidUpdate(prevProps) {
+    const {filter, itemFilterList} = this.props;
+
+    if (!prevProps || (prevProps &amp;&amp; filter !== prevProps.filter)) {
+      this.setState({
+        filter,
+        itemFilterList
+      });
+    }
+  }
+  /**
+   * Handle filter click
+   * @method
+   * @param {string} filterName - active filter name
+   * @param {string} filterType - active filter type
+   * @param {object} event - event object
+   */
+  handleFilterClick = (filterName, filterType, event) => {
+    this.setState({
+      popOverAnchor: event.currentTarget,
+      filterName,
+      filterType
+    });
+  }
+  /**
+   * Handle popover close
+   * @method
+   * @param {string} [options] - option for 'csvImport'
+   */
+  handlePopoverClose = (options) => {
+    this.setState({
+      popOverAnchor: null
+    }, () => {
+      if (options === 'csvImport') {
+        this.props.toggleCsvImport();
+      }
+    });
+  }
+  /**
+   * Determine whether to show department or not
+   * @method
+   * @param {string} id - department tree ID
+   * @returns boolean true/false
+   */
+  checkDepartmentList = (id) => {
+    const {account, limitedDepartment} = this.props;
+
+    if (account.limitedRole) {
+      if (limitedDepartment.length === 0) {
+        return true;
+      }
+
+      if (limitedDepartment.length > 0) {
+        if (!_.includes(limitedDepartment, id)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return false;
+  }
+  /**
+   * Get list of selected checkbox
+   * @method
+   * @param {bool} checked - checkbox on/off
+   * @param {string} type - filterNav type
+   * @param {array.&lt;string>} list - list of selected items
+   * @param {string} [id] - selected checkbox id
+   * @returns array of selected list
+   */
+  getSelectedItems = (checked, type, list, id) => {
+    const {filter} = this.state;
+
+    if (checked) {
+      return _.concat(filter[type], ...list, id);
+    } else {
+      return _.without(filter[type], ...list, id);
+    }
+  }
+  /**
+   * Handle department checkbox check/uncheck
+   * @method
+   * @param {object} tree - department tree data
+   * @param {object} event - event object
+   */
+  toggleDepartmentCheckbox = (tree, event) => {
+    const {departmentNameMapping} = this.props;
+    const {filter, itemFilterList} = this.state;
+    let tempFilter = {...filter};
+    let tempItemFilterList = {...itemFilterList};
+    let departmentChildList = [];
+
+    _.forEach(tree.children, val => {
+      helper.floorPlanRecursive(val, obj => {
+        departmentChildList.push(obj.id);
+      });
+    })
+
+    tempFilter.departmentSelected = this.getSelectedItems(event.target.checked, 'departmentSelected', departmentChildList, tree.id);
+
+    tempItemFilterList.departmentSelected = _.map(tempFilter.departmentSelected, val => {
+      return departmentNameMapping[val];
+    })
+
+    this.setState({
+      filter: tempFilter,
+      itemFilterList: tempItemFilterList
+    });
+  }
+  /**
+   * Display department tree content
+   * @method
+   * @param {object} tree - department tree data
+   * @returns HTML DOM
+   */
+  getDepartmentTreeLabel = (tree) => {
+    return &lt;span>&lt;Checkbox checked={_.includes(this.state.filter.departmentSelected, tree.id)} onChange={this.toggleDepartmentCheckbox.bind(this, tree)} color='primary' data-cy='hostDepartmentTreeCheckbox' />{tree.name}&lt;/span>
+  }
+  /**
+   * Display department tree item
+   * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
+   */
+  getDepartmentTreeItem = (val, i) => {
+    if (this.checkDepartmentList(val.id)) return; // Hide the tree items that are not belong to the user's account
+
+    return (
+      &lt;TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={this.getDepartmentTreeLabel(val)}>
+        {val.children &amp;&amp; val.children.length > 0 &amp;&amp;
+          val.children.map(this.getDepartmentTreeItem)
+        }
+      &lt;/TreeItem>
+    )
+  }
+  /**
+   * Handle system checkbox check/uncheck
+   * @method
+   * @param {object} tree - system tree data
+   * @param {object} event - event object
+   */
+  toggleSystemCheckbox = (tree, event) => {
+    const {systemList, itemFilterList} = this.state;
+    let tempSystemList = _.cloneDeep(systemList);
+    let tempItemFilterList = {...itemFilterList};
+
+    if (tree.type === 'server' || tree.type === 'pc' || !tree.type) {
+      let systemSelected = [];
+
+      if (tree.children) { //Handle tree header check/uncheck
+        const targetIndex = _.findIndex(systemList, {'name':  tree.name});
+        tempSystemList[targetIndex].checked = event.target.checked;
+        tempSystemList[targetIndex].children = _.map(systemList[targetIndex].children, val => {
+          return {
+            ...val,
+            checked: event.target.checked
+          };
+        })
+      } else { //Handle tree children check/uncheck
+        let parentIndex = '';
+        let childrenIndex = '';
+        let parentChecked = true;
+
+        _.forEach(systemList, (val, i) => {
+          _.forEach(val.children, (val2, j) => {
+            if (tree.name === val2.name) {
+              parentIndex = i;
+              childrenIndex = j;
+              return false;
+            }
+          })
+        })
+        tempSystemList[parentIndex].children[childrenIndex].checked = event.target.checked;
+
+        _.forEach(tempSystemList[parentIndex].children, val => {
+          if (!val.checked) {
+            parentChecked = false;
+            return false;
+          }
+        })
+        tempSystemList[parentIndex].checked = parentChecked;
+      }
+
+      const index = tempItemFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+
+      if (index > -1) {
+        systemSelected.push(t('host.txt-noSystemDetected'));
+      }
+
+      _.forEach(tempSystemList, val => {
+        _.forEach(val.children, val2 => {
+          if (val2.checked) {
+            systemSelected.push(val2.name);
+          }
+        })
+      })
+
+      tempItemFilterList.system = systemSelected;
+    }
+
+    if (tree.type === 'noSystem') {
+      tempSystemList[2].checked = event.target.checked;
+
+      if (event.target.checked) {
+        tempItemFilterList.system.push(t('host.txt-noSystemDetected'));
+      } else {
+        const index = tempItemFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+        tempItemFilterList.system.splice(index, 1);
+      }
+    }
+
+    this.setState({
+      systemList: tempSystemList,
+      itemFilterList: tempItemFilterList
+    });
+  }
+  /**
+   * Display system tree content
+   * @method
+   * @param {object} tree - system tree data
+   * @returns HTML DOM
+   */
+  getSystemTreeLabel = (tree) => {
+    return (
+      &lt;span>
+        &lt;Checkbox
+          name={tree.name}
+          checked={tree.checked}
+          onChange={this.toggleSystemCheckbox.bind(this, tree)}
+          color='primary'
+          data-cy='hostSystemTreeCheckbox' />
+          {tree.name}
+      &lt;/span>
+    )
+  }
+  /**
+   * Display system tree item
+   * @method
+   * @param {object} val - system tree data
+   * @param {number} i - index of the system tree data
+   * @returns TreeItem component
+   */
+  getSystemTreeItem = (val, i) => {
+    return (
+      &lt;TreeItem
+        key={val.name}
+        nodeId={val.name}
+        label={this.getSystemTreeLabel(val)}>
+        {val.children &amp;&amp; val.children.length > 0 &amp;&amp;
+          val.children.map(this.getSystemTreeItem)
+        }
+      &lt;/TreeItem>
+    )
+  }
+  /**
+   * Handle combo box change
+   * @method
+   * @param {string} type - combo box type
+   * @param {object} event - event object
+   * @param {array.&lt;object>} value - selected input value
+   */
+  handleComboBoxChange = (type, event, value) => {
+    let tempFilter = {...this.state.filter};
+    tempFilter[type] = value;
+
+    this.setState({
+      filter: tempFilter
+    });
+  }
+  /**
+   * Set search filter data
+   * @method
+   * @param {string} type - filter type
+   * @param {array.&lt;string>} data - filter data
+   */
+  setSerchFilter = (type, data) => {
+    const {filter, itemFilterList} = this.state;
+    let tempFilter = {...filter};
+    let tempItemFilterList = {...itemFilterList};
+    let dataList = [];
+    tempFilter[type] = data;
+
+    _.forEach(data, val => {
+      let value = val.input;
+
+      if (value) {
+        if (val.condition) {
+          value = val.condition + ' ' + value;
+        }
+
+        dataList.push(value);
+      }
+    })
+
+    tempItemFilterList[type] = dataList;
+
+    this.setState({
+      filter: tempFilter,
+      itemFilterList: tempItemFilterList
+    });
+  }
+  /**
+   * Handle Safety Scan operator change
+   * @method
+   * @param {object} event - event object
+   */
+  handleScanOperatorChange = (event) => {
+    this.setState({
+      cpe23uriOperator: event.target.value
+    });
+  }
+  /**
+   * Show filter popover content
+   * @method
+   * @returns HTML DOM
+   */
+  showFilterPopover = () => {
+    const {page, departmentList} = this.props;
+    const {cpe23uriOperator, filterName, filterType, systemList, filter} = this.state;
+
+    if (filterType === 'tree') {
+      if (filterName === 'departmentSelected') {
+        return (
+          &lt;React.Fragment>
+            {departmentList.length === 0 &amp;&amp;
+              &lt;div className='not-found'>{t('txt-notFound')}&lt;/div>
+            }
+            {departmentList.length > 0 &amp;&amp;
+              &lt;TreeView
+                className='tree-view'
+                defaultCollapseIcon={&lt;ExpandMoreIcon />}
+                defaultExpandIcon={&lt;ChevronRightIcon />}>
+                {departmentList &amp;&amp;
+                  departmentList.map(this.getDepartmentTreeItem)
+                }
+              &lt;/TreeView>
+            }
+          &lt;/React.Fragment>
+        )
+      } else if (filterName === 'system') {
+        return (
+          &lt;React.Fragment>
+            {systemList.length === 0 &amp;&amp;
+              &lt;div className='not-found'>{t('txt-notFound')}&lt;/div>
+            }
+            {systemList.length > 0 &amp;&amp;
+              &lt;TreeView
+                className='tree-view'
+                defaultCollapseIcon={&lt;ExpandMoreIcon />}
+                defaultExpandIcon={&lt;ChevronRightIcon />}>
+                {systemList &amp;&amp;
+                  systemList.map(this.getSystemTreeItem)
+                }
+              &lt;/TreeView>
+            }
+          &lt;/React.Fragment>
+        )
+      }
+    } else if (filterName === 'cpe23uri') {
+      const defaultItemValue = {
+        input: ''
+      };
+      const data = {
+        pageType: page,
+        activeFilter: filterName,
+        searchType: 'input'
+      };
+
+      return (
+        &lt;React.Fragment>
+          &lt;MultiInput
+            base={SearchFilter}
+            defaultItemValue={defaultItemValue}
+            value={filter[filterName]}
+            props={data}
+            onChange={this.setSerchFilter.bind(this, filterName)} />
+          &lt;div className='safety-scan-filter'>
+            &lt;TextField
+              className='scan-operator'
+              select
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={cpe23uriOperator}
+              onChange={this.handleScanOperatorChange}
+              data-cy='hostScanFilterDropDownMenu'>
+              &lt;MenuItem value='equal'>Equal&lt;/MenuItem>
+              &lt;MenuItem value='like'>Like&lt;/MenuItem>
+            &lt;/TextField>
+            &lt;Button id='hostBatchUploadBtn' variant='contained' color='primary' className='filter' onClick={this.handlePopoverClose.bind(this, 'csvImport')} data-cy='hostBatchUploadBtn'>{t('network-inventory.txt-batchUpload')}&lt;/Button>
+          &lt;/div>
+        &lt;/React.Fragment>
+      )
+    } else if (filterType === 'multi_input') {
+      const defaultItemValue = {
+        condition: '=',
+        input: ''
+      };
+      const data = {
+        pageType: page,
+        activeFilter: filterName,
+        searchType: 'condition_input'
+      };
+
+      return (
+        &lt;MultiInput
+          base={SearchFilter}
+          defaultItemValue={defaultItemValue}
+          value={filter[filterName]}
+          props={data}
+          onChange={this.setSerchFilter.bind(this, filterName)} />
+      )
+    }
+  }
+  /**
+   * Show filter display
+   * @method
+   * @param {object} val - filter data
+   * @param {number} i - index of the filter data
+   * @returns HTML DOM
+   */
+  showFilterDisplay = (val, i) => {
+    const {page, severityType, vendorType} = this.props;
+    const {filter, itemFilterList} = this.state;
+    const filterName = val.name;
+    const displayType = val.displayType;
+    const filterType = val.filterType;
+    let label = '';
+    let selectOptions = '';
+
+    if (page === 'vulnerabilities') {
+      label = f('hostDashboardFields.' + filterName);
+      selectOptions = severityType;
+    } else if (page === 'inventory') {
+      label = f('hostCpeFields.' + filterName);
+      selectOptions = vendorType;
+    } else if (page === 'kbid') {
+      label = f('hostKbidFields.' + filterName);
+    }
+
+    if (displayType === 'text_field') {
+      const value = itemFilterList[filterName] ? itemFilterList[filterName].join(', ') : '';
+
+      return (
+        &lt;div key={i} className='group'>
+          &lt;TextField
+            name={filterName}
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value}
+            onClick={this.handleFilterClick.bind(this, filterName, filterType)}
+            InputProps={{
+              readOnly: true
+            }} />
+        &lt;/div>
+      )
+    } else if (displayType === 'auto_complete') {
+      if (!filter[filterName]) return;
+
+      return (
+        &lt;div key={i} className='group'>
+          &lt;Autocomplete
+            className='combo-box'
+            multiple
+            value={filter[filterName]}
+            options={selectOptions}
+            getOptionLabel={(option) => option.text}
+            disableCloseOnSelect
+            noOptionsText={t('txt-notFound')}
+            openText={t('txt-on')}
+            closeText={t('txt-off')}
+            clearText={t('txt-clear')}
+            renderOption={(option, { selected }) => (
+              &lt;React.Fragment>
+                &lt;Checkbox
+                  color='primary'
+                  icon={&lt;CheckBoxOutlineBlankIcon />}
+                  checkedIcon={&lt;CheckBoxIcon />}
+                  checked={selected} />
+                {option.text}
+              &lt;/React.Fragment>
+            )}
+            renderInput={(params) => (
+              &lt;TextField {...params} label={label} variant='outlined' size='small' />
+            )}
+            getOptionSelected={(option, value) => (
+              option.value === value.value
+            )}
+            onChange={this.handleComboBoxChange.bind(this, filterName)} />
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display filter query content
+   * @method
+   * @returns HTML DOM
+   */
+  displayFilterQuery = () => {
+    const {filterList} = this.props;
+    const {popOverAnchor} = this.state;
+
+    return (
+      &lt;div className='filter-section'>
+        &lt;PopoverMaterial
+          id='dashboardFilterPopover'
+          open={Boolean(popOverAnchor)}
+          anchorEl={popOverAnchor}
+          onClose={this.handlePopoverClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left'
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left'
+          }}>
+          &lt;div className='content'>
+            {this.showFilterPopover()}
+          &lt;/div>
+        &lt;/PopoverMaterial>
+        {filterList.map(this.showFilterDisplay)}
+        &lt;Button id='hostClearFilter' variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter} data-cy='hostFilterQueryClearBtn'>{t('txt-clear')}&lt;/Button>
+      &lt;/div>
+    )
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    const {originalSystemList, filterList, originalFilter, originalItemFilterList} = this.props;
+
+    this.setState({
+      cpe23uriOperator: 'equal',
+      filter: _.cloneDeep(originalFilter),
+      itemFilterList: _.cloneDeep(originalItemFilterList)
+    });
+
+    _.forEach(filterList, val => {
+      if (val.name === 'system') {
+        this.setState({
+          systemList: _.cloneDeep(originalSystemList)
+        });
+      }
+    })
+  }
+  /**
+   * Handle query dialog toggle
+   * @method
+   * @param {string} type - dialog type ('confirm' or 'cancel')
+   */
+  handleFilterToggle = (type) => {
+    const {filterList} = this.props;
+    const {cpe23uriOperator, systemList, filter, itemFilterList} = this.state;
+    let filterData = {
+      filter,
+      itemFilterList,
+    };
+
+    _.forEach(filterList, val => {
+      if (val.name === 'system') {
+        filterData.systemList = systemList;
+      } else if (val.name === 'cpe23uri') {
+        filterData.cpe23uriOperator = cpe23uriOperator;
+      }
+    })
+
+    this.props.toggleFilterQuery(type, filterData);
+  }
+  render() {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.handleFilterToggle.bind(this, 'cancel')},
+      confirm: {text: t('txt-confirm'), handler: this.handleFilterToggle.bind(this, 'confirm')}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='showFilterQueryDialog'
+        className='modal-dialog'
+        title={t('txt-filterQuery')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayFilterQuery()}
+      &lt;/ModalDialog>
+    )
+  }
+}
+
+FilterQuery.contextType = BaseDataContext;
+
+FilterQuery.propTypes = {
+  page: PropTypes.string.isRequired,
+  account: PropTypes.object.isRequired,
+  departmentList: PropTypes.array.isRequired,
+  departmentNameMapping: PropTypes.object.isRequired,
+  limitedDepartment: PropTypes.array.isRequired,
+  originalSystemList: PropTypes.array,
+  systemList: PropTypes.array,
+  severityType: PropTypes.array,
+  vendorType: PropTypes.array,
+  filterList: PropTypes.array.isRequired,
+  originalFilter: PropTypes.object.isRequired,
+  filter: PropTypes.object.isRequired,
+  originalItemFilterList: PropTypes.object.isRequired,
+  itemFilterList: PropTypes.object.isRequired,
+  toggleFilterQuery: PropTypes.func.isRequired,
+  toggleCsvImport: PropTypes.func
+};
+
+export default FilterQuery;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

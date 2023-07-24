@@ -27,27 +27,30 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
-import { withRouter } from 'react-router'
+import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 
 const INIT = {
   openEdgeManagement: false,
   openTopology: false,
+  openSyslog: false,
   openAccount: false
 };
 
 /**
  * Configuration
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the left menu in Configuration section
  */
 class Config extends Component {
@@ -60,15 +63,18 @@ class Config extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat');
-    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
+    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('severity');
+    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner');
+    const openSyslog = this.getActiveFrame('config') || this.getActiveFrame('pattern');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
 
     this.setState({
       openEdgeManagement,
       openTopology,
+      openSyslog,
       openAccount
     });
   }
@@ -87,21 +93,25 @@ class Config extends Component {
    * Determine the current active path
    * @method
    * @param {object} frame - menu to be toggled
-   * @returns boolean value
+   * @returns boolean true/false
    */
   getActiveFrame = (frame) => {
     const path = window.location.pathname;
     const pattern = {
-      notifications: '/ChewbaccaWeb/configuration/notifications',
-      edge: '/ChewbaccaWeb/configuration/edge/edge',
-      threat: '/ChewbaccaWeb/configuration/edge/threat',
-      inventory: '/ChewbaccaWeb/configuration/topology/inventory',
-      owner: '/ChewbaccaWeb/configuration/topology/owner',
-      map: '/ChewbaccaWeb/configuration/topology/map',
-      syslog: '/ChewbaccaWeb/configuration/syslog',
-      account: '/ChewbaccaWeb/configuration/user/account',
-      privileges: '/ChewbaccaWeb/configuration/user/privileges',
-      serviceStatus: '/ChewbaccaWeb/configuration/service-status'
+      notifications: '/SCP/configuration/notifications',
+      threat: '/SCP/configuration/threat',
+      edge: '/SCP/configuration/edge/edge',
+      severity: '/SCP/configuration/edge/severity',
+      es: '/SCP/configuration/es',
+      inventory: '/SCP/configuration/topology/inventory',
+      owner: '/SCP/configuration/topology/owner',
+      config: '/SCP/configuration/syslog/config',
+      pattern: '/SCP/configuration/syslog/pattern',
+      audit: '/SCP/configuration/audit',
+      account: '/SCP/configuration/user/account',
+      privileges: '/SCP/configuration/user/privileges',
+      serviceStatus: '/SCP/configuration/service-status',
+      productInfo: '/SCP/configuration/product-info'
     };
 
     return path === pattern[frame];
@@ -120,122 +130,158 @@ class Config extends Component {
     });
   }
   /**
-   * Set the menu class name
+   * Logs download
    * @method
-   * @returns {string} - class name
    */
-  getClassName = () => {
-    return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
+  downloadLogs = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/common/logs/_export`;
+    const requestData = {};
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   render() {
-    const {session} = this.props;
-    const {showContent, openEdgeManagement, openTopology, openAccount, selected} = this.state;
-    let sessionRights = {};
+    const {hidden} = this.props;
+    const {showContent, openEdgeManagement, openTopology, openSyslog, openAccount, selected} = this.state;
 
-    _.forEach(session.rights, val => {
-      sessionRights[val] = true;
-    })
+    if (hidden) { //For Cypress testing purpose
+      return null;
+    }
 
     return (
       &lt;div className={cx('left-nav', {'collapse': !showContent})}>
         &lt;div className='item frame notifications'>
-          &lt;Link to={{pathname: '/ChewbaccaWeb/configuration/notifications', state: 'viewMode'}}>
+          &lt;Link id='config-link-notify' to={{pathname: '/SCP/configuration/notifications', state: 'viewMode'}}>
             &lt;span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}&lt;/span>
           &lt;/Link>
         &lt;/div>
 
-        &lt;div className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
-          &lt;span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}&lt;/span>
-          &lt;i className={`c-link fg fg-arrow-${openEdgeManagement?'top':'bottom'}`}>&lt;/i>
+        &lt;div className='item frame threat'>
+          &lt;Link id='config-link-threat' to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
+            &lt;span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}&lt;/span>
+          &lt;/Link>
+        &lt;/div>
+
+        &lt;div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
+          &lt;span className={`${this.getActiveFrame('edge')}`}>{t('txt-edgeManage')}&lt;/span>
+          &lt;i className={`c-link fg fg-arrow-${openEdgeManagement ? 'top' : 'bottom'}`}>&lt;/i>
         &lt;/div>
 
         {openEdgeManagement &amp;&amp;
           &lt;div className='item open-edge'>
             &lt;div className='subframe'>
-              &lt;Link to={{pathname: '/ChewbaccaWeb/configuration/edge/edge', state: 'tableList'}}>
+              &lt;Link id='config-link-edges' to={{pathname: '/SCP/configuration/edge/edge', state: 'tableList'}}>
                 &lt;span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}&lt;/span>
               &lt;/Link>
             &lt;/div>
             &lt;div className='subframe'>
-              &lt;Link to='/ChewbaccaWeb/configuration/edge/threat'>
-                &lt;span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}&lt;/span>
+              &lt;Link id='config-link-severity' to='/SCP/configuration/edge/severity'>
+                &lt;span className={`${this.getActiveFrame('severity')}`}>{t('threat-severity-mapping.txt-severityMapping')}&lt;/span>
               &lt;/Link>
             &lt;/div>
           &lt;/div>
         }
 
-        &lt;div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
-          &lt;span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}&lt;/span>
-          &lt;i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}>&lt;/i>
+        &lt;div className='item frame es-manage'>
+          &lt;Link id='config-link-es' to='/SCP/configuration/es'>
+            &lt;span className={`${this.getActiveFrame('es')}`}>{t('txt-esManage')}&lt;/span>
+          &lt;/Link>
+        &lt;/div>
+
+        &lt;div id='config-link-topology' className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
+          &lt;span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner')}`}>{t('txt-topology')}&lt;/span>
+          &lt;i className={`c-link fg fg-arrow-${openTopology ? 'top' : 'bottom'}`}>&lt;/i>
         &lt;/div>
 
         {openTopology &amp;&amp;
           &lt;div className='item open-topology'>
             &lt;div className='subframe'>
-              &lt;Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>
+              &lt;Link id='config-link-inventory' to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>
                 &lt;span className={`${this.getActiveFrame('inventory')}`}>{t('txt-networkInventory')}&lt;/span>
               &lt;/Link>
             &lt;/div>
             &lt;div className='subframe'>
-              &lt;Link to={{pathname: '/ChewbaccaWeb/configuration/topology/owner', state: 'tableList'}}>
+              &lt;Link id='config-link-owner' to={{pathname: '/SCP/configuration/topology/owner', state: 'tableList'}}>
                 &lt;span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}&lt;/span>
-              &lt;/Link>
-            &lt;/div>
-            &lt;div className='subframe'>
-              &lt;Link to='/ChewbaccaWeb/configuration/topology/map'>
-                &lt;span className={`${this.getActiveFrame('map')}`}>{t('txt-network-map')}&lt;/span>
               &lt;/Link>
             &lt;/div>
           &lt;/div>
         }
 
-        &lt;div className='item frame syslog-manage'>
-          &lt;Link to='/ChewbaccaWeb/configuration/syslog'>
-            &lt;span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}&lt;/span>
+        &lt;div id='config-link-syslog' className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
+          &lt;span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern')}`}>{t('txt-syslogManage')}&lt;/span>
+          &lt;i className={`c-link fg fg-arrow-${openSyslog ? 'top' : 'bottom'}`}>&lt;/i>
+        &lt;/div>
+
+        {openSyslog &amp;&amp;
+          &lt;div className='item open-syslog'>
+            &lt;div className='subframe'>
+              &lt;Link id='config-link-syslogs' to='/SCP/configuration/syslog/config'>
+                &lt;span className={`${this.getActiveFrame('config')}`}>{t('txt-syslogConfig')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+            &lt;div className='subframe'>
+              &lt;Link id='config-link-pattern' to='/SCP/configuration/syslog/pattern'>
+                &lt;span className={`${this.getActiveFrame('pattern')}`}>{t('txt-systemDefinedPattern')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+          &lt;/div>
+        }
+
+        &lt;div className='item frame audit-log'>
+          &lt;Link id='config-link-audit' to='/SCP/configuration/audit'>
+            &lt;span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}&lt;/span>
           &lt;/Link>
         &lt;/div>
 
-        &lt;div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
+        &lt;div id='config-link-account' className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
           &lt;span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}&lt;/span>
-          &lt;i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`}>&lt;/i>
+          &lt;i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}>&lt;/i>
         &lt;/div>
 
         {openAccount &amp;&amp;
           &lt;div className='item open-account'>
             &lt;div className='subframe'>
-              &lt;Link to='/ChewbaccaWeb/configuration/user/account'>
+              &lt;Link id='config-link-accounts' to='/SCP/configuration/user/account'>
                 &lt;span className={`${this.getActiveFrame('account')}`}>{t('txt-account')}&lt;/span>
               &lt;/Link>
             &lt;/div>
             &lt;div className='subframe'>
-              &lt;Link to='/ChewbaccaWeb/configuration/user/privileges'>
+              &lt;Link id='config-link-privileges' to='/SCP/configuration/user/privileges'>
                 &lt;span className={`${this.getActiveFrame('privileges')}`}>{t('txt-privileges')}&lt;/span>
               &lt;/Link>
             &lt;/div>
           &lt;/div>
         }
 
-        &lt;div className='item frame service-status last'>
-          &lt;Link to='/ChewbaccaWeb/configuration/service-status'>
+        &lt;div className='item frame service-status'>
+          &lt;Link id='config-link-service' to='/SCP/configuration/service-status'>
             &lt;span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}&lt;/span>
           &lt;/Link>
         &lt;/div>
 
+        &lt;div className='item frame product-info'>
+          &lt;Link id='config-link-product' to='/SCP/configuration/product-info'>
+            &lt;span className={`${this.getActiveFrame('productInfo')}`}>{t('txt-productInfo')}&lt;/span>
+          &lt;/Link>
+        &lt;/div>
+
+        &lt;div id='config-link-feedback' className='item frame issues-feedback last' onClick={this.downloadLogs}>
+          &lt;span>{t('txt-issuesFeedback')}&lt;/span>
+        &lt;/div>
+
         &lt;div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
-          &lt;i className={this.getClassName()}>&lt;/i>
+          &lt;i className={`fg fg-arrow-${showContent ? 'left' : 'right'}`}>&lt;/i>
         &lt;/div>
       &lt;/div>
     )
   }
 }
 
-
 Config.propTypes = {
-  session: PropTypes.object.isRequired
 };
 
-const HocConfig = withLocale(Config);
-export { Config, HocConfig };</code></pre>
+export default Config;</code></pre>
         </article>
     </section>
 
@@ -245,13 +291,13 @@ export { Config, HocConfig };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

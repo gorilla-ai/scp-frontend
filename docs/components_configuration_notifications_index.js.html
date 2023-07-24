@@ -28,32 +28,54 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import PropTypes from 'prop-types'
-import Moment from 'moment'
-import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import ChipInput from 'material-ui-chip-input'
+import { ReactMultiEmail } from 'react-multi-email'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {ReactMultiEmail} from 'react-multi-email';
-
-import {HocConfig as Config} from '../../common/configuration'
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
 
+const EMAIL_PATTERN = /^(([^&lt;>()\[\]\\.,;:\s@"]+(\.[^&lt;>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const FORM_VALIDATION = {
+  notificationsServer: {
+    valid: true
+  },
+  notificationsSender: {
+    valid: true,
+    msg: ''
+  },
+  notificationsSenderAccount: {
+    valid: true
+  },
+  notificationsSenderPassword: {
+    valid: true
+  }
+};
+
 let t = null;
 let et = null;
+let c = null;
 
 /**
  * Notifications
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Config Notifications page
  */
 class Notifications extends Component {
@@ -61,18 +83,25 @@ class Notifications extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'viewMode', //viewMode, editMode
+      activeContent: 'viewMode', //'viewMode' or 'editMode'
       openEmailDialog: false,
       testEmails: [],
+      info: '',
       originalNotifications: {},
       notifications: {
         server: '',
         port: 25,
         sender: '',
         connectType: 'standard',
-        authentication: 'true',
+        authentication: true,
         senderAccount: '',
         senderPassword: ''
+      },
+      originalSmsProvider: {},
+      smsProvider: {
+        list: [],
+        value: '',
+        data: {}
       },
       originalEmails: {},
       emails: {
@@ -87,15 +116,32 @@ class Notifications extends Component {
         alert: {
           emails: [],
           enable: true
+        },
+        soc: {
+          emails: [],
+          enable: true
         }
-      }
+      },
+      originalLineBotSettings: {},
+      lineBotSettings:{
+        channelAccessToken:'',
+        channelSecret:'',
+        qrcodeLink:'',
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    c = global.chewbaccaI18n.getFixedT(null, 'accounts');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
     this.getMailServerInfo();
   }
   componentWillReceiveProps(nextProps) {
@@ -103,13 +149,16 @@ class Notifications extends Component {
       this.toggleContent('viewMode');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
    * Get and set mail and notification data
    * @method
    */
   getMailServerInfo = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {notifications, emails} = this.state;
+    const {baseUrl} = this.context;
+    const {notifications, smsProvider, emails, lineBotSettings} = this.state;
 
     this.ah.all([
       {
@@ -119,24 +168,39 @@ class Notifications extends Component {
       {
         url: `${baseUrl}/api/notification`,
         type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/notification/smsProvider`,
+        type: 'GET'
       }
     ])
     .then(data => {
       if (data) {
         const data1 = data[0];
         const data2 = data[1];
-
+        const data3 = data[2];
         const notifications = {
           server: data1.smtpServer,
           port: data1.smtpPort,
           sender: data1.sender,
           connectType: data1.smtpConnectType,
-          authentication: data1.emailAuthentication.toString(), //Convert boolean to string
+          authentication: data1.emailAuthentication, //Convert boolean to string
           senderAccount: data1.senderAcct,
           senderPassword: data1.senderPasswd
         };
 
+        let tempSmsProvider = {...smsProvider};
+        tempSmsProvider.list = _.map(data3.rows, val => {
+          return &lt;MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}&lt;/MenuItem>
+        });
+
+        if (data2['notify.sms.server.id'] &amp;&amp; data2['notify.sms.server.id'].length > 0) {
+          tempSmsProvider.value = data2['notify.sms.server.id'][0].ServiceProviderName;
+          tempSmsProvider.data = data2['notify.sms.server.id'][0];
+        }
+
         let tempEmails = {...emails};
+        let tempLineBotSettings = {...lineBotSettings}
 
         if (data2['notify.service.failure.id']) {
           tempEmails.service.emails = data2['notify.service.failure.id'].receipts;
@@ -153,11 +217,26 @@ class Notifications extends Component {
           tempEmails.alert.enable = data2['notify.alert.report.id'].enable;
         }
 
+        if (data2['notify.soc.send.id']) {
+          tempEmails.soc.emails = data2['notify.soc.send.id'].receipts;
+          tempEmails.soc.enable = data2['notify.soc.send.id'].enable;
+        }
+
+        if (data2['linetbot.config.id']) {
+          tempLineBotSettings.channelAccessToken = data2['linetbot.config.id'].channelAccessToken;
+          tempLineBotSettings.channelSecret = data2['linetbot.config.id'].channelSecret;
+          tempLineBotSettings.qrcodeLink = data2['linetbot.config.id'].qrcodeLink;
+        }
+
         this.setState({
           originalNotifications: _.cloneDeep(notifications),
           notifications,
+          originalSmsProvider: _.cloneDeep(tempSmsProvider),
+          smsProvider: tempSmsProvider,
           originalEmails: _.cloneDeep(tempEmails),
-          emails: tempEmails
+          emails: tempEmails,
+          originalLineBotSettings: _.cloneDeep(tempLineBotSettings),
+          lineBotSettings: tempLineBotSettings
         });
       }
       return null;
@@ -169,15 +248,35 @@ class Notifications extends Component {
   /**
    * Handle email settings input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempNotifications = {...this.state.notifications};
-    tempNotifications[type] = value;
+    tempNotifications[event.target.name] = event.target.value;
 
     this.setState({
       notifications: tempNotifications
+    });
+  }
+  /**
+   * Handle SMS dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleSMSchange = (event) => {
+    let tempSmsProvider = {...this.state.smsProvider};
+    tempSmsProvider.value = event.target.value;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
+  handleLineBotChange = (event) => {
+    let tempLineBotSettings = {...this.state.lineBotSettings};
+    tempLineBotSettings[event.target.name] = event.target.value;
+
+    this.setState({
+      lineBotSettings: tempLineBotSettings
     });
   }
   /**
@@ -186,7 +285,7 @@ class Notifications extends Component {
    * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalNotifications, originalEmails} = this.state;
+    const {originalNotifications, originalSmsProvider, originalEmails, originalLineBotSettings} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -197,7 +296,10 @@ class Notifications extends Component {
 
       this.setState({
         notifications: _.cloneDeep(originalNotifications),
-        emails: _.cloneDeep(originalEmails)
+        smsProvider: _.cloneDeep(originalSmsProvider),
+        emails: _.cloneDeep(originalEmails),
+        lineBotSettings: _.cloneDeep(originalLineBotSettings),
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 
@@ -210,18 +312,23 @@ class Notifications extends Component {
    * @method
    */
   handleNotificationsConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {notifications, emails} = this.state;
+    const {baseUrl} = this.context;
+    const {notifications, smsProvider, emails, lineBotSettings, formValidation} = this.state;
     const mailServerRequestData = {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
       smtpConnectType: notifications.connectType,
-      emailAuthentication: notifications.authentication === 'true', //Convert string to boolean
+      emailAuthentication: notifications.authentication === true, //Convert string to boolean
       sender: notifications.sender,
       senderAcct: notifications.senderAccount,
       senderPasswd: notifications.senderPassword
     };
-
+    const smsSettings = {
+      'notify.sms.server.id': [{
+        ...smsProvider.data,
+        ServiceProviderName: smsProvider.value
+      }]
+    };
     const emailsSettings = {
       'notify.service.failure.id': {
         receipts: emails.service.emails,
@@ -234,7 +341,20 @@ class Notifications extends Component {
       'notify.alert.report.id': {
         receipts: emails.alert.emails,
         enable: emails.alert.enable
+      },
+      'notify.soc.send.id': {
+        receipts: emails.soc.emails,
+        enable: emails.soc.enable
+      },
+      'linetbot.config.id': {
+        channelAccessToken: lineBotSettings.channelAccessToken,
+        channelSecret: lineBotSettings.channelSecret,
+        qrcodeLink: lineBotSettings.qrcodeLink
       }
+    };
+    const requestData = {
+      ...smsSettings,
+      ...emailsSettings
     };
     const apiArr = [
       {
@@ -245,11 +365,57 @@ class Notifications extends Component {
       },
       {
         url: `${baseUrl}/api/notification`,
-        data: JSON.stringify(emailsSettings),
+        data: JSON.stringify(requestData),
         type: 'POST',
         contentType: 'text/plain'
       }
     ];
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (notifications.server) {
+      tempFormValidation.notificationsServer.valid = true;
+    } else {
+      tempFormValidation.notificationsServer.valid = false;
+      validate = false;
+    }
+
+    if (notifications.sender) {
+      if (EMAIL_PATTERN.test(notifications.sender)) { //Check email format
+        tempFormValidation.notificationsSender.valid = true;
+        tempFormValidation.notificationsSender.msg = '';
+      } else {
+        tempFormValidation.notificationsSender.valid = false;
+        tempFormValidation.notificationsSender.msg = c('txt-email-invalid');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.notificationsSender.valid = false;
+      tempFormValidation.notificationsSender.msg = t('txt-required');
+      validate = false;
+    }
+
+    if (notifications.senderAccount) {
+      tempFormValidation.notificationsSenderAccount.valid = true;
+    } else {
+      tempFormValidation.notificationsSenderAccount.valid = false;
+      validate = false;
+    }
+
+    if (notifications.senderPassword) {
+      tempFormValidation.notificationsSenderPassword.valid = true;
+    } else {
+      tempFormValidation.notificationsSenderPassword.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     this.ah.all(apiArr)
     .then(data => {
@@ -257,33 +423,20 @@ class Notifications extends Component {
         this.getMailServerInfo();
         this.toggleContent('viewMode');
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Toggle Email notifications checkbox
+   * Display list item
    * @method
-   * @param {string} type - notifications type ('service', 'edge', or 'alert')
-   * @param {string} value - input value
-   */
-  toggleEmailCheckbox = (type, value) => {
-    let tempEmails = {...this.state.emails};
-    tempEmails[type].enable = value;
-
-    this.setState({
-      emails: tempEmails
-    })
-  }
-  /**
-   * Display individual email
-   * @method
-   * @param {string} val - email value
-   * @param {string} i - index of the emails array
+   * @param {string} val - individual value
+   * @param {string} i - index of the list array
    * @returns HTML DOM
    */
-  displayEmail = (val, i) => {
+  displayListItem = (val, i) => {
     return &lt;span key={i}>{val}&lt;/span>
   }
   /**
@@ -326,6 +479,19 @@ class Notifications extends Component {
     )
   }
   /**
+   * Toggle Email notifications checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleEmailCheckbox = (event) => {
+    let tempEmails = {...this.state.emails};
+    tempEmails[event.target.name].enable = event.target.checked;
+
+    this.setState({
+      emails: tempEmails
+    })
+  }
+  /**
    * Display emails notifications content
    * @method
    * @param {object} val - EMAIL_SETTINGS object
@@ -336,30 +502,165 @@ class Notifications extends Component {
     const {activeContent, emails} = this.state;
 
     return (
-      &lt;div className='form-group normal long' key={val.type}>
+      &lt;div key={val.type} className='form-group normal long'>
         &lt;header>{val.headerText}&lt;/header>
         &lt;div className='group'>
           &lt;label>{t('notifications.txt-recipientEmail')}&lt;/label>
           {activeContent === 'viewMode' &amp;&amp; emails[val.type].emails.length > 0 &amp;&amp;
-            &lt;div className='flex-item'>{emails[val.type].emails.map(this.displayEmail)}&lt;/div>
-          }
-          {activeContent === 'viewMode' &amp;&amp; emails[val.type].emails.length === 0 &amp;&amp;
-            &lt;div>N/A&lt;/div>
+            &lt;div className='flex-item'>{emails[val.type].emails.map(this.displayListItem)}&lt;/div>
           }
           {activeContent === 'editMode' &amp;&amp;
             &lt;ReactMultiEmail
               emails={emails[val.type].emails}
               onChange={this.handleEmailChange.bind(this, val)}
-              getLabel={this.getLabel}
-            />
+              getLabel={this.getLabel} />
           }
         &lt;/div>
         &lt;div className='group'>
-          &lt;label htmlFor='serviceError' className='checkbox'>{val.checkboxText}&lt;/label>
-          &lt;Checkbox
-            id='serviceError'
-            onChange={this.toggleEmailCheckbox.bind(this, val.type)}
-            checked={emails[val.type].enable}
+          &lt;FormControlLabel
+            label={val.checkboxText}
+            control={
+              &lt;Checkbox
+                className='checkbox-ui'
+                name={val.type}
+                checked={emails[val.type].enable}
+                onChange={this.toggleEmailCheckbox}
+                color='primary' />
+            }
+            disabled={activeContent === 'viewMode'} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle SMS input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleSmsDataChange = (event) => {
+    let tempSmsProvider = {...this.state.smsProvider};
+    tempSmsProvider.data[event.target.name] = event.target.value;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {function} removePhone - function to remove phone
+   * @param {number} index - index of the phone list array
+   */
+  deletePhone = (removePhone, index) => {
+    removePhone(index);
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {string} phone - individual phone
+   * @param {number} index - index of the emails list array
+   * @param {function} removePhone - function to remove phone
+   * @returns HTML DOM
+   */
+  getPhoneLabel = (phone, index, removePhone) => {
+    return (
+      &lt;div data-tag key={index}>
+        {phone}
+        &lt;span data-tag-handle onClick={this.deletePhone.bind(this, removePhone, index)}> &lt;span className='font-bold'>x&lt;/span>&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle SMS phone change
+   * @method
+   * @param {array} newPhones - new phone list
+   */
+  handleSmsPhoneChange = (newPhones) => {
+    let tempSmsProvider = {...this.state.smsProvider};
+    tempSmsProvider.data.recipientNumberList = newPhones;
+
+    this.setState({
+      smsProvider: tempSmsProvider
+    });
+  }
+  /**
+   * Display SMS provider content
+   * @method
+   * @returns HTML DOM
+   */
+  getSmsProviderContent = () => {
+    const {activeContent, smsProvider} = this.state;
+
+    return (
+      &lt;div className='form-group normal sms-provider'>
+        &lt;div className='group'>
+          &lt;TextField
+            id='smsNotificationAccount'
+            name='account'
+            label={t('txt-account')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.data.account || ''}
+            onChange={this.handleSmsDataChange}
+            disabled={activeContent === 'viewMode'} />
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;TextField
+            id='smsNotificationPassword'
+            name='password'
+            type='password'
+            label={t('txt-password')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.data.password || ''}
+            onChange={this.handleSmsDataChange}
+            disabled={activeContent === 'viewMode'} />
+        &lt;/div>
+
+        &lt;div className='group full'>
+          &lt;label style={{fontSize: '14px'}}>{t('notifications.sms.txt-recipients')}&lt;/label>
+          {activeContent === 'viewMode' &amp;&amp;
+            &lt;div className='flex-item'>
+              {smsProvider.data.recipientNumberLis &amp;&amp; smsProvider.data.recipientNumberLis.length > 0 &amp;&amp;
+                smsProvider.data.recipientNumberList.map(this.displayListItem)
+              }
+            &lt;/div>
+          }
+          {activeContent === 'editMode' &amp;&amp;
+            &lt;ChipInput
+              className='phone-chip-input'
+              defaultValue={smsProvider.data.recipientNumberList}
+              onChange={this.handleSmsPhoneChange}
+              disableUnderline={true}
+              fullWidth={true} />
+          }
+        &lt;/div>
+
+        &lt;div className='group'>
+          &lt;TextField
+            id='smsNotificationPointUrl'
+            name='apiPointCheckUrl'
+            label={t('notifications.sms.txt-pointCheckUrl')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.data.apiPointCheckUrl || ''}
+            onChange={this.handleSmsDataChange}
+            disabled={activeContent === 'viewMode'} />
+        &lt;/div>
+
+        &lt;div className='group'>
+          &lt;TextField
+            id='smsNotificationMultipleUrl'
+            name='apiMultipleSendUrl'
+            label={t('notifications.sms.txt-multipleSendUrl')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={smsProvider.data.apiMultipleSendUrl || ''}
+            onChange={this.handleSmsDataChange}
             disabled={activeContent === 'viewMode'} />
         &lt;/div>
       &lt;/div>
@@ -410,7 +711,7 @@ class Notifications extends Component {
     const titleText = t('notifications.txt-testEmails');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-send'), handler: this.testEmailConfirm}
+      confirm: {text: t('txt-send'), handler: this.handleTestEmailConfirm}
     };
 
     return (
@@ -421,6 +722,7 @@ class Notifications extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayTestEmail()}
       &lt;/ModalDialog>
@@ -430,22 +732,78 @@ class Notifications extends Component {
    * Handle test email confirm
    * @method
    */
-  testEmailConfirm = () => {
+  handleTestEmailConfirm = () => {
+    const {baseUrl} = this.context;
     const {testEmails} = this.state;
     let dataParams = '';
+
+    if (testEmails.length === 0) {
+      this.setState({
+        info: t('notifications.txt-emailInvalid')
+      });
+      return;
+    }
 
     _.forEach(testEmails, val => {
       dataParams += '&amp;receipts=' + val;
     })
 
     this.ah.one({
-      url: `${baseUrl}/api/notification/mailServer/_test?` + dataParams,
+      url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
+        helper.showPopupMsg(t('notifications.txt-sendSuccess'));
         this.closeDialog();
       }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle test SMS connections
+   * @method
+   */
+  testSMSconnections = () => {
+    const {baseUrl} = this.context;
+    const {smsProvider} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/notification/sms/_test?ServiceProviderName=${smsProvider.value}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('notifications.sms.txt-connectionsSuccess') + ': ' + data.point);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle test SMS sending message
+   * @method
+   */
+  testSMSsend = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/notification/sms/send/_test`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('notifications.sms.txt-sendSuccess'));
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -458,12 +816,13 @@ class Notifications extends Component {
   closeDialog = () => {
     this.setState({
       openEmailDialog: false,
-      testEmails: []
+      testEmails: [],
+      info: ''
     });
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {activeContent, openEmailDialog, notifications, emails} = this.state;
+    const {baseUrl, contextRoot} = this.context;
+    const {activeContent, openEmailDialog, notifications, smsProvider, emails, lineBotSettings, formValidation} = this.state;
     const EMAIL_SETTINGS = [
       {
         type: 'service',
@@ -479,8 +838,34 @@ class Notifications extends Component {
         type: 'alert',
         headerText: t('notifications.txt-alertNotifications'),
         checkboxText: t('notifications.txt-dailyAlert')
+      },
+      {
+        type: 'soc',
+        headerText: t('notifications.txt-socNotifications'),
+        checkboxText: t('notifications.txt-sendResult')
       }
     ];
+    const actions = {
+      cancel: {
+        color: 'default',
+        variant: 'contained',
+        text: t('txt-cancel'),
+        handler: this.closeDialog
+      },
+      confirm: {
+        color: 'primary',
+        variant: 'contained',
+        text: t('txt-send'),
+        handler: this.handleTestEmailConfirm
+      }
+    };
+    let accountName = 'N/A';
+
+    if (lineBotSettings.qrcodeLink &amp;&amp; lineBotSettings.qrcodeLink.includes('sid/L/')) {
+      const tempSpiltAccountNameArray =  lineBotSettings.qrcodeLink.split("sid/L/");
+      const tmpNameArray = tempSpiltAccountNameArray[1].split(".");
+      accountName = '@'+ tmpNameArray[0];
+    }
 
     return (
       &lt;div>
@@ -494,103 +879,225 @@ class Notifications extends Component {
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           &lt;div className='parent-content'>
             &lt;div className='main-content basic-form'>
               &lt;header className='main-header'>{t('notifications.txt-settings')}&lt;/header>
+
               {activeContent === 'viewMode' &amp;&amp;
-                &lt;button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}&lt;/button>
+                &lt;div className='content-header-btns'>
+                  &lt;Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}&lt;/Button>
+                &lt;/div>
               }
 
-              &lt;div className='form-group normal short'>
-                &lt;header>{t('notifications.txt-emailSettings')}&lt;/header>
-                &lt;button className='last' onClick={this.openEmailDialog}>{t('notifications.txt-testEmails')}&lt;/button>
-                &lt;div className='group'>
-                  &lt;label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}&lt;/label>
-                  &lt;Input
-                    id='notificationsServer'
-                    onChange={this.handleDataChange.bind(this, 'server')}
-                    value={notifications.server}
-                    readOnly={activeContent === 'viewMode'} />
+              &lt;div className='config-notify' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+                &lt;div className='form-group normal short'>
+                  &lt;header>{t('notifications.txt-emailSettings')}&lt;/header>
+                  &lt;Button variant='contained' color='primary' className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}&lt;/Button>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsServer'
+                      name='server'
+                      label={t('notifications.txt-smtpServer')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.notificationsServer.valid}
+                      helperText={formValidation.notificationsServer.valid ? '' : t('txt-required')}
+                      value={notifications.server}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsPort'
+                      name='port'
+                      select
+                      label={t('notifications.txt-smtpPort')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={notifications.port}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={25}>25&lt;/MenuItem>
+                      &lt;MenuItem value={465}>465&lt;/MenuItem>
+                      &lt;MenuItem value={587}>587&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group' style={{width: '50%'}}>
+                    &lt;TextField
+                      id='notificationsSender'
+                      name='sender'
+                      label={t('notifications.txt-sender')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.notificationsSender.valid}
+                      helperText={formValidation.notificationsSender.msg}
+                      value={notifications.sender}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsSender'
+                      name='connectType'
+                      select
+                      label={t('notifications.txt-smtpConnectType')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={notifications.connectType}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value='standard'>standard&lt;/MenuItem>
+                      &lt;MenuItem value='ssl'>SSL&lt;/MenuItem>
+                      &lt;MenuItem value='tls'>TLS&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsAuthentication'
+                      name='authentication'
+                      select
+                      label={t('notifications.txt-authentication')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={notifications.authentication}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'}>
+                      &lt;MenuItem value={true}>True&lt;/MenuItem>
+                      &lt;MenuItem value={false}>False&lt;/MenuItem>
+                    &lt;/TextField>
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsSenderAccount'
+                      name='senderAccount'
+                      label={t('notifications.txt-senderAccount')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.notificationsSenderAccount.valid}
+                      helperText={formValidation.notificationsSenderAccount.valid ? '' : t('txt-required')}
+                      value={notifications.senderAccount}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsSenderPassword'
+                      name='senderPassword'
+                      type='password'
+                      label={t('notifications.txt-senderPassword')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      required
+                      error={!formValidation.notificationsSenderPassword.valid}
+                      helperText={formValidation.notificationsSenderPassword.valid ? '' : t('txt-required')}
+                      value={notifications.senderPassword}
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
                 &lt;/div>
-                &lt;div className='group'>
-                  &lt;label htmlFor='notificationsPort'>{t('notifications.txt-smtpPort')}&lt;/label>
-                  &lt;DropDownList
-                    id='notificationsPort'
-                    required={true}
-                    list={[
-                      {value: 25, text: 25},
-                      {value: 465, text: 465},
-                      {value: 587, text: 587}
-                    ]}
-                    onChange={this.handleDataChange.bind(this, 'port')}
-                    value={notifications.port}
-                    readOnly={activeContent === 'viewMode'} />
+
+                &lt;div className='form-group normal long'>
+                  &lt;header>{t('notifications.lineBot.txt-lineBotSettings')}&lt;/header>
+
+                  {activeContent === 'viewMode' &amp;&amp; lineBotSettings.qrcodeLink &amp;&amp;
+                    &lt;div className='group'>
+                      &lt;label>{t('notifications.lineBot.txt-qrcode')}&lt;/label>
+                      &lt;img style={{width: '150px', height: '150px'}} width='100%' height='100%' src={lineBotSettings.qrcodeLink} border="0"  title={t('notifications.lineBot.txt-accountId')+accountName}/>
+                    &lt;/div>
+                  }
+
+                  {activeContent !== 'viewMode' &amp;&amp;
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='lineBotSettings.qrcodeLink'
+                        name='qrcodeLink'
+                        label={t('notifications.lineBot.txt-qrcode')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={lineBotSettings.qrcodeLink}
+                        onChange={this.handleLineBotChange} />
+                    &lt;/div>
+                  }
+
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='lineBotSettings.channelAccessToken'
+                      name='channelAccessToken'
+                      label={t('notifications.lineBot.txt-channelAccessToken')}
+                      variant='outlined'
+                      fullWidth
+                      rows={4}
+                      rowsMax={5}
+                      multiline
+                      size='small'
+                      value={lineBotSettings.channelAccessToken}
+                      onChange={this.handleLineBotChange}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
+
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='lineBotSettings.channelSecret'
+                      name='channelSecret'
+                      label={t('notifications.lineBot.txt-channelSecret')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={lineBotSettings.channelSecret}
+                      onChange={this.handleLineBotChange}
+                      disabled={activeContent === 'viewMode'} />
+                  &lt;/div>
                 &lt;/div>
-                &lt;div className='group' style={{width: '50%'}}>
-                  &lt;label htmlFor='notificationsSender'>{t('notifications.txt-sender')}&lt;/label>
-                  &lt;Input
-                    id='notificationsSender'
-                    onChange={this.handleDataChange.bind(this, 'sender')}
-                    value={notifications.sender}
-                    readOnly={activeContent === 'viewMode'} />
+
+                &lt;div className='form-group normal long'>
+                  &lt;header>{t('notifications.sms.txt-smsNotification')}&lt;/header>
+                  &lt;div className='sms-button-group' style={{position: 'absolute', top: '-45px', right: 0}}>
+                    &lt;Button variant='contained' color='primary' style={{marginRight: '5px'}} onClick={this.testSMSconnections} disabled={activeContent === 'editMode'}>{t('notifications.sms.txt-testSMSconnections')}&lt;/Button>
+                    &lt;Button variant='contained' color='primary' onClick={this.testSMSsend} disabled={activeContent === 'editMode'}>{t('notifications.sms.txt-testSMSsend')}&lt;/Button>
+                  &lt;/div>
+
+                  &lt;div className='group'>
+                    &lt;TextField
+                      id='notificationsSMS'
+                      select
+                      label={t('notifications.sms.txt-addNewService')}
+                      variant='outlined'
+                      fullWidth
+                      size='small'
+                      value={smsProvider.value}
+                      onChange={this.handleSMSchange}
+                      disabled={activeContent === 'viewMode'}>
+                      {smsProvider.list}
+                    &lt;/TextField>
+                  &lt;/div>
+
+                  &lt;div className='sms-content'>
+                    {smsProvider.value &amp;&amp;
+                      this.getSmsProviderContent()
+                    }
+                  &lt;/div>
                 &lt;/div>
-                &lt;div className='group'>
-                  &lt;label htmlFor='notificationsSender'>{t('notifications.txt-smtpConnectType')}&lt;/label>
-                  &lt;DropDownList
-                    id='notificationsSender'
-                    required={true}
-                    list={[
-                      {value: 'standard', text: 'Standard'},
-                      {value: 'ssl', text: 'SSL'},
-                      {value: 'tls', text: 'TLS'},
-                    ]}
-                    onChange={this.handleDataChange.bind(this, 'connectType')}
-                    value={notifications.connectType}
-                    readOnly={activeContent === 'viewMode'} />
-                &lt;/div>
-                &lt;div className='group'>
-                  &lt;label htmlFor='notificationsAuthentication'>{t('notifications.txt-authentication')}&lt;/label>
-                  &lt;DropDownList
-                    id='notificationsAuthentication'
-                    required={true}
-                    list={[
-                      {value: 'true', text: 'True'},
-                      {value: 'false', text: 'False'}
-                    ]}
-                    onChange={this.handleDataChange.bind(this, 'authentication')}
-                    value={notifications.authentication}
-                    readOnly={activeContent === 'viewMode'} />
-                &lt;/div>
-                &lt;div className='group'>
-                  &lt;label htmlFor='notificationsSenderAccount'>{t('notifications.txt-senderAccount')}&lt;/label>
-                  &lt;Input
-                    id='notificationsSenderAccount'
-                    onChange={this.handleDataChange.bind(this, 'senderAccount')}
-                    value={notifications.senderAccount}
-                    readOnly={activeContent === 'viewMode'} />
-                &lt;/div>
-                &lt;div className='group'>
-                  &lt;label htmlFor='notificationsSenderPassword'>{t('notifications.txt-senderPassword')}&lt;/label>
-                  &lt;Input
-                    id='notificationsSenderPassword'
-                    type='password'
-                    onChange={this.handleDataChange.bind(this, 'senderPassword')}
-                    value={notifications.senderPassword}
-                    readOnly={activeContent === 'viewMode'} />
-                &lt;/div>
+
+                {EMAIL_SETTINGS.map(this.getEmailsContent)}
               &lt;/div>
 
-              {EMAIL_SETTINGS.map(this.getEmailsContent)}
-
               {activeContent === 'editMode' &amp;&amp;
-                &lt;footer className='no-fixed'>
-                  &lt;button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/button>
-                  &lt;button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}&lt;/button>
+                &lt;footer>
+                  &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+                  &lt;Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}&lt;/Button>
                 &lt;/footer>
               }
             &lt;/div>
@@ -601,12 +1108,12 @@ class Notifications extends Component {
   }
 }
 
+Notifications.contextType = BaseDataContext;
+
 Notifications.propTypes = {
-  baseUrl: PropTypes.string.isRequired
 };
 
-const HocNotifications = withRouter(withLocale(Notifications));
-export { Notifications, HocNotifications };</code></pre>
+export default withRouter(Notifications);</code></pre>
         </article>
     </section>
 
@@ -616,13 +1123,13 @@ export { Notifications, HocNotifications };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

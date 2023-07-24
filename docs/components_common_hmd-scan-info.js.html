@@ -27,20 +27,30 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
+import Highcharts from 'highcharts'
+import HighchartsMore from 'highcharts/highcharts-more'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import InfiniteScroll from 'react-infinite-scroll-component'
+
+import Button from '@material-ui/core/Button'
+
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from './context'
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
+import InputPath from './input-path'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+HighchartsMore(Highcharts) //init module
 
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = [
@@ -49,28 +59,67 @@ const SAFETY_SCAN_LIST = [
     path: 'ScanResult'
   },
   {
-    type: 'yaraScanFile',
-    path: 'ScanResult'
+    type: 'scanFile',
+    path: 'scanFileResult'
   },
   {
-    type: 'malware',
-    path: 'DetectionResult'
-  },
-  {
-    type: 'gcb',
+    type: 'importGcbAndGcbDetection',
     path: 'GCBResult'
   },
   {
     type: 'ir',
     path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
+  },
+  {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
+  },
+  {
+    type: '_ExecutePatch',
+    path: '_ExecutePatchResult'
   }
 ];
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
-  [SAFETY_SCAN_LIST[1].type]: 'yaraScanFile',
-  [SAFETY_SCAN_LIST[2].type]: 'malwareDetection',
-  [SAFETY_SCAN_LIST[3].type]: 'gcbDetection'
+  [SAFETY_SCAN_LIST[1].type]: 'scanFile',
+  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
+  [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
+  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult',
+  [SAFETY_SCAN_LIST[7].type]: 'getVans'
 };
+const SETTINGS = {
+  snapshot: 'getSnapshot',
+  procWhiteList: 'setProcessWhiteList'
+};
+const EDR_BUTTON_LIST = ['shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd'];
+const FORM_VALIDATION = {
+  fileIntegrity: {
+    includePath: {
+      valid: true
+    }
+  }
+};
+let scrollCount = 1;
 
 let t = null;
 let f = null;
@@ -78,7 +127,7 @@ let f = null;
 /**
  * HMD Scan Info
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the HMD scan information
  */
 class HMDscanInfo extends Component {
@@ -86,26 +135,451 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'yara', //yara, yaraScanFile, malware, gcb, ir
+      activeTab: 'dashboard', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      polarChartSettings: {},
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
-      malwareSort: ['asc'],
+      activeExecutableInfo: false,
+      activeVansProduct: null,
+      dashboardInfo: {
+        dataFieldsArr: ['item', 'score'],
+        dataFields: {},
+        dataContent: [],
+        sort: {
+          field: 'score',
+          desc: true
+        }
+      },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
+      _ExecutePatchFieldsArr: ['description', 'software', 'receiveDttm', 'receiveCompleteDttm', 'taskStatus', 'executeStatus', 'taskStatusDescription'],
       gcbSort: 'asc',
+      hmdInfo: {},
+      hasMore: true,
+      disabledBtn: false,
+      settingsActiveContent: 'viewMode', //'viewMode' or 'editMode'
+      originalSettingsPathData: {},
+      settingsPath: {
+        fileIntegrity: {
+          includePath: [{
+            path: ''
+          }],
+          excludePath: [{
+            path: ''
+          }],
+          processKeyword: [{
+            keyword: ''
+          }]
+        },
+        procMonitor: {
+          includePath: [{
+            path: ''
+          }]
+        }
+      },
+      edrMoreInfo: {
+        shutdownHost: false,
+        logoffAllUsers: false,
+        netcut: false,
+        netcutResume: false
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
+  componentDidMount() {
+    this.loadInitialData();
+  }
   componentDidUpdate(prevProps) {
+    if (!prevProps || (this.props.currentDeviceData !== prevProps.currentDeviceData)) {
+      let tempDashboardInfo = {...this.state.dashboardInfo};
+      tempDashboardInfo.dataContent = [];
+
+      this.setState({ //Reset Dashboard data content
+        dashboardInfo: tempDashboardInfo
+      }, () => {
+        this.loadInitialData();
+      });
+    }
+
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
       this.setState({
-        activeTab: 'yara'
+        activeTab: 'dashboard'
+      });
+    }
+
+    if (!prevProps || (this.props.activeScanType !== prevProps.activeScanType)) {
+      this.setState({
+        activeTab: this.props.activeScanType,
+        activePath: null,
+        activeRuleHeader: false,
+        activeRule: [],
+        activeDLL: false,
+        activeConnections: false,
+        activeExecutableInfo: false,
+        disabledBtn: false
+      });
+    }
+
+    if (this.chartNode) {
+      Highcharts.chart(this.chartNode, this.state.polarChartSettings);
+    }
+  }
+  componentWillUnmount() {
+    scrollCount = 1;
+
+    this.setState({
+      hasMore: true
+    });
+  }
+  /**
+   * Load initial data for HMD dialog
+   * @method
+   */
+  loadInitialData = () => {
+    this.setActiveTab();
+    this.loadRadarCharts();
+    this.loadHMDdata();
+    this.loadSettingsData();
+  }
+  /**
+   * Set active HMD tab
+   * @method
+   */
+  setActiveTab = () => {
+    this.setState({
+      activeTab: this.props.activeScanType
+    });
+  }
+  /**
+   * Set spider and table chart for Dashboard tab
+   * @method
+   */
+  loadRadarCharts = () => {
+    const {currentDeviceData} = this.props;
+    let polarData = {
+      categories: [],
+      data: []
+    };
+    let tempDashboardInfo = {...this.state.dashboardInfo};
+    let totalScore = '';
+
+    _.forEach(currentDeviceData.safetyScanInfo.radarResult, val => {
+      polarData.categories.push(val.key);
+      polarData.data.push(val.value);
+      tempDashboardInfo.dataContent.push({ //For Dashboard table chart
+        item: val.key,
+        score: val.value
+      });
+      totalScore = val.total;
+    })
+
+    const polarChartSettings = {
+      chart: {
+        polar: true,
+        type: 'line'
+      },
+      title: {
+        text: ''
+      },
+      credits: {
+        enabled: false
+      },
+      xAxis: {
+        categories: polarData.categories,
+        tickmarkPlacement: 'on',
+        lineWidth: 0
+      },
+      yAxis: {
+        gridLineInterpolation: 'polygon',
+        lineWidth: 0,
+        min: 0,
+        max: totalScore
+      },
+      legend: {
+        align: 'right',
+        verticalAlign: 'top',
+        layout: 'vertical'
+      },
+      series: [{
+        name: t('txt-score') + '(' + t('txt-maxScore') + ':' + totalScore + ')',
+        data: polarData.data,
+        pointPlacement: 'on'
+      }]
+    };
+
+    if (this.chartNode) {
+      Highcharts.chart(this.chartNode, polarChartSettings);
+    }
+
+    let tempFields = {};
+    tempDashboardInfo.dataFieldsArr.forEach(tempData => {
+      tempFields[tempData] = {
+        label: t(`txt-${tempData}`),
+        sortable: true,
+        formatter: (value, allValue, i) => {
+          return &lt;span>{value}&lt;/span>
+        }
+      }
+    })
+
+    tempDashboardInfo.dataFields = tempFields;
+
+    this.setState({
+      polarChartSettings,
+      dashboardInfo: tempDashboardInfo
+    });
+  }
+  /**
+   * Load and set HMD data
+   * @method
+   */
+  loadHMDdata = () => {
+    const {locale} = this.context;
+    const {currentDeviceData} = this.props;
+    const {gcbFieldsArr, _ExecutePatchFieldsArr} = this.state;
+    let hmdInfo = {};
+
+    _.forEach(SAFETY_SCAN_LIST, val => {
+      hmdInfo[val.type] = {}; //Create the hmdInfo object
+    });
+
+    _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
+      const currentDataObj = currentDeviceData.safetyScanInfo[val.type + 'Result'];
+
+      if (currentDataObj &amp;&amp; currentDataObj.length > 0 &amp;&amp; !_.isEmpty(currentDataObj[0])) {
+        hmdInfo[val.type] = {
+          latestCreateDttm: helper.getFormattedDate(currentDataObj[0].latestCreateDttm, 'local'),
+          createTime: helper.getFormattedDate(currentDataObj[0].taskCreateDttm, 'local'),
+          responseTime: helper.getFormattedDate(currentDataObj[0].taskResponseDttm, 'local'),
+          data: currentDataObj
+        };
+      }
+    })
+
+    if (hmdInfo.importGcbAndGcbDetection &amp;&amp; hmdInfo.importGcbAndGcbDetection.data) {
+      hmdInfo.importGcbAndGcbDetection.filteredResult = _.filter(hmdInfo.importGcbAndGcbDetection.data[0].GCBResult, ['_CompareResult', true]);
+
+      hmdInfo.importGcbAndGcbDetection.fields = {};
+      gcbFieldsArr.forEach(tempData => {
+        hmdInfo.importGcbAndGcbDetection.fields[tempData] = {
+          label: f(`gcbFields.${tempData}`),
+          sortable: true,
+          className: 'gcb' + tempData,
+          formatter: (value, allValue) => {
+            if (tempData === '_CceId') {
+              return &lt;span>{value}&lt;/span>
+            }
+            if (tempData === '_OriginalKey') {
+              let content = value;
+
+              if (locale === 'zh' &amp;&amp; allValue['_PolicyName_zh-tw']) {
+                content = allValue['_PolicyName_zh-tw'];
+              } else if (locale === 'en' &amp;&amp; allValue['_PolicyName_en']) {
+                content = allValue['_PolicyName_en'];
+              }
+
+              if (content.length > 60) {
+                const newValue = content.substr(0, 60) + '...';
+                return &lt;span title={content}>{newValue}&lt;/span>
+              } else {
+                return &lt;span>{content}&lt;/span>
+              }
+            }
+            if (tempData === '_Type') {
+              return &lt;span>{value}&lt;/span>
+            }
+            if (tempData === '_CompareResult') {
+              let color = '';
+              let tooltip = '';
+
+              if (value) {
+                color = '#22ac38';
+                value = 'Pass';
+              } else {
+                color = '#d0021b';
+                value = 'Fail';
+              }
+
+              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
+              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
+
+              return &lt;span style={{color}} title={tooltip}>{value}&lt;/span>
+            }
+          }
+        };
+      })
+    }
+
+    if (hmdInfo._ExecutePatch &amp;&amp; hmdInfo._ExecutePatch.data) {
+      hmdInfo._ExecutePatch.fields = {};
+      _ExecutePatchFieldsArr.forEach(tempData => {
+        hmdInfo._ExecutePatch.fields[tempData] = {
+          label: f(`vansPatchFields.${tempData}`),
+          sortable: false,
+          className: '_ExecutePatch' + tempData,
+          formatter: (value, allValue) => {
+            const vansInfo = allValue['vansPatchDescriptionDTO'];
+
+            if (!vansInfo) return;
+
+            if (tempData === 'description') {
+              return (
+                &lt;div>
+                  {vansInfo.actionModel &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.actionModel')}&lt;/span>: {t('hmd-scan.txt-patch-' + vansInfo.actionModel)}&lt;/div>
+                  }
+                  {vansInfo.scriptFileName &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.scriptFileName')}&lt;/span>: {vansInfo.scriptFileName}&lt;/div>
+                  }
+                  {vansInfo.executableFileName &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.executableFileName')}&lt;/span>: {vansInfo.executableFileName}&lt;/div>
+                  }
+                  {vansInfo.memo &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.memo')}&lt;/span>: {vansInfo.memo}&lt;/div>
+                  }
+                &lt;/div>
+              )
+            } else if (tempData === 'software') {
+              return (
+                &lt;div>
+                  {vansInfo.patchProduct &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.patchProduct')}&lt;/span>: {vansInfo.patchProduct}&lt;/div>
+                  }
+                  {vansInfo.patchVendor &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.patchVendor')}&lt;/span>: {vansInfo.patchVendor}&lt;/div>
+                  }
+                  {vansInfo.patchVersion &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.patchVersion')}&lt;/span>: {vansInfo.patchVersion}&lt;/div>
+                  }
+                &lt;/div>
+              )
+            } else if (tempData === 'receiveDttm' || tempData === 'receiveCompleteDttm') {
+              return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+            } else if (tempData === 'taskStatus') {
+              let color = '#fff';
+              let backgroundColor = '';
+
+              if (value === 'Running') {
+                backgroundColor = '#ff9802';
+              } else if (value === 'Complete') {
+                backgroundColor = '#22ac38';
+              } else if (value === 'Failure') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'NotSupport') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'Waiting') {
+                color = '#000';
+                backgroundColor = '#d9d9d9';
+              }
+
+              return &lt;span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-task' + value)}&lt;/span>
+            } else if (tempData === 'executeStatus') {
+              let color = '#fff';
+              let backgroundColor = '';
+
+              if (value === 'Running') {
+                backgroundColor = '#ff9802';
+              } else if (value === 'Complete') {
+                backgroundColor = '#22ac38';
+              } else if (value === 'Failure') {
+                backgroundColor = '#d10d25';
+              }else if (value === 'NotSupport') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'Waiting') {
+                color = '#000';
+                backgroundColor = '#d9d9d9';
+              }
+
+              return &lt;span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-execute' + value)}&lt;/span>
+            } else if (tempData === 'taskStatusDescription') {
+              if (value !== 0) {
+                return &lt;span>{t('hmd-scan.txt-taskStatusCode' + value)}&lt;/span>
+              }
+            }
+          }
+        };
+      })
+    }
+
+    this.setState({
+      hmdInfo
+    });
+  }
+  /**
+   * Get parsed path list data
+   * @method
+   * @param {string} type - value type ('path' or 'keyword')
+   * @param {array.&lt;string>} listData - list data
+   * @returns parsed path list
+   */
+  getParsedPathData = (type, listData) => {
+    let pathList = [];
+
+    if (listData) {
+      if (listData.length > 0) {
+        _.forEach(listData, val => {
+          if (val) {
+            pathList.push({
+              [type]: val
+            });
+          }
+        })
+      } else {
+        pathList.push({
+          [type]: ''
+        });
+      }
+    }
+
+    return pathList;
+  }
+  /**
+   * Load and set Settings data
+   * @method
+   */
+  loadSettingsData = () => {
+    const {currentDeviceData} = this.props;
+    let tempSettingsPath = {...this.state.settingsPath};
+    let includePathList = [];
+    let excludePathList = [];
+    let pathData = '';
+
+    if (currentDeviceData.hmdSetting &amp;&amp; currentDeviceData.hmdSetting.length > 0) {
+      const fileIntegrityData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.snapshot});
+      const processMonitorData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.procWhiteList});
+
+      if (!_.isEmpty(fileIntegrityData) &amp;&amp; fileIntegrityData._Parameters) {
+        pathData = fileIntegrityData._Parameters;
+
+        if (pathData._IncludePathList) {
+          tempSettingsPath.fileIntegrity.includePath = this.getParsedPathData('path', pathData._IncludePathList);
+        }
+
+        if (pathData._ExcludePathList) {
+          tempSettingsPath.fileIntegrity.excludePath = this.getParsedPathData('path', pathData._ExcludePathList);
+        }
+
+        if (pathData._ProcessKeyword) {
+          tempSettingsPath.fileIntegrity.processKeyword = this.getParsedPathData('keyword', pathData._ProcessKeyword);
+        }
+      }
+
+      if (!_.isEmpty(processMonitorData) &amp;&amp; processMonitorData._Parameters) {
+        if (processMonitorData._Parameters._WhiteList) {
+          pathData = processMonitorData._Parameters._WhiteList;
+          tempSettingsPath.procMonitor.includePath = this.getParsedPathData('path', pathData);
+        }
+      }
+
+      this.setState({
+        originalSettingsPathData: _.cloneDeep(tempSettingsPath),
+        settingsPath: tempSettingsPath
       });
     }
   }
@@ -134,17 +608,46 @@ class HMDscanInfo extends Component {
   /**
    * Set active tab based on scan type
    * @method
+   * @param {object} event - event object
    * @param {string} activeTab - active scan type
    */
-  toggleScanType = (activeTab) => {
+  toggleScanType = (event, activeTab) => {
+    if (!activeTab) {
+      return;
+    }
+
+    if (activeTab === 'settings') {
+      this.toggleSettingsContent('cancel');
+    }
+
+    scrollCount = 1;
+
     this.setState({
       activeTab,
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
-      activeConnections: false
+      activeConnections: false,
+      activeExecutableInfo: false,
+      disabledBtn: false
     });
+  }
+  /**
+   * Compare the current datetime and the 10 minutes after latest create time
+   * @method
+   * @param {string} latestCreateTime - latest create time
+   * @returns boolean true/false
+   */
+  checkTimeAfter = (latestCreateTime) => {
+    const currentDateTime = helper.getFormattedDate(moment(), 'local');
+    const tenMinutesAfter = helper.getAdditionDate(10, 'minutes', latestCreateTime);
+
+    if (moment(currentDateTime).isAfter(tenMinutesAfter)) {
+      return false; //Enable trigger button if current time is 10 minutes after latest create time
+    } else {
+      return true; //Disable trigger button
+    }
   }
   /**
    * Compare the task create datetime and task response datetime
@@ -153,33 +656,49 @@ class HMDscanInfo extends Component {
    * @returns boolean true/false
    */
   checkTriggerTime = (type) => {
-    const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
+    const currentDevice = this.props.currentDeviceData.safetyScanInfo[resultType];
 
-    if (currentDeviceData[resultType].taskCreateDttm &amp;&amp; currentDeviceData[resultType].taskResponseDttm) {
-      const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
-      const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+    if (this.state.disabledBtn) {
+      return true; //Disable trigger button
+    }
 
-      return Moment(createTime).isAfter(responseTime);
+    if (currentDevice &amp;&amp; currentDevice.length > 0) {
+      if (currentDevice[0].latestCreateDttm) {
+        const latestCreateTime = helper.getFormattedDate(currentDevice[0].latestCreateDttm, 'local');
+
+        if (currentDevice[0].taskResponseDttm) {
+          const responseTime = helper.getFormattedDate(currentDevice[0].taskResponseDttm, 'local');
+
+          if (moment(latestCreateTime).isAfter(responseTime)) {
+            return this.checkTimeAfter(latestCreateTime);
+          } else {
+            return false; //Enable trigger button if latest create time is later than response time
+          }
+        } else {
+          return this.checkTimeAfter(latestCreateTime);
+        }
+      }
     }
   }
   /**
    * Toggle scan path/rule on/off and set the rule
    * @method
-   * @param {string} type - scan type
+   * @param {string} type - scan type ('path' or 'rule')
    * @param {number} i - index of the rule array
+   * @param {string} id - unique ID of the rule array
    */
-  togglePathRule = (type, i) => {
+  togglePathRule = (type, i, id) => {
     const {activePath, activeRule} = this.state;
-    const tempActivePath = activePath === i ? null : i;
 
     if (type === 'path') {
       this.setState({
-        activePath: tempActivePath,
+        activePath: activePath === id ? null : id,
         activeRuleHeader: false,
         activeRule: [],
         activeDLL: false,
-        activeConnections: false
+        activeConnections: false,
+        activeExecutableInfo: false
       });
     } else if (type === 'rule') {
       let tempActiveRule = activeRule;
@@ -199,15 +718,15 @@ class HMDscanInfo extends Component {
    * Display rule for yara scan
    * @method
    * @param {array} nameList - scan rule list
+   * @param {string} val - scan file data
    * @param {number} i - index of the rule array
    * @returns HTML DOM
    */
   displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
-    const uniqueKey = val + i;
 
     return (
-      &lt;div className='rule-content' key={uniqueKey}>
+      &lt;div key={val + i} className='item-content'>
         &lt;div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           &lt;i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}>&lt;/i>
           &lt;span>{nameList[i]}&lt;/span>
@@ -229,14 +748,12 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      &lt;div key={uniqueKey}>{val}&lt;/div>
+      &lt;div key={val + i}>{val}&lt;/div>
     )
   }
   /**
-   * Display file path
+   * Display file path for Yara Scan and Process Monitor
    * @method
    * @param {object} val - scan file data
    * @returns HTML DOM
@@ -265,27 +782,25 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display individual connection for Yara Scan
+   * Display individual connection for Yara Scan and Process Monitor
    * @method
    * @param {object} val - connection data
    * @param {number} i - index of the connections array
    * @returns HTML DOM
    */
   displayIndividualConnection = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      &lt;ul key={uniqueKey}>
-        &lt;li>&lt;span>{t('attacksFields.protocolType')}:&lt;/span> {val.protocol || NOT_AVAILABLE}&lt;/li>
-        &lt;li>&lt;span>{t('attacksFields.srcIp')}:&lt;/span> {val.srcIp || NOT_AVAILABLE}&lt;/li>
-        &lt;li>&lt;span>{t('attacksFields.srcPort')}:&lt;/span> {val.srcPort || NOT_AVAILABLE}&lt;/li>
-        &lt;li>&lt;span>{t('attacksFields.destIp')}:&lt;/span> {val.destIP || NOT_AVAILABLE}&lt;/li>
-        &lt;li>&lt;span>{t('attacksFields.destPort')}:&lt;/span> {val.destPort || NOT_AVAILABLE}&lt;/li>
+      &lt;ul key={val + i}>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.protocolType')}:&lt;/span> {val.protocol || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.srcIp')}:&lt;/span> {val.srcIp || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.srcPort')}:&lt;/span> {val.srcPort || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.destIp')}:&lt;/span> {val.destIP || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.destPort')}:&lt;/span> {val.destPort || NOT_AVAILABLE}&lt;/li>
       &lt;/ul>
     )
   }
   /**
-   * Display connections for Yara Scan
+   * Display connections for Yara Scan and Process Monitor
    * @method
    * @param {object} val - connection data
    * @returns HTML DOM
@@ -295,15 +810,17 @@ class HMDscanInfo extends Component {
     let connectionsList = [];
     let displayInfo = '';
 
-    _.forEach(val._ProcessInfo._ConnectionList, val2 => {
-      connectionsList.push({
-        destIp: val2._DstIP,
-        destPort: val2._DstPort,
-        protocol: val2._ProtocolType,
-        srcIp: val2._SrcIP,
-        srcPort: val2._SrcPort
-      });
-    })
+    if (val._ProcessInfo) {
+      _.forEach(val._ProcessInfo._ConnectionList, val2 => {
+        connectionsList.push({
+          destIp: val2._DstIP,
+          destPort: val2._DstPort,
+          protocol: val2._ProtocolType,
+          srcIp: val2._SrcIP,
+          srcPort: val2._SrcPort
+        });
+      })
+    }
 
     if (connectionsList.length > 0) {
       displayInfo = connectionsList.map(this.displayIndividualConnection);
@@ -318,11 +835,80 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Display item for Executable Info
+   * @method
+   * @param {object} info - executable data
+   * @param {string} val - executable list
+   * @param {number} i - index of the executable list array
+   * @returns HTML DOM
+   */
+  displayExecutableList = (info, val, i) => {
+    let value = info._ProcessInfo._ExecutableInfo[val];
+
+    if (val === '_AutorunLocation' || val === '_CommandLine') {
+      value = info._ProcessInfo[val];
+    }
+
+    if (val === '_Filepath' || val === '_Filesize') {
+      value = info._ProcessInfo._ExecutableInfo._FileInfo[val];
+
+      if (val === '_Filesize') {
+        value = helper.numberWithCommas(helper.formatBytes(value));
+      }
+    }
+
+    if (val === '_MD5' || val === '_SHA1' || val === '_SHA256') {
+      value = info._ProcessInfo._ExecutableInfo._FileInfo._HashValues[val];
+    }
+
+    if (val === '_IsPE') {
+      value = this.getBoolValue(value);
+    }
+
+    if (val === '_Signatures') { //Signature is an array type
+      let signatureList = '';
+      value = '';
+
+      if (info._ProcessInfo &amp;&amp; info._ProcessInfo._ExecutableInfo[val].length > 0) {
+        _.forEach(info._ProcessInfo._ExecutableInfo[val], val => {
+          signatureList = &lt;ul className='signature-list padding'>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._CertificateType')}&lt;/span>: {val._CertificateType || NOT_AVAILABLE}&lt;/li>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._IssuerName')}&lt;/span>: {val._IssuerName || NOT_AVAILABLE}&lt;/li>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._SerialNumber')}&lt;/span>: {val._SerialNumber || NOT_AVAILABLE}&lt;/li>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._SubjectName')}&lt;/span>: {val._SubjectName || NOT_AVAILABLE}&lt;/li>&lt;/ul>;
+        })
+      }
+
+      if (signatureList) {
+        value = &lt;ul className='signature-list'>{signatureList}&lt;/ul>;
+      }
+    }
+
+    return &lt;li key={val + i}>&lt;span className='blue-color'>{t('hmd-scan.executable-list.txt-' + val)}&lt;/span>: {value || NOT_AVAILABLE}&lt;/li>
+  }
+  /**
+   * Display Executable Info for Process Monitor
+   * @method
+   * @param {object} val - process monitor data
+   * @returns HTML DOM
+   */
+  displayExecutableInfo = (val) => {
+    const {activeExecutableInfo} = this.state;
+    const executableList = ['_AutorunLocation', '_CommandLine', '_CompanyName', '_Filepath', '_Filesize', '_MD5', '_SHA1', '_SHA256', '_IsPE', '_OwnerSID', '_Signatures'];
+
+    if (val._ProcessInfo &amp;&amp; val._ProcessInfo._ExecutableInfo) {
+      return (
+        &lt;div className={cx('sub-content', {'hide': !activeExecutableInfo})}>
+          &lt;ul className='no-padding'>
+            {executableList.map(this.displayExecutableList.bind(this, val))}
+          &lt;/ul>
+        &lt;/div>
+      )
+    }
+  }
+  /**
    * Toggle scan rule item on/off
    * @method
-   * @param {string} type - item type ('rule', 'dll' or 'connections')
+   * @param {string} type - item type ('rule', 'dll', 'connections', 'executableInfo' or 'vans')
+   * @param {string} id - unique ID of vans
    */
-  toggleInfoHeader = (type) => {
+  toggleInfoHeader = (type, id) => {
     if (type === 'rule') {
       this.setState({
         activeRuleHeader: !this.state.activeRuleHeader
@@ -335,18 +921,64 @@ class HMDscanInfo extends Component {
       this.setState({
         activeConnections: !this.state.activeConnections
       });
+    } else if (type === 'executableInfo') {
+      this.setState({
+        activeExecutableInfo: !this.state.activeExecutableInfo
+      });
+    } else if (type === 'vans') {
+      this.setState({
+        activeVansProduct: this.state.activeVansProduct === id ? null : id
+      });
     }
   }
   /**
-   * Display Yara Scan Process content
+   * Add file path to Settings tab
    * @method
+   * @param {string} type - Scan type
+   * @param {string} path - File path to be added
+   */
+  addToSettings = (type, path) => {
+    const {settingsPath} = this.state;
+    let tempSettingsPath = {...settingsPath};
+
+    if (settingsPath[type].includePath.length === 1 &amp;&amp; settingsPath[type].includePath[0].path === '') { //Take care the empty path
+      tempSettingsPath[type].includePath[0].path = path;
+    } else {
+      tempSettingsPath[type].includePath.push({path});
+    }
+
+    this.setState({
+      activeTab: 'settings',
+      settingsActiveContent: 'editMode',
+      settingsPath: tempSettingsPath
+    }, () => {
+      const settings = document.getElementById('settingsWrapper');
+      settings.scrollIntoView(false);
+    });
+  }
+  /**
+   * Display Yara Scan Process and Process Monitor content
+   * @method
+   * @param {number} parentIndex - parent index of the scan process array
    * @param {object} val - scan data content
    * @param {number} i - index of the scan process array
    * @returns HTML DOM
    */
-  displayScanProcessPath = (val, i) => {
-    const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
-    const uniqueKey = val._ScanType + i;
+  displayScanProcessPath = (parentIndex, val, i) => {
+    const {location} = this.props;
+    const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
+    let filePath = val._MatchedFile;
+
+    if (val._ProcessInfo) {
+      filePath = filePath || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    }
+
+    if (!filePath &amp;&amp; !val._MatchedPid) {
+      return;
+    }
+
+    const uniqueID = parentIndex.toString() + i.toString() + (filePath || val._MatchedPid);
+    const uniqueKey = uniqueID;
     let displayInfo = '';
 
     if (val._MatchedRuleList &amp;&amp; val._MatchedRuleList.length > 0 &amp;&amp; val._MatchedRuleNameList) {
@@ -355,23 +987,28 @@ class HMDscanInfo extends Component {
       displayInfo = NOT_AVAILABLE;
     }
 
-    if (val._MatchedFile || val._MatchedPid) {
-      return (
-        &lt;div className='group' key={uniqueKey}>
-          &lt;div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-            &lt;i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}>&lt;/i>
-            {val._MatchedFile &amp;&amp;
-              &lt;span>{t('txt-path')}: {val._MatchedFile}&lt;/span>
+    return (
+      &lt;div key={uniqueKey} className='group'>
+        &lt;div className='path'>
+          &lt;i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>&lt;/i>
+          &lt;div className='path-header'>
+            {filePath &amp;&amp;
+              &lt;span>{t('txt-path')}: {filePath}&lt;/span>
             }
-            {val._MatchedFile &amp;&amp; val._MatchedPid &amp;&amp;
+            {filePath &amp;&amp; val._MatchedPid &amp;&amp;
               &lt;span>, &lt;/span>
             }
             {val._MatchedPid &amp;&amp;
               &lt;span>PID: {val._MatchedPid}&lt;/span>
             }
+            {activeTab === 'procMonitor' &amp;&amp; (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &amp;&amp;
+              &lt;i className='c-link fg fg-add' title={t('hmd-scan.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}>&lt;/i>
+            }
           &lt;/div>
-          &lt;div className={cx('rule', {'hide': activePath !== i})}>
-            &lt;div className='rule-content'>
+        &lt;/div>
+        &lt;div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          {activeTab === 'yara' &amp;&amp;
+            &lt;div className='item-content'>
               &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
                 &lt;i className={cx('fg fg-play', {'rotate': activeRuleHeader})}>&lt;/i>
                 &lt;span>{t('txt-rule')}&lt;/span>
@@ -380,74 +1017,381 @@ class HMDscanInfo extends Component {
                 {displayInfo}
               &lt;/div>
             &lt;/div>
+          }
 
-            &lt;div className='rule-content'>
-              &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
-                &lt;i className={cx('fg fg-play', {'rotate': activeDLL})}>&lt;/i>
-                &lt;span>DLLs&lt;/span>
-              &lt;/div>
-              {this.displayFilePath(val)}
+          &lt;div className='item-content'>
+            &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
+              &lt;i className={cx('fg fg-play', {'rotate': activeDLL})}>&lt;/i>
+              &lt;span>DLLs&lt;/span>
             &lt;/div>
-
-            &lt;div className='rule-content'>
-              &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
-                &lt;i className={cx('fg fg-play', {'rotate': activeConnections})}>&lt;/i>
-                &lt;span>{t('txt-networkBehavior')}&lt;/span>
-              &lt;/div>
-              {this.displayConnections(val)}
-            &lt;/div>
+            {this.displayFilePath(val)}
           &lt;/div>
+
+          &lt;div className='item-content'>
+            &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
+              &lt;i className={cx('fg fg-play', {'rotate': activeConnections})}>&lt;/i>
+              &lt;span>{t('txt-networkBehavior')}&lt;/span>
+            &lt;/div>
+            {this.displayConnections(val)}
+          &lt;/div>
+
+          {activeTab === 'procMonitor' &amp;&amp;
+            &lt;div className='item-content'>
+              &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'executableInfo')}>
+                &lt;i className={cx('fg fg-play', {'rotate': activeExecutableInfo})}>&lt;/i>
+                &lt;span>{t('txt-executableInfo')}&lt;/span>
+              &lt;/div>
+              {this.displayExecutableInfo(val)}
+            &lt;/div>
+          }
         &lt;/div>
-      )
-    }
+      &lt;/div>
+    )
   }
   /**
-   * Display Yara Scan File content
+   * Display boolean value
    * @method
+   * @param {boolean} val - true/false value
+   * @returns HTML DOM
+   */
+  getBoolValue = (val) => {
+    return &lt;span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}&lt;/span>
+  }
+  /**
+   * Open confirm white list dialog
+   * @method
+   * @param {string} fileMD5 - File MD5
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
+   */
+  confirmAddWhitelist = (fileMD5, ipType) => {
+    PopupDialog.prompt({
+      title: t('hmd-scan.txt-addWhiteList'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content'>
+          &lt;span>{t('hmd-scan.txt-confirmWhiteList')}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.props.addToWhiteList(fileMD5, ipType);
+        }
+      }
+    });
+  }
+  /**
+   * Display Scan File (Malware) content
+   * @method
+   * @param {number} parentIndex - parent index of the scan file array
    * @param {object} val - scan file content
    * @param {number} i - index of the scan file array
    * @returns HTML DOM
    */
-  displayScanFilePath = (val, i) => {
+  displayScanFilePath = (parentIndex, val, i) => {
+    const {activeScanType, ipType} = this.props;
     const {activePath, activeRuleHeader} = this.state;
-    const uniqueKey = val._ScanType + i;
-    let displayInfo = '';
+    const virusTotalLink = `https://www.virustotal.com/gui/file/${val._FileInfo._HashValues._MD5}`;
+    let uniqueKey = '';
+    let uniqueID = '';
+    let displayInfo = NOT_AVAILABLE;
+    let filePath = '';
+    let matchPID = '';
+    let detectedCount = NOT_AVAILABLE;
+    let formattedFilePath = '';
 
-    if (val._MatchedRuleList &amp;&amp; val._MatchedRuleList.length > 0 &amp;&amp; val._MatchedRuleNameList) {
-      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
-    } else {
-      displayInfo = NOT_AVAILABLE;
+    if (val &amp;&amp; val._FileInfo) { //For AI
+      uniqueKey = val._FileInfo._Filepath + i;
+      uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
+      filePath = val._FileInfo._Filepath;
     }
 
-    if (val._MatchedFile || val._MatchedPid) {
-      return (
-        &lt;div className='group' key={uniqueKey}>
-          &lt;div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-            &lt;i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}>&lt;/i>
-            {val._MatchedFile &amp;&amp;
-              &lt;span>{t('txt-path')}: {val._MatchedFile}&lt;/span>
+    if (val &amp;&amp; val._YaraResult &amp;&amp; !_.isEmpty(val._YaraResult)) { //For Yara
+      uniqueKey = val._YaraResult._MatchedFile + i;
+      uniqueID = parentIndex.toString() + i.toString() + (val._YaraResult._MatchedFile || val._YaraResult._MatchedPid);
+
+      if (val._YaraResult._MatchedRuleList &amp;&amp; val._YaraResult._MatchedRuleList.length > 0 &amp;&amp; val._YaraResult._MatchedRuleNameList) {
+        displayInfo = val._YaraResult._MatchedRuleList.map(this.displayRule.bind(this, val._YaraResult._MatchedRuleNameList));
+      }
+
+      if (!filePath) {
+        filePath = val._YaraResult._MatchedFile;
+      }
+
+      if (val._YaraResult._MatchedPid) {
+        matchPID = ', PID: ' + val._YaraResult._MatchedPid;
+      }
+    }
+
+    if (val.virusTotalDetectedCount !== null) {
+      detectedCount = val.virusTotalDetectedCount;
+    }
+
+    if (filePath) {
+      if (filePath.length >= 100) {
+        formattedFilePath = filePath.substr(0, 100) + '...';
+      } else {
+        formattedFilePath = filePath;
+      }
+    } else {
+      return;
+    }
+
+    return (
+      &lt;div key={uniqueKey} className='group'>
+        &lt;div className='path'>
+          &lt;i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>&lt;/i>
+          &lt;div className='path-header'>
+            {filePath &amp;&amp;
+              &lt;span title={filePath}>{t('txt-path')}: {formattedFilePath}&lt;/span>
             }
-            {val._MatchedFile &amp;&amp; val._MatchedPid &amp;&amp;
-              &lt;span>, &lt;/span>
-            }
-            {val._MatchedPid &amp;&amp;
-              &lt;span>PID: {val._MatchedPid}&lt;/span>
+            {matchPID &amp;&amp;
+              &lt;span>{matchPID}&lt;/span>
             }
           &lt;/div>
-          &lt;div className={cx('rule', {'hide': activePath !== i})}>
-            &lt;div className='rule-content'>
-              &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                &lt;i className={cx('fg fg-play', {'rotate': activeRuleHeader})}>&lt;/i>
-                &lt;span>{t('txt-rule')}&lt;/span>
+          {val.hasHandled === false &amp;&amp;
+            &lt;Button variant='outlined' color='primary' className='path-btn' onClick={this.confirmAddWhitelist.bind(this, val._FileInfo._HashValues._MD5, ipType)}>{t('hmd-scan.txt-addWhiteList')}&lt;/Button>
+          }
+          {val.hasHandled === true &amp;&amp;
+            &lt;span className='normal-cursor'>{t('hmd-scan.txt-addedWhiteList')}&lt;/span>
+          }
+        &lt;/div>
+        &lt;div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          &lt;div className='item-content'>
+            {val._FileInfo &amp;&amp; val._FileInfo._Filepath &amp;&amp;
+              &lt;div className='header'>
+                &lt;ul>
+                  {val._FileInfo._Filepath &amp;&amp;
+                    &lt;li>&lt;span className='blue-color'>{f('malwareFields._FileInfo._Filepath')}&lt;/span>: {val._FileInfo._Filepath}&lt;/li>
+                  }
+                  {val._FileInfo._Filesize &amp;&amp;
+                    &lt;li>&lt;span className='blue-color'>{f('malwareFields._FileInfo._Filesize')}&lt;/span>: {helper.numberWithCommas(helper.formatBytes(val._FileInfo._Filesize))}&lt;/li>
+                  }
+                  {val._FileInfo._HashValues._MD5 &amp;&amp;
+                    &lt;li>&lt;span className='blue-color'>{f('malwareFields._FileInfo._HashValues._MD5')}&lt;/span>: {val._FileInfo._HashValues._MD5}&lt;/li>
+                  }
+                  &lt;li>&lt;span className='blue-color'>{f('malwareFields.detectedCount')}&lt;/span>: {helper.numberWithCommas(detectedCount)} (&lt;a href={virusTotalLink} target='_blank'>VirusTotal&lt;/a>)&lt;/li>
+                  {val._IsPE &amp;&amp;
+                    &lt;li>&lt;span className='blue-color'>{f('malwareFields._IsPE')}&lt;/span>: {this.getBoolValue(val._IsPE)}&lt;/li>
+                  }
+                  {val._IsPEextension &amp;&amp;
+                    &lt;li>&lt;span className='blue-color'>{f('malwareFields._IsPEextension')}&lt;/span>: {this.getBoolValue(val._IsPEextension)}&lt;/li>
+                  }
+                  {val._IsVerifyTrust &amp;&amp;
+                    &lt;li>&lt;span className='blue-color'>{f('malwareFields._IsVerifyTrust')}&lt;/span>: {this.getBoolValue(val._IsVerifyTrust)}&lt;/li>
+                  }
+                  {val.hostIdArrCnt &amp;&amp; val._FileInfo &amp;&amp;
+                    &lt;li>
+                      {this.props.getHostInfo &amp;&amp;
+                        &lt;div>&lt;span className='blue-color'>{f('malwareFields.hostIdArrCnt')}&lt;/span>: &lt;span className='display-link' onClick={this.props.getHostInfo.bind(this, val._FileInfo._HashValues._MD5, '', 'showAvailableHost', activeScanType)}>{t('txt-view')}&lt;/span>&lt;/div>
+                      }
+
+                      {!this.props.getHostInfo &amp;&amp;
+                        &lt;span className='blue-color'>{f('malwareFields.hostIdArrCnt')}: {helper.numberWithCommas(val.hostIdArrCnt)}&lt;/span>
+                      }
+                    &lt;/li>
+                  }
+                &lt;/ul>
               &lt;/div>
-              &lt;div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                {displayInfo}
+            }
+            {val._YaraResult &amp;&amp; (val._YaraResult._MatchedFile || val._YaraResult._MatchedPid) &amp;&amp;
+              &lt;div>
+                &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                  &lt;i className={cx('fg fg-play', {'rotate': activeRuleHeader})}>&lt;/i>
+                  &lt;span>{t('txt-rule')}&lt;/span>
+                &lt;/div>
+                &lt;div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                  {displayInfo}
+                &lt;/div>
               &lt;/div>
-            &lt;/div>
+            }
           &lt;/div>
         &lt;/div>
-      )
+      &lt;/div>
+    )
+  }
+  /**
+   * Display File Path List content
+   * @method
+   * @param {object} val - file path content
+   * @param {number} i - index of the file path array
+   * @returns HTML DOM
+   */
+  displayFilePathList = (val, i) => {
+    const uniqueKey = val + i;
+
+    if (!val) {
+      return;
     }
+
+    return (
+      &lt;div key={uniqueKey} className='group'>
+        &lt;div className='path'>
+          &lt;div className='path-header'>
+            {val &amp;&amp;
+              &lt;span>{val}&lt;/span>
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display Yara Rules List content
+   * @method
+   * @param {number} parentIndex - parent index of the yara rules array
+   * @param {object} val - yara rules content
+   * @param {number} i - index of the yara rules array
+   * @returns HTML DOM
+   */
+  displayYaraRuleList = (parentIndex, val, i) => {
+    const {activePath} = this.state;
+    const uniqueKey = val.ruleName + i;
+    const uniqueID = parentIndex.toString() + i.toString() + val.ruleName;
+    const ruleName = val.ruleName;
+    const yaraRule = val.yaraRule;
+
+    if (!ruleName) {
+      return;
+    }
+
+    return (
+      &lt;div key={uniqueKey} className='group'>
+        &lt;div className='path'>
+          &lt;i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>&lt;/i>
+          &lt;div className='path-header'>
+            {ruleName &amp;&amp;
+              &lt;span>{t('txt-name')}: {ruleName}&lt;/span>
+            }
+          &lt;/div>
+        &lt;/div>
+        &lt;div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          &lt;div className='item-content'>
+            {yaraRule &amp;&amp;
+              &lt;pre>{yaraRule}&lt;/pre>
+            }
+            {!yaraRule &amp;&amp;
+              &lt;div>NOT_AVAILABLE&lt;/div>
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display Vans individual data
+   * @method
+   * @param {string} type - content type ('desc' or 'ref')
+   * @param {object} val - individual vans data
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansContent = (type, val, i) => {
+    if (type === 'desc' &amp;&amp; val.value) {
+      return &lt;div key={i} className='desc'>{val.value}&lt;/div>
+    }
+
+    if (type === 'ref' &amp;&amp; val.url) {
+      return &lt;li key={i}>&lt;a href={val.url} target='_blank'>{val.url}&lt;/a>&lt;/li>
+    }
+  }
+  /**
+   * Display Vans details content
+   * @method
+   * @param {object} val - individual vans data content
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansData = (val, i) => {
+    const {activeVansProduct} = this.state;
+    const uniqueKey = val.id + i;
+    const severityLevel = helper.capitalizeFirstLetter(val.severity);
+    let color = '';
+
+    switch (severityLevel) {
+      case 'High':
+        color = '#CC2943';
+        break;
+      case 'Medium':
+        color = '#CC7B29';
+        break;
+      case 'Low':
+        color = '#29CC7A';
+        break;
+    }
+
+    return (
+      &lt;div key={uniqueKey} className='item-content'>
+        &lt;div className='header' onClick={this.toggleInfoHeader.bind(this, 'vans', uniqueKey)}>
+          &lt;i className={cx('fg fg-play', {'rotate': activeVansProduct === uniqueKey})}>&lt;/i>
+          &lt;span>{val.id}&lt;/span>
+        &lt;/div>
+        &lt;div className={cx('sub-content', {'hide': activeVansProduct !== uniqueKey})}>
+          &lt;table className='c-table main-table vans'>
+            &lt;tbody>
+              &lt;tr>
+                &lt;td>{t('txt-severity')}&lt;/td>
+                &lt;td>&lt;span style={{color}}>{severityLevel}&lt;/span>&lt;/td>
+              &lt;/tr>
+              {val.description.description_data.length > 0 &amp;&amp;
+                &lt;tr>
+                  &lt;td>{t('txt-description')}&lt;/td>
+                  &lt;td>{val.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}&lt;/td>
+                &lt;/tr>
+              }
+              {val.referenceData.reference_data.length > 0 &amp;&amp;
+                &lt;tr>
+                  &lt;td>{t('txt-reference')}&lt;/td>
+                  &lt;td>&lt;ul>{val.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}&lt;/ul>&lt;/td>
+                &lt;/tr>
+              }
+              &lt;tr>
+                &lt;td>{t('hmd-scan.txt-publishedDate')}&lt;/td>
+                &lt;td>{helper.getFormattedDate(val.publishedDate, 'local')}&lt;/td>
+              &lt;/tr>
+              &lt;tr>
+                &lt;td>{t('hmd-scan.txt-lastModifiedDate')}&lt;/td>
+                &lt;td>{helper.getFormattedDate(val.lastModifiedDate, 'local')}&lt;/td>
+              &lt;/tr>
+            &lt;/tbody>
+          &lt;/table>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display Vans content
+   * @method
+   * @param {number} parentIndex - parent index of the vans array
+   * @param {object} val - vans data content
+   * @param {number} i - index of the vans array
+   * @returns HTML DOM
+   */
+  displayVansPath = (parentIndex, val, i) => {
+    const {activePath} = this.state;
+    const vansName = val.name;
+    const uniqueKey = vansName + i;
+    const uniqueID = parentIndex.toString() + i.toString() + vansName;
+
+    return (
+      &lt;div key={uniqueKey} className='group'>
+        &lt;div className='path'>
+          &lt;i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>&lt;/i>
+          &lt;div className='path-header'>
+            &lt;span>&lt;span className='main'>{val.vendor}&lt;/span> | &lt;span className='main'>{val.product}&lt;/span> | &lt;span className='main'>{val.version}&lt;/span> | {vansName}&lt;/span>
+          &lt;/div>
+          &lt;div className='product-count'>
+            &lt;span>{val.rows.length}&lt;/span>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          {val.rows.length > 0 &amp;&amp;
+            val.rows.map(this.displayVansData)
+          }
+        &lt;/div>
+      &lt;/div>
+    )
   }
   /**
    * Reset the activeTab and rule data
@@ -456,11 +1400,12 @@ class HMDscanInfo extends Component {
    */
   showAlertData = (type) => {
     this.setState({
-      activeTab: 'yara',
+      activeTab: 'dashboard',
       activePath: null,
       activeRuleHeader: false,
       activeDLL: false,
-      activeConnections: false
+      activeConnections: false,
+      activeExecutableInfo: false
     }, () => {
       this.props.showAlertData(type);
     });
@@ -468,92 +1413,738 @@ class HMDscanInfo extends Component {
   /**
    * Display suspicious file count content
    * @method
-   * @param {object} hmdInfo - HMD data
+   * @param {array} dataResult - HMD data
+   * @param {number} totalCount - total count for scan file
    * @returns HTML DOM
    */
-  getSuspiciousFileCount = (hmdInfo) => {
-    const {activeTab} = this.state;
+  getSuspiciousFileCount = (dataResult, totalCount) => {
+    const count = this.state.activeTab === 'scanFile' ? totalCount : dataResult.length;
+    const color = count === 0 ? '#22ac38' : '#d10d25'; //green : red
 
-    if (hmdInfo[activeTab].count &amp;&amp; hmdInfo[activeTab].count >= 0) {
-      return &lt;div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}&lt;/div>
-    }
+    return &lt;span style={{color}}>{t('hmd-scan.txt-suspiciousFileCount')}: {helper.numberWithCommas(count)}&lt;/span>
   }
   /**
-   * Display pass / total count info
+   * Display pass / total count info for GCB
    * @method
-   * @param {object} hmdInfo - HMD data
+   * @param {object} val - GCB data object
    * @returns HTML DOM
    */
-  getPassTotalCount = (hmdInfo) => {
-    const {activeTab} = this.state;
+  getPassTotalCount = (val) => {
+    const {hmdInfo} = this.state;
 
-    if (hmdInfo[activeTab].filteredResult) {
-      let style = '#d10d25'; //Default red color
+    if (hmdInfo.importGcbAndGcbDetection.data[0] &amp;&amp; hmdInfo.importGcbAndGcbDetection.data[0].GCBResult) {
+      const gcbFilteredResult = hmdInfo.importGcbAndGcbDetection.filteredResult;
 
-      if (hmdInfo[activeTab].filteredResult.length === hmdInfo[activeTab].result.length) { //Show green color for all pass
-        style = '#22ac38';
+      if (gcbFilteredResult) {
+        const color = val.PassCnt === val.TotalCnt ? '#22ac38' : '#d10d25'; //green : red
+        const prePassCnt = val.prePassCnt ? helper.numberWithCommas(val.prePassCnt) : 'N/A';
+
+        return (
+          &lt;div style={{color, display: 'inline-block'}}>
+            {val.taskName === 'importGcb' &amp;&amp;
+              &lt;span>{t('hmd-scan.txt-lastPassCount')}/{t('hmd-scan.txt-passCount')}/{t('hmd-scan.txt-totalItem')}: {prePassCnt}/{helper.numberWithCommas(val.PassCnt)}/{helper.numberWithCommas(val.TotalCnt)}&lt;/span>
+            }
+            {val.taskName !== 'importGcb' &amp;&amp;
+              &lt;span>{t('hmd-scan.txt-passCount')}/{t('hmd-scan.txt-totalItem')}: {helper.numberWithCommas(val.PassCnt)}/{helper.numberWithCommas(val.TotalCnt)}&lt;/span>
+            }
+          &lt;/div>
+        )
       }
-
-      return &lt;span className='pass-total' style={{'color': style}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}&lt;/span>
     }
   }
   /**
-   * Display trigger button for scan type
+   * Handle trigger task button
    * @method
-   * @param {object} hmdInfo - HMD data
-   * @returns HTML DOM
+   * @param {string} type - scan type
    */
-  getTriggerBtn = (hmdInfo) => {
+  getTriggerTask = (type) => {
     const {ipType} = this.props;
     const {activeTab} = this.state;
 
-    if (activeTab === 'ir') {
-      return &lt;button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}&lt;/button>
-    } else if (activeTab === 'gcb') {
-      return &lt;button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}&lt;/button>
+    if (type === 'ir') { //Special case for IR
+      this.props.toggleSelectionIR(ipType);
     } else {
-      return &lt;button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}&lt;/button>
+      if (type === 'yara') { //Special case for Yara
+        this.props.toggleYaraRule(ipType);
+      } else {
+        if (activeTab === 'settings') { //For Settings tab
+          if (type === 'snapshot') {
+            this.props.triggerTask([SETTINGS[type]]);
+          } else if (type === 'procWhiteList') {
+            const procMonitorPath = this.state.settingsPath.procMonitor.includePath;
+            let formattedPath = [];
+
+            _.forEach(procMonitorPath, val => {
+              if (val.path) {
+                formattedPath.push(val.path);
+              }
+            });
+
+            this.props.triggerTask([SETTINGS[type]], formattedPath);
+          }
+        } else {
+          this.props.triggerTask([TRIGGER_NAME[activeTab]], ipType);
+        }
+      }
     }
   }
   /**
-   * Display scan content for different scan type
+   * Construct URL and redirect to events page
    * @method
-   * @param {object} hmdInfo - HMD data
+   * @param {object} allValue - syslog data
+   */
+  redirectSyslog = (allValue) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {currentDeviceData} = this.props;
+    const url = `${baseUrl}${contextRoot}/events/syslog?configSource=hmd&amp;ip=${currentDeviceData.ip}&amp;lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
+   * Display confirm content
+   * @method
    * @returns HTML DOM
    */
-  getScanContent = (hmdInfo) => {
-    const {activeTab} = this.state;
+  getConfirmContent = () => {
+    return (
+      &lt;div className='content'>
+        &lt;span>{t('txt-confirmProceed')}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show the confirm modal dialog
+   * @method
+   * @param {string} type - scan type ('download', 'compress' or scan type)
+   * @param {object | string} [dataResult] - malware detection result or 'getHmdLogs'
+   * @param {string} [id] - Task ID or Host ID
+   * @param {string} [from] - 'task' or 'host'
+   */
+  openConfirmModal = (type, dataResult, id, from) => {
+    if (type === 'ir' || type === 'yara') {
+      this.getTriggerTask(type);
+      return;
+    } else if (type === 'download') {
+      this.handleMalwareBtn(type, dataResult, id, from);
+      return;
+    }
 
-    if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
-      let scanPath = '';
-
-      if (activeTab === 'yara') {
-        scanPath = this.displayScanProcessPath;
-      } else if (activeTab === 'yaraScanFile') {
-        scanPath = this.displayScanFilePath;
+    PopupDialog.prompt({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: this.getConfirmContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          if (type === 'compress') {
+            this.handleMalwareBtn(type, dataResult, id, from);
+          } else {
+            this.getTriggerTask(type);
+          }
+        }
       }
+    });
+  }
+  /**
+   * Display trigger button info for scan type
+   * @method
+   * @param {string} [type] - tab ('fileIntegrity' or 'procMonitor')
+   * @returns HTML DOM
+   */
+  getTriggerBtnInfo = (type) => {
+    const {ipType} = this.props;
+    const {activeTab, hmdInfo} = this.state;
+    const btnText = activeTab === 'ir' ? t('hmd-scan.txt-reCompress') : t('hmd-scan.txt-reCheck');
+    let currentTab = activeTab;
 
-      return (
-        &lt;div className='scan-content'>
-          &lt;div className='header'>{t('network-inventory.txt-suspiciousFilePath')}&lt;/div>
-          {hmdInfo[activeTab].result &amp;&amp; hmdInfo[activeTab].result.length > 0 &amp;&amp;
-            &lt;div className='list'>
-              {hmdInfo[activeTab].result.map(scanPath)}
+    if (type) { //Exceptions for Settings tab
+      if (type === 'fileIntegrity') {
+        currentTab = 'snapshot';
+      } else if (type === 'procMonitor') {
+        currentTab = 'procWhiteList';
+      }
+    }
+
+    return (
+      &lt;div className='info'>
+        {activeTab &amp;&amp; activeTab !== 'settings' &amp;&amp;
+          &lt;Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('hmd-scan.txt-refresh')}&lt;/Button>
+        }
+        {activeTab &amp;&amp; activeTab === 'eventTracing' &amp;&amp;
+          &lt;Button variant='contained' color='primary' className='btn' onClick={this.redirectSyslog}>{t('hmd-scan.txt-viewMore')}&lt;/Button>
+        }
+        {activeTab &amp;&amp; activeTab !== 'eventTracing' &amp;&amp; activeTab !== 'edr' &amp;&amp;
+          &lt;div>
+            &lt;Button variant='contained' color='primary' className='btn' onClick={this.openConfirmModal.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}&lt;/Button>
+            &lt;div className='last-update'>
+              {hmdInfo[currentTab].data &amp;&amp; hmdInfo[currentTab].data.length > 0 &amp;&amp; hmdInfo[currentTab].data[0].taskStatus === 'Failure' &amp;&amp;
+                &lt;span className='failure'>{t('hmd-scan.txt-taskFailure')}&lt;/span>
+              }
+              &lt;span>{t('hmd-scan.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}&lt;/span>
             &lt;/div>
-          }
-          {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &amp;&amp;
-            &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
-          }
+          &lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Load more items when scrolling to the bottom of the dialog
+   * @method
+   */
+  loadMoreContent = () => {
+    const {baseUrl} = this.context;
+    const {page, assessmentDatetime, currentDeviceData} = this.props;
+    const {activeTab, hmdInfo} = this.state;
+
+    scrollCount++;
+    let url = `${baseUrl}/api/v3/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&amp;page=${scrollCount}&amp;pageSize=5`;
+
+    if (page === 'host') {
+      url += `&amp;startDttm=${assessmentDatetime.from}&amp;endDttm=${assessmentDatetime.to}`;
+    }
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.safetyScanInfo) {
+        const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
+        let tempHmdInfo = {...hmdInfo};
+
+        if (hmdResult.length > 0) {
+          tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+
+          this.setState({
+            hmdInfo: tempHmdInfo,
+            hasMore: true
+          });
+        } else {
+          this.setState({
+            hasMore: false
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display File Integrity path
+   * @method
+   * @param {number} parentIndex - parent index of the file integrity array
+   * @param {object} val - file integrity content
+   * @param {number} i - index of the file integrity array
+   * @returns HTML DOM
+   */
+  displayFileIntegrityPath = (parentIndex, val, i) => {
+    const {activePath, activeRuleHeader} = this.state;
+    let uniqueKey = i;
+    let uniqueID = '';
+    let filePath = '';
+
+    if (val &amp;&amp; val._FileIntegrityResultPath) {
+      uniqueKey = val._FileIntegrityResultPath + i;
+      uniqueID = parentIndex.toString() + i.toString() + val._FileIntegrityResultPath;
+      filePath = val._FileIntegrityResultPath;
+    }
+
+    if (!filePath) {
+      return;
+    }
+
+    return (
+      &lt;div key={uniqueKey} className='group'>
+        &lt;div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          &lt;div className='path-header'>
+            {filePath &amp;&amp;
+              &lt;span>{t('txt-path')}: {filePath}&lt;/span>
+            }
+          &lt;/div>
         &lt;/div>
-      )
-    } else if (activeTab === 'ir') {
+      &lt;/div>
+    )
+  }
+  /**
+   * Display File Integrity content
+   * @method
+   * @param {object} data - file integrity data object
+   * @param {string} val - file integrity path type
+   * @param {number} i - index of the file integrity path array
+   * @returns HTML DOM
+   */
+  getFileIntegrityContent = (data, val, i) => {
+    const dataResult = data[val];
+
+    if (dataResult) {
       return (
         &lt;div className='scan-content'>
-          &lt;div className='header'>{t('network-inventory.txt-irMsg')}:&lt;/div>
-          &lt;div className='empty-msg'>{hmdInfo[activeTab].result || NOT_AVAILABLE}&lt;/div>
+          &lt;div className='header'>{t(`hmd-scan.txt-${val}`)}&lt;/div>
+            {dataResult.length > 0 &amp;&amp;
+              &lt;div className='list'>
+                {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
+              &lt;/div>
+            }
+            {dataResult.length === 0 &amp;&amp;
+              &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+            }
         &lt;/div>
       )
     }
+  }
+  /**
+   * Handle malware button
+   * @method
+   * @param {string} type - button type ('download' or 'compress')
+   * @param {object | string} dataResult - malware detection result or 'getHmdLogs'
+   * @param {string} id - Task ID or Host ID
+   * @param {string} from - 'task' or 'host'
+   */
+  handleMalwareBtn = (type, dataResult, id, from) => {
+    const {baseUrl, contextRoot} = this.context;
+
+    if (type === 'download') {
+      const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?${from}Id=${id}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    if (from === 'task') {
+      const filePath = _.map(dataResult, val => {
+        return val._FileInfo._Filepath;
+      });
+      this.props.triggerFilesTask(filePath, id);
+    } else if (from === 'host') {
+      const requestData = {
+        hostId: id,
+        cmds: [dataResult]
+      };
+
+      this.ah.one({
+        url: `${baseUrl}/api/hmd/retrigger`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        if (data) {
+          helper.showPopupMsg(t('txt-requestSent'));
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
+  /**
+   * Check malware button disabled
+   * @method
+   * @param {string} type - button type ('download' or 'compress')
+   * @param {object} dataResult - malware detection result
+   * @returns boolean true/false
+   */
+  checkMalwareCompress = (type, dataResult) => {
+    if (type === 'compress' &amp;&amp; dataResult.length === 0) {
+      return true;
+    }
+  }
+  /**
+   * Handle unregister button
+   * @method
+   */
+  handleUnregister = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const url = `${baseUrl}/api/hmd/unregister`;
+    const requestData = {
+      hostId: currentDeviceData.ipDeviceUUID
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display content for accordion type
+   * @method
+   * @param {object} val - scan file data
+   * @param {number} i - index of the file array
+   * @returns HTML DOM
+   */
+  displayAccordionContent = (val, i) => {
+    const {assessmentDatetime, hostCreateTime} = this.props;
+    const {activeTab} = this.state;
+    const fileIntegrityArr = ['_NewCreateFile', '_MissingFile', '_ModifyFile'];
+    const malwareBtnType = val.isUploaded ? 'download' : 'compress';
+    const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
+    let dataResult = [];
+    let scanPath = '';
+    let filePathList = [];
+    let yaraRuleList = [];
+    let header = t('hmd-scan.txt-suspiciousFilePath');
+
+    if (activeTab === 'yara') {
+      dataResult = this.sortedRuleList(val.ScanResult);
+      scanPath = this.displayScanProcessPath.bind(this, i);
+
+      if (val._Parameters) {
+        filePathList = val._Parameters._FilepathList;
+        yaraRuleList = val._Parameters._RulesList;
+      }
+    } else if (activeTab === 'scanFile') {
+      dataResult = val.DetectionResult;
+      scanPath = this.displayScanFilePath.bind(this, i);
+    } else if (activeTab === 'procMonitor') {
+      dataResult = val.getProcessMonitorResult;
+      scanPath = this.displayScanProcessPath.bind(this, i);
+    } else if (activeTab === '_Vans') {
+      dataResult = val.cpeInfoArray;
+      scanPath = this.displayVansPath.bind(this, i);
+      header = t('hmd-scan.txt-vulnerabilityInfo');
+    }
+
+    if (!val.taskResponseDttm) return;
+
+    return (
+      &lt;div key={i} className='scan-section'>
+        &lt;div className='scan-header'>
+          {assessmentInfo &amp;&amp;
+            &lt;span className='assessment-info'>&lt;i className='fg fg-info' title={assessmentInfo}>&lt;/i>&lt;/span>
+          }
+          &lt;span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+          &lt;span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+          {val.taskStatus &amp;&amp; val.taskStatus === 'Failure' &amp;&amp;
+            &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-taskFailure')}&lt;/span>
+          }
+          {val.taskStatus &amp;&amp; val.taskStatus === 'NotSupport' &amp;&amp;
+            &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}&lt;/span>
+          }
+          {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &amp;&amp; dataResult &amp;&amp;
+            this.getSuspiciousFileCount(dataResult, val.TotalCnt)
+          }
+          {activeTab === 'scanFile' &amp;&amp; val.isUploaded &amp;&amp;
+            &lt;span style={{color: '#0000ff'}}>{t('hmd-scan.txt-comporessSuccessFileCount')}: {helper.numberWithCommas(val.successTotalCnt)}&lt;/span>
+          }
+          {activeTab === 'scanFile' &amp;&amp; dataResult &amp;&amp;
+            &lt;Button variant='contained' color='primary' className='btn download' onClick={this.openConfirmModal.bind(this, malwareBtnType, dataResult, val.taskId, 'task')} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`hmd-scan.txt-${malwareBtnType}File`)}&lt;/Button>
+          }
+          {activeTab === '_Vans' &amp;&amp; dataResult &amp;&amp; dataResult.length > 0 &amp;&amp;
+            &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-VulnerabilityCount')}: {dataResult.length}&lt;/span>
+          }
+        &lt;/div>
+        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor' || activeTab === '_Vans') &amp;&amp;
+          &lt;div className='scan-content'>
+            &lt;div className='header'>{header}&lt;/div>
+            {dataResult &amp;&amp; dataResult.length > 0 &amp;&amp;
+              &lt;div className='list'>
+                {dataResult.map(scanPath)}
+              &lt;/div>
+            }
+            {(!dataResult || dataResult.length === 0) &amp;&amp;
+              &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+            }
+          &lt;/div>
+        }
+        {activeTab === 'yara' &amp;&amp;
+          &lt;div className='scan-content'>
+            &lt;div className='header'>{t('hmd-scan.txt-filePathList')}&lt;/div>
+            {filePathList &amp;&amp; filePathList.length > 0 &amp;&amp;
+              &lt;div className='list'>
+                {filePathList.map(this.displayFilePathList)}
+              &lt;/div>
+            }
+            {(!filePathList || filePathList.length === 0) &amp;&amp;
+              &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+            }
+          &lt;/div>
+        }
+        {activeTab === 'yara' &amp;&amp;
+          &lt;div className='scan-content'>
+            &lt;div className='header'>{t('hmd-scan.txt-yaraRules')}&lt;/div>
+            {yaraRuleList &amp;&amp; yaraRuleList.length > 0 &amp;&amp;
+              &lt;div className='list'>
+                {yaraRuleList.map(this.displayYaraRuleList.bind(this, i))}
+              &lt;/div>
+            }
+            {(!yaraRuleList || yaraRuleList.length === 0) &amp;&amp;
+              &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+            }
+          &lt;/div>
+        }
+        {activeTab === 'fileIntegrity' &amp;&amp;
+          fileIntegrityArr.map(this.getFileIntegrityContent.bind(this, val))
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   */
+  handleTableSort = (sort) => {
+    const {activeTab, dashboardInfo, gcbSort} = this.state;
+
+    if (activeTab === 'importGcbAndGcbDetection') {
+      this.setState({
+        gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
+      });
+    } else {
+      let tempDashboardInfo = {...dashboardInfo};
+      tempDashboardInfo.sort.field = sort.field;
+      tempDashboardInfo.sort.desc = sort.desc;
+
+      this.setState({
+        dashboardInfo: tempDashboardInfo
+      });
+    }
+  }
+  /**
+   * Display table data for gcb
+   * @method
+   * @param {string} activeTab - current active tab
+   * @param {object} val - HMD data
+   * @returns DataTable component
+   */
+  displayDataTable = (activeTab, val) => {
+    const {hmdInfo, gcbSort} = this.state;
+    let data = '';
+
+    if (activeTab === 'importGcbAndGcbDetection') {
+      data = _.orderBy(val.GCBResult, ['_CompareResult'], [gcbSort]);
+    }
+
+    if (data.length === 0) {
+      return &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+    }
+
+    if (data.length > 0) {
+      return (
+        &lt;DataTable
+          className='main-table'
+          fields={hmdInfo[activeTab].fields}
+          data={data}
+          onSort={this.handleTableSort} />
+      )
+    }
+  }
+  /**
+   * Display table content for gcb
+   * @method
+   * @param {object} val - gcb data
+   * @param {number} i - index of the file array
+   * @returns HTML DOM
+   */
+  displayTableContent = (val, i) => {
+    const {hostCreateTime} = this.props;
+    const {activeTab} = this.state;
+    const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
+
+    if (!val.taskResponseDttm) return;
+
+    return (
+      &lt;div key={i} className='scan-section'>
+        &lt;div className='table'>
+          &lt;div className='scan-header'>
+            {assessmentInfo &amp;&amp;
+              &lt;span className='assessment-info'>&lt;i className='fg fg-info' title={assessmentInfo}>&lt;/i>&lt;/span>
+            }
+            {activeTab === 'importGcbAndGcbDetection' &amp;&amp;
+              &lt;span>{t('hmd-scan.txt-testType')}: {val.taskName ? t('hmd-scan.txt-' + val.taskName) : NOT_AVAILABLE}&lt;/span>
+            }
+            &lt;span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+            &lt;span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+            {val.taskStatus &amp;&amp; val.taskStatus === 'Failure' &amp;&amp;
+              &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-taskFailure')}&lt;/span>
+            }
+            {val.taskStatus &amp;&amp; val.taskStatus === 'NotSupport' &amp;&amp;
+              &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}&lt;/span>
+            }
+            {activeTab === 'importGcbAndGcbDetection' &amp;&amp; (!val.taskStatus || val.taskStatus &amp;&amp; val.taskStatus === 'Complete') &amp;&amp;
+              this.getPassTotalCount(val)
+            }
+          &lt;/div>
+          {this.displayDataTable(activeTab, val)}
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display IR content
+   * @method
+   * @param {object} val - IR data
+   * @param {number} i - index of the IR array
+   * @returns HTML DOM
+   */
+  displayIrContent = (val, i) => {
+    const {hostCreateTime} = this.props;
+    const assessmentInfo = moment(val.taskResponseDttm).isAfter(hostCreateTime) ? t('hmd-scan.txt-notYetAssessed') : '';
+
+    if (!val.taskResponseDttm) return;
+
+    return (
+      &lt;div key={i} className='scan-section'>
+        &lt;div className='scan-header'>
+          {assessmentInfo &amp;&amp;
+            &lt;span className='assessment-info'>&lt;i className='fg fg-info' title={assessmentInfo}>&lt;/i>&lt;/span>
+          }
+          &lt;span>{t('hmd-scan.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+          &lt;span>{t('hmd-scan.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+          {val.taskStatus &amp;&amp; val.taskStatus === 'Failure' &amp;&amp;
+            &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-taskFailure')}&lt;/span>
+          }
+          {val.taskStatus &amp;&amp; val.taskStatus === 'NotSupport' &amp;&amp;
+            &lt;span style={{color: '#d10d25'}}>{t('hmd-scan.txt-notSupport')}&lt;/span>
+          }
+        &lt;/div>
+        &lt;div className='scan-content'>
+          &lt;div className='header'>{t('hmd-scan.txt-irMsg')}:&lt;/div>
+          &lt;div className='empty-msg'>{val._ZipPath || NOT_AVAILABLE}&lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Get table height for scan content
+   * @method
+   * @param {string} type - display type ('scan' or 'event')
+   * @returns table height in px
+   */
+  getContentHeight = (type) => {
+    const {page} = this.props;
+
+    if (type === 'scan') {
+      if (page === 'host') {
+        return 440;
+      } else if (page === 'threats') {
+        return 380;
+      } else if (page === 'inventory') {
+        return 435;
+      }
+    } else if (type === 'event') {
+      if (page === 'host') {
+        return 435;
+      } else if (page === 'threats') {
+        return 415;
+      } else if (page === 'inventory') {
+        return 485;
+      }
+    }
+  }
+  /**
+   * Display content for HMD tabs
+   * @method
+   * @returns HTML DOM
+   */
+  getMainContent = () => {
+    const {activeTab, hmdInfo, hasMore} = this.state;
+    const hmdData = hmdInfo[activeTab].data;
+    let displayContent = '';
+
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor' || activeTab === '_Vans') {
+      displayContent = this.displayAccordionContent;
+    } else if (activeTab === 'importGcbAndGcbDetection') {
+      displayContent = this.displayTableContent;
+    } else if (activeTab === 'ir') {
+      displayContent = this.displayIrContent;
+    }
+
+    return (
+      &lt;div className='scan-wrapper'>
+        {hmdData &amp;&amp; hmdData.length > 0 &amp;&amp;
+          &lt;InfiniteScroll
+            dataLength={hmdData.length}
+            next={this.loadMoreContent}
+            hasMore={hasMore}
+            height={this.getContentHeight('scan')}>
+            {hmdData.map(displayContent)}
+          &lt;/InfiniteScroll>
+        }
+
+        {(!hmdData || hmdData.length === 0) &amp;&amp;
+          &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Display content for Event Tracing
+   * @method
+   * @returns HTML DOM
+   */
+  getEventTracingContent = () => {
+    const {ipType, eventInfo} = this.props;
+    const dataCount = eventInfo.dataContent ? eventInfo.dataContent.length : 0;
+
+    return (
+      &lt;div className='scan-section'>
+        {dataCount > 0 &amp;&amp;
+          &lt;div className='table event-tracing'>
+            &lt;InfiniteScroll
+              dataLength={dataCount}
+              next={this.props.loadEventTracing.bind(this, ipType)}
+              hasMore={eventInfo.hasMore}
+              height={this.getContentHeight('event')}>
+              &lt;DataTable
+                className='main-table'
+                fields={eventInfo.dataFields}
+                data={eventInfo.dataContent} />
+            &lt;/InfiniteScroll>
+          &lt;/div>
+        }
+
+        {dataCount === 0 &amp;&amp;
+          &lt;div className='empty-msg' style={{marginTop: '15px'}}>{NOT_AVAILABLE}&lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle button click for EDR
+   * @method
+   * @param {string} type - btn type ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd')
+   */
+  handleEdrBtn = (type) => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    const requestData = {
+      hostId: currentDeviceData.ipDeviceUUID,
+      cmds: [type]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.props.getHMDinfo(this.props.ipType);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get formatted field name
@@ -568,269 +2159,584 @@ class HMDscanInfo extends Component {
     return 'scan-file' + tempData;
   }
   /**
-   * Handle table sort for malware and gcb
+   * Toggle Settings active content
    * @method
+   * @param {string} type - page type ('edit, 'save' and 'cancel')
    */
-  handleTableSort = () => {
-    const {activeTab, malwareSort, gcbSort} = this.state;
+  toggleSettingsContent = (type) => {
+    const {originalSettingsPathData} = this.state;
+    let tempActiveContent = '';
 
-    if (activeTab === 'malware') {
+    if (type === 'edit') {
+      tempActiveContent = 'editMode';
+    } else if (type === 'save') {
+      tempActiveContent = 'viewMode';
+    } else if (type === 'cancel') {
+      tempActiveContent = 'viewMode';
+
       this.setState({
-        malwareSort: malwareSort === 'asc' ? 'desc' : 'asc'
-      });
-    } else if (activeTab === 'gcb') {
-      this.setState({
-        gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
+        settingsPath: _.cloneDeep(originalSettingsPathData),
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
+
+    this.setState({
+      settingsActiveContent: tempActiveContent
+    });
   }
   /**
-   * Display table data for malware
+   * Display list of settings path
    * @method
-   * @param {string} activeTab - current active tab
-   * @param {object} hmdInfo - HMD data
-   * @returns DataTable component
-   */
-  malwareDataTable = (activeTab, hmdInfo) => {
-    return (
-      &lt;DataTable
-        className='main-table'
-        fields={hmdInfo[activeTab].fields}
-        data={hmdInfo[activeTab].result}
-        onSort={this.handleTableSort} />
-    )
-  }
-  /**
-   * Display table data for gcb
-   * @method
-   * @param {string} activeTab - current active tab
-   * @param {object} hmdInfo - HMD data
-   * @returns DataTable component
-   */
-  gcbDataTable = (activeTab, hmdInfo) => {
-    return (
-      &lt;DataTable
-        className='main-table'
-        fields={hmdInfo[activeTab].fields}
-        data={hmdInfo[activeTab].result}
-        onSort={this.handleTableSort} />
-    )
-  }
-  /**
-   * Display table content
-   * @method
-   * @param {object} hmdInfo - HMD data
+   * @param {object} val - settings path object
+   * @param {string} i - index of the settings path array
    * @returns HTML DOM
    */
-  getTableContent = (hmdInfo) => {
-    const {activeTab, malwareSort, gcbSort} = this.state;
+  displaySettingsPath = (val, i) => {
+    return &lt;div key={i} className={cx('item', {'block': val.path})}>&lt;span>{val.path || val.keyword}&lt;/span>&lt;/div>
+  }
+  /**
+   * Display File Integrity settings view only content
+   * @method
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
+   * @returns HTML DOM
+   */
+  viewSettingsPathContent = (type, val, i) => {
+    const {settingsPath} = this.state;
+    const dataType = val.type === 'processKeyword' ? 'keyword' : 'path';
 
-    if (!_.isEmpty(hmdInfo[activeTab].fields) &amp;&amp; hmdInfo[activeTab].result.length > 0) {
-      return (
-        &lt;div className='table'>
-          {activeTab === 'malware' &amp;&amp;
-            this.malwareDataTable(activeTab, hmdInfo)
+    return (
+      &lt;div key={i} className='form-group'>
+        &lt;label>{val.headerText}&lt;/label>
+        {settingsPath[type][val.type][0][dataType] !== '' &amp;&amp;
+          &lt;div className='path-item'>{settingsPath[type][val.type].map(this.displaySettingsPath)}&lt;/div>
+        }
+        {settingsPath[type][val.type][0][dataType] === '' &amp;&amp;
+          &lt;div>{NOT_AVAILABLE}&lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Set path data
+   * @method
+   * @param {string} type - path type ('fileIntegrity' or 'procMonitor')
+   * @param {string} listType - path data type ('includePath', 'excludePath' or 'processKeyword')
+   * @param {array} pathData - path data to be set
+   */
+  setPathData = (type, listType, pathData) => {
+    let tempSettingsPath = {...this.state.settingsPath};
+    let setPathData = pathData;
+
+    if (pathData.length === 0) {
+      if (listType === 'processKeyword') {
+        setPathData = [{
+          keyword: ''
+        }];
+      } else {
+        setPathData = [{
+          path: ''
+        }];
+      }
+    }
+
+    tempSettingsPath[type][listType] = setPathData;
+
+    this.setState({
+      settingsPath: tempSettingsPath
+    });
+  }
+  /**
+   * Display File Integrity settings content
+   * @method
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
+   * @returns HTML DOM
+   */
+  editSettingsPathContent = (type, val, i) => {
+    const {settingsPath, formValidation} = this.state;
+    const data = {
+      scanType: type,
+      listType: val.type,
+      formValidation
+    };
+
+    return (
+      &lt;div key={i} className='path-group'>
+        &lt;label>{val.headerText}&lt;/label>
+        &lt;MultiInput
+          base={InputPath}
+          inline={true}
+          value={settingsPath[type][val.type]}
+          props={data}
+          onChange={this.setPathData.bind(this, type, val.type)} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display view/edit settings content
+   * @method
+   * @param {object} val - settings object ('fileIntegrity' or 'procMonitor')
+   * @param {number} i - index of the settings array
+   * @returns HTML DOM
+   */
+  displaySettingsContent = (val, i) => {
+    const {settingsActiveContent} = this.state;
+
+    return (
+      &lt;div key={i} className={cx('settings-group', {'border': i > 0})}>
+        {settingsActiveContent === 'viewMode' &amp;&amp;
+          this.getTriggerBtnInfo(val.type)
+        }
+        &lt;header>{t('hmd-scan.scan-list.txt-' + val.type)} {t('txt-settings')}&lt;/header>
+        &lt;div className='settings-form'>
+          {settingsActiveContent === 'viewMode' &amp;&amp;
+            val.settings.map(this.viewSettingsPathContent.bind(this, val.type))
           }
-          {activeTab === 'gcb' &amp;&amp;
-            this.gcbDataTable(activeTab, hmdInfo)
+          {settingsActiveContent === 'editMode' &amp;&amp;
+            val.settings.map(this.editSettingsPathContent.bind(this, val.type))
           }
         &lt;/div>
-      )
-    }
+      &lt;/div>
+    )
   }
-  render() {
-    const {locale, currentDeviceData} = this.props;
-    const {activeTab, malwareFieldsArr, gcbFieldsArr, malwareSort, gcbSort} = this.state;
+  /**
+   * Get parsed list data
+   * @method
+   * @param {boolean} required - required field or not
+   * @param {string} type - value type
+   * @param {array.&lt;object>} listData - list data
+   * @returns parsed list or boolean true/false
+   */
+  getSavedSettings = (required, type, listData) => {
+    let tempFormValidation = {...this.state.formValidation};
+    let dataList = [];
+    let validate = true;
 
-    let hmdInfo = {};
-    let buttonGroupList = [];
-
-    _.forEach(SAFETY_SCAN_LIST, val => {
-      hmdInfo[val.type] = {}; //Create the hmdInfo object
-
-      buttonGroupList.push({ //Create list for Button group
-        value: val.type,
-        text: t('network-inventory.scan-list.txt-' + val.type)
-      });
-    });
-
-    _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
-      const dataType = val.type + 'Result';
-      const currentDataObj = currentDeviceData[dataType];
-
-      if (!_.isEmpty(currentDataObj)) {
-        let dataResult = currentDataObj[val.path];
-
-        if (val.path === 'ScanResult') { //For Scan Process and Scan File
-          dataResult = this.sortedRuleList(dataResult);
-        }
-
-        if (val.type === 'malware') {
-          dataResult = _.orderBy(dataResult, ['_IsVerifyTrust'], [malwareSort]);
-        }
-
-        if (val.type ===  'gcb') {
-          dataResult = _.orderBy(dataResult, ['_CompareResult'], [gcbSort]);
-        }
-
-        hmdInfo[val.type] = {
-          createTime: helper.getFormattedDate(currentDataObj.taskCreateDttm, 'local'),
-          responseTime: helper.getFormattedDate(currentDataObj.taskResponseDttm, 'local'),
-          result: dataResult
-        };
+    _.forEach(listData, val => {
+      if (val[type]) {
+        dataList.push(val[type]);
       }
     })
 
-    if (hmdInfo.yara.result) {
-      hmdInfo.yara.count = Number(hmdInfo.yara.result.length);
+    if (required) {
+      if (listData[0].path) {
+        tempFormValidation.fileIntegrity.includePath.valid = true;
+      } else {
+        tempFormValidation.fileIntegrity.includePath.valid = false;
+        validate = false;
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return false;
+      }
     }
 
-    if (hmdInfo.yaraScanFile.result) {
-      hmdInfo.yaraScanFile.count = Number(hmdInfo.yaraScanFile.result.length);
-    }
-
-    if (hmdInfo.malware.result) {
-      hmdInfo.malware.count = Number(hmdInfo.malware.result.length);
-
-      hmdInfo.malware.fields = {};
-      malwareFieldsArr.forEach(tempData => {
-        hmdInfo.malware.fields[tempData] = {
-          label: f(`malwareFields.${tempData}`),
-          sortable: true,
-          className: this.getFieldName(tempData),
-          formatter: (value, allValue) => {
-            if (tempData === '_FileInfo._Filepath') {
-              if (value.length > 25) {
-                const newValue = value.substr(0, 25) + '...';
-                return &lt;span title={value}>{newValue}&lt;/span>
-              } else {
-                return &lt;span>{value}&lt;/span>
-              }
-            }
-            if (tempData === '_FileInfo._HashValues._MD5') {
-              if (value.length > 15) {
-                const newValue = value.substr(0, 15) + '...';
-                return &lt;span title={value}>{newValue}&lt;/span>
-              } else {
-                return &lt;span>{value}&lt;/span>
-              }
-            }
-            if (tempData === '_FileInfo._Filesize') {
-              value = value + ' KB';
-            }
-            if (tempData === '_IsPE' || tempData === '_IsPEextension' || tempData === '_IsVerifyTrust') {
-              let styleStatus = '';
-
-              if (value) {
-                styleStatus = '#22ac38';
-                value = 'True';
-              } else {
-                styleStatus = '#d0021b';
-                value = 'False';
-              }
-
-              return &lt;span style={{color : styleStatus}}>{value}&lt;/span>
-            }
-            return &lt;span>{value}&lt;/span>
+    return dataList;
+  }
+  /**
+   * Handle settings save confirm
+   * @method
+   */
+  saveSettings = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const {settingsPath} = this.state;
+    const url = `${baseUrl}/api/hmd/setting`;
+    const requestData = {
+      hostId: currentDeviceData.ipDeviceUUID,
+      hmdSetting: [
+        {
+          _CommandName: SETTINGS.snapshot,
+          _Parameters: {
+            _IncludePathList: this.getSavedSettings(true, 'path', settingsPath.fileIntegrity.includePath),
+            _ExcludePathList: this.getSavedSettings(false, 'path', settingsPath.fileIntegrity.excludePath),
+            _ProcessKeyword: this.getSavedSettings(false, 'keyword', settingsPath.fileIntegrity.processKeyword),
+            _IsRecursive: true
           }
-        };
-      })
+        },
+        {
+          _CommandName: SETTINGS.procWhiteList,
+          _Parameters: {
+            _WhiteList: this.getSavedSettings(false, 'path', settingsPath.procMonitor.includePath)
+          }
+        }
+      ]
+    };
+
+    if (!requestData.hmdSetting[0]._Parameters._IncludePathList) { //Invalid path data
+      return;
     }
 
-    if (hmdInfo.gcb.result) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['_CompareResult', 'true']);
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-      hmdInfo.gcb.fields = {};
-      gcbFieldsArr.forEach(tempData => {
-        hmdInfo.gcb.fields[tempData] = {
-          label: f(`gcbFields.${tempData}`),
-          sortable: true,
-          className: 'gcb' + tempData,
-          formatter: (value, allValue) => {
-            if (tempData === '_CceId') {
-              return &lt;span>{value}&lt;/span>
-            }
-            if (tempData === '_OriginalKey') {
-              let content = value;
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.props.getHMDinfo('');
+        this.toggleSettingsContent('save');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Restore to default settings
+   * @method
+   */
+  restoreDefaultSettings = () => {
+    const {baseUrl} = this.context;
 
-              if (locale === 'zh' &amp;&amp; allValue['_PolicyName_zh-tw']) {
-                content = allValue['_PolicyName_zh-tw'];
-              } else if (locale === 'en' &amp;&amp; allValue['_PolicyName_en']) {
-                content = allValue['_PolicyName_en'];
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/defaultSnapshotSettings`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let includePath = '';
+        let excludePath = '';
+        let processKeyword = '';
+
+        if (data._IncludePathList) {
+          includePath = data._IncludePathList.split(',');
+        }
+
+        if (data._ExcludePathList) {
+          excludePath = data._ExcludePathList.split(',');
+        }
+
+        if (data._ProcessKeyword) {
+          processKeyword = data._ProcessKeyword.split(',');
+        }
+
+        if (includePath &amp;&amp; excludePath &amp;&amp; processKeyword) {
+          this.setState({
+            settingsPath: {
+              fileIntegrity: {
+                includePath: this.getParsedPathData('path', includePath),
+                excludePath: this.getParsedPathData('path', excludePath),
+                processKeyword: this.getParsedPathData('keyword', processKeyword)
+              },
+              procMonitor: {
+                includePath: [{
+                  path: ''
+                }]
               }
+            },
+            formValidation: _.cloneDeep(FORM_VALIDATION)
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete Edge content
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns HTML DOM
+   */
+  getDeleteEdgeContent = (allValue) => {
+    this.setState({
+      currentEdgeData: allValue
+    });
 
-              if (content.length > 70) {
-                const newValue = content.substr(0, 70) + '...';
-                return &lt;span title={content}>{newValue}&lt;/span>
-              } else {
-                return &lt;span>{content}&lt;/span>
-              }
-            }
-            if (tempData === '_Type') {
-              return &lt;span>{value}&lt;/span>
-            }
-            if (tempData === '_CompareResult') {
-              let styleStatus = '';
-              let tooltip = '';
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {allValue.agentName || allValue.ipPort}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show Delete Edge dialog
+   * @method
+   * @param {object} allValue - Edge data
+   */
+  openTriggerMenu = (type) => {
+    PopupDialog.prompt({
+      title: this.props.currentDeviceData.hostName,
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('hmd-scan.txt-confirmTo')}{t('hmd-scan.txt-' + type)}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleEdrBtn(type);
+        }
+      }
+    });
+  }
+  /**
+   * Update EDR more info
+   * @method
+   * @param {string} type - EDR type ('shutdownHost', 'logoffAllUsers', 'netcut' or 'netcutResume')
+   */
+  handleMoreEdrInfo = (type) => {
+    const {edrMoreInfo} = this.state;
+    let tempEdrMoreInfo = {...edrMoreInfo};
+    tempEdrMoreInfo[type] = !edrMoreInfo[type];
 
-              if (value === 'true') {
-                styleStatus = '#22ac38';
-                value = 'Pass';
-              } else if (value === 'false') {
-                styleStatus = '#d0021b';
-                value = 'Fail';
-              }
+    this.setState({
+      edrMoreInfo: tempEdrMoreInfo
+    });
+  }
+  /**
+   * Display more EDR info
+   * @method
+   * @param {object} val - individual EDR list
+   * @param {number} i - index of the EDR list
+   * @returns HTML DOM
+   */
+  displayMoreEdrInfo = (val, i) => {
+    const {hostCreateTime} = this.props;
+    let assessmentInfo = '';
 
-              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
-              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
+    if (val.taskResponseDttm &amp;&amp; moment(val.taskResponseDttm).isAfter(hostCreateTime)) {
+      assessmentInfo = t('hmd-scan.txt-notYetAssessed');
+    }
 
-              return &lt;span style={{color : styleStatus}} title={tooltip}>{value}&lt;/span>
-            }
+    if (i === 0) return;
+
+    return (
+      &lt;div key={i} className='btns'>
+        &lt;div className='trigger'>&lt;span>{t('hmd-scan.txt-lastTriggerTime')}&lt;/span>: {helper.getFormattedDate(val.latestCreateDttm, 'local') || NOT_AVAILABLE}&lt;/div>
+        &lt;div className='execute'>
+          {assessmentInfo &amp;&amp;
+            &lt;span className='assessment-info'>&lt;i className='fg fg-info' title={assessmentInfo}>&lt;/i>&lt;/span>
           }
-        };
-      })
+          &lt;span>{t('hmd-scan.txt-executeTime')}&lt;/span>: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display view/edit settings content
+   * @method
+   * @param {object} val - individual EDR ('shutdownHost', 'logoffAllUsers', 'netcut', 'netcutResume', 'terminateHmd')
+   * @param {number} i - index of the EDR list
+   * @returns HTML DOM
+   */
+  getEdrButtonList = (val, i) => {
+    const {hostCreateTime, currentDeviceData} = this.props;
+    const {edrMoreInfo} = this.state;
+    let assessmentInfo = '';
+
+    if (val.taskResponseDttm &amp;&amp; moment(val.taskResponseDttm).isAfter(hostCreateTime)) {
+      assessmentInfo = t('hmd-scan.txt-notYetAssessed');
+    }
+
+    if (!currentDeviceData.safetyScanInfo[val + 'Result']) {
+      return;
     }
 
     return (
-      &lt;div className='scan-info'>
-        &lt;ButtonGroup
-          className='left'
-          list={buttonGroupList}
-          onChange={this.toggleScanType}
-          value={activeTab} />
-
-        &lt;div className='info-content'>
-          &lt;div>
-            &lt;div className='info'>
-              &lt;div className='last-update'>
-                &lt;span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}&lt;/span>
-                &lt;span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}&lt;/span>
-              &lt;/div>
-              {this.getSuspiciousFileCount(hmdInfo)} {/*For Scan Process, Yara and AI*/}
-              {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
-              {this.getTriggerBtn(hmdInfo)} {/*For all*/}
-            &lt;/div>
-            {this.getScanContent(hmdInfo)} {/*For Scan Process, Scan File(Yara) and IR*/}
-            {this.getTableContent(hmdInfo)} {/*For Scan File (AI) and GCB*/}
+      &lt;div key={i} className='btn-group'>
+        &lt;Button variant='contained' color='primary' className='btn' onClick={this.openTriggerMenu.bind(this, val)}>{t('hmd-scan.txt-' + val)}&lt;/Button>
+        &lt;div className='display-time'>
+          &lt;div className='trigger'>
+            &lt;span>{t('hmd-scan.txt-lastTriggerTime')}: &lt;/span>
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length === 0 &amp;&amp;
+              &lt;span>{NOT_AVAILABLE}&lt;/span>
+            }
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &amp;&amp;
+              &lt;span>{helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].latestCreateDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+            }
           &lt;/div>
+
+          &lt;div className='execute'>
+            {assessmentInfo &amp;&amp;
+              &lt;span className='assessment-info'>&lt;i className='fg fg-info' title={assessmentInfo}>&lt;/i>&lt;/span>
+            }
+            &lt;span>{t('hmd-scan.txt-executeTime')}: &lt;/span>
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length === 0 &amp;&amp;
+              &lt;span>{NOT_AVAILABLE}&lt;/span>
+            }
+            {currentDeviceData.safetyScanInfo[val + 'Result'].length > 0 &amp;&amp;
+              &lt;span>{helper.getFormattedDate(currentDeviceData.safetyScanInfo[val + 'Result'][0].taskResponseDttm, 'local') || NOT_AVAILABLE}&lt;/span>
+            }
+          &lt;/div>
+        &lt;/div>
+        {currentDeviceData.safetyScanInfo[val + 'Result'].length > 1 &amp;&amp;
+          &lt;i className={`fg fg-arrow-${edrMoreInfo[val] ? 'top' : 'bottom'}`} onClick={this.handleMoreEdrInfo.bind(this, val)}>&lt;/i>
+        }
+        &lt;div className={cx('display-more', {'active': edrMoreInfo[val]})}>
+          {currentDeviceData.safetyScanInfo[val + 'Result'].length > 1 &amp;&amp;
+            currentDeviceData.safetyScanInfo[val + 'Result'].map(this.displayMoreEdrInfo)
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  render() {
+    const {activeScanType, currentDeviceData} = this.props;
+    const {
+      activeTab,
+      dashboardInfo,
+      hmdInfo,
+      settingsActiveContent
+    } = this.state;
+    const SETTINGS_LIST = [
+      {
+        type: 'fileIntegrity',
+        settings: [
+          {
+            type: 'includePath',
+            headerText: t('hmd-scan.txt-includePath')
+          },
+          {
+            type: 'excludePath',
+            headerText: t('hmd-scan.txt-excludePath')
+          },
+          {
+            type: 'processKeyword',
+            headerText: t('hmd-scan.txt-processKeyword')
+          }
+        ]
+      },
+      {
+        type: 'procMonitor',
+        settings: [
+          {
+            type: 'includePath',
+            headerText: t('hmd-scan.txt-includePath')
+          }
+        ]
+      }
+    ];
+
+    return (
+      &lt;div className='scan-info'>
+        &lt;div className='header-title'>{t('hmd-scan.scan-list.txt-' + activeScanType)}&lt;/div>
+        &lt;div className='info-content'>
+          {activeTab === 'dashboard' &amp;&amp;
+            &lt;div className='dashboard-wrapper'>
+              &lt;div className='chart-group spider-chart'>
+                &lt;div ref={node => { this.chartNode = node }}>&lt;/div>
+              &lt;/div>
+
+              &lt;DataTable
+                className='main-table score'
+                fields={dashboardInfo.dataFields}
+                data={dashboardInfo.dataContent}
+                sort={dashboardInfo.dataContent.length === 0 ? {} : dashboardInfo.sort}
+                onSort={this.handleTableSort} />
+            &lt;/div>
+          }
+
+          {activeTab !== 'dashboard' &amp;&amp; activeTab !== 'eventTracing' &amp;&amp; activeTab !== 'edr' &amp;&amp; activeTab !== '_ExecutePatch' &amp;&amp; activeTab !== 'settings' &amp;&amp; !_.isEmpty(hmdInfo) &amp;&amp;
+            &lt;div>
+              {this.getTriggerBtnInfo()}
+              {this.getMainContent()}
+            &lt;/div>
+          }
+
+          {activeTab === 'eventTracing' &amp;&amp;
+            &lt;div>
+              {this.getTriggerBtnInfo()}
+              {this.getEventTracingContent()}
+            &lt;/div>
+          }
+
+          {activeTab === 'edr' &amp;&amp;
+            &lt;div className='edr'>
+              {this.getTriggerBtnInfo()}
+              &lt;div className='edr-btn-group'>
+                {EDR_BUTTON_LIST.map(this.getEdrButtonList)}
+              &lt;/div>
+            &lt;/div>
+          }
+
+          {activeTab === '_ExecutePatch' &amp;&amp;
+            &lt;div className='vans-patch-record'>
+              {!hmdInfo[activeTab].data &amp;&amp;
+                &lt;span>{NOT_AVAILABLE}&lt;/span>
+              }
+              {hmdInfo[activeTab].data &amp;&amp;
+                &lt;DataTable
+                  className='main-table'
+                  fields={hmdInfo[activeTab].fields}
+                  data={hmdInfo[activeTab].data}
+                  onSort={this.handleTableSort} />
+              }
+            &lt;/div>
+          }
+
+          {activeTab === 'settings' &amp;&amp;
+            &lt;div className='settings'>
+              &lt;div className='button-group'>
+                &lt;Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')} disabled={settingsActiveContent === 'editMode'}>{t('hmd-scan.txt-refresh')}&lt;/Button>
+                {settingsActiveContent === 'viewMode' &amp;&amp;
+                  &lt;Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}&lt;/Button>
+                }
+                {settingsActiveContent === 'viewMode' &amp;&amp;
+                  &lt;Button variant='contained' color='primary' className='btn' onClick={this.openConfirmModal.bind(this, 'compress', 'getHmdLogs', currentDeviceData.ipDeviceUUID, 'host')}>{currentDeviceData.isUploaded ? t(`hmd-scan.txt-recompress-logs`) : t(`hmd-scan.txt-compress-logs`)}&lt;/Button>
+                }
+                {settingsActiveContent === 'viewMode' &amp;&amp;
+                  &lt;Button variant='contained' color='primary' className='btn' onClick={this.handleUnregister}>{t(`hmd-scan.txt-unregister`)}&lt;/Button>
+                }
+                {settingsActiveContent === 'viewMode' &amp;&amp; currentDeviceData.isUploaded &amp;&amp;
+                  &lt;Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, 'download', '', currentDeviceData.ipDeviceUUID, 'host')}>{t(`hmd-scan.txt-downloadLogs`)}&lt;/Button>
+                }
+                {settingsActiveContent === 'editMode' &amp;&amp;
+                  &lt;div className='edit-btns'>
+                    &lt;Button variant='outlined' color='primary' className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+                    &lt;Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('hmd-scan.txt-saveSettings')}&lt;/Button>
+                    &lt;Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('hmd-scan.txt-restoreDefault')}&lt;/Button>
+                  &lt;/div>
+                }
+              &lt;/div>
+              &lt;div id='settingsWrapper' className='settings-wrapper'>
+                {SETTINGS_LIST.map(this.displaySettingsContent)}
+              &lt;/div>
+            &lt;/div>
+          }
         &lt;/div>
       &lt;/div>
     )
   }
 }
 
+HMDscanInfo.contextType = BaseDataContext;
+
 HMDscanInfo.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
+  page: PropTypes.string.isRequired,
+  activeScanType: PropTypes.string,
   currentDeviceData: PropTypes.object.isRequired,
+  ipType: PropTypes.string,
+  eventInfo: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
-  triggerTask: PropTypes.func.isRequired
+  triggerTask: PropTypes.func.isRequired,
+  triggerFilesTask: PropTypes.func.isRequired,
+  addToWhiteList: PropTypes.func.isRequired,
+  toggleYaraRule: PropTypes.func.isRequired,
+  getHMDinfo: PropTypes.func.isRequired,
+  loadEventTracing: PropTypes.func.isRequired,
+  assessmentDatetime: PropTypes.object,
+  hostCreateTime: PropTypes.object,
+  getHostInfo: PropTypes.func
 };
 
-const HocHMDscanInfo = withLocale(HMDscanInfo);
-export { HMDscanInfo, HocHMDscanInfo };</code></pre>
+export default withRouter(HMDscanInfo);</code></pre>
         </article>
     </section>
 
@@ -840,13 +2746,13 @@ export { HMDscanInfo, HocHMDscanInfo };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

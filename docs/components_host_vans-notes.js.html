@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/vans-notes.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/vans-notes.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import {GithubPicker} from 'react-color'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
+
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const COLOR_LIST = ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB'];
+const MODULE_TYPE = {
+  device: 'device',
+  scanFile: 'malware',
+  gcbDetection: 'gcb',
+  getFileIntegrity: 'fileIntegrity',
+  getEventTraceResult: 'eventTracing',
+  getProcessMonitorResult: 'processMonitor',
+  getVansCpe: 'cpe',
+  getVansCve: 'cve'
+};
+const FORM_VALIDATION = {
+  status: {
+    valid: true
+  }
+};
+
+let t = null;
+let f = null;
+
+/**
+ * Vans Notes
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show Vans Notes component
+ */
+class VansNotes extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      statusType: '', //'new' or 'existing'
+      statusList: [],
+      originalStatus: {},
+      vansNotes: {
+        id: '',
+        status: '',
+        annotation: '',
+        color: ''
+      },
+      showColorPalette: false,
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setVansData();
+    this.setVansStatus();
+  }
+  componentDidUpdate(prevProps) {
+    const {currentData, vansDeviceStatusList} = this.props;
+
+    //For updating new vans notes status
+    if (!prevProps || (prevProps &amp;&amp; currentData.annotationObj &amp;&amp; currentData.annotationObj.id &amp;&amp; !prevProps.currentData.annotationObj)) {
+      this.setVansData();
+    }
+
+    //For updating existing vans notes status
+    if (prevProps &amp;&amp; prevProps.currentData.annotationObj &amp;&amp; currentData.annotationObj) {
+      if (prevProps.currentData.annotationObj.status !== currentData.annotationObj.status) {
+        this.setVansData();
+      }
+    }
+
+    if (!prevProps || (prevProps &amp;&amp; vansDeviceStatusList !== prevProps.vansDeviceStatusList)) {
+      this.setVansStatus();
+    }
+  }
+  /**
+   * Set vans info data
+   * @method
+   */
+  setVansData = () => {
+    const {currentData, currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
+    let statusList = [];
+    let statusType = 'new';
+    let currentStatus = '';
+
+    if (currentType === 'device') {
+      statusList = vansDeviceStatusList;
+    } else {
+      statusList = vansHmdStatusList;
+    }
+
+    if (currentData.annotationObj) {
+      if (currentData.annotationObj.status) {
+        const selectedStatusIndex = _.findIndex(statusList, { 'value': currentData.annotationObj.status });
+        currentStatus = statusList[selectedStatusIndex];
+        statusType = 'existing';
+      }
+
+      this.setState({
+        vansNotes: {
+          id: currentData.annotationObj.id,
+          status: currentStatus,
+          annotation: currentData.annotationObj.annotation,
+          color: currentData.annotationObj.color
+        }
+      });
+    }
+
+    this.setState({
+      statusType,
+      originalStatus: currentStatus
+    });
+  }
+  /**
+   * Set vans status
+   * @method
+   */
+  setVansStatus = () => {
+    const {currentType, vansDeviceStatusList, vansHmdStatusList} = this.props;
+    let statusList = [];
+
+    if (currentType === 'device') {
+      statusList = vansDeviceStatusList;
+    } else {
+      statusList = vansHmdStatusList;
+    }
+
+    this.setState({
+      statusList,
+      originalStatus: {}
+    });
+  }
+  /**
+   * Display status list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderStatusList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={t('host.txt-status') + ' *'}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle status combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected status info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {statusList, vansNotes} = this.state;
+
+    if (value &amp;&amp; value.value) {
+      const selectedStatusIndex = _.findIndex(statusList, { 'value': value.value });
+      let tempVansNotes = {...vansNotes};
+      tempVansNotes.status = statusList[selectedStatusIndex];
+
+      this.setState({
+        vansNotes: tempVansNotes
+      });
+    }
+  }
+  /**
+   * Handle status type value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleRadioChange = (event) => {
+    const {originalStatus, vansNotes} = this.state;
+    const type = event.target.value;
+    let tempVansNotes = {...vansNotes};
+
+    if (type === 'new') {
+      tempVansNotes.status = '';
+    } else if (type === 'existing') {
+      tempVansNotes.status = originalStatus;
+    }
+
+    this.setState({
+      statusType: event.target.value,
+      vansNotes: tempVansNotes,
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    });
+  }
+  /**
+   * Handle vans annotation data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleVansNotesChange = (event) => {
+    let tempVansNotes = {...this.state.vansNotes};
+    tempVansNotes[event.target.name] = event.target.value;
+
+    this.setState({
+      vansNotes: tempVansNotes
+    });
+  }
+  /**
+   * Handle value change for the add tagging form
+   * @method
+   * @param {object | string} event - event object
+   */
+  handleDataChange = (event) => {
+    const value = event.target ? event.target.value : event.hex;
+    let tempVansNotes = {...this.state.vansNotes};
+
+    if (event.hex) {
+      tempVansNotes.color = value.toUpperCase();
+    } else {
+      tempVansNotes.memo = value;
+    }
+
+    this.setState({
+      vansNotes: tempVansNotes
+    });
+  }
+  /**
+   * Handle vans annotation save
+   * @method
+   */
+  handleVansNotesSave = () => {
+    const {baseUrl} = this.context;
+    const {currentData, currentType} = this.props;
+    const {statusType, vansNotes, formValidation} = this.state;
+    const url = `${baseUrl}/api/annotation`;
+    const status = statusType === 'new' ? vansNotes.status : vansNotes.status.value;
+    let requestType = 'POST';
+    let requestData = {
+      attribute: currentData.ipDeviceUUID || currentData.primaryKeyValue,
+      status,
+      annotation: vansNotes.annotation,
+      color: vansNotes.color,
+      module: MODULE_TYPE[currentType]
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (status) {
+      tempFormValidation.status.valid = true;
+    } else {
+      tempFormValidation.status.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    if (vansNotes.id) {
+      requestData.id = vansNotes.id;
+      requestType = 'PATCH';
+    }
+
+    if (requestData.status === '' &amp;&amp; requestData.annotation === '') {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-saved'));
+
+        if (currentType === 'device') {
+          this.props.getIPdeviceInfo();
+        } else {
+          this.props.getSafetyScanData();
+        }
+
+        this.props.getVansStatus();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete vans annotation content
+   * @method
+   * @returns HTML DOM
+   */
+  getDeleteVansNotesContent = () => {
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle vans annotation delete
+   * @method
+   */
+  handleVansNotesDelete = () => {
+    PopupDialog.prompt({
+      title: t('host.txt-deleteVansNotes'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteVansNotesContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteVansNotes();
+        }
+      }
+    });
+  }
+  /**
+   * Delete vans annotation
+   * @method
+   */
+  deleteVansNotes = () => {
+    const {baseUrl} = this.context;
+    const {currentType} = this.props;
+    const {vansNotes} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/annotation?id=${vansNotes.id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          vansNotes: {
+            id: '',
+            status: '',
+            annotation: '',
+            color: ''
+          }
+        });
+
+        if (currentType === 'device') {
+          this.props.getIPdeviceInfo();
+        } else {
+          this.props.getSafetyScanData();
+        }
+
+        this.props.getVansStatus();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Clear vans annotation
+   * @method
+   * @param {string} type - button type ('clear' or 'palette')
+   */
+  handleVansColorButton = (type) => {
+    if (type === 'clear') {
+      let tempVansNotes = {...this.state.vansNotes};
+      tempVansNotes.color = '';
+
+      this.setState({
+        vansNotes: tempVansNotes,
+        showColorPalette: false
+      });
+    } else if (type === 'palette') {
+      this.setState({
+        showColorPalette: !this.state.showColorPalette
+      });
+    }
+  }
+  /**
+   * Show color palette
+   * @method
+   */
+  turnOnColorPalette = () => {
+    this.setState({
+      showColorPalette: true
+    });
+  }
+  /**
+   * Get vans notes height
+   * @method
+   * @returns CSS property object
+   */
+  getHeight = () => {
+    const {currentType} = this.props;
+
+    if (currentType === 'device') {
+      return { height: '340px' };
+    } else {
+      return { height: '390px' };
+    }
+  }
+  render() {
+    const {statusType, statusList, vansNotes, showColorPalette, formValidation} = this.state;
+
+    return (
+      &lt;div className='vans-notes' style={this.getHeight()}>
+        &lt;div className='group'>
+          {statusList.length > 0 &amp;&amp;
+            &lt;RadioGroup
+              className='radio-group'
+              value={statusType}
+              onChange={this.handleRadioChange}>
+              &lt;FormControlLabel
+                value='new'
+                control={&lt;Radio color='primary' />}
+                label={t('txt-add')} />
+              &lt;FormControlLabel
+                value='existing'
+                control={&lt;Radio color='primary' />}
+                label={t('txt-existing')} />
+            &lt;/RadioGroup>
+          }
+          {statusType === 'new' &amp;&amp;
+            &lt;TextField
+              name='status'
+              label={t('host.txt-status')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              error={!formValidation.status.valid}
+              helperText={formValidation.status.valid ? '' : t('txt-required')}
+              value={vansNotes.status}
+              onChange={this.handleVansNotesChange} />
+          }
+          {statusType === 'existing' &amp;&amp;
+            &lt;React.Fragment>
+              &lt;Autocomplete
+                className='combo-box'
+                options={statusList}
+                value={vansNotes.status}
+                getOptionLabel={(option) => option.text}
+                renderInput={this.renderStatusList}
+                onChange={this.handleComboBoxChange} />
+              &lt;div className='error-msg'>{formValidation.status.valid ? '' : t('txt-required')}&lt;/div>
+            &lt;/React.Fragment>
+          }
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;TextareaAutosize
+            name='annotation'
+            className='textarea-autosize notes'
+            placeholder={t('host.txt-annotation')}
+            rows={3}
+            value={vansNotes.annotation}
+            onChange={this.handleVansNotesChange} />
+        &lt;/div>
+        &lt;div className='group color'>
+          &lt;label>{t('txt-color')}&lt;/label>
+          {vansNotes.color &amp;&amp;
+            &lt;React.Fragment>
+              &lt;div className='color-box' className={'c-link color-box ' + helper.showColor(vansNotes.color)} onClick={this.turnOnColorPalette}>&lt;/div>
+              &lt;Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansColorButton.bind(this, 'clear')}>{t('txt-clearText')}&lt;/Button>
+            &lt;/React.Fragment>
+          }
+          {!vansNotes.color &amp;&amp;
+            &lt;Button variant='outlined' color='primary' className='standard btn clear' onClick={this.handleVansColorButton.bind(this, 'palette')}>{t('txt-palette')}&lt;/Button>
+          }
+          {showColorPalette &amp;&amp;
+            &lt;GithubPicker
+              width='213px'
+              colors={COLOR_LIST}
+              triangle='hide'
+              onChangeComplete={this.handleDataChange} />
+          }
+        &lt;/div>
+        &lt;div className='group btn-group'>
+          &lt;Button variant='contained' color='primary' className='btn save' onClick={this.handleVansNotesSave}>{t('txt-save')}&lt;/Button>
+          {vansNotes.id &amp;&amp;
+            &lt;Button variant='outlined' color='primary' className='standard btn delete' onClick={this.handleVansNotesDelete}>{t('txt-delete')}&lt;/Button>
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+VansNotes.contextType = BaseDataContext;
+
+VansNotes.propTypes = {
+  currentData: PropTypes.object.isRequired,
+  currentType: PropTypes.string.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  getSafetyScanData: PropTypes.func.isRequired,
+  vansDeviceStatusList: PropTypes.array,
+  vansHmdStatusList: PropTypes.array
+};
+
+export default VansNotes;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

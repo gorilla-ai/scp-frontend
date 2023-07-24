@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/configuration/threat/threat.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/configuration/threat/threat.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import jschardet from 'jschardet'
+import XLSX from 'xlsx'
+
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
+import BarChart from 'react-chart/build/src/components/bar'
+import LineChart from 'react-chart/build/src/components/line'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import PieChart from 'react-chart/build/src/components/pie'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import AddThreats from './add-threats'
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
+import FileUpload from '../../common/file-upload'
+import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
+import SearchOptions from '../../common/search-options'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+
+/**
+ * Threat Intelligence
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Config Edge Threat Intelligence page
+ */
+class ThreatIntelligence extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      threatsSearch: {
+        keyword: '',
+        type: 'IP'
+      },
+      datetime: {
+        from: helper.getSubstractDate(1, 'week', moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
+        to: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DD') + 'T00:00:00')
+        //from: '2020-06-04T00:00:00Z',
+        //to: '2020-06-04T01:00:00Z'
+      },
+      activeDateType: 'allDays', //'today', 'past7days', 'allDays' or 'custom'
+      contextAnchor: null,
+      indicatorsData: null,
+      indicatorsTrendData: null,
+      acuIndicatorsTrendData: null,
+      addThreatsOpen: false,
+      uplaodThreatsOpen: false,
+      importThreatsOpen: false,
+      searchThreatsOpen: false,
+      autoDetectType: true,
+      addThreats: [],
+      threatsFile: {},
+      threats: {
+        dataFieldsArr: ['threatText', 'threatType', 'dataSourceType', 'createDttm', '_menu'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'threatText',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
+      },
+      info: '',
+      uploadedThreatsData: []
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+    const {activeDateType} = this.state;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.getChartsData(activeDateType);
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Get and set charts data
+   * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
+   * @param {object} [dateTime] - custom datetime set by the user
+   * @method
+   */
+  getChartsData = (activeDateType, dateTime) => {
+    const {baseUrl} = this.context;
+    const url = {
+      summary: `${baseUrl}/api/indicators/summary`,
+      trend: `${baseUrl}/api/indicators/trend`,
+      trendAccum: `${baseUrl}/api/indicators/trend/accum`
+    };
+    let params = '';
+
+    if (activeDateType === 'today') {
+      const todayDateTime = {
+        from: moment(helper.getStartDate('day')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+      params = `/period?startDttm=${todayDateTime.from}&amp;endDttm=${todayDateTime.to}`;
+    } else if (activeDateType === 'past7days') {
+      params += '?recent7days=true';
+    } else if (activeDateType === 'allDays') {
+      params += '?totalcount=true';
+    } else if (activeDateType === 'custom') {
+      params = `/period?startDttm=${dateTime.from}&amp;endDttm=${dateTime.to}`;
+    }
+
+    //Pie Chart
+    this.ah.one({
+      url: url.summary + params,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        this.setState({
+          indicatorsData: this.formatPieChartData(data)
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    //Bar Chart
+    this.ah.one({
+      url: url.trend + params,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let indicatorsTrendData = [];
+
+        _.keys(data)
+        .forEach(key => {
+          _.keys(data[key])
+          .forEach(key2 => {
+            if (data[key][key2] > 0) {
+              indicatorsTrendData.push({
+                day: parseInt(moment(helper.getFormattedDate(key2, 'local')).format('x')),
+                count: data[key][key2],
+                indicator: key
+              })
+            }
+          })
+        });
+
+        this.setState({
+          indicatorsTrendData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    //Line Chart
+    this.ah.one({
+      url: url.trendAccum + params,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let acuIndicatorsTrendData = [];
+
+        _.keys(data)
+        .forEach(key => {
+          _.forEach(data[key], val => {
+            if (val.counts > 0) {
+              acuIndicatorsTrendData.push({
+                day: parseInt(moment(helper.getFormattedDate(val.time, 'local')).format('x')),
+                count: val.counts,
+                indicator: key
+              })
+            }
+          })
+        });
+
+        this.setState({
+          acuIndicatorsTrendData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Format the object data into array type
+   * @method
+   * @param {object} data - chart data
+   */
+  formatPieChartData = (data) => {
+    let indicatorsData = [];
+
+    _.keys(data)
+    .forEach(key => {
+      if (data[key] > 0) {
+        indicatorsData.push({
+          key,
+          doc_count: data[key]
+        });
+      }
+    });
+
+    return indicatorsData;
+  }
+  /**
+   * Reset indicators data
+   * @method
+   * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
+   * @param {object} [dateTime] - custom datetime set by the user
+   */
+  clearIndicatorsData = (activeDateType, dateTime) => {
+    this.setState({
+      indicatorsData: null,
+      indicatorsTrendData: null,
+      acuIndicatorsTrendData: null
+    }, () => {
+      this.getChartsData(activeDateType, dateTime);
+    });
+  }
+  /**
+   * Toggle date options buttons
+   * @method
+   * @param {object} event - event object
+   * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
+   */
+  toggleDateRangeButtons = (event, activeDateType) => {
+    if (activeDateType !== 'custom') {
+      this.clearIndicatorsData(activeDateType);
+    }
+
+    this.setState({
+      activeDateType
+    });
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
+    this.setState({
+      datetime: tempDatetime
+    });
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (event) => {
+    this.setState({
+      contextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
+  }
+  /**
+   * Toggle upload modal dialog on/off
+   * @method
+   * @param {string} options - option for 'showMsg'
+   */
+  toggleUploadThreat = (options) => {
+    this.setState({
+      uplaodThreatsOpen: !this.state.uplaodThreatsOpen
+    }, () => {
+      if (options === 'showMsg') {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          confirmText: t('txt-close'),
+          display: &lt;div className='content'>&lt;span>{t('txt-uploadSuccess')}&lt;/span>&lt;/div>
+        });
+        this.getChartsData();
+      }
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle file change and set the file
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @param {object} check - a returned promise for the encode info
+   */
+  handleFileChange = (file, check) => {
+    let reader = new FileReader();
+    const rABS = !!reader.readAsBinaryString;
+
+    reader.onload = (e) => {
+      const bstr = btoa(e.target.result); //Encode text result
+      const wb = XLSX.read(bstr, {type: rABS ? 'binary' : 'array'});
+      /* Get first worksheet */
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_json(ws, {header: 1});
+      const result = data.filter(o => Object.keys(o).length);
+      const uploadedThreatsData = atob(result).split('\r\n'); //Decode text result
+
+      this.setState({
+        uploadedThreatsData
+      });
+    }
+    reader.onerror = error => reject(error);
+
+    if (rABS) {
+      if (check.encoding) {
+        if (check.encoding === 'UTF-8') {
+          reader.readAsText(file, 'UTF-8');
+        } else { //If check.encoding is available, force to read as BIG5 encoding
+          reader.readAsText(file, 'BIG5');
+        }
+      } else {
+        reader.readAsBinaryString(file);
+      }
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  }
+  /**
+   * Check file encoding
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @returns promise of the file reader
+   */
+  checkEncode = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      const rABS = !!reader.readAsBinaryString;
+
+      reader.onload = async (e) => {
+        resolve(jschardet.detect(e.target.result));
+      }
+      reader.onerror = error => reject(error);
+
+      if (rABS) {
+        reader.readAsBinaryString(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }
+  /**
+   * Handle CSV batch upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  parseUploadFile = async (file) => {
+    if (file) {
+      this.handleFileChange(file, await this.checkEncode(file));
+    }
+  }
+  /**
+   * Show file upload example
+   * @method
+   */
+  showUploadExample = () => {
+    PopupDialog.alert({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-close'),
+      display: &lt;div style={{textAlign: 'left'}}>
+        &lt;div>{t('edge-management.txt-exampleDesc')}&lt;/div>
+        &lt;pre>
+          127.0.0.1&lt;br />
+          http://www.google.com&lt;br />
+          msn.com&lt;br />
+          2001:0:1234::C1C0:ABCD:876&lt;br />
+          595f44fec1e92a71d3e9e77456ba80d1
+        &lt;/pre>
+      &lt;/div>
+    });
+  }
+  /**
+   * Get see example margin
+   * @method
+   * @returns width in px
+   */
+  getMarginWidth = () => {
+    const {locale} = this.context;
+
+    if (locale === 'en') {
+      return '115px';
+    } else if (locale === 'zh') {
+      return '100px';
+    }
+  }
+  /**
+   * Display threat upload modal dialog and its content
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadThreatsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadThreat},
+      confirm: {text: t('txt-confirm'), handler: this.confirmThreatUpload}
+    };
+    const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-addMultiple');
+    const fileTitle = t('edge-management.txt-threatsFile') + '(.txt)';
+
+    return (
+      &lt;ModalDialog
+        id='uploadThreatsDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        &lt;div className='c-link view-example' style={{marginLeft: this.getMarginWidth()}} onClick={this.showUploadExample}>({t('edge-management.txt-viewExample')})&lt;/div>
+        &lt;FileUpload
+          id='uploadThreat'
+          fileType='text'
+          supportText={fileTitle}
+          btnText={t('txt-upload')}
+          handleFileChange={this.parseUploadFile} />
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle threat upload confirm
+   * @method
+   */
+  confirmThreatUpload = () => {
+    const {uploadedThreatsData} = this.state;
+
+    if (uploadedThreatsData.length > 0) {
+      let addThreats = [];
+
+      _.forEach(uploadedThreatsData, val => {
+        addThreats.push({
+          input: val,
+          type: helper.determineInputRuleType(val),
+          severity: 'ALERT',
+          validate: true
+        });
+      })
+
+      this.setState({
+        uplaodThreatsOpen: false,
+        addThreats
+      }, () => {
+        this.toggleAddThreats();
+      });
+    } else {
+      helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
+      return;
+    }
+  }
+  /**
+   * Handle filter search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    const {datetime} = this.state;
+    const dateTimeFrom = moment(datetime.from).format('YYYY-MM-DD') + 'T00:00:00';
+    const dateTimeToToday = moment(this.state.datetime.to).format('YYYY-MM-DD');
+    const dateTimeTo = moment(datetime.to).format('YYYY-MM-DD') + 'T23:59:59';
+    const yesterday = moment(helper.getSubstractDate(1, 'day', moment().local())).format('YYYY-MM-DD');
+    const dateTime = {
+      from: moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    if (moment(dateTimeToToday).isAfter(yesterday)) { //Show error message
+      helper.showPopupMsg(t('edge-management.txt-threatEndTimeError'), t('txt-error'));
+      return;
+    }
+
+    if (moment(dateTime.from).isAfter()) { //Show error message
+      helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
+      return;
+    }
+
+    this.clearIndicatorsData('custom', dateTime);
+  }
+  /**
+   * Toggle add threats modal on/off
+   * @method
+   */
+  toggleAddThreats = () => {
+    const {addThreatsOpen} = this.state;
+
+    if (addThreatsOpen) { //Clear threats info and error msg
+      this.setState({
+        addThreats: [],
+        info: ''
+      });
+    }
+
+    this.setState({
+      addThreatsOpen: !addThreatsOpen,
+      autoDetectType: true
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle add/remove the add threats box
+   * @method
+   * @param {array.&lt;object>} data - add threats list array
+   */
+  handleAddThreatsChange = (data) => {
+    const {autoDetectType} = this.state;
+
+    if (autoDetectType) { //Auto detect type is on
+      let addThreats = [];
+
+      if (data.length > 0) {
+        _.forEach(data, val => {
+          addThreats.push({
+            ...val,
+            type: helper.determineInputRuleType(val.input)
+          });
+        })
+      }
+
+      this.setState({
+        addThreats
+      });
+    } else { //Auto detect type is off
+      this.setState({
+        addThreats: data
+      });
+    }
+  }
+  /**
+   * Toggle auto detect type checkbox
+   * @method
+   */
+  toggleAutoDetectCheckbox = () => {
+    this.setState({
+      autoDetectType: !this.state.autoDetectType
+    }, () => {
+      const {autoDetectType, addThreats} = this.state;
+
+      if (autoDetectType) { //Update threats input and clear error message
+        let tempAddThreats = [];
+
+        if (addThreats.length > 0) {
+          _.forEach(addThreats, val => {
+            tempAddThreats.push({
+              ...val,
+              type: helper.determineInputRuleType(val.input),
+              validate: true
+            });
+          })
+        }
+
+        this.setState({
+          addThreats: tempAddThreats,
+          info: ''
+        });
+      }
+    });
+  }
+  /**
+   * Display add threats content
+   * @method
+   * @returns HTML DOM
+   */
+  displayAddThreatsContent = () => {
+    const {autoDetectType, addThreats} = this.state;
+    const data = {
+      autoDetectType
+    };
+
+    return (
+      &lt;div>
+        &lt;div className='auto-detect'>
+          &lt;FormControlLabel
+            label={t('edge-management.txt-autoDetectType')}
+            className='checkbox'
+            control={
+              &lt;Checkbox
+                className='checkbox-ui'
+                checked={autoDetectType}
+                onChange={this.toggleAutoDetectCheckbox}
+                color='primary' />
+            } />
+        &lt;/div>
+        &lt;MultiInput
+          id='threatMultiInputs'
+          base={AddThreats}
+          defaultItemValue={{
+            input: '',
+            type: '',
+            severity: 'ALERT',
+            validate: true
+          }}
+          value={addThreats}
+          props={data}
+          onChange={this.handleAddThreatsChange}/>
+      &lt;/div>
+    )
+  }
+  /**
+   * Open add threats modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  addThreatsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleAddThreats},
+      confirm: {text: t('txt-confirm'), handler: this.confirmAddThreats}
+    };
+    const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-addManually');
+
+    return (
+      &lt;ModalDialog
+        id='addThreatsDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayAddThreatsContent()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle add threats confirm
+   * @method
+   */
+  confirmAddThreats = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {addThreats} = this.state;
+    let tempAddThreats = [];
+    let validation = true;
+    let formattedData = {};
+    let requestData = {};
+
+    if (addThreats.length === 0) {
+      this.setState({
+        info: t('edge-management.txt-edgeFormatError')
+      });
+      return;
+    }
+
+    _.forEach(addThreats, val => { //Validate threats input based on threats type
+      let validate = true;
+      
+      if (val.type !== '' &amp;&amp; !helper.validateInputRuleData(val.type, val.input)) { //Threats input validation is not valid
+        validate = false;
+        validation = false;
+      }
+
+      tempAddThreats.push({
+        ...val,
+        validate
+      });
+    })
+
+    _.forEach(SEVERITY_TYPE, val => { //Create formattedData object for input data based on severity
+      _.forEach(addThreats, val2 => {
+        if (val.toUpperCase() === val2.severity) {
+          if (val2.type) {
+            if (formattedData[val]) {
+              formattedData[val].push({
+                input: val2.input,
+                type: val2.type + 'Array'
+              });
+            } else {
+              formattedData[val] = [{
+                input: val2.input,
+                type: val2.type + 'Array'
+              }];
+            }
+          } else { //Threats type is missing
+            validation = false;
+            return false;
+          }
+        }
+      })
+    })
+
+    if (!validation) {
+      this.setState({
+        addThreats: tempAddThreats,
+        info: t('edge-management.txt-edgeFormatError')
+      });
+      return;
+    }
+
+    _.forEach(formattedData, (val, key) => { //Create requestData object for aggregated input data
+      requestData[key] = {};
+
+      _.forEach(val, val2 => {
+        if (requestData[key][val2.type]) {
+          requestData[key][val2.type].push(val2.input);
+        } else {
+          requestData[key][val2.type] = [val2.input];
+        }
+      })
+    })
+
+    _.forEach(requestData, (val, key) => { //Generate formData for multiple APIs call
+      let formData = new FormData();
+      formData.append('severity', key.toUpperCase());
+
+      _.forEach(val, (val2, key2) => {
+        if (key2 === 'ipv6Array') { //Special case for IPv6
+          key2 = 'ipArray';
+        }
+
+        formData.append(key2, val2.toString());
+      })
+
+      this.ah.one({
+        url: `${baseUrl}/api/indicators`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
+      .then(data => {
+        if (data) {
+          if (addThreats.length > 0) {
+            helper.showPopupMsg(t('edge-management.txt-addSuccess'));
+
+            this.setState({ //Clear threats info and error msg
+              addThreatsOpen: false,
+              addThreats: [],
+              info: ''
+            });
+          }
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    })
+  }
+  /**
+   * Toggle Import Threats dialog on/off
+   * @method
+   */
+  toggleImportThreats = () => {
+    this.setState({
+      importThreatsOpen: !this.state.importThreatsOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Set import threats file
+   * @method
+   * @param {object} file - indicators file uploaded by the user
+   */
+  getIndicatorsFile = (file) => {
+    this.setState({
+      threatsFile: file
+    });
+  }
+  /**
+   * Display threat import modal dialog and its content
+   * @method
+   * @returns ModalDialog component
+   */
+  importThreatsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleImportThreats},
+      confirm: {text: t('txt-confirm'), handler: this.confirmThreatImport}
+    };
+    const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-importTIMAP');
+    const fileTitle = t('edge-management.txt-threatsFile') + '(.zip)';
+
+    return (
+      &lt;ModalDialog
+        id='importThreatsDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        &lt;FileUpload
+          id='importThreat'
+          fileType='indicators'
+          supportText={fileTitle}
+          btnText={t('txt-upload')}
+          handleFileChange={this.getIndicatorsFile} />
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle Threats Import dialog confirm
+   * @method
+   */
+  confirmThreatImport = () => {
+    const {baseUrl} = this.context;
+    const {threatsFile} = this.state;
+    let formData = new FormData();
+    formData.append('file', threatsFile);
+
+    if (!threatsFile.name) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url: `${baseUrl}/api/threat/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('edge-management.txt-addSuccess'));
+        this.toggleImportThreats();
+
+        this.setState({
+          indicatorsData: null,
+          threatsFile: {}
+        }, () => {
+          this.getChartsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle Search Threats dialog on/off
+   * @method
+   */
+  toggleSearchThreats = () => {
+    this.setState({
+      threatsSearch: {
+        keyword: '',
+        type: 'IP'
+      },
+      searchThreatsOpen: !this.state.searchThreatsOpen
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleThreatsChange = (event) => {
+    let tempThreatsSearch = {...this.state.threatsSearch};
+    tempThreatsSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      threatsSearch: tempThreatsSearch
+    });
+  }
+  /**
+   * Display search threats content
+   * @method
+   * @returns HTML DOM
+   */
+  displaySearchThreatsContent = () => {
+    const {threatsSearch, threats} = this.state;
+    const tableOptions = {
+      tableBodyHeight: '57vh',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div className='filter'>
+        &lt;div className='filter-wrapper'>
+          &lt;div className='filter-section'>
+            &lt;TextField
+              id='threatsSearchType'
+              className='search-type'
+              name='type'
+              select
+              label={t('edge-management.txt-serviceMode')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={threatsSearch.type}
+              onChange={this.handleThreatsChange}>
+              &lt;MenuItem value={'IP'}>IP&lt;/MenuItem>
+              &lt;MenuItem value={'DOMAIN'}>DomainName&lt;/MenuItem>
+              &lt;MenuItem value={'URL'}>URL&lt;/MenuItem>
+              &lt;MenuItem value={'SNORT'}>SNORT&lt;/MenuItem>
+              &lt;MenuItem value={'YARA'}>YARA&lt;/MenuItem>
+              &lt;MenuItem value={'CERT'}>Certification&lt;/MenuItem>
+              &lt;MenuItem value={'FILEHASH'}>FileHash&lt;/MenuItem>
+              &lt;MenuItem value={'FILEHASHWHITE'}>FileHashWhite&lt;/MenuItem>
+            &lt;/TextField>
+            &lt;TextField
+              id='threatsSearchKeyword'
+              className='search-keyword'
+              name='keyword'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={threatsSearch.keyword}
+              onChange={this.handleThreatsChange} />
+          &lt;/div>
+          &lt;div className='button-group'>
+            &lt;Button variant='contained' color='primary' className='btn' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-search')}&lt;/Button>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;MuiTableContent
+          data={threats}
+          tableOptions={tableOptions}
+          tableHeight='auto'
+          showLoading={false} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display search threats modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  searchThreatsDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.toggleSearchThreats}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='searchThreatsDialog'
+        className='modal-dialog'
+        title={t('edge-management.txt-searchThreat')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displaySearchThreatsContent()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let tempThreats = {...this.state.threats};
+    tempThreats.sort.field = field;
+    tempThreats.sort.desc = sort;
+
+    this.setState({
+      threats: tempThreats
+    }, () => {
+      this.handleThreatsSearch();
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempThreats = {...this.state.threats};
+    tempThreats[type] = Number(value);
+
+    this.setState({
+      threats: tempThreats
+    }, () => {
+      this.handleThreatsSearch(type);
+    });
+  }
+  /**
+   * Get and set Threats table data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   * @param {string} type - option for 'delete'
+   * @param {object} allValue - threats data
+   */
+  handleThreatsSearch = (fromPage, type, allValue) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {threatsSearch, threats} = this.state;
+    const page = fromPage === 'currentPage' ? threats.currentPage : 0;
+
+    if (!threatsSearch.keyword) {
+      helper.showPopupMsg(t('txt-plsEnterKeyword'), t('txt-error'));
+      return;
+    }
+
+    if (threatsSearch.type === 'URL') { //Handle special case for URL
+      const pattern = /:\/\//;
+
+      if (pattern.test(threatsSearch.keyword)) {
+        helper.showPopupMsg(t('edge-management.txt-urlErrorMsg'), t('txt-error'));
+        return;
+      }
+    }
+
+    let apiArr = [
+      {
+        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&amp;threatTypeArray=${threatsSearch.type}&amp;page=${page + 1}&amp;pageSize=${threats.pageSize}`,
+        type: 'GET'
+      }
+    ];
+
+    //Combine the two APIs to show the loading icon
+    if (type === 'delete') { //For deleting threat
+      apiArr.unshift({
+        url: `${baseUrl}/api/indicator?id=${allValue.id}&amp;threatType=${allValue.threatType}`,
+        type: 'DELETE'
+      });
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.series(apiArr)
+    .then(data => {
+      if (data) {
+        if (type === 'delete') {
+          if (data[0] &amp;&amp; data[0].ret === 0) {
+            let tempThreats = {...threats};
+            tempThreats.dataContent = [];
+            tempThreats.totalCount = 0;
+            tempThreats.sort = {
+              field: 'threatText',
+              desc: false
+            };
+
+            this.setState({
+              threats: tempThreats
+            }, () => {
+              data = data[1].rt;
+            });
+          }
+        } else {
+          data = data[0].rt;
+        }
+
+        let tempThreats = {...threats};
+
+        if (data[threatsSearch.type].rows.length === 0) {
+          tempThreats.dataContent = [];
+          tempThreats.totalCount = 0;
+
+          this.setState({
+            threats: tempThreats
+          });
+          return null;
+        }
+
+        tempThreats.dataContent = data[threatsSearch.type].rows;
+        tempThreats.totalCount = data[threatsSearch.type].counts;
+        tempThreats.currentPage = page;
+        tempThreats.dataFields = _.map(threats.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`threatsTableFields.${val}`),
+            options: {
+              sort: false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempThreats.dataContent[dataIndex];
+                const value = tempThreats.dataContent[dataIndex][val];
+
+                if (val === 'threatText' &amp;&amp; allValue.score === -999) {
+                  return &lt;span style={{textDecoration: 'line-through'}}>{value}&lt;/span>
+                } else if (val === 'createDttm') {
+                  return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+                } else if (val === '_menu') {
+                  if (allValue.score !== -999) {
+                    return (
+                      &lt;div className='table-menu menu active'>
+                        &lt;i className='fg fg-trashcan' onClick={this.openDeleteThreats.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                      &lt;/div>
+                    )
+                  }
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          threats: tempThreats
+        }, () => {
+          if (this.state.threats.dataContent.length === 0) {
+            helper.showPopupMsg(t('txt-notFound'));
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Open delete threats modal dialog
+   * @method
+   * @param {object} allValue - threats data
+   */
+  openDeleteThreats = (allValue) => {
+    PopupDialog.prompt({
+      title: t('edge-management.txt-deleteThreats'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('txt-delete-msg')}: {allValue.threatText}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleThreatsSearch('', 'delete', allValue);
+        }
+      }
+    });
+  }
+  /**
+   * Show pie chart
+   * @method
+   * @param {array.&lt;object>} indicatorsData - indicators data
+   * @returns HTML DOM
+   */
+  showPieChart = (indicatorsData) => {
+    return (
+      &lt;div className='chart-group'>
+        {!indicatorsData &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('edge-management.statistics.txt-sourceIndicators')}&lt;/header>
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          &lt;/div>
+        }
+        {indicatorsData &amp;&amp; indicatorsData.length === 0 &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('edge-management.statistics.txt-sourceIndicators')}&lt;/header>
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          &lt;/div>
+        }
+        {indicatorsData &amp;&amp; indicatorsData.length > 0 &amp;&amp;
+          &lt;PieChart
+            title={t('edge-management.statistics.txt-sourceIndicators')}
+            data={indicatorsData}
+            keyLabels={{
+              key: t('txt-indicator'),
+              doc_count: t('txt-count')
+            }}
+            valueLabels={{
+              'Pie Chart': {
+                key: t('txt-indicator'),
+                doc_count: t('txt-count')
+              }
+            }}
+            dataCfg={{
+              splitSlice: ['key'],
+              sliceSize: 'doc_count'
+            }} />
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.&lt;object>} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (eventInfo, data) => {
+    return (
+      &lt;section>
+        &lt;span>{t('txt-indicator')}: {data[0].indicator}&lt;br />&lt;/span>
+        &lt;span>{t('txt-date')}: {moment(data[0].day).format('YYYY/MM/DD')}&lt;br />&lt;/span>
+        &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
+      &lt;/section>
+    )
+  }
+  /**
+   * Show bar chart
+   * @method
+   * @param {array.&lt;object>} indicatorsData - indicators data
+   * @returns HTML DOM
+   */
+  showBarChart = (indicatorsData) => {
+    return (
+      &lt;div className='chart-group'>
+        {!indicatorsData &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('edge-management.statistics.txt-indicatorsTrend')}&lt;/header>
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          &lt;/div>
+        }
+        {indicatorsData &amp;&amp; indicatorsData.length === 0 &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('edge-management.statistics.txt-indicatorsTrend')}&lt;/header>
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          &lt;/div>
+        }
+        {indicatorsData &amp;&amp; indicatorsData.length > 0 &amp;&amp;
+          &lt;BarChart
+            stacked
+            vertical
+            title={t('edge-management.statistics.txt-indicatorsTrend')}
+            legend={{
+              enabled: true
+            }}
+            data={indicatorsData}
+            dataCfg={{
+              x: 'day',
+              y: 'count',
+              splitSeries: 'indicator'
+            }}
+            xAxis={{
+              type: 'datetime'
+            }}
+            plotOptions={{
+              series: {
+                maxPointWidth: 20
+              }
+            }}
+            tooltip={{
+              formatter: this.onTooltip
+            }} />
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Show line chart
+   * @method
+   * @param {array.&lt;object>} indicatorsData - indicators data
+   * @returns HTML DOM
+   */
+  showLineChart = (indicatorsData) => {
+    return (
+      &lt;div className='chart-group'>
+        {!indicatorsData &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}&lt;/header>
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          &lt;/div>
+        }
+        {indicatorsData &amp;&amp; indicatorsData.length === 0 &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}&lt;/header>
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          &lt;/div>
+        }
+        {indicatorsData &amp;&amp; indicatorsData.length > 0 &amp;&amp;
+          &lt;LineChart
+            title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
+            legend={{
+              enabled: true
+            }}
+            data={indicatorsData}
+            dataCfg={{
+              x: 'day',
+              y: 'count',
+              splitSeries: 'indicator'
+            }}
+            xAxis={{
+              type: 'datetime'
+            }}
+            tooltip={{
+              formatter: this.onTooltip
+            }} />
+        }
+      &lt;/div>
+    )
+  }
+  render() {
+    const {baseUrl, contextRoot} = this.context;
+    const {
+      datetime,
+      activeDateType,
+      contextAnchor,
+      indicatorsData,
+      indicatorsTrendData,
+      acuIndicatorsTrendData,
+      uplaodThreatsOpen,
+      addThreatsOpen,
+      importThreatsOpen,
+      searchThreatsOpen,
+      threats
+    } = this.state;
+
+    return (
+      &lt;div>
+        {addThreatsOpen &amp;&amp;
+          this.addThreatsDialog()
+        }
+
+        {uplaodThreatsOpen &amp;&amp;
+          this.uploadThreatsDialog()
+        }
+
+        {importThreatsOpen &amp;&amp;
+          this.importThreatsDialog()
+        }
+
+        {searchThreatsOpen &amp;&amp;
+          this.searchThreatsDialog()
+        }
+
+        &lt;div className='sub-header edge-options'>
+          &lt;ToggleButtonGroup
+            id='edgeBtns'
+            value={activeDateType}
+            exclusive
+            onChange={this.toggleDateRangeButtons}>
+            &lt;ToggleButton id='edgeToday' value='today'>{t('edge-management.txt-today')}&lt;/ToggleButton>
+            &lt;ToggleButton id='edgePast7days' value='past7days'>{t('edge-management.txt-past7days')}&lt;/ToggleButton>
+            &lt;ToggleButton id='edgeAllDays' value='allDays'>{t('edge-management.txt-allDays')}&lt;/ToggleButton>
+            &lt;ToggleButton id='edgeCustom' value='custom'>{t('edge-management.txt-customDate')}&lt;/ToggleButton>
+          &lt;/ToggleButtonGroup>
+
+          {activeDateType === 'custom' &amp;&amp;
+            &lt;SearchOptions
+              datetime={datetime}
+              enableTime={false}
+              handleDateChange={this.handleDateChange}
+              handleSearchSubmit={this.handleSearchSubmit} />
+          }
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
+
+          &lt;div className='parent-content'>
+            &lt;div className='main-content'>
+              &lt;header className='main-header'>{t('txt-threatIntelligence')}&lt;/header>
+              &lt;div className='content-header-btns'>
+                &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu}>&lt;span>{t('edge-management.txt-addThreat')}&lt;/span>&lt;/Button>
+                &lt;Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  &lt;MenuItem onClick={this.toggleAddThreats}>{t('edge-management.txt-addManually')}&lt;/MenuItem>
+                  &lt;MenuItem onClick={this.toggleUploadThreat}>{t('edge-management.txt-addMultiple') + '(.txt)'}&lt;/MenuItem>
+                  &lt;MenuItem onClick={this.toggleImportThreats}>{t('edge-management.txt-importTIMAP') + '(.zip)'}&lt;/MenuItem>
+                &lt;/Menu>
+                &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}&lt;/Button>
+              &lt;/div>
+
+              &lt;div className='main-statistics'>
+                &lt;div className='statistics-content'>
+                  {this.showPieChart(indicatorsData)}
+
+                  {this.showBarChart(indicatorsTrendData)}
+
+                  {activeDateType !== 'today' &amp;&amp;
+                    this.showLineChart(acuIndicatorsTrendData)
+                  }
+                &lt;/div>
+              &lt;/div>
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+ThreatIntelligence.contextType = BaseDataContext;
+
+ThreatIntelligence.propTypes = {
+};
+
+export default ThreatIntelligence;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/configuration/syslog/pattern.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/configuration/syslog/pattern.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router'
+import PropTypes from 'prop-types'
+import cx from 'classnames'
+
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
+
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
+import helper from '../../common/helper'
+import IncidentForm from '../../soc/common/incident-form'
+import MuiTableContent from '../../common/mui-table-content'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+const REQUIRED_FIELD = ['title', 'eventDescription', 'category', 'flowTemplateId', 'impactAssessment', 'severity'];
+const PERIOD_MIN = [10, 15, 30, 60];
+const PATTERN_SEARCH = {
+  name: '',
+  queryScript: ''
+};
+const INCIDENT_INFO = {
+  severity: 'Emergency',
+  impactAssessment: 4,
+  socType: 1
+};
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  },
+  queryScript: {
+    valid: true
+  },
+  threshold: {
+    valid: true
+  }
+};
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
+let at = null;
+
+/**
+ * Pattern
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Config Syslog Pattern page
+ */
+class Pattern extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+    at = global.chewbaccaI18n.getFixedT(null, 'account');    
+
+    this.state = {
+      activeContent: 'tableList', //'tableList', 'viewPattern', 'addPattern' or 'editPattern'
+      showFilter: false,
+      patternSearch: _.cloneDeep(PATTERN_SEARCH),
+      activeSteps: 1,
+      severitySelected: [],
+      originalPatternData: {},
+      severityList: [],
+      socFlowSourceList: [],
+      socFlowList: [],
+      periodMinList: [],
+      currentPatternData: '',
+      deviceListOptions: [],
+      showDeviceListOptions: [],
+      attach: null,
+      filesName: [],
+      pattern: {
+        dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'patternName',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: {
+          id: '',
+          name: '',
+          lastUpdateDttm: '',
+          severity: 'Emergency',
+          periodMin: 10,
+          threshold: 1,
+          queryScript: '',
+        },
+        withIncident: false
+      },
+      incident: {
+        dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
+        fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
+        flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: 'createDttm',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: _.cloneDeep(INCIDENT_INFO)
+      },
+      currentIncident: {},
+      originalIncident: {},
+      enableIncidentTemplate: null,
+      originalEnableIncidentTemplate: null,
+      incidentAccidentList: _.map(_.range(1, 6), el => {
+        return &lt;MenuItem value={el}>{it(`accident.${el}`)}&lt;/MenuItem>
+      }),
+      incidentAccidentSubList: [
+        _.map(_.range(11, 17), el => {
+          return &lt;MenuItem value={el}>{it(`accident.${el}`)}&lt;/MenuItem>
+        }),
+        _.map(_.range(21, 26), el => {
+          return &lt;MenuItem value={el}>{it(`accident.${el}`)}&lt;/MenuItem>
+        }),
+        _.map(_.range(31, 33), el => {
+          return &lt;MenuItem value={el}>{it(`accident.${el}`)}&lt;/MenuItem>
+        }),
+        _.map(_.range(41, 45), el => {
+          return &lt;MenuItem value={el}>{it(`accident.${el}`)}&lt;/MenuItem>
+        })
+      ],
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.setDefaultSearchOptions();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Set Severity checkbox filter and dropdown list
+   * @method
+   */
+  setDefaultSearchOptions = () => {
+    const {baseUrl, session} = this.context;
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+    const periodMinList = _.map(PERIOD_MIN, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/flow/_search`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    }).then(data => {
+      if (data) {
+        let flowSourceList = [];
+        const list = _.map(data.rt.rows, val => {
+          flowSourceList.push(val);
+          return &lt;MenuItem key={val.id} value={val.id}>{`${val.name}`}&lt;/MenuItem>
+        });
+
+        this.setState({
+          socFlowSourceList: flowSourceList,
+          socFlowList: list
+        });
+      }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({use:'1'}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return {
+            value: val.id,
+            text: val.deviceName
+          };
+        });
+
+        this.setState({
+          deviceListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({use: '2'}),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rt.rows, val => {
+          return {
+            value: val.id,
+            text: val.deviceName
+          };
+        });
+
+        this.setState({
+          showDeviceListOptions: list
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.setState({
+      severityList,
+      periodMinList
+    }, () => {
+      this.getPatternScript();
+    });
+  }
+  /**
+   * Get and set pattern script data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getPatternScript = (fromPage) => {
+    const {baseUrl, session} = this.context;
+    const {patternSearch, severitySelected, pattern} = this.state;
+    const page = fromPage === 'currentPage' ? pattern.currentPage : 0;
+    let query = '';
+
+    if (patternSearch.name) {
+      query += `&amp;patternName=${patternSearch.name}`;
+    }
+
+    if (patternSearch.queryScript) {
+      query += `&amp;queryScript=${patternSearch.queryScript}`;
+    }
+
+    if (severitySelected.length > 0) {
+      query += `&amp;severity=${severitySelected.join()}`;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/alert/pattern?accountId=${session.accountId}${query}&amp;page=${page + 1}&amp;pageSize=${pattern.pageSize}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempPattern = {...pattern};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempPattern.dataContent = [];
+          tempPattern.totalCount = 0;
+
+          this.setState({
+            pattern: tempPattern
+          });
+          return null;
+        }
+
+        tempPattern.dataContent = data.rows;
+        tempPattern.totalCount = data.counts;
+        tempPattern.currentPage = page;
+        tempPattern.dataFields = _.map(pattern.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`syslogPatternTableFields.${val}`),
+            options: {
+              sort: false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempPattern.dataContent[dataIndex];
+                const value = tempPattern.dataContent[dataIndex][val];
+
+                if (val === 'severity') {
+                  return &lt;span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}&lt;/span>
+                } else if (val === 'lastUpdateDttm') {
+                  return helper.getFormattedDate(value, 'local');
+                } else if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu menu active'>
+                      &lt;i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', allValue)} title={t('txt-view')}>&lt;/i>
+                      &lt;i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                    &lt;/div>
+                  )
+                }
+                return value;
+              }
+            }
+          };
+        });
+
+        this.setState({
+          pattern: tempPattern
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle different content
+   * @method
+   * @param {string} type - page type ('tableList', 'viewPattern', 'addPattern', editPattern' and 'cancel')
+   * @param {object} allValue - Severity data
+   */
+  toggleContent = (type, allValue) => {
+    const {originalPatternData, pattern, incident, originalIncident, originalEnableIncidentTemplate} = this.state;
+    let tempPattern = {...pattern};
+    let tempIncident = {...incident};
+    let showPage = type;
+
+    if (type === 'tableList') {
+      tempPattern.info = {
+        id: '',
+        name: '',
+        lastUpdateDttm: '',
+        severity: 'Emergency',
+        periodMin: 10,
+        threshold: 1,
+        queryScript: ''
+      };
+    } else if (type === 'viewPattern') {
+      tempPattern.info = {
+        id: allValue.patternId,
+        name: allValue.patternName,
+        lastUpdateDttm: allValue.lastUpdateDttm,
+        severity: allValue.severity,
+        periodMin: allValue.periodMin,
+        threshold: allValue.threshold,
+        queryScript: allValue.queryScript
+      };
+      tempPattern.withIncident = false;
+
+      if (allValue.incidentRuleTemplateDTO) {
+        tempPattern.withIncident = true;
+        tempIncident.info = {
+          ...allValue.incidentRuleTemplateDTO
+        };
+
+        tempIncident.info.impactAssessment = allValue.incidentRuleTemplateDTO.impact;
+        delete tempIncident.info.accountDTO;
+        delete tempIncident.info.accountQueryDTO;
+        delete tempIncident.info.alertPatternDTO;
+        delete tempIncident.info.createDttm;
+        delete tempIncident.info.updateDttm;
+        delete tempIncident.info.content;
+      } else {
+        tempIncident.info = _.cloneDeep(INCIDENT_INFO);
+      }
+
+      this.setState({
+        showFilter: false,
+        activeSteps: 1,
+        originalPatternData: _.cloneDeep(tempPattern),
+        incident: tempIncident,
+        originalIncident: _.cloneDeep(tempIncident),
+        enableIncidentTemplate: allValue.socTemplateEnable,
+        originalEnableIncidentTemplate: allValue.socTemplateEnable,
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
+    } else if (type === 'addPattern') {
+      tempIncident.info = _.cloneDeep(INCIDENT_INFO);
+
+      this.setState({
+        showFilter: false,
+        activeSteps: 1,
+        incident: tempIncident,
+        originalIncident: _.cloneDeep(tempIncident),
+        enableIncidentTemplate: false,
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
+    } else if (type === 'cancel') {
+      showPage = 'viewPattern';
+      tempPattern = _.cloneDeep(originalPatternData);
+
+      this.setState({
+        incident: _.cloneDeep(originalIncident),
+        enableIncidentTemplate: originalEnableIncidentTemplate
+      });
+    }
+
+    this.setState({
+      activeContent: showPage,
+      pattern: tempPattern
+    }, () => {
+      if (type === 'tableList') {
+        this.getPatternScript();
+      }
+    });
+  }
+  /**
+   * Handle Pattern edit input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handlePatternChange = (event) => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern.info[event.target.name] = event.target.value;
+
+    this.setState({
+      pattern: tempPattern
+    });
+  }
+  /**
+   * Toggle incident status switch
+   * @method
+   */
+  handleIncidentStatusChange = () => {
+    this.setState({
+      enableIncidentTemplate: !this.state.enableIncidentTemplate
+    });
+  }
+  /**
+   * Handle Incident data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleDataChange = (type, value) => {
+    let temp = {...this.state.incident};
+    temp.info[type] = value;
+
+    if (type === 'impactAssessment') {
+      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+    }
+
+    this.setState({
+      incident: temp
+    });
+  }
+  handleDataChangeMui = (event) => {
+    const {incident, socFlowSourceList} = this.state;
+    const name = event.target.name;
+    const value = event.target.value;
+    let tempIncident = {...incident};
+    tempIncident.info[name] = value;
+
+    if (name === 'severity') {
+      if (value === 'Emergency') {
+        tempIncident.info['impactAssessment'] = 4;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Alert') {
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Notice') {
+        tempIncident.info['impactAssessment'] = 1;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Warning') {
+        tempIncident.info['impactAssessment'] = 2;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      } else if (value === 'Critical') {
+        tempIncident.info['impactAssessment'] = 3;
+        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+      }
+    }
+
+    if (name === 'flowTemplateId') {
+      _.forEach(socFlowSourceList , flowVal => {
+        if (flowVal.id === value) {
+          if (flowVal.severity === 'Emergency') {
+            tempIncident.info['severity'] = 'Emergency';
+            tempIncident.info['impactAssessment'] = 4;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Alert') {
+            tempIncident.info['severity'] = 'Alert';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Notice') {
+            tempIncident.info['severity'] = 'Notice';
+            tempIncident.info['impactAssessment'] = 1;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Warning') {
+            tempIncident.info['severity'] = 'Warning';
+            tempIncident.info['impactAssessment'] = 2;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          } else if (flowVal.severity === 'Critical') {
+            tempIncident.info['severity'] = 'Critical';
+            tempIncident.info['impactAssessment'] = 3;
+            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+          }
+        }
+      })
+    }
+
+    if (name === 'impactAssessment') {
+      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+    }
+
+    this.setState({
+      incident: tempIncident
+    });
+  }
+  /**
+   * Handle file upload change
+   * @method
+   * @param {string} [options] - option for 'clear'
+   */
+  handleFileChange = (options) => {
+    const input = document.getElementById('multiMalware');
+    let filesName = [];
+
+    if (options === 'clear') {
+      this.setState({
+        attach: null,
+        filesName: ''
+      });
+      return;
+    }
+
+    if (_.size(input.files) > 0) {
+      const flag = new RegExp("[\`~!@#$^&amp;*()=|{}':;',\\[\\]&lt;>+《》/?~！@#￥……&amp;*（）——|{}【】‘；：”“'。，、？]");
+      let validate = true;
+
+      _.forEach(input.files, val => {
+        if (flag.test(val.name)) {
+          validate = false;
+          helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
+          return;
+        } else if (val.size > 20000000) {
+          validate = false;
+          helper.showPopupMsg(it('file-too-large'), t('txt-error'));
+          return;
+        } else {
+          filesName.push(val.name);
+        }
+      })
+
+      if (!validate) return;
+
+      this.setState({
+        attach: input.files,
+        filesName: filesName.join(', ')
+      });
+    }
+  }
+  handleConnectContactChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.notifyList = val;
+
+    this.setState({
+      incident: temp
+    });
+  }
+  handleEventsChange = (val) => {
+    let temp = {...this.state.incident};
+    temp.info.eventList = val;
+
+    this.setState({
+      incident: temp
+    });
+  }
+  toggleEstablishDateCheckbox = (event) => {
+    let tempIncident = {...this.state.incident};
+    tempIncident.info.enableEstablishDttm = event.target.checked;
+
+    this.setState({
+      incident: tempIncident
+    });
+  }
+  /**
+   * Display add/edit Pattern content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditPatternContent = () => {
+    const {
+      activeContent,
+      activeSteps,
+      severityList,
+      socFlowList,
+      periodMinList,
+      deviceListOptions,
+      showDeviceListOptions,
+      attach,
+      filesName,
+      pattern,
+      incident,
+      enableIncidentTemplate,
+      incidentAccidentList,
+      incidentAccidentSubList,
+      formValidation
+    } = this.state;
+    let pageType = '';
+
+    if (activeContent === 'addPattern') {
+      pageType = 'tableList';
+    } else if (activeContent === 'editPattern') {
+      pageType = 'cancel';
+    }
+
+    return (
+      &lt;div id='addPatternForm' className='main-content basic-form'>
+        &lt;header className='main-header'>{t('txt-systemDefinedPattern')}&lt;/header>
+
+        &lt;div className='content-header-btns'>
+          {activeContent === 'viewPattern' &amp;&amp;
+            &lt;div>
+              &lt;Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}&lt;/Button>
+              &lt;Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editPattern')}>{t('txt-edit')}&lt;/Button>
+            &lt;/div>
+          }
+        &lt;/div>
+
+        &lt;div style={{height: '70vh', overflowY: 'auto'}}>
+          &lt;div className='form-group normal'>
+            &lt;header>
+              &lt;div className='text'>{t('system-defined-pattern.txt-patternInfo')}&lt;/div>
+              {pattern.info.lastUpdateDttm &amp;&amp;
+                &lt;span className='msg'>{t('system-defined-pattern.txt-lastUpdateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}&lt;/span>
+              }
+            &lt;/header>
+            &lt;div className='group'>
+              &lt;TextField
+                id='patternName'
+                name='name'
+                label={f('syslogPatternTableFields.patternName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                error={!formValidation.name.valid}
+                helperText={formValidation.name.valid ? '' : t('txt-required')}
+                value={pattern.info.name}
+                onChange={this.handlePatternChange}
+                disabled={activeContent === 'viewPattern'} />
+            &lt;/div>
+            &lt;div className='group severity-level'>
+              &lt;i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}>&lt;/i>
+              &lt;TextField
+                id='severityLevel'
+                name='severity'
+                select
+                label={f('syslogPatternTableFields.severity')}
+                variant='outlined'
+                size='small'
+                value={pattern.info.severity}
+                onChange={this.handlePatternChange}
+                disabled={activeContent === 'viewPattern'}>
+                {severityList}
+              &lt;/TextField>
+            &lt;/div>
+            &lt;div className='group full'>
+              &lt;TextField
+                id='queryScript'
+                name='queryScript'
+                label={f('syslogPatternTableFields.queryScript')}
+                multiline
+                rows={4}
+                maxLength={250}
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                error={!formValidation.queryScript.valid}
+                helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
+                value={pattern.info.queryScript}
+                onChange={this.handlePatternChange}
+                disabled={activeContent === 'viewPattern'} />
+            &lt;/div>
+            &lt;div className='group full'>
+              &lt;div className='period'>
+                &lt;span className='support-text'>{t('events.connections.txt-patternQuery1')} &lt;/span>
+                &lt;TextField
+                  className='number'
+                  name='periodMin'
+                  select
+                  variant='outlined'
+                  size='small'
+                  required
+                  value={pattern.info.periodMin}
+                  onChange={this.handlePatternChange}
+                  disabled={activeContent === 'viewPattern'}>
+                  {periodMinList}
+                &lt;/TextField>
+                &lt;span className='support-text'> {t('events.connections.txt-patternQuery2')} &lt;/span>
+                &lt;TextField
+                  id='threshold'
+                  className='number'
+                  name='threshold'
+                  type='number'
+                  variant='outlined'
+                  size='small'
+                  InputProps={{inputProps: { min: 1, max: 1000 }}}
+                  required
+                  error={!formValidation.threshold.valid}
+                  helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
+                  value={pattern.info.threshold}
+                  onChange={this.handlePatternChange}
+                  disabled={activeContent === 'viewPattern'} />
+                &lt;span className='support-text'> {t('events.connections.txt-patternQuery3')}&lt;/span>
+              &lt;/div>
+            &lt;/div>
+            &lt;FormControlLabel
+              id='incidentTemplateSwitch'
+              className='switch-control'
+              control={
+                &lt;Switch
+                  checked={enableIncidentTemplate}
+                  onChange={this.handleIncidentStatusChange}
+                  color='primary' />
+              }
+              label={t('events.connections.txt-enableIncidentTemplate')}
+              disabled={activeContent === 'viewPattern'} />
+            {enableIncidentTemplate &amp;&amp;
+              &lt;div id='incidentSettingsForm' className='auto-settings'>
+                &lt;IncidentForm
+                  from='pattern'
+                  activeContent={activeContent}
+                  activeSteps={activeSteps}
+                  incident={incident}
+                  severityList={severityList}
+                  socFlowList={socFlowList}
+                  attach={attach}
+                  filesName={filesName}
+                  requiredField={REQUIRED_FIELD}
+                  deviceListOptions={deviceListOptions}
+                  showDeviceListOptions={showDeviceListOptions}
+                  incidentAccidentList={incidentAccidentList}
+                  incidentAccidentSubList={incidentAccidentSubList}
+                  handleDataChange={this.handleDataChange}
+                  handleDataChangeMui={this.handleDataChangeMui}
+                  handleFileChange={this.handleFileChange}
+                  handleConnectContactChange={this.handleConnectContactChange}
+                  handleEventsChange={this.handleEventsChange}
+                  toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
+              &lt;/div>
+            }
+          &lt;/div>
+        &lt;/div>
+
+        {(activeContent === 'addPattern' || activeContent === 'editPattern') &amp;&amp;
+          &lt;footer>
+            &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.handlePatternSubmit}>{t('txt-save')}&lt;/Button>
+          &lt;/footer>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Display delete Pattern content
+   * @method
+   * @param {object} allValue - Pattern data
+   * @returns HTML DOM
+   */
+  getDeletePatternContent = (allValue) => {
+    this.setState({
+      currentPatternData: allValue
+    });
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {allValue.patternName}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show Delete Pattern dialog
+   * @method
+   * @param {object} allValue - Pattern data
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('system-defined-pattern.txt-deletePattern'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeletePatternContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteSeverity();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Pattern confirm
+   * @method
+   */
+  deleteSeverity = () => {
+    const {baseUrl} = this.context;
+    const {currentPatternData} = this.state;
+
+    if (!currentPatternData.patternId) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/alert/pattern?patternId=${currentPatternData.patternId}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getPatternScript();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle Pattern add/edit confirm
+   * @method
+   */
+  handlePatternSubmit = () => {
+    const {baseUrl, session} = this.context;
+    const {activeContent, pattern, incident, originalIncident, enableIncidentTemplate, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+    let requestType = '';
+
+    if (!session.accountId) {
+      return;
+    }
+
+    if (pattern.info.name) {
+      formValidation.name.valid = true;
+    } else {
+      formValidation.name.valid = false;
+      validate = false;
+    }
+
+    if (pattern.info.queryScript) {
+      formValidation.queryScript.valid = true;
+    } else {
+      formValidation.queryScript.valid = false;
+      validate = false;
+    }
+
+    if (pattern.info.threshold &lt; 0 || pattern.info.threshold > 1000) {
+      formValidation.threshold.valid = false;
+      validate = false;
+    } else {
+      formValidation.threshold.valid = true;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    let requestData = {
+      accountId: session.accountId,
+      patternName: pattern.info.name,
+      severity: pattern.info.severity,
+      queryScript: pattern.info.queryScript,
+      periodMin: Number(pattern.info.periodMin),
+      threshold: Number(pattern.info.threshold),
+      socTemplateEnable: enableIncidentTemplate
+    };
+
+    if (enableIncidentTemplate) {
+      requestData.incidentRuleTemplateDTO = {
+        ...incident.info,
+        impact: incident.info.impactAssessment,
+        limitQuery: 10,
+        creator: session.accountId
+      };
+
+      _.forEach(REQUIRED_FIELD, val => { //Check required field for Incident
+        if (!incident.info[val]) {
+          PopupDialog.alert({
+            title: t('txt-tips'),
+            display: t('txt-checkRequiredFieldType'),
+            confirmText: t('txt-close')
+          });
+          validate = false;
+          return false;
+        }
+      })
+
+      if (!validate) {
+        return;
+      }
+    } else {
+      if (activeContent === 'editPattern' &amp;&amp; pattern.withIncident) {
+        requestData.incidentRuleTemplateDTO = {
+          ...originalIncident.info
+        };
+      }
+    }
+
+    if (activeContent === 'addPattern') {
+      requestType = 'POST';
+    } else if (activeContent === 'editPattern') {
+      requestData.patternId = pattern.info.id;
+      requestType = 'PATCH';
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/alert/pattern`,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.setState({
+        originalPatternData: _.cloneDeep(pattern),
+        originalIncident: _.cloneDeep(incident),
+        originalEnableIncidentTemplate: _.cloneDeep(enableIncidentTemplate)
+      }, () => {
+        let showPage = '';
+
+        if (activeContent === 'addPattern') {
+          showPage = 'tableList';
+        } else if (activeContent === 'editPattern') {
+          showPage = 'cancel';
+        }
+
+        this.toggleContent(showPage);
+      })
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handlePatternSearch = (event) => {
+    let tempPatternSearch = {...this.state.patternSearch};
+    tempPatternSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      patternSearch: tempPatternSearch
+    });
+  }
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.severitySelected, val);
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (event) => {
+    let severitySelected = _.cloneDeep(this.state.severitySelected);
+
+    if (event.target.checked) {
+      severitySelected.push(event.target.name);
+    } else {
+      const index = severitySelected.indexOf(event.target.name);
+      severitySelected.splice(index, 1);
+    }
+
+    this.setState({
+      severitySelected
+    });
+  }
+  /**
+   * Display Severity checkbox group
+   * @method
+   * @param {string} val - severity level
+   * @param {number} i - index of the severity level list
+   * @returns HTML DOM
+   */
+  displaySeverityCheckbox = (val, i) => {
+    return (
+      &lt;div key={val + i} className='option'>
+        &lt;FormControlLabel
+          label={val}
+          control={
+            &lt;Checkbox
+              id={val}
+              className='checkbox-ui'
+              name={val}
+              checked={this.checkSelectedItem(val)}
+              onChange={this.toggleCheckbox}
+              color='primary' />
+          } />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {showFilter, patternSearch} = this.state;
+
+    return (
+      &lt;div className={cx('main-filter', {'active': showFilter})}>
+        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
+        &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
+        &lt;div className='filter-section config'>
+          &lt;div className='group'>
+            &lt;TextField
+              id='patternSearchName'
+              name='name'
+              label={f('syslogPatternTableFields.patternName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={patternSearch.name}
+              onChange={this.handlePatternSearch} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;TextareaAutosize
+              id='patternSearchQueryScript'
+              className='textarea-autosize'
+              name='queryScript'
+              placeholder={f('syslogPatternTableFields.queryScript')}
+              value={patternSearch.queryScript}
+              onChange={this.handlePatternSearch} />
+          &lt;/div>
+          &lt;div className='severity'>
+            &lt;div className='group group-checkbox narrow'>
+              &lt;div className='group-options'>
+                {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}
+              &lt;/div>
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='button-group group-aligned'>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.getPatternScript}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern.sort.field = field;
+    tempPattern.sort.desc = sort;
+
+    this.setState({
+      pattern: tempPattern
+    }, () => {
+      this.getPatternScript();
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern[type] = Number(value);
+
+    this.setState({
+      pattern: tempPattern
+    }, () => {
+      this.getPatternScript(type);
+    });
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      patternSearch: _.cloneDeep(PATTERN_SEARCH),
+      severitySelected: []
+    });
+  }
+  render() {
+    const {baseUrl, contextRoot} = this.context;
+    const {activeContent, showFilter, pattern} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+            }
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
+
+          &lt;div className='parent-content'>
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{t('txt-systemDefinedPattern')}&lt;/header>
+
+                &lt;div className='content-header-btns with-menu'>
+                  &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')} data-cy='add-pattern'>{t('system-defined-pattern.txt-addPatternScript')}&lt;/Button>
+                &lt;/div>
+
+                &lt;MuiTableContent
+                  data={pattern}
+                  tableOptions={tableOptions} />
+              &lt;/div>
+            }
+
+            {(activeContent === 'viewPattern' || activeContent === 'addPattern' || activeContent === 'editPattern') &amp;&amp;
+              this.displayEditPatternContent()
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+Pattern.contextType = BaseDataContext;
+
+Pattern.propTypes = {
+};
+
+export default Pattern;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

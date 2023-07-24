@@ -28,28 +28,61 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
-import cx from 'classnames'
+import _ from 'lodash'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import {ReactMultiEmail} from 'react-multi-email'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from './context'
 import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+const PERIOD_MIN = [10, 15, 30, 60];
+const FORM_VALIDATION = {
+  queryName: {
+    valid: true,
+    msg: ''
+  },
+  title: {
+    valid: true,
+    msg: ''
+  },
+  eventDescription: {
+    valid: true,
+    msg: ''
+  }
+};
+
 let t = null;
+let f = null;
 let et = null;
+let it = null;
 
 /**
  * Query open/save
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Query open/save menu
  */
 class QueryOpenSave extends Component {
@@ -57,86 +90,435 @@ class QueryOpenSave extends Component {
     super(props);
 
     this.state = {
+      queryList: [],
+      activeQuery: {},
+      severityList: [],
+      periodMinList: [],
       newQueryName: true,
+      pattern: {
+        name: '',
+        aggColumn: '',
+        periodMin: 10,
+        threshold: 1,
+        severity: 'Emergency'
+      },
+      soc: {
+        id: '',
+        severity: 'Emergency',
+        limitQuery: 10,
+        title: '',
+        eventDescription: '',
+        impact: 4,
+        category: 1,
+        status: true
+      },
+      activePatternId: '',
+      patternCheckbox: false,
+      publicCheckbox: false,
+      socTemplateEnable: false,
+      dialogOpenType: '',
       info: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setQueryList();
+    this.setSeverityList();
+    this.setPatternData();
+  }
+  /**
+   * Set query list
+   * @method
+   * @param {array.&lt;object>} [list] - query list to be set
+   */
+  setQueryList = (list) => {
+    const {type, queryData, queryDataPublic} = this.props;
+    let dataList = list;
+
+    if (!list) {
+      if (type === 'open') {
+        dataList = queryData.list;
+      } else if (type === 'publicOpen') {
+        dataList = queryDataPublic.list;
+      }
+    }
+
+    const queryList = _.map(dataList, val => {
+      return {
+        value: val.id,
+        text: val.name
+      }
+    });
+
+    this.setState({
+      queryList,
+      activeQuery: queryList[0]
+    }, () => {
+      if (this.props.type === 'open' ||this.props.type === 'publicOpen') {
+        if (queryList.length > 0) {
+          this.getQuerySOCValue(queryList[0]);
+        }
+      }
+    });
+  }
+  /**
+   * Set severity list
+   * @method
+   */
+  setSeverityList = () => {
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+    const periodMinList = _.map(PERIOD_MIN, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+
+    this.setState({
+      severityList,
+      periodMinList
+    });
+  }
+  /**
+   * Set pattern data
+   * @method
+   */
+  setPatternData = () => {
+    this.setState({
+      pattern: {
+        ...this.props.queryData.pattern
+      }
+    });
+  }
+  getQuerySOCValue = (activeQuery) => {
+    const {queryData, queryDataPublic, type} = this.props;
+    const {baseUrl} = this.context;
+    let tempQueryData = []
+
+    if (type === 'open' || type === 'save') {
+      tempQueryData = {...queryData};
+    } else if (type === 'publicOpen' || type === 'publicSave') {
+      tempQueryData = {...queryDataPublic};
+    }
+
+    let url = `${baseUrl}/api/soc/template?id=${activeQuery.value}`;
+    this.ah.one({
+      url,
+      type: 'GET',
+      contentType: 'text/plain'
+    }).then(data => {
+      if (data) {
+        tempQueryData.soc = {
+          id: data.id,
+          title: data.title,
+          eventDescription: data.eventDescription,
+          category: data.category,
+          impact: data.impact,
+          severity: data.severity,
+          limitQuery: data.limitQuery,
+          status: data.status
+        };
+
+        this.props.setQueryData(tempQueryData);
+
+        this.setState({
+          socTemplateEnable: true,
+          soc: tempQueryData.soc
+        });
+      } else {
+        tempQueryData.soc = {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          status: true
+        };
+
+        this.props.setQueryData(tempQueryData);
+
+        this.setState({
+          socTemplateEnable: false,
+        });
+      }
+      return null;
+    }).catch(err => {
+      this.setState({
+        socTemplateEnable: false
+      });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  getQuerySOCValueById = (id) => {
+    const {queryData, type} = this.props;
+    const {baseUrl} = this.context;
+    let tempQueryData = []
+
+    if (type === 'open' || type === 'save') {
+      tempQueryData = {...queryData};
+    }
+
+    let url = `${baseUrl}/api/soc/template?id=${id}`;
+    this.ah.one({
+      url,
+      type: 'GET',
+      contentType: 'text/plain'
+    }).then(data => {
+      if (data) {
+        tempQueryData.soc = {
+          id: data.id,
+          title: data.title,
+          eventDescription: data.eventDescription,
+          category: data.category,
+          impact: data.impact,
+          severity: data.severity,
+          limitQuery: data.limitQuery,
+          status: data.status
+        };
+
+        this.setState({
+          socTemplateEnable: true,
+          soc: tempQueryData.soc
+        });
+      } else {
+        tempQueryData.soc = {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          status: true
+        };
+
+        this.setState({
+          socTemplateEnable: false
+        });
+      }
+      return null;
+    }).catch(err => {
+      this.setState({
+        socTemplateEnable: false
+      });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Clear error info message
+   * @method
+   */
+  clearErrorInfo = () => {
+    this.setState({
+      info: ''
+    });
   }
   /**
    * Set and close query menu
    * @method
-   * @param {string} type - query type ('open' or 'save')
    */
-  handleQueryAction = (type) => {
-    const {activeTab, filterData, queryData, markData} = this.props;
+  handleQueryAction = () => {
+    const {pattern, patternCheckbox, publicCheckbox} = this.state;
+    const {page, type, filterData, queryData, queryDataPublic, markData, moduleWithSOC} = this.props;
 
-    if (type === 'open') {
-      let tempQueryData = {...queryData};
-      tempQueryData.openFlag = true;
-      tempQueryData.displayId = queryData.id;
-      tempQueryData.displayName = queryData.name;
+    if (type === 'open' || type === 'publicOpen') {
+      if (type === 'open') {
+        let tempQueryData = {...queryData};
+        tempQueryData.openFlag = true;
+        tempQueryData.displayId = queryData.id;
+        tempQueryData.displayName = queryData.name;
 
-      this.props.setQueryData(tempQueryData);
+        this.props.setQueryData(tempQueryData, 'setQuery');
 
-      if (queryData.query) {
-        if (activeTab === 'logs') {
-          let formattedMarkData = [];
+        if (queryData.query) {
+          if (page === 'hostList') {
+            this.props.setFilterData(queryData.query);
+          } else {
+            if (page === 'logs') {
+              let formattedMarkData = [];
 
-          _.forEach(queryData.query.search, val => {
-            if (val) {
-              formattedMarkData.push({
-                data: val
-              });
+              _.forEach(queryData.query.search, val => {
+                if (val) {
+                  formattedMarkData.push({
+                    data: val
+                  });
+                }
+              })
+              this.props.setMarkData(formattedMarkData);
             }
-          })
-          this.props.setMarkData(formattedMarkData);
+            this.props.setFilterData(queryData.query.filter);
+            this.props.setNotifyEmailData([]);
+          }
         }
+      } else if (type === 'publicOpen') {
+        let tempQueryDataPublic = {...queryDataPublic};
+        tempQueryDataPublic.openFlag = true;
+        tempQueryDataPublic.displayId = queryDataPublic.id;
+        tempQueryDataPublic.displayName = queryDataPublic.name;
 
-        this.props.setFilterData(queryData.query.filter);
+        this.props.setQueryData(tempQueryDataPublic, 'setQuery');
+
+        if (queryDataPublic.query) {
+          if (page === 'logs') {
+            let formattedMarkData = [];
+
+            _.forEach(queryDataPublic.query.search, val => {
+              if (val) {
+                formattedMarkData.push({
+                  data: val
+                });
+              }
+            })
+            this.props.setMarkData(formattedMarkData);
+          }
+          this.props.setFilterData(queryDataPublic.query.filter);
+        }
       }
-    } else if (type === 'save') {
-      const {baseUrl, account, queryData} = this.props;
-      const {newQueryName} = this.state;
+    } else if (type === 'save' || type === 'publicSave') {
+      const {baseUrl} = this.context;
+      const {page, account, queryData, queryDataPublic, notifyEmailData} = this.props;
+      const {newQueryName, soc, socTemplateEnable, formValidation} = this.state;
+      let tempFormValidation = {...formValidation};
       let tempFilterData = [];
       let url = '';
       let queryText = {};
-      let queryString = [];
+      let emailList = [];
+      let requestData = {};
       let requestType = '';
-      let data = {};
+      let validate = true;
 
-      _.forEach(filterData, val => {
-        if (val.query) {
-          tempFilterData.push({
-            condition: val.condition,
-            query: val.query
-          });
-        }
-      })
+      if (page !== 'hostList') {
+        _.forEach(filterData, val => {
+          if (val.query) {
+            tempFilterData.push({
+              condition: val.condition,
+              query: val.query
+            });
+          }
+        })
 
-      if (_.isEmpty(tempFilterData)) { //Close Save dialog if filterData is empty
-        this.props.closeDialog();
-        return;
-      }
-
-      if (newQueryName) {
-        if (!queryData.inputName) {
-          this.setState({
-            info: t('events.connections.txt-noOpenQuery')
-          });
+        if (_.isEmpty(tempFilterData)) { //Close Save dialog if filterData is empty
+          this.props.closeDialog();
           return;
         }
       }
 
-      if (activeTab === 'alert') {
+      if (newQueryName) { //Form validation
+        if (queryData.inputName || (queryDataPublic &amp;&amp; queryDataPublic.inputName)) {
+          const specialCharTest = /[\[\]&lt;>?]+/; //[]&lt;> are not allowed
+
+          if (specialCharTest.test(queryData.inputName || (queryDataPublic &amp;&amp; queryDataPublic.inputName))) {
+            tempFormValidation.queryName.valid = false;
+            tempFormValidation.queryName.msg = t('txt-checkRequiredFieldType');
+            validate = false;
+          } else {
+            tempFormValidation.queryName.valid = true;
+            tempFormValidation.queryName.msg = '';
+          }
+        } else {
+          tempFormValidation.queryName.valid = false;
+          tempFormValidation.queryName.msg = t('txt-required');
+          validate = false;
+        }
+
+        if (socTemplateEnable) {
+          if (soc.title) {
+            const specialCharTest = /[\[\]&lt;>?]+/; //[]&lt;> are not allowed
+
+            if (specialCharTest.test(soc.title)) {
+              tempFormValidation.title.valid = false;
+              tempFormValidation.title.msg = t('txt-checkRequiredFieldType');
+              validate = false;
+            } else {
+              tempFormValidation.title.valid = true;
+              tempFormValidation.title.msg = '';
+            }
+          } else {
+            tempFormValidation.title.valid = false;
+            tempFormValidation.title.msg = t('txt-required');
+            validate = false;
+          }
+
+          if (soc.eventDescription) {
+            const specialCharTest = /[\[\]&lt;>?]+/; //[]&lt;> are not allowed
+
+            if (specialCharTest.test(soc.eventDescription)) {
+              tempFormValidation.eventDescription.valid = false;
+              tempFormValidation.eventDescription.msg = t('txt-checkRequiredFieldType');
+              validate = false;
+            } else {
+              tempFormValidation.eventDescription.valid = true;
+              tempFormValidation.eventDescription.msg = '';
+            }
+          } else {
+            tempFormValidation.eventDescription.valid = false;
+            tempFormValidation.eventDescription.msg = t('txt-required');
+            validate = false;
+          }
+        }
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
+      }
+
+      if (type === 'save' &amp;&amp; page === 'logs') { //Form validation
+        if (patternCheckbox) {
+          if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
+            this.setState({
+              info: t('txt-allRequired')
+            });
+            return;
+          } else {
+            this.clearErrorInfo();
+          }
+
+          if (pattern.threshold > 1000) {
+            this.setState({
+              info: t('events.connections.txt-threasholdMax')
+            });
+            return;
+          } else {
+            this.clearErrorInfo();
+          }
+        }
+      }
+
+      if (page === 'hostList') {
+        url = `${baseUrl}/api/account/host/queryText`;
+
+        Object.keys(filterData).map(val => {
+          if (filterData[val].length > 0) {
+            if (val === 'status' || val === 'annotation') {
+              queryText.annotationObj = {
+                statusArray: filterData.status,
+                annotationArray: filterData.annotation
+              };
+            } else {
+              const type = val + 'Array';
+              queryText[type] = filterData[val];
+            }
+          }
+        });
+      } else if (page === 'alert') {
         url = `${baseUrl}/api/account/alert/queryText`;
         queryText = {
           filter: filterData
         };
-      } else if (activeTab === 'logs') {
+      } else if (page === 'logs') {
         let markDataArr = [];
-        url = `${baseUrl}/api/account/syslog/queryText`;
+        url = `${baseUrl}/api/v1/account/syslog/queryText`;
 
         _.forEach(markData, val => {
           if (val.data) {
@@ -156,34 +538,273 @@ class QueryOpenSave extends Component {
       }
 
       if (newQueryName) {
-        requestType = 'POST';
-        data = {
-          accountId: account.id,
-          name: queryData.inputName,
+        let accountId = '';
+        let queryName = '';
+
+        if (type === 'publicSave') {
+          accountId = 'IsPublic';
+          queryName = queryDataPublic.inputName;
+        } else if (type === 'save') {
+          if (page === 'alert') {
+            if (publicCheckbox) {
+              accountId = 'Default';
+              queryName = queryData.inputName;
+            } else {
+              accountId = account.id;
+              queryName = queryData.inputName;
+            }
+          } else {
+            if (publicCheckbox) {
+              accountId = 'IsPublic';
+              queryName = queryData.inputName;
+            } else {
+              accountId = account.id;
+              queryName = queryData.inputName;
+            }
+          }
+        }
+
+        requestData = {
+          accountId,
+          name: queryName,
           queryText
         };
+
+        requestType = 'POST';
       } else {
-        requestType = 'PATCH';
-        data = {
-          id: queryData.id,
+        let queryId = '';
+        let accountId = '';
+
+        if (type === 'publicSave') {
+          queryId = queryDataPublic.id;
+          accountId = 'IsPublic';
+        } else if (type === 'save') {
+          if (page === 'alert') {
+            if (publicCheckbox) {
+              accountId = 'Default';
+            } else {
+              accountId = account.id;
+            }
+          }
+          queryId = queryData.id;
+          accountId = account.id;
+        }
+
+        requestData = {
+          id: queryId,
+          accountId,
           name: this.getQueryName(),
           queryText
         };
+
+        if (type === 'save' &amp;&amp; patternCheckbox) {
+          if (page !== 'alert') {
+            requestData.patternId = queryData.patternId;
+          }
+        }
+
+        requestType = 'PATCH';
       }
 
-      helper.getAjaxData(requestType, url, data)
+      if (type === 'save' &amp;&amp; page === 'alert') {
+        requestData.emailList = notifyEmailData;
+      }
+
+      if (type === 'save' &amp;&amp; page === 'logs') {
+        requestData.aggColumn = pattern.aggColumn;
+
+        if (patternCheckbox) {
+          requestData.emailList = notifyEmailData;
+
+          if (pattern.severity) {
+            requestData.severity = pattern.severity;
+          }
+
+          if (pattern.periodMin) {
+            requestData.periodMin = Number(pattern.periodMin);
+          }
+
+          if (pattern.threshold) {
+            requestData.threshold = Number(pattern.threshold);
+          }
+
+          requestData.isPublic = publicCheckbox;
+        } else { //Pattern script checkbox is unchecked
+          requestData.emailList = [];
+
+          this.setState({
+            activePatternId: ''
+          });
+        }
+      }
+
+      this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: requestType,
+        contentType: 'text/plain'
+      })
       .then(data => {
         if (data) {
-          PopupDialog.alert({
-            id: 'queryModal',
-            confirmText: t('txt-close'),
-            display: &lt;div>{t('events.connections.txt-querySaved')}&lt;/div>
+          if (moduleWithSOC &amp;&amp; type === 'save') {
+            if (requestType === 'PATCH') {
+              let socRequestBody = {
+                id: requestData.id,
+                title: soc.title,
+                eventDescription: soc.eventDescription,
+                category: soc.category,
+                impact: soc.impact,
+                limitQuery: soc.limitQuery,
+                creator: account.id
+              };
+              if (page === 'alert') {
+                socRequestBody.severity = soc.severity;
+              }
+              if (page === 'logs') {
+                socRequestBody.severity = pattern.severity;
+              }
+              if (this.state.socTemplateEnable) {
+                this.ah.one({
+                  url: `${baseUrl}/api/soc/template`,
+                  data: JSON.stringify(socRequestBody),
+                  type: 'POST',
+                  contentType: 'text/plain'
+                }).then(data => {
+                  if (data) {
+
+                  }
+                  return null;
+                }).catch(err => {
+                  helper.showPopupMsg('', t('txt-error'), err.message);
+                }).finally(err => {
+                  helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                  this.props.getSavedQuery();
+                  this.setState({
+                    socTemplateEnable: false,
+                    soc: {
+                      id: '',
+                      severity: 'Emergency',
+                      limitQuery: 10,
+                      title: '',
+                      eventDescription: '',
+                      impact: 4,
+                      category: 1,
+                      status: true
+                    }
+                  });
+                })
+              } else {
+                this.ah.one({
+                  url: `${baseUrl}/api/soc/template?id=${requestData.id}`,
+                  type: 'DELETE',
+                }).then(data => {
+                  if (data) {
+
+                  }
+                  return null;
+                }).catch(err => {
+                  helper.showPopupMsg('', t('txt-error'), err.message);
+                }).finally(err => {
+                  helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                  this.props.getSavedQuery();
+                  this.setState({
+                    socTemplateEnable: false,
+                    soc: {
+                      id: '',
+                      severity: 'Emergency',
+                      limitQuery: 10,
+                      title: '',
+                      eventDescription: '',
+                      impact: 4,
+                      category: 1,
+                      status: true
+                    }
+                  });
+                })
+              }
+            } else {
+              if (this.state.socTemplateEnable &amp;&amp; (page === 'alert' || page === 'logs')) {
+                let socRequestBody = {
+                  id: data.id,
+                  title: soc.title,
+                  eventDescription: soc.eventDescription,
+                  category: soc.category,
+                  impact: soc.impact,
+                  limitQuery: soc.limitQuery,
+                  creator: account.id
+                };
+
+                if (page === 'alert') {
+                  socRequestBody.severity = soc.severity;
+                }
+
+                if (page === 'logs') {
+                  socRequestBody.severity = pattern.severity;
+                }
+
+                this.ah.one({
+                  url: `${baseUrl}/api/soc/template`,
+                  data: JSON.stringify(socRequestBody),
+                  type: 'POST',
+                  contentType: 'text/plain'
+                }).then(data => {
+                  if (data) {
+
+                  }
+                  return null;
+                }).catch(err => {
+                  helper.showPopupMsg('', t('txt-error'), err.message);
+                }).finally(err => {
+                  helper.showPopupMsg(t('events.connections.txt-querySaved'));
+                  this.props.getSavedQuery();
+                  this.setState({
+                    socTemplateEnable: false,
+                    soc: {
+                      id: '',
+                      severity: 'Emergency',
+                      limitQuery: 10,
+                      title: '',
+                      eventDescription: '',
+                      impact: 4,
+                      category: 1
+                    }
+                  });
+                })
+              }
+            }
+          }
+          helper.showPopupMsg(t('events.connections.txt-querySaved'));
+          this.props.getSavedQuery();
+
+          this.setState({
+            socTemplateEnable: false,
+            soc: {
+              id: '',
+              severity: 'Emergency',
+              limitQuery: 10,
+              title: '',
+              eventDescription: '',
+              impact: 4,
+              category: 1
+            }
           });
 
-          this.props.getSavedQuery();
+          this.props.setNotifyEmailData([]);
+
+          helper.showPopupMsg(t('events.connections.txt-querySaved'));
+
+          if (type === 'save') {
+            this.props.getSavedQuery();
+            this.props.setNotifyEmailData([]);
+          } else if (type === 'publicSave') {
+            this.props.getPublicSavedQuery();
+          }
         }
         return null;
-      });
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
     this.props.closeDialog();
   }
@@ -193,11 +814,21 @@ class QueryOpenSave extends Component {
    * @returns matched query name
    */
   getQueryName = () => {
-    const {queryData} = this.props;
+    const {type, queryData, queryDataPublic} = this.props;
+    let queryList = '';
+    let query = '';
     let queryName = '';
 
-    _.forEach(queryData.list, val => {
-      if (val.id === queryData.id) {
+    if (type === 'save') {
+      queryList = queryData.list;
+      query = queryData;
+    } else if (type === 'publicSave') {
+      queryList = queryDataPublic.list;
+      query = queryDataPublic;
+    }
+
+    _.forEach(queryList, val => {
+      if (val.id === query.id) {
         queryName = val.name;
         return false;
       }
@@ -211,9 +842,18 @@ class QueryOpenSave extends Component {
    * @returns HTML DOM
    */
   getDeleteQueryContent = () => {
+    const {type, queryData, queryDataPublic} = this.props;
+    let queryName = '';
+
+    if (type === 'open') {
+      queryName = queryData.name;
+    } else if (type === 'publicOpen') {
+      queryName = queryDataPublic.name;
+    }
+
     return (
       &lt;div className='content delete'>
-        &lt;span>{t('txt-delete-msg')}: {this.getQueryName()}?&lt;/span>
+        &lt;span>{t('txt-delete-msg')}: {queryName}?&lt;/span>
       &lt;/div>
     )
   }
@@ -240,15 +880,29 @@ class QueryOpenSave extends Component {
    * @method
    */
   deleteFilterQuery = () => {
-    const {baseUrl, activeTab, queryData} = this.props;
+    const {baseUrl} = this.context;
+    const {page, type, queryData, queryDataPublic} = this.props;
+    let queryId = '';
     let url = '';
 
-    if (activeTab === 'alert') {
-      url = `${baseUrl}/api/account/alert/queryText?id=${queryData.id}`;
-    } else if (activeTab === 'logs') {
-      url = `${baseUrl}/api/account/syslog/queryText?id=${queryData.id}`;
+    if (type === 'open' &amp;&amp; !queryData.id) {
+      return;
+    } else if (type === 'publicOpen' &amp;&amp; !queryDataPublic.id) {
+      return;
+    }
+
+    if (type === 'open') {
+      queryId = queryData.id;
+    } else if (type === 'publicOpen') {
+      queryId = queryDataPublic.id;
+    }
+
+    if (page === 'alert') {
+      url = `${baseUrl}/api/account/alert/queryText?id=${queryId}`;
+    } else if (page === 'logs') {
+      url = `${baseUrl}/api/v1/account/syslog/queryText?id=${queryId}`;
     } else {
-      url = `${baseUrl}/api/account/event/queryText?id=${queryData.id}`;
+      url = `${baseUrl}/api/account/event/queryText?id=${queryId}`;
     }
 
     this.ah.one({
@@ -259,26 +913,91 @@ class QueryOpenSave extends Component {
       if (data) {
         let newQueryList = [];
         let tempQueryData = {...queryData};
+        let tempQueryDataPublic = {...queryDataPublic};
 
-        _.forEach(queryData.list, val => {
-          if (val.id !== queryData.id) {
-            newQueryList.push(val);
-          }
-        })
-
-        if (newQueryList.length > 0) {
-          tempQueryData.id = newQueryList[0].id;
-          tempQueryData.name = newQueryList[0].name;
-          tempQueryData.list = newQueryList;
-          tempQueryData.query = newQueryList[0].queryText;
-        } else {
-          tempQueryData.id = '';
-          tempQueryData.name = '';
-          tempQueryData.list = [];
-          tempQueryData.query = '';
+        if (type === 'open') {
+          _.forEach(queryData.list, val => {
+            if (val.id !== queryData.id) {
+              newQueryList.push(val);
+            }
+          })
+        } else if (type === 'publicOpen') {
+          _.forEach(queryDataPublic.list, val => {
+            if (val.id !== queryDataPublic.id) {
+              newQueryList.push(val);
+            }
+          })
         }
 
-        this.props.setQueryData(tempQueryData);
+        if (newQueryList.length > 0) {
+          if (type === 'open') {
+            tempQueryData.id = newQueryList[0].id;
+            tempQueryData.name = newQueryList[0].name;
+            tempQueryData.list = newQueryList;
+            tempQueryData.query = newQueryList[0].queryText;
+            tempQueryData.emailList = newQueryList[0].emailList;
+
+            if (page === 'logs') {
+              tempQueryData.patternId = '';
+              tempQueryData.pattern = {
+                name: '',
+                aggColumn: '',
+                periodMin: 10,
+                threshold: 1,
+                severity: ''
+              };
+
+              if (newQueryList[0].patternId) {
+                tempQueryData.patternId = newQueryList[0].patternId;
+              }
+
+              if (newQueryList[0].patternName) {
+                tempQueryData.pattern.name = newQueryList[0].patternName;
+              }
+
+              if (newQueryList[0].aggColumn) {
+                tempQueryData.pattern.name = newQueryList[0].aggColumn;
+              }
+
+              if (newQueryList[0].periodMin) {
+                tempQueryData.pattern.periodMin = newQueryList[0].periodMin;
+              }
+
+              if (newQueryList[0].threshold) {
+                tempQueryData.pattern.threshold = newQueryList[0].threshold;
+              }
+
+              if (newQueryList[0].severity) {
+                tempQueryData.pattern.severity = newQueryList[0].severity;
+              }
+            }
+          } else if (type === 'publicOpen') {
+            tempQueryDataPublic.id = newQueryList[0].id;
+            tempQueryDataPublic.name = newQueryList[0].name;
+            tempQueryDataPublic.list = newQueryList;
+            tempQueryDataPublic.query = newQueryList[0].queryText;
+          }
+        } else {
+          if (type === 'open') {
+            tempQueryData.id = '';
+            tempQueryData.name = '';
+            tempQueryData.list = [];
+            tempQueryData.query = '';
+          } else if (type === 'publicOpen') {
+            tempQueryDataPublic.id = '';
+            tempQueryDataPublic.name = '';
+            tempQueryDataPublic.list = [];
+            tempQueryDataPublic.query = '';
+          }
+        }
+
+        if (type === 'open') {
+          this.props.setQueryData(tempQueryData);
+        } else if (type === 'publicOpen') {
+          this.props.setQueryData(tempQueryDataPublic);
+        }
+
+        this.setQueryList(newQueryList);
       } else {
         helper.showPopupMsg('', t('txt-error'), err.message);
       }
@@ -286,19 +1005,19 @@ class QueryOpenSave extends Component {
     });
   }
   /**
-   * Display all saved filter queries
+   * Display saved filter queries
    * @method
    * @param {object} value - saved query data
    * @param {number} index - index of the queryDataList array
    * @returns FilterInput component
    */
   displayFilterQuery = (value, index) => {
-    const {activeTab, logFields} = this.props;
+    const {page, logFields} = this.props;
 
     return (
       &lt;FilterInput
         key={index}
-        activeTab={activeTab}
+        page={page}
         logFields={logFields}
         queryType='query'
         filterData={[{
@@ -309,19 +1028,64 @@ class QueryOpenSave extends Component {
     )
   }
   /**
-   * Display all saved mark
+   * Display individual form
+   * @method
+   * @param {string} queryDataList - query data
+   * @param {string} key - key of the query data
+   * @param {number} i - index of the query data
+   * @returns HTML DOM
+   */
+  displayHostQuery = (queryDataList, key, i) => {
+    const type = key.replace('Array', '');
+    let label = '';
+    let value = '';
+
+    if (type === 'annotationObj') {
+      if (queryDataList[key].statusArray.length > 0) {
+        label = t('ipFields.status');
+        value = queryDataList[key].statusArray.join(', ');
+      }
+
+      if (queryDataList[key].annotationArray.length > 0) {
+        label = t('ipFields.annotation');
+        value = queryDataList[key].annotationArray.join(', ');
+      }
+    } else {
+      if (queryDataList[key].length > 0) {
+        label = t('ipFields.' + type);
+        value = queryDataList[key].join(', ');
+      }
+    }
+
+    if (value) {
+      return (
+        &lt;div key={i} className='group'>
+          &lt;TextField
+            name={type}
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value}
+            disabled={true} />
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display saved mark
    * @method
    * @param {object} value - saved mark data
    * @param {number} index - index of the queryDataMark array
    * @returns MarkInput component
    */
   displayMarkSearch = (value, index) => {
-    const {activeTab, logFields} = this.props;
+    const {page, logFields} = this.props;
 
     return (
       &lt;MarkInput
         key={index}
-        activeTab={activeTab}
+        page={page}
         logFields={logFields}
         queryType='query'
         markData={[{
@@ -333,207 +1097,1142 @@ class QueryOpenSave extends Component {
   /**
    * Set query data for new selected saved query
    * @method
-   * @param {string} type - input type ('id' or 'name')
-   * @param {number} value - input value
+   * @param {string} fieldType - input type ('id' or 'name')
+   * @param {object} event - event object
    */
-  handleQueryChange = (type, value) => {
-    const {activeTab, queryData} = this.props;
-    const {newQueryName} = this.state;
+  handleQueryChange = (fieldType, event, comboValue) => {
+    const {page, type, queryData, queryDataPublic} = this.props;
+    const {queryList, activeQuery, newQueryName, pattern} = this.state;
     let tempQueryData = {...queryData};
-    let queryName = newQueryName;
+    let tempQueryDataPublic = {...queryDataPublic};
+    let value = event.target.value;
+    let queryName = '';
 
-    if (type === 'id') {
-      tempQueryData.id = value;
-      tempQueryData.openFlag = true;
+    if (fieldType === 'id') {
+      if (type === 'open' || type === 'save') {
+        let tempPattern = {...pattern};
+        let patternCheckbox = false;
+        let publicCheckbox = false;
+        tempQueryData.id = value;
+        tempQueryData.openFlag = true;
+        tempQueryData.query = {}; //Reset data to empty
+        tempQueryData.patternId = '';
+        tempQueryData.pattern = {
+          name: '',
+          aggColumn: '',
+          periodMin: 10,
+          threshold: 1,
+          severity: ''
+        };
 
-      _.forEach(queryData.list, val => {
-        if (val.id === value) {
-          let formattedQueryText = [];
-          tempQueryData.name = val.name;
-
-          _.forEach(val.queryText.filter, val => {
-            let formattedValue = val.condition.toLowerCase();
-            formattedValue = formattedValue.replace(' ', '_');
-
-            formattedQueryText.push({
-              condition: formattedValue,
-              query: val.query
-            });
-          })
-
-          tempQueryData.query = {
-            filter: formattedQueryText
-          };
+        tempQueryData.soc = {
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          id: '',
+          status: true
         }
-      })
+
+        tempQueryData.emailList = [];
+
+        if (comboValue &amp;&amp; comboValue.value) {
+          const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
+          value = comboValue.value;
+          tempQueryData.id = comboValue.value;
+
+          this.setState({
+            activeQuery: queryList[selectedQueryIndex]
+          }, () => {
+            this.getQuerySOCValueById(tempQueryData.id);
+          });
+        }
+
+        _.forEach(queryData.list, val => {
+          if (val.id === value) {
+            let formattedQueryText = [];
+            tempQueryData.name = val.name;
+
+            if (page === 'hostList') {
+              tempQueryData.query = val.queryText;
+            } else {
+              _.forEach(val.queryText.filter, val => {
+                let formattedValue = val.condition.toLowerCase();
+                formattedValue = formattedValue.replace(' ', '_');
+
+                formattedQueryText.push({
+                  condition: formattedValue,
+                  query: val.query
+                });
+              })
+
+              tempQueryData.query.filter = formattedQueryText;
+
+              if (page === 'logs') {
+                tempQueryData.query.search = val.queryText.search;
+              }
+
+              if (val.patternId) {
+                tempQueryData.patternId = val.patternId;
+              }
+
+              if (val.patternName) {
+                tempQueryData.pattern.name = val.patternName;
+                tempPattern.name = val.patternName;
+              }
+
+              if (val.aggColumn) {
+                tempQueryData.pattern.aggColumn = val.aggColumn;
+                tempPattern.aggColumn = val.aggColumn;
+              }
+
+              if (val.periodMin) {
+                tempQueryData.pattern.periodMin = val.periodMin;
+                tempPattern.periodMin = val.periodMin;
+              }
+
+              if (val.threshold) {
+                tempQueryData.pattern.threshold = val.threshold;
+                tempPattern.threshold = val.threshold;
+              }
+
+              if (val.severity) {
+                tempQueryData.pattern.severity = val.severity;
+                tempPattern.severity = val.severity;
+                patternCheckbox = true;
+              }
+
+              if (val.isPublic) {
+                publicCheckbox = true;
+              }
+            }
+
+            if (val.emailList.length > 0) {
+              tempQueryData.emailList = val.emailList;
+              this.props.setNotifyEmailData(val.emailList);
+            } else {
+              this.props.setNotifyEmailData([]);
+            }
+            return false;
+          }
+        })
+        this.props.setQueryData(tempQueryData);
+
+        if (page !== 'hostList') {
+          this.setState({
+            pattern: tempPattern,
+            patternCheckbox,
+            publicCheckbox
+          }, () => {
+            this.getQuerySOCValueById(tempQueryData.id);
+          });
+        }
+      } else if (type === 'publicOpen' || type === 'publicSave') {
+        tempQueryDataPublic.id = value;
+        tempQueryDataPublic.openFlag = true;
+        tempQueryDataPublic.query = {}; //Reset data to empty
+        tempQueryData.emailList = [];
+
+        if (comboValue &amp;&amp; comboValue.value) {
+          const selectedQueryIndex = _.findIndex(queryList, { 'value': comboValue.value });
+          value = comboValue.value;
+          tempQueryDataPublic.id = comboValue.value;
+
+          this.setState({
+            activeQuery: queryList[selectedQueryIndex]
+          });
+        }
+
+        _.forEach(queryDataPublic.list, val => {
+          if (val.id === value) {
+            let formattedQueryText = [];
+            tempQueryDataPublic.name = val.name;
+
+            _.forEach(val.queryText.filter, val => {
+              let formattedValue = val.condition.toLowerCase();
+              formattedValue = formattedValue.replace(' ', '_');
+
+              formattedQueryText.push({
+                condition: formattedValue,
+                query: val.query
+              });
+            })
+
+            tempQueryDataPublic.query.filter = formattedQueryText;
+
+            if (page === 'logs') {
+              tempQueryDataPublic.query.search = val.queryText.search;
+            }
+            return false;
+          }
+        })
+        this.props.setQueryData(tempQueryDataPublic);
+      }
 
       if (value === 'new') {
         queryName = true;
+        this.props.setNotifyEmailData([]);
       } else {
         queryName = false;
       }
-    } else if (type === 'name') {
-      tempQueryData.inputName = value;
+
+      this.setState({
+        dialogOpenType: 'change'
+      });
+
+    } else if (fieldType === 'name') {
+      queryName = newQueryName;
+
+      if (type === 'open' || type === 'save') {
+        tempQueryData.inputName = value;
+        this.props.setQueryData(tempQueryData);
+      } else if (type === 'publicOpen' || type === 'publicSave') {
+        tempQueryDataPublic.inputName = value;
+        this.props.setQueryData(tempQueryDataPublic);
+      }
     }
 
-    this.props.setQueryData(tempQueryData);
+    this.clearErrorInfo();
+
     this.setState({
       newQueryName: queryName
     });
   }
   /**
+   * Handle Pattern edit input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    let tempPattern = {...this.state.pattern};
+    let tempSoc = {...this.state.soc};
+    tempPattern[event.target.name] = event.target.value;
+
+    if (event.target.name === 'severity') {
+      if (event.target.value === 'Emergency') {
+        tempSoc['impact'] = 4;
+      } else if (event.target.value === 'Alert') {
+        tempSoc['impact'] = 3;
+      } else if (event.target.value === 'Notice') {
+        tempSoc['impact'] = 1;
+      } else if (event.target.value === 'Warning') {
+        tempSoc['impact'] = 2;
+      } else if (event.target.value === 'Critical') {
+        tempSoc['impact'] = 3;
+      }
+    }
+
+    this.setState({
+      pattern: tempPattern,
+      soc: tempSoc
+    });
+  }
+  handleSeverityWithSOCChange = (event) => {
+    let tempData = {...this.state.soc};
+    tempData[event.target.name] = event.target.value;
+
+    if (event.target.name === 'severity') {
+      if (event.target.value === 'Emergency') {
+        tempData['impact'] = 4;
+      } else if (event.target.value === 'Alert') {
+        tempData['impact'] = 3;
+      } else if (event.target.value === 'Notice') {
+        tempData['impact'] = 1;
+      } else if (event.target.value === 'Warning') {
+        tempData['impact'] = 2;
+      } else if (event.target.value === 'Critical') {
+        tempData['impact'] = 3;
+      }
+    }
+
+    this.setState({
+      soc: tempData
+    });
+  }
+  /**
+   * Toggle pattern checkbox
+   * @method
+   */
+  togglePatternCheckbox = () => {
+    this.setState({
+      patternCheckbox: !this.state.patternCheckbox
+    });
+
+    if (!this.state.patternCheckbox) {
+      this.setState({
+        soc: {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          status: true
+        },
+        socTemplateEnable: false
+      });
+    }
+  }
+  /**
+   * Toggle public checkbox
+   * @method
+   */
+  togglePublicCheckbox = () => {
+    this.setState({
+      publicCheckbox: !this.state.publicCheckbox
+    });
+
+    if (!this.state.patternCheckbox &amp;&amp; !this.state.publicCheckbox) {
+      this.setState({
+        soc: {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          status: true
+        },
+        socTemplateEnable: false
+      })
+    }
+  }
+  /**
+   * Toggle pattern checkbox
+   * @method
+   */
+  toggleSOCSwitch = () => {
+    this.setState({
+      socTemplateEnable: !this.state.socTemplateEnable,
+      publicCheckbox: !this.state.publicCheckbox
+    });
+  }
+  toggleSOCSwitchFromLog = () => {
+    this.setState({
+      socTemplateEnable: !this.state.socTemplateEnable,
+    });
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getLabel = (email, index, removeEmail) => {
+    return (
+      &lt;div data-tag key={index}>
+        {email}
+        &lt;span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> &lt;span className='font-bold'>x&lt;/span>&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display individual email
+   * @method
+   * @param {string} val - email value
+   * @param {string} i - index of the emails array
+   * @returns HTML DOM
+   */
+  displayEmail = (val, i) => {
+    return &lt;span key={i}>{val}&lt;/span>
+  }
+  /**
+   * Display React Email input
+   * @method
+   * @returns HTML DOM
+   */
+  displayEmailInput = () => {
+    const {page, notifyEmailData} = this.props;
+    const {patternCheckbox} = this.state;
+
+    return (
+      &lt;div>
+        &lt;label>{t('notifications.txt-notifyEmail')}&lt;/label>
+        {(page === 'hostList' || page === 'alert' || (page === 'logs' &amp;&amp; patternCheckbox)) &amp;&amp;
+          &lt;ReactMultiEmail
+            id='reactMultiEmail'
+            emails={notifyEmailData}
+            onChange={this.props.setNotifyEmailData}
+            getLabel={this.getLabel} />
+        }
+        {page === 'logs' &amp;&amp; !patternCheckbox &amp;&amp;
+          &lt;TextField
+            className='email-disabled'
+            variant='outlined'
+            fullWidth
+            size='small'
+            value=''
+            disabled />
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Get query alert content
+   * @method
+   * @param {string} type - query dialog type ('open' or 'save')
+   * @returns HTML DOM
+   */
+  getQueryAlertContent = (type) => {
+    const {queryData, moduleWithSOC} = this.props;
+    const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType} = this.state;
+    let severityType = '';
+    let patternCheckboxChecked = '';
+    let patternCheckboxDisabled = '';
+    let publicCheckboxChecked = '';
+    let disabledStatus = '';
+
+    if (type === 'open') {
+      severityType = queryData.pattern.severity;
+      patternCheckboxChecked = true;
+      patternCheckboxDisabled = true;
+      publicCheckboxChecked = dialogOpenType === 'change' ? publicCheckbox : queryData.isPublic;
+      disabledStatus = true;
+    } else if (type === 'save') {
+      severityType = pattern.severity;
+      patternCheckboxChecked = patternCheckbox;
+      patternCheckboxDisabled = false;
+      publicCheckboxChecked = publicCheckbox;
+      disabledStatus = !patternCheckbox;
+    }
+
+    return (
+      &lt;div>
+        &lt;FormControlLabel
+          label={t('events.connections.txt-addPatternScript')}
+          control={
+            &lt;Checkbox
+              id='patternCheckbox'
+              className='checkbox-ui'
+              checked={patternCheckboxChecked}
+              onChange={this.togglePatternCheckbox}
+              color='primary' />
+          }
+          disabled={patternCheckboxDisabled} />
+        &lt;div className='group severity-section'>
+          &lt;div className='top-group'>
+            &lt;div className='severity-level'>
+              &lt;i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}>&lt;/i>
+              &lt;TextField
+                className='severity-dropdown'
+                name='severity'
+                select
+                label={f('syslogPatternTableFields.severity')}
+                variant='outlined'
+                size='small'
+                value={severityType}
+                onChange={this.handleDataChange}
+                disabled={disabledStatus}>
+                {severityList}
+              &lt;/TextField>
+            &lt;/div>
+            &lt;div className='other-field'>
+              &lt;TextField
+                className='add-column'
+                name='aggColumn'
+                label={t('events.connections.txt-addColumn')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={pattern.aggColumn}
+                onChange={this.handleDataChange}
+                disabled={disabledStatus} />
+            &lt;/div>
+            &lt;FormControlLabel
+              label={t('events.connections.txt-public')}
+              control={
+                &lt;Checkbox
+                  id='publicCheckbox'
+                  className='checkbox-ui public-checkbox'
+                  checked={publicCheckboxChecked}
+                  onChange={this.togglePublicCheckbox}
+                  color='primary' />
+              }
+              disabled={disabledStatus} />
+          &lt;/div>
+          &lt;div className='period'>
+            &lt;span className='support-text'>{t('events.connections.txt-patternQuery1')}&lt;/span>
+            &lt;TextField
+              name='periodMin'
+              select
+              variant='outlined'
+              size='small'
+              required
+              value={pattern.periodMin}
+              onChange={this.handleDataChange}
+              disabled={disabledStatus}>
+              {periodMinList}
+            &lt;/TextField>
+            &lt;span className='support-text'>{t('events.connections.txt-patternQuery2')}&lt;/span>
+            &lt;TextField
+              id='threshold'
+              className='number'
+              name='threshold'
+              type='number'
+              variant='outlined'
+              size='small'
+              InputProps={{inputProps: { min: 1, max: 1000 }}}
+              value={pattern.threshold}
+              onChange={this.handleDataChange}
+              disabled={disabledStatus} />
+            &lt;span className='support-text'> {t('events.connections.txt-patternQuery3')}&lt;/span>
+          &lt;/div>
+          {type === 'open' &amp;&amp; queryData.emailList.length > 0 &amp;&amp;
+            &lt;div>
+              &lt;label>{t('notifications.txt-notifyEmail')}&lt;/label>
+              &lt;div className='flex-item'>{queryData.emailList.map(this.displayEmail)}&lt;/div>
+            &lt;/div>
+          }
+          {type === 'save' &amp;&amp;
+            this.displayEmailInput()
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  getQueryWithSOC = (type) => {
+    const {queryData} = this.props;
+    const {soc, severityList, socTemplateEnable, pattern, formValidation} = this.state;
+    let severityType = '';
+    let tempSocTemplateEnable = socTemplateEnable;
+    let patternCheckboxDisabled = '';
+
+    if (type === 'open') {
+      if (queryData.soc) {
+        severityType = queryData.soc.severity;
+        patternCheckboxDisabled = true;
+
+        if (queryData.soc.id) {
+          if (queryData.soc.id !== '') {
+            tempSocTemplateEnable = true;
+          }
+        }
+      } else {
+        severityType = 'Emergency';
+        patternCheckboxDisabled = false;
+      }
+    } else if (type === 'save') {
+      severityType = 'Emergency';
+      patternCheckboxDisabled = false;
+      severityType = soc.severity;
+    } else {
+      patternCheckboxDisabled = true;
+    }
+
+    return (
+        &lt;div>
+          &lt;FormControlLabel
+            label={t('events.connections.txt-addSOCScript')}
+            control={
+            &lt;Switch
+              checked={tempSocTemplateEnable}
+              onChange={this.toggleSOCSwitch}
+              color='primary' />
+            }
+            disabled={patternCheckboxDisabled} />
+          {tempSocTemplateEnable &amp;&amp;
+            &lt;div className='group severity-section'>
+              &lt;div className='top-group'>
+                &lt;div className='severity-level'>
+                  &lt;i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}/>
+                  &lt;TextField
+                    className='severity-dropdown'
+                    name='severity'
+                    select
+                    label={f('syslogPatternTableFields.severity')}
+                    variant='outlined'
+                    size='small'
+                    value={severityType}
+                    onChange={this.handleSeverityWithSOCChange}
+                    disabled={patternCheckboxDisabled}>
+                    {severityList}
+                  &lt;/TextField>
+                &lt;/div>
+                &lt;div className='other-field'>
+                  &lt;TextField
+                    id='impact'
+                    name='impact'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleSeverityWithSOCChange}
+                    required
+                    select
+                    label={f('incidentFields.impactAssessment')}
+                    value={soc.impact}
+                    disabled={true}>
+                    {
+                      _.map(_.range(1, 5), el => {
+                        return &lt;MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}&lt;/MenuItem>
+                      })
+                    }
+                  &lt;/TextField>
+                &lt;/div>
+              &lt;/div>
+              &lt;div className='top-group' >
+                &lt;TextField
+                  id='category'
+                  name='category'
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  onChange={this.handleSeverityWithSOCChange}
+                  required
+                  select
+                  label={f('incidentFields.category')}
+                  value={soc.category}
+                  disabled={patternCheckboxDisabled}>
+                  {
+                    _.map(_.range(10, 20), el => {
+                      return &lt;MenuItem value={el}>{it(`category.${el}`)}&lt;/MenuItem>
+                    })
+                  }
+                &lt;/TextField>
+              &lt;/div>
+              &lt;div className='top-group' >
+                &lt;FormControlLabel
+                  label={t('events.connections.txt-enableSOCScript')}
+                  className='soc-script'
+                  control={
+                    &lt;Switch
+                      checked={soc.status}
+                      color='primary' />
+                  }
+                  disabled={true} />
+              &lt;/div>
+              &lt;div className='period'>
+                &lt;span className='support-text'>{t('events.connections.txt-socQuery1')}&lt;/span>
+                &lt;TextField
+                  style={{width: '20%'}}
+                  name='limitQuery'
+                  variant='outlined'
+                  size='small'
+                  required
+                  value={soc.limitQuery}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={true}>
+                &lt;/TextField>
+                &lt;span className='support-text'>{t('events.connections.txt-socQuery2')}&lt;/span>
+              &lt;/div>
+              &lt;div className='other-field'>
+                &lt;TextField
+                  name='title'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  required
+                  label={f('incidentFields.title')}
+                  error={!formValidation.title.valid}
+                  helperText={formValidation.title.msg}
+                  value={soc.title}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={patternCheckboxDisabled}>
+                &lt;/TextField>
+              &lt;/div>
+              &lt;div className='other-field'>
+                &lt;TextField
+                  name='eventDescription'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  required
+                  label={f('incidentFields.rule')}
+                  value={soc.eventDescription}
+                  error={!formValidation.eventDescription.valid}
+                  helperText={formValidation.eventDescription.msg}
+                  onChange={this.handleSeverityWithSOCChange}
+                  disabled={patternCheckboxDisabled}>
+                &lt;/TextField>
+              &lt;/div>
+            &lt;/div>
+          }
+        &lt;/div>
+    )
+  }
+  getQueryWithSOCByLog = (type) => {
+    const {queryData} = this.props;
+    const {soc, socTemplateEnable, pattern, formValidation} = this.state;
+    let tempPattern = {...pattern};
+    let tempSocTemplateEnable = socTemplateEnable;
+    let disabledStatus = true;
+
+    if (type === 'open') {
+      disabledStatus = true;
+
+      if (queryData.soc) {
+        if (queryData.soc.id) {
+          if (queryData.soc.id !== '') {
+            tempSocTemplateEnable = true;
+          }
+        }
+      }
+    } else if (type === 'save') {
+      if (this.state.patternCheckbox &amp;&amp; this.state.publicCheckbox) {
+        disabledStatus  = false;
+      }
+    }
+
+    return (
+      &lt;div>
+        &lt;FormControlLabel
+          label={t('events.connections.txt-addSOCScript')}
+          control={
+            &lt;Switch
+              checked={tempSocTemplateEnable}
+              onChange={this.toggleSOCSwitchFromLog}
+              color='primary' />
+          }
+          disabled={disabledStatus} />
+
+        {tempSocTemplateEnable &amp;&amp;
+          &lt;div className='group severity-section' style={{paddingTop: 0}}>
+            &lt;div className='top-group'>
+              &lt;div className='other-field'>
+                &lt;TextField
+                  id='category'
+                  name='category'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  onChange={this.handleSeverityWithSOCChange}
+                  required
+                  select
+                  label={f('incidentFields.category')}
+                  value={soc.category}
+                  disabled={disabledStatus}>
+                  {
+                    _.map(_.range(0, 20), el => {
+                      return &lt;MenuItem value={el}>{it(`category.${el}`)}&lt;/MenuItem>
+                    })
+                  }
+                &lt;/TextField>
+              &lt;/div>
+              &lt;div className='other-field'>
+                &lt;TextField
+                  id='impact'
+                  name='impact'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  onChange={this.handleSeverityWithSOCChange}
+                  required
+                  select
+                  label={f('incidentFields.impactAssessment')}
+                  value={soc.impact}
+                  disabled={true}>
+                  {
+                    _.map(_.range(1, 5), el => {
+                      return &lt;MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}&lt;/MenuItem>
+                    })
+                  }
+                &lt;/TextField>
+              &lt;/div>
+            &lt;/div>
+            &lt;div className='period'>
+              &lt;span className='support-text'>{t('events.connections.txt-socQuery1')}&lt;/span>
+              &lt;TextField
+                style={{width: '20%'}}
+                name='limitQuery'
+                variant='outlined'
+                size='small'
+                required
+                value={soc.limitQuery}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={true}>
+              &lt;/TextField>
+              &lt;span className='support-text'>{t('events.connections.txt-socQuery2')}&lt;/span>
+            &lt;/div>
+            &lt;div className='top-group'>
+              &lt;FormControlLabel
+                label={t('events.connections.txt-enableSOCScript')}
+                control={
+                  &lt;Switch
+                    checked={soc.status}
+                    color='primary' />
+                }
+                disabled={true} />
+            &lt;/div>
+            &lt;div className='other-field'>
+              &lt;TextField
+                name='title'
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                label={f('incidentFields.title')}
+                value={soc.title}
+                error={!formValidation.title.valid}
+                helperText={formValidation.title.msg}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={disabledStatus}>
+              &lt;/TextField>
+            &lt;/div>
+            &lt;div className='other-field'>
+              &lt;TextField
+                name='eventDescription'
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                label={f('incidentFields.rule')}
+                value={soc.eventDescription}
+                error={!formValidation.eventDescription.valid}
+                helperText={formValidation.eventDescription.msg}
+                onChange={this.handleSeverityWithSOCChange}
+                disabled={disabledStatus}>
+                {
+                  _.map(_.range(10, 20), el => {
+                    return &lt;MenuItem value={el}>{it(`category.${el}`)}&lt;/MenuItem>
+                  })
+                }
+              &lt;/TextField>
+            &lt;/div>
+          &lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Display query list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderQueryList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={t('events.connections.txt-queryName')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Get filter group background color
+   * @method
+   * @param {string} type - query type ('filter' or 'mark')
+   * @param {object} queryDataList - query data list
+   * @returns CSS property object
+   */
+  getQueryColor = (type, queryDataList) => {
+    if (!queryDataList || (queryDataList &amp;&amp; queryDataList.length === 0) || _.isEmpty(queryDataList)) {
+      if (type === 'filter') {
+        return { visibility: 'hidden' };
+      } else if (type === 'mark') {
+        return { display: 'none' };
+      }
+    }
+  }
+  /**
+   * Get delete btn disabled status
+   * @method
+   * @returns boolean true/false
+   */
+  deleteBtnDisabled = () => {
+    const {type, queryData, queryDataPublic} = this.props;
+
+    if (type === 'open') {
+      return queryData.displayId === queryData.id;
+    } else if (type === 'publicOpen') {
+      return queryDataPublic.displayId === queryDataPublic.id;
+    }
+  }
+  /**
    * Display query menu content
    * @method
-   * @param {string} type - query type ('open' or 'save')
+   * @param {string} type - query type ('open', 'save', 'publicOpen' or 'publicSave')
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {
-    const {activeTab, queryData, filterData, markData} = this.props;
-    let displayList = [];
+    const {locale, sessionRights} = this.context;
+    const {page, queryData, queryDataPublic, filterData, markData, moduleWithSOC} = this.props;
+    const {queryList, activeQuery, formValidation} = this.state;
+    let displayQueryList = [];
     let tempFilterData = [];
     let tempMarkData = [];
 
-    if (queryData.list.length > 0) {
-      _.forEach(queryData.list, val => {
-        displayList.push({
-          value: val.id,
-          text: val.name
-        });
-      })
-    }
-
-    if (type === 'open') {
+    if (type === 'open' || type === 'publicOpen') {
       let queryDataList = [];
       let queryDataMark = [];
 
-      if (queryData.list.length === 0) {
-        return &lt;div className='error-msg'>{t('events.connections.txt-noSavedQuery')}&lt;/div>
-      }
+      if (type === 'open') {
+        displayQueryList = _.map(queryData.list, (val, i) => {
+          return &lt;MenuItem key={i} value={val.id}>{val.name}&lt;/MenuItem>
+        });
 
-      if (activeTab === 'logs') {
-        queryDataList = queryData.query.filter;
-        queryDataMark = queryData.query.search;
-      } else {
-        queryDataList = queryData.query.filter;
+        if (page === 'logs' &amp;&amp; !_.isEmpty(queryData.query)) {
+          queryDataList = queryData.query.filter;
+          queryDataMark = queryData.query.search;
+        } else {
+          if (page === 'hostList') {
+            queryDataList = queryData.query;
+          } else {
+            queryDataList = queryData.query.filter;
+          }
+        }
+      } else if (type === 'publicOpen') {
+        displayQueryList = _.map(queryDataPublic.list, (val, i) => {
+          return &lt;MenuItem key={i} value={val.id}>{val.name}&lt;/MenuItem>
+        });
+
+        if (page === 'logs' &amp;&amp; !_.isEmpty(queryDataPublic.query)) {
+          queryDataList = queryDataPublic.query.filter;
+          queryDataMark = queryDataPublic.query.search;
+        } else {
+          queryDataList = queryDataPublic.query.filter;
+        }
       }
 
       return (
         &lt;div>
-          &lt;label>{t('events.connections.txt-queryName')}&lt;/label>
-          &lt;DropDownList
-            className='query-name'
-            list={displayList}
-            required={true}
-            onChange={this.handleQueryChange.bind(this, 'id')}
-            value={queryData.id} />
+          &lt;Autocomplete
+            className='combo-box query-name dropdown'
+            options={queryList}
+            value={activeQuery}
+            getOptionLabel={(option) => option.text}
+            renderInput={this.renderQueryList}
+            onChange={this.handleQueryChange.bind(this, 'id')} />
 
-          {queryDataList &amp;&amp; queryDataList.length > 0 &amp;&amp;
-            &lt;div className='filter-group'>
-              {queryDataList.map(this.displayFilterQuery)}
+          &lt;div className='filter-group' style={this.getQueryColor('filter', queryDataList)}>
+            {page === 'hostList' &amp;&amp; queryDataList &amp;&amp;
+              Object.keys(queryDataList).map(this.displayHostQuery.bind(this, queryDataList))
+            }
+            {page !== 'hostList' &amp;&amp; queryDataList &amp;&amp; queryDataList.length > 0 &amp;&amp;
+              queryDataList.map(this.displayFilterQuery)
+            }
+          &lt;/div>
+
+          &lt;div className='filter-group' style={this.getQueryColor('mark', queryDataMark)}>
+            {queryDataMark &amp;&amp; queryDataMark.length > 0 &amp;&amp;
+              queryDataMark.map(this.displayMarkSearch)
+            }
+          &lt;/div>
+
+          {page === 'alert' &amp;&amp; queryData.emailList.length > 0 &amp;&amp; type === 'open' &amp;&amp;
+            &lt;div className='email-list'>
+              &lt;label>{t('notifications.txt-notifyEmail')}&lt;/label>
+              &lt;div className='flex-item'>{queryData.emailList.map(this.displayEmail)}&lt;/div>
             &lt;/div>
           }
 
-          {queryDataMark &amp;&amp; queryDataMark.length > 0 &amp;&amp;
-            &lt;div className='filter-group'>
-              {queryDataMark.map(this.displayMarkSearch)}
-            &lt;/div>
+          {type === 'open' &amp;&amp; page === 'logs' &amp;&amp; queryData.patternId &amp;&amp;
+            this.getQueryAlertContent(type)
           }
 
-          &lt;button className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}&lt;/button>
+          {page === 'logs' &amp;&amp; queryData.patternId &amp;&amp; moduleWithSOC &amp;&amp; type === 'open' &amp;&amp;
+            this.getQueryWithSOCByLog(type)
+          }
+
+          {page === 'alert' &amp;&amp; moduleWithSOC &amp;&amp; type === 'open' &amp;&amp;
+            this.getQueryWithSOC(type)
+          }
+
+          {type === 'open' &amp;&amp; !this.deleteBtnDisabled() &amp;&amp;
+            &lt;Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery}>{t('txt-delete')}&lt;/Button>
+          }
+
+          {type === 'publicOpen' &amp;&amp; sessionRights.Module_Config &amp;&amp; !this.deleteBtnDisabled() &amp;&amp;
+            &lt;Button id='deleteQueryBtn' variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery}>{t('txt-delete')}&lt;/Button>
+          }
         &lt;/div>
       )
-    } else if (type === 'save') {
+    } else if (type === 'save' || type === 'publicSave') {
       let dropDownValue = 'new';
+      let textFieldValue = '';
+      let hostFilterEmpty = true;
 
-      _.forEach(filterData, val => {
-        if (val.query) {
-          tempFilterData.push({
-            condition: val.condition,
-            query: val.query
-          });
-        }
-      })
-
-      _.forEach(markData, val => {
-        if (val.data) {
-          tempMarkData.push({
-            data: val.data
-          });
-        }
-      })
-
-      if (activeTab === 'logs') {
-        if (tempFilterData.length === 0 &amp;&amp; tempMarkData.length == 0) {
-          return &lt;div className='error-msg'>{t('events.connections.txt-noOpenQuery')}&lt;/div>
-        }
+      if (page === 'hostList') {
+        _.forEach(filterData, (val, key) => {
+          if (val.length > 0) {
+            hostFilterEmpty = false;
+            return false;
+          }
+        })
       } else {
-        if (tempFilterData.length === 0) {
-          return &lt;div className='error-msg'>{t('events.connections.txt-noOpenQuery')}&lt;/div>
-        }
+        _.forEach(filterData, val => {
+          if (val.query) {
+            tempFilterData.push({
+              condition: val.condition,
+              query: val.query
+            });
+          }
+        })
       }
 
-      displayList.unshift({
-        value: 'new',
-        text: t('events.connections.txt-addQuery')
-      });
+      if (type === 'save') {
+        displayQueryList = _.map(queryData.list, (val, i) => {
+          return &lt;MenuItem key={i} value={val.id}>{val.name}&lt;/MenuItem>
+        });
 
-      if (queryData.openFlag) {
-        dropDownValue = queryData.id;
+        _.forEach(markData, val => {
+          if (val.data) {
+            tempMarkData.push({
+              data: val.data
+            });
+          }
+        })
+
+        if (queryData.openFlag) {
+          dropDownValue = queryData.id;
+        }
+        textFieldValue = queryData.inputName;
+      } else if (type === 'publicSave') {
+        displayQueryList = _.map(queryDataPublic.list, (val, i) => {
+          return &lt;MenuItem key={i} value={val.id}>{val.name}&lt;/MenuItem>
+        });
+
+        _.forEach(markData, val => {
+          if (val.data) {
+            tempMarkData.push({
+              data: val.data
+            });
+          }
+        })
+
+        if (queryDataPublic.openFlag) {
+          dropDownValue = queryDataPublic.id;
+        }
+        textFieldValue = queryDataPublic.inputName;
       }
 
       return (
         &lt;div>
-          &lt;label>{t('events.connections.txt-queryName')}&lt;/label>
-          &lt;DropDownList
-            className='query-name dropdown'
-            list={displayList}
-            required={true}
-            onChange={this.handleQueryChange.bind(this, 'id')}
-            value={dropDownValue} />
+          &lt;div className='query-options'>
+            &lt;TextField
+              id='queryOptionsDropdown'
+              className='query-name dropdown'
+              select
+              label={t('events.connections.txt-queryName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              required
+              value={dropDownValue}
+              onChange={this.handleQueryChange.bind(this, 'id')}>
+              &lt;MenuItem value='new'>{t('events.connections.txt-addQuery')}&lt;/MenuItem>
+              {displayQueryList}
+            &lt;/TextField>
 
-          {dropDownValue === 'new' &amp;&amp;
-            &lt;Input
-              placeholder={t('events.connections.txt-enterQueryName')}
-              className='query-name'
-              maxLength={50}
-              required={true}
-              validate={{
-                t: et
-              }}
-              onChange={this.handleQueryChange.bind(this, 'name')}
-              value={queryData.inputName} />
+            {dropDownValue === 'new' &amp;&amp;
+              &lt;TextField
+                id='queryOptionsInput'
+                className='query-name'
+                label={t('txt-plsEnterName')}
+                variant='outlined'
+                size='small'
+                maxLength={50}
+                required
+                error={!formValidation.queryName.valid}
+                helperText={formValidation.queryName.msg}
+                value={textFieldValue}
+                onChange={this.handleQueryChange.bind(this, 'name')} />
+            }
+          &lt;/div>
+
+          {page === 'hostList' &amp;&amp; !hostFilterEmpty &amp;&amp;
+            &lt;div className='filter-group'>
+              {Object.keys(filterData).map(this.displayHostQuery.bind(this, filterData))}
+            &lt;/div>
           }
 
-          {tempFilterData.length > 0 &amp;&amp;
+          {page !== 'hostList' &amp;&amp; tempFilterData.length > 0 &amp;&amp;
             &lt;div className='filter-group'>
               {tempFilterData.map(this.displayFilterQuery)}
             &lt;/div>
           }
 
-          {tempMarkData.length > 0 &amp;&amp;
+          {(type === 'save'|| type === 'publicSave') &amp;&amp; tempMarkData.length > 0 &amp;&amp;
             &lt;div className='filter-group'>
               {tempMarkData.map(this.displayMarkSearch)}
             &lt;/div>
+          }
+
+          {type === 'save' &amp;&amp; page === 'alert' &amp;&amp;
+            this.displayEmailInput()
+          }
+
+          {type === 'save' &amp;&amp; page === 'logs' &amp;&amp;
+            this.getQueryAlertContent(type)
+          }
+
+          {page === 'logs' &amp;&amp; moduleWithSOC  &amp;&amp; type === 'save' &amp;&amp;
+            this.getQueryWithSOCByLog(type)
+          }
+
+          {page === 'alert' &amp;&amp; moduleWithSOC &amp;&amp; type === 'save' &amp;&amp;
+            this.getQueryWithSOC(type)
           }
         &lt;/div>
       )
     }
   }
   render() {
-    const {type} = this.props;
-    const {info} = this.state;
-    let titleText = '';
+    const {page, type, queryData, queryDataPublic, filterData} = this.props;
+    const titleText = t(`events.connections.txt-${type}Query`);
+    let actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleQueryAction}
+    };
+    let displayContent = this.displayQueryContent(type);
 
-    if (type === 'open') {
-      titleText = t('events.connections.txt-openQuery');
-    } else if (type === 'save') {
-      titleText = t('events.connections.txt-saveQuery');
+    if (type === 'open' &amp;&amp; queryData.list.length === 0) {
+      actions = {
+        cancel: {text: t('txt-close'), handler: this.props.closeDialog}
+      };
+      displayContent = &lt;div className='error-msg'>{t('events.connections.txt-noSavedQuery')}&lt;/div>;
     }
 
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleQueryAction.bind(this, type)}
-    };
+    if (type === 'publicOpen' &amp;&amp; queryDataPublic.list.length === 0) {
+      actions = {
+        cancel: {text: t('txt-close'), handler: this.props.closeDialog}
+      };
+      displayContent = &lt;div className='error-msg'>{t('events.connections.txt-noSavedQuery')}&lt;/div>;
+    }
+
+    if (type === 'save' || type === 'publicSave') {
+      let showEmptyQeuryMsg = false;
+
+      if (page === 'hostList') {
+        let filterEmpty = true;
+
+        _.forEach(filterData, (val, key) => {
+          if (val.length > 0) {
+            filterEmpty = false;
+            return false;
+          }
+        })
+
+        if (filterEmpty) {
+          showEmptyQeuryMsg = true;
+        }
+      } else {
+        if (filterData.length === 0 || filterData[0].query === '') {
+          showEmptyQeuryMsg = true;
+        }
+      }
+
+      if (showEmptyQeuryMsg) {
+        actions = {
+          cancel: {text: t('txt-close'), handler: this.props.closeDialog}
+        };
+        displayContent = &lt;div className='error-msg'>{t('events.connections.txt-noOpenQuery')}&lt;/div>;   
+      }
+    }
 
     return (
       &lt;ModalDialog
@@ -543,29 +2242,29 @@ class QueryOpenSave extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={info}
+        info={this.state.info}
         closeAction='cancel'>
-        {this.displayQueryContent(type)}
+        {displayContent}
       &lt;/ModalDialog>
     )
   }
 }
 
+QueryOpenSave.contextType = BaseDataContext;
+
 QueryOpenSave.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  activeTab: PropTypes.string.isRequired,
+  page: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   account: PropTypes.object.isRequired,
   filterData: PropTypes.array.isRequired,
   setFilterData: PropTypes.func.isRequired,
   setQueryData: PropTypes.func.isRequired,
   getSavedQuery: PropTypes.func.isRequired,
+  getPublicSavedQuery: PropTypes.func.isRequired,
   closeDialog: PropTypes.func.isRequired
 };
 
-const HocQueryOpenSave = withLocale(QueryOpenSave);
-export { QueryOpenSave, HocQueryOpenSave };</code></pre>
+export default QueryOpenSave;</code></pre>
         </article>
     </section>
 
@@ -575,13 +2274,13 @@ export { QueryOpenSave, HocQueryOpenSave };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

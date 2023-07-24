@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: license.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: license.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import TextField from '@material-ui/core/TextField'
+
+import {downloadLink} from 'react-ui/build/src/utils/download'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from './components/common/context'
+import FileUpload from './components/common/file-upload'
+import helper from './components/common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+let lt = null;
+
+class License extends Component {
+  constructor(props, context) {
+    super(props, context);
+
+    this.state = {
+      uplaodFileOpen: false,
+      file: '',
+      lms: {
+        returnCode: null,
+        expireDate: null,
+        isValid: null
+      },
+      showKeyInput: false,
+      originalKey: '',
+      key: '',
+      formValidation: {
+        key: {
+          valid: true
+        }
+      }
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    lt = global.chewbaccaI18n.getFixedT(null, 'lms');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.loadData();
+  }
+  /**
+   * Load LMS data
+   * @method
+   * @returns HTML DOM
+   */
+  loadData = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/lms/_registerKey`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/lms/verify`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        this.setState({
+          originalKey: data[0],
+          lms: data[1]
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle license input change
+   * @method
+   * @param {object} event - event object
+   */
+  handleInputChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Download unregistry license file
+   * @method
+   */
+  downloadLicense = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {key} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/lms/goc?key=${key}`;
+
+    downloadLink(url);
+  }
+  /**
+   * Handle license activate button
+   * @method
+   */
+  activateLicense = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {originalKey, key, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (key) {
+      tempFormValidation.key.valid = true;
+    } else {
+      tempFormValidation.key.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    if (originalKey === key) {
+      helper.showPopupMsg(lt('key-acivated'), t('txt-error'));
+      return;
+    }
+
+    let formData = new FormData();
+    formData.append('key', key);
+
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/lms/_registerKey`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/lms/activate`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      this.handleLmsAvtivate(data[1]);
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle license verify online button
+   * @method
+   */
+  verifyOnline = () => {
+    const {baseUrl} = this.context;
+    const {key} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/lms/verify/_trigger?key=${key}`,
+      type: 'GET'
+    })
+    .then(data => {
+      this.handleLmsAvtivate(data);
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle LMS activate/verify response data
+   * @method
+   * @param {object} data - data object
+   */
+  handleLmsAvtivate = (data) => {
+    const {from} = this.props;
+
+    if (data.returnCode !== '0') {
+      if (data.returnCode === '-3028') {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          confirmText: t('txt-download'),
+          display: (
+            &lt;div className='content download'>&lt;span>{lt('l-offline-upload-msg')}&lt;/span>&lt;/div>
+          ),
+          act: (confirmed) => {
+            if (confirmed) {
+              this.downloadLicense();
+            }
+          }
+        });
+      } else {
+        helper.showPopupMsg('', t('txt-error'), lt(`${data.returnCode}`));
+      }
+    } else {
+      PopupDialog.alert({
+        id: 'modalWindowSmall',
+        confirmText: t('txt-ok'),
+        display: (
+          &lt;div className='content'>&lt;span>{lt('l-activate-success')}&lt;/span>&lt;/div>
+        ),
+        act: (confirmed) => {
+          if (confirmed) {
+            if (from === 'login') {
+              this.props.onPass();
+            } else if (from === 'config') {
+              this.toggleKeyInput();
+              this.loadData();
+            }
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Toggle upload file dialog on/off
+   * @method
+   */
+  toggleFileUpload = () => {
+    this.setState({
+      uplaodFileOpen: !this.state.uplaodFileOpen
+    });
+  }
+  /**
+   * Handle upload file change
+   * @method
+   * @param {object} file - file to be set
+   */
+  handleFileChange = (file) => {
+    this.setState({
+      file
+    });
+  }
+  /**
+   * Upload offline file
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadOfflineFile = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleFileUpload},
+      confirm: {text: t('txt-confirm'), handler: this.handleFileUpload}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='uploadFileDialog'
+        className='modal-dialog'
+        title={lt('l-upload-offline-file')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        &lt;FileUpload
+          id='uploadFile'
+          btnText={t('txt-upload')}
+          handleFileChange={this.handleFileChange} />
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle file upload
+   * @method
+   */
+  handleFileUpload = () => {
+    const {baseUrl} = this.context;
+    let formData = new FormData();
+    formData.append('file', this.state.file);
+
+    this.ah.one({
+      url: `${baseUrl}/api/lms/uploadCA`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        if (data.returnCode === '0') {
+          this.toggleFileUpload();
+          this.props.onPass();
+        } else {
+          helper.showPopupMsg('', t('txt-error'), lt(`${data.returnCode}`));
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle license activate button
+   * @method
+   */
+  toggleKeyInput = () => {
+    this.setState({
+      showKeyInput: !this.state.showKeyInput,
+      key: '',
+      formValidation: {
+        key: {
+          valid: true
+        }
+      }
+    });
+  }
+  render() {
+    const {from} = this.props;
+    const {
+      uplaodFileOpen,
+      lms,
+      showKeyInput,
+      originalKey,
+      key,
+      formValidation
+    } = this.state;
+    let text = lt('l-license-none');
+    let licenseDate = '';
+    let error = true;
+
+    if (lms) {
+      if (lms.expireDate) {
+        licenseDate = moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+      }
+
+      if (lms.returnCode === '0') {
+        text = lt('l-license-already');
+        error = false;
+      } else {
+        text = lt(`${lms.returnCode}`);
+      }
+    }
+
+    return (
+      &lt;div id='g-login' className={cx('c-center global c-flex fdc', {'config': from === 'config'})}>
+
+        {uplaodFileOpen &amp;&amp;
+          this.uploadOfflineFile()
+        }
+
+        &lt;div id='loingForm' className={cx('fdc lms', {'config': from === 'config'})}>
+          &lt;section>
+            &lt;span className='msg'>{lt('l-license-status')}:&lt;/span>
+            &lt;span className={cx({'error': error})}>{text}&lt;/span>
+          &lt;/section>
+          {from === 'login' &amp;&amp;
+            &lt;div>
+              &lt;TextField
+                id='license-key'
+                className='key-field'
+                name='key'
+                label={lt('l-license-key')}
+                autoFocus={true}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                required={true}
+                error={!formValidation.key.valid}
+                helperText={formValidation.key.valid ? '' : lt('key-empty')}
+                value={key}
+                onChange={this.handleInputChange} />
+              &lt;div className='license-group-btn'>
+                &lt;button id='license-activate' onClick={this.activateLicense}>{lt('l-activate')}&lt;/button>
+                &lt;button id='licenseUpload' onClick={this.toggleFileUpload}>{lt('l-upload-offline-file')}&lt;/button>
+                &lt;button id='onlineActivate' onClick={this.verifyOnline}>{lt('l-verify-online')}&lt;/button>
+              &lt;/div>
+            &lt;/div>
+          }
+          {from === 'config' &amp;&amp; originalKey &amp;&amp;
+            &lt;section>
+              &lt;span className='msg'>{lt('l-license-key')}:&lt;/span>
+              &lt;span>{originalKey}&lt;/span>
+            &lt;/section>
+          }
+          {from === 'config' &amp;&amp; licenseDate &amp;&amp;
+            &lt;section>
+              &lt;span className='msg'>{lt('l-license-expiry')}:&lt;/span>
+              &lt;span>{licenseDate}&lt;/span>
+            &lt;/section>
+          }
+          {from === 'config' &amp;&amp; !showKeyInput &amp;&amp;
+            &lt;button id='license-renew' onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}&lt;/button>
+          }
+          {from === 'config' &amp;&amp; showKeyInput &amp;&amp;
+            &lt;div>
+              &lt;TextField
+                id='license-new-key'
+                className='key-field'
+                name='key'
+                label={lt('l-new-license-key')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                required={true}
+                error={!formValidation.key.valid}
+                helperText={formValidation.key.valid ? '' : lt('key-empty')}
+                value={key}
+                onChange={this.handleInputChange} />
+              &lt;button id='license-confirm' className='multiple-btn' onClick={this.activateLicense}>{lt('l-activate')}&lt;/button>
+              &lt;button id='onlineActivate' onClick={this.verifyOnline}>{lt('l-verify-online')}&lt;/button>
+              &lt;button id='license-cancel' className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}&lt;/button>
+            &lt;/div>
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+License.contextType = BaseDataContext;
+
+License.propTypes = {
+};
+
+export default License;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

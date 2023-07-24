@@ -27,25 +27,51 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { NavLink } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import cx from 'classnames'
 import _ from 'lodash'
+import cx from 'classnames'
 import i18n from 'i18next'
-import qs from 'query-string'
-import $ from 'jquery'
+import styled from 'styled-components'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import MenuItem from '@material-ui/core/MenuItem'
+import RefreshIcon from '@material-ui/icons/Refresh'
+import TextField from '@material-ui/core/TextField'
 
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
+import helper from './components/common/helper'
+import License from './license'
 import ResetPwd from './components/configuration/user/accounts/resetPwd'
-import withLocale from './hoc/locale-provider'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {default as ah, getInstance, createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const t = i18n.getFixedT(null, 'app');
-const et = i18n.getFixedT(null, 'errors');
+let t = null;
+let c = null;
+let et = null;
+
+// createInstance(
+//   'login',
+//   {
+//     parseSuccess: resp => resp,
+//     parseFail: resp => {
+//       return {
+//         code: _.get(resp, 'ret', -100),
+//         message: _.get(resp, 'message')
+//       }
+//     },
+//     et: i18n.getFixedT(null, 'errors')
+//   }
+// )
+
+const RefreshIconContainer = styled(RefreshIcon)`
+  float: right;
+  display: inline-block;
+  margin-top: 10px;
+  color: #001b34;
+  cursor: pointer;
+`;
 
 /**
  * Login
@@ -58,77 +84,229 @@ class Login extends Component {
     super(props);
 
     this.state = {
+      dropDownList: [],
+      openFindAccountDialog: false,
+      openEnterTokenDialog: false,
+      openEnterPasswordDialog: false,
+      capsLockWarning: false,
+      captchaImage: '',
+      login: {
+        username: '',
+        password: '',
+        captcha: ''
+      },
+      forgotPassword: {
+        account: '',
+        token: '',
+        password: ''
+      },
+      userEmail: '',
+      forgotModalError: '',
       info: null,
-      error: false
+      error: false,
+      license: null,
+      formValidation: {
+        username: {
+          valid: true
+        },
+        password: {
+          valid: true
+        },
+        captcha: {
+          valid: true
+        },
+        forgotAccount: {
+          valid: true
+        },
+        forgotToken: {
+          valid: true
+        },
+        forgotPassword: {
+          valid: true
+        }
+      }
     };
 
+    t = global.chewbaccaI18n.getFixedT(null, 'app');
+    c = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.username.focus();
+    this.getLanguageList();
+    this.getCaptcha();
+    this.checkLicense();
+
+    window.addEventListener('keydown', this.wasCapsLockActivated);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.wasCapsLockActivated);
+  }
+  wasCapsLockActivated = (event) => {
+    this.setState({
+      capsLockWarning: event.getModifierState('CapsLock')
+    });
+  }
+  /**
+   * Get language list
+   * @method
+   */
+  getLanguageList = () => {
+    const dropDownList = _.map(this.props.locale, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{t('lng.' + val)}&lt;/MenuItem>
+    });
+
+    this.setState({
+      dropDownList
+    });
+  }
+  /**
+   * Get captcha image in base64 format
+   * @method
+   */
+  getCaptcha = () => {
+    const {baseUrl} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/captcha`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          captchaImage: 'data:image/jpeg;base64,' + data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        info: err.message,
+        error: true
+      });
+    })
+  }
+  /**
+   * Check license before login
+   * @method
+   */
+  checkLicense = () => {
+    const {baseUrl} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/lms/verify`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let licenseCheck = false;
+
+        if (data.returnCode === '0') {
+          licenseCheck = data.isValid === '1';
+        }
+
+        this.setState({
+          license: licenseCheck
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', c('txt-error'), err.message);
+    })
   }
   /**
    * Handle login confirm
    * @method
    */
   logon = () =>  {
-    const {contextRoot} = this.context;
-    const username = this.username.value;
-    const password = this.password.value;
-    let error = '';
+    const {login, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (username === '') {
-      error = t('login.txt-username');
-    } else if (password === '') {
-      error = t('login.txt-password');
-    }
-
-    if (error) {
-      this.setState({
-        info: error,
-        error: true
-      });
+    if (login.username) {
+      tempFormValidation.username.valid = true;
     } else {
-      this.setState({
-        info: t('txt-logging-in'),
-        error: false
-      }, () => {
-        this.getLogin(username, password);
-      });
+      tempFormValidation.username.valid = false;
+      validate = false;
     }
+
+    if (login.password) {
+      tempFormValidation.password.valid = true;
+    } else {
+      tempFormValidation.password.valid = false;
+      validate = false;
+    }
+
+    if (login.captcha) {
+      tempFormValidation.captcha.valid = true;
+    } else {
+      tempFormValidation.captcha.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      info: null,
+      error: false,
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.getLogin();
   }
   /**
    * Call login api and show login success/fail
    * @method
-   * @param {string} username - entered username
-   * @param {string} password - entered password
    */
-  getLogin = (username, password) => {
+  getLogin = () => {
     const {baseUrl, contextRoot} = this.props;
-    const dataObj = {
-      account: username,
-      password: password
+    const {login} = this.state;
+    const requestData = {
+      account: login.username,
+      password: login.password
     };
 
     this.ah.one({
       url: `${baseUrl}/api/login`,
-      data: JSON.stringify(dataObj),
+      headers: {
+       'captcha-code': login.captcha
+      },
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      const redirectURL = contextRoot || '/ChewbaccaWeb';
-      window.location.href = redirectURL;
+      if (data) {
+        const redirectURL = window.location.pathname;
+        window.location.href = redirectURL;
+      }
+      return null;
     })
     .catch(err => {
-      if (err.message === et('-1005')) {
+      if (err.message === et('-1005')) { //Password expired
         this.setState({
           info: null,
           error: false
         }, () => {
-          this.startResetPwd();
+          this.startResetPwd('reset');
+          this.getCaptcha();
         });
+      } else if (err.message === et('-1019')) { //First time user
+        this.setState({
+          info: null,
+          error: false
+        }, () => {
+          this.startResetPwd('newSet');
+          this.getCaptcha();
+        });        
       } else {
+        if (err.message === et('-1007') || err.message === et('-1016') || err.message === et('12107')) {
+          this.getCaptcha();
+        }
+
         this.setState({
           info: err.message,
           error: true
@@ -138,60 +316,488 @@ class Login extends Component {
   }
   /**
    * Open reset password page
+   * @param {string} options - options for password type ('reset' or 'newSet')
    * @method
    */
-  startResetPwd = () => {
-    this.pageResetPwd.openResetPwd();
+  startResetPwd = (options) => {
+    this.pageResetPwd.openResetPwd(options);
+  }
+  /**
+   * Open forgot password dialog
+   * @method
+   */
+  handleForgotPassword = () => {
+    this.setState({
+      openFindAccountDialog: true
+    });
+  }
+  /**
+   * Display forgot password content
+   * @method
+   * @param {string} type - dialog type ('account', 'token' or 'password')
+   * @returns TextField component
+   */
+  displayForgotPasswordContent = (type) => {
+    const {forgotPassword, formValidation} = this.state;
+
+    if (type === 'account') {
+      return (
+        &lt;TextField
+          name='account'
+          label={t('login.txt-account')}
+          autoFocus={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.forgotAccount.valid}
+          helperText={formValidation.forgotAccount.valid ? '' : c('txt-required')}
+          value={forgotPassword.account}
+          onChange={this.handleDataChange.bind(this, 'forgotPassword')} />
+      )
+    } else if (type === 'token') {
+      return (
+        &lt;TextField
+          name='token'
+          label={t('login.txt-token')}
+          autoFocus={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.forgotToken.valid}
+          helperText={formValidation.forgotToken.valid ? '' : c('txt-required')}
+          value={forgotPassword.token}
+          onChange={this.handleDataChange.bind(this, 'forgotPassword')} />
+      )
+    } else if (type === 'password') {
+      return (
+        &lt;TextField
+          name='password'
+          type='password'
+          label={t('login.txt-userPassword')}
+          autoFocus={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.forgotPassword.valid}
+          helperText={formValidation.forgotPassword.valid ? '' : c('txt-required')}
+          value={forgotPassword.password}
+          onChange={this.handleDataChange.bind(this, 'forgotPassword')} />
+      )
+    }
+  }
+  /**
+   * Display forgot password dialog content
+   * @method
+   * @param {string} type - dialog type ('account', 'token' or 'password')
+   * @returns ModalDialog component
+   */
+  forgotPasswordDialog = (type) => {
+    const {userEmail, forgotModalError} = this.state;
+    let descriptionText = '';
+    let confirm = '';
+
+    if (type === 'account') {
+      descriptionText = t('txt-enterAccount');
+      confirm = this.handleAccountConfirm;
+    } else if (type === 'token') {
+      descriptionText = t('txt-enterToken') + ':';
+      confirm = this.handleTokenConfirm;
+    } else if (type === 'password') {
+      descriptionText = t('txt-enterNewPassword');
+      confirm = this.handlePasswordConfirm;
+    }
+
+    const actions = {
+      cancel: {text: c('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: c('txt-confirm'), handler: confirm}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='forgotPasswordDialog'
+        className='modal-dialog'
+        title={t('txt-forgotPassword')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={forgotModalError}
+        closeAction='cancel'>
+        &lt;React.Fragment>
+          &lt;div className='desc-text'>{descriptionText}&lt;/div>
+          {type === 'token' &amp;&amp;
+            &lt;div>{userEmail}&lt;/div>
+          }
+          &lt;div className='login-group'>
+            {this.displayForgotPasswordContent(type)}
+          &lt;/div>
+        &lt;/React.Fragment>
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle enter account confirm
+   * @method
+   */
+  handleAccountConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {forgotPassword, formValidation} = this.state;
+    const requestData = {
+      account: forgotPassword.account
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (forgotPassword.account) {
+      tempFormValidation.forgotAccount.valid = true;
+    } else {
+      tempFormValidation.forgotAccount.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      forgotModalError: '',
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/email`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          openFindAccountDialog: false,
+          openEnterTokenDialog: true,
+          userEmail: data.email,
+          forgotModalError: ''
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        forgotModalError: err.message
+      });
+    })
+  }
+  /**
+   * Handle enter token confirm
+   * @method
+   */
+  handleTokenConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {forgotPassword, formValidation} = this.state;
+    const requestData = {
+      account: forgotPassword.account,
+      token: forgotPassword.token
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (forgotPassword.token) {
+      tempFormValidation.forgotToken.valid = true;
+    } else {
+      tempFormValidation.forgotToken.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      forgotModalError: '',
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/verifyToken`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          openEnterTokenDialog: false,
+          openEnterPasswordDialog: true,
+          forgotModalError: ''
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        forgotModalError: err.message
+      });
+    })
+  }
+  /**
+   * Handle enter password confirm
+   * @method
+   */
+  handlePasswordConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {forgotPassword, formValidation} = this.state;
+    const requestData = {
+      account: forgotPassword.account,
+      token: forgotPassword.token,
+      newPassword: forgotPassword.password
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (forgotPassword.password) {
+      tempFormValidation.forgotPassword.valid = true;
+    } else {
+      tempFormValidation.forgotPassword.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      forgotModalError: '',
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/password/_reset/verify`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-passwordSuccess'));
+        this.closeDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        forgotModalError: err.message
+      });
+    })
+  }
+  /**
+   * Close forgot password dialog
+   * @method
+   */
+  closeDialog = () => {
+    this.setState({
+      openFindAccountDialog: false,
+      openEnterTokenDialog: false,
+      openEnterPasswordDialog: false,
+      forgotPassword: {
+        account: '',
+        token: '',
+        password: ''
+      },
+      userEmail: '',
+      forgotModalError: '',
+      formValidation: {
+        username: {
+          valid: true
+        },
+        password: {
+          valid: true
+        },
+        captcha: {
+          valid: true
+        },
+        forgotAccount: {
+          valid: true
+        },
+        forgotToken: {
+          valid: true
+        },
+        forgotPassword: {
+          valid: true
+        }
+      }
+    });
   }
   /**
    * Handle enter key for login
    * @method
-   * @param {object} e - mouseClick events
+   * @param {object} event - event object
    */
-  handleKeyDown = (e) => {
-    if (e.keyCode === 13) {
+  handleKeyDown = (event) => {
+    if (event.keyCode === 13) {
       this.logon();
     }
   }
   /**
    * Handle language change
    * @method
-   * @param {string} lng - language type ('en' or 'zh')
+   * @param {object} event - event object
    */
-  changeLng = (lng) => {
+  changeLanguage = (event) => {
     const {contextRoot} = this.props;
-    const redirectURL = contextRoot || '/ChewbaccaWeb';
+    const redirectURL = contextRoot || '/SCP';
 
-    window.location.href = redirectURL + '/?' + qs.stringify({lng});
+    window.location.href = redirectURL + '/?lng=' + event.target.value;
   }
-  render() {
+  /**
+   * Set license to true and display login form
+   * @method
+   */
+  onPass = () => {
+    this.setState({
+      license: true
+    });
+  }
+  /**
+   * Set input data change
+   * @method
+   * @param {string} type - input type ('login' or 'forgotPassword')
+   * @param {object} event - event object
+   */
+  handleDataChange = (type, event) => {
+    const {login, forgotPassword} = this.state;
+
+    if (type === 'login') {
+      let tempLogin = {...login};
+      tempLogin[event.target.name] = event.target.value;  
+
+      this.setState({
+        login: tempLogin
+      });
+    } else if (type === 'forgotPassword') {
+      let tempForgotPassword = {...forgotPassword};
+      tempForgotPassword[event.target.name] = event.target.value;  
+
+      this.setState({
+        forgotPassword: tempForgotPassword
+      });
+    }
+  }
+  /**
+   * Display login form
+   * @method
+   * @returns HTML DOM
+   */
+  renderLogin = () => {
     const {baseUrl, contextRoot, productName, locale} = this.props;
-    const {info, error} = this.state;
+    const {
+      dropDownList,
+      openFindAccountDialog,
+      openEnterTokenDialog,
+      openEnterPasswordDialog,
+      capsLockWarning,
+      captchaImage,
+      login,
+      info,
+      error,
+      formValidation
+    } = this.state;
 
     return (
       &lt;div id='g-login' className='c-center global c-flex fdc'>
-        &lt;div id='title'>
+        {openFindAccountDialog &amp;&amp;
+          this.forgotPasswordDialog('account')
+        }
+
+        {openEnterTokenDialog &amp;&amp;
+          this.forgotPasswordDialog('token')
+        }
+
+        {openEnterPasswordDialog &amp;&amp;
+          this.forgotPasswordDialog('password')
+        }
+
+        &lt;div id='loingTitle'>
+          &lt;img src='/SCP/images/nsguard-logo.png' />
           &lt;span className='title'>{productName}&lt;/span>
-          &lt;span className='subtitle'>&lt;/span>
         &lt;/div>
 
-        &lt;div id='form' className='c-flex fdc'>
-          &lt;label htmlFor='username'>{t('login.lbl-username')}&lt;/label>
-          &lt;input ref={ref => { this.username = ref }} id='username' type='text' />
+        &lt;div id='loingForm' className='c-flex fdc'>
+          &lt;div className='login-group top'>
+            &lt;TextField
+              id='login-username'
+              name='username'
+              label={t('login.txt-userAccount')}
+              autoFocus={true}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required={true}
+              error={!formValidation.username.valid}
+              helperText={formValidation.username.valid ? '' : t('login.txt-username')}
+              value={login.username}
+              onChange={this.handleDataChange.bind(this, 'login')} />
+          &lt;/div>
+          &lt;div className='login-group top'>
+            &lt;TextField
+              id='login-password'
+              name='password'
+              type='password'
+              label={t('login.txt-userPassword')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required={true}
+              error={!formValidation.password.valid}
+              helperText={formValidation.password.valid ? '' : t('login.txt-password')}
+              value={login.password}
+              onChange={this.handleDataChange.bind(this, 'login')}
+              onKeyDown={this.handleKeyDown} />
+          &lt;/div>
+          {captchaImage &amp;&amp;
+            &lt;div className='login-group bottom'>
+              &lt;TextField
+                id='login-captcha'
+                name='captcha'
+                label={t('login.txt-captcha')}
+                variant='outlined'
+                size='small'
+                required={true}
+                error={!formValidation.captcha.valid}
+                helperText={formValidation.captcha.valid ? '' : t('login.txt-enterCaptcha')}
+                value={login.captcha}
+                onChange={this.handleDataChange.bind(this, 'login')}
+                onKeyDown={this.handleKeyDown} />
+              &lt;img className= 'captcha-image' src={captchaImage} width='80' height='40' />
+              &lt;RefreshIconContainer onClick={this.getCaptcha} />
+            &lt;/div>
+          }
+          {capsLockWarning &amp;&amp;
+            &lt;div className='caps-lock'>{t('txt-capsLockOn')}!&lt;/div>
+          }
+          &lt;button id='login-btn-login' onClick={this.logon}>{t('login.btn-login')}&lt;/button>
 
-          &lt;label htmlFor='password'>{t('login.lbl-password')}&lt;/label>
-          &lt;input ref={ref => { this.password = ref }} id='password' type='password' onKeyDown={this.handleKeyDown.bind(this)} />
+          &lt;div className='login-options'>
+            &lt;div id='login-startResetPwd' className='c-link first-time' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?&lt;/div>
+            &lt;div className='c-link forgot-pass' onClick={this.handleForgotPassword}>{t('txt-forgotPassword')}?&lt;/div>
+          &lt;/div>
 
-          &lt;button className='end' onClick={this.logon}>{t('login.btn-login')}&lt;/button>
+          &lt;div className={cx('c-info error-msg', {'c-error': error})}>{info}&lt;/div>
 
-          &lt;div className={cx('c-info', {'c-error': error})}>{info}&lt;/div>
-          &lt;div className='end actions c-flex aic'>
+          &lt;div className='end'>
             {!_.isEmpty(locale) &amp;&amp; locale.length > 1 &amp;&amp;
-              &lt;DropDownList
-                required
-                list={_.map(locale, l=>({value:l, text:t(`lng.${l}`)}))}
+              &lt;TextField
+                id='login-language'
+                name='language'
+                select
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={i18n.language}
-                onChange={this.changeLng} />
+                onChange={this.changeLanguage}>
+                {dropDownList}
+              &lt;/TextField>
             }
           &lt;/div>
         &lt;/div>
@@ -203,12 +809,28 @@ class Login extends Component {
       &lt;/div>
     )
   }
+  render() {
+    const {license} = this.state;
+
+    if (license === null) { //Show loading icon
+      return &lt;div id='g-login' className='c-center'>&lt;/div>
+    } else if (license) { //Show login page
+      return this.renderLogin();
+    } else { //Show license info
+      return (
+        &lt;License
+          from='login'
+          onPass={this.onPass} />
+      )
+    }
+  }
 }
 
 Login.propTypes = {
+  productName: PropTypes.string.isRequired
 };
 
-export default withLocale(Login);</code></pre>
+export default Login;</code></pre>
         </article>
     </section>
 
@@ -218,13 +840,13 @@ export default withLocale(Login);</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

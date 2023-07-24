@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/cpe.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/cpe.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router'
+import { Link } from 'react-router-dom'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import MuiTableContent from '../common/mui-table-content'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const FILTER_LIST = ['part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'productCpename', 'isMatched', 'cpe23uri'];
+const EDIT_LIST_PART1 = ['part', 'vendor', 'product', 'version', 'update', 'edition'];
+const EDIT_LIST_PART2 = ['language', 'swEdition', 'targetSw', 'targetHw', 'other', 'productCpename'];
+const FORM_VALIDATION = {
+  cpe23uri: {
+    valid: true
+  }
+};
+
+let t = null;
+let f = null;
+
+/**
+ * Host CPE page
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the CPE page
+ */
+class Cpe extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      showFilter: false,
+      cpeEditOpen: false,
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: ''
+      },
+      originalFilterData: {},
+      filterData: {
+        isMatched: 'all'
+      },
+      contextAnchor: null,
+      currentCpeData: {},
+      cpeData: {
+        dataFieldsArr: ['_menu', 'part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'cpe23uri', 'productCpename', 'isMatched'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'vendor',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getFilterData();
+        this.loadCpe();
+      });
+    }
+  }
+  /**
+   * Construct filter data
+   * @method
+   */
+  getFilterData = () => {
+    let tempFilterData = _.cloneDeep(this.state.filterData);
+
+    _.forEach(FILTER_LIST, val => {
+      if (val !== 'isMatched') {
+        tempFilterData[val] = '';
+      }
+    })
+
+    this.setState({
+      originalFilterData: _.cloneDeep(tempFilterData),
+      filterData: tempFilterData
+    });
+  }
+  /**
+   * Load CPE data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  loadCpe = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {filterData, cpeData} = this.state;
+    const page = fromPage === 'currentPage' ? cpeData.currentPage : 0;
+    const url = `${baseUrl}/api/hmd/cpe/_search?page=${page + 1}&amp;pageSize=${cpeData.pageSize}`;
+    let requestData = {};
+
+    Object.keys(filterData).map(val => {
+      if (val === 'isMatched') {
+        if (filterData[val] !== 'all') {
+          requestData.isMatched = filterData[val];
+        }
+      } else {
+        if (filterData[val]) {
+          requestData[val] = filterData[val];
+        }
+      }
+    });
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempCpeData = {...cpeData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempCpeData.dataContent = [];
+          tempCpeData.totalCount = 0;
+
+          this.setState({
+            cpeData: tempCpeData
+          });
+          return null;
+        }
+
+        tempCpeData.dataContent = data.rows;
+        tempCpeData.totalCount = data.counts;
+        tempCpeData.currentPage = page;
+        tempCpeData.dataFields = _.map(cpeData.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : f('hostCpeFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempCpeData.dataContent[dataIndex];
+                const value = tempCpeData.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu active'>
+                      &lt;Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/Button>
+                    &lt;/div>
+                  )
+                } else if (val === 'isMatched') {
+                  return &lt;span>{value.toString()}&lt;/span>
+                } else {
+                  return &lt;span>{value}&lt;/span>
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          cpeData: tempCpeData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Handle filter click
+   * @method
+   * @param {string} type - form type ('filter' or 'edit')
+   * @param {object} event - event object
+   */
+  handleDataChange = (type, event) => {
+    const {filterData, currentCpeData} = this.state;
+
+    if (type === 'filter') {
+      let tempFilterData = {...filterData};
+      tempFilterData[event.target.name] = event.target.value;  
+
+      this.setState({
+        filterData: tempFilterData
+      });
+    } else if (type === 'edit') {
+      let tempCurrentCpeData = {...currentCpeData};
+      tempCurrentCpeData[event.target.name] = event.target.value;  
+
+      this.setState({
+        currentCpeData: tempCurrentCpeData
+      });
+    }
+  }
+  /**
+   * Check form group type
+   * @method
+   * @param {string} type - group type
+   * @returns CSS property object
+   */
+  checkFormGroup = (type) => {
+    if (type === 'cpe23uri') {
+      return {width: '50%'};
+    }
+  }
+  /**
+   * Display filter form
+   * @method
+   * @param {string} val - filter data
+   * @param {number} i - index of the filter data
+   * @returns HTML DOM
+   */
+  showFilterForm = (val, i) => {
+    const {filterData} = this.state;
+
+    if (val === 'isMatched') {
+      return (
+        &lt;div key={i} className='group'>
+          &lt;TextField
+            name='isMatched'
+            label={f('hostCpeFields.' + val)}
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={filterData.isMatched}
+            onChange={this.handleDataChange.bind(this, 'filter')}>
+            &lt;MenuItem value={'all'}>{t('txt-all')}&lt;/MenuItem>
+            &lt;MenuItem value={true}>True&lt;/MenuItem>
+            &lt;MenuItem value={false}>False&lt;/MenuItem>
+          &lt;/TextField>
+        &lt;/div>
+      )
+    } else {
+      return (
+        &lt;div key={i} className='group' style={this.checkFormGroup(val)}>
+          &lt;TextField
+            name={val}
+            label={f('hostCpeFields.' + val)}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={filterData[val]}
+            onChange={this.handleDataChange.bind(this, 'filter')} />
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    return (
+      &lt;div className={cx('main-filter', {'active': this.state.showFilter})}>
+        &lt;div className='filter-section config host'>
+          {FILTER_LIST.map(this.showFilterForm)}
+        &lt;/div>
+        &lt;div className='button-group'>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.loadCpe}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Clear filter data
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      filterData: _.cloneDeep(this.state.originalFilterData)
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempCpeData = {...this.state.cpeData};
+    tempCpeData[type] = Number(value);
+
+    if (type === 'pageSize') {
+      tempCpeData.currentPage = 0;
+    }
+
+    this.setState({
+      cpeData: tempCpeData
+    }, () => {
+      this.loadCpe(type);
+    });
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let tempCpeData = {...this.state.cpeData};
+    tempCpeData.sort.field = field;
+    tempCpeData.sort.desc = sort;
+
+    this.setState({
+      cpeData: tempCpeData
+    }, () => {
+      this.loadCpe();
+    });
+  }
+  /**
+   * Display content message
+   * @method
+   * @param {string} type - action type ('delete')
+   * @returns HTML DOM
+   */
+  getCpeMsgContent = (type) => {
+    if (type === 'delete') {
+      return (
+        &lt;div className='content delete'>
+          &lt;span>{t('txt-delete-msg')}?&lt;/span>
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display modal dialog
+   * @method
+   * @param {string} type - action type ('delete')
+   */
+  showDialog = (type) => {
+    PopupDialog.prompt({
+      title: t('txt-delete'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: this.getCpeMsgContent(type),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.cpeAction(type);
+        }
+      }
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle modal confirm
+   * @method
+   * @param {string} type - action type ('delete')
+   */
+  cpeAction = (type) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/cpe?id=${this.state.currentCpeData.id}`;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      type: 'DELETE'
+    })
+    .then(() => {
+      this.loadCpe();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} cpe - active CPE data
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (cpe, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentCpeData: cpe
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
+  }
+  /**
+   * Toggle CPE edit dialog on/off
+   * @method
+   */
+  toggleCpeEdit = () => {
+    this.setState({
+      cpeEditOpen: !this.state.cpeEditOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Display edit form
+   * @method
+   * @param {string} val - edit data
+   * @param {number} i - index of the edit data
+   * @returns HTML DOM
+   */
+  showEditForm = (val, i) => {
+    return (
+      &lt;div key={i} className='group'>
+        &lt;TextField
+          name={val}
+          label={f('hostCpeFields.' + val)}
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={this.state.currentCpeData[val]}
+          onChange={this.handleDataChange.bind(this, 'edit')} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display CPE edit content
+   * @method
+   * @returns HTML DOM
+   */
+  displayCpeEdit = () => {
+    const {currentCpeData, formValidation} = this.state;
+
+    return (
+      &lt;div className='cpe-form'>
+        &lt;div className='group-flex'>
+          &lt;div className='group-parent'>
+            {EDIT_LIST_PART1.map(this.showEditForm)}
+          &lt;/div>
+          &lt;div className='group-parent'>
+            {EDIT_LIST_PART2.map(this.showEditForm)}
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='group cpe'>
+          &lt;TextField
+            name='cpe23uri'
+            label={f('hostCpeFields.cpe23uri')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.cpe23uri.valid}
+            helperText={formValidation.cpe23uri.valid ? '' : t('txt-required')}
+            value={currentCpeData.cpe23uri}
+            onChange={this.handleDataChange.bind(this, 'edit')} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Open CPE edit dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showCpeEdit = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeCpeEditDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleCpeEditConfirm}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='cpeEditDialog'
+        className='modal-dialog'
+        title={t('txt-edit')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayCpeEdit()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle CPE edit confirm
+   * @method
+   */
+  handleCpeEditConfirm = () => {
+    const {baseUrl} = this.context;
+    const {currentCpeData, formValidation} = this.state;
+    const url = `${baseUrl}/api/hmd/cpe`;
+    const requestData = {
+      ...currentCpeData
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (currentCpeData.cpe23uri) {
+      tempFormValidation.cpe23uri.valid = true;
+    } else {
+      tempFormValidation.cpe23uri.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    //Remove date property
+    delete requestData.createDttm;
+    delete requestData.updateDttm;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.loadCpe();
+        this.closeCpeEditDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close CPE edit dialog
+   * @method
+   */
+  closeCpeEditDialog = () => {
+    this.setState({
+      cpeEditOpen: false,
+      currentCpeData: {},
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    });
+  }
+  render() {
+    const {showFilter, cpeEditOpen, contextAnchor, currentCpeData, cpeData} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        {cpeEditOpen &amp;&amp;
+          this.showCpeEdit()
+        }
+        &lt;Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          &lt;MenuItem id='cpeMenuEdit' onClick={this.toggleCpeEdit}>{t('txt-edit')}&lt;/MenuItem>
+          &lt;MenuItem id='cpeMenuDelete' onClick={this.showDialog.bind(this, 'delete')}>{t('txt-delete')}&lt;/MenuItem>
+        &lt;/Menu>
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;Button variant='outlined' color='primary'>&lt;Link to='/SCP/host'>{t('host.txt-hostList')}&lt;/Link>&lt;/Button>
+            &lt;Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='data-content'>
+          &lt;div className='parent-content'>
+            {this.renderFilter()}
+
+            &lt;div className='main-content'>
+              &lt;header className='main-header'>{t('host.txt-cpePage')}&lt;/header>
+              &lt;MuiTableContent
+                data={cpeData}
+                tableOptions={tableOptions} />
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+Cpe.contextType = BaseDataContext;
+
+Cpe.propTypes = {
+};
+
+export default withRouter(Cpe);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/host-analysis.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/host-analysis.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import InfiniteScroll from 'react-infinite-scroll-component'
+
+import {downloadLink} from 'react-ui/build/src/utils/download'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import HMDmoreInfo from '../common/hmd-more-info'
+import HMDscanInfo from '../common/hmd-scan-info'
+import IrSelections from '../common/ir-selections'
+import NetworkBehavior from '../common/network-behavior'
+import PrivateDetails from '../common/private-details'
+import VansNotes from './vans-notes'
+import YaraRule from '../common/yara-rule'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const SAFETY_SCAN_LIST = [
+  {
+    type: 'yara',
+    path: 'ScanResult'
+  },
+  {
+    type: 'scanFile',
+    path: 'scanFileResult'
+  },
+  {
+    type: 'importGcbAndGcbDetection',
+    path: 'GCBResult'
+  },
+  {
+    type: 'ir',
+    path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
+  },
+  {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
+  },
+  {
+    type: '_ExecutePatch',
+    path: '_ExecutePatchResult'
+  }
+];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+const NOT_AVAILABLE = 'N/A';
+
+let t = null;
+let f = null;
+
+/**
+ * Host Analysis
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the host analysis information
+ */
+class HostAnalysis extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      activeTab: 'hostInfo', //'hostInfo' or 'networkBehavior'
+      activeScanType: '', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      safetyScanList: [],
+      modalViewMoreOpen: false,
+      modalYaraRuleOpen: false,
+      modalIRopen: false,
+      showSafetyScan: false,
+      showVansNotes: false,
+      safetyScanRecord: [],
+      scrollCount: 1,
+      hasMore: true
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setDefaultLeftMenu();
+    this.setInitialSaftyRecordData();
+  }
+  componentWillUnmount() {
+    if (this.props.activeTab === 'safetyScan') {
+      this.props.toggleSafetyDetails('', 'showAvailableHost');
+    }
+  }
+  /**
+   * Set active left navigation
+   * @method
+   */
+  setDefaultLeftMenu = () => {
+    const {hostData, openHmdType} = this.props;
+
+    if (openHmdType &amp;&amp; typeof openHmdType === 'string') {
+      this.setState({
+        activeTab: '',
+        activeScanType: openHmdType.replace('Result', ''),
+        showSafetyScan: true
+      });
+    } else {
+      if (hostData.annotationObj &amp;&amp; (hostData.annotationObj.status || hostData.annotationObj.annotation)) {
+        this.setState({
+          showVansNotes: true
+        });
+      }
+    }
+  }
+  /**
+   * Set initial safety scan record data
+   * @method
+   */
+  setInitialSaftyRecordData = () => {
+    this.setState({
+      safetyScanRecord: this.props.hostData.safetyScanInfoExecuteRecord
+    });
+  }
+  /**
+   * Set active tab
+   * @method
+   * @param {string} activeTab - active tab ('hostInfo', 'safetyScanRecord' or 'networkBehavior')
+   */
+  setActiveTab = (activeTab) => {
+    this.setState({
+      activeTab,
+      activeScanType: '',
+      showSafetyScan: false,
+      showVansNotes: false
+    });
+  }
+  /**
+   * Set active tab based on scan type
+   * @method
+   * @param {string} activeScanType - active scan type
+   */
+  setActiveScanType = (activeScanType) => {
+    this.setState({
+      activeScanType
+    });
+  }
+  /**
+   * Toggle Safety scan content on/off
+   * @method
+   */
+  toggleSafetyScan = () => {
+    this.setState({
+      activeTab: '',
+      showSafetyScan: !this.state.showSafetyScan,
+      showVansNotes: false
+    }, () => {
+      const {activeScanType, showSafetyScan} = this.state;
+
+      if (activeScanType === '' &amp;&amp; showSafetyScan) {
+        this.setState({
+          activeScanType: 'dashboard'
+        });
+      }
+    });
+  }
+  /**
+   * Toggle Vans note content on/off
+   * @method
+   */
+  toggleVansNotes = () => {
+    this.setState({
+      showSafetyScan: false,
+      showVansNotes: !this.state.showVansNotes
+    });
+  }
+  /**
+   * Display basic info
+   * @method
+   * @returns HTML DOM
+   */
+  displayInfoContent = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {hostData} = this.props;
+    const picPath = (hostData.ownerObj &amp;&amp; hostData.ownerObj.base64) ? hostData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
+    let alertInfo = {
+      ownerMap: {},
+      ownerBaseLayers: {},
+      ownerSeat: {}
+    };
+
+    if (hostData.areaObj &amp;&amp; hostData.areaObj.picPath) {
+      const ownerMap = {
+        label: hostData.areaObj.areaName,
+        images: [
+          {
+            id: hostData.areaUUID,
+            url: `${baseUrl}${contextRoot}/api/area/_image?path=${hostData.areaObj.picPath}`,
+            size: {width: hostData.areaObj.picWidth, height: hostData.areaObj.picHeight}
+          }
+        ]
+      };
+
+      alertInfo.ownerMap = ownerMap;
+      alertInfo.ownerBaseLayers[hostData.areaUUID] = ownerMap;
+
+      if (hostData.seatUUID &amp;&amp; hostData.seatObj) {
+        alertInfo.ownerSeat[hostData.areaUUID] = {
+          data: [{
+            id: hostData.seatUUID,
+            type: 'spot',
+            xy: [hostData.seatObj.coordX, hostData.seatObj.coordY],
+            label: hostData.seatObj.seatName,
+            data: {
+              name: hostData.seatObj.seatName,
+              tag: 'red'
+            }
+          }]
+        };
+      }
+    }
+
+    return (
+      &lt;div className='privateIp-info srcIp-content'>
+        &lt;PrivateDetails
+          from='host'
+          alertInfo={alertInfo}
+          topoInfo={hostData}
+          picPath={picPath}
+          triggerTask={this.triggerTask}
+          toggleViewMore={this.toggleViewMore} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display safety scan info
+   * @method
+   * @returns HTML DOM or HMDscanInfo component
+   */
+  displaySafetyScanContent = () => {
+    const {assessmentDatetime, hostCreateTime, hostData, eventInfo} = this.props;
+    const {activeScanType} = this.state;
+
+    if (_.isEmpty(hostData.safetyScanInfo)) {
+      return &lt;span>N/A&lt;/span>
+    } else {
+      return (
+        &lt;HMDscanInfo
+          page='host'
+          activeScanType={activeScanType}
+          assessmentDatetime={assessmentDatetime}
+          hostCreateTime={hostCreateTime}
+          currentDeviceData={hostData}
+          eventInfo={eventInfo}
+          toggleYaraRule={this.toggleYaraRule}
+          toggleSelectionIR={this.toggleSelectionIR}
+          triggerTask={this.triggerTask}
+          triggerFilesTask={this.triggerFilesTask}
+          addToWhiteList={this.addToWhiteList}
+          getHMDinfo={this.props.getIPdeviceInfo}
+          loadEventTracing={this.props.loadEventTracing}
+          getHostInfo={this.props.getHostInfo} />
+      )
+    }
+  }
+  /**
+   * Set safety scan list
+   * @method
+   * @param {object} val - safety scan data
+   * @param {number} i - index of the safety scan array
+   * @returns HTML DOM
+   */
+  setSafetyScanList = (val, i) => {
+    if (val.type !== 'snapshot' &amp;&amp; val.type !== 'procWhiteList') {
+      return (
+        &lt;li key={val.type} className='child' onClick={this.setActiveScanType.bind(this, val.type)}>
+          &lt;span className={cx({'active': this.state.activeScanType === val.type})}>{t('hmd-scan.scan-list.txt-' + val.type)}&lt;/span>
+        &lt;/li>
+      )
+    }
+  }
+  /**
+   * Load device data
+   * @method
+   */
+  loadMoreContent = () => {
+    const {baseUrl} = this.context;
+    const {hostData, assessmentDatetime} = this.props;
+    const {safetyScanRecord, scrollCount} = this.state;
+    let tempScrollCount = scrollCount;
+    tempScrollCount++;
+
+    const url = `${baseUrl}/api/v3/ipdevice?uuid=${hostData.ipDeviceUUID}&amp;page=${tempScrollCount}&amp;startDttm=${assessmentDatetime.from}&amp;endDttm=${assessmentDatetime.to}`;
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.safetyScanInfoExecuteRecord) {
+        if (data.safetyScanInfoExecuteRecord.length > 0) {
+          this.setState({
+            safetyScanRecord: _.concat(safetyScanRecord, data.safetyScanInfoExecuteRecord),
+            scrollCount: tempScrollCount,
+            hasMore: true
+          });
+        } else {
+          this.setState({
+            hasMore: false
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display HMD more table
+   * @method
+   * @param {object} val - host data
+   * @param {number} i - index of the hostInfo array
+   * @returns HTML DOM
+   */
+  displayScanRecordContent = (val, i) => {
+    return (
+      &lt;tr key={i}>
+        &lt;td>{val.taskName}&lt;/td>
+        &lt;td>{t('host.txt-' + val.taskStatus)}&lt;/td>
+        &lt;td>{helper.getFormattedDate(val.taskCreateDttm, 'local')}&lt;/td>
+        &lt;td>{helper.getFormattedDate(val.taskResponseDttm, 'local')}&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display safety scan record
+   * @method
+   * @returns HTML DOM
+   */
+  displaySafetyScanRecord = () => {
+    const {safetyScanRecord, hasMore} = this.state;
+
+    return (
+      &lt;div>
+        {safetyScanRecord.length > 0 &amp;&amp;
+          &lt;InfiniteScroll
+            dataLength={safetyScanRecord.length}
+            next={this.loadMoreContent}
+            hasMore={hasMore}
+            height={530}>
+            &lt;table className='c-table main-table'>
+              &lt;thead>
+                &lt;tr>
+                  &lt;th>{t('host.txt-safetyScanType')}&lt;/th>
+                  &lt;th>{t('host.txt-executionStatus')}&lt;/th>
+                  &lt;th>{t('host.txt-createTime')}&lt;/th>
+                  &lt;th>{t('hmd-scan.txt-responseTime')}&lt;/th>
+                &lt;/tr>
+              &lt;/thead>
+              &lt;tbody>
+                {safetyScanRecord.map(this.displayScanRecordContent)}
+              &lt;/tbody>
+            &lt;/table>
+          &lt;/InfiniteScroll>
+        }
+
+        {safetyScanRecord.length === 0 &amp;&amp;
+          &lt;div className='empty-msg'>{NOT_AVAILABLE}&lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Display Host Analysis content
+   * @method
+   * @returns HTML DOM
+   */
+  displayHostAnalysisData = () => {
+    const {hostData, assessmentDatetime, vansDeviceStatusList, location} = this.props;
+    const {activeTab, activeScanType, safetyScanList, showSafetyScan, showVansNotes} = this.state;
+    const ip = hostData.ip || NOT_AVAILABLE;
+    const mac = hostData.mac || NOT_AVAILABLE;
+    const hostName = hostData.hostName || NOT_AVAILABLE;
+    const system = hostData.system || NOT_AVAILABLE;
+    const ownerName = hostData.ownerObj ? hostData.ownerObj.ownerName : NOT_AVAILABLE;
+    const version = hostData.version || NOT_AVAILABLE;
+
+    return (
+      &lt;div>
+        &lt;table className='c-table main-table align-center with-border'>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>{f('alertFields._severity_')}&lt;/th>
+              &lt;th>{t('ipFields.ip')}&lt;/th>
+              &lt;th>{t('ipFields.mac')}&lt;/th>
+              &lt;th>{t('ipFields.hostName')}&lt;/th>
+              &lt;th>{t('ipFields.system')}&lt;/th>
+              &lt;th>{t('ipFields.owner')}&lt;/th>
+              &lt;th>{t('ipFields.version')}&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            &lt;tr>
+              &lt;td className='severity-level'>{helper.getSeverityColor(hostData.severityLevel)}&lt;/td>
+              &lt;td>{ip}&lt;/td>
+              &lt;td>{mac}&lt;/td>
+              &lt;td>{hostName}&lt;/td>
+              &lt;td>{system}&lt;/td>
+              &lt;td>{ownerName}&lt;/td>
+              &lt;td>{version}&lt;/td>
+            &lt;/tr>
+          &lt;/tbody>
+        &lt;/table>
+
+        &lt;div className='main-content'>
+          &lt;div className='nav'>
+            &lt;ul>
+              &lt;li className='header' onClick={this.setActiveTab.bind(this, 'hostInfo')}>
+                &lt;span className={cx('name', {'active': activeTab === 'hostInfo'})}>{t('host.txt-hostInfo')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' onClick={this.toggleSafetyScan}>
+                &lt;span className={cx('name', {'active': showSafetyScan})}>{t('alert.txt-safetyScan')}&lt;/span>
+                &lt;i className={`fg fg-arrow-${showSafetyScan ? 'bottom' : 'top'}`}>&lt;/i>
+              &lt;/li>
+
+              {showSafetyScan &amp;&amp;
+                &lt;React.Fragment>
+                  &lt;ul className='scan-list'>
+                    &lt;li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}>&lt;span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}&lt;/span>&lt;/li>
+                    {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+
+                    {(location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &amp;&amp;
+                      &lt;React.Fragment>
+                        &lt;li className='child' onClick={this.setActiveScanType.bind(this, 'edr')}>&lt;span className={cx({'active': activeScanType === 'edr'})}>EDR&lt;/span>&lt;/li>
+                        &lt;li className='child' onClick={this.setActiveScanType.bind(this, 'settings')}>&lt;span className={cx({'active': activeScanType === 'settings'})}>{t('txt-settings')}&lt;/span>&lt;/li>
+                      &lt;/React.Fragment>
+                    }
+                  &lt;/ul>
+                &lt;/React.Fragment>
+              }
+
+              &lt;li className='header' onClick={this.setActiveTab.bind(this, 'safetyScanRecord')}>
+                &lt;span className={cx('name', {'active': activeTab === 'safetyScanRecord'})}>{t('host.txt-safetyScanRecord')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' onClick={this.setActiveTab.bind(this, 'networkBehavior')}>
+                &lt;span className={cx('name', {'active': activeTab === 'networkBehavior'})}>{t('txt-networkBehavior')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' onClick={this.toggleVansNotes}>
+                &lt;span className={cx('name', {'active': showVansNotes})}>{t('host.txt-vansNotes')}&lt;/span>
+                &lt;i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}>&lt;/i>
+              &lt;/li>
+            &lt;/ul>
+            {showVansNotes &amp;&amp;
+              &lt;VansNotes
+                currentData={hostData}
+                currentType='device'
+                vansDeviceStatusList={vansDeviceStatusList}
+                getIPdeviceInfo={this.props.getIPdeviceInfo}
+                getVansStatus={this.props.getVansStatus} />
+            }
+          &lt;/div>
+          &lt;div className='content'>
+            {activeTab === 'hostInfo' &amp;&amp;
+              this.displayInfoContent()
+            }
+
+            {activeScanType &amp;&amp;
+              this.displaySafetyScanContent()
+            }
+
+            {activeTab === 'safetyScanRecord' &amp;&amp;
+              this.displaySafetyScanRecord()
+            }
+
+            {activeTab === 'networkBehavior' &amp;&amp;
+              &lt;NetworkBehavior
+                page='host'
+                ipType='srcIp'
+                alertData={hostData}
+                hostDatetime={assessmentDatetime} />
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Toggle view more dialog
+   * @method
+   */
+  toggleViewMore = () => {
+    this.setState({
+      modalViewMoreOpen: !this.state.modalViewMoreOpen
+    });
+  }
+  /**
+   * Toggle yara rule dialog
+   * @method
+   */
+  toggleYaraRule = () => {
+    this.setState({
+      modalYaraRuleOpen: !this.state.modalYaraRuleOpen
+    });
+  }
+  /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle IR combo selection dialog
+   * @method
+   */
+  toggleSelectionIR = () => {
+    this.setState({
+      modalIRopen: !this.state.modalIRopen
+    });
+  }
+  /**
+   * Handle trigger button for HMD
+   * @method
+   * @param {array.&lt;string>} type - HMD scan type
+   * @param {string} [ipTypeParam] - IP type ('srcIp' or 'destIp')
+   * @param {object} [yaraRule] - yara rule data
+   */
+  triggerTask = (type, ipTypeParam, yaraRule) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    let requestData = {
+      hostId: hostData.ipDeviceUUID,
+      cmds: type
+    };
+
+    if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
+      requestData.paras = {
+        _FilepathList: pathData,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+
+        if (type[0] === 'compareIOC') {
+          this.toggleYaraRule();
+        }
+
+        this.setState({
+          modalIRopen: false
+        });
+
+        this.props.getIPdeviceInfo(hostData);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle trigger button for HMD Malware
+   * @method
+   * @param {array.&lt;string>} filePath - Malware file path
+   * @param {string} taskId - Task ID
+   */
+  triggerFilesTask = (filePath, taskId) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const requestData = {
+      hostId: hostData.ipDeviceUUID,
+      cmds: ['getHmdFiles'],
+      paras: {
+        _FilepathVec: filePath,
+        _FileName: taskId
+      }
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/retrigger`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle malware add to white list
+   * @method
+   * @param {string} fileMD5 - File MD5
+   */
+  addToWhiteList = (fileMD5) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const requestData = [{
+      fileMD5,
+      hasHandled: true
+    }];
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/malwareList`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.props.getIPdeviceInfo(hostData);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle PDF download
+   * @method
+   */
+  exportPdf = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {hostData, assessmentDatetime} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdf`;
+
+    downloadLink(url, {uuid: hostData.ipDeviceUUID, startDttm: assessmentDatetime.from, endDttm: assessmentDatetime.to, page: 1, pageSize: 5});
+  }
+  render() {
+    const {hostData} = this.props;
+    const {modalViewMoreOpen, modalYaraRuleOpen, modalIRopen} = this.state;
+    const actions = {
+      export: {text: t('txt-export'), handler: this.exportPdf.bind(this)},
+      confirm: {text: t('txt-close'), handler: this.props.toggleHostAnalysis}
+    };
+
+    return (
+      &lt;div>
+        &lt;ModalDialog
+          id='hostModalDialog'
+          className='modal-dialog'
+          title={t('host.txt-hostAnalysis')}
+          draggable={true}
+          global={true}
+          actions={actions}
+          closeAction='confirm'>
+          {this.displayHostAnalysisData()}
+        &lt;/ModalDialog>
+
+        {modalViewMoreOpen &amp;&amp;
+          &lt;HMDmoreInfo
+            hostData={hostData}
+            toggleViewMore={this.toggleViewMore} />
+        }
+
+        {modalYaraRuleOpen &amp;&amp;
+          &lt;YaraRule
+            toggleYaraRule={this.toggleYaraRule}
+            checkYaraRule={this.checkYaraRule} />
+        }
+
+        {modalIRopen &amp;&amp;
+          &lt;IrSelections
+            currentDeviceData={hostData}
+            toggleSelectionIR={this.toggleSelectionIR}
+            triggerTask={this.triggerTask} />
+        }
+      &lt;/div>
+    )
+  }
+}
+
+HostAnalysis.contextType = BaseDataContext;
+
+HostAnalysis.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  assessmentDatetime:  PropTypes.object.isRequired,
+  hostData: PropTypes.object.isRequired,
+  eventInfo: PropTypes.object.isRequired,
+  openHmdType: PropTypes.string.isRequired,
+  vansDeviceStatusList: PropTypes.array.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  loadEventTracing: PropTypes.func.isRequired,
+  toggleHostAnalysis: PropTypes.func.isRequired,
+  toggleSafetyDetails: PropTypes.func.isRequired,
+  getHostInfo: PropTypes.func.isRequired,
+  getVansStatus: PropTypes.func.isRequired
+};
+
+export default withRouter(HostAnalysis);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

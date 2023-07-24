@@ -26,24 +26,42 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import React, {Component} from 'react'
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import _ from 'lodash'
 import i18n from 'i18next'
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 import cx from 'classnames'
 import im from 'object-path-immutable'
 import queryString from 'query-string'
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import Input from 'react-ui/build/src/components/input'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormLabel from '@material-ui/core/FormLabel'
+import FormControl from '@material-ui/core/FormControl'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormGroup from '@material-ui/core/FormGroup'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
+import {BaseDataContext} from '../../../common/context'
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  },
+  privileges: {
+    valid: true
+  }
+};
+
 const log = require('loglevel').getLogger('user/privileges/edit');
 const t = i18n.getFixedT(null, 'privileges');
+const c = i18n.getFixedT(null, 'connections');
 const gt =  i18n.getFixedT(null, 'app');
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML || '{}')
@@ -53,16 +71,17 @@ const INITIAL_STATE = {
   open: false,
   info: null,
   error: false,
-  permits: [],
+  permitsList: [],
+  permitsSelected: [],
   name: '',
-  selected: [],
-  privilegeid: ''
+  privilegeid: '',
+  formValidation: _.cloneDeep(FORM_VALIDATION)
 };
 
 /**
  * Account Privileges Edit
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the account privileges edit
  */
 class PrivilegeEdit extends Component {
@@ -77,33 +96,46 @@ class PrivilegeEdit extends Component {
    * @param {object} privilege - selected privilege data
    */
   openPrivilegeEdit = (privilege) => {
+    const permitsSelected = _.map(privilege.permits, val => {
+      return val.permitid;
+    });
+
     this.setState({
       open: true,
       name: privilege.name,
       privilegeid: privilege.privilegeid,
-      selected: _.map(privilege.permits, (permit) => { return permit.permitid }
-    )}, this.loadPermits)
+      permitsSelected
+    }, () => {
+      this.loadPermits();
+    });
   }
   /**
    * Get and set privilege permits data
    * @method
    */
   loadPermits = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/account/permits`,
       type: 'GET'
     })
     .then(data => {
-      this.setState({
-        permits: _.map(data.rt, (permit) => {
+      if (data) {
+        const permitsList = _.map(data.rt, val => {
           return {
-            value: permit.permitid,
-            text: permit.dispname
+            value: val.permitid,
+            text: c('txt-' + val.name)
           };
-        })
-      });
+        });
+
+        this.setState({
+          permitsList
+        });
+      }
+      return null;
     })
     .catch(err => {
       this.setState({
@@ -117,7 +149,16 @@ class PrivilegeEdit extends Component {
    * @method
    */
   close = () => {
-    this.setState(_.clone(INITIAL_STATE));
+    this.setState({
+      open: false,
+      info: null,
+      error: false,
+      permitsList: [],
+      permitsSelected: [],
+      name: '',
+      privilegeid: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    });
   }
   /**
    * Reset data and call onDone props funciton
@@ -133,16 +174,50 @@ class PrivilegeEdit extends Component {
    * @method
    */
   editPrivilege = () => {
-    const {baseUrl} = this.props;
-    const {selected, privilegeid} = this.state;
+    const {baseUrl} = this.context;
+    const {name, permitsSelected, privilegeid, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    if (permitsSelected.length > 0) {
+      tempFormValidation.privileges.valid = true;
+    } else {
+      tempFormValidation.privileges.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate || !privilegeid) {
+      return;
+    }
+
+    let permitIds = '';
+
+    _.forEach(permitsSelected, val => {
+      permitIds += '&amp;permitIds=' + val;
+    })
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
-      url: `${baseUrl}/api/account/privilege/permits?privilegeId=${privilegeid}&amp;${queryString.stringify({permitIds:selected})}`,
+      url: `${baseUrl}/api/account/privilege/permits/v1?privilegeId=${privilegeid}&amp;${permitIds}`,
+      data: JSON.stringify({name}),
       type: 'PATCH',
       contentType: 'application/json'
     })
     .then(data => {
       this.save();
+      return null;
     })
     .catch(err => {
       this.setState({
@@ -152,14 +227,108 @@ class PrivilegeEdit extends Component {
     })
   }
   /**
-   * Handle checkboxgroup value change
+   * Handle textbox value change
    * @method
-   * @param {array} selected - selected checkboxs value
+   * @param {object} event - event object
    */
-  handleDataChange = (selected) => {
+  handleDataChange = (event) => {
     this.setState({
-      selected
+      [event.target.name]: event.target.value
     });
+  }
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.permitsSelected, val);
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (event) => {
+    let permitsSelected = _.cloneDeep(this.state.permitsSelected);
+
+    if (event.target.checked) {
+      permitsSelected.push(event.target.name);
+    } else {
+      const index = permitsSelected.indexOf(event.target.name);
+      permitsSelected.splice(index, 1);
+    }
+
+    this.setState({
+      permitsSelected
+    });
+  }
+  /**
+   * Display role checkbox group
+   * @method
+   * @param {string} val - checkbox group
+   * @param {number} i - index of the checkbox group
+   * @returns FormControlLabel component
+   */
+  getRoleList = (val, i) => {
+    const {name, privilegeid} = this.state;
+    let showCheckbox = false;
+
+    if (name.includes('SOC')){
+      showCheckbox = true;
+    }
+
+    if (!val.text) return;
+
+
+    if (val.text.includes('SOC') || privilegeid === 'DPIR-00000000-0000-0000-0000-000000000000') {
+      return (
+        &lt;FormControlLabel
+          key={i}
+          className='privilege-checkbox'
+          label={val.text}
+          control={
+            &lt;Checkbox
+              id={val.value}
+              className='checkbox-ui'
+              name={val.value}
+              checked={this.checkSelectedItem(val.value)}
+              disabled={!showCheckbox}
+              onChange={this.toggleCheckbox}
+              color='primary' />
+          } />
+      )
+    } else {
+      return (
+        &lt;FormControlLabel
+          key={i}
+          className='privilege-checkbox'
+          label={val.text}
+          control={
+            &lt;Checkbox
+              id={val.value}
+              className='checkbox-ui'
+              name={val.value}
+              checked={this.checkSelectedItem(val.value)}
+              onChange={this.toggleCheckbox}
+              color='primary' />
+          } />
+      )
+    }
+  }
+  /**
+   * Check disable status
+   * @method
+   * @param {string} name - role name
+   * @returns boolean true/false
+   */
+  checkDisabled = (name) => {
+    const roleList = ['SOC Analyzer', 'SOC Executor', 'SOC Supervior', 'SOC單位設備承辦人', 'SOC單位設備資安長', 'Default Admin Privilege'];
+
+    if (_.includes(roleList, name)) {
+      return true;
+    }
   }
   /**
    * Display edit privilege content
@@ -167,23 +336,34 @@ class PrivilegeEdit extends Component {
    * @returns HTML DOM
    */
   displayEditPrivilege = () => {
-    const {permits, selected, name} = this.state;
+    const {permitsList, name, formValidation} = this.state;
 
     return (
       &lt;div className='c-form'>
-        &lt;div>
-          &lt;label className='required'>{t('l-name')}&lt;/label>
-          &lt;Input
-            type='text'
-            readOnly
-            value={name} />
-        &lt;/div>
+        &lt;TextField
+          id='privilegesEditRole'
+          className='role-name'
+          name='name'
+          label={t('l-name')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          required
+          error={!formValidation.name.valid}
+          helperText={formValidation.name.valid ? '' : c('txt-required')}
+          value={name}
+          onChange={this.handleDataChange}
+          disabled={this.checkDisabled(name)} />
         &lt;div className='group'>
-          &lt;label className='required'>{t('l-permits')}&lt;/label>
-          &lt;CheckboxGroup
-            list={permits}
-            onChange={this.handleDataChange}
-            value={selected} />
+          &lt;FormControl
+            required
+            error={!formValidation.privileges.valid}>
+            &lt;FormLabel>{c('txt-privileges')}&lt;/FormLabel>
+            &lt;FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}&lt;/FormHelperText>
+            &lt;FormGroup>
+              {permitsList.map(this.getRoleList)}
+            &lt;/FormGroup>
+          &lt;/FormControl>
         &lt;/div>
       &lt;/div>
     )
@@ -207,7 +387,7 @@ class PrivilegeEdit extends Component {
         draggable={true}
         global={true}
         info={info}
-        infoClassName={cx({'c-error':error})}
+        infoClassName={cx({'c-error': error})}
         closeAction='cancel'
         actions={actions}>
         {this.displayEditPrivilege()}
@@ -216,9 +396,9 @@ class PrivilegeEdit extends Component {
   }
 }
 
+PrivilegeEdit.contextType = BaseDataContext;
+
 PrivilegeEdit.defaultProps = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
 export default PrivilegeEdit;</code></pre>
@@ -231,13 +411,13 @@ export default PrivilegeEdit;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

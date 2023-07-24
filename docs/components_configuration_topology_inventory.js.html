@@ -27,66 +27,109 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
+import jschardet from 'jschardet'
+import queryString from 'query-string'
+import XLSX from 'xlsx'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import Tab from '@material-ui/core/Tab'
+import Tabs from '@material-ui/core/Tabs'
+import TextField from '@material-ui/core/TextField'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
+
+import {analyze} from 'vbda-ui/build/src/analyzer'
+import {config as configLoader} from 'vbda-ui/build/src/loader'
+import DataTable from 'react-ui/build/src/components/table'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
-import Tabs from 'react-ui/build/src/components/tabs'
-import Textarea from 'react-ui/build/src/components/textarea'
-import TreeView from 'react-ui/build/src/components/tree'
+import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
+import AutoSettings from './auto-settings'
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
+import FileUpload from '../../common/file-upload'
+import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
-import {HocAutoSettings as AutoSettings} from './auto-settings'
-import {HocConfig as Config} from '../../common/configuration'
-import {HocFilterContent as FilterContent} from '../../common/filter-content'
-import {HocFloorMap as FloorMap} from '../../common/floor-map'
-import {HocHMDscanInfo as HMDscanInfo} from '../../common/hmd-scan-info'
-import {HocIrSelections as IrSelections} from '../../common/ir-selections'
-import {HocPagination as Pagination} from '../../common/pagination'
-import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
+import HMDmoreInfo from '../../common/hmd-more-info'
+import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
-import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
+import MuiTableContent from '../../common/mui-table-content'
+import Pagination from '../../common/pagination'
+import PrivateDetails from '../../common/private-details'
+import YaraRule from '../../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = [
-  {
-    type: 'yara',
-    path: 'ScanResult'
+const DEVICE_SEARCH = {
+  ip: '',
+  mac: '',
+  netproxyIp: '',
+  hostName: '',
+  system: '',
+  owner: '',
+  areaName: '',
+  seatName: ''
+};
+const FORM_VALIDATION = {
+  ip: {
+    valid: true,
+    msg: ''
   },
-  {
-    type: 'yaraScanFile',
-    path: 'ScanResult'
+  mac: {
+    valid: true,
+    msg: ''
   },
-  {
-    type: 'malware',
-    path: 'DetectionResult'
+  newOwnerName: {
+    valid: true
   },
-  {
-    type: 'gcb',
-    path: 'GCBResult'
+  newOwnerID: {
+    valid: true
+  },
+  existingOwnerName: {
+    valid: true
+  },
+  csvColumnsIp: {
+    valid: true
+  },
+  csvOwnerID: {
+    valid: true
+  },
+  csvOwnerName: {
+    valid: true
+  },
+  seatName: {
+    valid: true
+  },
+  hostName: {
+    valid: true
+  },
+  system: {
+    valid: true
+  },
+  deviceType: {
+    valid: true
   }
-];
-const MAPS_PRIVATE_DATA = {
-  floorList: [],
-  currentFloor: '',
-  mapAreaUUID: '',
-  currentMap: '',
-  currentBaseLayers: {},
-  seatData: {}
 };
 
 let t = null;
@@ -96,7 +139,7 @@ let et = null;
 /**
  * Network Topology Inventory
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Network Topology Inventory page
  */
 class NetworkInventory extends Component {
@@ -104,29 +147,32 @@ class NetworkInventory extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'deviceList', //deviceList, deviceMap
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
+      activeTab: 'deviceList', //'deviceList', 'deviceMap' or 'deviceLA'
+      activeContent: 'tableList', //'tableList', 'dataInfo', 'addIPsteps', 'autoSettings' or 'batchUpdates'
       showFilter: false,
-      showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
+      modalViewMoreOpen: false,
       modalIRopen: false,
       addSeatOpen: false,
+      uploadOpen: false,
+      openManage: false,
       formTypeEdit: true,
-      deviceSearch: {
-        ip: '',
-        mac: '',
-        hostName: '',
-        system: '',
-        owner: '',
-        areaName: '',
-        seatName: ''
-      },
-      showHMDonly: false,
+      contextAnchor: null,
+      menuType: '',
+      LAconfig: {},
+      deviceEventsDataList: {},
+      deviceEventsData: {},
+      eventsDateList: [],
+      eventsDate: '',
+      deviceLAdata: {},
+      deviceSearch: _.cloneDeep(DEVICE_SEARCH),
+      showAllSeats: false,
+      deviceSearchArea: '',
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
-        dataFields: {},
-        dataContent: [],
+        dataFieldsArr: ['ip', 'mac', 'hmdVersion', 'hbDttm', 'netproxyIp', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu'],
+        dataFields: [],
+        dataContent: null,
         ipListArr: [],
         ipDeviceUUID: '',
         sort: {
@@ -136,11 +182,26 @@ class NetworkInventory extends Component {
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
-        currentIndex: '',
-        currentLength: ''
+        hmdOnly: {
+          dataContent: [],
+          currentIndex: '',
+          currentLength: ''
+        }
       },
       currentDeviceData: {},
+      batchUpdatesList: [],
+      floorList: [],
+      mapAreaUUID: '',
+      currentMap: '',
+      currentBaseLayers: {},
+      currentSeatData: {},
+      originalSeatData: [],
+      deviceSeatData: {},
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: '',
       ownerList: [],
+      ownerListDropDown: [],
       departmentList: [],
       titleList: [],
       floorPlan: {
@@ -152,7 +213,7 @@ class NetworkInventory extends Component {
         name: '',
         map: ''
       },
-      alertInfo: {
+      ownerInfo: {
         ownerMap: {},
         ownerBaseLayers: {},
         ownerSeat: {}
@@ -162,96 +223,637 @@ class NetworkInventory extends Component {
       addIP: {},
       addSeat: {
         selectedSeatUUID: '',
-        name: '',
+        seatName: '',
         coordX: '',
         coordY: ''
       },
-      ownerType: 'existing', //existing, new,
+      editSeat: {
+        seatUUID: '',
+        areaUUID: '',
+        seatName: '',
+        coordX: '',
+        coordY: ''
+      },
+      addSeatType: '', //'add' or 'edit'
+      ownerType: 'existing', //'existing' or 'new'
       ownerIDduplicated: false,
       previewOwnerPic: '',
-      ..._.cloneDeep(MAPS_PRIVATE_DATA)
+      changeAreaMap: false,
+      csvData: [],
+      tempCsvData: [],
+      showCsvData: false,
+      csvColumns: {
+        ip: '',
+        mac: '',
+        netproxyIp: '',
+        hostName: '',
+        ownerId: '',
+        ownerName: '',
+        departmentName: '',
+        remarks: ''
+      },
+      selectedTreeID: '',
+      floorMapType: '', //'fromFloorMap' or 'selected'
+      csvHeader: true,
+      ipUploadFields: ['ip', 'mac', 'hostName', 'ownerId', 'ownerName', 'departmentName', 'remarks', 'errCode'],
+      showLoadingIcon: false,
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getDeviceData();
+    const {baseUrl, locale, sessionRights} = this.context;
+    const inventoryParam = queryString.parse(location.search);
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.getLAconfig();
     this.getOwnerData();
-    this.getOtherData();
-    this.getFloorPlan();
+    this.getTitleData();
+
+    if (_.isEmpty(inventoryParam)) {
+      this.getDeviceData();
+    } else {
+      if (inventoryParam.type === 'search') { //Handle redirect page
+        let tempDeviceSearch = {...this.state.deviceSearch};
+        tempDeviceSearch.ip = inventoryParam.ip
+
+        this.setState({
+          showFilter: true,
+          deviceSearch: tempDeviceSearch
+        }, () => {
+          this.getDeviceData();
+        });
+      }
+    }
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('showList');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
-   * Display individual scan info
+   * Get and set the Link Analysis config
    * @method
-   * @param {object} val - scan info data
-   * @param {number} i - index of the hmdInfo array
-   * @returns HTML DOM
    */
-  getHMDinfo = (val, i) => {
-    const scanType = val.type;
+  getLAconfig = () => {
+    const {baseUrl} = this.context;
 
-    if (!val.result) {
-      return;
-    }
+    helper.getLAconfig(baseUrl)
+    .then(data => {
+      if (!_.isEmpty(data)) {
+        this.setState({
+          LAconfig: configLoader.processAll(data)
+        });
+      }
+      return null;
+    });
+  }
+  /**
+   * Get and set owner data
+   * @method
+   */
+  getOwnerData = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/owner/_search`;
+    const requestData = {
+      sort: 'ownerID',
+      order: 'asc',
+      getOwnerDataOnly: true
+    };
 
-    if (scanType === 'gcb') {
-      const filteredResult = _.filter(val.result, ['_CompareResult', 'true']);
-      let style = '#d10d25'; //Default red color
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          let ownerList = _.map(data.rows, val => {
+            return {
+              value: val.ownerUUID,
+              text: val.ownerName
+            };
+          });
+          ownerList = _.orderBy(ownerList, ['text'], ['asc']);
 
-      if (filteredResult.length === val.result.length) { //Show green color for all pass
-        style = '#22ac38';
+          let ownerListDropDown = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          ownerListDropDown = _.map(ownerListDropDown, (val, i) => {
+            return &lt;MenuItem key={i} value={val.ownerUUID}>{val.ownerName}&lt;/MenuItem>
+          });
+
+          this.setState({
+            ownerList,
+            ownerListDropDown
+          });
+        } else {
+          this.setState({
+            ownerType: 'new'
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set title data
+   * @param {string} options - option for calling type
+   * @method
+   */
+  getTitleData = (options) => {
+    const {baseUrl} = this.context;
+    const {addIP} = this.state;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let titleList = [];
+        let tempAddIP = {...addIP};
+
+        if (data.length > 0) {
+          _.forEach(data, val => {
+            titleList.push({
+              value: val.nameUUID,
+              text: val.name
+            });
+          })
+          tempAddIP.newTitle = data[0].nameUUID;
+        } else {
+          tempAddIP.newTitle = '';
+        }
+
+        this.setState({
+          titleList,
+          addIP: tempAddIP
+        }, () => {
+          this.getDepartmentData();
+        });
+
+        this.getFloorPlan(options);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentList = [];
+
+        if (data.length > 0) {
+          _.forEach(data, val => {
+            helper.floorPlanRecursive(val, obj => {
+              departmentList.push({
+                value: obj.id,
+                text: obj.name
+              });
+            });
+          })
+        }
+
+        this.setState({
+          departmentList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set floor plan data
+   * @param {string} options - option for calling type
+   * @method
+   */
+  getFloorPlan = (options) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.length > 0) {
+        const floorPlanData = data[0];
+        const floorPlan = {
+          treeData: data,
+          currentAreaUUID: floorPlanData.areaUUID,
+          currentAreaName: floorPlanData.areaName
+        };
+
+        this.setState({
+          floorPlan
+        }, () => {
+          this.getFloorList();
+        });
+      } else {
+        this.getInventoryEdit(options);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set floor list data
+   * @method
+   * @param {string} [options] - option for 'loadDefault'
+   */
+  getFloorList = (options) => {
+    const {deviceSearch, floorPlan} = this.state;
+    let floorList = [];
+
+    _.forEach(floorPlan.treeData, val => {
+      helper.floorPlanRecursive(val, obj => {
+        floorList.push({
+          value: obj.areaUUID,
+          text: obj.areaName
+        });
+      });
+    })
+
+    this.setState({
+      floorList
+    }, () => {
+      if (options === 'loadDefault' || !deviceSearch.areaName) {
+        this.setState({
+          deviceSearchArea: '',
+          floorMapType: ''
+        });
+        this.getAreaData(floorList[0].value);
+        this.getDeviceSeatData(floorList[0].value);
+      } else {
+        this.getDeviceSearchArea(deviceSearch.areaName);
       }
 
-      return &lt;li key={scanType} style={{'color': style}}>&lt;span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:&lt;/span> {filteredResult.length}/{val.result.length}&lt;/li>
+      this.getInventoryEdit();
+    });
+  }
+  /**
+   * Get and set device search area
+   * @method
+   * @param {string} areaName - area UUID
+   */
+  getDeviceSearchArea = (areaName) => {
+    const {baseUrl, contextRoot} = this.context;
+    const requestData = {
+      areaName
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.length > 0) {
+          this.setState({
+            deviceSearchArea: data[0].areaUUID
+          });
+
+          this.getAreaData(data[0].areaUUID);
+          this.getDeviceSeatData(data[0].areaUUID);
+        } else {
+          this.getFloorList('loadDefault');
+        }
+      }
+      return null;
+    })
+  }
+  /**
+   * Get and set individual floor area data
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getAreaData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const mapAreaUUID = areaUUID.trim();
+
+    this.ah.one({
+      url: `${baseUrl}/api/area?uuid=${mapAreaUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = {};
+
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
+
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [mapAreaUUID]: currentMap
+        };
+
+        this.setState({
+          mapAreaUUID,
+          currentMap,
+          currentBaseLayers
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set seat data with or without device
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @param {string} [options] - option for 'refreshSeat'
+   * @param {string} [seatUUID] - seat UUID
+   */
+  getDeviceSeatData = (areaUUID, options, seatUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {activeTab, deviceSearch, showAllSeats} = this.state;
+    const area = areaUUID || this.state.floorPlan.currentAreaUUID;
+    let requestData = {
+      areaUUID: area
+    };
+
+    if (!_.isEmpty(deviceSearch) &amp;&amp; !showAllSeats) {
+      if (deviceSearch.ip) {
+        requestData.ip = deviceSearch.ip;
+      }
+
+      if (deviceSearch.mac) {
+        requestData.mac = deviceSearch.mac;
+      }
+
+      if (deviceSearch.hostName) {
+        requestData.hostName = deviceSearch.hostName;
+      }
+
+      if (deviceSearch.system) {
+        requestData.system = deviceSearch.system;
+      }
+
+      if (deviceSearch.owner) {
+        requestData.ownerName = deviceSearch.owner;
+      }
+
+      if (deviceSearch.areaName) {
+        requestData.areaName = deviceSearch.areaName;
+      }
+
+      if (deviceSearch.seatName) {
+        requestData.seatName = deviceSearch.seatName;
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/seat/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let deviceSeatData = {};
+        let seatListArr = [];
+
+        _.forEach(data.rows, val => {
+          let icon = 'ic_person';
+
+          if (activeTab === 'deviceMap' &amp;&amp; !_.isEmpty(val.devices)) {
+            icon = 'ic_person_device';
+          }
+
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/${icon}.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        deviceSeatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          originalSeatData: data.rows,
+          deviceSeatData,
+          showLoadingIcon: false
+        }, () => {
+          if (options === 'refreshSeat') {
+            this.getDeviceData('', 'oneSeat', seatUUID);
+          }
+        });
+      }
+      return null;
+    })
+  }
+  /**
+   * Toggle content to show edit page
+   * @param {string} [options] - option for calling type
+   * @method
+   */
+  getInventoryEdit = (options) => {
+    const inventoryParam = queryString.parse(location.search);
+    const type = inventoryParam.type;
+    const ip = inventoryParam.ip;
+
+    if (type) {
+      if (type === 'add') {
+        this.toggleContent('showForm', 'new');
+      } else if (type === 'edit' &amp;&amp; ip) {
+        this.getSingleDeviceData(ip);
+      }
     } else {
-      return &lt;li key={scanType}>&lt;span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:&lt;/span> {val.result.length}&lt;/li>
+      if (options === 'deviceMap') {
+        helper.showPopupMsg(t('txt-notFound')); //Show not found message
+      }
     }
   }
   /**
-   * Get and set device data
+   * Get single device data from URL parameter
+   * @param {string} ip - IP from page redirect
    * @method
-   * @param {string} fromSearch - options for 'search'
-   * @param {string} options - options for 'oneSeat'
-   * @param {string} seatUUID - seat UUID
    */
-  getDeviceData = (fromSearch, options, seatUUID) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {showHMDonly, deviceSearch, deviceData} = this.state;
+  getSingleDeviceData = (ip) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/v3/ipdevice/_search?ip=${ip}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let currentDeviceData = {
+          ip
+        };
+
+        if (data.counts > 0) {
+          currentDeviceData = data.rows[0];
+        }
+
+        this.setState({
+          currentDeviceData
+        }, () => {
+          this.toggleContent('showForm', 'edit');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['hmdVersion', 'netproxyIp', 'owner', 'areaName', 'seatName', '_menu'];
+    return !_.includes(unSortableFields, field);
+  }
+  /**
+   * Toggle batch updates for row checkbox
+   * @method
+   * @param {object} allValue - allValue for table row
+   * @param {object} event - events for click checkboxs
+   */
+  toggleBatchUpdates = (allValue, event) => {
+    const {batchUpdatesList} = this.state;
+    const checked = event.target.checked;
+    let tempBatchUpdatesList = _.cloneDeep(batchUpdatesList);
+
+    if (checked) {
+      tempBatchUpdatesList.push(allValue);
+    } else {
+      const batchListIndex = _.findIndex(tempBatchUpdatesList, { 'ipDeviceUUID': allValue.ipDeviceUUID });
+      tempBatchUpdatesList.splice(batchListIndex, 1);
+    }
+
+    this.setState({
+      batchUpdatesList: tempBatchUpdatesList
+    })
+  }
+  /**
+   * Handle button for batch updates
+   * @method
+   */
+  handleBatchUpdates = () => {
+    this.getOwnerInfo(this.state.ownerList[0].value, 'batchUpdates');
+  }
+  /**
+   * Handle batch updates confirm
+   * @method
+   */
+  handleBatchUpdatesConfirm = () => {
+    this.handleAddIpConfirm('batchUpdates');
+  }
+  /**
+   * Handle batch updates confirm
+   * @method
+   * @param {string} ipDeviceUUID - IP device UUID
+   * @returns boolean true/false
+   */
+  checkBatchUpdates = (ipDeviceUUID) => {
+    const selectedDepartmentIndex = _.findIndex(this.state.batchUpdatesList, { 'ipDeviceUUID': ipDeviceUUID });
+    return selectedDepartmentIndex > -1 ? true : false;
+  }
+  /**
+   * Get and set device data / Handle delete IP device confirm
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   * @param {string} [options] - options for 'oneSeat', 'delete', 'previous' or 'next'
+   * @param {string} [seatUUID] - seat UUID
+   */
+  getDeviceData = (fromPage, options, seatUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch, deviceData, currentDeviceData, originalSeatData} = this.state;
+    const page = fromPage === 'currentPage' ? deviceData.currentPage : 0;
     let dataParams = '';
 
     if (options === 'oneSeat') {
-      if (!seatUUID) {
-        return;
-      }
       dataParams += `&amp;seatUUID=${seatUUID}`;
+    } else if (options === 'delete' &amp;&amp; !currentDeviceData.ipDeviceUUID) {
+      return;
     } else {
-      const page = fromSearch === 'search' ? 1 : deviceData.currentPage;
       const pageSize = deviceData.pageSize;
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
 
-      if (showHMDonly) {
-        dataParams = 'isHmd=true&amp;';
-      }
-
-      dataParams += `page=${page}&amp;pageSize=${pageSize}&amp;orders=${orders}`
+      dataParams += `&amp;page=${page + 1}&amp;pageSize=${pageSize}&amp;orders=${orders}`;
     }
 
-    if (fromSearch === 'search') {
+    if (!_.isEmpty(deviceSearch)) {
       if (deviceSearch.ip) {
         dataParams += `&amp;ip=${deviceSearch.ip}`;
       }
 
       if (deviceSearch.mac) {
         dataParams += `&amp;mac=${deviceSearch.mac}`;
+      }
+
+      if (deviceSearch.netproxyIp) {
+        dataParams += `&amp;netproxyIp=${deviceSearch.netproxyIp}`;
       }
 
       if (deviceSearch.hostName) {
@@ -275,209 +877,247 @@ class NetworkInventory extends Component {
       }
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
+    let apiArr = [{
+      url: `${baseUrl}/api/v3/ipdevice/_search?${dataParams}`,
       type: 'GET'
-    })
+    }];
+
+    //Combine the two APIs to show the loading icon
+    if (options === 'delete') { //For deleting device
+      apiArr.unshift({
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        type: 'DELETE'
+      });
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.series(apiArr)
     .then(data => {
-      if (options === 'oneSeat') {
-        if (data.counts > 0) {
+      let ipRt = '';
+      let ipData = '';
+
+      if (options === 'delete') {
+        ipRt = data[1].ret;
+        ipData = data[1].rt;
+
+        if (data[0] &amp;&amp; data[0].ret === 0) {
+          this.closeFloorDialog('reload');
+        }
+      } else {
+        ipRt = data[0].ret;
+        ipData = data[0].rt;
+      }
+
+      if (ipRt === 0) {
+        let tempDeviceData = {...deviceData};
+
+        if (options === 'oneSeat') {
+          let currentSeatData = {};
+          let currentDeviceData = {};
+
+          if (ipData.counts > 0) {
+            const allAssignedDeviceList = _.map(ipData.rows, (val, i) => {
+              return &lt;MenuItem key={i} value={val.ip}>{val.ip}&lt;/MenuItem>
+            });
+            currentDeviceData = ipData.rows[0];
+
+            this.setState({
+              allAssignedDeviceData: ipData.rows,
+              allAssignedDeviceList,
+              assignedDevice: ipData.rows[0].ip
+            });
+          } else {
+            _.forEach(originalSeatData, val => {
+              if (val.seatUUID === seatUUID) {
+                currentSeatData = val;
+              }
+            })
+          }
+
           this.setState({
             showSeatData: true,
-            currentDeviceData: data.rows[0]
+            currentSeatData,
+            currentDeviceData
           });
           return null;
         }
-      }
 
-      let tempDeviceData = {...deviceData};
-      tempDeviceData.dataContent = _.map(data.rows, item => {
-        return {
-          ...item,
-          _menu: true
-        };
-      });
+        if (ipData.rows.length === 0) {
+          tempDeviceData.dataContent = [];
+          tempDeviceData.totalCount = 0;
 
-      tempDeviceData.totalCount = data.counts;
-      tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
-      tempDeviceData.currentIndex = 0;
-      tempDeviceData.currentLength = data.rows.length;
-
-      let tempFields = {};
-      deviceData.dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue, i) => {
-            if (tempData === 'owner') {
-              if (allValue.ownerObj) {
-                return &lt;span>{allValue.ownerObj.ownerName}&lt;/span>
-              } else {
-                return &lt;span>{value}&lt;/span>
-              }
-            } else if (tempData === 'areaName') {
-              if (allValue.areaObj) {
-                return &lt;span>{allValue.areaObj.areaName}&lt;/span>
-              }
-            } else if (tempData === 'seatName') {
-              if (allValue.seatObj) {
-                return &lt;span>{allValue.seatObj.seatName}&lt;/span>
-              }
-            } else if (tempData === 'scanInfo') {
-              let hmdInfo = [];
-
-              _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                const dataType = val.type + 'Result';
-                const currentDataObj = allValue[dataType];
-
-                if (!_.isEmpty(currentDataObj)) {
-                  hmdInfo.push({
-                    type: val.type,
-                    name: t('network-inventory.scan-list.txt-' + val.type),
-                    result: currentDataObj[val.path]
-                  });
-                }
-              })
-
-              return (
-                &lt;ul>
-                  {hmdInfo.map(this.getHMDinfo)}
-                &lt;/ul>
-              )
-            } else if (tempData === '_menu') {
-              return (
-                &lt;div className='table-menu menu active'>
-                  &lt;i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}>&lt;/i>
-                  {allValue.isHmd &amp;&amp;
-                    &lt;i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}>&lt;/i>
-                  }
-                  &lt;i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}>&lt;/i>
-                &lt;/div>
-              )
-            } else {
-              return &lt;span>{value}&lt;/span>
-            }
-          }
-        };
-      })
-
-      tempDeviceData.dataFields = tempFields;
-
-      if (!fromSearch) {
-        let ipListArr = [];
-
-        _.forEach(data.rows, val => {
-          ipListArr.push({
-            value: val.ip,
-            text: val.ip
+          this.setState({
+            deviceData: tempDeviceData
           });
-        })
+          return null;
+        }
 
-        tempDeviceData.ipListArr = ipListArr;
-      }
-
-      this.setState({
-        deviceData: tempDeviceData,
-        activeIPdeviceUUID: ''
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set owner data
-   * @method
-   */
-  getOwnerData = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/owner/_search`;
-    const data = {
-      sort: 'ownerID',
-      order: 'asc'
-    };
-
-    helper.getAjaxData('POST', url, data)
-    .then(data => {
-      if (data &amp;&amp; data.rows.length > 0) {
-        const ownerList = _.map(data.rows, val => {
+        tempDeviceData.dataContent = _.map(ipData.rows, item => {
           return {
-            value: val.ownerUUID,
-            text: val.ownerName
+            ...item,
+            _menu: true
+          };
+        });
+        tempDeviceData.totalCount = ipData.counts;
+        tempDeviceData.currentPage = page;
+
+        //HMD only
+        let hmdDataOnly = [];
+
+        _.forEach(ipData.rows, val => {
+          if (val.isHmd) {
+            hmdDataOnly.push(val);
+          }
+        });
+
+        tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
+        tempDeviceData.hmdOnly.currentIndex = 0;
+        tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
+        tempDeviceData.dataFields = _.map(deviceData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : t(`ipFields.${val}`),
+            options: {
+              sort: this.checkSortable(val),
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex, options) => {
+                const allValue = tempDeviceData.dataContent[dataIndex];
+                const value = tempDeviceData.dataContent[dataIndex][val];
+
+                if (options === 'getAllValue') {
+                  return allValue;
+                }
+
+                if (val === 'hbDttm' &amp;&amp; value) {
+                  return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+                } else if (val === 'owner') {
+                  if (allValue.ownerObj) {
+                    return &lt;span>{allValue.ownerObj.ownerName}&lt;/span>
+                  } else {
+                    return &lt;span>{value}&lt;/span>
+                  }
+                } else if (val === 'areaName' &amp;&amp; allValue.areaObj) {
+                  return &lt;span>{allValue.areaObj.areaName}&lt;/span>
+                } else if (val === 'seatName' &amp;&amp; allValue.seatObj) {
+                  return &lt;span>{allValue.seatObj.seatName}&lt;/span>
+                } else if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu menu active'>
+                      &lt;i id='inventoryViewDevice' className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, allValue)} title={t('network-inventory.txt-viewDevice')}>&lt;/i>
+                      &lt;i id='inventoryDeleteDevice' className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, allValue)} title={t('network-inventory.txt-deleteDevice')}>&lt;/i>
+                      &lt;FormControlLabel
+                        control={
+                          &lt;Checkbox
+                            className='checkbox-ui batch-updates'
+                            checked={this.checkBatchUpdates(allValue.ipDeviceUUID)}
+                            onChange={this.toggleBatchUpdates.bind(this, allValue)}
+                            color='primary' />
+                        } />
+                    &lt;/div>
+                  )
+                } else {
+                  return value;
+                }
+              }
+            }
           };
         });
 
-        this.setState({
-          ownerList
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
-  }
-  /**
-   * Get and set Department and Title data
-   * @method
-   */
-  getOtherData = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {addIP} = this.state;
-    const apiNameType = [1, 2]; //1: Department, 2: Title
-    let apiArr = [];
+        if (ipData.rows.length > 0) {
+          let ipListArr = [];
 
-    _.forEach(apiNameType, val => {
-      const requestData = {
-        nameType: val
-      };
+          _.forEach(ipData.rows, val => {
+            ipListArr.push({
+              value: val.ip,
+              text: val.ip
+            });
+          })
 
-      apiArr.push({
-        url: `${baseUrl}/api/name/_search`,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'application/json'
-      });
-    })
-
-    this.ah.all(apiArr)
-    .then(data => {
-      let departmentList = [];
-      let titleList = [];
-      let tempAddIP = {...addIP};
-
-      if (!_.isEmpty(data[0])) {
-        _.forEach(data[0], val => {
-          departmentList.push({
-            value: val.nameUUID,
-            text: val.name
-          });
-        })
-        tempAddIP.newDepartment = departmentList[0].value;
+          tempDeviceData.ipListArr = ipListArr;
+        }
 
         this.setState({
-          departmentList,
-          addIP: tempAddIP
+          deviceData: tempDeviceData,
+          batchUpdatesList: [],
+          activeIPdeviceUUID: ''
+        }, () => {
+          if (options === 'previous' || options === 'next') {
+            this.showAlertData('', options);
+          }
         });
       }
-
-      if (!_.isEmpty(data[1])) {
-        _.forEach(data[1], val => {
-          titleList.push({
-            value: val.nameUUID,
-            text: val.name
-          });
-        })
-        tempAddIP.newTitle = titleList[0].value;
-
-        this.setState({
-          titleList,
-          addIP: tempAddIP
-        });
-      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
+    const requestData = {
+      ip: deviceSearch.ip,
+      mac: deviceSearch.mac,
+      netproxyIp: deviceSearch.netproxyIp,
+      hostName: deviceSearch.hostName,
+      system: deviceSearch.system,
+      owner: deviceSearch.owner,
+      areaName: deviceSearch.areaName,
+      seatName: deviceSearch.seatName
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
+   * Handle device dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceChange = (event) => {
+    let currentDeviceData = {};
+
+    _.forEach(this.state.allAssignedDeviceData, val => {
+      if (val.ip === event.target.value) {
+        currentDeviceData = val;
+        return false;
+      }
+    })
+
+    this.setState({
+      currentDeviceData,
+      assignedDevice: event.target.value
+    });
+  }
+  /**
+   * Handle edit seat name
+   * @method
+   * @param {object} seatData - current seat data
+   */
+  handleEditSeatName = (seatData) => {
+    const editSeat = _.omit(seatData, ['devices']);
+
+    this.setState({
+      addSeatOpen: true,
+      editSeat,
+      addSeatType: 'edit'
+    });
+  }
+  /**
+   * Display seat info
+   * @method
+   * @param {object} seatData - current seat data
+   * @returns HTML DOM
+   */
+  renderSeatInfo = (seatData) => {
+    return (
+      &lt;div className='seat-name'>{t('txt-seatName')}: &lt;span>{seatData.seatName}&lt;/span> &lt;Button id='inventoryEditSeatName' variant='outlined' color='primary' className='standard btn edit' onClick={this.handleEditSeatName.bind(this, seatData)}>{t('txt-edit')}&lt;/Button>&lt;/div>
+    )
   }
   /**
    * Display owner seat content
@@ -485,43 +1125,71 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displaySeatInfo = () => {
-    const {currentDeviceData} = this.state;
-    const deviceInfo = {
-      ip: currentDeviceData.ip || NOT_AVAILABLE,
-      mac: currentDeviceData.mac || NOT_AVAILABLE,
-      hostName: currentDeviceData.hostName || NOT_AVAILABLE,
-      system: currentDeviceData.system || NOT_AVAILABLE
-    };
+    const {currentDeviceData, currentSeatData, allAssignedDeviceList, assignedDevice} = this.state;
 
-    return (
-      &lt;div>
-        &lt;div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}&lt;/div>
-        &lt;div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}&lt;/div>
-        &lt;div className='table-menu inventory active'>
-          &lt;i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}>&lt;/i>
-          &lt;i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('network-inventory.txt-viewHMD')}>&lt;/i>
-          &lt;i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}>&lt;/i>
+    if (!_.isEmpty(currentSeatData)) {
+      return (
+        &lt;div>
+          {this.renderSeatInfo(currentSeatData)}
+          &lt;div>{t('network-inventory.txt-noDevice')}&lt;/div>
+          &lt;div className='table-menu inventory active'>
+            &lt;i id='inventoryDeleteSeatModal' className='fg fg-trashcan' onClick={this.openDeleteSeatModal} title={t('network-topology.txt-deleteSeat')}>&lt;/i>
+          &lt;/div>
         &lt;/div>
-        &lt;div className='main header'>{t('alert.txt-systemInfo')}&lt;/div>
-        &lt;div>{t('ipFields.hostName')}: {deviceInfo.hostName}&lt;/div>
-        &lt;div>{t('ipFields.system')}: {deviceInfo.system}&lt;/div>
-      &lt;/div>
-    )
+      )
+    }
+
+    if (!_.isEmpty(currentDeviceData)) {
+      const deviceInfo = {
+        ip: currentDeviceData.ip,
+        mac: currentDeviceData.mac,
+        hostName: currentDeviceData.hostName,
+        system: currentDeviceData.system
+      };
+
+      return (
+        &lt;div>
+          {this.renderSeatInfo(currentDeviceData.seatObj)}
+          &lt;TextField
+            id='allAssignedDevice'
+            className='assigned-device'
+            name='assignedDevice'
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={assignedDevice}
+            onChange={this.handleDeviceChange}>
+            {allAssignedDeviceList}
+          &lt;/TextField>
+          &lt;div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}&lt;/div>
+          &lt;div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}&lt;/div>
+          &lt;div className='table-menu inventory active'>
+            &lt;i id='inventoryGetOwnerSeat' className='fg fg-eye' onClick={this.getOwnerSeat.bind(this, currentDeviceData)} title={t('network-inventory.txt-viewDevice')}>&lt;/i>
+            &lt;i id='inventoryDeleteDeviceModal' className='fg fg-trashcan' onClick={this.openDeleteDeviceModal.bind(this, currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}>&lt;/i>
+          &lt;/div>
+          &lt;div className='main header'>{t('alert.txt-systemInfo')}&lt;/div>
+          &lt;div className='info'>&lt;span>{t('ipFields.hostName')}:&lt;/span>{deviceInfo.hostName || NOT_AVAILABLE}&lt;/div>
+          &lt;div className='info'>&lt;span>{t('ipFields.system')}:&lt;/span>{deviceInfo.system || NOT_AVAILABLE}&lt;/div>
+        &lt;/div>
+      )
+    }
   }
   /**
    * Display owner seat modal dialog
    * @method
    * @returns ModalDialog component
    */
-  showSeatData = () => {
+  showSeatDialog = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
+      confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
 
     return (
       &lt;ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
+        title={t('network-inventory.txt-seatDeviceInfo')}
         draggable={true}
         global={true}
         actions={actions}
@@ -531,186 +1199,114 @@ class NetworkInventory extends Component {
     )
   }
   /**
-   * Check table sortable fields
+   * Display delete seat content
    * @method
-   * @param {string} field - field name
-   * @returns true for sortable or null
+   * @returns HTML DOM
    */
-  checkSortable = (field) => {
-    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];
-
-    if (_.includes(unSortableFields, field)) {
-      return null;
-    } else {
-      return true;
-    }
+  displayDeleteSeat = () => {
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('network-topology.txt-deleteSeatMsg')}: {this.state.currentSeatData.seatName}?&lt;/span>
+      &lt;/div>
+    )
   }
   /**
-   * Get and set floor plan data
+   * Display delete seat modal dialog
    * @method
    */
-  getFloorPlan = () => {
-    const {baseUrl, contextRoot} = this.props;
+  openDeleteSeatModal = () => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteSeat'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.displayDeleteSeat(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteSeatConfirm();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete seat confirm
+   * @method
+   */
+  deleteSeatConfirm = () => {
+    const {baseUrl} = this.context;
+    const {currentSeatData, floorPlan} = this.state;
 
-    this.ah.one({
-      url: `${baseUrl}/api/area/_tree`,
-      type: 'GET'
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/seat?uuid=${currentSeatData.seatUUID}`,
+      type: 'DELETE'
     })
     .then(data => {
-      if (data &amp;&amp; data.length > 0) {
-        const floorPlanData = data[0];
-        const floorPlan = {
-          treeData: data,
-          currentAreaUUID: floorPlanData.areaUUID,
-          currentAreaName: floorPlanData.areaName
-        };
-
+      if (data.ret === 0) {
         this.setState({
-          floorPlan
+          showSeatData: false
         }, () => {
-          this.getFloorList();
-        });
+          this.getDeviceSeatData(floorPlan.currentAreaUUID);
+        })
       }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set floor list data
-   * @method
-   */
-  getFloorList = () => {
-    const {floorPlan} = this.state;
-    let floorList = [];
-    let currentFloor = '';
-
-    _.forEach(floorPlan.treeData, val => {
-      helper.floorPlanRecursive(val, obj => {
-        floorList.push({
-          value: obj.areaUUID,
-          text: obj.areaName
-        });
-      });
-    })
-
-    currentFloor = floorList[0].value;
-
-    this.setState({
-      floorList,
-      currentFloor
-    }, () => {
-      this.getAreaData(currentFloor);
-      this.getSeatData(currentFloor);
-    });
-  }
-  /**
-   * Get and set individual floor area data
-   * @method
-   * @param {string} areaUUID - area UUID
-   */
-  getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
-    const mapAreaUUID = areaUUID;
-
-    this.ah.one({
-      url: `${baseUrl}/api/area?uuid=${mapAreaUUID}`,
-      type: 'GET'
-    })
-    .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = {};
-
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
-
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
-        };
-      }
-
-      let currentBaseLayers = {};
-      currentBaseLayers[mapAreaUUID] = currentMap;
-
-      this.setState({
-        mapAreaUUID,
-        currentMap,
-        currentBaseLayers,
-        currentFloor: areaUUID
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set individual floor area data
-   * @method
-   * @param {string} areaUUID - area UUID
-   */
-  getSeatData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
-    const area = areaUUID || this.state.floorPlan.currentAreaUUID;
-    const dataObj = {
-      areaUUID: area
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/seat/_search`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      const seatData = {};
-      let seatListArr = [];
-
-      _.forEach(data, val => {
-        seatListArr.push({
-          id: val.seatUUID,
-          type: 'marker',
-          xy: [val.coordX, val.coordY],
-          icon: {
-            iconUrl: `${contextRoot}/images/ic_person.png`,
-            iconSize: [25, 25],
-            iconAnchor: [12.5, 12.5]
-          },
-          label: val.seatName,
-          data: {
-            name: val.seatName
-          }
-        });
-      })
-
-      seatData[area] = {
-        data: seatListArr
-      };
-
-      this.setState({
-        seatData
-      });
       return null;
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
-   * Toggle to show only HMD result
+   * Close seat dialog and reset seat data
    * @method
-   * @param {boolean} value - true/false
    */
-  toggleHMDonly = (value) => {
+  closeSeatDialog = () => {
     this.setState({
-      showHMDonly: value
+      showSeatData: false,
+      currentDeviceData: {},
+      allAssignedDeviceData: [],
+      allAssignedDeviceList: [],
+      assignedDevice: ''
     });
+  }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleSearchChange = (event) => {
+    let tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
+    });
+  }
+  /**
+   * Handle filter submit
+   * @method
+   */
+  handleFilterSubmit = () => {
+    const {activeTab, deviceSearch} = this.state;
+
+    if (activeTab === 'deviceList') {
+      this.getDeviceData();
+    } else if (activeTab === 'deviceMap') {
+      if (deviceSearch.areaName) {
+        this.getDeviceSearchArea(deviceSearch.areaName);
+      } else {
+        this.getFloorList();
+      }
+    } else if (activeTab === 'deviceLA') {
+      this.setState({
+        deviceEventsData: {},
+        deviceLAdata: {},
+        eventsDateList: [],
+        eventsDate: ''
+      }, () => {
+        this.loadLinkAnalysis();
+      });
+    }
   }
   /**
    * Display filter content
@@ -718,99 +1314,120 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, showHMDonly, deviceSearch} = this.state;
+    const {activeTab, showFilter, deviceSearch} = this.state;
 
     return (
       &lt;div className={cx('main-filter', {'active': showFilter})}>
-        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
+        &lt;i id='inventoryCloseFilter' className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
         &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
         &lt;div className='filter-section config'>
           &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchIP' className='first-label'>{t('ipFields.ip')}&lt;/label>
-            &lt;Input
+            &lt;TextField
               id='deviceSearchIP'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'ip')}
-              value={deviceSearch.ip} />
+              name='ip'
+              label={t('ipFields.ip')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.ip}
+              onChange={this.handleSearchChange} />
           &lt;/div>
+          {activeTab !== 'deviceLA' &amp;&amp;
+            &lt;div className='group'>
+              &lt;TextField
+                id='deviceSearchMac'
+                name='mac'
+                label={t('ipFields.mac')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.mac}
+                onChange={this.handleSearchChange} />
+            &lt;/div>
+          }
           &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchMac'>{t('ipFields.mac')}&lt;/label>
-            &lt;Input
-              id='deviceSearchMac'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'mac')}
-              value={deviceSearch.mac} />
+            &lt;TextField
+              id='deviceSearchNetProxyIP'
+              name='netproxyIp'
+              label={t('ipFields.netproxyIp')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={deviceSearch.netproxyIp}
+              onChange={this.handleSearchChange} />
           &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}&lt;/label>
-            &lt;Input
-              id='deviceSearchHostName'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'hostName')}
-              value={deviceSearch.hostName} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchSystem'>{t('ipFields.system')}&lt;/label>
-            &lt;Input
-              id='deviceSearchSystem'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'system')}
-              value={deviceSearch.system} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchOwner'>{t('ipFields.owner')}&lt;/label>
-            &lt;Input
-              id='deviceSearchOwner'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'owner')}
-              value={deviceSearch.owner} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchAreaName'>{t('ipFields.areaName')}&lt;/label>
-            &lt;Input
-              id='deviceSearchAreaName'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'areaName')}
-              value={deviceSearch.areaName} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='deviceSearchSeatName'>{t('ipFields.seatName')}&lt;/label>
-            &lt;Input
-              id='deviceSearchSeatName'
-              className='search-textarea'
-              onChange={this.handleDeviceSearch.bind(this, 'seatName')}
-              value={deviceSearch.seatName} />
-          &lt;/div>
-          &lt;div className='group hmd'>
-            &lt;label htmlFor='filterHMD'>HMD&lt;/label>
-            &lt;Checkbox
-              id='filterHMD'
-              onChange={this.toggleHMDonly}
-              checked={showHMDonly} />
-          &lt;/div>
+          {activeTab !== 'deviceLA' &amp;&amp;
+            &lt;div className='group'>
+              &lt;TextField
+                id='deviceSearchHostName'
+                name='hostName'
+                label={t('ipFields.hostName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.hostName}
+                onChange={this.handleSearchChange} />
+            &lt;/div>
+          }
+          {activeTab !== 'deviceLA' &amp;&amp;
+            &lt;div className='group'>
+              &lt;TextField
+                id='deviceSearchSystem'
+                name='system'
+                label={t('ipFields.system')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.system}
+                onChange={this.handleSearchChange} />
+            &lt;/div>
+          }
+          {activeTab !== 'deviceLA' &amp;&amp;
+            &lt;div className='group'>
+              &lt;TextField
+                id='deviceSearchOwner'
+                name='owner'
+                label={t('ipFields.owner')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.owner}
+                onChange={this.handleSearchChange} />
+            &lt;/div>
+          }
+          {activeTab !== 'deviceLA' &amp;&amp;
+            &lt;div className='group'>
+              &lt;TextField
+                id='deviceSearchAreaName'
+                name='areaName'
+                label={t('ipFields.areaName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.areaName}
+                onChange={this.handleSearchChange} />
+            &lt;/div>
+          }
+          {activeTab !== 'deviceLA' &amp;&amp;
+            &lt;div className='group'>
+              &lt;TextField
+                id='deviceSearchSeatName'
+                name='seatName'
+                label={t('ipFields.seatName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={deviceSearch.seatName}
+                onChange={this.handleSearchChange} />
+            &lt;/div>
+          }
         &lt;/div>
         &lt;div className='button-group'>
-          &lt;button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}&lt;/button>
-          &lt;button className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/button>
+          &lt;Button id='inventoryFilterSubmit' variant='contained' color='primary' className='filter' onClick={this.handleFilterSubmit}>{t('txt-filter')}&lt;/Button>
+          &lt;Button id='inventoryClearFilter' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
         &lt;/div>
       &lt;/div>
     )
-  }
-  /**
-   * Open table menu based on conditions
-   * @method
-   * @param {string} type - content type ('view', 'hmd' or 'delete')
-   * @param {object} allValue - IP device data
-   * @param {string} index - index of the IP device data
-   */
-  openMenu = (type, allValue, index) => {
-    if (type === 'view') {
-      this.getOwnerSeat(allValue);
-    } else if (type === 'hmd') {
-      this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
-    } else if (type === 'delete') {
-      this.openDeleteDeviceModal(allValue);
-    }
   }
   /**
    * Get and set owner seat data
@@ -818,9 +1435,13 @@ class NetworkInventory extends Component {
    * @param {object} allValue - IP device data
    */
   getOwnerSeat = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const topoInfo = allValue;
-    let tempAlertInfo = {...this.state.alertInfo};
+    let ownerInfo = {
+      ownerMap: {},
+      ownerBaseLayers: {},
+      ownerSeat: {}
+    };
 
     if (topoInfo.areaObj &amp;&amp; topoInfo.areaObj.picPath) {
       const ownerMap = {
@@ -834,11 +1455,11 @@ class NetworkInventory extends Component {
         ]
       };
 
-      tempAlertInfo.ownerMap = ownerMap;
-      tempAlertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+      ownerInfo.ownerMap = ownerMap;
+      ownerInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
 
       if (topoInfo.seatUUID &amp;&amp; topoInfo.seatObj) {
-        tempAlertInfo.ownerSeat[topoInfo.areaUUID] = {
+        ownerInfo.ownerSeat[topoInfo.areaUUID] = {
           data: [{
             id: topoInfo.seatUUID,
             type: 'spot',
@@ -851,19 +1472,13 @@ class NetworkInventory extends Component {
           }]
         };
       }
-    } else {
-      tempAlertInfo = {
-        ownerMap: {},
-        ownerBaseLayers: {},
-        ownerSeat: {}
-      };
     }
 
     this.setState({
       activeContent: 'dataInfo',
       showSeatData: false,
       currentDeviceData: topoInfo,
-      alertInfo: tempAlertInfo,
+      ownerInfo,
       activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
@@ -871,46 +1486,48 @@ class NetworkInventory extends Component {
    * Handle 'previous' and 'next' buttons for HMD dialog
    * @method
    * @param {string} type - button type ('previous' or 'next')
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  showAlertData = (type) => {
+  showAlertData = (type, btnType) => {
     const {deviceData} = this.state;
     let tempDeviceData = {...deviceData};
+    let tempCurrentPage = deviceData.currentPage;
 
-    if (type === 'previous') {
-      if (deviceData.currentIndex !== 0) {
-        tempDeviceData.currentIndex--;
+    if (type === 'previous' || type === 'next') { //For click on navigation button
+      if (type === 'previous') {
+        if (deviceData.hmdOnly.currentIndex === 0) { //End of the data, load previous set
+          this.handlePaginationChange('currentPage', --tempCurrentPage, type);
+          return;
+        } else {
+          tempDeviceData.hmdOnly.currentIndex--;
+        }
+      } else if (type === 'next') {
+        if (deviceData.hmdOnly.currentLength - deviceData.hmdOnly.currentIndex === 1) { //End of the data, load next set
+          this.handlePaginationChange('currentPage', ++tempCurrentPage, type);
+          return;
+        } else {
+          tempDeviceData.hmdOnly.currentIndex++;
+        }
       }
-    } else if (type === 'next') {
-      if (deviceData.currentLength - deviceData.currentIndex > 1) {
-        tempDeviceData.currentIndex++;
+    } else if (btnType) {
+      if (btnType === 'previous') {
+        tempDeviceData.hmdOnly.currentIndex = deviceData.hmdOnly.currentLength - 1;
+      } else if (btnType === 'next') {
+        tempDeviceData.hmdOnly.currentIndex = 0;
       }
     }
 
     this.setState({
-      deviceData: tempDeviceData
+      deviceData: tempDeviceData,
+      showSeatData: false
     }, () => {
       const {deviceData} = this.state;
-      const index = deviceData.currentIndex;
-      const allValue = deviceData.dataContent[index];
+      const index = deviceData.hmdOnly.currentIndex;
+      const allValue = deviceData.hmdOnly.dataContent[index];
 
-      this.openDetailInfo(index, allValue);
-    });
-  }
-  /**
-   * Set new IP device data
-   * @method
-   * @param {string} index - index of the IP device data
-   * @param {object} allValue - IP device data
-   */
-  openDetailInfo = (index, allValue) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.currentIndex = Number(index);
-
-    this.setState({
-      showSeatData: false,
-      deviceData: tempDeviceData,
-      currentDeviceData: allValue,
-      activeIPdeviceUUID: allValue.ipDeviceUUID
+      if (allValue) {
+        this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
+      }
     });
   }
   /**
@@ -937,6 +1554,8 @@ class NetworkInventory extends Component {
    * @param {object} allValue - IP device data
    */
   openDeleteDeviceModal = (allValue) => {
+    const {activeTab} = this.state;
+
     PopupDialog.prompt({
       title: t('network-inventory.txt-deleteDevice'),
       id: 'modalWindowSmall',
@@ -945,22 +1564,24 @@ class NetworkInventory extends Component {
       display: this.getDeleteDeviceContent(allValue),
       act: (confirmed, data) => {
         if (confirmed) {
-          this.deleteDevice();
+          if (activeTab === 'deviceMap') {
+            this.deleteDevice();
+          } else if (activeTab === 'deviceList') {
+            this.getDeviceData('', 'delete');
+          }
         }
       }
     });
-
-    this.setState({
-      showSeatData: false
-    });
   }
   /**
-   * Handle delete IP device confirm
+   * Handle delete device from device map tab
    * @method
    */
   deleteDevice = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {currentDeviceData} = this.state;
+    const {baseUrl} = this.context;
+    const {currentDeviceData, floorPlan} = this.state;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
@@ -968,23 +1589,25 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getDeviceData();
-        this.closeDialog('reload');
+        this.getDeviceSeatData(floorPlan.currentAreaUUID);
+        this.getDeviceData('', 'oneSeat', currentDeviceData.seatUUID);
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Handle table sort functionality
+   * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.sort.field = sort.field;
-    tempDeviceData.sort.desc = sort.desc;
+    tempDeviceData.sort.field = field;
+    tempDeviceData.sort.desc = sort;
 
     this.setState({
       deviceData: tempDeviceData
@@ -995,43 +1618,116 @@ class NetworkInventory extends Component {
   /**
    * Handle table pagination change
    * @method
-   * @param {number} currentPage - new page number
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   * @param {string} [btnType] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (currentPage) => {
+  handlePaginationChange = (type, value, btnType) => {
     let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.currentPage = currentPage;
+    tempDeviceData[type] = Number(value);
 
     this.setState({
       deviceData: tempDeviceData
     }, () => {
-      this.getDeviceData();
+      this.getDeviceData(type, btnType);
     });
   }
   /**
-   * Handle table pagesize change
+   * Get and set link analysis data
    * @method
-   * @param {string} pageSize - new page sizse
    */
-  handlePageDropdown = (pageSize) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.currentPage = 1;
-    tempDeviceData.pageSize = Number(pageSize);
+  loadLinkAnalysis = () => {
+    const {baseUrl} = this.context;
+    const {LAconfig, deviceSearch} = this.state;
+    let url = `${baseUrl}/api/ipdevice/topology`;
 
+    if (deviceSearch.ip) {
+      url += `?ip=${deviceSearch.ip}`;
+    }
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.length > 0) {
+        let deviceEventsDataList = {};
+        let deviceEventsData = {};
+
+        _.forEach(data, val => {
+          deviceEventsDataList[helper.getFormattedDate(val.createDttm, 'local')] = val.topology;
+        })
+
+        _.forEach(data[0].topology, val => {
+          deviceEventsData[val.id] = val.content;
+        })
+
+        const eventsDateList = _.map(data, (val, i) => {
+          return &lt;MenuItem key={i} value={helper.getFormattedDate(val.createDttm, 'local')}>{helper.getFormattedDate(val.createDttm, 'local')}&lt;/MenuItem>
+        });
+
+        this.setState({
+          deviceEventsDataList,
+          deviceEventsData,
+          deviceLAdata: analyze(deviceEventsData, LAconfig, {analyzeGis: false}),
+          eventsDateList,
+          eventsDate: helper.getFormattedDate(data[0].createDttm, 'local')
+        });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle change of date list and reset LA data
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceDateChange = (event) => {
     this.setState({
-      deviceData: tempDeviceData
+      deviceEventsData: {},
+      deviceLAdata: {},
+      eventsDate: event.target.value
     }, () => {
-      this.getDeviceData();
+      const {LAconfig, deviceEventsDataList, eventsDate} = this.state;
+      let deviceEventsData = {};
+
+      _.forEach(deviceEventsDataList[eventsDate], val => {
+        deviceEventsData[val.id] = val.content;
+      })
+
+      this.setState({
+        deviceEventsData,
+        deviceLAdata: analyze(deviceEventsData, LAconfig, {analyzeGis: false})
+      });
     });
   }
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('deviceList' or 'deviceMap')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type,
-      showFilter: false
+      activeTab: newTab,
+      floorMapType: '',
+      deviceEventsData: {},
+      deviceLAdata: {},
+      eventsDateList: [],
+      eventsDate: ''
+    }, () => {
+      if (newTab === 'deviceList') {
+        this.getDeviceData();
+      } else if (newTab === 'deviceMap') {
+        this.getFloorPlan(newTab);
+      } else if (newTab === 'deviceLA') {
+        this.loadLinkAnalysis();
+      }
     });
   }
   /**
@@ -1044,82 +1740,118 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Get Event Tracing request data
+   * @method
+   * @param {string} ipDeviceUUID - IP Device UUID
+   * @returns requestData object
+   */
+  getRequestData = (ipDeviceUUID) => {
+    let datetime = {
+      from: helper.getSubstractDate(7, 'day'),
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+    };
+
+    datetime.from = moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    datetime.to = moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+
+    const requestData = {
+      '@timestamp': [datetime.from, datetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
+
+    return requestData;
+  }
+  /**
    * Get and set IP device data (old api)
    * @method
-   * @param {string} index - index of the IP devicde data
-   * @param {string} ipDeviceUUID - IP device UUID
-   * @param {string} options - option for 'oneDevice'
+   * @param {string} [index] - index of the IP devicde data
+   * @param {string | number} ipDeviceUUID - IP device UUID
+   * @param {string} [options] - option for 'oneDevice'
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {deviceData, currentDeviceData} = this.state;
-    let tempDeviceData = {...deviceData};
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.state;
+    let ipDeviceID = ipDeviceUUID;
+    let tempDeviceData = {...this.state.deviceData};
+    let setCurrentIndex = false;
 
-    if (!ipDeviceUUID) {
-      return;
+    if (index) { //index is available
+      setCurrentIndex = true;
+    } else {
+      if (index === 0) {
+        setCurrentIndex = true;
+      } else {
+        ipDeviceID = currentDeviceData.ipDeviceUUID;
+      }
     }
 
-    if (index) {
-      tempDeviceData.currentIndex = Number(index);
+    if (setCurrentIndex) {
+      tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/ipdevice?uuid=${ipDeviceUUID}`,
-      type: 'GET'
-    })
+    this.ah.all([
+      {
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${ipDeviceID}&amp;page=1&amp;pageSize=5`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&amp;pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceID)),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ])
     .then(data => {
       if (data) {
-        if (options === 'oneDevice') {
-          this.getOwnerSeat(data);
-          return;
+        if (data[0]) {
+          if (options === 'oneDevice') {
+            this.getOwnerSeat(data[0]);
+            return;
+          }
+
+          this.setState({
+            modalIRopen: false,
+            deviceData: tempDeviceData,
+            currentDeviceData: data[0],
+            activeIPdeviceUUID: ipDeviceID
+          });
         }
 
-        this.setState({
-          showScanInfo: true,
-          deviceData: tempDeviceData,
-          currentDeviceData: data,
-          activeIPdeviceUUID: ipDeviceUUID
-        });
+        if (data[1]) {
+          this.setEventTracingData(data[1]);
+        }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Handle trigger button for HMD
+   * Toggle view more dialog
    * @method
-   * @param {array.&lt;string>} type - HMD scan type
    */
-  triggerTask = (type) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {currentDeviceData} = this.state;
-    const url = `${baseUrl}/api/hmd/retrigger`;
-    const requestData = {
-      hostId: currentDeviceData.ipDeviceUUID,
-      cmds: type
-    };
-
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: &lt;div>{t('txt-requestSent')}&lt;/div>
-        });
-
-        if (type &amp;&amp; type !== 'getSystemInfo') {
-          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
-        }
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
+  toggleViewMore = () => {
+    this.setState({
+      modalViewMoreOpen: !this.state.modalViewMoreOpen
     });
   }
   /**
-   * Toggle IR combo selection dialog
+   * Toggle IR combo selection dialog on/off
    * @method
    */
   toggleSelectionIR = () => {
@@ -1128,127 +1860,109 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display IR selection modal dialog
+   * Handle trigger button for HMD
    * @method
-   * @returns IrSelections component
+   * @param {array.&lt;string>} type - HMD scan type
+   * @param {string | array.&lt;string>} [options] - option for 'fromInventory' or Process Monitor settings
+   * @param {object} [yaraRule] - yara rule data
    */
-  irSelectionDialog = () => {
-    return (
-      &lt;IrSelections
-        triggerTask={this.triggerTask}
-        toggleSelectionIR={this.toggleSelectionIR}
-      />
-    )
-  }
-  /**
-   * Display device info and HMD scan results
-   * @method
-   * @returns HTML DOM
-   */
-  displayScanInfo = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
-    const {deviceData, currentDeviceData} = this.state;
-    const ip = currentDeviceData.ip || NOT_AVAILABLE;
-    const mac = currentDeviceData.mac || NOT_AVAILABLE;
-    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
-    const system = currentDeviceData.system || NOT_AVAILABLE;
-    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
-
-    return (
-      &lt;div>
-        &lt;table className='c-table main-table with-border'>
-          &lt;thead>
-            &lt;tr>
-              &lt;th>{t('ipFields.ip')}&lt;/th>
-              &lt;th>{t('ipFields.mac')}&lt;/th>
-              &lt;th>{t('ipFields.hostName')}&lt;/th>
-              &lt;th>{t('ipFields.system')}&lt;/th>
-              &lt;th>{t('ipFields.owner')}&lt;/th>
-            &lt;/tr>
-          &lt;/thead>
-          &lt;tbody>
-            &lt;tr className='align-center'>
-              &lt;td>{ip}&lt;/td>
-              &lt;td>{mac}&lt;/td>
-              &lt;td>{hostName}&lt;/td>
-              &lt;td>{system}&lt;/td>
-              &lt;td>{ownerName}&lt;/td>
-            &lt;/tr>
-          &lt;/tbody>
-        &lt;/table>
-
-        &lt;HMDscanInfo
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          language={language}
-          locale={locale}
-          currentDeviceData={currentDeviceData}
-          toggleSelectionIR={this.toggleSelectionIR}
-          showAlertData={this.showAlertData}
-          triggerTask={this.triggerTask} />
-
-        {deviceData.currentLength > 1 &amp;&amp;
-          &lt;div className='pagination'>
-            &lt;div className='buttons'>
-              &lt;button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}&lt;/button>
-              &lt;button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}&lt;/button>
-            &lt;/div>
-            &lt;span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}&lt;/span>
-          &lt;/div>
-        }          
-      &lt;/div>
-    )
-  }
-  /**
-   * Display HMD scan info content
-   * @method
-   * @returns HMDscanInfo component
-   */
-  showScanInfo = () => {
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
+  triggerTask = (type, options, yaraRule) => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.state;
+    let requestData = {
+      hostId: currentDeviceData.ipDeviceUUID,
+      cmds: type
     };
 
-    return (
-      &lt;ModalDialog
-        id='configScanModalDialog'
-        className='modal-dialog'
-        title={t('alert.txt-safetyScanInfo')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayScanInfo()}
-      &lt;/ModalDialog>
-    )
+    if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
+      requestData.paras = {
+        _FilepathList: pathData,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    if (type[0] === 'setProcessWhiteList') {
+      if (options.length > 0) {
+        requestData.paras = {
+          _WhiteList: options
+        };
+      }
+    }
+
+    let apiArr = [{
+      url: `${baseUrl}/api/hmd/retrigger`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }];
+
+    if (type.length > 0 &amp;&amp; options !== 'fromInventory') { //Get updated HMD data for scan info type
+      apiArr.push({
+        url: `${baseUrl}/api/v3/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&amp;page=1&amp;pageSize=5`,
+        type: 'GET'
+      });
+    }
+
+    this.ah.series(apiArr)
+    .then(data => {
+      if (data) {
+        if (data[0]) {
+          helper.showPopupMsg(t('txt-requestSent'));
+
+          this.setState({
+            modalIRopen: false
+          });
+        }
+
+        if (data[1]) {
+          this.setState({
+            modalIRopen: false,
+            currentDeviceData: data[1],
+            activeIPdeviceUUID: currentDeviceData.ipDeviceUUID
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
-   * Close HMD scan info dialog
+   * Close floor map dialog
    * @method
-   * @param {string} option - option for 'reload'
-   * @param {string} all - option for 'all'
+   * @param {string} options - option for 'reload'
+   * @param {string} page - page type for 'fromFloorMap'
    */
-  closeDialog = (option, all) => {
+  closeFloorDialog = (options, page) => {
+    const {currentDeviceData, floorPlan} = this.state;
+
+    if (page === 'fromFloorMap' &amp;&amp; floorPlan.treeData[0]) {
+      let tempCurrentDeviceData = {...currentDeviceData};
+      tempCurrentDeviceData.areaUUID = floorPlan.treeData[0].areaUUID; //Reset selected tree to parent areaUUID
+      
+      this.setState({
+        currentDeviceData: tempCurrentDeviceData,
+        floorMapType: page
+      });
+    }
+
     this.setState({
-      showScanInfo: false,
-      showSeatData: false,
-      modalFloorOpen: false,
-      addSeatOpen: false,
-      currentDeviceData: {},
-      addSeat: {
-        selectedSeatUUID: '',
-        name: '',
-        coordX: '',
-        coordY: ''
-      }
+      modalFloorOpen: false
     }, () => {
-      if (option === 'reload') {
-        if (all === 'all') { //reload everything (from edit floor map)
-          this.getFloorPlan();
-        } else { //reload area and seat only (no tree)
-          const {floorPlan} = this.state;
-          this.getAreaData(floorPlan.currentAreaUUID);
-          this.getSeatData(floorPlan.currentAreaUUID);
+      if (options === 'reload') {
+        if (page === 'fromFloorMap') { //reload everything
+          this.getFloorPlan('fromFloorMap');
+        } else { //reload seat (no tree)
+          this.getDeviceSeatData(floorPlan.currentAreaUUID);
         }
       }
     });
@@ -1259,58 +1973,51 @@ class NetworkInventory extends Component {
    */
   clearFilter = () => {
     this.setState({
-      deviceSearch: {
-        ip: '',
-        mac: '',
-        hostName: '',
-        system: '',
-        owner: '',
-        areaName: '',
-        seatName: ''
-      },
-      showHMDonly: false
-    });
-  }
-  /**
-   * Handle filter input value change
-   * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
-   */
-  handleDeviceSearch = (type, value) => {
-    let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch[type] = value;
-
-    this.setState({
-      deviceSearch: tempDeviceSearch
+      deviceSearch: _.cloneDeep(DEVICE_SEARCH)
     });
   }
   /**
    * Toggle Inventory content
    * @method
-   * @param {string} type - content type
+   * @param {string} type - content type ('showList', 'showData', 'showForm', 'showUpload', 'autoSettings' or 'cancel')
    * @param {string} formType - show form content type ('new' or 'edit')
    */
   toggleContent = (type, formType) => {
-    const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList} = this.state;
-    let activeContent = '';
+    const {activeContent, formTypeEdit, currentDeviceData, floorList, ownerList, departmentList, titleList, addSeat} = this.state;
+    let tempAddSeat = {...addSeat};
+    let tempActiveContent = '';
 
     if (type === 'cancel') {
-      if (formTypeEdit) {
-        activeContent = 'dataInfo';
-      } else {
-        activeContent = 'tableList';
+      if (activeContent === 'batchUpdates') {
+        this.setState({
+          activeContent: 'tableList'
+        });
+        return;
       }
+
+      if (formTypeEdit) {
+        tempActiveContent = 'dataInfo';
+      } else {
+        tempActiveContent = 'tableList';
+
+        this.getFloorPlan();
+      }
+
+      this.setState({
+        showAllSeats: false,
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
     } else if (type === 'showList') {
-      activeContent = 'tableList';
-    } else if (type === 'showAuto') {
-      activeContent = 'autoSettings';
+      tempActiveContent = 'tableList';
+    } else if (type === 'autoSettings') {
+      tempActiveContent = type;
     } else if (type === 'showData') {
-      activeContent = 'dataInfo';
+      tempActiveContent = 'dataInfo';
     } else if (type === 'showForm') {
-      activeContent = 'addIPsteps';
+      tempActiveContent = 'addIPsteps';
       let formTypeEdit = '';
       let addIP = {};
+      let ownerType = 'existing';
 
       if (formType === 'edit') {
         formTypeEdit = true;
@@ -1326,72 +2033,611 @@ class NetworkInventory extends Component {
           ram: currentDeviceData.ram,
           disks: currentDeviceData.disks,
           shareFolders: currentDeviceData.shareFolders,
+          remarks: currentDeviceData.remarks,
           file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
           ownerPic: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.base64 : '',
           ownerUUID: currentDeviceData.ownerUUID,
           ownerID: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerID : '',
-          ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : '',
-          department: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.departmentName : '',
-          title: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.titleName : '',
-          newDepartment: departmentList[0].value,
-          newTitle: titleList[0].value
+          ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : ''
         };
 
-        if (currentDeviceData.areaUUID) {
-          this.getAreaData(currentDeviceData.areaUUID);
-          this.getSeatData(currentDeviceData.areaUUID);
+        if (currentDeviceData.ownerObj &amp;&amp; currentDeviceData.ownerObj.department) {
+          const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': currentDeviceData.ownerObj.department });
+          addIP.department = departmentList[selectedDepartmentIndex];
         }
+
+        if (currentDeviceData.ownerObj &amp;&amp; currentDeviceData.ownerObj.title) {
+          const selectedTitleIndex = _.findIndex(titleList, { 'value': currentDeviceData.ownerObj.title });
+          addIP.title = titleList[selectedTitleIndex];
+        }
+
+        if (currentDeviceData.areaUUID) {
+          this.setState({
+            showAllSeats: true //show all seats for floor map
+          }, () => {
+            this.getAreaData(currentDeviceData.areaUUID);
+            this.getDeviceSeatData(currentDeviceData.areaUUID);
+          });
+        }
+
+        tempAddSeat.selectedSeatUUID = currentDeviceData.seatUUID;
       } else if (formType === 'new') {
+        const inventoryParam = queryString.parse(location.search);
         formTypeEdit = false;
-        this.getAreaData(floorList[0].value);
-        this.getSeatData(floorList[0].value);
-        this.getFloorPlan();
+
+        if (!_.isEmpty(floorList)) {
+          this.getAreaData(floorList[0].value);
+          this.getDeviceSeatData(floorList[0].value);
+        }
+
         this.setState({
-          currentDeviceData: {}
+          currentDeviceData: {},
+          selectedTreeID: ''
         });
+
+        if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) &amp;&amp; inventoryParam.type === 'search')) {
+          this.getFloorPlan();
+        }
+
+        this.handleCloseMenu();
       }
 
-      if (!currentDeviceData.ownerUUID) {
-        this.handleOwnerChange(ownerList[0].value);
+      if (_.isEmpty(ownerList)) {
+        ownerType = 'new';
       }
 
       this.setState({
-        activeContent,
+        activeContent: tempActiveContent,
         activeSteps: 1,
         formTypeEdit,
         addIP,
-        ownerType: 'existing',
-        ownerIDduplicated: false
+        ownerType,
+        ownerIDduplicated: false,
+        addSeat: tempAddSeat,
+        changeAreaMap: false
       });
+      return;
+    } else if (type === 'showUpload') {
+      this.toggleFileUpload();
+      this.handleCloseMenu();
       return;
     }
 
     this.setState({
-      activeContent
+      activeContent: tempActiveContent
+    }, () => {
+      const inventoryParam = queryString.parse(location.search);
+
+      if (!_.isEmpty(inventoryParam) &amp;&amp; (inventoryParam.type === 'add' || inventoryParam.type === 'edit')) {
+        if (tempActiveContent === 'dataInfo') {
+          this.getOwnerSeat(currentDeviceData);
+        }
+        if (tempActiveContent === 'tableList') {
+          this.getDeviceData();
+        }
+      }
     });
   }
   /**
-   * Check add/edit step form validation
+   * Handle open menu
    * @method
-   * @param {number} step - form step
-   * @returns true if form is invalid
+   * @param {string} type - menu type ('addIP')
+   * @param {object} event - event object
    */
-  checkFormValidation = (step) => {
-    const {addIP, ownerType} = this.state;
+  handleOpenMenu = (type, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      menuType: type
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      menuType: ''
+    });
+  }
+  /**
+   * Handle CSV batch upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  parseCSVfile = async (file) => {
+    if (file) {
+      this.handleFileChange(file, await this.checkEncode(file));
+    }
+  }
+  /**
+   * Check file encoding
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @returns promise of the file reader
+   */
+  checkEncode = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      const rABS = !!reader.readAsBinaryString;
 
-    if (step === 1) {
-      if (!addIP.ip || !addIP.mac) {
-        return true;
+      reader.onload = async (e) => {
+        resolve(jschardet.detect(e.target.result));
       }
+      reader.onerror = error => reject(error);
+
+      if (rABS) {
+        reader.readAsBinaryString(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }
+  /**
+   * Handle file change and set the file
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @param {object} check - a returned promise for the encode info
+   */
+  handleFileChange = (file, check) => {
+    let reader = new FileReader();
+    const rABS = !!reader.readAsBinaryString;
+
+    reader.onload = (e) => {
+      const bstr = e.target.result;
+      const wb = XLSX.read(bstr, {type:rABS ? 'binary' : 'array'});
+      /* Get first worksheet */
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_json(ws, {header:1});
+
+      this.setState({
+        tempCsvData: data
+      });
+    }
+    reader.onerror = error => reject(error);
+
+    if (rABS) {
+      if (check.encoding) {
+        if (check.encoding === 'UTF-8') {
+          reader.readAsText(file, 'UTF-8');
+        } else { //If check.encoding is available, force to read as BIG5 encoding
+          reader.readAsText(file, 'BIG5');
+        }
+      } else {
+        reader.readAsBinaryString(file);
+      }
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  }
+  /**
+   * Toggle CSV file upload dialog on/off
+   * @method
+   */
+  toggleFileUpload = () => {
+    const {uploadOpen, tempCsvData, csvHeader} = this.state;
+
+    if (uploadOpen) {
+      if (tempCsvData.length > 0) {
+        if (!csvHeader) { //Generate header for the user
+          tempCsvData.unshift(_.map(tempCsvData[0], (val, i) => {
+            i++;
+            return t('txt-column') + ' ' + i.toString();
+          }));
+        }
+
+        this.setState({
+          uploadOpen: false,
+          csvData: tempCsvData,
+          showCsvData: true,
+          csvColumns: {
+            ip: '',
+            mac: '',
+            netproxyIp: '',
+            hostName: '',
+            ownerId: '',
+            ownerName: '',
+            departmentName: '',
+            remarks: ''
+          }
+        });
+      } else {
+        helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
+        return;
+      }
+    } else {
+      this.setState({
+        uploadOpen: true,
+        csvHeader: true
+      });
+    }
+  }
+  /**
+   * Turn file upload dialog off
+   * @method
+   */
+  closeFileUpload = () => {
+    this.setState({
+      uploadOpen: false
+    });
+  }
+  /**
+   * Toggle CSV header checkbox
+   * @method
+   */
+  toggleCsvHeader = () => {
+    this.setState({
+      csvHeader: !this.state.csvHeader
+    });
+  }
+  /**
+   * Display CSV file upload dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadDialog = () => {
+    const {csvHeader} = this.state;
+    const titleText = t('network-inventory.txt-batchUploadIp');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeFileUpload},
+      confirm: {text: t('txt-confirm'), handler: this.toggleFileUpload}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='batchUploadDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+          &lt;FileUpload
+            id='csvFileInput'
+            fileType='csv'
+            supportText={titleText}
+            btnText={t('txt-upload')}
+            handleFileChange={this.parseCSVfile} />
+          &lt;div className='csv-options'>
+            &lt;FormControlLabel
+              label={t('network-inventory.txt-withHeader')}
+              control={
+                &lt;Checkbox
+                  id='csvHeaderOption'
+                  className='checkbox-ui'
+                  checked={csvHeader}
+                  onChange={this.toggleCsvHeader}
+                  color='primary' />
+              } />
+          &lt;/div>
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Display CSV table header and body cell
+   * @method
+   * @param {string} type - CSV body cell type ('header' or 'body')
+   * @param {string} value - table cell content
+   * @param {number} i - index of the CSV data
+   * @returns HTML DOM
+   */
+  showCSVbodyCell = (type, value, i) => {
+    if (type === 'header') {
+      return &lt;th key={type + i}>{value}&lt;/th>
+    } else if (type === 'body') {
+      return &lt;td key={type + i}>{value}&lt;/td>
+    }
+  }
+  /**
+   * Display CSV table body row
+   * @method
+   * @param {string} value - table row content
+   * @param {number} i - index of the CSV data
+   * @returns HTML DOM
+   */
+  showCSVbody = (value, i) => {
+    let newValue = [];
+
+    _.forEach(value, val => {
+      const item = val === undefined ? '' : val; //Handle empty value in excel sheet
+      newValue.push(item);
+    })
+
+    if (i > 0) {
+      return (
+        &lt;tr key={i}>
+          {newValue.map(this.showCSVbodyCell.bind(this, 'body'))}
+        &lt;/tr>
+      )
+    }
+  }
+  /**
+   * Display CSV table data
+   * @method
+   * @returns HTML DOM
+   */
+  displayCSVtable = () => {
+    const {csvData} = this.state;
+
+    if (!_.isEmpty(csvData)) {
+      return (
+        &lt;table className='c-table main-table csv-data'>
+          &lt;thead>
+            &lt;tr>
+              {csvData[0].map(this.showCSVbodyCell.bind(this, 'header'))}
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            {csvData.map(this.showCSVbody)}
+          &lt;/tbody>
+        &lt;/table>
+      )
+    }
+  }
+  /**
+   * Handle column change for CSV table dropdown
+   * @method
+   * @param {object} event - event object
+   */
+  handleColumnChange = (event) => {
+    let tempCsvColumns = {...this.state.csvColumns};
+    tempCsvColumns[event.target.name] = event.target.value;
+
+    this.setState({
+      csvColumns: tempCsvColumns
+    });
+  }
+  /**
+   * Display upload failure list
+   * @method
+   * @param {object} data - uploaded data with success and fail list
+   * @returns HTML DOM
+   */
+  displayUploadStatus = (data) => {
+    const {ipUploadFields} = this.state;
+    let tableFields = {};
+
+    ipUploadFields.forEach(tempData => {
+      tableFields[tempData] = {
+        label: t(`ipFields.${tempData}`),
+        sortable: false,
+        formatter: (value, allValue, i) => {
+          if (tempData === 'errCode') {
+            value = et(value);
+          }
+          return &lt;span>{value}&lt;/span>
+        }
+      };
+    })
+
+    return (
+      &lt;div>
+        &lt;div>{t('network-inventory.txt-total')}: {data.successList.length + data.failureList.length}&lt;/div>
+        &lt;div>{t('network-inventory.txt-fail')}: {data.failureList.length}&lt;/div>
+        &lt;div className='error-msg'>{t('network-inventory.txt-uploadFailed')}&lt;/div>
+        &lt;div className='table-data'>
+          &lt;DataTable
+            className='main-table'
+            fields={tableFields}
+            data={data.failureList} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle upload actions for CSV table
+   * @method
+   */
+  uploadActions = (type) => {
+    const {baseUrl} = this.context;
+    const {csvData, csvColumns, ipUploadFields, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+
+    if (type === 'upload') {
+      if (csvColumns.ip === '') {
+        tempFormValidation.csvColumnsIp.valid = false;
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
+      } else {
+        const url = `${baseUrl}/api/v2/ipdevices`;
+        let requestData = [];
+        let validate = true;
+
+        _.forEach(csvData, (val, i) => {
+          let dataObj = {
+            ip: '',
+            mac: '',
+            netproxyIp: '',
+            hostName: '',
+            ownerId: '',
+            ownerName: '',
+            departmentName: '',
+            remarks: ''
+          };
+
+          if (i > 0) {
+            _.forEach(ipUploadFields, val2 => {
+              if (typeof csvColumns[val2] === 'number') {
+                let data = val[Number(csvColumns[val2])];
+
+                if (typeof data === 'string') {
+                  data = data.trim();
+                }
+
+                dataObj[val2] = data;
+              }
+            })
+          }
+
+          if (dataObj.ip) {
+            if (!IP_PATTERN.test(dataObj.ip)) { //Check IP format
+              validate = false;
+              helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
+              return false;
+            }
+
+            if (dataObj.mac &amp;&amp; !MAC_PATTERN.test(dataObj.mac)) { //Check MAC format
+              validate = false;
+              helper.showPopupMsg(t('network-inventory.txt-uploadFailedMAC'));
+              return false;
+            }
+
+            if (dataObj.ownerId) {
+              if (dataObj.ownerName) {
+                validate = true;
+                tempFormValidation.csvOwnerName.valid = true;
+              } else {
+                validate = false;
+                tempFormValidation.csvOwnerName.valid = false;
+              }
+            }
+
+            if (dataObj.ownerName) {
+              if (dataObj.ownerId) {
+                validate = true;
+                tempFormValidation.csvOwnerID.valid = true;
+              } else {
+                validate = false;
+                tempFormValidation.csvOwnerID.valid = false;
+              }
+            }
+
+            requestData.push({
+              ip: dataObj.ip,
+              mac: dataObj.mac,
+              hostName: dataObj.hostName,
+              ownerId: dataObj.ownerId,
+              ownerName: dataObj.ownerName,
+              departmentName: dataObj.departmentName,
+              remarks: dataObj.remarks
+            });
+          }
+        })
+
+        tempFormValidation.csvColumnsIp.valid = true;
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
+
+        if (!validate) {
+          return;
+        }
+
+        if (requestData.length === 0) {
+          helper.showPopupMsg(t('txt-uploadEmpty'));
+          return;
+        }
+
+        this.ah.one({
+          url,
+          data: JSON.stringify(requestData),
+          type: 'POST',
+          contentType: 'text/plain'
+        })
+        .then(data => {
+          if (data) {
+            if (data.successList.length > 0 &amp;&amp; data.failureList.length === 0) {
+              helper.showPopupMsg(t('txt-uploadSuccess'));
+
+              this.setState({
+                csvData: [],
+                tempCsvData: [],
+                showCsvData: false,
+                csvColumns: {
+                  ip: '',
+                  mac: '',
+                  netproxyIp: '',
+                  hostName: '',
+                  ownerId: '',
+                  ownerName: '',
+                  departmentName: '',
+                  remarks: ''
+                }
+              }, () => {
+                this.getDeviceData();
+              });
+            } else if (data.failureList.length > 0) {
+              PopupDialog.alert({
+                title: t('txt-uploadStatus'),
+                id: 'batchUploadStatusModal',
+                confirmText: t('txt-close'),
+                display: this.displayUploadStatus(data)
+              });
+            } if (data.successList.length === 0 &amp;&amp; data.failureList.length === 0) {
+              helper.showPopupMsg(t('txt-uploadEmpty'));
+            }
+          }
+          return null;
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+      }
+    } else if (type === 'cancel') {
+      this.setState({
+        showCsvData: false,
+        csvColumns: {
+          ip: '',
+          mac: '',
+          netproxyIp: '',
+          hostName: '',
+          ownerId: '',
+          ownerName: '',
+          departmentName: '',
+          remarks: ''
+        },
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      }, () => {
+        this.getDeviceData();
+      });
+    }
+  }
+  /**
+   * Check if IP aready exists in inventory
+   * @method
+   */
+  checkDuplicatedIP = () => {
+    const {baseUrl} = this.context;
+    const {addIP, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+
+    if (!addIP.ip) {
+      return;
     }
 
-    if (step === 3) {
-      if (ownerType === 'new') {
-        if (!addIP.newOwnerName || !addIP.newOwnerID) {
-          return true;
+    this.ah.one({
+      url: `${baseUrl}/api/v3/ipdevice/_search?exactIp=${addIP.ip}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        if (data.counts > 0) {
+          tempFormValidation.ip.valid = false;
+          tempFormValidation.ip.msg = t('network-inventory.txt-duplicatedIP');
+
+          this.setState({
+            formValidation: tempFormValidation
+          });
+        } else {
+          tempFormValidation.ip.valid = true;
+          tempFormValidation.ip.msg = '';
+
+          this.setState({
+            activeSteps: 2,
+            formValidation: tempFormValidation
+          });
         }
       }
-    }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle add/edit form step content
@@ -1399,50 +2645,174 @@ class NetworkInventory extends Component {
    * @param {string} type - form step type ('previous' or 'next')
    */
   toggleSteps = (type) => {
-    const {activeSteps} = this.state;
+    const {formTypeEdit, activeSteps, addIP, ownerType, formValidation} = this.state;
+    const inventoryParam = queryString.parse(location.search);
     let tempActiveSteps = activeSteps;
+    let tempFormValidation = {...formValidation};
 
     if (type === 'previous') {
       tempActiveSteps--;
+
+      this.setState({
+        activeSteps: tempActiveSteps
+      });
     } else if (type === 'next') {
       if (activeSteps === 1) {
-        if (this.checkFormValidation(1)) {
-          helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+        let validate = true;
+
+        if (addIP.ip) {
+          if (IP_PATTERN.test(addIP.ip)) {
+            tempFormValidation.ip.valid = true;
+            tempFormValidation.ip.msg = '';
+          } else {
+            tempFormValidation.ip.valid = false;
+            tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+            validate = false;
+          }
+        } else {
+          tempFormValidation.ip.valid = false;
+          tempFormValidation.ip.msg = t('txt-required');
+          validate = false;
+        }
+
+        if (!_.has(inventoryParam, 'hostName') &amp;&amp; !addIP.mac) {
+          tempFormValidation.mac.valid = false;
+          tempFormValidation.mac.msg = t('txt-required');
+          validate = false;
+        } else {
+          if (MAC_PATTERN.test(addIP.mac)) {
+            tempFormValidation.mac.valid = true;
+            tempFormValidation.mac.msg = '';
+          } else {
+            tempFormValidation.mac.valid = false;
+            tempFormValidation.mac.msg = t('network-topology.txt-macValidationFail');
+            validate = false;
+          }
+        }
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
+
+        if (!validate) {
           return;
         }
-      }
 
-      if (activeSteps === 3) {
-        if (this.checkFormValidation(3)) {
-          helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+        if (formTypeEdit) { //Edit mode
+          this.setState({
+            activeSteps: 2
+          });
+        } else { //Check duplicated IP for adding new device
+          this.checkDuplicatedIP();
+        }
+      } else {
+        if (activeSteps === 2) {
+          let validate = true;
+          tempFormValidation.hostName.valid = true;
+          tempFormValidation.system.valid = true;
+          tempFormValidation.deviceType.valid = true;
+
+          if (addIP.hostName &amp;&amp; addIP.hostName.length > 64) {
+            tempFormValidation.hostName.valid = false;
+            validate = false;
+          }
+
+          if (addIP.system &amp;&amp; addIP.system.length > 64) {
+            tempFormValidation.system.valid = false;
+            validate = false;
+          }
+
+          if (addIP.deviceType &amp;&amp; addIP.deviceType.length > 64) {
+            tempFormValidation.deviceType.valid = false;
+            validate = false;
+          }
+
+          this.setState({
+            formValidation: tempFormValidation
+          });
+
+          if (!validate) {
+            return;
+          }
+        }
+
+        if (activeSteps === 3) {
+          if (ownerType === 'new') {
+            let validate = true;
+
+            if (addIP.newOwnerName) {
+              tempFormValidation.newOwnerName.valid = true;
+            } else {
+              tempFormValidation.newOwnerName.valid = false;
+              validate = false;
+            }
+
+            if (addIP.newOwnerID) {
+              tempFormValidation.newOwnerID.valid = true;
+            } else {
+              tempFormValidation.newOwnerID.valid = false;
+              validate = false;
+            }
+
+            this.setState({
+              formValidation: tempFormValidation
+            });
+
+            if (!validate) {
+              return;
+            }
+          } else if (ownerType === 'existing') {
+            let validate = true;
+
+            if (addIP.ownerUUID) {
+              tempFormValidation.existingOwnerName.valid = true;
+            } else {
+              tempFormValidation.existingOwnerName.valid = false;
+              validate = false;
+            }
+
+            this.setState({
+              formValidation: tempFormValidation
+            });
+
+            if (!validate) {
+              return;
+            }
+          }
+        }
+
+        if (activeSteps === 4) {
+          this.setState({
+            showAllSeats: false,
+            floorMapType: ''
+          }, () => {
+            this.handleAddIpConfirm();
+          });
           return;
         }
-      }
 
-      if (activeSteps === 4) {
-        this.handleAddIpConfirm();
-        return;
+        tempActiveSteps++;
+
+        this.setState({
+          activeSteps: tempActiveSteps
+        });
       }
-      tempActiveSteps++;
     }
-
-    this.setState({
-      activeSteps: tempActiveSteps
-    });
   }
   /**
    * Add new owner if new owner is selected
    * @method
+   * @param {string} [from] - option for from page
    */
-  handleAddIpConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+  handleAddIpConfirm = (from) => {
+    const {baseUrl} = this.context;
     const {addIP, ownerType} = this.state;
 
     if (ownerType === 'new') {
       let formData = new FormData();
       formData.append('ownerID', addIP.newOwnerID);
       formData.append('ownerName', addIP.newOwnerName);
-      formData.append('department', addIP.newDepartment);
+      formData.append('department', addIP.newDepartment.value);
       formData.append('title', addIP.newTitle);
 
       if (addIP.file) {
@@ -1458,32 +2828,37 @@ class NetworkInventory extends Component {
         contentType: false
       })
       .then(data => {
-        if (data) {
-          const ownerUUID = data;
-          this.handleIPdeviceConfirm(ownerUUID);
+        if (data) { //Return ownerUUID
+          this.handleIPdeviceConfirm(data, from);
         }
+        return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
 
-        this.setState({
-          activeSteps: 3,
-          ownerIDduplicated: true
-        });
+        if (from !== 'batchUpdates') {
+          this.setState({
+            activeSteps: 3,
+            ownerIDduplicated: true,
+            changeAreaMap: false
+          });
+        }
       })
     } else if (ownerType === 'existing') {
-      this.handleIPdeviceConfirm();
+      this.handleIPdeviceConfirm('', from);
     }
   }
   /**
    * Handle add/edit form confirm
    * @method
+   * @param {string} [ownerUUID] - owner ID
+   * @param {string} [from] - option for from page
    */
-  handleIPdeviceConfirm = (ownerUUID) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat, mapAreaUUID} = this.state;
-    const url = `${baseUrl}/api/ipdevice`;
-    const requestType = formTypeEdit ? 'PATCH' : 'POST';
+  handleIPdeviceConfirm = (ownerUUID, from) => {
+    const {baseUrl} = this.context;
+    const {formTypeEdit, currentDeviceData, batchUpdatesList, mapAreaUUID, addIP, addSeat} = this.state;
+    let url = `${baseUrl}/api/ipdevice`;
+    let requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {
       ip: addIP.ip,
       mac: addIP.mac,
@@ -1495,6 +2870,7 @@ class NetworkInventory extends Component {
       ram: addIP.ram,
       disks: addIP.disks,
       shareFolders: addIP.shareFolders,
+      remarks: addIP.remarks,
       areaUUID: mapAreaUUID,
       seatUUID: addSeat.selectedSeatUUID
     };
@@ -1503,28 +2879,58 @@ class NetworkInventory extends Component {
       requestData.ipDeviceUUID = currentDeviceData.ipDeviceUUID;
     }
 
-    if (ownerUUID) {
-      requestData.ownerUUID = ownerUUID;
-    } else {
-      requestData.ownerUUID = addIP.ownerUUID;
+    requestData.ownerUUID = ownerUUID || addIP.ownerUUID;
+
+    if (from === 'batchUpdates') {
+      url = `${baseUrl}/api/v2/ipdevices`;
+      requestType = 'PATCH';
+      requestData = {
+        devices: _.map(batchUpdatesList, val => {
+          return {
+            ip: val.ip,
+            mac: val.mac,
+            areaUUID: val.areaUUID,
+            seatUUID: val.seatUUID,
+            ipDeviceUUID: val.ipDeviceUUID,
+            ownerUUID: ownerUUID || addIP.ownerUUID
+          };
+        })
+      };
     }
 
-    helper.getAjaxData(requestType, url, requestData)
-    .then(data => {
-      this.getDeviceData('search');
-      this.getOwnerData();
-      this.getOtherData();
-      this.getFloorPlan();
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
-      if (formTypeEdit) {
-        this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
-      } else {
-        this.toggleContent('showList');
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getDeviceData();
+
+        if (from === 'batchUpdates') {
+          this.toggleContent('showList');
+
+          this.setState({
+            batchUpdatesList: [],
+            addIP: {}
+          });
+          return;
+        }
+
+        if (formTypeEdit) {
+          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
+        } else {
+          this.toggleContent('showList');
+        }
       }
+      return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      this.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display form steps indicator
@@ -1536,17 +2942,19 @@ class NetworkInventory extends Component {
   showAddIpSteps = (val, i) => {
     const {activeSteps} = this.state;
     const index = ++i;
-    const groupClass = 'group group' + index;
     const lineClass = 'line line' + index;
     const stepClass = 'step step' + index;
-    const textClass = 'text text' + index;
 
     return (
-      &lt;div className={groupClass} key={index}>
+      &lt;div key={i} className={`group group${index}`}>
         &lt;div className={cx(lineClass, {active: activeSteps >= index})}>&lt;/div>
         &lt;div className={cx(stepClass, {active: activeSteps >= index})}>
-          &lt;div className='wrapper'>&lt;span className='number'>{index}&lt;/span>&lt;/div>
-          &lt;div className={textClass}>{val}&lt;/div>
+          &lt;div className='border-wrapper'>
+            &lt;span className='number'>{index}&lt;/span>
+          &lt;/div>
+          &lt;div className='text-wrapper'>
+            &lt;div className='text'>{val}&lt;/div>
+          &lt;/div>
         &lt;/div>
       &lt;/div>
     )
@@ -1554,81 +2962,77 @@ class NetworkInventory extends Component {
   /**
    * Handle owner type change
    * @method
-   * @param {string} ownerType - owner type ('existing' or 'new')
+   * @param {object} event - event object
    */
-  handleOwnerTypeChange = (ownerType) => {
-    const {departmentList, titleList, addIP} = this.state;
-    const tempAddIP = {...addIP};
-    tempAddIP.newDepartment = departmentList[0].value;
-    tempAddIP.newTitle = titleList[0].value;
+  handleOwnerTypeChange = (event) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP.newDepartment = {};
+    tempAddIP.newTitle = {};
 
     this.setState({
-      ownerType,
+      ownerType: event.target.value,
       addIP: tempAddIP
+    }, () => {
+      const {ownerType, addIP} = this.state;
+
+      if (ownerType === 'existing' &amp;&amp; addIP.ownerUUID) {
+        this.getOwnerInfo(addIP.ownerUUID);
+      }
     });
   }
   /**
    * Handle existing owners dropdown change
    * @method
-   * @param {string} value - ownerUUID
+   * @param {string | object} event - owner ID or event object
+   * @param {string} [from] - option for from page ('batchUpdates')
    */
-  handleOwnerChange = (value) => {
-    const {baseUrl, contextRoot} = this.props;
+  getOwnerInfo = (event, from) => {
+    const {baseUrl} = this.context;
+    const {departmentList, titleList} = this.state;
+    const ownerUUID = event.target ? event.target.value : event;
 
-    this.ah.one({
-      url: `${baseUrl}/api/owner?uuid=${value}`,
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data.rt) {
+        data = data.rt;
+
         let tempAddIP = {...this.state.addIP};
         tempAddIP.ownerUUID = data.ownerUUID;
         tempAddIP.ownerID = data.ownerID;
-        tempAddIP.department = data.departmentName;
-        tempAddIP.title = data.titleName;
         tempAddIP.ownerPic = data.base64;
+
+        const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': data.department });
+        const selectedTitleIndex = _.findIndex(titleList, { 'value': data.title });
+        tempAddIP.department = departmentList[selectedDepartmentIndex];
+        tempAddIP.title = titleList[selectedTitleIndex];
+
+        const inventoryParam = queryString.parse(location.search);
+
+        if (inventoryParam.ip &amp;&amp; inventoryParam.type === 'add') {
+          tempAddIP.ip = inventoryParam.ip;
+        }
 
         this.setState({
           addIP: tempAddIP
+        }, () => {
+          if (from === 'batchUpdates') {
+            this.setState({
+              activeContent: 'batchUpdates',
+              ownerType: 'existing'
+            });
+          }
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Handle Department dropdown change
-   * @method
-   * @param {string} value - department nameUUID
-   */
-  handleDepartmentChange = (value) => {
-    const tempAddIP = {...this.state.addIP};
-    tempAddIP.newDepartment = value;
-
-    this.setState({
-      addIP: tempAddIP
-    });
-  }
-  /**
-   * Handle Title dropdown change
-   * @method
-   * @param {string} value - title nameUUID
-   */
-  handleTitleChange = (value) => {
-    const tempAddIP = {...this.state.addIP};
-    tempAddIP.newTitle = value;
-
-    this.setState({
-      addIP: tempAddIP
-    });
-  }
-  /**
-   * Open department / title edit dialog
-   * @method
-   */
-  openManage = () => {
-    this.manage._component.openManage();
   }
   /**
    * Open floor map edit dialog
@@ -1640,21 +3044,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display floor map modal dialog
-   * @method
-   * @returns FloorMap component
-   */
-  modalFloorDialog = () => {
-    const {baseUrl, contextRoot} = this.props;
-
-    return (
-      &lt;FloorMap
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        closeDialog={this.closeDialog} />
-    )
-  }
-  /**
    * Get show form button text
    * @method
    * @returns button text
@@ -1663,167 +3052,377 @@ class NetworkInventory extends Component {
     return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
   }
   /**
+   * Get owner type for radio group
+   * @method
+   * @returns ownerType array
+   */
+  getOwnerType = () => {
+    const {ownerList} = this.state;
+
+    let ownerType = [{
+        value: 'new',
+        text: t('txt-addNewOwner')
+      }
+    ];
+
+    if (!_.isEmpty(ownerList)) {
+      ownerType.unshift({
+        value: 'existing',
+        text: t('txt-existingOwner')
+      });
+    }
+
+    return ownerType;
+  }
+  /**
+   * Check if MAC is required field or not
+   * @method
+   * @returns boolean true/false
+   */
+  checkMacRequired = () => {
+    const inventoryParam = queryString.parse(location.search);
+    return !_.has(inventoryParam, 'hostName');
+  }
+  /**
+   * Get owner name
+   * @method
+   * @param {ownerUUID} string - ownerUUID
+   * @returns owner name
+   */
+  getOwnerName = (ownerUUID) => {
+    const owner = _.find(this.state.ownerList, {'value': ownerUUID});
+    return owner.text;
+  }
+  /**
+   * Handle Add IP form input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleAddIpChange = (event) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP[event.target.name] = event.target.value;
+
+    this.setState({
+      addIP: tempAddIP
+    });
+  }
+  /**
+   * Handle photo upload input value change
+   * @method
+   * @param {string | object} value - input data to be set
+   */
+  handlePhotoChange = (value) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP.file = value;
+
+    this.setState({
+      previewOwnerPic: value ? URL.createObjectURL(value) : '',
+      addIP: tempAddIP
+    });
+  }
+  /**
+   * Display department list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderDepartmentList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={t('ownerFields.department')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Display title list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderTitleList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={t('ownerFields.title')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle department/title combo box change
+   * @method
+   * @param {object} from - form page ('department' or 'title')
+   * @param {object} event - select event
+   * @param {object} value - selected department info
+   */
+  handleComboBoxChange = (from, event, value) => {
+    const {departmentList, titleList, addIP} = this.state;
+    let tempAddIP = {...addIP};
+
+    if (value &amp;&amp; value.value) {
+      if (from === 'department') {
+        const selectedDepartmentIndex = _.findIndex(departmentList, { 'value': value.value });
+        tempAddIP.newDepartment = departmentList[selectedDepartmentIndex];
+      } else if (from === 'title') {
+        const selectedTitleIndex = _.findIndex(titleList, { 'value': value.value });
+        tempAddIP.newTitle = titleList[selectedTitleIndex];
+      }
+
+      this.setState({
+        addIP: tempAddIP
+      });
+    }
+  }
+  /**
    * Display add/edit IP device form content
    * @method
    * @returns HTML DOM
    */
   displayAddIpSteps = () => {
-    const {contextRoot} = this.props;
+    const {contextRoot} = this.context;
     const {
       activeSteps,
+      activeContent,
       formTypeEdit,
       currentDeviceData,
       addIP,
       previewOwnerPic,
       ownerList,
+      ownerListDropDown,
       departmentList,
       titleList,
       ownerType,
       mapAreaUUID,
       currentMap,
-      seatData,
+      deviceSeatData,
       currentBaseLayers,
       floorPlan,
+      ownerInfo,
       addSeat,
-      ownerIDduplicated
+      ownerIDduplicated,
+      showLoadingIcon,
+      formValidation
     } = this.state;
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
+    const inventoryParam = queryString.parse(location.search);
+    let hostNameField = addIP.hostName;
+    let hostNameReadyOnly = currentDeviceData.isHmd;
+
+    if (_.has(inventoryParam, 'hostName')) {
+      hostNameField = inventoryParam.hostName;
+      hostNameReadyOnly = true;
+    }
 
     return (
       &lt;div className='parent-content'>
         &lt;div className='main-content basic-form'>
           &lt;header className='main-header'>{t('alert.txt-ipBasicInfo')}&lt;/header>
-          &lt;div className='steps-indicator'>
-            {addIPtext.map(this.showAddIpSteps)}
-          &lt;/div>
-          {activeSteps === 1 &amp;&amp;
+          {activeContent !== 'batchUpdates' &amp;&amp;
+            &lt;div className='steps-indicator'>
+              {addIPtext.map(this.showAddIpSteps)}
+            &lt;/div>
+          }
+          {activeSteps === 1 &amp;&amp; activeContent !== 'batchUpdates' &amp;&amp;
             &lt;div className='form-group steps-address'>
               &lt;header>{t('txt-ipAddress')}&lt;/header>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsIP'>{t('ipFields.ip')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsIP'
-                  required={true}
-                  validate={{
-                    pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-                    patternReadable: 'xxx.xxx.xxx.xxx',
-                    t: et
-                  }}
-                  onChange={this.handleAddIpChange.bind(this, 'ip')}
-                  value={addIP.ip} />
+                  name='ip'
+                  label={t('ipFields.ip')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  required
+                  error={!formValidation.ip.valid}
+                  helperText={formValidation.ip.msg}
+                  value={addIP.ip || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={formTypeEdit} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsMac'>{t('ipFields.mac')}&lt;/label>
-                &lt;Input
-                  id='addIPstepsMac'
-                  required={true}
-                  validate={{
-                    pattern: /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i,
-                    patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
-                    t: et
-                  }}
-                  onChange={this.handleAddIpChange.bind(this, 'mac')}
-                  value={addIP.mac} />
+                &lt;TextField
+                  id='addIPstepsIP'
+                  name='mac'
+                  label={t('ipFields.mac')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  required={this.checkMacRequired()}
+                  error={!formValidation.mac.valid}
+                  helperText={formValidation.mac.msg}
+                  value={addIP.mac || ''}
+                  onChange={this.handleAddIpChange} />
               &lt;/div>
             &lt;/div>
           }
-          {activeSteps === 2 &amp;&amp;
+          {activeSteps === 2 &amp;&amp; activeContent !== 'batchUpdates' &amp;&amp;
             &lt;div className='form-group steps-host'>
+              &lt;Button variant='contained' color='primary' className='btn view-more' onClick={this.toggleViewMore}>{t('hmd-scan.txt-viewMore')}&lt;/Button>
               &lt;header>{t('alert.txt-systemInfo')}&lt;/header>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsHostname'>{t('ipFields.hostName')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsHostname'
-                  onChange={this.handleAddIpChange.bind(this, 'hostName')}
-                  value={addIP.hostName}
-                  readOnly={currentDeviceData.isHmd} />
+                  name='hostName'
+                  label={t('ipFields.hostName')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  error={!formValidation.hostName.valid}
+                  helperText={formValidation.hostName.valid ? '' : t('network-topology.txt-maxCharError')}
+                  value={hostNameField}
+                  onChange={this.handleAddIpChange}
+                  disabled={hostNameReadyOnly} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsHostID'>{t('ipFields.hostID')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsHostID'
-                  value={addIP.hostID}
-                  readOnly={true} />
+                  name='hostID'
+                  label={t('ipFields.hostID')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.hostID || ''}
+                  disabled />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsSystem'>{t('ipFields.system')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsSystem'
-                  onChange={this.handleAddIpChange.bind(this, 'system')}
-                  value={addIP.system}
-                  readOnly={currentDeviceData.isHmd} />
+                  name='system'
+                  label={t('ipFields.system')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  error={!formValidation.system.valid}
+                  helperText={formValidation.system.valid ? '' : t('network-topology.txt-maxCharError')}
+                  value={addIP.system || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsDeviceType'>{t('ipFields.deviceType')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsDeviceType'
-                  onChange={this.handleAddIpChange.bind(this, 'deviceType')}
-                  value={addIP.deviceType}
-                  readOnly={currentDeviceData.isHmd} />
+                  name='deviceType'
+                  label={t('ipFields.deviceType')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  error={!formValidation.deviceType.valid}
+                  helperText={formValidation.deviceType.valid ? '' : t('network-topology.txt-maxCharError')}
+                  value={addIP.deviceType || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsUser'>{t('ipFields.owner')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsUser'
-                  onChange={this.handleAddIpChange.bind(this, 'userName')}
-                  value={addIP.userName}
-                  readOnly={currentDeviceData.isHmd} />
+                  name='userName'
+                  label={t('ipFields.userAccount')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.userName || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsCPU'>{t('txt-cpu')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsCPU'
-                  onChange={this.handleAddIpChange.bind(this, 'cpu')}
-                  value={addIP.cpu}
-                  readOnly={currentDeviceData.isHmd} />
+                  name='cpu'
+                  label={t('txt-cpu')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.cpu || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsRam'>{t('txt-ram')}&lt;/label>
-                &lt;Input
+                &lt;TextField
                   id='addIPstepsRam'
-                  onChange={this.handleAddIpChange.bind(this, 'ram')}
-                  value={addIP.ram}
-                  readOnly={currentDeviceData.isHmd} />
+                  name='ram'
+                  label={t('txt-ram')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.ram || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsDisks'>{t('txt-disks')}&lt;/label>
-                &lt;Textarea
+                &lt;TextField
                   id='addIPstepsDisks'
+                  name='disks'
+                  label={t('txt-disks')}
+                  multiline
                   rows={3}
-                  onChange={this.handleAddIpChange.bind(this, 'disks')}
-                  value={addIP.disks}
-                  readOnly={currentDeviceData.isHmd} />
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.disks || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
               &lt;div className='group'>
-                &lt;label htmlFor='addIPstepsFolders'>{t('txt-shareFolders')}&lt;/label>
-                &lt;Textarea
+                &lt;TextField
                   id='addIPstepsFolders'
+                  name='shareFolders'
+                  label={t('txt-shareFolders')}
+                  multiline
                   rows={3}
-                  onChange={this.handleAddIpChange.bind(this, 'shareFolders')}
-                  value={addIP.shareFolders}
-                  readOnly={currentDeviceData.isHmd} />
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.shareFolders || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
+              &lt;/div>
+              &lt;div className='group'>
+                &lt;TextField
+                  id='addIPstepsRemarks'
+                  name='remarks'
+                  label={t('txt-remarks')}
+                  multiline
+                  rows={3}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={addIP.remarks || ''}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               &lt;/div>
             &lt;/div>
           }
-          {activeSteps === 3 &amp;&amp;
+          {(activeSteps === 3 || activeContent === 'batchUpdates') &amp;&amp;
             &lt;div className='form-group steps-owner'>
               &lt;header>{t('ipFields.owner')}&lt;/header>
               &lt;RadioGroup
-                className='owner-type'
-                list={[
-                  {
-                    value: 'existing',
-                    text: t('txt-existingOwner')
-                  },
-                  {
-                    value: 'new',
-                    text: t('txt-addNewOwner')
+                className='radio-group owner-type'
+                value={ownerType}
+                onChange={this.handleOwnerTypeChange}>
+                &lt;FormControlLabel
+                  value='new'
+                  control={
+                    &lt;Radio
+                      className='radio-ui'
+                      color='primary' />
                   }
-                ]}
-                onChange={this.handleOwnerTypeChange}
-                value={ownerType} />
+                  label={t('txt-addNewOwner')} />
+                {!_.isEmpty(ownerList) &amp;&amp;
+                  &lt;FormControlLabel
+                    value='existing'
+                    control={
+                      &lt;Radio
+                        className='radio-ui'
+                        color='primary' />
+                    }
+                    label={t('txt-existingOwner')} />
+                }
+              &lt;/RadioGroup>
               {ownerType === 'new' &amp;&amp;
-                &lt;button className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}&lt;/button>
+                &lt;Button id='inventoryManageDepartment' variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}&lt;/Button>
               }
               &lt;div className='user-pic'>
                 {ownerType === 'new' &amp;&amp;
@@ -1831,6 +3430,7 @@ class NetworkInventory extends Component {
                     &lt;label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}&lt;/label>
                     &lt;FileInput
                       id='ownerPhotoUpload'
+                      className='file-input'
                       name='file'
                       btnText={t('txt-uploadPhoto')}
                       validate={{
@@ -1842,17 +3442,17 @@ class NetworkInventory extends Component {
                           }
                         }
                       }}
-                      onChange={this.handleAddIpChange.bind(this, 'file')} />
+                      onChange={this.handlePhotoChange} />
                   &lt;/div>
                 }
                 &lt;div className='group'>
-                  {ownerType === 'existing' &amp;&amp; addIP.ownerPic &amp;&amp;
-                    &lt;img src={addIP.ownerPic} className='existing' title={t('network-topology.txt-profileImage')} />
+                  {ownerType === 'existing' &amp;&amp; addIP.ownerPic &amp;&amp; !_.isEmpty(ownerList) &amp;&amp;
+                    &lt;img src={addIP.ownerPic} className='existing' title={this.getOwnerName(addIP.ownerUUID)} />
                   }
                   {ownerType === 'new' &amp;&amp; previewOwnerPic &amp;&amp;
                     &lt;img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                   }
-                  {ownerType === 'existing' &amp;&amp; !addIP.ownerPic &amp;&amp;
+                  {ownerType === 'existing' &amp;&amp; !addIP.ownerPic &amp;&amp; !_.isEmpty(ownerList) &amp;&amp;
                     &lt;img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
                   }
                   {ownerType === 'new' &amp;&amp; !previewOwnerPic &amp;&amp;
@@ -1861,138 +3461,160 @@ class NetworkInventory extends Component {
                 &lt;/div>
               &lt;/div>
               &lt;div className='user-info'>
-                {ownerType === 'existing' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}&lt;/label>
-                    &lt;DropDownList
-                      id='addIPstepsOwnerName'
-                      list={ownerList}
-                      required={true}
-                      onChange={this.handleOwnerChange}
-                      value={addIP.ownerUUID} />
-                  &lt;/div>
-                }
                 {ownerType === 'new' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}&lt;/label>
-                    &lt;Input
-                      id='addIPstepsOwnerName'
-                      onChange={this.handleAddIpChange.bind(this, 'newOwnerName')}
-                      required={true}
-                      validate={{
-                        t: et
-                      }}
-                      value={addIP.newOwnerName} />
-                  &lt;/div>
-                }
-                {ownerType === 'existing' &amp;&amp;
-                &lt;div className='group'>
-                  &lt;label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}&lt;/label>
-                  &lt;Input
-                    id='addIPstepsOwnerID'
-                    readOnly={true}
-                    value={addIP.ownerID} />
-                &lt;/div>
-                }
-                {ownerType === 'new' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}&lt;/label>
-                    &lt;Input
-                      id='addIPstepsOwnerID'
-                      className={cx({'invalid': ownerIDduplicated})}
-                      onChange={this.handleAddIpChange.bind(this, 'newOwnerID')}
-                      required={true}
-                      validate={{
-                        t: et
-                      }}
-                      value={addIP.newOwnerID} />
-                  &lt;/div>
-                }
-                {ownerType === 'existing' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}&lt;/label>
-                    &lt;Input
-                      id='addIPstepsDepartment'
-                      readOnly={true}
-                      value={addIP.department} />
-                  &lt;/div>
-                }
-                {ownerType === 'new' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}&lt;/label>
-                    &lt;DropDownList
-                      id='addIPstepsDepartment'
-                      list={departmentList}
-                      required={true}
-                      validate={{t: et}}
-                      onChange={this.handleDepartmentChange}
-                      value={addIP.newDepartment} />
+                  &lt;div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='addIPstepsOwnerName'
+                        name='newOwnerName'
+                        label={t('ownerFields.ownerName')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.newOwnerName.valid}
+                        helperText={formValidation.newOwnerName.valid ? '' : t('txt-required')}
+                        value={addIP.newOwnerName || ''}
+                        onChange={this.handleAddIpChange} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='addIPstepsOwnerID'
+                        name='newOwnerID'
+                        label={t('ownerFields.ownerID')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.newOwnerID.valid}
+                        helperText={formValidation.newOwnerID.valid ? '' : t('txt-required')}
+                        value={addIP.newOwnerID || ''}
+                        onChange={this.handleAddIpChange} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;Autocomplete
+                        className='combo-box'
+                        options={departmentList}
+                        value={addIP.newDepartment || ''}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList}
+                        onChange={this.handleComboBoxChange.bind(this, 'department')} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;Autocomplete
+                        className='combo-box'
+                        options={titleList}
+                        value={addIP.newTitle || ''}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderTitleList}
+                        onChange={this.handleComboBoxChange.bind(this, 'title')} />
+                    &lt;/div>
                   &lt;/div>
                 }
                 {ownerType === 'existing' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}&lt;/label>
-                    &lt;Input
-                      id='addIPstepsTitle'
-                      readOnly={true}
-                      value={addIP.title} />
-                  &lt;/div>
-                }
-                {ownerType === 'new' &amp;&amp;
-                  &lt;div className='group'>
-                    &lt;label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}&lt;/label>
-                    &lt;DropDownList
-                      id='addIPstepsTitle'
-                      list={titleList}
-                      required={true}
-                      onChange={this.handleTitleChange}
-                      value={addIP.newTitle} />
+                  &lt;div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='addIPstepsOwnerName'
+                        label={t('ownerFields.ownerName')}
+                        select
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.existingOwnerName.valid}
+                        helperText={formValidation.existingOwnerName.valid ? '' : t('txt-required')}
+                        value={addIP.ownerUUID || ''}
+                        onChange={this.getOwnerInfo}>
+                        {ownerListDropDown}
+                      &lt;/TextField>
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='addIPstepsOwnerID'
+                        name='ownerID'
+                        label={t('ownerFields.ownerID')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.ownerID || ''}
+                        disabled />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;Autocomplete
+                        className='combo-box'
+                        options={departmentList}
+                        value={addIP.department || ''}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList}
+                        disabled />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;Autocomplete
+                        className='combo-box'
+                        options={titleList}
+                        value={addIP.title || ''}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderTitleList}
+                        disabled />
+                    &lt;/div>
                   &lt;/div>
                 }
               &lt;/div>
             &lt;/div>
           }
-          {activeSteps === 4 &amp;&amp;
+          {activeSteps === 4 &amp;&amp; activeContent !== 'batchUpdates' &amp;&amp;
             &lt;div className='form-group steps-floor'>
               &lt;header>{t('alert.txt-floorInfo')}&lt;/header>
-              &lt;button className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}&lt;/button>
+              &lt;Button id='inventoryEditFloorMapStep' variant='outlined' color='primary' className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}&lt;/Button>
               &lt;div className='floor-info'>
                 &lt;div className='tree'>
                   {floorPlan.treeData &amp;&amp; floorPlan.treeData.length > 0 &amp;&amp;
-                    floorPlan.treeData.map(this.displayTree)
+                    floorPlan.treeData.map(this.displayTreeView.bind(this, 'stepsFloor'))
                   }
                 &lt;/div>
                 &lt;div className='map'>
-                  {currentMap.label &amp;&amp;
+                  {showLoadingIcon &amp;&amp;
+                    &lt;span className='loading'>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+                  }
+                  {currentMap.label &amp;&amp; !showLoadingIcon &amp;&amp;
                     &lt;Gis
                       _ref={(ref) => {this.gisNode = ref}}
-                      data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                      data={_.get(deviceSeatData, [mapAreaUUID, 'data'], [])}
                       baseLayers={currentBaseLayers}
                       baseLayer={mapAreaUUID}
                       layouts={['standard']}
                       dragModes={['pan']}
                       scale={{enabled: false}}
+                      mapOptions={{
+                        maxZoom: 2
+                      }}
                       selected={[addSeat.selectedSeatUUID]}
                       defaultSelected={[currentDeviceData.seatUUID]}
-                      onClick={this.handleFloorMapClick} />
+                      onClick={this.handleFloorMapClick.bind(this, 'addDevice')} />
                   }
                 &lt;/div>
               &lt;/div>
             &lt;/div>
           }
           &lt;footer>
-            &lt;button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/button>
-            {activeSteps > 1 &amp;&amp;
-              &lt;button className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}&lt;/button>
+            &lt;Button id='inventoryCancelSteps' variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+            {activeSteps > 1 &amp;&amp; activeContent !== 'batchUpdates' &amp;&amp;
+              &lt;Button id='inventoryPreviousStep' variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}&lt;/Button>
             }
-            &lt;button className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}&lt;/button>
+            {activeContent !== 'batchUpdates' &amp;&amp;
+              &lt;Button id='inventoryNextStep' variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}&lt;/Button>
+            }
+            {activeContent === 'batchUpdates' &amp;&amp;
+              &lt;Button id='inventoryConfirmSteps' variant='contained' color='primary' className='next-step' onClick={this.handleBatchUpdatesConfirm}>{t('txt-confirm')}&lt;/Button>
+            }
           &lt;/footer>
         &lt;/div>
       &lt;/div>
     )
   }
   /**
-   * Get default opened floor plan map
+   * Get default opened tree node
    * @method
    * @param {string} selectedID - selected area UUID
    * @returns default opened areaRoute array IDs
@@ -2013,146 +3635,219 @@ class NetworkInventory extends Component {
     return areaRoute;
   }
   /**
-   * Handle floor plan tree node select
+   * Handle tree selection
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
+   * @param {object} tree - tree data
    * @method
-   * @param {number} i - index of the tree data
-   * @param {string} areaUUID - selected area UUID
-   * @param {object} eventData - tree click events data
    */
-  selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.props;
+  handleSelectTree = (type, tree) => {
+    const areaUUID = tree.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
-    let tempArr = [];
-    let pathStr = '';
-    let pathNameStr = '';
-    let pathParentStr = '';
-
-    if (eventData.path.length > 0) {
-      _.forEach(eventData.path, val => {
-        if (val.index >= 0) {
-          tempArr.push(val.index);
-        }
-      })
-    }
-
-    _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].'
-    })
-
-    pathNameStr = pathStr + 'label';
-    pathParentStr = pathStr + 'parentAreaUUID';
-
-    if (eventData.path[0].id) {
-      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
-    }
+    tempFloorPlan.currentAreaName = tree.areaName;
     tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
-    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
-    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.currentParentAreaUUID = tree.parentAreaUUID;
+    tempFloorPlan.name = tree.areaName;
     tempFloorPlan.type = 'edit';
 
     this.setState({
-      floorPlan: tempFloorPlan
+      floorPlan: tempFloorPlan,
+      changeAreaMap: true,
+      selectedTreeID: areaUUID,
+      floorMapType: 'selected',
+      showLoadingIcon: true
     }, () => {
       this.getAreaData(areaUUID);
-      this.getSeatData(areaUUID);
+
+      if (type === 'deviceMap') {
+        this.getDeviceSeatData(areaUUID);
+      } else if (type === 'stepsFloor') {
+        this.getDeviceSeatData(areaUUID);
+      }
     });
   }
   /**
-   * Display floor tree data
+   * Display tree item
    * @method
-   * @param {object} value - floor plan data
-   * @param {string} selectedID - selected area UUID
-   * @param {number} i - index of the floor plan data
-   * @returns TreeView component
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
    */
-  getTreeView = (value, selectedID, i) => {
+  getTreeItem = (type, val, i) => {
     return (
-      &lt;TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
-        selected={selectedID}
-        defaultSelected={selectedID}
-        defaultOpened={this.getDefaultFloor(selectedID)}
-        onSelect={this.selectTree.bind(this, i)} />
+      &lt;TreeItem
+        key={val.id + i}
+        id={'topologyInventoryTree_'+ val.label}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={this.handleSelectTree.bind(this, type, val)}>
+        {val.children &amp;&amp; val.children.length > 0 &amp;&amp;
+          val.children.map(this.getTreeItem.bind(this, type))
+        }
+      &lt;/TreeItem>
     )
   }
   /**
-   * Handle floor tree data
+   * Get tree data
    * @method
-   * @param {object} val - floor plan data
-   * @param {number} i - index of the floor plan data
-   * @returns content of TreeView component
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
+   * @param {object} tree - tree data
+   * @param {number} i - index of the floorPlan tree data
+   * @returns TreeView component
    */
-  displayTree = (val, i) => {
-    const {floorPlan, currentDeviceData} = this.state;
-    let currentAreaUUID = '';
+  displayTreeView = (type, tree, i) => {
+    const {floorPlan, deviceSearchArea, currentDeviceData, changeAreaMap, selectedTreeID, floorMapType} = this.state;
+    let defaultSelectedID = '';
+    let defaultExpanded = [];
 
-    if (currentDeviceData &amp;&amp; currentDeviceData.seatUUID) {
-      currentAreaUUID = currentDeviceData.areaUUID;
-    } else {
-      currentAreaUUID = floorPlan.currentAreaUUID;
+    if (type === 'deviceMap') {
+      if (i === 0) {
+        defaultSelectedID = tree.areaUUID;
+      }
+
+      if (floorMapType === 'selected') {
+        defaultSelectedID = selectedTreeID;
+      }
+
+      if (deviceSearchArea) {
+        defaultSelectedID = deviceSearchArea;
+      }
+
+      defaultExpanded = [tree.areaUUID];
+    } else if (type === 'stepsFloor') {
+      let currentAreaUUID = floorPlan.currentAreaUUID;
+      defaultSelectedID = currentAreaUUID;
+
+      if (!changeAreaMap &amp;&amp; currentDeviceData.areaUUID) {
+        currentAreaUUID = currentDeviceData.areaUUID;
+      }
+
+      if (floorMapType === 'fromFloorMap') {
+        defaultSelectedID = currentDeviceData.areaUUID;
+      } else if (floorMapType === 'selected') {
+        defaultSelectedID = selectedTreeID;
+      }
+
+      if (changeAreaMap) {
+        if (currentAreaUUID) {
+          defaultSelectedID = currentAreaUUID;
+        }
+      } else {
+        if (currentDeviceData &amp;&amp; currentDeviceData.areaUUID) {
+          defaultSelectedID = currentDeviceData.areaUUID;
+        }
+      }
+
+      defaultExpanded = this.getDefaultFloor(defaultSelectedID);
     }
 
-    return this.getTreeView(val, currentAreaUUID, i);
+    return (
+      &lt;TreeView
+        key={i}
+        id='topologyInventoryTreeView'
+        defaultCollapseIcon={&lt;ExpandMoreIcon />}
+        defaultExpandIcon={&lt;ChevronRightIcon />}
+        defaultSelected={defaultSelectedID}
+        defaultExpanded={defaultExpanded}
+        selected={defaultSelectedID}>
+        {tree.areaUUID &amp;&amp;
+          &lt;TreeItem
+            id={'topologyInventoryTree_'+ tree.areaName}
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, type, tree)}>
+            {tree.children.length > 0 &amp;&amp;
+              tree.children.map(this.getTreeItem.bind(this, type))
+            }
+          &lt;/TreeItem>
+        }
+      &lt;/TreeView>
+    )
   }
   /**
    * Handle floor map mouse click
    * @method
-   * @param {string} id - existing seat ID
-   * @param {object} info - mouseClick events
+   * @param {string} type - trigger type ('addDevice' or 'deviceMap')
+   * @param {string} seatUUID - selected seat UUID
+   * @param {object} event - mouseClick events
    */
-  handleFloorMapClick = (id, info) => {
-    const {addSeat} = this.state;
-    let tempAddSeat = {...addSeat};
+  handleFloorMapClick = (type, seatUUID, event) => {
+    let tempAddSeat = {...this.state.addSeat};
 
-    if (id) {
-      tempAddSeat.selectedSeatUUID = id;
+    if (!seatUUID) {
+      tempAddSeat.coordX = Math.round(event.xy.x);
+      tempAddSeat.coordY = Math.round(event.xy.y);
 
-      this.setState({
-        addSeat: tempAddSeat
-      });
-    } else {
-      tempAddSeat.coordX = Math.round(info.xy.x);
-      tempAddSeat.coordY = Math.round(info.xy.y);
-
-      this.setState({
+      this.setState({ //Add new seat
         addSeatOpen: true,
+        addSeat: tempAddSeat,
+        addSeatType: 'add'
+      });
+      return;
+    }
+
+    if (type === 'addDevice') {
+      tempAddSeat.selectedSeatUUID = seatUUID;
+
+      this.setState({
         addSeat: tempAddSeat
       });
+    } else if (type === 'deviceMap') {
+      this.getDeviceData('', 'oneSeat', seatUUID);
     }
   }
   /**
    * Handle add seat input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
-    let tempAddSeat = {...this.state.addSeat};
-    tempAddSeat[type] = value;
+  handleDataChange = (event) => {
+    const {addSeat, editSeat, addSeatType} = this.state;
 
-    this.setState({
-      addSeat: tempAddSeat
-    });
+    if (addSeatType === 'add') {
+      let tempAddSeat = {...addSeat};
+      tempAddSeat[event.target.name] = event.target.value;
+
+      this.setState({
+        addSeat: tempAddSeat
+      });
+    } else if (addSeatType === 'edit') {
+      let tempEditSeat = {...editSeat};
+      tempEditSeat[event.target.name] = event.target.value;
+
+      this.setState({
+        editSeat: tempEditSeat
+      });
+    }
   }
   /**
    * Display add seat contnt
    * @method
-   * @returns HTML DOM
+   * @returns TextField component
    */
   displayAddSeat = () => {
-    const {addSeat} = this.state;
+    const {addSeat, editSeat, addSeatType, formValidation} = this.state;
+    let value = '';
+
+    if (addSeatType === 'add') {
+      value = addSeat.seatName;
+    } else if (addSeatType === 'edit') {
+      value = editSeat.seatName;
+    }
 
     return (
-      &lt;div className='add-seat'>
-        &lt;label htmlFor='addAreaSeat'>{t('txt-name')}&lt;/label>
-        &lt;Input
-          id='addAreaSeat'
-          onChange={this.handleDataChange.bind(this, 'name')}
-          value={addSeat.name} />
-      &lt;/div>
+      &lt;TextField
+        id={addSeatType + 'Seat'}
+        name='seatName'
+        label={t('txt-plsEnterName')}
+        variant='outlined'
+        fullWidth
+        size='small'
+        required
+        error={!formValidation.seatName.valid}
+        helperText={formValidation.seatName.valid ? '' : t('txt-required')}
+        value={value}
+        onChange={this.handleDataChange} />
     )
   }
   /**
@@ -2161,11 +3856,18 @@ class NetworkInventory extends Component {
    * @returns ModalDialog component
    */
   addSeatDialog = () => {
+    const {addSeatType} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddSeatDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
     };
-    const titleText = t('network-topology.txt-addSeat');
+    let titleText = '';
+
+    if (addSeatType === 'add') {
+      titleText = t('network-topology.txt-addSeat');
+    } else if (addSeatType === 'edit') {
+      titleText = t('network-topology.txt-editSeat');
+    }
 
     return (
       &lt;ModalDialog
@@ -2185,140 +3887,275 @@ class NetworkInventory extends Component {
    * @method
    */
   handleAddSeatConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {floorPlan, addSeat} = this.state;
+    const {baseUrl} = this.context;
+    const {floorPlan, currentDeviceData, addSeat, editSeat, addSeatType, changeAreaMap, formValidation} = this.state;
     const url = `${baseUrl}/api/seat`;
-    const requestData = {
-      areaUUID: floorPlan.currentAreaUUID,
-      seatName: addSeat.name,
-      coordX: addSeat.coordX,
-      coordY: addSeat.coordY
-    };
+    let currentAreaUUID = floorPlan.currentAreaUUID;
+    let tempFormValidation = {...formValidation};
+    let requestData = {};
+    let requestType = '';
+    let validate = true;
 
-    helper.getAjaxData('POST', url, requestData)
+    if (addSeatType === 'add') {
+      if (addSeat.seatName) {
+        tempFormValidation.seatName.valid = true;
+      } else {
+        tempFormValidation.seatName.valid = false;
+        validate = false;
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
+      }
+
+      if (!changeAreaMap &amp;&amp; currentDeviceData.areaUUID) {
+        currentAreaUUID = currentDeviceData.areaUUID;
+      }
+
+      requestData = {
+        areaUUID: currentAreaUUID,
+        seatName: addSeat.seatName,
+        coordX: addSeat.coordX,
+        coordY: addSeat.coordY
+      };
+      requestType = 'POST';
+    } else if (addSeatType === 'edit') {
+      if (editSeat.seatName) {
+        tempFormValidation.seatName.valid = true;
+      } else {
+        tempFormValidation.seatName.valid = false;
+        validate = false;
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
+      }
+
+      currentAreaUUID = editSeat.areaUUID;
+      requestData = {...editSeat};
+      requestType = 'PATCH';
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.setState({
           addSeatOpen: false,
           addSeat: {
             selectedSeatUUID: data,
-            name: '',
+            seatName: '',
             coordX: '',
             coordY: ''
-          }
+          },
+          editSeat: {
+            seatUUID: '',
+            areaUUID: '',
+            seatName: '',
+            coordX: '',
+            coordY: ''
+          },
+          addSeatType: ''
         }, () => {
-          this.getAreaData(floorPlan.currentAreaUUID);
-          this.getSeatData(floorPlan.currentAreaUUID);
+          if (addSeatType === 'add') {
+            this.getDeviceSeatData(currentAreaUUID);
+          } else if (addSeatType === 'edit') {
+            this.getDeviceSeatData(currentAreaUUID, 'refreshSeat', data);
+          }
         });
       }
+      return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
-   * Handle Add IP form input value change
+   * Close add seat dialog
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
    */
-  handleAddIpChange = (type, value) => {
-    let tempAddIP = {...this.state.addIP};
-    tempAddIP[type] = value;
-
-    if (type === 'file') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewOwnerPic: file
-      });
-    }
+  closeAddSeatDialog = () => {
+    let tempFormValidation = {...this.state.formValidation};
+    tempFormValidation.seatName.valid = true;
 
     this.setState({
-      addIP: tempAddIP
+      addSeatOpen: false,
+      addSeat: {
+        selectedSeatUUID: '',
+        seatName: '',
+        coordX: '',
+        coordY: ''
+      },
+      editSeat: {
+        seatUUID: '',
+        areaUUID: '',
+        seatName: '',
+        coordX: '',
+        coordY: ''
+      },
+      addSeatType: '',
+      formValidation: tempFormValidation
     });
   }
   /**
-   * Get Auto and Manual buttons position
+   * Toggle manage dialog
    * @method
-   * @param {string} type - button type
-   * @returns width
    */
-  getBtnPos = (type) => {
-    const {locale} = this.props;
-
-    if (type === 'auto') {
-      if (locale === 'zh') {
-        return '120px';
-      } else if (locale === 'en') {
-        return '200px';
-      }
-    } else if (type === 'manual') {
-      if (locale === 'zh') {
-        return '257px';
-      } else if (locale === 'en') {
-        return '336px';
-      }
-    }
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    });
+  }
+  /**
+   * Handle close on department/title management modal dialog
+   * @method
+   */
+  handleCloseManage = () => {
+    this.toggleManageDialog();
+    this.getTitleData();
+    this.getOwnerData();
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {baseUrl, contextRoot, language} = this.context;
     const {
       activeTab,
       activeContent,
       showFilter,
-      showScanInfo,
       showSeatData,
       modalFloorOpen,
+      modalViewMoreOpen,
       modalIRopen,
       addSeatOpen,
+      uploadOpen,
+      openManage,
+      contextAnchor,
+      menuType,
+      LAconfig,
+      deviceEventsData,
+      batchUpdatesList,
+      eventsDateList,
+      eventsDate,
+      deviceLAdata,
       deviceData,
       currentDeviceData,
-      floorPlan,
-      alertInfo,
-      activeIPdeviceUUID,
       mapAreaUUID,
       currentMap,
-      seatData,
       currentBaseLayers,
+      deviceSeatData,
+      floorPlan,
+      ownerInfo,
+      activeIPdeviceUUID,
       activeSteps,
-      addIP
+      addIP,
+      csvData,
+      showCsvData,
+      csvColumns,
+      formValidation
     } = this.state;
-    const picPath = (currentDeviceData.ownerObj &amp;&amp; currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
-    const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    const backText = activeTab === 'deviceList' ? t('txt-backToList') : t('txt-backToMap')
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      },
+      setRowProps: (row, dataIndex, rowIndex) => {
+        if (!row[0]) {
+          return;
+        }
+
+        const allValue = row[0](rowIndex, 'getAllValue');
+        const tableUniqueID = allValue.ipDeviceUUID;
+
+        if (tableUniqueID === activeIPdeviceUUID) {
+          return {
+            className: 'grey'
+          };
+        }
+      }
+    };
+    let picPath = '';
+    let csvHeaderList = [
+      &lt;MenuItem value=''>&lt;span style={{height: '20px'}}>&lt;/span>&lt;/MenuItem>
+    ];
+
+    if (!_.isEmpty(currentDeviceData)) {
+      picPath = (currentDeviceData.ownerObj &amp;&amp; currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png'
+    }
+
+    if (!_.isEmpty(csvData)) {
+      _.forEach(csvData[0], (val, i) => {
+        if (val) {
+          csvHeaderList.push(
+            &lt;MenuItem key={i} value={i}>{val}&lt;/MenuItem>
+          );
+        }
+      })
+    }
 
     return (
       &lt;div>
-        {showScanInfo &amp;&amp;
-          this.showScanInfo()
-        }
-
         {showSeatData &amp;&amp;
-          this.showSeatData()
-        }
-
-        {modalFloorOpen &amp;&amp;
-          this.modalFloorDialog()
-        }
-
-        {modalIRopen &amp;&amp;
-          this.irSelectionDialog()
+          this.showSeatDialog()
         }
 
         {addSeatOpen &amp;&amp;
           this.addSeatDialog()
         }
 
-        &lt;Manage
-          ref={ref => { this.manage = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          onDone={this.getOtherData} />
+        {uploadOpen &amp;&amp;
+          this.uploadDialog()
+        }
+
+        {modalFloorOpen &amp;&amp;
+          &lt;FloorMap
+            closeDialog={this.closeFloorDialog} />
+        }
+
+        {modalViewMoreOpen &amp;&amp;
+          &lt;HMDmoreInfo
+            hostData={currentDeviceData}
+            toggleViewMore={this.toggleViewMore} />
+        }
+
+        {modalIRopen &amp;&amp;
+          &lt;IrSelections
+            currentDeviceData={currentDeviceData}
+            toggleSelectionIR={this.toggleSelectionIR}
+            triggerTask={this.triggerTask} />
+        }
+
+        {openManage &amp;&amp;
+          &lt;Manage
+            handleCloseManage={this.handleCloseManage} />
+        }
 
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            {activeTab === 'deviceList' &amp;&amp;
-              &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+            {((activeTab === 'deviceList' &amp;&amp; activeContent === 'tableList') || activeTab === 'deviceMap' || activeTab === 'deviceLA') &amp;&amp;
+              &lt;div>
+                &lt;Button id='inventorySearchFilter' variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+                {activeTab === 'deviceList' &amp;&amp;
+                  &lt;Button id='inventoryExportCSV' variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}>&lt;i className='fg fg-file-csv'>&lt;/i>&lt;/Button>
+                }
+              &lt;/div>
             }
           &lt;/div>
         &lt;/div>
@@ -2326,67 +4163,218 @@ class NetworkInventory extends Component {
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           {activeContent === 'tableList' &amp;&amp;
             &lt;div className='parent-content'>
-              {activeTab === 'deviceList' &amp;&amp;
-                this.renderFilter()
-              }
+              {this.renderFilter()}
 
               &lt;div className='main-content'>
                 &lt;Tabs
-                  className='subtab-menu'
-                  menu={{
-                    deviceList: t('network-inventory.txt-deviceList'),
-                    deviceMap: t('network-inventory.txt-deviceMap')
-                  }}
-                  current={activeTab}
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
                   onChange={this.handleSubTabChange}>
+                  &lt;Tab id='inventoryTabDeviceList' label={t('network-inventory.txt-deviceList')} value='deviceList' />
+                  &lt;Tab id='inventoryTabDeviceMap' label={t('network-inventory.txt-deviceMap')} value='deviceMap' />
+                  &lt;Tab id='inventoryTabDeviceLA' label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
                 &lt;/Tabs>
 
-                &lt;button className='standard btn last'>&lt;Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}&lt;/Link>&lt;/button>
-                &lt;button className='standard btn' style={{right: this.getBtnPos('auto')}} onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}&lt;/button>
-                &lt;button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}&lt;/button>
+                &lt;div className={cx('content-header-btns', {'with-menu': activeTab === 'deviceList'})}>
+                  {activeTab !== 'deviceLA' &amp;&amp;
+                    &lt;Button id='inventoryAddIp' variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}&lt;/Button>
+                  }
+                  &lt;Button id='inventoryAutoSettings' variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}&lt;/Button>
+                  {activeTab === 'deviceList' &amp;&amp;
+                    &lt;Button id='inventoryBatchUpdates' variant='outlined' color='primary' className='standard btn' onClick={this.handleBatchUpdates} disabled={batchUpdatesList.length === 0}>{t('network-inventory.txt-batchUpdates')}&lt;/Button>
+                  }
+                  {activeTab === 'deviceMap' &amp;&amp;
+                    &lt;Button id='inventoryEditFloorMapDeviceMap' variant='outlined' color='primary' className='standard btn' onClick={this.openFloorMap} >{t('network-topology.txt-editFloorMap')}&lt;/Button>
+                  }
+                &lt;/div>
 
-                {activeTab === 'deviceList' &amp;&amp;
-                  &lt;TableContent
-                    dataTableData={deviceData.dataContent}
-                    dataTableFields={deviceData.dataFields}
-                    dataTableSort={deviceData.sort}
-                    paginationTotalCount={deviceData.totalCount}
-                    paginationPageSize={deviceData.pageSize}
-                    paginationCurrentPage={deviceData.currentPage}
-                    currentTableID={activeIPdeviceUUID}
-                    tableUniqueID='ipDeviceUUID'
-                    handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePaginationChange}
-                    paginationDropDownChange={this.handlePageDropdown} />
+                &lt;Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={menuType &amp;&amp; Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  &lt;MenuItem id='inventoryMenuShowForm' onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}&lt;/MenuItem>
+                  &lt;MenuItem id='inventoryMenuShowUpload' onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}&lt;/MenuItem>
+                &lt;/Menu>
+
+                {activeTab === 'deviceList' &amp;&amp; !showCsvData &amp;&amp;
+                  &lt;MuiTableContent
+                    data={deviceData}
+                    tableOptions={tableOptions} />
                 }
 
-                {activeTab === 'deviceMap' &amp;&amp;
+                {activeTab === 'deviceMap' &amp;&amp; !showCsvData &amp;&amp;
                   &lt;div className='inventory-map'>
                     &lt;div className='tree'>
                       {floorPlan.treeData &amp;&amp; floorPlan.treeData.length > 0 &amp;&amp;
-                        floorPlan.treeData.map(this.displayTree)
+                        floorPlan.treeData.map(this.displayTreeView.bind(this, 'deviceMap'))
                       }
                     &lt;/div>
                     &lt;div className='map'>
                       {currentMap.label &amp;&amp;
                         &lt;Gis
                           _ref={(ref) => {this.gisNode = ref}}
-                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                          data={_.get(deviceSeatData, [mapAreaUUID, 'data'], [])}
                           baseLayers={currentBaseLayers}
                           baseLayer={mapAreaUUID}
                           layouts={['standard']}
                           dragModes={['pan']}
                           scale={{enabled: false}}
-                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
+                          mapOptions={{
+                            maxZoom: 2
+                          }}
+                          onClick={this.handleFloorMapClick.bind(this, 'deviceMap')} />
                       }
                     &lt;/div>
+                  &lt;/div>
+                }
+
+                {activeTab === 'deviceLA' &amp;&amp; !showCsvData &amp;&amp;
+                  &lt;div className='la-content'>
+                    &lt;VbdaLA
+                      assetsPath={assetsPath}
+                      sourceCfg={LAconfig}
+                      events={deviceEventsData}
+                      source={deviceLAdata}
+                      sourceItemOptions={LAconfig.la}
+                      lng={language} />
+                    {eventsDateList.length > 0 &amp;&amp;
+                      &lt;TextField
+                        id='deviceLAdropdown'
+                        className='dorp-down'
+                        select
+                        variant='outlined'
+                        size='small'
+                        value={eventsDate}
+                        onChange={this.handleDeviceDateChange}>
+                        {eventsDateList}
+                      &lt;/TextField>
+                    }
+                  &lt;/div>
+                }
+
+                {showCsvData &amp;&amp;
+                  &lt;div className='csv-section'>
+                    &lt;div className='csv-table'>
+                      {this.displayCSVtable()}
+                    &lt;/div>
+                    &lt;section className='csv-dropdown'>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvColumnIP'
+                          name='ip'
+                          label={t('ipFields.ip')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          required
+                          error={!formValidation.csvColumnsIp.valid}
+                          helperText={formValidation.csvColumnsIp.valid ? '' : t('network-inventory.txt-selectIP')}
+                          value={csvColumns.ip}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvColumnMac'
+                          name='mac'
+                          label={t('ipFields.mac')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.mac}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvColumnHost'
+                          name='hostName'
+                          label={t('ipFields.hostName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.hostName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvOwnerID'
+                          name='ownerId'
+                          label={t('ipFields.ownerId')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          error={!formValidation.csvOwnerID.valid}
+                          helperText={formValidation.csvOwnerID.valid ? '' : t('txt-required')}
+                          value={csvColumns.ownerId}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvOwnerName'
+                          name='ownerName'
+                          label={t('ipFields.ownerName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          error={!formValidation.csvOwnerName.valid}
+                          helperText={formValidation.csvOwnerName.valid ? '' : t('txt-required')}
+                          value={csvColumns.ownerName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvDepartmentName'
+                          name='departmentName'
+                          label={t('ipFields.departmentName')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.departmentName}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                      &lt;div className='group'>
+                        &lt;TextField
+                          id='csvRemarks'
+                          name='remarks'
+                          label={t('ipFields.remarks')}
+                          select
+                          variant='outlined'
+                          fullWidth
+                          size='small'
+                          value={csvColumns.remarks}
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        &lt;/TextField>
+                      &lt;/div>
+                    &lt;/section>
+
+                    &lt;footer>
+                      &lt;Button id='inventoryCancelUploadCsv' variant='outlined' color='primary' className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+                      &lt;Button id='inventoryUploadCsv' variant='contained' color='primary' className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}&lt;/Button>
+                    &lt;/footer>
                   &lt;/div>
                 }
               &lt;/div>
@@ -2398,28 +4386,29 @@ class NetworkInventory extends Component {
               &lt;div className='main-content'>
                 &lt;div className='privateIp-info'>
                   &lt;header className='main-header'>{t('alert.txt-ipBasicInfo')}&lt;/header>
-                  &lt;button className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}&lt;/button>
-                  &lt;button className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}&lt;/button>
+                  &lt;div className='content-header-btns'>
+                    &lt;Button id='inventoryBackToList' variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}&lt;/Button>
+                    &lt;Button id='inventoryEditBasicInfo' variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}&lt;/Button>
+                  &lt;/div>
+
                   &lt;PrivateDetails
-                    alertInfo={alertInfo}
+                    from='inventory'
+                    alertInfo={ownerInfo}
                     topoInfo={currentDeviceData}
                     picPath={picPath}
-                    triggerTask={this.triggerTask} />
+                    triggerTask={this.triggerTask}
+                    toggleViewMore={this.toggleViewMore} />
                 &lt;/div>
               &lt;/div>
             &lt;/div>
           }
 
-          {activeContent === 'addIPsteps' &amp;&amp;
+          {(activeContent === 'addIPsteps' || activeContent === 'batchUpdates') &amp;&amp;
             this.displayAddIpSteps()
           }
 
           {activeContent === 'autoSettings' &amp;&amp;
-            &lt;AutoSettings
-              baseUrl={baseUrl}
-              contextRoot={contextRoot}
-              locale={locale}
-              toggleContent={this.toggleContent} />
+            &lt;AutoSettings />
           }
         &lt;/div>
       &lt;/div>
@@ -2427,14 +4416,12 @@ class NetworkInventory extends Component {
   }
 }
 
+NetworkInventory.contextType = BaseDataContext;
+
 NetworkInventory.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired
 };
 
-const HocNetworkInventory = withRouter(withLocale(NetworkInventory));
-export { NetworkInventory, HocNetworkInventory };</code></pre>
+export default withRouter(NetworkInventory);</code></pre>
         </article>
     </section>
 
@@ -2444,13 +4431,13 @@ export { NetworkInventory, HocNetworkInventory };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

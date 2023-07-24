@@ -27,25 +27,25 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
-import cx from 'classnames'
+import queryString from 'query-string'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
+import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
+let l = null;
 let intervalId = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
@@ -56,25 +56,27 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-let pieCharts = {};
 
 //Charts ID must be unique
-const PIE_CHARTS_LIST = [
+const CHARTS_LIST = [
   {
     id: 'alertThreatLevel',
-    key: 'level'
+    key: 'severity'
   },
   {
-    id: 'Top10ExternalPotSrcCountry',
-    key: 'agg'
-  },
-  {
-    id: 'Top10InternalIp',
+    id: 'InternalIp',
     key: 'srcIp'
   },
   {
-    id: 'Top10InternalMaskedIp',
+    id: 'InternalMaskedIp',
     key: 'maskedIP'
+  },
+  {
+    id: 'IVAR'
+  },
+  {
+    id: 'Top10ExternalSrcCountry',
+    key: 'srcCountry'
   },
   {
     id: 'Top10SyslogConfigSource',
@@ -84,14 +86,14 @@ const PIE_CHARTS_LIST = [
   {
     id: 'dnsQuery',
     key: 'query',
-    path: 'dns.status-term'
+    path: 'dns-status-term'
   }
 ];
 
 /**
  * Dashboard Statistics
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Dashboard Statistics
  */
 class DashboardStats extends Component {
@@ -100,313 +102,50 @@ class DashboardStats extends Component {
 
     this.state = {
       datetime: {
-        from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        from: helper.getSubstractDate(24, 'hours'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-08-06T01:00:00Z',
         //to: '2019-08-07T02:02:13Z'
       },
-      updatedTime: helper.getFormattedDate(Moment()),
-      alertChartAttributes: {},
-      maskedIpChartAttributes: {},
-      pieCharts: {},
+      alertDataArr: null,
+      internalMaskedIpArr: null,
       alertChartsList: [],
-      dnsMetricData: {},
-      diskMetricData: {}
+      alertPieData: {},
+      syslogPieData: {},
+      alertPatternData: null,
+      dnsPieData: {},
+      dnsMetricData: {
+        id: 'dns-histogram'
+      },
+      diskMetricData: {
+        id: 'disk-usage'
+      },
+      ivar: {
+        dataFieldsArr: ['frmotp', 'intrusion'],
+        dataFields: {},
+        dataContent: null
+      },
+      hmdData: {},
+      lms: null
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    l = global.chewbaccaI18n.getFixedT(null, 'lms');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.loadAlertData();
-    intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
-  }
-  componentWillUnmount() {
-    clearInterval(intervalId);
-  }
-  /**
-   * Show tooltip info when mouseover the chart
-   * @method
-   * @param {object} eventInfo - MouseoverEvents
-   * @param {object} data - chart data
-   * @returns HTML DOM
-   */
-  onTooltip = (eventInfo, data) => {
-    return (
-      &lt;section>
-        &lt;span>{t('txt-severity')}: {data[0].rule}&lt;/span>&lt;br />
-        &lt;span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}&lt;/span>&lt;br />
-        &lt;span>{t('txt-count')}: {data[0].number}&lt;/span>
-      &lt;/section>
-    )
-  }
-  /**
-   * Remove the charts that require special manipulation
-   * @method
-   * @returns formatted charts list
-   */
-  formattedPieChartsList = () => {
-    const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);
-    tempPieChartsList.shift(); //Remove first chart from list
-    tempPieChartsList.pop(); //Remove last chart from list
-    return tempPieChartsList;
-  }
-  /**
-   * Get and set alert charts data
-   * @method
-   */
-  loadAlertData = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {datetime, alertDetails} = this.state;
-    const configSrcInfo = PIE_CHARTS_LIST[4];
-    const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
-    };
-    const tempPieChartsList = this.formattedPieChartsList();
-    const apiData = [
-      {
-        url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [{
-            condition: 'must',
-            query: 'All'
-          }],
-          search: _.map(tempPieChartsList, val => {
-            return val.id;
-          })
-        }
-      },
-      {
-        url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [{
-            condition: 'must',
-            query: configSrcInfo.id
-          }]
-        }
-      },
-      {
-        url: `${baseUrl}/api/alert/dnsQuery?page=1&amp;pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to]
-        }
-      }
-    ];
-    const apiArr = _.map(apiData, val => {
-      return {
-        url: val.url,
-        data: JSON.stringify(val.requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      };
-    });
-
-    this.ah.all(apiArr)
-    .then(data => {
-      let alertHistogram = {
-        Emergency: {},
-        Alert: {},
-        Critical: {},
-        Warning: {},
-        Notice: {}
-      };
-      let rulesObj = {};
-      let rulesAll = [];
-      let alertDataArr = [];
-
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-        if (data[0].event_histogram) {
-          _.forEach(data[0].event_histogram[val].buckets, val2 => {
-            if (val2.doc_count > 0) {
-              alertHistogram[val][val2.key_as_string] = val2.doc_count;
-            }
-          })
-        }
-      })
-
-      _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
-        rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
-          return {
-            time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-            number: value,
-            rule: val
-          };
-        });
-      })
-
-      _.forEach(_.keys(alertHistogram), val => { //Push multiple rule arrays into a single array
-        rulesAll.push(rulesObj[val]);
-      })
-
-      //Merge multiple arrays with different rules to a single array
-      alertDataArr = rulesAll.reduce((accumulator, currentValue) => {
-        return accumulator.concat(currentValue)
-      }, []);
-
-      const alertChartAttributes = { //For Alert severity bar chart
-        title: t('dashboard.txt-alertStatistics'),
-        data: alertDataArr,
-        colors: ALERT_LEVEL_COLORS,
-        onTooltip: this.onTooltip,
-        dataCfg: {
-          x: 'time',
-          y: 'number',
-          splitSeries: 'rule'
-        },
-        xAxis: {
-          type: 'datetime',
-          dateTimeLabelFormats: {
-            day: '%H:%M'
-          }
-        }
-      };
-
-      const maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
-      let internalMaskedIp = [];
-
-      _.forEach(maskedIPdata, (key, val) => {
-        if (val !== 'doc_count' &amp;&amp; maskedIPdata[val].doc_count > 0) {
-          _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
-            internalMaskedIp.push({
-              ip: val,
-              number: val2.doc_count,
-              severity: val2._severity_
-            });
-          })
-        }
-      })
-
-      const maskedIpChartAttributes = { //For internal masked IP bar chart
-        title: t('dashboard.txt-alertMaskedIpStatistics'),
-        data: internalMaskedIp,
-        colors: ALERT_LEVEL_COLORS,
-        onTooltip: true,
-        dataCfg: {
-          splitSeries: 'severity',
-          x: 'ip',
-          y: 'number'
-        },
-        xAxis: {
-          type:'category'
-        },
-        keyLabels: {
-          ip: 'IP',
-          number: t('txt-count'),
-          severity: t('txt-severity')
-        }
-      };
-
-      /* Get pie charts data */
-      _.forEach(PIE_CHARTS_LIST, (val, i) => {
-        let tempArr = [];
-
-        if (i === 0) {
-          if (data[0].aggregations) {
-            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-              tempArr.push({
-                key: val2,
-                doc_count: data[0].aggregations[val2].doc_count
-              });
-            })
-          }
-        } else if (i === 3) {
-          if (data[0].aggregations) {
-            const chartData = data[0].aggregations[val.id];
-
-            _.forEach(_.keys(chartData), val2 => {
-              if (val2 !== 'doc_count' &amp;&amp; chartData[val2].doc_count) {
-                tempArr.push({
-                  key: val2,
-                  doc_count: chartData[val2].doc_count
-                });
-              }
-            })
-          }
-        } else if (i &lt;= 4){
-          if (data[0].aggregations) {
-            const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
-
-            if (chartData.length > 0) {
-              _.forEach(chartData, val2 => {
-                if (val2.key) { //Remove empty data
-                  tempArr.push({
-                    key: val2.key,
-                    doc_count: val2.doc_count
-                  });
-                }
-              })
-            }
-          }
-        }
-        pieCharts[val.id] = tempArr;
-      })
-
-      if (data[1].aggregations) {
-        const configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
-
-        if (configSrcData.length > 0) {
-          pieCharts[configSrcInfo.id] = configSrcData;
-        }
-      }
-
-      const dnsInfo = PIE_CHARTS_LIST[5];
-      let dnsMetricData = {};
-
-      if (data[2].aggregations) {
-        const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
-
-        if (dnsQueryData.length > 0) {
-          pieCharts[dnsInfo.id] = dnsQueryData;
-        }
-
-        const dnsData = data[2].aggregations.session_histogram;
-        dnsMetricData = {
-          id: 'dns-histogram',
-          data: [{
-            doc_count: dnsData.doc_count,
-            MegaPackages: dnsData.MegaPackages,
-            MegaBytes: dnsData.MegaBytes
-          }],
-          agg: ['doc_count', 'MegaPackages', 'MegaBytes'],
-          keyLabels: {
-            doc_count: t('dashboard.txt-session'),
-            MegaPackages: t('dashboard.txt-packet'),
-            MegaBytes: t('dashboard.txt-databyte')
-          }
-        };
-      }
-
-      this.setState({
-        updatedTime: helper.getFormattedDate(Moment()),
-        alertChartAttributes,
-        maskedIpChartAttributes,
-        internalMaskedIp,
-        pieCharts,
-        dnsMetricData
-      }, () => {
-        this.getPieChartsData();
-        this.loadMetricData();
-      });
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Construct and set the pie charts
-   * @method
-   */
-  getPieChartsData = () => {
-    const {pieCharts} = this.state;
+    const statisticsParam = queryString.parse(location.search);
     let alertChartsList = [];
 
-    _.forEach(PIE_CHARTS_LIST, val => {
-      if (pieCharts[val.id].length > 0) {
+    _.forEach(CHARTS_LIST, val => {
+      if (val.id === 'IVAR') {
+        alertChartsList.push({
+          chartID: val.id,
+          chartTitle: 'IVA Events',
+          type: 'table'
+        });
+      } else {
         alertChartsList.push({
           chartID: val.id,
           chartTitle: t('dashboard.txt-' + val.id),
@@ -424,48 +163,670 @@ class DashboardStats extends Component {
             splitSlice: ['key'],
             sliceSize: 'doc_count'
           },
-          chartData: pieCharts[val.id],
+          chartData: null,
           type: 'pie'
         });
       }
     })
 
+    if (!_.isEmpty(statisticsParam)) { //For internal use only
+      let tempDatetime = {...this.state.datetime};
+      tempDatetime.from = helper.getSubstractDate(statisticsParam.unit, statisticsParam.type);
+
+      this.setState({
+        datetime: tempDatetime
+      });
+    }
+
     this.setState({
       alertChartsList
+    }, () => {
+      this.loadAlertData();
     });
+
+    intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
+  }
+  componentWillUnmount() {
+    clearInterval(intervalId);
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {string} type - chart type ('barChart' or 'lineChart')
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {object} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (type, eventInfo, data) => {
+    if (type === 'barChart') {
+      return (
+        &lt;section>
+          &lt;span>{t('txt-severity')}: {data[0].rule}&lt;br />&lt;/span>
+          &lt;span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].number)}&lt;/span>
+        &lt;/section>
+      )
+    } else if (type === 'lineChart') {
+      return (
+        &lt;section>
+          &lt;span>{t('dashboard.txt-patternName')}: {data[0].patternName}&lt;br />&lt;/span>
+          &lt;span>{t('txt-date')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
+        &lt;/section>
+      )
+    }
+  }
+  /**
+   * Get and set alert charts data
+   * @method
+   */
+  loadAlertData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, alertPieData} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: 'All'
+      }],
+      search: ['Top10ExternalSrcCountry', 'InternalIp', 'InternalMaskedIp']
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let tempAlertPieData = {...alertPieData};
+        let alertHistogram = {
+          Emergency: {},
+          Alert: {},
+          Critical: {},
+          Warning: {},
+          Notice: {}
+        };
+        let rulesObj = {};
+        let rulesAll = [];
+        let alertDataArr = [];
+        let maskedIPdata = '';
+        let internalMaskedIpArr = [];
+
+        _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+          if (data.event_histogram) {
+            _.forEach(data.event_histogram[val].buckets, val2 => {
+              if (val2.doc_count > 0) {
+                alertHistogram[val][val2.key_as_string] = val2.doc_count;
+              }
+            })
+          }
+        })
+
+        _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
+          rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
+            return {
+              time: parseInt(moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+              number: value,
+              rule: val
+            };
+          });
+        })
+
+        _.forEach(_.keys(alertHistogram), val => { //Push multiple rule arrays into a single array
+          rulesAll.push(rulesObj[val]);
+        })
+
+        //Merge multiple arrays with different rules to a single array
+        alertDataArr = rulesAll.reduce((accumulator, currentValue) => {
+          return accumulator.concat(currentValue)
+        }, []);
+
+        if (data.aggregations) {
+          maskedIPdata = data.aggregations.InternalMaskedIp;
+
+          _.forEach(maskedIPdata, (key, val) => {
+            if (val !== 'doc_count' &amp;&amp; maskedIPdata[val].doc_count > 0) {
+              _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
+                internalMaskedIpArr.push({
+                  ip: val,
+                  number: val2.doc_count,
+                  severity: val2._severity_
+                });
+              })
+            }
+          })
+        }
+
+        /* Get charts data */
+        _.forEach(CHARTS_LIST, (val, i) => {
+          let tempArr = [];
+
+          if (i === 0) { //alertThreatLevel
+            if (data.aggregations) {
+              _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+                tempArr.push({
+                  key: val2,
+                  doc_count: data.aggregations[val2].doc_count
+                });
+              })
+            }
+          } else if (i === 1 || i === 4) { //InternalIp, Top10ExternalSrcCountry
+            if (data.aggregations) {
+              let chartData = [];
+
+              if (data.aggregations[val.id]) {
+                chartData = data.aggregations[val.id][val.key].buckets;
+              }
+
+              if (chartData.length > 0) {
+                _.forEach(chartData, val2 => {
+                  if (val2.key) { //Remove empty data
+                    let newValue = val2.key;
+
+                    if (newValue.length > 18) {
+                      newValue = newValue.substr(0, 18) + '...';
+                    }
+
+                    tempArr.push({
+                      key: newValue,
+                      doc_count: val2.doc_count
+                    });
+                  }
+                })
+              }
+            }
+          } else if (i === 2) { //InternalMaskedIp
+            if (data.aggregations) {
+              const chartData = data.aggregations[val.id];
+
+              _.forEach(_.keys(chartData), val2 => {
+                if (val2 !== 'doc_count' &amp;&amp; chartData[val2].doc_count) {
+                  tempArr.push({
+                    key: val2,
+                    doc_count: chartData[val2].doc_count
+                  });
+                }
+              })
+            }
+          } else {
+            return;
+          }
+          tempAlertPieData[val.id] = tempArr;
+        })
+
+        this.setState({
+          alertDataArr,
+          internalMaskedIpArr,
+          // internalMaskedIpArr: [{
+          //   ip: "192.168.5.0/24",
+          //   number: 2,
+          //   severity: "Alert"
+          // }],
+          alertPieData: tempAlertPieData
+        }, () => {
+          this.getPieChartsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.loadPatternData();
+    this.loadIvarData();
+    this.loadSyslogData();
+    this.loadDnsPieData();
+    this.loadMetricData();
+    this.loadHmdData();
+  }
+  /**
+   * Construct and set the pattern data
+   * @method
+   */
+  loadPatternData = () => {
+    const {baseUrl, session} = this.context;
+    const {datetime} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/alert/pattern/histogram`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      accountId: session.accountId
+    };
+
+    if (!session.accountId) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let alertPatternData = [];
+
+        if (data.event_histogram) {
+          _.forEach(data.event_histogram, (val, key) => {
+            if (val.event_histogram.buckets.length > 0) {
+              _.forEach(val.event_histogram.buckets, val2 => {
+                if (val2.doc_count > 0) {
+                  alertPatternData.push({
+                    time: parseInt(moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+                    count: val2.doc_count,
+                    patternName: key
+                  });
+                }
+              })
+            }
+          })
+        }
+
+        this.setState({
+          alertPatternData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Redirect IVA link
+   * @method
+   */
+  redirectIVA = (type) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/threats?iva=${type}&amp;interval=24h&amp;lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
+   * Construct and set the IVAR data
+   * @method
+   */
+  loadIvarData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, ivar} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/dashboard/iva?startDttm=${dateTime.from}&amp;endDttm=${dateTime.to}`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let tempIvar = {...ivar};
+        tempIvar.dataContent = [data];
+
+        let dataFields = {};
+        ivar.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: t(`dashboard.txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              return &lt;span className='c-link' onClick={this.redirectIVA.bind(this, tempData)}>{value}&lt;/span>
+            }
+          };
+        })
+
+        tempIvar.dataFields = dataFields;
+
+        this.setState({
+          ivar: tempIvar
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Construct and set the syslog config chart
+   * @method
+   */
+  loadSyslogData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, syslogPieData} = this.state;
+    const configSrcInfo = CHARTS_LIST[5];
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: configSrcInfo.id
+      }]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data.aggregations) {
+        let configSrcData = [];
+        let tempSyslogPieData = {...syslogPieData};
+
+        if (data.aggregations[configSrcInfo.id]) {
+          configSrcData = data.aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+        }
+
+        tempSyslogPieData[configSrcInfo.id] = configSrcData;
+
+        this.setState({
+          syslogPieData: tempSyslogPieData
+        }, () => {
+          this.getPieChartsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Construct and set the DNS chart
+   * @method
+   */
+  loadDnsPieData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, dnsPieData, dnsMetricData} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/alert/dnsQuery?page=1&amp;pageSize=0`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        const dnsInfo = CHARTS_LIST[6];
+        let tempDnsPieData = {...dnsPieData};
+        let tempDnsMetricData = {...dnsMetricData};
+        tempDnsMetricData.data = [];
+
+        if (data.aggregations) {
+          let dnsQueryData = [];
+          let dnsData = {};
+
+          if (data.aggregations[dnsInfo.id]) {
+            dnsQueryData = data.aggregations[dnsInfo.id][dnsInfo.path].buckets;
+          }
+
+          tempDnsPieData[dnsInfo.id] = dnsQueryData;
+
+          if (data.aggregations.session_histogram) {
+            dnsData = data.aggregations.session_histogram;
+
+            tempDnsMetricData.data = [{
+              doc_count: dnsData.doc_count,
+              MegaPackages: dnsData.MegaPackages,
+              MegaBytes: dnsData.MegaBytes
+            }];
+            tempDnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
+            tempDnsMetricData.keyLabels = {
+              doc_count: t('dashboard.txt-session'),
+              MegaPackages: t('dashboard.txt-packet'),
+              MegaBytes: t('dashboard.txt-databyte')
+            };
+          }
+        }
+
+        this.setState({
+          dnsPieData: tempDnsPieData,
+          dnsMetricData: tempDnsMetricData
+        }, () => {
+          this.getPieChartsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Construct and set the metric chart
    * @method
    */
   loadMetricData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
 
     ah.one({
       url: `${baseUrl}/api/alert/diskUsage`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         data = data.rt;
-        const diskMetricData = {
-          id: 'disk-usage',
-          data: [{
-            diskAvail: data['disk.avail'],
-            diskTotal: data['disk.total']
-          }],
-          agg: ['diskAvail', 'diskTotal'],
-          keyLabels: {
+
+        let validData = false;
+        let tempDiskMetricData = {...this.state.diskMetricData};
+        tempDiskMetricData.data = [{
+          diskAvail: '',
+          diskTotal: ''
+        }];
+
+        if (data['disk-avail'] &amp;&amp; data['disk-avail'] >= 0) {
+          tempDiskMetricData.data[0].diskAvail = data['disk-avail'];
+          validData = true;
+        }
+
+        if (data['disk-total'] &amp;&amp; data['disk-total'] >= 0) {
+          tempDiskMetricData.data[0].diskTotal = data['disk-total'];
+          validData = true;
+        }
+
+        if (validData) {
+          tempDiskMetricData.agg = ['diskAvail', 'diskTotal'];
+          tempDiskMetricData.keyLabels = {
             diskAvail: t('dashboard.txt-diskAvail'),
             diskTotal: t('dashboard.txt-diskTotal')
-          }
+          };
+        } else {
+          tempDiskMetricData.data = [];
+        }
+
+        this.setState({
+          diskMetricData: tempDiskMetricData
+        });
+      }
+      return null;
+    })
+  }
+  /**
+   * Construct and set the HMD table chart
+   * @method
+   */
+  loadHmdData = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {hmdData} = this.state;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/lms/verifyOnline`,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/dashboard/hmd`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let lms = 'empty';
+
+        if (data[0].expireDate) {
+          lms = moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+        }
+
+        let tempHmdData = {...hmdData};
+        tempHmdData.data = [{
+          hmd: data[1].hmd,
+          max: data[1].max,
+          hosts: data[1].hosts
+        }];
+        tempHmdData.agg = ['hmd', 'max', 'hosts'];
+        tempHmdData.keyLabels = {
+          hmd: t('dashboard.txt-hmd'),
+          max: t('dashboard.txt-max'),
+          hosts: t('dashboard.txt-hosts')
         };
 
         this.setState({
-          diskMetricData
+          hmdData: tempHmdData,
+          lms
         });
       }
-    }) 
+      return null;
+    })
+  }
+  /**
+   * Construct and set the pie charts
+   * @method
+   */
+  getPieChartsData = () => {
+    const {alertChartsList, alertPieData, syslogPieData, dnsPieData} = this.state;
+    let tempAlertChartsList = [];
+
+    _.forEach(alertChartsList, val => {
+      if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
+        let chartData = null; //Data has not been loaded, show spinning icon
+        let i = null;
+
+        _.forEach(alertPieData.alertThreatLevel, val2 => {
+          i = 'loop';
+
+          if (val2.doc_count > 0) {
+            i = 'data';
+            return false;
+          }
+        })
+
+        if (i) {
+          if (i === 'data') {
+            chartData = alertPieData[val.chartID]; //Data is found, show data
+          } else if (i === 'loop') {
+            chartData = []; //Data is not found, show not found message
+          }
+        }
+
+        tempAlertChartsList.push({
+          ...val,
+          chartData
+        });
+      } else {
+        let pieData = alertPieData[val.chartID];
+
+        if (val.chartID === 'Top10SyslogConfigSource') {
+          pieData = syslogPieData[val.chartID];
+        } else if (val.chartID === 'dnsQuery') {
+          pieData = dnsPieData[val.chartID];
+        }
+
+        tempAlertChartsList.push({
+          ...val,
+          chartData: pieData
+        });
+      }
+    })
+
+    this.setState({
+      alertChartsList: tempAlertChartsList
+    });
+  }
+  /**
+   * Redirect to Alerts or Events page
+   * @method
+   * @param {string} chartID - unique chart ID
+   * @param {object} chart - chart overall data
+   * @param {array.&lt;object>} data - chart specific data
+   * @param {object} info - chart info
+   */
+  getChartRedirect = (chartID, chart, chartData, info) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const severityChart = ['alertThreatLevel'];
+    const ipChart = ['InternalIp', 'InternalMaskedIp', 'maskedIP'];
+    const countryChart = ['Top10ExternalSrcCountry'];
+    const syslogChart = ['Top10SyslogConfigSource'];
+    let data = chartData[0].key;
+    let type = '';
+
+    if (_.includes(syslogChart, chartID)) {
+      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}&amp;interval=24h&amp;lng=${language}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    if (_.includes(severityChart, chartID)) {
+      type = 'severity';
+    } else if (_.includes(ipChart, chartID)) {
+      type = 'ip';
+
+      if (chartID === 'maskedIP') {
+        type = 'maskedIP';
+        const ip = chartData[0].ip;
+        const severity = chartData[0].severity;
+        data = ip + '&amp;severity=' + severity;
+      }
+    } else if (_.includes(countryChart, chartID)) {
+      type = 'country';
+    } else {
+      return;
+    }
+
+    const url = `${baseUrl}${contextRoot}/threats?type=${type}&amp;data=${data}&amp;interval=24h&amp;lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
+   * Show tooltip info when mouseover the pie chart
+   * @method
+   * @param {object} keyLabel - chart key label
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.&lt;object>} data - chart data
+   * @returns HTML DOM
+   */
+  onPieChartTooltip = (keyLabel, eventInfo, data) => {
+    return (
+      &lt;section>
+        &lt;span>{keyLabel.key}: {_.escape(data[0].key)}&lt;/span>&lt;br />
+        &lt;span>{keyLabel.doc_count}: {data[0].doc_count}&lt;/span>&lt;br />
+      &lt;/section>
+    )
   }
   /**
    * Display pie chart and table chart
@@ -475,34 +836,66 @@ class DashboardStats extends Component {
    * @returns HTML DOM
    */
   displayCharts = (val, i) => {
-    const {alertChartsList} = this.state;
+    const {alertChartsList, ivar} = this.state;
 
     if (alertChartsList[i].type === 'pie') {
       return (
-        &lt;div className='chart-group c-box' key={alertChartsList[i].chartID}>
-          &lt;PieChart
-            id={alertChartsList[i].chartID}
-            title={alertChartsList[i].chartTitle}
-            data={alertChartsList[i].chartData}
-            keyLabels={alertChartsList[i].chartKeyLabels}
-            valueLabels={alertChartsList[i].chartValueLabels}
-            dataCfg={alertChartsList[i].chartDataCfg}
-            colors={{
-              key: ALERT_LEVEL_COLORS
-            }} />
+        &lt;div key={alertChartsList[i].chartID} className='chart-group'>
+          {!alertChartsList[i].chartData &amp;&amp;
+            &lt;div className='empty-data'>
+              &lt;header>{alertChartsList[i].chartTitle}&lt;/header>
+              &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+            &lt;/div>
+          }
+
+          {(alertChartsList[i].chartData &amp;&amp; alertChartsList[i].chartData.length === 0) &amp;&amp;
+            &lt;div className='empty-data'>
+              &lt;header>{alertChartsList[i].chartTitle}&lt;/header>
+              &lt;span>{t('txt-notFound')}&lt;/span>
+            &lt;/div>
+          }
+          {alertChartsList[i].chartData &amp;&amp; alertChartsList[i].chartData.length > 0 &amp;&amp;
+            &lt;PieChart
+              id={alertChartsList[i].chartID}
+              title={alertChartsList[i].chartTitle}
+              data={alertChartsList[i].chartData}
+              keyLabels={alertChartsList[i].chartKeyLabels}
+              valueLabels={alertChartsList[i].chartValueLabels}
+              dataCfg={alertChartsList[i].chartDataCfg}
+              onClick={this.getChartRedirect.bind(this, alertChartsList[i].chartID)}
+              onTooltip={this.onPieChartTooltip.bind(this, alertChartsList[i].chartKeyLabels)}
+              colors={{
+                key: ALERT_LEVEL_COLORS
+              }} />
+          }
         &lt;/div>
       )
     } else if (alertChartsList[i].type === 'table') {
       return (
-        &lt;div className='chart-group' key={alertChartsList[i].chartID}>
-          &lt;header className='main-header'>{alertChartsList[i].chartTitle}&lt;/header>
-          &lt;div id={alertChartsList[i].chartID} className='c-chart table'>
-            &lt;DataTable
-              className='main-table overflow-scroll'
-              fields={alertChartsList[i].chartFields}
-              data={alertChartsList[i].chartData}
-              defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
-          &lt;/div>
+        &lt;div key={alertChartsList[i].chartID} className='chart-group'>
+          {!ivar.dataContent &amp;&amp;
+            &lt;div className='empty-data'>
+              &lt;header>{alertChartsList[i].chartTitle}&lt;/header>
+              &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+            &lt;/div>
+          }
+          {ivar.dataContent &amp;&amp; ivar.dataContent.length === 0 &amp;&amp;
+            &lt;div className='empty-data'>
+              &lt;header>{alertChartsList[i].chartTitle}&lt;/header>
+              &lt;span>{t('txt-notFound')}&lt;/span>
+            &lt;/div>
+          }
+          {ivar.dataContent &amp;&amp; ivar.dataContent.length > 0 &amp;&amp;
+            &lt;div>
+              &lt;header className='main-header'>{alertChartsList[i].chartTitle}&lt;/header>
+              &lt;div id={alertChartsList[i].chartID} className='c-chart table'>
+                &lt;DataTable
+                  className='main-table align-center ivr'
+                  fields={ivar.dataFields}
+                  data={ivar.dataContent} />
+              &lt;/div>
+            &lt;/div>
+          }
         &lt;/div>
       )
     }
@@ -514,8 +907,17 @@ class DashboardStats extends Component {
    * @param {number} i - index of the alert chart data
    * @returns HTML DOM
    */
-  dispalyMetrics = (val, i) => {
-    if (!_.isEmpty(val.data)) {
+  displayMetrics = (val, i) => {
+    if (!val.data || (val.data &amp;&amp; val.data.length === 0)) {
+      const content = val.data ? t('txt-notFound') : &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>;
+
+      return (
+        &lt;div key={val.id} className='c-chart dns-histogram'>
+          &lt;header>{t('dashboard.txt-' + val.id)}&lt;/header>
+          &lt;span className='show-empty'>{content}&lt;/span>
+        &lt;/div>
+      )
+    } else if (val.data &amp;&amp; val.data.length > 0) {
       return (
         &lt;Metric
           key={val.id}
@@ -529,50 +931,199 @@ class DashboardStats extends Component {
       )
     }
   }
+  /**
+   * Display HMD metrics chart
+   * @method
+   * @returns HTML DOM
+   */
+  displayHmdData = () => {
+    const {hmdData} = this.state;
+
+    if (!hmdData.data || (hmdData.data &amp;&amp; hmdData.data.length === 0)) {
+      const content = hmdData.data ? t('txt-notFound') : &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>;
+
+      return (
+        &lt;div className='c-chart hmd-info'>
+          &lt;header>HMD&lt;/header>
+          &lt;span className='show-empty'>{content}&lt;/span>
+        &lt;/div>
+      )
+    } else if (hmdData.data &amp;&amp; hmdData.data.length > 0) {
+      return (
+        &lt;Metric
+          className='hmd-info'
+          title='HMD'
+          data={hmdData.data}
+          dataCfg={{
+            agg: hmdData.agg
+          }}
+          keyLabels={hmdData.keyLabels} />
+      )
+    }
+  }
   render() {
     const {
-      updatedTime,
-      alertChartAttributes,
-      maskedIpChartAttributes,
+      datetime,
+      alertDataArr,
+      internalMaskedIpArr,
       alertChartsList,
+      alertPatternData,
       dnsMetricData,
-      diskMetricData
+      diskMetricData,
+      hmdData,
+      lms
     } = this.state;
-    const metricsData = [dnsMetricData, diskMetricData];
 
     return (
       &lt;div>
         &lt;div className='sub-header'>
           {helper.getDashboardMenu('statistics')}
-          &lt;span className='date-time'>{updatedTime}&lt;/span>
+          &lt;span className='date-time'>{helper.getFormattedDate(datetime.from) + ' - ' + helper.getFormattedDate(datetime.to)}&lt;/span>
         &lt;/div>
 
         &lt;div className='main-dashboard'>
           &lt;div className='charts'>
-            {!_.isEmpty(alertChartAttributes.data) &amp;&amp;
-              &lt;div className='chart-group bar'>
+            &lt;div className='chart-group bar'>
+              {!alertDataArr &amp;&amp;
+                &lt;div className='empty-data'>
+                  &lt;header>{t('dashboard.txt-alertStatistics')}&lt;/header>
+                  &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+                &lt;/div>
+              }
+              {alertDataArr &amp;&amp; alertDataArr.length === 0 &amp;&amp;
+                &lt;div className='empty-data'>
+                  &lt;header>{t('dashboard.txt-alertStatistics')}&lt;/header>
+                  &lt;span>{t('txt-notFound')}&lt;/span>
+                &lt;/div>
+              }
+              {alertDataArr &amp;&amp; alertDataArr.length > 0 &amp;&amp;
                 &lt;BarChart
                   stacked
                   vertical
-                  {...alertChartAttributes} />
-              &lt;/div>
-            }
+                  title={t('dashboard.txt-alertStatistics')}
+                  data={alertDataArr}
+                  colors={ALERT_LEVEL_COLORS}
+                  dataCfg={{
+                    x: 'time',
+                    y: 'number',
+                    splitSeries: 'rule'
+                  }}
+                  xAxis={{
+                    type: 'datetime'
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
+                    }
+                  }}
+                  tooltip={{
+                    formatter: this.onTooltip.bind(this, 'barChart')
+                  }} />
+              }
+            &lt;/div>
 
-            {!_.isEmpty(maskedIpChartAttributes.data) &amp;&amp;
-              &lt;div className='chart-group bar'>
+            &lt;div className='chart-group bar'>
+              {!internalMaskedIpArr &amp;&amp;
+                &lt;div className='empty-data'>
+                  &lt;header>{t('dashboard.txt-alertMaskedIpStatistics')}&lt;/header>
+                  &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+                &lt;/div>
+              }
+              {internalMaskedIpArr &amp;&amp; internalMaskedIpArr.length === 0 &amp;&amp;
+                &lt;div className='empty-data'>
+                  &lt;header>{t('dashboard.txt-alertMaskedIpStatistics')}&lt;/header>
+                  &lt;span>{t('txt-notFound')}&lt;/span>
+                &lt;/div>
+              }
+              {internalMaskedIpArr &amp;&amp; internalMaskedIpArr.length > 0 &amp;&amp;
                 &lt;BarChart
                   stacked
                   vertical
-                  {...maskedIpChartAttributes} />                  
+                  title={t('dashboard.txt-alertMaskedIpStatistics')}
+                  data={internalMaskedIpArr}
+                  colors={ALERT_LEVEL_COLORS}
+                  onTooltip={true}
+                  dataCfg={{
+                    splitSeries: 'severity',
+                    x: 'ip',
+                    y: 'number'
+                  }}
+                  xAxis={{
+                    type:'category'
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
+                    }
+                  }}
+                  keyLabels={{
+                    ip: 'IP',
+                    number: t('txt-count'),
+                    severity: t('txt-severity')
+                  }}
+                  onClick={this.getChartRedirect.bind(this, 'maskedIP')} />
+              }
+            &lt;/div>
+
+            &lt;div className='chart-group line'>
+              {!alertPatternData &amp;&amp;
+                &lt;div className='empty-data'>
+                  &lt;header>{t('dashboard.txt-customAlertStat')}&lt;/header>
+                  &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+                &lt;/div>
+              }
+              {alertPatternData &amp;&amp; alertPatternData.length === 0 &amp;&amp;
+                &lt;div className='empty-data'>
+                  &lt;header>{t('dashboard.txt-customAlertStat')}&lt;/header>
+                  &lt;span>{t('txt-notFound')}&lt;/span>
+                &lt;/div>
+              }
+              {alertPatternData &amp;&amp; alertPatternData.length > 0 &amp;&amp;
+                &lt;BarChart
+                  stacked
+                  vertical
+                  title={t('dashboard.txt-customAlertStat')}
+                  data={alertPatternData}
+                  dataCfg={{
+                    x: 'time',
+                    y: 'count',
+                    splitSeries: 'patternName'
+                  }}
+                  xAxis={{
+                    type: 'datetime'
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
+                    }
+                  }}
+                  tooltip={{
+                    formatter: this.onTooltip.bind(this, 'lineChart')
+                  }} />
+              }
+            &lt;/div>
+
+            {alertChartsList.map(this.displayCharts)}
+
+            &lt;div className='chart-group'>
+              {this.displayHmdData()}
+
+              &lt;div className='c-chart license-date'>
+                &lt;header>{l('l-license-expiry')}&lt;/header>
+                {!lms &amp;&amp;
+                  &lt;span className='show-empty'>&lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>&lt;/span>
+                }
+                {lms &amp;&amp; lms === 'empty' &amp;&amp;
+                  &lt;span className='show-empty'>{t('txt-notFound')}&lt;/span>
+                }
+                {lms &amp;&amp; lms !== 'empty' &amp;&amp;
+                  &lt;span className='show-empty date'>{lms}&lt;/span>
+                }
               &lt;/div>
-            }
+            &lt;/div>
 
-            {alertChartsList.length > 0 &amp;&amp;
-              alertChartsList.map(this.displayCharts)
-            }
-
-            &lt;div className='chart-group c-box'>
-              {metricsData.map(this.dispalyMetrics)}
+            &lt;div className='chart-group'>
+              {[dnsMetricData, diskMetricData].map(this.displayMetrics)}
             &lt;/div>
           &lt;/div>
         &lt;/div>
@@ -581,16 +1132,12 @@ class DashboardStats extends Component {
   }
 }
 
+DashboardStats.contextType = BaseDataContext;
+
 DashboardStats.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
-const HocDashboardStats = withRouter(withLocale(DashboardStats));
-export { DashboardStats, HocDashboardStats };</code></pre>
+export default withRouter(DashboardStats);</code></pre>
         </article>
     </section>
 
@@ -600,13 +1147,13 @@ export { DashboardStats, HocDashboardStats };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

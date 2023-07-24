@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soc/common/notify-dialog.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soc/common/notify-dialog.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import _ from 'lodash'
+
+import { ReactMultiEmail } from 'react-multi-email'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+
+import {BaseDataContext} from '../../common/context'
+import helper from '../../common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+let it = null;
+
+class NotifyDialog extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+
+    this.state = {
+      open: false,
+      incidentId: '',
+      phoneCheckAll: false,
+      emailCheckAll: false,
+      notifyEmailList: [],
+      phoneSelectedList: [],
+      emailSelectedList: [],
+      phones: [],
+      emails: []
+    };
+  }
+  componentDidMount() {
+  }
+  /**
+   * Handle dialog open
+   * @method
+   * @param {string} incidentId - incidient ID
+   * @param {array.&lt;string>} notifyEmailList - notify email list
+   */
+  open = (incidentId, notifyEmailList) => {
+    this.setState({
+      open: true,
+      incidentId,
+      notifyEmailList
+    });
+  }
+  /**
+   * Handle phone checkbox for all
+   * @method
+   * @param {object} event - event object
+   */
+  togglePhonecheckAll = (event) => {
+    this.setState({
+      phoneCheckAll: !this.state.phoneCheckAll
+    }, () => {
+      const {notifyEmailList, phoneCheckAll} = this.state;
+      let phoneSelectedList = [];
+
+      if (phoneCheckAll) {
+        phoneSelectedList = notifyEmailList.map(val => {
+          return val.phone;
+        });
+      }
+
+      this.setState({
+        phoneSelectedList
+      });
+    });
+  }
+  /**
+   * Handle email checkbox for all
+   * @method
+   * @param {object} event - event object
+   */
+  toggleEmailcheckAll = (event) => {
+    this.setState({
+      emailCheckAll: !this.state.emailCheckAll
+    }, () => {
+      const {emailCheckAll, notifyEmailList} = this.state;
+      let emailSelectedList = [];
+
+      if (emailCheckAll) {
+        emailSelectedList = notifyEmailList.map(val => {
+          return val.email;
+        });
+      }
+
+      this.setState({
+        emailSelectedList
+      });
+    });
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {string} type - contact type ('phone' or 'email')
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (type, event) => {
+    const {notifyEmailList, phoneSelectedList, emailSelectedList} = this.state;
+
+    if (type === 'phone') {
+      let tempPhoneSelectedList = _.cloneDeep(phoneSelectedList);
+
+      if (event.target.checked) {
+        tempPhoneSelectedList.push(event.target.name);
+      } else {
+        tempPhoneSelectedList = _.filter(phoneSelectedList, val => {
+          return val !== event.target.name;
+        });
+      }
+
+      this.setState({
+        phoneCheckAll: tempPhoneSelectedList.length === notifyEmailList.length,
+        phoneSelectedList: tempPhoneSelectedList
+      });
+    } else if (type === 'email') {
+      let tempEmailSelectedList = _.cloneDeep(emailSelectedList);
+
+      if (event.target.checked) {
+        tempEmailSelectedList.push(event.target.name);
+      } else {
+        tempEmailSelectedList = _.filter(emailSelectedList, val => {
+          return val !== event.target.name;
+        });
+      }
+
+      this.setState({
+        emailCheckAll: tempEmailSelectedList.length === notifyEmailList.length,
+        emailSelectedList: tempEmailSelectedList
+      });
+    }
+  }
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} type - contact type ('phone' or 'email')
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (type, val) => {
+    const {phoneSelectedList, emailSelectedList} = this.state;
+
+    if (type === 'phone') {
+      return _.includes(phoneSelectedList, val);
+    } else if (type === 'email') {
+      return _.includes(emailSelectedList, val);
+    }
+  }
+  /**
+   * Display checkbox for contact list
+   * @method
+   * @param {object} val - individual account
+   * @param {number} i - index of the account
+   * @returns HTML DOM
+   */
+  showEmailPhoneAccount = (val, i) => {
+    return (
+      &lt;tr key={i}>
+        &lt;td>
+          &lt;FormControlLabel
+            control={
+              &lt;Checkbox
+                className='checkbox-ui'
+                name={val.phone}
+                checked={this.checkSelectedItem('phone', val.phone)}
+                onChange={this.toggleCheckbox.bind(this, 'phone')}
+                color='primary' />
+            }
+            disabled={val.phone === ''} />
+        &lt;/td>
+        &lt;td>
+          &lt;FormControlLabel
+            control={
+              &lt;Checkbox
+                className='checkbox-ui'
+                name={val.email}
+                checked={this.checkSelectedItem('email', val.email)}
+                onChange={this.toggleCheckbox.bind(this, 'email')}
+                color='primary' />
+            }
+            disabled={val.email === ''} />
+        &lt;/td>
+        &lt;td>{val.account}&lt;/td>
+        &lt;td>{`${val.email} (${val.sourceText})`}&lt;/td>
+        &lt;td>{`${val.phone}`}&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Handle email input change
+   * @method
+   * @param {array} newEmails - new emails list
+   */
+  handleEmailChange = (newEmails) => {
+    this.setState({
+      emails: newEmails
+    });
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getEamilLabel = (email, index, removeEmail) => {
+    return (
+      &lt;div data-tag key={index}>
+        {email}
+        &lt;span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> &lt;span className='font-bold'>x&lt;/span>&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle phone input change
+   * @method
+   * @param {array} newPhones - new phones list
+   */
+  handlePhoneChange = (newPhones) => {
+    this.setState({
+      phones: newPhones
+    });
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {function} removePhone - function to remove phone
+   * @param {number} index - index of the phones list array
+   */
+  deletePhone = (removePhone, index) => {
+    removePhone(index);
+  }
+  /**
+   * Handle phone delete
+   * @method
+   * @param {string} phone - individual phone
+   * @param {number} index - index of the phones list array
+   * @param {function} removePhone - function to remove phone
+   * @returns HTML DOM
+   */
+  getPhoneLabel = (phone, index, removePhone) => {
+    return (
+      &lt;div data-tag key={index}>
+        {phone}
+        &lt;span data-tag-handle onClick={this.deletePhone.bind(this, removePhone, index)}> &lt;span className='font-bold'>x&lt;/span>&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display list for contact failed
+   * @method
+   * @param {object} val - individual contact
+   * @param {number} i - index of the contact
+   * @returns HTML DOM
+   */
+  displayFailedList = (val, i) => {
+    return &lt;li key={i} style={{fontWeight: 'bold'}}>{val}&lt;/li>
+  }
+  /**
+   * Display contact failed list
+   * @method
+   * @param {array.&lt;string>} failedList - contact failed list
+   * @returns HTML DOM
+   */
+  showFailedList = (failedList) => {
+    return (
+      &lt;React.Fragment>
+        &lt;div>{it('txt-notifySendSuccess')}&lt;/div>
+        &lt;div style={{margin: '15px 0 5px 0'}}>{t('notifications.txt-sendFailed')}:&lt;/div>
+        &lt;ul style={{maxHeight: '200px', overflowY: 'auto'}}>
+          {failedList.map(this.displayFailedList)}
+        &lt;/ul>
+      &lt;/React.Fragment>
+    )
+  }
+  /**
+   * Handle notify email submit
+   * @method
+   */
+  handleNotifySubmit = () => {
+    const {baseUrl, session} = this.context;
+    const {incidentId, phoneSelectedList, emailSelectedList, phones, emails} = this.state;
+    const smsPhoneNumberList = _.concat(phoneSelectedList, phones);
+    const sendMailList = _.concat(emailSelectedList, emails);
+
+    if (smsPhoneNumberList.length === 0 &amp;&amp; sendMailList.length === 0) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-plsEnterPhoneEmail'));
+      return;
+    }
+
+    const requestData = {
+      incidentId,
+      userId: session.accountId,
+      smsPhoneNumberList,
+      sendMailList
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/_notify`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.rt) {
+        if (data.ret === 0) {
+          const failedList = data.rt.failedList;
+
+          if (failedList.length === 0) {
+            helper.showPopupMsg('', it('txt-notify'), it('txt-notifySendSuccess'));
+          } else {
+            PopupDialog.alert({
+              id: 'modalWindowSmall',
+              title: it('txt-notify'),
+              confirmText: t('txt-ok'),
+              display: this.showFailedList(failedList)
+            });
+          }
+        } else {
+          helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'));
+        }
+        this.close();
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  /**
+   * Handle dialog close
+   * @method
+   */
+  close = () => {
+    this.setState({
+      open: false,
+      phoneSelectedList: [],
+      emailSelectedList: []
+    });
+  }
+  render() {
+    const {open, phoneCheckAll, emailCheckAll, notifyEmailList, phones, emails} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.close},
+      confirm: {text: t('txt-confirm'), handler: this.handleNotifySubmit}
+    };
+
+    if (!open) {
+      return null;
+    }
+
+    return (
+      &lt;ModalDialog id='notifyDialog' className='incident-tag-modal' style={{width: '1080px'}} title={it('txt-notify')} draggable={true} global={true} closeAction='cancel' actions={actions}>
+        &lt;div className='data-content' style={{minHeight: '26vh'}}>
+          &lt;div className='parent-content'>
+            &lt;div className='main-content basic-form' style={{minHeight: '47vh'}}>
+              &lt;div className='existing-email'>
+                &lt;table className='c-table main-table'>
+                  &lt;thead>
+                    &lt;tr>
+                      &lt;th>{t('notifications.sms.txt-textMsg')}&lt;/th>
+                      &lt;th>{t('notifications.txt-sendEmails')}&lt;/th>
+                      &lt;th>{t('txt-account')}&lt;/th>
+                      &lt;th>{t('soar.txt-email')}&lt;/th>
+                      &lt;th>{t('soar.txt-cellPhone')}&lt;/th>
+                    &lt;/tr>
+                  &lt;/thead>
+                  &lt;tbody>
+                    &lt;tr>
+                      &lt;td>
+                        &lt;FormControlLabel
+                          control={
+                            &lt;Checkbox
+                              className='checkbox-ui'
+                              name='phoneCheckAll'
+                              checked={phoneCheckAll}
+                              onChange={this.togglePhonecheckAll}
+                              color='primary' />
+                          } />
+                      &lt;/td>
+                      &lt;td>
+                        &lt;FormControlLabel
+                          control={
+                            &lt;Checkbox
+                              className='checkbox-ui'
+                              name='emailCheckAll'
+                              checked={emailCheckAll}
+                              onChange={this.toggleEmailcheckAll}
+                              color='primary' />
+                          } />
+                      &lt;/td>
+                      &lt;td>{t('txt-selectAll')}&lt;/td>
+                    &lt;/tr>                      
+                    {notifyEmailList.map(this.showEmailPhoneAccount)}
+                  &lt;/tbody>
+                &lt;/table>
+              &lt;/div>
+              &lt;div className='user-email'>
+                &lt;label>{t('notifications.txt-recipientEmail')}&lt;/label>
+                &lt;ReactMultiEmail
+                  emails={emails}
+                  onChange={this.handleEmailChange}
+                  getLabel={this.getEamilLabel} />
+              &lt;/div>
+              &lt;div className='user-phone'>
+                &lt;label>{t('notifications.txt-recipientPhone')}&lt;/label>
+                &lt;ReactMultiEmail
+                  emails={phones}
+                  onChange={this.handlePhoneChange}
+                  validateEmail={phone => true}
+                  getLabel={this.getPhoneLabel} />
+              &lt;/div>
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/ModalDialog>
+    )
+  }
+}
+
+NotifyDialog.contextType = BaseDataContext;
+NotifyDialog.propTypes = {
+};
+
+export default NotifyDialog;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

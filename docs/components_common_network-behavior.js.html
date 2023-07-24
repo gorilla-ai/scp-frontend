@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/common/network-behavior.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/common/network-behavior.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
+
+import Button from '@material-ui/core/Button'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
+import DataTable from 'react-ui/build/src/components/table'
+
+import {BaseDataContext} from './context'
+import helper from './helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const NOT_AVAILABLE = 'N/A';
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+
+let t = null;
+let f = null;
+
+/**
+ * Network Behavior Info
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Network Behavior information
+ */
+class NetworkBehavior extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      activeNetworkBehavior: 'threats', //'threats' or 'syslog'
+      networkBehavior: {
+        threats: {
+          fields: ['severity', 'count'],
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
+        },
+        syslog: {
+          fields: ['configSource', 'count'],
+          sort: {
+            field: 'configSource',
+            desc: true
+          },
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
+        }
+      }
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.loadNetworkBehavior(this.props.ipType);
+  }
+  /**
+   * Load network behavior data
+   * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  loadNetworkBehavior = (ipType) => {
+    const {baseUrl} = this.context;
+    const {page, alertData, hostDatetime} = this.props;
+    const {networkBehavior} = this.state;
+    const eventDateTime = helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local');
+    const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
+    let datetime = {};
+    let apiArr = [];
+    let query = '';
+
+    if (_.isEmpty(hostDatetime)) {
+      datetime = {
+        from: moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+    } else {
+      datetime = {
+        from: hostDatetime.from,
+        to: hostDatetime.to
+      };
+    }
+
+    if (page === 'host') {
+      query = alertData.srcIp || alertData.ip;
+    } else {
+      if (ipType === 'srcIp') {
+        query = 'srcIp ' + alertData.srcIp || alertData.ip;
+      } else if (ipType === 'destIp') {
+        query = 'srcIp ' + alertData.destIp || alertData.ip;
+      }
+    }
+
+    if (ipType === 'srcIp') {
+      const srcIp = alertData.srcIp || alertData.ip;
+
+      if (!srcIp) {
+        return;
+      }
+
+      apiArr = [
+        {
+          url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`, //Threats srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query
+              },
+              {
+                condition: 'must',
+                query: 'DNS' 
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0&amp;skipHistogram=true`, //Syslog srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'Top10SyslogConfigSource'
+              },
+              {
+                condition: 'must',
+                query: srcIp
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        }
+      ];
+    } else if (ipType === 'destIp') {
+      const destIp = alertData.destIp || alertData.ip;
+
+      if (!destIp) {
+        return;
+      }
+
+      apiArr = [
+        {
+          url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`, //Threats destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query
+              },
+              {
+                condition: 'must',
+                query: 'DNS' 
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0&amp;skipHistogram=true`, //Syslog destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'Top10SyslogConfigSource'
+              },
+              {
+                condition: 'must',
+                query: destIp
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        }
+      ];
+    }
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data &amp;&amp; data.length > 0) {
+        let tempNetworkBehavior = {...networkBehavior};
+        let tempFields = {};
+        networkBehavior.threats.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'severity') {
+                return &lt;span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}&lt;/span>
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
+            }
+          }
+        })
+
+        tempNetworkBehavior.threats.fieldsData = tempFields;
+
+        if (ipType === 'srcIp') {
+          tempNetworkBehavior.threats.srcIp.totalCount = data[0].data.counts;
+
+          if (data[0].aggregations) {
+            tempNetworkBehavior.threats.srcIp.data = this.getNetworkBehaviorData('threats', data[0].aggregations);
+          }
+        } else if (ipType === 'destIp') {
+          tempNetworkBehavior.threats.destIp.totalCount = data[0].data.counts;
+
+          if (data[0].aggregations) {
+            tempNetworkBehavior.threats.destIp.data = this.getNetworkBehaviorData('threats', data[0].aggregations);
+          }
+        }
+
+        tempFields = {};
+        networkBehavior.syslog.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              return &lt;span>{value}&lt;/span>
+            }
+          }
+        })
+
+        tempNetworkBehavior.syslog.fieldsData = tempFields;
+
+        if (ipType === 'srcIp') {
+          tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
+
+          if (data[3].aggregations &amp;&amp; data[3].aggregations.Top10SyslogConfigSource) {
+            tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
+          }
+        } else if (ipType === 'destIp') {
+          tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
+
+          if (data[3].aggregations &amp;&amp; data[3].aggregations.Top10SyslogConfigSource) {
+            tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
+          }
+        }
+
+        this.setState({
+          networkBehavior: tempNetworkBehavior
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get aggregated network behavior data
+   * @method
+   * @param {string} type - network behavior type ('threats' or 'syslog')
+   * @param {object | array.&lt;object>} data - network behavior data
+   * @returns tempData array
+   */
+  getNetworkBehaviorData = (type, data) => {
+    let tempData = [];
+
+    if (type === 'threats') {
+      _.forEach(SEVERITY_TYPE, val => {
+        _.forEach(data, (val2, key) => {
+          if (key !== 'default' &amp;&amp; val === key) {
+            tempData.push({
+              severity: key,
+              count: helper.numberWithCommas(val2.doc_count)
+            });
+          }
+        })
+      })
+    } else if (type === 'syslog') {
+      _.forEach(data, val => {
+        tempData.push({
+          configSource: val.key,
+          count: helper.numberWithCommas(val.doc_count)
+        });
+      })
+    }
+
+    return tempData;
+  }
+  /**
+   * Toggle network behavior button
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - 'threats' or 'syslog'
+   */
+  toggleNetworkBtn = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
+    this.setState({
+      activeNetworkBehavior: type
+    });
+  }
+  /**
+   * Redirect to netflow or syslog page
+   * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  redirectNewPage = (ipType) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {page, alertData, hostDatetime} = this.props;
+    const {activeNetworkBehavior} = this.state;
+    const srcIp = this.props.getIpPortData ? this.props.getIpPortData('srcIp') : alertData.ip;
+    const destIp = this.props.getIpPortData ? this.props.getIpPortData('destIp') : alertData.ip;
+    let datetime = {};
+    let ipParam = '';
+    let linkUrl ='';
+
+    if (_.isEmpty(hostDatetime)) {
+      datetime = {
+        from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_ || alertData.createDttm)),
+        to: helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local')
+      };
+    } else {
+      datetime = {
+        from: helper.getFormattedDate(hostDatetime.from, 'local'),
+        to: helper.getFormattedDate(hostDatetime.to, 'local')
+      };
+    }
+
+    if (ipType === 'srcIp') {
+      ipParam = `&amp;sourceIP=${srcIp}`;
+    } else if (ipType === 'destIp') {
+      ipParam = `&amp;sourceIP=${destIp}`;
+    }
+
+    if (page) {
+      ipParam += `&amp;page=${page}`;
+    }
+ 
+    if (activeNetworkBehavior === 'threats') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&amp;to=${datetime.to}${ipParam}&amp;lng=${language}`;
+    } else if (activeNetworkBehavior === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&amp;to=${datetime.to}${ipParam}&amp;lng=${language}`;
+    }
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
+   * Handle table sort for network behavior
+   * @method
+   * @param {string} type - network behavior type ('threats' or 'syslog')
+   * @param {object} sort - sort data object
+   */
+  handleNetworkBehaviorTableSort = (type, sort) => {
+    let tempNetworkBehavior = {...this.state.networkBehavior};
+    tempNetworkBehavior[type].sort.field = sort.field;
+    tempNetworkBehavior[type].sort.desc = sort.desc;
+
+    this.setState({
+      networkBehavior: tempNetworkBehavior
+    });
+  }
+  render() {
+    const {alertData, ipType, hostDatetime} = this.props;
+    const {activeNetworkBehavior, networkBehavior} = this.state;
+    let datetime = {};
+    let alertTimeText = '';
+
+    if (_.isEmpty(hostDatetime)) {
+      if (alertData._eventDttm_ || alertData.createDttm) {
+        datetime = {
+          from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_ || alertData.createDttm)),
+          to: helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local')
+        };
+      }
+      alertTimeText = t('txt-alertHourBefore');
+    } else {
+      datetime = {
+        from: helper.getFormattedDate(hostDatetime.from, 'local'),
+        to: helper.getFormattedDate(hostDatetime.to, 'local')
+      };
+      alertTimeText = t('alert.txt-alertTime');
+    }
+
+    if (this.props.getIpPortData &amp;&amp; this.props.getIpPortData(ipType) === NOT_AVAILABLE) {
+      return &lt;span>{NOT_AVAILABLE}&lt;/span>
+    }
+
+    return (
+      &lt;div className='network-behavior'>
+        &lt;ToggleButtonGroup
+          id='networkBehaviorBtn'
+          value={activeNetworkBehavior}
+          exclusive
+          onChange={this.toggleNetworkBtn}>
+          &lt;ToggleButton id='networkBehaviorThreats' value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}&lt;/ToggleButton>
+          &lt;ToggleButton id='networkBehaviorSyslog' value='syslog'>{t('txt-syslog-en') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}&lt;/ToggleButton>
+        &lt;/ToggleButtonGroup>
+
+        {datetime.from &amp;&amp; datetime.to &amp;&amp;
+          &lt;div className='msg'>{alertTimeText}: {datetime.from} ~ {datetime.to}&lt;/div>
+        }
+        &lt;Button variant='contained' color='primary' className='query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}&lt;/Button>
+
+        &lt;div className='table-data'>
+          &lt;DataTable
+            className='main-table network-behavior'
+            fields={networkBehavior[activeNetworkBehavior].fieldsData}
+            data={networkBehavior[activeNetworkBehavior][ipType].data}
+            sort={networkBehavior[activeNetworkBehavior][ipType].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
+            onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+NetworkBehavior.contextType = BaseDataContext;
+
+NetworkBehavior.propTypes = {
+  ipType: PropTypes.string.isRequired,
+  alertData: PropTypes.object.isRequired,
+  page: PropTypes.string,
+  hostDatetime: PropTypes.object
+};
+
+export default NetworkBehavior;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

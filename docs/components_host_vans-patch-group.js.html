@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/vans-patch-group.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/vans-patch-group.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+import moment from 'moment'
+
+import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
+
+import Button from '@material-ui/core/Button'
+import TextField from '@material-ui/core/TextField'
+
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import MuiTableContent from '../common/mui-table-content'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+
+/**
+ * Vans Patch Group
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show Vans Patch Group component
+ */
+class VansPatchGroup extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      vansRecordSearch: {
+        keyword: ''
+      },
+      datetime: {
+        from: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
+        to: moment(helper.getAdditionDate(1, 'day', moment().local())).format('YYYY-MM-DD') + 'T00:00:00'
+      },
+      vansPatchGroup: [],
+      vansRecord: {
+        dataFieldsArr: ['description', 'software', 'taskCreateDttm', 'taskUpdateDttm', 'deviceCount', 'taskStatus', '_menu'],
+        dataFields: [],
+        dataContent: null
+      }
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getVansPatchGroup();
+  }
+  /**
+   * Get vans patch group
+   * @method
+   */
+  getVansPatchGroup = () => {
+    const {baseUrl} = this.context;
+    const {limitedDepartment} = this.props;
+    const {vansRecordSearch, datetime} = this.state;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search/_vansPatch/group`;
+    let requestData = {
+      startDttm: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    if (vansRecordSearch.keyword) {
+      requestData.keyword = vansRecordSearch.keyword;
+    }
+
+    if (limitedDepartment.length > 0) {
+      requestData.departmentArray = limitedDepartment;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          vansPatchGroup: data.rows
+        }, () => {
+          this.getVansPatchTable();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', 'software', 'deviceCount', '_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Construct Vans Patch table
+   * @method
+   */
+  getVansPatchTable = () => {
+    const {vansPatchGroup, vansRecord} = this.state;
+    let tempVansRecord = {...vansRecord};
+
+    tempVansRecord.dataContent = vansPatchGroup;
+    tempVansRecord.dataFields = _.map(vansRecord.dataFieldsArr, val => {
+      return {
+        name: val,
+        label: val === '_menu' ? ' ' : f(`vansPatchFields.${val}`),
+        options: {
+          sort: this.checkSortable(val),
+          viewColumns: true,
+          customBodyRenderLite: (dataIndex) => {
+            const allValue = tempVansRecord.dataContent[dataIndex];
+            const value = tempVansRecord.dataContent[dataIndex][val];
+            const vansInfo = allValue['vansPatchDescriptionDTO'];
+
+            if (val === 'description' &amp;&amp; vansInfo) {
+              return (
+                &lt;div>
+                  {vansInfo.actionModel &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.actionModel')}&lt;/span>: {t('hmd-scan.txt-patch-' + vansInfo.actionModel)}&lt;/div>
+                  }
+                  {vansInfo.scriptFileName &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.scriptFileName')}&lt;/span>: {vansInfo.scriptFileName}&lt;/div>
+                  }
+                  {vansInfo.executableFileName &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.executableFileName')}&lt;/span>: {vansInfo.executableFileName}&lt;/div>
+                  }
+                  {vansInfo.memo &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.memo')}&lt;/span>: {vansInfo.memo}&lt;/div>
+                  }
+                &lt;/div>
+              )
+            } else if (val === 'software' &amp;&amp; vansInfo) {
+              return (
+                &lt;div>
+                  {vansInfo.patchProduct &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.patchProduct')}&lt;/span>: {vansInfo.patchProduct}&lt;/div>
+                  }
+                  {vansInfo.patchVendor &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.patchVendor')}&lt;/span>: {vansInfo.patchVendor}&lt;/div>
+                  }
+                  {vansInfo.patchVersion &amp;&amp;
+                    &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.patchVersion')}&lt;/span>: {vansInfo.patchVersion}&lt;/div>
+                  }
+                &lt;/div>
+              )
+            } else if (val === 'taskCreateDttm' || val === 'taskUpdateDttm') {
+              return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+            } else if (val === 'deviceCount') {
+              return (
+                &lt;div>
+                  &lt;div>&lt;span className='cell-header'>{f('vansPatchFields.deviceCount')}&lt;/span>: {allValue.deviceCount}&lt;/div>
+                  &lt;div>&lt;span className='cell-header'>{t('txt-success')}&lt;/span>: {allValue.deviceSuccessCount}&lt;/div>
+                  &lt;div>&lt;span className='cell-header'>{t('txt-fail')}&lt;/span>: {allValue.deviceFailCount}&lt;/div>
+                  &lt;div>&lt;span className='cell-header'>{t('hmd-scan.txt-notSupport')}&lt;/span>: {allValue.deviceNotSupportCount}&lt;/div>
+                &lt;/div>
+              )
+            } else if (val === 'taskStatus') {
+              let color = '#fff';
+              let backgroundColor = '';
+
+              if (value === 'Running') {
+                backgroundColor = '#ff9802';
+              } else if (value === 'Complete') {
+                backgroundColor = '#22ac38';
+              } else if (value === 'Failure') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'NotSupport') {
+                backgroundColor = '#d10d25';
+              } else if (value === 'Waiting') {
+                color = '#000';
+                backgroundColor = '#d9d9d9';
+              }
+
+              return &lt;span className='status-item' style={{color, backgroundColor}}>{t('hmd-scan.txt-task' + value)}&lt;/span>
+            } else if (val === '_menu') {
+              return (
+                &lt;div className='table-menu menu active'>
+                  &lt;i className='fg fg-eye' onClick={this.props.toggleVansPatchDetails.bind(this, allValue)} title={t('txt-view')}>&lt;/i>
+                &lt;/div>
+              )
+            }
+          }
+        }
+      };
+    });
+
+    this.setState({
+      vansRecord: tempVansRecord
+    });
+  }
+  /**
+   * Handle input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    let tempVansRecordSearch = {...this.state.vansRecordSearch};
+    tempVansRecordSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      vansRecordSearch: tempVansRecordSearch
+    });
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
+    this.setState({
+      datetime: tempDatetime
+    });
+  }
+  /**
+   * Handle PDF export
+   * @method
+   */
+  exportPdf = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {vansRecordSearch, datetime} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_search/_vansPatch/_pdf`;
+    const requestData = {
+      keyword: vansRecordSearch.keyword,
+      startDttm: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
+   * Display vans patch record content
+   * @method
+   * @returns HTML DOM
+   */
+  displayVansPatchRecordContent = () => {
+    const {locale} = this.context;
+    const {datetime, vansRecordSearch, vansRecord} = this.state;
+    const tableOptions = {
+      serverSide: false,
+      viewColumns: false,
+      pagination: false,
+      tableBodyHeight: '57vh',
+      draggableColumns: {
+        enabled: false
+      }
+    };
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      &lt;div className='filter'>
+        {vansRecord.dataContent &amp;&amp; vansRecord.dataContent.length > 0 &amp;&amp;
+          &lt;div className='export-btn group'>
+            &lt;Button variant='contained' color='primary' className='btn' onClick={this.exportPdf}>{t('txt-exportPDF')}&lt;/Button>
+          &lt;/div>
+        }
+        &lt;div className='filter-wrapper'>
+          &lt;div className='filter-section'>
+            &lt;TextField
+              id='threatsSearchKeyword'
+              className='search-keyword'
+              name='keyword'
+              label={t('txt-enterKeyword')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={vansRecordSearch.keyword}
+              onChange={this.handleDataChange} />
+          &lt;/div>
+          &lt;div className='date-picker-section'>
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDatePicker
+                id='searchDatePickerFrom'
+                className='date-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={datetime.from}
+                onChange={this.handleDateChange.bind(this, 'from')} />
+              &lt;div className='between'>~&lt;/div>
+              &lt;KeyboardDatePicker
+                id='searchDatePickerTo'
+                className='date-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={datetime.to}
+                onChange={this.handleDateChange.bind(this, 'to')} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+          &lt;div className='button-group'>
+            &lt;Button variant='contained' color='primary' className='btn' onClick={this.getVansPatchGroup}>{t('txt-search')}&lt;/Button>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;MuiTableContent
+          data={vansRecord}
+          tableOptions={tableOptions}
+          tableHeight='auto'
+          showLoading={false} />
+      &lt;/div>
+    )
+  }
+  render() {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.props.toggleVansPatchGroup}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='vansPatchRecordDialog'
+        className='modal-dialog'
+        title={t('hmd-scan.txt-vansPatchRecord')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayVansPatchRecordContent()}
+      &lt;/ModalDialog>
+    )
+  }
+}
+
+VansPatchGroup.contextType = BaseDataContext;
+
+VansPatchGroup.propTypes = {
+  limitedDepartment: PropTypes.array.isRequired,
+  toggleVansPatchGroup: PropTypes.func.isRequired,
+  toggleVansPatchDetails: PropTypes.func.isRequired
+};
+
+export default VansPatchGroup;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

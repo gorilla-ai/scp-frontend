@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/common/soc-configuration.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/common/soc-configuration.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import cx from 'classnames'
+import _ from 'lodash'
+
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+import constants from '../constant/constant-incidnet'
+import helper from './helper'
+
+let t = null;
+let it = null;
+
+const INIT = {
+  openIncidentManagement: false,
+  openConfigManagement: false
+};
+
+/**
+ * SOC-Configuration
+ * @class
+ * @author Kenneth Chiao &lt;kennethchiao@ns-guard.com>
+ * @summary A react component to show the left menu in SOC-Configuration section
+ */
+class SocConfig extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      showContent: true,
+      accountRoleType:[constants.soc.SOC_Analyzer],
+      ..._.cloneDeep(INIT)
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const openIncidentManagement = this.getActiveFrame('incident') || this.getActiveFrame('incidentLog') || this.getActiveFrame('incidentSOCRule') || this.getActiveFrame('incidentSOCFlow') || this.getActiveFrame('incidentSOCReport') || this.getActiveFrame('incidentManagement');
+    const openConfigManagement = this.getActiveFrame('incidentSettingSOC') || this.getActiveFrame('incidentSettingISAC');
+
+    this.setState({
+      accountRoleType: this.props.session.roles,
+      openIncidentManagement,
+      openConfigManagement
+    });
+  }
+  /**
+   * Toggle the submenu on/off
+   * @method
+   * @param {object} name - menu to be toggled
+   * @param {boolean} val - true/false
+   */
+  handleOpen = (name, val) => {
+    this.setState({
+      [name]: !val
+    });
+  }
+  /**
+   * Determine the current active path
+   * @method
+   * @param {object} frame - menu to be toggled
+   * @returns boolean value
+   */
+  getActiveFrame = (frame) => {
+    const path = window.location.pathname;
+    const pattern = {
+      incident: '/SCP/soc/incident',
+      incidentLog:'/SCP/soc/incident-log',
+      incidentSOCRule:'/SCP/soc/incident-rule-template',
+      incidentSOCFlow:'/SCP/soc/incident-flow',
+      incidentSOCReport:'/SCP/soc/incident-report',
+      incidentSettingISAC:'/SCP/soc/incident-ISAC',
+      incidentSettingSOC:'/SCP/soc/incident-SOC',
+      incidentManagement:'/SCP/soc/incident-management'
+    };
+
+    return path === pattern[frame];
+  }
+  /**
+   * Toggle (show/hide) the left menu
+   * @method
+   */
+  toggleLeftNav = () => {
+    if (this.getActiveFrame('threat')) { //Disable the functionality for Threat Intelligent page
+      return;
+    }
+
+    this.setState({
+      showContent: !this.state.showContent
+    });
+  }
+  /**
+   * Set the menu class name
+   * @method
+   * @returns {string} - class name
+   */
+  getClassName = () => {
+    return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
+  }
+  render() {
+    const {hidden, accountType} = this.props;
+    const {showContent, openIncidentManagement, openConfigManagement} = this.state;
+
+    if (hidden) { //For Cypress testing purpose
+      return null;
+    }
+
+    return (
+      &lt;div className={cx('left-nav', {'collapse': !showContent})}>
+        &lt;div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openIncidentManagement', openIncidentManagement)}>
+          &lt;span className={`${this.getActiveFrame('incident') || this.getActiveFrame('incidentLog') || this.getActiveFrame('incidentSOCRule') || this.getActiveFrame('incidentSOCFlow') || this.getActiveFrame('incidentSOCReport') || this.getActiveFrame('incidentManagement')
+            }`}>{it('txt-incident-management')}&lt;/span>
+          &lt;i className={`c-link fg fg-arrow-${openIncidentManagement ? 'top' : 'bottom'}`} />
+        &lt;/div>
+
+        {openIncidentManagement &amp;&amp;
+          &lt;div className='item open-edge'>
+            &lt;div className='subframe'>
+              &lt;Link to='/SCP/soc/incident'>
+                &lt;span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident-sign')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+            &lt;div className='subframe'>
+              &lt;Link to='/SCP/soc/incident-management'>
+                &lt;span className={`${this.getActiveFrame('incidentManagement')}`}>{it('txt-incident-modify')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+
+            &lt;div className='subframe'>
+              &lt;Link to='/SCP/soc/incident-log'>
+                &lt;span className={`${this.getActiveFrame('incidentLog')}`}>{it('txt-incident-log-management')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+
+            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp; (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &amp;&amp;
+              &lt;div className='subframe'>
+                &lt;Link to='/SCP/soc/incident-rule-template'>
+                  &lt;span className={`${this.getActiveFrame('incidentSOCRule')}`}>{it('txt-incident-soc-rule')}&lt;/span>
+                &lt;/Link>
+              &lt;/div>
+            }
+
+            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp; (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &amp;&amp;
+              &lt;div className='subframe'>
+                &lt;Link to='/SCP/soc/incident-flow'>
+                  &lt;span className={`${this.getActiveFrame('incidentSOCFlow')}`}>{it('txt-incident-soc-flow')}&lt;/span>
+                &lt;/Link>
+              &lt;/div>
+            }
+
+            {accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp; (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &amp;&amp;
+              &lt;div className='subframe'>
+                &lt;Link to='/SCP/soc/incident-report'>
+                  &lt;span className={`${this.getActiveFrame('incidentSOCReport')}`}>{it('txt-incident-soc-report')}&lt;/span>
+                &lt;/Link>
+              &lt;/div>
+            }
+          &lt;/div>
+        }
+
+        &lt;div className='item frame incident-device'>
+          &lt;Link to='/SCP/soc/incident-device'>
+            &lt;span className={`${this.getActiveFrame('incidentDevice')}`}>{it('txt-incident-device-management')}&lt;/span>
+          &lt;/Link>
+        &lt;/div>
+
+        {accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp; (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &amp;&amp;
+          &lt;div className='item frame incident-unit'>
+            &lt;Link to='/SCP/soc/incident-unit'>
+              &lt;span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit-management')}&lt;/span>
+            &lt;/Link>
+          &lt;/div>
+        }
+
+        {accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp; (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &amp;&amp;
+          &lt;div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openConfigManagement', openConfigManagement)}>
+              &lt;span className={`${this.getActiveFrame('incidentSettingISAC') || this.getActiveFrame('incidentSettingSOC')}`}>{it('txt-incident-config')}&lt;/span>
+              &lt;i className={`c-link fg fg-arrow-${openConfigManagement ? 'top' : 'bottom'}`} />
+          &lt;/div>
+        }
+
+        {openConfigManagement &amp;&amp; accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp; (_.includes(this.state.accountRoleType, constants.soc.SOC_Analyzer) || _.includes(this.state.accountRoleType, constants.soc.SOC_Executor)) &amp;&amp;
+          &lt;div className='item open-edge'>
+            &lt;div className='subframe'>
+              &lt;Link to='/SCP/soc/incident-ISAC'>
+                &lt;span className={`${this.getActiveFrame('incidentSettingISAC')}`}>{it('txt-incident-isac-management')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+            &lt;div className='subframe'>
+              &lt;Link to='/SCP/soc/incident-SOC'>
+                &lt;span className={`${this.getActiveFrame('incidentSettingSOC')}`}>{it('txt-incident-soc-management')}&lt;/span>
+              &lt;/Link>
+            &lt;/div>
+          &lt;/div>
+        }
+
+        &lt;div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
+          &lt;i className={this.getClassName()} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+SocConfig.propTypes = {};
+
+export default SocConfig;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

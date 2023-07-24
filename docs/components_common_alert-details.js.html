@@ -27,29 +27,91 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
+import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
+import BarChart from 'react-chart/build/src/components/bar'
+import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PageNav from 'react-ui/build/src/components/page-nav'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
+import PieChart from 'react-chart/build/src/components/pie'
 
-import JSONTree from 'react-json-tree'
+import ReactJson from 'react-json-view'
 
-import {HocPrivateDetails as PrivateDetails} from './private-details'
+import {BaseDataContext} from './context'
+import EncodeDecode from './encode-decode'
 import helper from './helper'
-import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
-import {HocIrSelections as IrSelections} from './ir-selections'
-import withLocale from '../../hoc/locale-provider'
+import HMDscanInfo from './hmd-scan-info'
+import IrSelections from './ir-selections'
+import NetworkBehavior from './network-behavior'
+import PrivateDetails from './private-details'
+import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
+const SAFETY_SCAN_LIST = [
+  {
+    type: 'yara',
+    path: 'ScanResult'
+  },
+  {
+    type: 'scanFile',
+    path: 'scanFileResult'
+  },
+  {
+    type: 'importGcbAndGcbDetection',
+    path: 'GCBResult'
+  },
+  {
+    type: 'ir',
+    path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
+  },
+  {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
+  },
+  {
+    type: '_ExecutePatch',
+    path: '_ExecutePatchResult'
+  }
+];
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+const PUBLIC_KEY = ['City', 'Country', 'CountryCode', 'Latitude', 'Longitude'];
 const NOT_AVAILABLE = 'N/A';
 
 let t = null;
@@ -58,7 +120,7 @@ let f = null;
 /**
  * Alert Details
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the alert details information
  */
 class AlertDetails extends Component {
@@ -66,66 +128,91 @@ class AlertDetails extends Component {
     super(props);
 
     this.state = {
-      alertType: '',
+      activeScanType: '', //'dashboard', 'yara', 'scanFile', 'importGcbAndGcbDetection', 'ir', 'fileIntegrity', 'eventTracing', procMonitor', '_Vans', 'edr', '_ExecutePatch' or 'settings'
+      showSafetyScanSrc: false,
+      showSafetyScanDesc: false,
+      alertType: '', //'alert', 'pot_attack' or 'syslog'
+      toggleJson: 1, //false or 1
       showContent: {
         rule: false,
-        pcap: false,
+        json: false,
         attack: false,
         srcIp: false,
         destIp: false,
         srcSafety: false,
         destSafety: false,
-        json: false
-      },
-      alertRule: '',
-      alertPCAP: {
-        origData: [],
-        data: [],
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        activeIndex: null,
-        hex: '',
-        filterEmpty: false
+        srcNetwork: false,
+        destNetwork: false
       },
       alertPayload: '',
       alertInfo: {
         srcIp: {
+          locationType: '',
           location: {},
           topology: {},
           ownerPic: '',
           ownerMap: {},
           ownerBaseLayers: {},
-          ownerSeat: {}
+          ownerSeat: {},
+          exist: null
         },
         destIp: {
+          locationType: '',
           location: {},
           topology: {},
           ownerPic: '',
           ownerMap: {},
           ownerBaseLayers: {},
-          ownerSeat: {}
+          ownerSeat: {},
+          exist: null
         }
       },
       ipDeviceInfo: {
         srcIp: {},
         destIp: {}
       },
+      ipType: '',
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      },
+      pcapDownloadLink: '',
       showRedirectMenu: false,
+      modalYaraRuleOpen: false,
       modalIRopen: false,
-      ipType: ''
+      modalEncodeOpen: false,
+      mouseX: null,
+      mouseY: null,
+      highlightedText: '',
+      threatsCount: 'last10', //'last10', 'last20' or 'last50'
+      threatsCountData10: null,
+      threatsCountData20: null,
+      threatsCountData50: null,
+      internalNetworkData: null,
+      threatStatAlert: null,
+      threatStatFields: ['severity', 'count'],
+      threatStatFieldsData: {},
+      threatStatData: [],
+      threatStat: null,
+      eventStatConfig: null,
+      eventStatFields: ['configSource', 'count'],
+      eventStatFieldsData: {},
+      eventStatData: [],
+      eventStat: null
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     this.loadAlertContent();
     this.getIPcontent('srcIp');
     this.getIPcontent('destIp');
-    this.getHMDinfo('srcIp');
-    this.getHMDinfo('destIp');
+
     document.addEventListener('mousedown', this.handleClickOutside);
   }
   componentDidUpdate(prevProps) {
@@ -133,6 +220,7 @@ class AlertDetails extends Component {
   }
   componentWillUnmount() {
     this.closeDialog();
+
     document.addEventListener('mousedown', this.handleClickOutside);
   }
   /**
@@ -175,12 +263,13 @@ class AlertDetails extends Component {
     let alertType = '';
     let showContent = {
       rule: false,
-      pcap: false,
       attack: false,
       srcIp: false,
       destIp: false,
       srcSafety: false,
       destSafety: false,
+      srcNetwork: false,
+      destNetwork: false,
       json: false
     };
 
@@ -203,138 +292,311 @@ class AlertDetails extends Component {
       }, () => {
         this.getIPcontent('srcIp');
         this.getIPcontent('destIp');
-        this.getAlertRule();
+        this.clearChartsData();
       });
-    }   
+    }
   }
   /**
    * Set source or destination topology data to alertInfo
    * @method
    * @param {object} alertInfo - Alert Info to be set
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  setTopologyInfo = (alertInfo, type) => {
+  setTopologyInfo = (alertInfo, ipType) => {
     this.setState({
       alertInfo
     }, () => {
       const {alertInfo} = this.state;
 
-      if (!_.isEmpty(alertInfo[type].topology)) {
-        this.getOwnerPic(type);
-        this.getOwnerSeat(type);
+      if (alertInfo[ipType].topology &amp;&amp; alertInfo[ipType].topology.ownerUUID) {
+        this.getOwnerPic(ipType, alertInfo[ipType].topology.ownerUUID);
+        this.getOwnerSeat(ipType);
+      } else { //Reset to default if no Topology or owner is not present
+        let tempAlertInfo = {...alertInfo};
+        tempAlertInfo[ipType].ownerPic = '';
+        tempAlertInfo[ipType].ownerMap = {};
+        tempAlertInfo[ipType].ownerBaseLayers = {};
+        tempAlertInfo[ipType].ownerSeat = {};
+
+        this.setState({
+          alertInfo: tempAlertInfo
+        });
       }
     });
   }
   /**
    * Get source or destination topology data
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  getIPcontent = (type) => {
-    const {baseUrl, alertData, fromPage, locationType} = this.props;
-    const {alertInfo} = this.state;
-    const ip = this.getIpPortData(type);
-    let tempAlertInfo = {...alertInfo};
+  getIPcontent = (ipType) => {
+    const {baseUrl} = this.context;
+    const {alertData, fromPage, locationType} = this.props;
+    const srcDestType = ipType.replace('Ip', '');
+    let tempAlertInfo = {...this.state.alertInfo};
 
     if (fromPage === 'dashboard') { //Get topo info for Dashboard page
-      const srcDestType = type.replace('Ip', '');
-
       if (locationType === 'public') {
-        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+        tempAlertInfo[ipType].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[ipType].topology = alertData[srcDestType + 'TopoInfo'];
+
+        if (ipType === 'srcIp' &amp;&amp; alertData.srcLocType) {
+          tempAlertInfo[ipType].locationType = alertData.srcLocType;
+        }
+
+        if (ipType === 'destIp' &amp;&amp; alertData.destLocType) {
+          tempAlertInfo[ipType].locationType = alertData.destLocType;
+        }
 
         _.forEach(PUBLIC_KEY, val => {
-          tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+          if (alertData[srcDestType + val]) {
+            tempAlertInfo[ipType].location[val] = alertData[srcDestType + val];
+          }
         })
       } else if (locationType === 'private') {
-        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+        tempAlertInfo[ipType].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[ipType].topology = alertData[srcDestType + 'TopoInfo'];
       }
-      this.setTopologyInfo(tempAlertInfo, type);
-    } else if (fromPage === 'alert') { //Get topo info for Alert page
-      ah.one({
-        url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          data = data.rt;
+      this.setTopologyInfo(tempAlertInfo, ipType);
+    } else if (fromPage === 'threats') { //Get topo info for Threats page
+      if (this.getIpPortData(ipType)) {
+        tempAlertInfo[ipType].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[ipType].topology = alertData[srcDestType + 'TopoInfo'];
 
-          if (!_.isEmpty(data.Topology)) {
-            tempAlertInfo[type].topology = data.Topology;
+        _.forEach(PUBLIC_KEY, val => {
+          if (alertData[srcDestType + val]) {
+            tempAlertInfo[ipType].location[val] = alertData[srcDestType + val];
           } else {
-            tempAlertInfo[type].location = data.Location;
+            tempAlertInfo[ipType].location[val] = '';
           }
-          this.setTopologyInfo(tempAlertInfo, type);
-        }
-      })
+        })
+
+        this.setTopologyInfo(tempAlertInfo, ipType);
+      }
     }
   }
   /**
-   * Get IP device info for HMD section
+   * Get Event Tracing request data
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipDeviceUUID - IP Device UUID
    */
-  getHMDinfo = (type) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {ipDeviceInfo} = this.state;
-    const IP = this.getIpPortData(type);
+  getRequestData = (ipDeviceUUID) => {
+    const {datetime} = this.props;
+    const requestData = {
+      '@timestamp': [datetime.from, datetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
 
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${IP}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data &amp;&amp; data.rows.length > 0) {
-        let tempIPdeviceInfo = {...ipDeviceInfo};
-        tempIPdeviceInfo[type] = data.rows[0];
+    return requestData;
+  }
+  /**
+   * Check IP device info for HMD
+   * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  getHMDinfo = (ipType) => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const {alertInfo, ipDeviceInfo, eventInfo} = this.state;
+    const ip = this.getIpPortData(ipType);
+    const srcDestType = ipType.replace('Ip', '');
 
-        this.setState({
-          ipDeviceInfo: tempIPdeviceInfo
-        });
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
+    let apiArr = [
+      {
+        url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&amp;page=1&amp;pageSize=5`,
+        type: 'GET'
       }
+    ];
+    let tempAlertInfo = {...alertInfo};
+    let tempIPdeviceInfo = {...ipDeviceInfo};
+
+    if (alertData[srcDestType + 'TopoInfo']) {
+      const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+
+      apiArr.push({
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&amp;pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
+    }
+
+    this.ah.series(apiArr)
+    .then(data => {
+      if (data) {
+        if (data[0] &amp;&amp; data[0].counts === 0) {
+          tempAlertInfo[ipType].exist = false;
+
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
+        }
+
+        if (data[1] &amp;&amp; data[0].counts > 0) {
+          tempAlertInfo[ipType].exist = true;
+          tempIPdeviceInfo[ipType] = data[1];
+
+          this.setState({
+            alertInfo: tempAlertInfo,
+            ipDeviceInfo: tempIPdeviceInfo,
+            modalIRopen: false
+          });
+        }
+
+        if (data[2]) {
+          let tempEventInfo = {...eventInfo};
+          tempEventInfo.dataContent = [];
+          tempEventInfo.scrollCount = 1;
+          tempEventInfo.hasMore = false;
+
+          this.setState({
+            eventInfo: tempEventInfo
+          }, () => {
+            this.setEventTracingData(data[2]);
+          });
+        }
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
+   * Load Event Tracing data
+   * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   * @param {number} [page] - page number
+   */
+  loadEventTracing = (ipType, page) => {
+    const {baseUrl} = this.context;
+    const srcDestType = ipType.replace('Ip', '');
+    const ipDeviceUUID = this.props.alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${page || this.state.eventInfo.scrollCount}&amp;pageSize=20`,
+      data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setEventTracingData(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Event Tracing data
+   * @method
+   * @param {object} data - data from server response
+   */
+  setEventTracingData = (data) => {
+    const {eventInfo} = this.state;
+    let tempEventInfo = {...eventInfo};
+
+    if (data.data.rows.length > 0) {
+      const dataContent = data.data.rows.map(tempData => {
+        tempData.content.id = tempData.id;
+        return tempData.content;
+      });
+
+      eventInfo.dataFieldsArr.forEach(tempData => {
+        tempEventInfo.dataFields[tempData] = {
+          label: f(`logsFields.${tempData}`),
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === '@timestamp') {
+              value = helper.getFormattedDate(value, 'local');
+            }
+            return &lt;span>{value}&lt;/span>
+          }
+        };
+      })
+
+      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+      tempEventInfo.scrollCount++;
+      tempEventInfo.hasMore = true;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    } else {
+      tempEventInfo.hasMore = false;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    }
+  }
+  /**
    * Get owner picture based on location type
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   * @param {string} ownerUUID - ownerUUID
    */
-  getOwnerPic = (type) => {
-    const {baseUrl} = this.props;
-    const {alertInfo} = this.state;
-    const ownerUUID = alertInfo[type].topology.ownerUUID;
-    let tempAlertInfo = {...alertInfo};
+  getOwnerPic = (ipType, ownerUUID) => {
+    const {baseUrl} = this.context;
+    let tempAlertInfo = {...this.state.alertInfo};
 
-    if (ownerUUID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          tempAlertInfo[type].ownerPic = data.base64;
-
-          this.setState({
-            alertInfo: tempAlertInfo
-          });
-        }
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+    if (!ownerUUID) {
+      return;
     }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.rt &amp;&amp; data.rt.base64) {
+        tempAlertInfo[ipType].ownerPic = data.rt.base64;
+
+        this.setState({
+          alertInfo: tempAlertInfo
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set owner map and seat data for alertInfo
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  getOwnerSeat = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+  getOwnerSeat = (ipType) => {
+    const {baseUrl, contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const topoInfo = alertInfo[type].topology;
+    const topoInfo = alertInfo[ipType].topology;
     let tempAlertInfo = {...alertInfo};
     let ownerMap = {};
 
@@ -351,191 +613,359 @@ class AlertDetails extends Component {
       };
     }
     
-    tempAlertInfo[type].ownerMap = ownerMap;
-    tempAlertInfo[type].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-    tempAlertInfo[type].ownerSeat[topoInfo.areaUUID] = {
-      data: [{
-        id: topoInfo.seatUUID,
-        type: 'spot',
-        xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
-        label: topoInfo.seatName,
-        data: {
-          name: topoInfo.seatName,
-          tag: 'red'
-        }
-      }]
-    };
+    tempAlertInfo[ipType].ownerMap = ownerMap;
+    tempAlertInfo[ipType].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+
+    if (topoInfo.seatUUID) {
+      tempAlertInfo[ipType].ownerSeat[topoInfo.areaUUID] = {
+        data: [{
+          id: topoInfo.seatUUID,
+          type: 'spot',
+          xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
+          label: topoInfo.seatName,
+          data: {
+            name: topoInfo.seatName,
+            tag: 'red'
+          }
+        }]
+      };
+    }
 
     this.setState({
       alertInfo: tempAlertInfo
     });
   }
   /**
-   * Get Alert rule data
+   * Set charts data to initial values
    * @method
    */
-  getAlertRule = () => {
-    const {baseUrl, alertData} = this.props;
-    const {alertType} = this.state;
-    const index = alertData.index;
-    const projectId = alertData.projectName;
+  clearChartsData = () => {
+    this.setState({
+      threatsCount: 'last10',
+      threatsCountData10: null,
+      threatsCountData20: null,
+      threatsCountData50: null,
+      internalNetworkData: null,
+      threatStatAlert: null,
+      threatStatFieldsData: {},
+      threatStatData: [],
+      threatStat: null,
+      eventStatConfig: null,
+      eventStatFieldsData: {},
+      eventStatData: [],
+      eventStat: null
+    }, () => {
+      this.getChartsData();
+    });
+  }
+  /**
+   * Get and set charts data for alert rule
+   * @method
+   */
+  getChartsData = () => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const {threatStatFields, eventStatFields} = this.state;
+    const timeTo = moment(alertData._eventDttm_).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    let url = '';
+    let timeFrom = '';
+    let requestData = {};
 
-    if (alertType === 'alert') {
-      const url = `${baseUrl}/api/network/alert/rule?projectId=${projectId}`;
-      let alertInfo = {
-        alert: {}
-      };
+    url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;histogramInterval=60m`;
+    timeFrom = moment(helper.getSubstractDate(1, 'month', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    requestData = {
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: '"' + alertData.blackIP + '"'
+        }
+      ]
+    };
 
-      if (alertData.alert &amp;&amp; alertData.alert.signature_id) {
-        alertInfo.alert.signature_id = alertData.alert.signature_id;
-      } else if (alertData.trailName) {
-        alertInfo.alert.trailName = alertData.trailName;
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let threatsCountData10 = [];
+        let threatsCountData20 = [];
+        let threatsCountData50 = [];
+
+        _.forEach(data.event_histogramRecent10, val => {
+          threatsCountData10.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.event_histogramRecent20, val => {
+          threatsCountData20.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.event_histogramRecent50, val => {
+          threatsCountData50.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        this.setState({
+          threatsCountData10,
+          threatsCountData20,
+          threatsCountData50
+        });
       }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
 
-      helper.getAjaxData('POST', url, alertInfo)
-      .then(data => {
-        if (data) {
+    url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0`;
+    timeFrom = moment(helper.getSubstractDate(1, 'hour', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    requestData = {
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: '"' + alertData.blackIP + '"'
+        }
+      ],
+      search: [
+        'InternalMaskedIp'
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let internalNetworkData = [];
+        let threatStatAlert = [];
+        let threatStat = [];
+
+        _.forEach(data.aggregations.InternalMaskedIp4UIF, val => {
+          internalNetworkData.push({
+            subnet: val.subnet,
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.aggregations.alertThreatLevel4UIF, val => {
+          threatStatAlert.push({
+            severity: val.key,
+            count: val.doc_count
+          });
+        })
+
+        let tempFields = {};
+        threatStatFields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'severity') {
+                return &lt;span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}&lt;/span>
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
+            }
+          }
+        })
+
+        _.forEach(data.event_histogram4UIF, val => {
+          threatStat.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count,
+            rule: val.severity
+          });
+        })
+
+        this.setState({
+          internalNetworkData,
+          threatStatAlert,
+          threatStatFieldsData: tempFields,
+          threatStatData: threatStatAlert,
+          threatStat
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    url = `${baseUrl}/api/u2/log/event/_search`;
+    requestData = {
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: '"' + alertData.blackIP + '"'
+        },
+        {
+          condition: 'must',
+          query: 'Top10SyslogConfigSource'
+        }
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let eventStatConfig = [];
+        let eventStat = [];
+
+        if (data.aggregations) {
+          _.forEach(data.aggregations.Top10SyslogConfigSource.agg.buckets, val => {
+            eventStatConfig.push({
+              configSource: val.key,
+              count: val.doc_count
+            });
+          })
+
+          let tempFields = {};
+          eventStatFields.forEach(tempData => {
+            tempFields[tempData] = {
+              label: t(`txt-${tempData}`),
+              sortable: false,
+              formatter: (value, allValue, i) => {
+                return &lt;span>{value}&lt;/span>
+              }
+            }
+          })
+
+          _.forEach(data.aggregations.Top10SyslogConfigSource.event_histogram.buckets, val => {
+            eventStat.push({
+              time: helper.getFormattedDate(val.key_as_string, 'local'),
+              count: val.doc_count
+            });
+          })
+
           this.setState({
-            alertRule: data
+            eventStatConfig,
+            eventStatFieldsData: tempFields,
+            eventStatData: eventStatConfig,
+            eventStat
           });
         }
-      });
-    } else {
-      this.setState({
-        alertRule: alertData.Rule
-      });
-    }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get IP and Port data
    * @method
-   * @param {string} type - 'srcIp', 'destIp', 'srcPort', 'destPort'
+   * @param {string} ipType - 'srcIp', 'destIp', 'srcPort', 'destPort'
    * @returns IP or port
    */
-  getIpPortData = (type) => {
+  getIpPortData = (ipType) => {
     const {alertData} = this.props;
 
-    if (type === 'srcIp') {
-      return alertData.srcIp || alertData.ipSrc;
-    } else if (type === 'destIp') {
-      return alertData.destIp || alertData.ipDst;
-    } else if (type === 'srcPort') {
-      return alertData.srcPort || alertData.portSrc;
-    } else if (type === 'destPort') {
-      return alertData.destPort || alertData.portDst;
+    if (ipType === 'srcIp') {
+      return alertData.srcIp || alertData.ipSrc || NOT_AVAILABLE;
+    } else if (ipType === 'destIp') {
+      return alertData.destIp || alertData.ipDst || NOT_AVAILABLE;
+    } else if (ipType === 'srcPort') {
+      return alertData.srcPort || alertData.portSrc || NOT_AVAILABLE;
+    } else if (ipType === 'destPort') {
+      return alertData.destPort || alertData.portDst || NOT_AVAILABLE;
     }
-  }
-  /**
-   * Reset PCAP data
-   * @method
-   */
-  resetPCAPcontent = () => {
-    this.setState({
-      alertPCAP: {
-        origData: [],
-        data: [],
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        activeIndex: null,
-        hex: '',
-        filterEmpty: false
-      }
-    }, () => {
-      this.getPCAPcontent();
-    });
-  }
-  /**
-   * Get and set PCAP data
-   * @method
-   */
-  getPCAPcontent = () => {
-    const {baseUrl, alertData} = this.props;
-    const {alertPCAP} = this.state;
-    const projectId = alertData.projectName;
-    const url = `${baseUrl}/api/alert/pcapContent?projectId=${projectId}&amp;page=${alertPCAP.page}&amp;pageSize=${alertPCAP.pageSize}`;
-    const data = {
-      ipSrc: this.getIpPortData('srcIp'),
-      portSrc: this.getIpPortData('srcPort'),
-      ipDst: this.getIpPortData('destIp'),
-      portDst: this.getIpPortData('destPort'),
-      lastPacket: alertData.lastPacket
-    };
-
-    helper.getAjaxData('POST', url, data)
-    .then(data => {
-      let tempAlertPCAP = {...alertPCAP};
-      tempAlertPCAP.totalCount = data.counts;
-      tempAlertPCAP.origData = data.rows;
-      tempAlertPCAP.data = data.rows;
-
-      this.setState({
-        alertPCAP: tempAlertPCAP
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
-    });
   }
   /**
    * Set Alert payload data
    * @method
    */
   getAttackJson = () => {
-    const {alertData} = this.props;
-
     this.setState({
-      alertPayload: alertData.payload
+      alertPayload: this.props.alertData.payload
     });
   }
   /**
    * Set corresponding content based on content type
    * @method
-   * @param {string} the content type
+   * @param {string} type - the content type
+   * @param {object} alertData - Alert data type
    */
-  getContent = (type) => {
+  getContent = (type, alertData) => {
+    if (type === 'attack' &amp;&amp; this.state.alertType !== 'pot_attack') {
+      return;
+    }
+
     this.setState({
       showContent: {
         rule: false,
-        pcap: false,
         attack: false,
         srcIp: false,
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       }
     }, () => {
       let tempShowContent = {...this.state.showContent};
 
-      switch(type) {
+      switch (type) {
         case 'rule':
-          this.getAlertRule();
           tempShowContent.rule = true;
-          break;
-        case 'pcap':
-          this.resetPCAPcontent();
-          tempShowContent.pcap = true;
           break;
         case 'attack':
           this.getAttackJson();
           tempShowContent.attack = true;
           break;
-        case 'srcIp':
-          tempShowContent.srcIp = true;
-          break;
-        case 'destIp':
-          tempShowContent.destIp = true;
-          break;
-        case 'srcSafety':
-          tempShowContent.srcSafety = true;
-          break;
-        case 'destSafety':
-          tempShowContent.destSafety = true;
-          break;
         case 'json':
           tempShowContent.json = true;
           break;
+        case 'srcIp':
+          this.getHMDinfo(type);
+          tempShowContent.srcIp = true;
+          break;
+        case 'destIp':
+          this.getHMDinfo(type);
+          tempShowContent.destIp = true;
+          break;
+        case 'srcSafety':
+          this.getHMDinfo('srcIp');
+          tempShowContent.srcSafety = true;
+          break;
+        case 'destSafety':
+          this.getHMDinfo('destIp');
+          tempShowContent.destSafety = true;
+          break;
+        case 'srcNetwork':
+          tempShowContent.srcNetwork = true;
+          break;
+        case 'destNetwork':
+          tempShowContent.destNetwork = true;
+          break;
+      }
+
+      if (type !== 'srcSafety' &amp;&amp; type !== 'destSafety') {
+        this.setState({
+          showSafetyScanSrc: false,
+          showSafetyScanDesc: false
+        })
       }
 
       this.setState({
@@ -544,121 +974,409 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get alert severity
+   * Display Download File link and encode option
    * @method
-   * @param {value} - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
    * @returns HTML DOM
    */
-  getSeverity = (value) => {
-    let styleStatus = '';
+  getDownloadFileContent = () => {
+    const {alertData} = this.props;
 
-    if (value === 'Emergency') {
-      styleStatus = '#CC2943';
-    } else if (value === 'Alert') {
-      styleStatus = '#CC7B29';
-    } else if (value === 'Critical') {
-      styleStatus = '#29B0CC';
-    } else if (value === 'Warning') {
-      styleStatus = '#29CC7A';
-    } else if (value === 'Notice') {
-      styleStatus = '#7ACC29';
-    } else if (value === NOT_AVAILABLE) {
-      return {NOT_AVAILABLE}
+    return (
+      &lt;div className='multi-items'>
+        {alertData.fileMD5 &amp;&amp;
+          &lt;span onClick={this.downloadFile}>{t('alert.txt-downloadFile')}&lt;/span>
+        }
+        &lt;span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display encode and encode option
+   * @method
+   * @returns HTML DOM
+   */
+  getEncodeContent = () => {
+    return (
+      &lt;div className='multi-items'>
+        &lt;span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Check PCAP download availability
+   * @method
+   */
+  checkPcapAvailability = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {alertData} = this.props;
+    const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const agentId = alertData._edgeInfo ? alertData._edgeInfo.agentId : '';
+
+    this.ah.one({
+      url: `${baseUrl}/api/alert/pcap/check?agentId=${agentId}&amp;startDttm=${startDttm}&amp;endDttm=${endDttm}&amp;srcIp=${alertData.srcIp}&amp;dstIp=${alertData.destIp}&amp;srcPort=${alertData.srcPort}&amp;dstPort=${alertData.destPort}&amp;infoType=${alertData['alertInformation.type']}`,
+      type: 'GET'
+    })
+    .then(data => {
+      const pcapDownloadLink = data ? `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${agentId}&amp;startDttm=${startDttm}&amp;endDttm=${endDttm}&amp;targetIp=${alertData.srcIp}&amp;infoType=${alertData['alertInformation.type']}` : '';
+
+      this.setState({
+        pcapDownloadLink
+      }, () => {
+        this.toggleRedirectMenu();
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display Query More menu
+   * @method
+   * @param {string} options - options for 'rule'
+   * @returns HTML DOM
+   */
+  getQueryMoreContent = (options) => {
+    const {showContent} = this.state;
+    let ip = '';
+
+    if (showContent.srcIp) {
+      ip = this.getIpPortData('srcIp');
+    } else if (showContent.destIp) {
+      ip = this.getIpPortData('destIp');
     }
 
-    return &lt;span className='severity' style={{backgroundColor: styleStatus}}>{value}&lt;/span>
+    if ((ip &amp;&amp; ip !== NOT_AVAILABLE) || options === 'rule') {
+      return (
+        &lt;div className='multi-items'>
+          &lt;span id='queryMoreBtn' onClick={this.checkPcapAvailability}>{t('alert.txt-queryMore')}&lt;/span>
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Redirect URL
+   * @method
+   * @param {string} url - url to be redirected
+   */
+  redirectIp = (url) => {
+    window.open(url, '_blank');
+  }
+  /**
+   * Display redirect IP menu for source IP and destination IP
+   * @method
+   * @returns HTML DOM
+   */
+  getRedirectIpContent = () => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {showContent, alertInfo} = this.state;
+    let ipType = '';
+    let type = 'add';
+    let text = t('txt-add');
+
+    if (showContent.srcIp) {
+      if (alertInfo.srcIp.locationType === 1) { //public
+        return;
+      }
+      ipType = 'srcIp';
+
+    } else if (showContent.destIp) {
+      if (alertInfo.destIp.locationType === 1) { //public
+        return;
+      }
+      ipType = 'destIp';
+    }
+
+    const ip = this.getIpPortData(ipType);
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
+    if (alertInfo[ipType].exist) {
+      type = 'edit';
+      text = t('txt-edit');
+    }
+
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&amp;type=${type}&amp;lng=${language}`;
+
+    return (
+      &lt;div className='multi-items'>
+        &lt;span onClick={this.redirectIp.bind(this, url)}>{text}&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Redirect to ivar link
+   * @method
+   * @param {string} videoUrl - redirect URL
+   */
+  redirectVidoeURL = (videoUrl) => {
+    window.open(videoUrl, '_blank');
+  }
+  /**
+   * Display IVAR content
+   * @method
+   * @returns HTML DOM
+   */
+  showAlertContent = () => {
+    const {alertData} = this.props;
+    const picPath = alertData.photoBase64 ? 'data:image/png;base64,' + alertData.photoBase64 : '';
+    const videoUrl = alertData.ivarVideoUrl ? alertData.ivarVideoUrl : '';
+
+    return (
+      &lt;div className='ivar'>
+        {picPath &amp;&amp;
+          &lt;img src={picPath} />
+        }
+        &lt;span className='msg'>{alertData.Info || NOT_AVAILABLE}&lt;/span>
+        {videoUrl &amp;&amp;
+          &lt;Button variant='contained' color='primary' onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}&lt;/Button>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Set active tab based on scan type
+   * @method
+   * @param {string} activeScanType - active scan type
+   */
+  setActiveScanType = (activeScanType) => {
+    this.setState({
+      activeScanType
+    });
+  }
+  /**
+   * Toggle Safety scan content on/off
+   * @method
+   * @param {string} type - scan content type ('src' or 'desc')
+   */
+  toggleSafetyScan = (type) => {
+    if (type === 'src') {
+      this.setState({
+        showSafetyScanSrc: !this.state.showSafetyScanSrc
+      }, () => {
+        const {activeScanType, showSafetyScanSrc} = this.state;
+
+        if (showSafetyScanSrc) {
+          this.getContent('srcSafety');
+
+          this.setState({
+            showSafetyScanDesc: false
+          });
+
+          if (activeScanType === '') {
+            this.setState({
+              activeScanType: 'dashboard'
+            });
+          }
+        }
+      });
+    } else if (type === 'desc') {
+      this.setState({
+        showSafetyScanDesc: !this.state.showSafetyScanDesc
+      }, () => {
+        const {activeScanType, showSafetyScanDesc} = this.state;
+
+        if (showSafetyScanDesc) {
+          this.getContent('destSafety');
+
+          this.setState({
+            showSafetyScanSrc: false
+          });
+
+          if (activeScanType === '') {
+            this.setState({
+              activeScanType: 'dashboard'
+            });
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Set safety scan list
+   * @method
+   * @param {object} val - safety scan data
+   * @param {number} i - index of the safety scan array
+   * @returns HTML DOM
+   */
+  setSafetyScanList = (val, i) => {
+    if (val.type !== 'snapshot' &amp;&amp; val.type !== 'procWhiteList') {
+      return (
+        &lt;li key={val.type} className='child' onClick={this.setActiveScanType.bind(this, val.type)}>
+          &lt;span className={cx({'active': this.state.activeScanType === val.type})}>{t('hmd-scan.scan-list.txt-' + val.type)}&lt;/span>
+        &lt;/li>
+      )
+    }
+  }
+  /**
+   * Set default list for left nav
+   * @method
+   * @param {string} type - button navigation type ('previous' or 'next')
+   */
+  setDefaultLeftNav = (type) => {
+    this.setState({
+      activeScanType: 'dashboard',
+      showSafetyScanSrc: false,
+      showSafetyScanDesc: false
+    }, () => {
+      this.props.showAlertData(type);
+    });
   }
   /**
    * Display Alert information in dialog box
    * @method
+   * @returns HTML DOM
    */
   displayAlertData = () => {
-    const {alertDetails, alertData} = this.props;
-    const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
-    const severity = alertData._severity_ ? this.getSeverity(alertData._severity_) : NOT_AVAILABLE;
+    const {alertDetails, alertData, currentPage, pageSize, totalPageCount, fromPage, location} = this.props;
+    const {activeScanType, alertType, showSafetyScanSrc, showSafetyScanDesc, showContent, alertPayload, showRedirectMenu} = this.state;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
+    const firstItemCheck = alertDetails.currentIndex === 0;
+    const lastItemCheck = alertDetails.currentIndex + 1 === alertDetails.currentLength;
+    const firstPageCheck = currentPage === 1;
+    const lastPageCheck = currentPage === Math.ceil(totalPageCount / pageSize);
+    let paginationDisabled = {
+      previous: '',
+      next: ''
+    };
+
+    if (fromPage === 'dashboard') {
+      paginationDisabled.previous = firstItemCheck;
+      paginationDisabled.next = lastItemCheck;
+    } else if (fromPage === 'threats') {
+      paginationDisabled.previous = firstItemCheck &amp;&amp; firstPageCheck;
+      paginationDisabled.next = lastItemCheck &amp;&amp; lastPageCheck;
+    }
 
     return (
       &lt;div>
-        &lt;table className='c-table main-table top-info'>
+        &lt;table className='c-table main-table align-center with-border'>
           &lt;thead>
             &lt;tr>
-              &lt;th>{f('alertFields._severity_')}&lt;/th>
-              &lt;th>{f('alertFields.Collector')}&lt;/th>
-              &lt;th>{f('alertFields.Trigger')}&lt;/th>
               &lt;th>{f('alertFields._eventDttm_')}&lt;/th>
-            &lt;/tr>
-          &lt;/thead>
-          &lt;tbody>
-            &lt;tr>
-              &lt;td className='align-center severity-level'>{severity}&lt;/td>
-              &lt;td className='align-center collector'>{alertData.Collector || NOT_AVAILABLE}&lt;/td>
-              &lt;td className='align-center trigger'>{alertData.Trigger || NOT_AVAILABLE}&lt;/td>
-              &lt;td className='align-center datetime'>{eventDatetime}&lt;/td>
-            &lt;/tr>
-          &lt;/tbody>
-        &lt;/table>
-
-        &lt;div className='alert-info'>{alertData.Info || NOT_AVAILABLE}&lt;/div>
-
-        &lt;table className='c-table main-table top-info'>
-          &lt;thead>
-            &lt;tr>
+              &lt;th>{f('alertFields._severity_')}&lt;/th>
               &lt;th>{f('alertFields.srcIp')}&lt;/th>
-              &lt;th>{f('alertFields.srcPort')}&lt;/th>
               &lt;th>{f('alertFields.destIp')}&lt;/th>
-              &lt;th>{f('alertFields.destPort')}&lt;/th>
+              &lt;th>{f('alertFields.Collector')}&lt;/th>
+              &lt;th>{f('alertFields.Source')}&lt;/th>
             &lt;/tr>
           &lt;/thead>
           &lt;tbody>
             &lt;tr>
-              &lt;td className='align-center src-ip'>{this.getIpPortData('srcIp')}&lt;/td>
-              &lt;td className='align-center src-port'>{this.getIpPortData('srcPort')}&lt;/td>
-              &lt;td className='align-center dest-ip'>{this.getIpPortData('destIp')}&lt;/td>
-              &lt;td className='align-center dest-port'>{this.getIpPortData('destPort')}&lt;/td>
+              &lt;td id='alertDetailsCellTime' className='datetime'>{eventDatetime}&lt;/td>
+              &lt;td id='alertDetailsCellSeverity' className='severity-level'>{helper.getSeverityColor(alertData._severity_)}&lt;/td>
+              &lt;td id='alertDetailsCellSrcIp' className='src-ip'>{this.getIpPortData('srcIp')}&lt;/td>
+              &lt;td id='alertDetailsCellDestIp' className='dest-ip'>{this.getIpPortData('destIp')}&lt;/td>
+              &lt;td id='alertDetailsCellCollector' className='collector'>{alertData.Collector || NOT_AVAILABLE}&lt;/td>
+              &lt;td id='alertDetailsCellSource' className='source'>{alertData.Source || NOT_AVAILABLE}&lt;/td>
             &lt;/tr>
           &lt;/tbody>
         &lt;/table>
 
+        &lt;div className='alert-info'>{this.showAlertContent()}&lt;/div>
         &lt;div className='main-content'>
           &lt;div className='nav'>
             &lt;ul>
-              &lt;li onClick={this.getContent.bind(this, 'rule')}>&lt;span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}&lt;/span>&lt;/li>
-              {alertType === 'alert' &amp;&amp; alertData.Collector !== 'NetProbe' &amp;&amp;
-                &lt;li onClick={this.getContent.bind(this, 'pcap')}>&lt;span className={cx({'active': showContent.pcap})}>PCAP&lt;/span>&lt;/li>
-              }
+              &lt;li className='header' onClick={this.getContent.bind(this, 'rule')}>
+                &lt;span className={cx({'active': showContent.rule})}>{t('alert.txt-ruleAnalysis')}&lt;/span>
+              &lt;/li>
+
               {alertType === 'pot_attack' &amp;&amp;
-                &lt;li onClick={this.getContent.bind(this, 'attack')}>&lt;span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}&lt;/span>&lt;/li>
+                &lt;li className='header' onClick={this.getContent.bind(this, 'attack')}>
+                  &lt;span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}&lt;/span>
+                &lt;/li>
               }
-              &lt;li onClick={this.getContent.bind(this, 'json')}>&lt;span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}&lt;/span>&lt;/li>
-              &lt;li className='header'>
+
+              &lt;li className='header' onClick={this.getContent.bind(this, 'json')}>
+                &lt;span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' style={{borderBottom: 'none', cursor: 'text'}}>
                 &lt;span className='name'>{t('alert.txt-ipSrc')}&lt;/span>
                 &lt;span className='ip'>{this.getIpPortData('srcIp')}&lt;/span>
               &lt;/li>
-              &lt;li className='child' onClick={this.getContent.bind(this, 'srcIp')}>&lt;span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
-              &lt;li className='child' onClick={this.getContent.bind(this, 'srcSafety')}>&lt;span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
-              &lt;li className='header'>
+
+              &lt;li className='header' onClick={this.getContent.bind(this, 'srcIp')}>
+                &lt;span className={cx('name', {'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' onClick={this.toggleSafetyScan.bind(this, 'src')}>
+                &lt;span className={cx('name', {'active': showSafetyScanSrc})}>{t('alert.txt-safetyScan')}&lt;/span>
+                &lt;i className={`fg fg-arrow-${showSafetyScanSrc ? 'bottom' : 'top'}`}>&lt;/i>
+              &lt;/li>
+
+              {showSafetyScanSrc &amp;&amp;
+                &lt;React.Fragment>
+                  &lt;ul className='scan-list'>
+                    &lt;li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}>&lt;span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}&lt;/span>&lt;/li>
+                    {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+                  &lt;/ul>
+                &lt;/React.Fragment>
+              }
+
+              &lt;li className='header' onClick={this.getContent.bind(this, 'srcNetwork')}>
+                &lt;span className={cx('name', {'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' style={{borderBottom: 'none', cursor: 'text'}}>
                 &lt;span className='name'>{t('alert.txt-ipDst')}&lt;/span>
                 &lt;span className='ip'>{this.getIpPortData('destIp')}&lt;/span>
               &lt;/li>
-              &lt;li className='child' onClick={this.getContent.bind(this, 'destIp')}>&lt;span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
-              &lt;li className='child' onClick={this.getContent.bind(this, 'destSafety')}>&lt;span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
+
+              &lt;li className='header' onClick={this.getContent.bind(this, 'destIp')}>
+                &lt;span className={cx('name', {'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}&lt;/span>
+              &lt;/li>
+
+              &lt;li className='header' onClick={this.toggleSafetyScan.bind(this, 'desc')}>
+                &lt;span className={cx('name', {'active': showSafetyScanDesc})}>{t('alert.txt-safetyScan')}&lt;/span>
+                &lt;i className={`fg fg-arrow-${showSafetyScanDesc ? 'bottom' : 'top'}`}>&lt;/i>
+              &lt;/li>
+
+              {showSafetyScanDesc &amp;&amp;
+                &lt;React.Fragment>
+                  &lt;ul className='scan-list'>
+                    &lt;li className='child' onClick={this.setActiveScanType.bind(this, 'dashboard')}>&lt;span className={cx({'active': activeScanType === 'dashboard'})}>{t('txt-dashboard')}&lt;/span>&lt;/li>
+                    {SAFETY_SCAN_LIST.map(this.setSafetyScanList)}
+                  &lt;/ul>
+                &lt;/React.Fragment>
+              }
+
+              &lt;li className='header' onClick={this.getContent.bind(this, 'destNetwork')}>
+                &lt;span className={cx('name', {'active': showContent.destNetwork})}>{t('txt-networkBehavior')}&lt;/span>
+              &lt;/li>
             &lt;/ul>
           &lt;/div>
           &lt;div className='content'>
             &lt;div className='options-buttons'>
-              {(showContent.srcIp || showContent.destIp) &amp;&amp;
-                &lt;div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}&lt;/div>
-              }
+              &lt;section>
+                {showContent.rule &amp;&amp; alertData.blackIP &amp;&amp;
+                  this.getQueryMoreContent('rule')
+                }
 
-              {showContent.pcap &amp;&amp; alertPCAP.data.length > 0 &amp;&amp;
-                &lt;div onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}&lt;/div>
-              }
+                {showContent.attack &amp;&amp;
+                  this.getDownloadFileContent()
+                }
 
-              {showContent.attack &amp;&amp; alertData.fileMD5 &amp;&amp;
-                &lt;div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}&lt;/div>
-              }
+                {showContent.json &amp;&amp;
+                  this.getEncodeContent()
+                }
+
+                {(showContent.srcIp || showContent.destIp) &amp;&amp;
+                  this.getQueryMoreContent()
+                }
+
+                {(showContent.srcIp || showContent.destIp) &amp;&amp;
+                  this.getRedirectIpContent()
+                }
+              &lt;/section>
             &lt;/div>
+
+            {showRedirectMenu &amp;&amp; showContent.rule &amp;&amp;
+              this.displayRedirectMenu('rule')
+            }
 
             {showRedirectMenu &amp;&amp; showContent.srcIp &amp;&amp;
               this.displayRedirectMenu('srcIp')
@@ -668,16 +1386,16 @@ class AlertDetails extends Component {
               this.displayRedirectMenu('destIp')
             }
 
-            {showContent.rule &amp;&amp; alertRule &amp;&amp;
+            {showContent.rule &amp;&amp;
               this.displayRuleContent()
-            }
-
-            {showContent.pcap &amp;&amp;
-              this.displayPCAPcontent()
             }
 
             {showContent.attack &amp;&amp; alertPayload &amp;&amp;
               this.displayPayloadcontent()
+            }
+
+            {showContent.json &amp;&amp;
+              this.displayJsonData()
             }
 
             {showContent.srcIp &amp;&amp;
@@ -696,16 +1414,20 @@ class AlertDetails extends Component {
               this.displaySafetyScanContent('destIp')
             }
 
-            {showContent.json &amp;&amp;
-              this.displayJsonData()
+            {showContent.srcNetwork &amp;&amp;
+              this.displayNetworkBehaviorContent('srcIp')
+            }
+
+            {showContent.destNetwork &amp;&amp;
+              this.displayNetworkBehaviorContent('destIp')
             }
           &lt;/div>
         &lt;/div>
-        {alertDetails.currentLength > 1 &amp;&amp;
+        {alertDetails.currentLength > 0 &amp;&amp;
           &lt;div className='pagination'>
             &lt;div className='buttons'>
-              &lt;button onClick={this.props.showAlertData.bind(this, 'previous')} disabled={alertDetails.currentIndex === 0}>{t('txt-previous')}&lt;/button>
-              &lt;button onClick={this.props.showAlertData.bind(this, 'next')} disabled={alertDetails.currentIndex + 1 === alertDetails.currentLength}>{t('txt-next')}&lt;/button>
+              &lt;Button id='navigationPrevious' variant='outlined' color='primary' onClick={this.setDefaultLeftNav.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}&lt;/Button>
+              &lt;Button id='navigationNext' variant='outlined' color='primary' onClick={this.setDefaultLeftNav.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}&lt;/Button>
             &lt;/div>
             &lt;span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}&lt;/span>
           &lt;/div>
@@ -716,58 +1438,209 @@ class AlertDetails extends Component {
   /**
    * Generate a redirect link and process the browser redirect
    * @method
-   * @param {string} type - 'events' or 'virustotal'
-   * @param {string} value - 'srcIp' or 'destIp'
+   * @param {string} type - virustotal', 'threats' or 'syslog'
+   * @param {string} [value] - IP address, 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const {language, alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    let ipParam = '';
-    let linkUrl ='';
- 
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = `&amp;srcIp=${srcIp}`;
-      } else if (value === 'destIp') {
-        ipParam = `&amp;destIp=${destIp}`;
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
+    const datetime = {
+      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
+    };
+    let linkUrl = '';
+
+    if (type === 'virustotal') {
+      if (IP_PATTERN.test(value)) { //Check IP format
+        linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + value + '/relations';
+      } else {
+        linkUrl = 'https:\//www.virustotal.com/gui/domain/' + value + '/detection';
       }
-      linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&amp;lng=${language}`;
-    } else if (type === 'virustotal') {
-      if (value === 'srcIp') {
-        ipParam = srcIp;
-      } else if (value === 'destIp') {
-        ipParam = destIp;
+
+      if (value === 'srcIp' || value === 'destIp') {
+        const ip = this.getIpPortData(value);
+        linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ip + '/relations';
       }
-      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ipParam + '/relations';
+    } else if (type === 'threats') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&amp;to=${datetime.to}&amp;sourceIP=${alertData.blackIP}&amp;lng=${language}`;
+    } else if (type === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&amp;to=${datetime.to}&amp;sourceIP=${alertData.blackIP}&amp;lng=${language}`;
     }
 
     window.open(linkUrl, '_blank');
   }
   /**
+   * Handle pcap download button
+   * @method
+   * @param {string} url - pcap download link
+   */
+  pcapDownload = (url) => {
+    window.open(url, '_blank');
+  }
+  /**
    * Display redirect menu
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} options - 'srcIp', 'destIp' or 'rule'
    * @returns HTML DOM
    */
-  displayRedirectMenu = (type) => {
+  displayRedirectMenu = (options) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {alertData} = this.props;
+    const {pcapDownloadLink} = this.state;
+
+    if (options === 'srcIp' || options === 'destIp') {
+      return (
+        &lt;ul className='redirect-menu' ref={this.setWrapperRef}>
+          &lt;li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', options)}>{t('alert.txt-searthVirustotal')}&lt;/li>
+        &lt;/ul>
+      )
+    } else if (options === 'rule') {
+      return (
+        &lt;ul className='redirect-menu' ref={this.setWrapperRef}>
+          {alertData.pcapFlag &amp;&amp; pcapDownloadLink &amp;&amp;
+            &lt;li id='downloadPcapBtn' onClick={this.pcapDownload.bind(this, pcapDownloadLink)}>{t('alert.txt-downloadPCAP')}&lt;/li>
+          }
+          &lt;li id='virusTotalBtn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)}>{t('alert.txt-searthVirustotal')}&lt;/li>
+        &lt;/ul>
+      )
+    }
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {string} type - 'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.&lt;object>} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (type, eventInfo, data) => {
+    if (type === 'threatsCountData' || type === 'eventStat') {
+      return (
+        &lt;section>
+          &lt;span>{t('txt-time')}: {data[0].time}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
+        &lt;/section>
+      )
+    } else if (type === 'internalNetworkData') {
+      return (
+        &lt;section>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
+        &lt;/section>
+      )
+    } else if (type === 'threatStat') {
+      return (
+        &lt;section>
+          &lt;span>{t('txt-severity')}: {data[0].rule}&lt;br />&lt;/span>
+          &lt;span>{t('txt-time')}: {data[0].time}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
+        &lt;/section>
+      )
+    }
+  }
+  /**
+   * Display bar chart
+   * @method
+   * @param {string} dataType - 'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'
+   * @returns HTML DOM
+   */
+  displayBarChart = (dataType) => {
+    const {
+      threatsCount,
+      threatsCountData10,
+      threatsCountData20,
+      threatsCountData50,
+      internalNetworkData,
+      threatStat,
+      eventStat
+    } = this.state;
+    let data = [];
+    let dataCfg = {};
+    let type = '';
+    let chartAttributes = {};
+
+    if (dataType === 'threatsCountData') {
+      if (threatsCount === 'last10') {
+        data = threatsCountData10;
+      } else if (threatsCount === 'last20') {
+        data = threatsCountData20;
+      } else if (threatsCount === 'last50') {
+        data = threatsCountData50;
+      }
+      
+      dataCfg = {
+        x: 'time',
+        y: 'count'
+      };
+      type = 'datetime';
+    } else if (dataType === 'internalNetworkData') {
+      data = internalNetworkData;
+      dataCfg = {
+        x: 'subnet',
+        y: 'count'
+      };
+      type = 'category';
+    } else if (dataType === 'threatStat') {
+      data = threatStat;
+      dataCfg = {
+        x: 'time',
+        y: 'count',
+        splitSeries: 'rule'
+      };
+      type = 'datetime';
+      chartAttributes = {
+        colors: ALERT_LEVEL_COLORS,
+      };
+    } else if (dataType === 'eventStat') {
+      data = eventStat;
+      dataCfg = {
+        x: 'time',
+        y: 'count'
+      };
+      type = 'datetime';
+    }
+
     return (
-      &lt;ul className='redirect-menu' ref={this.setWrapperRef}>
-        &lt;li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}&lt;/li>
-        &lt;li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}&lt;/li>
-      &lt;/ul>
+      &lt;div className='chart-group'>
+        &lt;BarChart
+          stacked
+          vertical
+          legend={{
+            enabled: true
+          }}
+          data={data}
+          dataCfg={dataCfg}
+          chart={{
+            height: 215
+          }}
+          xAxis={{
+            type
+          }}
+          plotOptions={{
+            series: {
+              maxPointWidth: 20
+            }
+          }}
+          tooltip={{
+            formatter: this.onTooltip.bind(this, dataType)
+          }}
+          {...chartAttributes} />
+      &lt;/div>
     )
   }
   /**
-   * Display rule content
+   * Handle Threats chart count change
    * @method
-   * @param {string} val - val for the rule content
-   * @param {number} i - index
-   * @returns HTML DOM
+   * @param {object} event - event object
+   * @param {string} type - chart count ('last10', 'last20' or 'last50')
    */
-  showRuleContent = (val, i) => {
-    return &lt;li key={i}>{val.rule}&lt;/li>
+  toggleThreatCount = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      threatsCount: type
+    });
   }
   /**
    * Display rule content
@@ -775,155 +1648,251 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayRuleContent = () => {
-    const {alertType, alertRule} = this.state;
-
-    if (alertType === 'alert') {
-      return (
-        &lt;ul className='alert-rule'>
-          {alertRule.length > 0 &amp;&amp;
-            alertRule.map(this.showRuleContent)
-          }
-          {alertRule.length === 0 &amp;&amp;
-            &lt;li>{NOT_AVAILABLE}&lt;/li>
-          }
-        &lt;/ul>
-      )
-    } else {
-      return &lt;span>{alertRule}&lt;/span>
-    }
-  }
-  /**
-   * Set PCAP hex value
-   * @method
-   * @param {string} [hex] - original string value
-   * @param {number} index - active index of the Alert PCAP array
-   */
-  setPCAPhex = (hex, index) => {
-    let tempAlertPCAP = {...this.state.alertPCAP};
-
-    if (hex) {
-      tempAlertPCAP.hex = hex.replace(/\s/g, '');
-    } else {
-      return false;
-    }
-    tempAlertPCAP.activeIndex = index;
-
-    this.setState({
-      alertPCAP: tempAlertPCAP
-    });
-  }
-  /**
-   * Set PCAP page
-   * @method
-   * @param {string} currentPage - current page of the PCAP info
-   */
-  setPCAPpage = (currentPage) => {
-    let tempAlertPCAP = {...this.state.alertPCAP};
-    tempAlertPCAP.page = currentPage;
-    tempAlertPCAP.activeIndex = null;
-    tempAlertPCAP.hex = '';
-    tempAlertPCAP.filterEmpty = false;
-
-    this.setState({
-      alertPCAP: tempAlertPCAP
-    }, () => {
-      this.getPCAPcontent();
-    });
-  }
-  /**
-   * Toggle (check/uncheck) to show/hide the PCAP data
-   * @method
-   */
-  toggleFilterEmpty = () => {
-    const {alertPCAP} = this.state;
-    let tempAlertPCAP = {...alertPCAP};
-    tempAlertPCAP.activeIndex = null;
-    tempAlertPCAP.hex = '';
-    tempAlertPCAP.filterEmpty = !tempAlertPCAP.filterEmpty;
-
-    if (tempAlertPCAP.filterEmpty) {
-      let alertPCAPdata = [];
-
-      _.forEach(alertPCAP.data, val => {
-        if (val.hex) {
-          alertPCAPdata.push(val);
-        }
-      })
-      tempAlertPCAP.data = alertPCAPdata;
-    } else {
-      tempAlertPCAP.data = _.cloneDeep(alertPCAP.origData);
-    }
-
-    this.setState({
-      alertPCAP: tempAlertPCAP
-    });
-  }
-  /**
-   * Display individual PCAP data
-   * @method
-   * @param {object} val - PCAP data
-   * @param {number} i - index
-   * @returns HTML DOM
-   */
-  showPCAPcontent = (val, i) => {
-    return &lt;li key={i} className={cx({'active': val.hex})} onClick={this.setPCAPhex.bind(this, val.hex, i)}>{val.protocol}&lt;i className={cx('fg', {'fg-arrow-left': this.state.alertPCAP.activeIndex === i})}>&lt;/i>&lt;/li> 
-  }
-  /**
-   * Display PCAP content
-   * @method
-   * @returns HTML DOM
-   */
-  displayPCAPcontent = () => {
-    const {alertPCAP} = this.state;
-    const hex = alertPCAP.hex;
-    let str = '';
-
-    if (hex) {
-      for (let i = 0; i &lt; hex.length; i += 2) {
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-      }
-    }
+    const {alertData} = this.props;
+    const {
+      threatsCount,
+      threatsCountData10,
+      internalNetworkData,
+      threatStatAlert,
+      threatStatFieldsData,
+      threatStatData,
+      threatStat,
+      eventStatConfig,
+      eventStatFieldsData,
+      eventStatData,
+      eventStat
+    } = this.state;
+    const threatCreateDttm = alertData.threatTextCreateDttm === 'N/A' ? NOT_AVAILABLE : helper.getFormattedDate(alertData.threatTextCreateDttm, 'local');
+    const threatUpdateDttm = alertData.threatTextUpdateDttm === 'N/A' ? NOT_AVAILABLE : helper.getFormattedDate(alertData.threatTextUpdateDttm, 'local');
 
     return (
-      &lt;div className='pcap-content'>
-        {alertPCAP.data.length > 0 &amp;&amp;
-          &lt;div className='c-flex aic filter-empty'>
-            &lt;label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}&lt;/label>
-            &lt;Checkbox
-              id='filterEmpty'
-              onChange={this.toggleFilterEmpty}
-              checked={alertPCAP.filterEmpty} />
-          &lt;/div>
-        }
-        &lt;div className='pcap'>
-          &lt;div className='list'>
-            &lt;ul>
-              {alertPCAP.data.length > 0 &amp;&amp;
-                alertPCAP.data.map(this.showPCAPcontent)
-              }
-              {alertPCAP.data.length === 0 &amp;&amp;
-                &lt;li>{NOT_AVAILABLE}&lt;/li>
-              }
-            &lt;/ul>
-          &lt;/div>
-          &lt;div className='data'>
-            {str &amp;&amp;
-              &lt;Textarea
-                value={str} 
-                readOnly={true} />
+      &lt;div className='alert-rule'>
+        &lt;div className='section'>
+          &lt;header>{t('alert.txt-threatsContent')}&lt;/header>
+          &lt;ul>
+            &lt;li>&lt;span className='header'>{t('alert.txt-severityType')}&lt;/span>: &lt;span id='threatsContentSeverity'>{alertData.severity_type || NOT_AVAILABLE}&lt;/span>&lt;/li>
+            &lt;li>&lt;span className='header'>{t('alert.txt-severityDesc')}&lt;/span>: &lt;span id='threatsContentDesc'>{alertData.severity_type_description || NOT_AVAILABLE}&lt;/span>&lt;/li>
+            &lt;li>&lt;span className='header'>{t('alert.txt-collectorType')}&lt;/span>: &lt;span id='threatsContentCollector'>{alertData.Collector || NOT_AVAILABLE}&lt;/span>&lt;/li>
+            &lt;li>&lt;span className='header'>{t('alert.txt-threatsType')}&lt;/span>: &lt;span id='threatsContentType'>{alertData.severity_type_name || NOT_AVAILABLE}&lt;/span>&lt;/li>
+            &lt;li>&lt;span className='header'>{t('alert.txt-threatsCreateDttm')}&lt;/span>: &lt;span id='threatsContentCreateDttm'>{threatCreateDttm || NOT_AVAILABLE}&lt;/span>&lt;/li>
+            &lt;li>&lt;span className='header'>{t('alert.txt-threatsUpdateDttm')}&lt;/span>: &lt;span id='threatsContentUpdateDttm'>{threatUpdateDttm || NOT_AVAILABLE}&lt;/span>&lt;/li>
+          &lt;/ul>
+        &lt;/div>
+
+        &lt;div className='section' style={{marginTop: '-10px'}}>
+          &lt;header>{t('alert.txt-networkBehavior')}&lt;/header>
+          &lt;div className='title'>{t('alert.txt-activeThreatsCount')}&lt;/div>
+          {!threatsCountData10 &amp;&amp;
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          }
+          {threatsCountData10 &amp;&amp; threatsCountData10.length === 0 &amp;&amp;
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          }
+          {threatsCountData10 &amp;&amp; threatsCountData10.length > 0 &amp;&amp;
+            &lt;div>
+              &lt;ToggleButtonGroup
+                id='threatsCountBtn'
+                className='chart-btn'
+                value={threatsCount}
+                exclusive
+                onChange={this.toggleThreatCount}>
+                &lt;ToggleButton id='threatsCountLast10' value='last10'>{t('alert.txt-last10')}&lt;/ToggleButton>
+                &lt;ToggleButton id='threatsCountLast20' value='last20'>{t('alert.txt-last20')}&lt;/ToggleButton>
+                &lt;ToggleButton id='threatsCountLast50' value='last50'>{t('alert.txt-last50')}&lt;/ToggleButton>
+              &lt;/ToggleButtonGroup>
+
+              {this.displayBarChart('threatsCountData')}
+            &lt;/div>
+          }
+        &lt;/div>
+
+        &lt;div className='section'>
+          &lt;header>{t('alert.txt-internalNetworkDist')}&lt;/header>
+          &lt;div className='title'>{t('alert.txt-lastHourData')}&lt;/div>
+          {!internalNetworkData &amp;&amp;
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          }
+          {internalNetworkData &amp;&amp; internalNetworkData.length === 0 &amp;&amp;
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          }
+          {internalNetworkData &amp;&amp; internalNetworkData.length > 0 &amp;&amp;
+            this.displayBarChart('internalNetworkData')
+          }
+        &lt;/div>
+
+        &lt;div className='section'>
+          &lt;header>{t('alert.txt-threatStat')}&lt;/header>
+          &lt;Button id='alertQueryMoreAlertBtn' variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'threats', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreEvents')}&lt;/Button>
+          &lt;div className='title'>{t('alert.txt-lastHourData')}&lt;/div>
+          &lt;div className='chart-content'>
+            {!threatStatAlert &amp;&amp;
+              &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+            }
+            {threatStatAlert &amp;&amp; threatStatAlert.length === 0 &amp;&amp;
+              &lt;span>{t('txt-notFound')}&lt;/span>
+            }
+            {threatStatAlert &amp;&amp; threatStatAlert.length > 0 &amp;&amp;
+              &lt;div className='chart-group'>
+                &lt;PieChart
+                  data={threatStatAlert}
+                  chart={{
+                    height: 215
+                  }}
+                  colors={{
+                    severity: ALERT_LEVEL_COLORS
+                  }}
+                  keyLabels={{
+                    severity: t('alert.txt-threatLevel'),
+                    count: t('txt-count')
+                  }}
+                  valueLabels={{
+                    'Pie Chart': {
+                      severity: t('alert.txt-threatLevel'),
+                      count: t('txt-count')
+                    }
+                  }}
+                  dataCfg={{
+                    splitSlice: ['severity'],
+                    sliceSize: 'count'
+                  }} />
+              &lt;/div>
+            }
+            {threatStatData &amp;&amp; threatStatData.length > 0 &amp;&amp;
+              &lt;div className='chart-group table'>
+                &lt;DataTable
+                  className='main-table table-data'
+                  fields={threatStatFieldsData}
+                  data={threatStatData} />
+              &lt;/div>
             }
           &lt;/div>
+
+          {!threatStat &amp;&amp;
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          }
+          {threatStat &amp;&amp; threatStat.length === 0 &amp;&amp;
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          }
+          {threatStat &amp;&amp; threatStat.length > 0 &amp;&amp;
+            this.displayBarChart('threatStat')
+          }
         &lt;/div>
-        {alertPCAP.totalCount > alertPCAP.pageSize &amp;&amp;
-          &lt;footer>
-            &lt;PageNav
-              pages={Math.ceil(alertPCAP.totalCount / alertPCAP.pageSize)}
-              current={alertPCAP.page}
-              onChange={this.setPCAPpage} />
-          &lt;/footer>
-        }
+
+        &lt;div className='section'>
+          &lt;header>{t('alert.txt-eventStat')}&lt;/header>
+          &lt;Button id='alertQueryMoreLogsBtn' variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'syslog', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreLogs')}&lt;/Button>
+          &lt;div className='title'>{t('alert.txt-lastHourData')}&lt;/div>
+          &lt;div className='chart-content'>
+            {!eventStatConfig &amp;&amp;
+              &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+            }
+            {eventStatConfig &amp;&amp; eventStatConfig.length === 0 &amp;&amp;
+              &lt;span>{t('txt-notFound')}&lt;/span>
+            }
+            {eventStatConfig &amp;&amp; eventStatConfig.length > 0 &amp;&amp;
+              &lt;div className='chart-group'>
+                &lt;PieChart
+                  data={eventStatConfig}
+                  chart={{
+                    height: 215
+                  }}
+                  keyLabels={{
+                    configSource: t('txt-configSource'),
+                    count: t('txt-count')
+                  }}
+                  valueLabels={{
+                    'Pie Chart': {
+                      configSource: t('txt-configSource'),
+                      count: t('txt-count')
+                    }
+                  }}
+                  dataCfg={{
+                    splitSlice: ['configSource'],
+                    sliceSize: 'count'
+                  }} />
+              &lt;/div>
+            }
+            {eventStatData &amp;&amp; eventStatData.length > 0 &amp;&amp;
+              &lt;div className='chart-group table'>
+                &lt;DataTable
+                  className='main-table table-data'
+                  fields={eventStatFieldsData}
+                  data={eventStatData} />
+              &lt;/div>
+            }
+          &lt;/div>
+
+          {!eventStat &amp;&amp;
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          }
+          {eventStat &amp;&amp; eventStat.length === 0 &amp;&amp;
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          }
+          {eventStat &amp;&amp; eventStat.length > 0 &amp;&amp;
+            this.displayBarChart('eventStat')
+          }
+        &lt;/div>
       &lt;/div>
     )
+  }
+  /**
+   * Toggle encode dialog on/off
+   * @method
+   */
+  openEncodeDialog = () => {
+    const {modalEncodeOpen} = this.state;
+
+    if (modalEncodeOpen) {
+      this.setState({
+        highlightedText: ''
+      });
+    }
+
+    this.setState({
+      modalEncodeOpen: !modalEncodeOpen
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Get hightlighted text from user
+   * @method
+   */
+  getHighlightedText = () => {
+    let highlightedText = '';
+
+    if (window.getSelection) {
+      highlightedText = window.getSelection().toString();
+
+      if (highlightedText) {
+        this.setState({
+          highlightedText
+        });
+      }
+    }
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (event) => {
+    event.preventDefault();
+
+    this.setState({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      mouseX: null,
+      mouseY: null
+    });
   }
   /**
    * Display PCAP payload content
@@ -931,24 +1900,115 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
-    const {alertPayload} = this.state;
+    const {alertPayload, mouseX, mouseY} = this.state;
+    const theme = document.documentElement.getAttribute('data-theme');
+    let reactJsonTheme = '';
+
+    if (theme === 'light') {
+      reactJsonTheme = 'rjv-default';
+    } else if (theme === 'dark') {
+      reactJsonTheme = 'tomorrow';
+    }
 
     return (
-      &lt;div className='payload'>
-        &lt;ul>
-          &lt;li>&lt;JSONTree data={alertPayload} theme={helper.getJsonViewTheme()} />&lt;/li>
-        &lt;/ul>
+      &lt;div>
+        &lt;div className='payload' onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}>
+          &lt;ReactJson
+            src={alertPayload}
+            theme={reactJsonTheme} />
+        &lt;/div>
+
+        &lt;Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null &amp;&amp; mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          &lt;MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}&lt;/MenuItem>
+        &lt;/Menu>
+      &lt;/div>
+    )
+  }
+  /**
+   * Toggle json open/close
+   * @method
+   */
+  toggleJsonOpen = () => {
+    const {toggleJson} = this.state;
+    let collspsed = '';
+
+    if (!toggleJson) {
+      collspsed = 1;
+    } else if (toggleJson === 1) {
+      collspsed = false;
+    }
+
+    this.setState({
+      toggleJson: collspsed
+    });
+  }
+  /**
+   * Display JSON content
+   * @method
+   * @returns HTML DOM
+   */
+  displayJsonData = () => {
+    const {alertData} = this.props;
+    const {toggleJson, mouseX, mouseY} = this.state;
+    const hiddenFields = ['id', '_tableMenu_'];
+    const allData = _.omit(alertData, hiddenFields);
+    const theme = document.documentElement.getAttribute('data-theme');
+    let reactJsonTheme = '';
+    let btnType = '';
+
+    if (theme === 'light') {
+      reactJsonTheme = 'rjv-default';
+    } else if (theme === 'dark') {
+      reactJsonTheme = 'tomorrow';
+    }
+
+    if (!toggleJson) {
+      btnType = 'Collapse';
+    } else if (toggleJson === 1) {
+      btnType = 'Expand';
+    }
+
+    return (
+      &lt;div>
+        &lt;Button variant='outlined' color='primary' className='standard btn json' onClick={this.toggleJsonOpen}>{t('alert.txt-toggle' + btnType)}&lt;/Button>
+        &lt;div className='json-data alert' onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}>
+          &lt;ReactJson
+            src={allData}
+            collapsed={toggleJson}
+            theme={reactJsonTheme} />
+        &lt;/div>
+
+        &lt;Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null &amp;&amp; mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          &lt;MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}&lt;/MenuItem>
+        &lt;/Menu>
       &lt;/div>
     )
   }
   /**
    * Get Alert details list width
    * @method
-   * @returns {string} - list width
-
+   * @returns width text
    */
   getListWidth = () => {
-    const {locale} = this.props;
+    const {locale} = this.context;
 
     if (locale === 'en') {
       return '120px';
@@ -961,7 +2021,7 @@ class AlertDetails extends Component {
    * @method
    * @param {string} item - key item
    * @param {string} data - data associated with the key
-   * @returns - valid data in string or false
+   * @returns valid data in string or boolean false
 
    */
   checkLocationData = (item, data) => {
@@ -979,20 +2039,19 @@ class AlertDetails extends Component {
   /**
    * Display Alert public info
    * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @param {string} item - key of the public info
-   * @param {number} i - index 
+   * @param {number} i - index
    * @returns HTML DOM
    */
-  showPuclicInfo = (type, item, i) => {
-    const {baseUrl, contextRoot} = this.props;
+  showPublicInfo = (ipType, item, i) => {
+    const {contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const countryCodeType = 'CountryCode';
-    const countryType = 'CountryName';
     let validDataCount = 0;
 
-    if (alertInfo[type]['location'][item]) {
-      if (item === countryCodeType) { //Display country flag
-        const countryCode = alertInfo[type]['location'][item].toLowerCase();
+    if (alertInfo[ipType]['location'][item]) {
+      if (item === 'CountryCode') { //Display country flag
+        const countryCode = alertInfo[ipType]['location'][item].toLowerCase();
         const picPath = `${contextRoot}/images/flag/${countryCode}.png`;
 
         if (countryCode &amp;&amp; countryCode != '-') {
@@ -1001,12 +2060,12 @@ class AlertDetails extends Component {
           return (
             &lt;li key={item + i}>
               &lt;span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}&lt;/span>
-              &lt;span className='value'>&lt;img src={picPath} title={alertInfo[type]['location'][countryType]} />&lt;/span>
+              &lt;span className='value'>&lt;img src={picPath} title={alertInfo[ipType]['location']['Country']} />&lt;/span>
             &lt;/li>
           )
         }
       } else { //Display location info
-        const data = alertInfo[type]['location'][item];
+        const data = alertInfo[ipType]['location'][item];
         const validData = this.checkLocationData(item, data);
 
         if (validData) {
@@ -1023,66 +2082,53 @@ class AlertDetails extends Component {
     }
 
     if (validDataCount === 0) {
-      &lt;li>{t('txt-notFound')} {this.getIpPortData(type)}&lt;/li>
+      &lt;li>{t('txt-notFound')} {this.getIpPortData(ipType)}&lt;/li>
     }
   }
   /**
    * Display Alert public info
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  getPublicInfo = (type) => {
+  getPublicInfo = (ipType) => {
     return (
       &lt;ul className='public'>
-        {PUBLIC_KEY.map(this.showPuclicInfo.bind(this, type))}
+        {PUBLIC_KEY.map(this.showPublicInfo.bind(this, ipType))}
       &lt;/ul>
     )
   }
   /**
    * Display Alert private info
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns PrivateDetails component
    */
-  getPrivateInfo = (type) => {
-    const {baseUrl, contextRoot, language, alertData} = this.props;
+  getPrivateInfo = (ipType) => {
+    const {contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const topoInfo = alertInfo[type].topology;
-    const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
-    const url_login = {
-      pathname: '/ChewbaccaWeb/honeynet/employee-record',
-      search: `?lng=${language}`
-    };
-    const url_access = {
-      pathname: '/ChewbaccaWeb/honeynet/employee-record',
-      search: `?eventDttm=${alertData._eventDttm_}&amp;lng=${language}`,
-      state: {
-        alertData
-      }
-    };
-    const srcDestType = type.replace('Ip', '');
+    const picPath = alertInfo[ipType].ownerPic ? alertInfo[ipType].ownerPic : contextRoot + '/images/empty_profile.png';
 
     return (
       &lt;PrivateDetails
-        type={type}
-        alertInfo={alertInfo}
-        topoInfo={topoInfo}
+        from='alert'
+        alertInfo={alertInfo[ipType]}
+        topoInfo={alertInfo[ipType].topology}
         picPath={picPath}
-        srcDestType={srcDestType} />
+        triggerTask={this.triggerTask} />
     )
   }
   /**
    * Get content for the public IP
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  getPublicIPcontent = (type) => {
+  getPublicIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
-    if (alertInfo[type].location.City !== '-' &amp;&amp; alertInfo[type].location.CountryCode !== '-') {
-      return this.getPublicInfo(type);
+    if (alertInfo[ipType].location.City !== '-' &amp;&amp; alertInfo[ipType].location.CountryCode !== '-') {
+      return this.getPublicInfo(ipType);
     } else {
       return &lt;span>{NOT_AVAILABLE}&lt;/span>
     }
@@ -1090,176 +2136,358 @@ class AlertDetails extends Component {
   /**
    * Display IP content
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  displayIPcontent = (type) => {
+  displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
-    return (
-      &lt;div>
-        {(_.isEmpty(alertInfo[type].topology) &amp;&amp; _.isEmpty(alertInfo[type].location)) &amp;&amp; 
-          &lt;span>{t('txt-notFound')} {this.getIpPortData(type)}&lt;/span>
-        }
+    if (!alertInfo[ipType].locationType) {
+      return &lt;span>{NOT_AVAILABLE}&lt;/span>;
+    }
 
-        {type === 'srcIp' &amp;&amp; !_.isEmpty(alertInfo[type].location) &amp;&amp; //Public
-          &lt;div className='srcIp-content'>
-            {this.getPublicIPcontent(type)}
-          &lt;/div>
-        }
+    if (alertInfo[ipType].locationType === 1) { //Public
+      let locationEmpty = true;
 
-        {type === 'srcIp' &amp;&amp; !_.isEmpty(alertInfo[type].topology) &amp;&amp; //Private
-          &lt;div className='srcIp-content'>
-            {this.getPrivateInfo(type)}
-          &lt;/div>
+      _.forEach(alertInfo[ipType].location, val => { //Check if location data is available
+        if (val) {
+          locationEmpty = false;
+          return false;
         }
+      })
 
-        {type === 'destIp' &amp;&amp; !_.isEmpty(alertInfo[type].location) &amp;&amp; //Public
-          &lt;div className='destIp-content'>
-            {this.getPublicIPcontent(type)}
-          &lt;/div>
-        }
+      if (locationEmpty) {
+        return &lt;span>{NOT_AVAILABLE}&lt;/span>;
+      }
 
-        {type === 'destIp' &amp;&amp; !_.isEmpty(alertInfo[type].topology) &amp;&amp; //Private
-          &lt;div className='destIp-content'>
-            {this.getPrivateInfo(type)}
-          &lt;/div>
-        }
-      &lt;/div>
-    )
+      return (
+        &lt;div>
+          {ipType === 'srcIp' &amp;&amp;
+            &lt;div className='privateIp-info srcIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            &lt;/div>
+          }
+
+          {ipType === 'destIp' &amp;&amp;
+            &lt;div className='privateIp-info destIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            &lt;/div>
+          }
+        &lt;/div>
+      )
+    } else if (alertInfo[ipType].locationType === 2) { //Private
+      if (_.isEmpty(alertInfo[ipType].topology)) {
+        return &lt;span>{NOT_AVAILABLE}&lt;/span>;
+      }
+
+      return (
+        &lt;div>
+          {ipType === 'srcIp' &amp;&amp;
+            &lt;div className='privateIp-info srcIp-content'>
+              {this.getPrivateInfo(ipType)}
+            &lt;/div>
+          }
+
+          {ipType === 'destIp' &amp;&amp;
+            &lt;div className='privateIp-info destIp-content'>
+              {this.getPrivateInfo(ipType)}
+            &lt;/div>
+          }
+        &lt;/div>
+      )
+    }
   }
   /**
-   * Handle trigger button for HMD
+   * Toggle yara rule dialog
    * @method
-   * @param {array.&lt;string>} type - HMD scan type
-   * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
    */
-  triggerTask = (type, activeIP) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {ipDeviceInfo, ipType} = this.state;
-    const url = `${baseUrl}/api/hmd/retrigger`;
-    const activeIPtype = activeIP || ipType;
-    const requestData = {
-      hostId: ipDeviceInfo[activeIPtype].ipDeviceUUID,
-      cmds: type
-    };
+  toggleYaraRule = (ipType) => {
+    if (ipType) {
+      this.setState({
+        ipType
+      });
+    }
 
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: &lt;div>{t('txt-requestSent')}&lt;/div>
-        });
-        this.getHMDinfo(type);
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
+    this.setState({
+      modalYaraRuleOpen: !this.state.modalYaraRuleOpen
     });
   }
   /**
    * Toggle IR combo selection dialog
    * @method
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
    */
   toggleSelectionIR = (ipType) => {
+    if (ipType) {
+      this.setState({
+        ipType
+      });
+    }
+
     this.setState({
-      modalIRopen: !this.state.modalIRopen,
-      ipType
+      modalIRopen: !this.state.modalIRopen
     });
+  }
+  /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle trigger button for HMD
+   * @method
+   * @param {array.&lt;string>} type - HMD scan type
+   * @param {string} [ipTypeParam] - IP type ('srcIp' or 'destIp')
+   * @param {object} [yaraRule] - yara rule data
+   */
+  triggerTask = (type, ipTypeParam, yaraRule) => {
+    const {baseUrl} = this.context;
+    const {alertInfo, ipDeviceInfo, ipType} = this.state;
+    const ip = this.getIpPortData(ipTypeParam || ipType);
+    let requestData = {
+      hostId: ipDeviceInfo[ipTypeParam || ipType].ipDeviceUUID,
+      cmds: type
+    };
+
+    if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
+      requestData.paras = {
+        _FilepathList: pathData,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    if (!ip) {
+      return;
+    }
+
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/hmd/retrigger`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/v2/ipdevice?exactIp=${ip}&amp;page=1&amp;pageSize=5`,
+        type: 'GET'
+      }
+    ];
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
+    let tempAlertInfo = {...alertInfo};
+    let tempIPdeviceInfo = {...ipDeviceInfo};
+
+    this.ah.series(apiArr)
+    .then(data => {
+      if (data) {
+        if (data[0]) {
+          helper.showPopupMsg(t('txt-requestSent'));
+
+          if (type[0] === 'compareIOC') {
+            this.toggleYaraRule();
+          }
+
+          if (type[0] === 'ir') {
+            this.toggleSelectionIR();
+          }
+        }
+
+        if (data[1] &amp;&amp; data[1].counts === 0) {
+          tempAlertInfo[ipTypeParam || ipType].exist = false;
+
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
+        }
+
+        if (data[2] &amp;&amp; data[1].counts > 0) {
+          tempAlertInfo[ipTypeParam || ipType].exist = true;
+          tempIPdeviceInfo[ipTypeParam || ipType] = data[2];
+
+          this.setState({
+            alertInfo: tempAlertInfo,
+            ipDeviceInfo: tempIPdeviceInfo,
+            modalIRopen: false
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle trigger button for HMD Malware
+   * @method
+   * @param {array.&lt;string>} filePath - Malware file path
+   * @param {string} taskId - Task ID
+   */
+  triggerFilesTask = (filePath, taskId) => {
+    const {baseUrl} = this.context;
+    const {ipDeviceInfo, ipType} = this.state;
+    const requestData = {
+      hostId: ipDeviceInfo[ipType].ipDeviceUUID,
+      cmds: ['getHmdFiles'],
+      paras: {
+        _FilepathVec: filePath,
+        _FileName: taskId
+      }
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/retrigger`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle malware add to white list
+   * @method
+   * @param {string} fileMD5 - File MD5
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  addToWhiteList = (fileMD5, ipType) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const requestData = [{
+      fileMD5,
+      hasHandled: true
+    }];
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/malwareList`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.getHMDinfo(ipType);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display safety scan content
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HMDscanInfo component
    */
-  displaySafetyScanContent = (type) => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
-    const {ipDeviceInfo} = this.state;
+  displaySafetyScanContent = (ipType) => {
+    const {activeScanType, ipDeviceInfo, eventInfo} = this.state;
 
-    if (ipDeviceInfo[type].isHmd) {
+    if (ipDeviceInfo[ipType].isHmd) {
       return (
         &lt;HMDscanInfo
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          language={language}
-          locale={locale}
-          ipType={type}
-          currentDeviceData={ipDeviceInfo[type]}
-          toggleSelectionIR={this.toggleSelectionIR}
+          page='threats'
+          activeScanType={activeScanType}
+          ipType={ipType}
+          currentDeviceData={ipDeviceInfo[ipType]}
+          eventInfo={eventInfo}
           showAlertData={this.showAlertData}
-          triggerTask={this.triggerTask} />
+          toggleYaraRule={this.toggleYaraRule}
+          toggleSelectionIR={this.toggleSelectionIR}
+          triggerTask={this.triggerTask}
+          triggerFilesTask={this.triggerFilesTask}
+          addToWhiteList={this.addToWhiteList}
+          getHMDinfo={this.getHMDinfo}
+          loadEventTracing={this.loadEventTracing} />
       )
     } else {
       return &lt;span>{NOT_AVAILABLE}&lt;/span>
     }
   }
   /**
-   * Display JSON Data content
+   * Display network behavior content
    * @method
-   * @returns HTML DOM
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   * @returns NetworkBehavior component
    */
-  displayJsonData = () => {
-    const {alertData} = this.props;
-    const hiddenFields = ['id', '_tableMenu_'];
-    const allData = _.omit(alertData, hiddenFields);
-
+  displayNetworkBehaviorContent = (ipType) => {
     return (
-      &lt;ul className='json-data alert'>
-        &lt;li>&lt;JSONTree data={allData} theme={helper.getJsonViewTheme()} />&lt;/li>
-      &lt;/ul>
+      &lt;NetworkBehavior
+        ipType={ipType}
+        alertData={this.props.alertData}
+        getIpPortData={this.getIpPortData} />
     )
-  }
-  /**
-   * Get Alert PCAP file
-   * @method
-   */
-  getPcapFile = () => {
-    const {baseUrl, alertData} = this.props;
-    const projectId = alertData.projectName;
-    const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
-    const data = {
-      projectId : projectId,
-      ipSrc: this.getIpPortData('srcIp'),
-      portSrc: this.getIpPortData('srcPort'),
-      ipDst: this.getIpPortData('destIp'),
-      portDst: this.getIpPortData('destPort'),
-      lastPacket: alertData.lastPacket
-    };
-
-    helper.getAjaxData('POST', url, data)
-    .then(data => {
-      if (data.ResultMessage === 'fail') {
-        helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
-      } else {
-        window.location.assign(data.PcapFilelink);
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
-    });
   }
   /**
    * Download paylaod file
    * @method
-   * @returns false if origFileId and fileMD5 are not available
    */
   downloadFile = () => {
-    const {baseUrl, contextRoot, alertData} = this.props;
-    const dataObj = {
-      origFileId: alertData.origFileId,
-      md5: alertData.fileMD5
-    };
+    const {baseUrl, contextRoot} = this.context;
+    const {alertData} = this.props;
+    let requestData = {};
 
-    if (!alertData.origFileId &amp;&amp; !alertData.fileMD5) {
+    if (alertData.fileMD5) {
+      requestData = {
+        md5: alertData.fileMD5
+      };
+    } else {
+      helper.showPopupMsg(t('txt-error'));
       return;
     }
 
     this.ah.one({
       url: `${baseUrl}/api/honeynet/attack/payload/file`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
@@ -1267,6 +2495,7 @@ class AlertDetails extends Component {
       if (data.id) {
         window.location.href = `${baseUrl}${contextRoot}/api/honeynet/attack/payload/file/${data.id}`;
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1280,40 +2509,23 @@ class AlertDetails extends Component {
     this.setState({
       showContent: {
         rule: false,
-        pcap: false,
         attack: false,
         srcIp: false,
         destIp: false
       },
-      alertRule: '',
-      alertPCAP: {
-        data: [],
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        activeIndex: null,
-        hex: '',
-        filterEmpty: false
-      },
       alertPayload: ''
     });
   }
-  /**
-   * Display IR selection modal dialog
-   * @method
-   * @returns IrSelections component
-   */
-  irSelectionDialog = () => {
-    return (
-      &lt;IrSelections
-        triggerTask={this.triggerTask}
-        toggleSelectionIR={this.toggleSelectionIR}
-      />
-    )
-  }
   render() {
     const {titleText, actions} = this.props;
-    const {modalIRopen} = this.state;
+    const {showContent, ipDeviceInfo, modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
+    let ipType = '';
+
+    if (showContent.srcSafety) {
+      ipType = 'srcIp';
+    } else if (showContent.destSafety) {
+      ipType = 'destIp';
+    }
 
     return (
       &lt;div>
@@ -1328,29 +2540,44 @@ class AlertDetails extends Component {
           {this.displayAlertData()}
         &lt;/ModalDialog>
 
+        {modalYaraRuleOpen &amp;&amp;
+          &lt;YaraRule
+            toggleYaraRule={this.toggleYaraRule}
+            checkYaraRule={this.checkYaraRule} />
+        }
+
         {modalIRopen &amp;&amp;
-          this.irSelectionDialog()
+          &lt;IrSelections
+            currentDeviceData={ipDeviceInfo[ipType]}
+            toggleSelectionIR={this.toggleSelectionIR}
+            triggerTask={this.triggerTask} />
+        }
+
+        {modalEncodeOpen &amp;&amp;
+          &lt;EncodeDecode
+            highlightedText={highlightedText}
+            openEncodeDialog={this.openEncodeDialog} />
         }
       &lt;/div>
     )
   }
 }
 
+AlertDetails.contextType = BaseDataContext;
+
 AlertDetails.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
   titleText: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
   alertDetails: PropTypes.object.isRequired,
   alertData: PropTypes.object.isRequired,
   showAlertData: PropTypes.func.isRequired,
+  currentPage: PropTypes.number,
+  pageSize: PropTypes.number,
+  totalPageCount: PropTypes.number,
   fromPage: PropTypes.string.isRequired
 };
 
-const HocAlertDetails = withLocale(AlertDetails);
-export { AlertDetails, HocAlertDetails };</code></pre>
+export default withRouter(AlertDetails);</code></pre>
         </article>
     </section>
 
@@ -1360,13 +2587,13 @@ export { AlertDetails, HocAlertDetails };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

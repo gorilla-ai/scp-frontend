@@ -28,28 +28,41 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
-import cx from 'classnames'
+import moment from 'moment'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+
 import DataTable from 'react-ui/build/src/components/table'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
-import {HocConfig as Config} from '../../common/configuration'
-import {HocFloorMap as FloorMap} from '../../common/floor-map'
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
+import Edge from './edge'
+import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
 import IpRange from './ip-range'
-import Scanner from './scanner'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const FORM_VALIDATION = {
+  ip: {
+    valid: true
+  },
+  port: {
+    valid: true
+  }
+};
 
 let t = null;
 let et = null;
@@ -57,7 +70,7 @@ let et = null;
 /**
  * Network Topology Inventory Auto Settings
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to manage auto settings
  */
 class AutoSettings extends Component {
@@ -65,13 +78,14 @@ class AutoSettings extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'viewMode', //viewMode, editMode
+      activeContent: 'viewMode', //'viewMode' or 'editMode'
+      networkTestOpen: false,
       originalStatusEnable: {},
       statusEnable: {
         ipRange: true,
         ad_ldap: true,
         netflow: true,
-        scanner: true
+        networkTopology: true
       },
       originalIPrangeData: [],
       ipRangeData: [{
@@ -95,13 +109,24 @@ class AutoSettings extends Component {
       },
       netFlowTableData: [],
       deviceList: [],
-      originalScannerData: [],
-      scannerData: [{
+      originalEdgeData: [],
+      edgeData: [{
         edge: '',
-        ip: '',
-        mask: ''
+        networkTopoData: {
+          target: [{
+            ip: '',
+            mask: ''
+          }],
+          switch: [{
+            ip: '',
+            mask: ''
+          }],
+        },
+        index: 0
       }],
-      scannerTableData: []
+      topoTriggerStatus: '',
+      networkTestResult: [],
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -109,15 +134,23 @@ class AutoSettings extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
     this.getSettingsInfo();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
   }
   /**
    * Get and set auto settings data
    * @method
    */
   getSettingsInfo = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
+    const {baseUrl} = this.context;
+    const {statusEnable, ipRangeData, adData, netflowData, deviceList, edgeData} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/config`,
@@ -130,16 +163,17 @@ class AutoSettings extends Component {
         let ipRangeData = [];
         let tempADdata = {...adData};
         let tempNetflowData = {...netflowData};
-        let scannerData = [];
+        let tempScannerData = [];
+        let tempEdgeData = [];
         tempStatusEnable.ipRange = data['ip.enable'];
         tempStatusEnable.ad_ldap = data['ad.enable'];
         tempStatusEnable.netflow = data['netflow.enable'];
-        tempStatusEnable.scanner = data['scanner.enable'];
+        tempStatusEnable.networkTopology = data['networktopology.enable'];
 
         let privateIParr = [];
         let publicIParr = [];
 
-        if (data['ip.private'].range.length > 0) {
+        if (data['ip.private'] &amp;&amp; data['ip.private'].range.length > 0) {
           _.forEach(data['ip.private'].range, val => {
             privateIParr = val.split('/');
 
@@ -151,7 +185,7 @@ class AutoSettings extends Component {
           })
         }
 
-        if (data['ip.public'].range.length > 0) {
+        if (data['ip.public'] &amp;&amp; data['ip.public'].range.length > 0) {
           _.forEach(data['ip.public'].range, val => {
             publicIParr = val.split('/');
 
@@ -163,22 +197,36 @@ class AutoSettings extends Component {
           })
         }
 
-        tempADdata.type = data['ad.type'];
+        tempADdata.type = data['ad.type'] || adData.type;
         tempADdata.ip = data['ad.host'];
         tempADdata.port = data['ad.port'];
         tempADdata.domain = data['ad.domain'];
         tempADdata.username = data['ad.username'];
         tempADdata.password = data['ad.password'];
-        tempNetflowData.time = data['netflow.period.hr'];
+        tempNetflowData.time = data['netflow.period.hr'] || netflowData.time;
 
-        if (data.scanner.length > 0) {
-          _.forEach(data.scanner, val => {
-            scannerData.push({
-              edge: val.edge,
-              ip: val.target,
-              mask: val.mask
+        if (data.networktopology &amp;&amp; data.networktopology.length > 0) {
+          _.forEach(data.networktopology, (val, i) => {
+            let networkTopology = {};
+            networkTopology.edge = val.edge;
+            networkTopology.networkTopoData = {};
+            networkTopology.networkTopoData.target = _.map(val.targetInfo, val2 => {
+              return {
+                ip: val2.target,
+                mask: val2.mask
+              };
             });
+            networkTopology.networkTopoData.switch = _.map(val.switchInfo, val2 => {
+              return {
+                ip: val2.host,
+                mask: val2.community
+              };
+            });
+            networkTopology.index = i;
+            tempEdgeData.push(networkTopology);
           })
+        } else {
+          tempEdgeData = edgeData;
         }
 
         this.setState({
@@ -191,8 +239,9 @@ class AutoSettings extends Component {
           adData: tempADdata,
           originalNetflowData: _.cloneDeep(tempNetflowData),
           netflowData: tempNetflowData,
-          originalScannerData: _.cloneDeep(scannerData),
-          scannerData
+          originalEdgeData: _.cloneDeep(tempEdgeData),
+          edgeData: tempEdgeData,
+          topoTriggerStatus: data['networktopology.trigger.enable']
         }, () => {
           this.getDeviceList();
         });
@@ -208,8 +257,7 @@ class AutoSettings extends Component {
    * @method
    */
   getDeviceList = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {scannerData} = this.state;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/edges`,
@@ -217,26 +265,12 @@ class AutoSettings extends Component {
     })
     .then(data => {
       if (data &amp;&amp; data.length > 0) {
-        const deviceList = _.map(data, val => {
-          return {
-            value: val.target,
-            text: val.target
-          };
+        const deviceList = _.map(data, (val, i) => {
+          return &lt;MenuItem key={i} value={val.target}>{val.name}&lt;/MenuItem>
         });
 
-        let tempScannerData = scannerData;
-
-        if (!scannerData[0].edge) {
-          tempScannerData = [{
-            edge: deviceList[0].value,
-            ip: '',
-            mask: ''
-          }];
-        }
-
         this.setState({
-          deviceList,
-          scannerData: tempScannerData
+          deviceList
         });
       }
       return null;
@@ -256,24 +290,35 @@ class AutoSettings extends Component {
     });
   }
   /**
-   * Set IP range data
+   * Set IP edge data
    * @method
-   * @param {array} scannerData - scanner data
+   * @param {string} type - edge type ('edge', 'target' or 'switch')
+   * @param {object} data - edge data
+   * @param {object} [scanner] - scanner data
    */
-  setScannerData = (scannerData) => {
-    this.setState({
-      scannerData
-    });
+  setEdgeData = (type, data, scanner) => {
+    let tempEdgeData = this.state.edgeData;
+
+    if (type === 'edge') {
+      this.setState({
+        edgeData: data
+      });
+    } else {
+      tempEdgeData[data.index].networkTopoData[type] = scanner;
+
+      this.setState({
+        edgeData: tempEdgeData
+      });
+    }
   }
   /**
    * Set status data
    * @method
-   * @param {string} type - status type
-   * @param {boolean} value - status data
+   * @param {object} event - event object
    */
-  handleStatusChange = (type, value) => {
+  handleStatusChange = (event) => {
     let tempStatusEnable = {...this.state.statusEnable};
-    tempStatusEnable[type] = value;
+    tempStatusEnable[event.target.name] = event.target.checked;
 
     this.setState({
       statusEnable: tempStatusEnable
@@ -282,12 +327,11 @@ class AutoSettings extends Component {
   /**
    * Handle AD/LDAP input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleADchange = (type, value) => {
+  handleADchange = (event) => {
     let tempADdata = {...this.state.adData};
-    tempADdata[type] = value;
+    tempADdata[event.target.name] = event.target.value;
 
     this.setState({
       adData: tempADdata
@@ -296,7 +340,7 @@ class AutoSettings extends Component {
   /**
    * Display AD/LDAP test query content
    * @method
-   * @returns HTML DOM
+   * @returns DataTable component or HTML DOM
    */
   getADtestContent = () => {
     const {adTableData} = this.state;
@@ -324,7 +368,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleADtest = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {adData} = this.state;
     const url = `${baseUrl}/api/ipdevice/config/ad/_test`;
     const requestData = {
@@ -354,17 +398,18 @@ class AutoSettings extends Component {
           });
         });
       } else {
-        helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
+        helper.showPopupMsg(t('auto-settings.txt-connectionsFail'), t('txt-error'));
       }
+      return null;
     })
     .catch(err => {
-      helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
+      helper.showPopupMsg(t('auto-settings.txt-connectionsFail'), t('txt-error'));
     })
   }
   /**
    * Display Netflow test query content
    * @method
-   * @returns HTML DOM
+   * @returns DataTable component or HTML DOM
    */
   getNetflowTestContent = () => {
     const {netFlowTableData} = this.state;
@@ -386,7 +431,7 @@ class AutoSettings extends Component {
           }} />
       )
     } else {
-      return &lt;span>{t('txt-notFound')}&lt;/span>
+      return &lt;div className='align-center'>{t('txt-notFound')}&lt;/div>
     }
   }
   /**
@@ -394,10 +439,10 @@ class AutoSettings extends Component {
    * @method
    */
   handleNetflowtest = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const dateTime = {
-      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment().utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -425,60 +470,106 @@ class AutoSettings extends Component {
     })
   }
   /**
-   * Display Scanner test query content
+   * Get formatted edgeData for http request
    * @method
-   * @returns HTML DOM
+   * @returns formatted network topology data
    */
-  getScannerTestContent = () => {
-    const {scannerTableData} = this.state;
+  getFormattedEdgeData = () => {
+    let networkTopology = [];
 
-    if (scannerTableData.length > 0) {
-      return (
-        &lt;DataTable
-          className='main-table'
-          fields={{
-            ip: { label: t('ipFields.ip'), sortable: true },
-            mac: { label: t('ipFields.mac'), sortable: true },
-            hostName: { label: t('ipFields.hostName'), sortable: true }
-          }}
-          data={scannerTableData}
-          defaultSort={{
-            field: 'ip',
-            desc: true
-          }} />
-      )
-    } else {
-      return &lt;span>{t('txt-notFound')}&lt;/span>
-    }
+    _.forEach(this.state.edgeData, val => {
+      networkTopology.push({
+        edge: val.edge,
+        targetInfo: _.map(val.networkTopoData.target, val2 => {
+          return {
+            target: val2.ip,
+            mask: val2.mask
+          };
+        }),
+        switchInfo: _.map(val.networkTopoData.switch, val2 => {
+          return {
+            host: val2.ip,
+            community: val2.mask
+          };
+        })
+      });
+    })
+
+    return networkTopology;
   }
   /**
-   * Get and set Scanner test result
+   * Show message to the user
+   * @param {number} [index] - index of edgeData
    * @method
    */
-  handleScannerTest = (value) => {
-    const {baseUrl, contextRoot} = this.props;
+  showMessage = (index) => {
+    PopupDialog.prompt({
+      title: t('network-inventory.txt-testQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('network-inventory.txt-warningMsg')}&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleNetworkTest('test', index);
+        }
+      }
+    });
+  }
+  /**
+   * Get and network test result
+   * @param {string} type - button type ('generate' or 'test')
+   * @param {number} [index] - index of edgeData
+   * @method
+   */
+  handleNetworkTest = (type, index) => {
+    const {baseUrl} = this.context;
+    const {edgeData} = this.state;
+    const url = `${baseUrl}/api/ipdevice/topology`;
+    const formattedEdgeData = this.getFormattedEdgeData();
+    let requestData = {};
+
+    if (type === 'generate') {
+      requestData = {
+        isTest: false,
+        networktopology: formattedEdgeData
+      };
+    } else if (type === 'test') {
+      requestData = {
+        isTest: true,
+        networktopology: [formattedEdgeData[index]]
+      };
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_scan?edge=${value.edge}&amp;target=${value.ip}&amp;mask=${value.mask}`,
-      type: 'GET'
-    })
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: type === 'test'})
     .then(data => {
       if (data) {
-        this.setState({
-          scannerTableData: data
-        }, () => {
-          PopupDialog.alert({
-            id: 'modalWindowSmall',
-            confirmText: t('txt-close'),
-            display: this.getScannerTestContent()
+        if (type === 'test') {
+          this.setState({
+            networkTestResult: data
+          }, () => {
+            this.toggleNetworkTestDialog();
           });
-        });
+        }
       }
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    if (type === 'generate') {
+      helper.showPopupMsg(t('txt-requestSent'));
+    }
   }
   /**
    * Toggle content type
@@ -486,7 +577,14 @@ class AutoSettings extends Component {
    * @param {string} type - content type ('viewMode', 'editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalStatusEnable, originalIPrangeData, originalADdata, originalNetflowData, originalScannerData} = this.state;
+    const {
+      originalStatusEnable,
+      originalIPrangeData,
+      originalADdata,
+      originalNetflowData,
+      originalScannerData,
+      originalEdgeData
+    } = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -500,7 +598,8 @@ class AutoSettings extends Component {
         ipRangeData: _.cloneDeep(originalIPrangeData),
         adData: _.cloneDeep(originalADdata),
         netflowData: _.cloneDeep(originalNetflowData),
-        scannerData: _.cloneDeep(originalScannerData)
+        edgeData: _.cloneDeep(originalEdgeData),
+        formValidation: _.cloneDeep(FORM_VALIDATION)
       });
     }
 
@@ -513,17 +612,47 @@ class AutoSettings extends Component {
    * @method
    */
   handleSettingsConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {statusEnable, ipRangeData, adData, netflowData, scannerData} = this.state;
+    const {baseUrl} = this.context;
+    const {statusEnable, ipRangeData, adData, netflowData, edgeData, formValidation} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     let requestData = {
       'ip.enable': statusEnable.ipRange,
       'ad.enable': statusEnable.ad_ldap,
       'netflow.enable': statusEnable.netflow,
-      'scanner.enable': statusEnable.scanner,
+      'networktopology.enable': statusEnable.networkTopology
     };
     let ipRangePrivate = [];
     let ipRangePublic = [];
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (adData.ip) {
+      if (IP_PATTERN.test(adData.ip)) { //Check IP format
+        tempFormValidation.ip.valid = true;
+      } else {
+        tempFormValidation.ip.valid = false;
+        validate = false;
+      }
+    }
+
+    if (adData.port) {
+      const portNumber = Number(adData.port);
+
+      if (portNumber &lt;= 0 || portNumber > 65535) { //Check port number
+        tempFormValidation.port.valid = false;
+        validate = false;
+      } else {
+        tempFormValidation.port.valid = true;
+      }
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     _.forEach(ipRangeData, val => {
       if (val.type === 'private') {
@@ -548,223 +677,406 @@ class AutoSettings extends Component {
     requestData['ad.domain'] = adData.domain;
     requestData['ad.username'] = adData.username;
     requestData['ad.password'] = adData.password;
-    requestData.scanner = _.map(scannerData, val => {
-      return {
-        edge: val.edge,
-        target: val.ip,
-        mask: Number(val.mask)
-      };
-    });
 
-    helper.getAjaxData('POST', url, requestData)
+    requestData.networktopology = this.getFormattedEdgeData();
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.getSettingsInfo();
       }
+      return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get input width based on content mode
+   * @method
+   * @param {string} type - input type ('ipRange')
+   * @returns input width
+   */
+  getInputWidth = (type) => {
+    const {activeContent} = this.state;
+
+    if (type === 'ipRange') {
+      if (activeContent === 'viewMode') {
+        return '32%';
+      } else if (activeContent === 'editMode') {
+        return '30%';
+      }
+    }
+
+    if (type === 'networkTopology') {
+      return '50%';
+    }
+  }
+  /**
+   * Toggle test result modal dialog
+   * @method
+   */
+  toggleNetworkTestDialog = () => {
+    this.setState({
+      networkTestOpen: !this.state.networkTestOpen
     });
   }
   /**
-   * Get Back button position
+   * Display network data
    * @method
-   * @param {string} type - button type
-   * @returns width
+   * @param {object} val - content of the data
+   * @param {number} i - index of the data
+   * @returns HTML DOM
    */
-  getBtnPos = (type) => {
-    const {locale} = this.props;
+  showNetworkData = (val, i) => {
+    return (
+      &lt;tr>
+        &lt;td>&lt;div>{val.content.dstIP}&lt;/div>&lt;div>{val.content.srcIP}&lt;/div>&lt;/td>
+        &lt;td>{val.content.message}&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display Network data table
+   * @method
+   * @returns HTML DOM
+   */
+  displayNetworkTable = () => {
+    const {networkTestResult} = this.state;
 
-    if (type === 'back') {
-      if (locale === 'zh') {
-        return '88px';
-      } else if (locale === 'en') {
-        return '83px';
-      }
+    if (networkTestResult.length > 0) {
+      return (
+        &lt;table className='c-table main-table'>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>Host&lt;/th>
+              &lt;th>Port&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            {this.state.networkTestResult.map(this.showNetworkData)}
+          &lt;/tbody>
+        &lt;/table>
+      )
+    } else {
+      return (
+        &lt;div>{t('txt-notFound')}&lt;/div>
+      )
     }
+  }
+  /**
+   * Display network test result modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showNetworkTestDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.toggleNetworkTestDialog}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='testResultDialog'
+        className='modal-dialog'
+        title={t('network-inventory.txt-testQuery')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayNetworkTable()}
+      &lt;/ModalDialog>
+    )
   }
   render() {
     const {
       activeContent,
+      networkTestOpen,
       statusEnable,
       ipRangeData,
       adData,
       netflowData,
       deviceList,
-      scannerData
+      edgeData,
+      topoTriggerStatus,
+      formValidation
     } = this.state;
-    const data = {
+    const scannerProps = {
+      activeContent,
+      statusEnable,
+      deviceList
+    };
+    const networkTopologyProps = {
       activeContent,
       statusEnable,
       deviceList,
-      handleScannerTest: this.handleScannerTest
+      edgeData,
+      getInputWidth: this.getInputWidth,
+      showMessage: this.showMessage,
+      handleNetworkTest: this.handleNetworkTest,
+      setEdgeData: this.setEdgeData
     };
-    const adFormTitle = adData.type === 'AD' ? t('network-inventory.auto-settings.txt-AD') : t('network-inventory.auto-settings.txt-LDAP');
+    const adFormTitle = adData.type === 'AD' ? t('auto-settings.txt-AD') : t('auto-settings.txt-LDAP');
 
     return (
       &lt;div className='parent-content'>
+        {networkTestOpen &amp;&amp;
+          this.showNetworkTestDialog()
+        }
+
         &lt;div className='main-content basic-form'>
           &lt;header className='main-header'>{t('network-inventory.txt-autoSettings')}&lt;/header>
+
           {activeContent === 'viewMode' &amp;&amp;
-            &lt;div>
-              &lt;button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}&lt;/button>
-              &lt;button className='standard btn no-padding' style={{right: this.getBtnPos('back')}}>
-                &lt;Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}&lt;/Link>
-              &lt;/button>
+            &lt;div className='content-header-btns'>
+              &lt;Button id='autoSettingsBackToList' variant='outlined' color='primary' className='standard btn no-padding'>
+                &lt;Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}&lt;/Link>
+              &lt;/Button>
+              &lt;Button id='autoSettingsEditSettings' variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}&lt;/Button>
             &lt;/div>
           }
-          &lt;div className='form-group normal'>
-            &lt;header>{t('network-inventory.auto-settings.txt-ipRange')}&lt;/header>
-            &lt;ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={statusEnable.ipRange}
-              onChange={this.handleStatusChange.bind(this, 'ipRange')}
-              disabled={activeContent === 'viewMode'} />
-            &lt;div className='group full multi'>
-              &lt;label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
-                &lt;span>Type&lt;/span>
-                &lt;span>IP&lt;/span>
-                &lt;span>Mask&lt;/span>
-              &lt;/label>
-              &lt;MultiInput
-                id='autoSettingsIpRange'
-                className='ip-range-group'
-                base={IpRange}
-                props={data}
-                defaultItemValue={{
-                  type: 'private',
-                  ip: '',
-                  mask: ''
-                }}
-                onChange={this.setIpRangeData}
-                value={ipRangeData} />
-            &lt;/div>
-          &lt;/div>
-          &lt;div className='form-group normal short'>
-            &lt;header>{adFormTitle}&lt;/header>
-            &lt;RadioGroup
-              id='autoSettingsAD'
-              className='radio-group'              
-              list={[
-                {value: 'AD', text: t('network-inventory.auto-settings.txt-AD')},
-                {value: 'LDAP', text: t('network-inventory.auto-settings.txt-LDAP')}
-              ]}
-              onChange={this.handleADchange.bind(this, 'type')}
-              value={adData.type}
-              disabled={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            &lt;button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}&lt;/button>
-            &lt;ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={statusEnable.ad_ldap}
-              onChange={this.handleStatusChange.bind(this, 'ad_ldap')}
-              disabled={activeContent === 'viewMode'} />
-            &lt;div className='group'>
-              &lt;label htmlFor='autoSettingsIP'>IP&lt;/label>
-              &lt;Input
-                id='autoSettingsIP'
-                onChange={this.handleADchange.bind(this, 'ip')}
-                value={adData.ip}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            &lt;/div>
-            &lt;div className='group'>
-              &lt;label htmlFor='autoSettingsPort'>Port&lt;/label>
-              &lt;Input
-                id='autoSettingsPort'
-                onChange={this.handleADchange.bind(this, 'port')}
-                value={adData.port}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            &lt;/div>
-            &lt;div className='group' style={{width: '50%'}}>
-              &lt;label htmlFor='autoSettingsDomain'>Domain&lt;/label>
-              &lt;Input
-                id='autoSettingsDomain'
-                onChange={this.handleADchange.bind(this, 'domain')}
-                value={adData.domain}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            &lt;/div>
-            &lt;div className='group' style={{width: '50%'}}>
-              &lt;label htmlFor='autoSettingsUsername'>Username&lt;/label>
-              &lt;Input
-                id='autoSettingsUsername'
-                onChange={this.handleADchange.bind(this, 'username')}
-                value={adData.username}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            &lt;/div>
-            &lt;div className='group' style={{width: '50%'}}>
-              &lt;label htmlFor='autoSettingsPassword'>Password&lt;/label>
-              &lt;Input
-                id='autoSettingsPassword'
-                type='password'
-                onChange={this.handleADchange.bind(this, 'password')}
-                value={adData.password}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            &lt;/div>
-          &lt;/div>
 
-          &lt;div className='form-group normal'>
-            &lt;header>{t('network-inventory.auto-settings.txt-netflow')}&lt;/header>
-            &lt;button className='last' style={{right: '85px'}} onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}&lt;/button>
-            &lt;ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={statusEnable.netflow}
-              onChange={this.handleStatusChange.bind(this, 'netflow')}
-              disabled={activeContent === 'viewMode'} />
-            &lt;div className='group'>
-              &lt;label htmlFor='autoSettingsNetflow'>{t('txt-updateTime')}&lt;/label>
-              &lt;DropDownList
-                id='autoSettingsNetflow'
-                required={true}
-                list={[
-                  {value: '24', text: t('events.connections.txt-last24h')}
-                ]}
-                value={netflowData.time}
-                readOnly={activeContent === 'viewMode' || !statusEnable.netflow} />
-            &lt;/div>
-          &lt;/div>
-
-          {deviceList.length > 0 &amp;&amp;
+          &lt;div className='auto-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
             &lt;div className='form-group normal'>
-              &lt;header>{t('network-inventory.auto-settings.txt-scanner')}&lt;/header>
-              &lt;ToggleBtn
-                className='toggle-btn'
-                onText='On'
-                offText='Off'
-                on={statusEnable.scanner}
-                onChange={this.handleStatusChange.bind(this, 'scanner')}
-                disabled={activeContent === 'viewMode'} />
+              &lt;header>{t('auto-settings.txt-ipRange')}&lt;/header>
+              &lt;div className='form-options'>
+                &lt;FormControlLabel
+                  id='autoSettingsIpRangeSwitch'
+                  className='toggle-btn'
+                  control={
+                    &lt;Switch
+                      name='ipRange'
+                      checked={statusEnable.ipRange}
+                      onChange={this.handleStatusChange}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
               &lt;div className='group full multi'>
-                &lt;label id='scannerLabel' htmlFor='autoSettingsScanner'>
-                  &lt;span>Edge&lt;/span>
-                  &lt;span>IP&lt;/span>
-                  &lt;span>Mask&lt;/span>
+                &lt;label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
+                  &lt;span style={{width: this.getInputWidth('ipRange')}}>Type&lt;/span>
+                  &lt;span style={{width: this.getInputWidth('ipRange')}}>IP&lt;/span>
+                  &lt;span style={{width: this.getInputWidth('ipRange')}}>Mask&lt;/span>
                 &lt;/label>
                 &lt;MultiInput
-                  id='autoSettingsScanner'
-                  className='scanner-group'
-                  base={Scanner}
-                  props={data}
+                  id='autoSettingsIpRange'
+                  className='ip-range-group'
+                  base={IpRange}
+                  props={scannerProps}
                   defaultItemValue={{
-                    edge: deviceList[0].value,
+                    type: 'private',
                     ip: '',
                     mask: ''
                   }}
-                  onChange={this.setScannerData}
-                  handleScannertest={this.handleScannerTest}
-                  value={scannerData} />
+                  value={ipRangeData}
+                  onChange={this.setIpRangeData}
+                  disabled={activeContent === 'viewMode'} />
               &lt;/div>
             &lt;/div>
-          }
+
+            &lt;div className='form-group normal short'>
+              &lt;header>{adFormTitle}&lt;/header>
+              &lt;RadioGroup
+                id='autoSettingsAD'
+                className='radio-group'
+                name='type'
+                value={adData.type}
+                onChange={this.handleADchange}>
+                &lt;FormControlLabel
+                  value='AD'
+                  control={
+                    &lt;Radio
+                      id='autoSettingsADad'
+                      className='radio-ui'
+                      color='primary' />
+                  }
+                  label={t('auto-settings.txt-AD')}
+                  disabled={activeContent === 'viewMode'} />
+                &lt;FormControlLabel
+                  value='LDAP'
+                  control={
+                    &lt;Radio
+                      id='autoSettingsADLdap'
+                      className='radio-ui'
+                      color='primary' />
+                  }
+                  label={t('auto-settings.txt-LDAP')}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/RadioGroup>
+              &lt;div className='form-options'>
+                &lt;Button id='autoSettingsHandleAdTest' variant='contained' color='primary' onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}&lt;/Button>
+                &lt;FormControlLabel
+                  id='autoSettingsAdTestSwitch'
+                  className='toggle-btn'
+                  control={
+                    &lt;Switch
+                      name='ad_ldap'
+                      checked={statusEnable.ad_ldap}
+                      onChange={this.handleStatusChange}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+              &lt;div className='group'>
+                &lt;TextField
+                  id='autoSettingsAdIP'
+                  name='ip'
+                  label='IP'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  error={!formValidation.ip.valid}
+                  helperText={formValidation.ip.valid ? '' : t('network-topology.txt-ipValidationFail')}
+                  value={adData.ip}
+                  onChange={this.handleADchange}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+              &lt;div className='group'>
+                &lt;TextField
+                  id='autoSettingsAdPort'
+                  name='port'
+                  type='number'
+                  label='Port'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  error={!formValidation.port.valid}
+                  helperText={formValidation.port.valid ? '' : t('network-topology.txt-portValidationFail')}
+                  InputProps={{ inputProps: { min: 1, max: 65535 } }}
+                  value={adData.port}
+                  onChange={this.handleADchange}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+              &lt;div className='group' style={{width: '50%'}}>
+                &lt;TextField
+                  id='autoSettingsAdDomain'
+                  name='domain'
+                  label={t('txt-domain')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={adData.domain}
+                  onChange={this.handleADchange}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+              &lt;div className='group' style={{width: '50%'}}>
+                &lt;TextField
+                  id='autoSettingsAdUsername'
+                  name='username'
+                  label={t('auto-settings.txt-username')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={adData.username}
+                  onChange={this.handleADchange}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+              &lt;div className='group' style={{width: '50%'}}>
+                &lt;TextField
+                  id='autoSettingsAdPassword'
+                  name='password'
+                  type='password'
+                  label={t('auto-settings.txt-password')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={adData.password}
+                  onChange={this.handleADchange}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+            &lt;/div>
+
+            &lt;div className='form-group normal' style={{display: 'none'}}>
+              &lt;header>{t('auto-settings.txt-netflow')}&lt;/header>
+              &lt;div className='form-options'>
+                &lt;Button id='autoSettingsHandleFlowTest' variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}&lt;/Button>
+                &lt;FormControlLabel
+                  id='autoSettingsNetFlowSwitch'
+                  className='toggle-btn'
+                  control={
+                    &lt;Switch
+                      name='netflow'
+                      checked={statusEnable.netflow}
+                      onChange={this.handleStatusChange}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewMode'} />
+              &lt;/div>
+              &lt;div className='group'>
+                &lt;TextField
+                  id='autoSettingsNetflowUpdateTime'
+                  name='type'
+                  label={t('txt-updateTime')}
+                  select
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={netflowData.time}
+                  disabled={activeContent === 'viewMode'}>
+                  &lt;MenuItem value={'24'}>{t('time-interval.txt-last24h')}&lt;/MenuItem>
+                &lt;/TextField>
+              &lt;/div>
+            &lt;/div>
+
+            {deviceList.length > 0 &amp;&amp;
+              &lt;div className='form-group normal'>
+                &lt;header>{t('auto-settings.txt-scanner')}&lt;/header>
+                &lt;div className='form-options'>
+                  &lt;FormControlLabel
+                    id='autoSettingScannerSwitch'
+                    className='toggle-btn'
+                    control={
+                      &lt;Switch
+                        name='networkTopology'
+                        checked={statusEnable.networkTopology}
+                        onChange={this.handleStatusChange}
+                        color='primary' />
+                    }
+                    label={t('txt-switch')}
+                    disabled={activeContent === 'viewMode'} />
+                &lt;/div>
+                &lt;div className='group full multi'>
+                  {activeContent === 'viewMode' &amp;&amp; edgeData.length > 0 &amp;&amp;
+                    &lt;Button id='autoSettingsGenerateTopology' variant='contained' color='primary' className='generate-topo' onClick={this.handleNetworkTest.bind(this, 'generate')} disabled={!topoTriggerStatus}>{t('network-inventory.txt-generateTopology')}&lt;/Button>
+                  }
+                  &lt;MultiInput
+                    id='autoSettingsNetworkTopology'
+                    className='edge-group'
+                    base={Edge}
+                    props={networkTopologyProps}
+                    defaultItemValue={{
+                      edge: '',
+                      networkTopoData: {
+                        target: [{
+                          ip: '',
+                          mask: ''
+                        }],
+                        switch: [{
+                          ip: '',
+                          mask: ''
+                        }],
+                      },
+                      index: edgeData.length
+                    }}
+                    value={edgeData}
+                    onChange={this.setEdgeData.bind(this, 'edge')}
+                    disabled={activeContent === 'viewMode'} />
+                &lt;/div>
+              &lt;/div>
+            }
+          &lt;/div>
 
           {activeContent === 'editMode' &amp;&amp;
-            &lt;footer className='no-fixed'>
-              &lt;button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/button>
-              &lt;button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}&lt;/button>
+            &lt;footer>
+              &lt;Button id='autoSettingsCancelSettings' variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+              &lt;Button id='autoSettingsSaveSettings' variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}&lt;/Button>
             &lt;/footer>
           }
         &lt;/div>
@@ -773,13 +1085,12 @@ class AutoSettings extends Component {
   }
 }
 
+AutoSettings.contextType = BaseDataContext;
+
 AutoSettings.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
-const HocAutoSettings = withLocale(AutoSettings);
-export { AutoSettings, HocAutoSettings };</code></pre>
+export default AutoSettings;</code></pre>
         </article>
     </section>
 
@@ -789,13 +1100,13 @@ export { AutoSettings, HocAutoSettings };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

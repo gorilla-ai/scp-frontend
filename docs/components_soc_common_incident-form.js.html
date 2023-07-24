@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soc/common/incident-form.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soc/common/incident-form.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
+
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
+
+import DataTable from 'react-ui/build/src/components/table'
+import {downloadLink, downloadWithForm} from 'react-ui/build/src/utils/download'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../../common/context'
+import Events from './events'
+import helper from '../../common/helper'
+import KillChain from './kill-chain'
+import NotifyContact from './notifyContact'
+import Ttps from './ttps'
+import TtpEdr from './ttp-edr'
+import TtpObsFile from './ttp-obs-file'
+
+import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
+let at = null;
+
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+
+/**
+ * IncidentForm
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the SOC Incident form
+ */
+class IncidentForm extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+    at = global.chewbaccaI18n.getFixedT(null, 'account');
+
+    this.state = {
+    };
+  }
+  componentDidMount() {
+  }
+  showRelatedList = (val, i) => {
+    return &lt;span key={i} className='item'>{val}&lt;/span>
+  }
+  /**
+   * Get classname for form group
+   * @method
+   * @returns class name
+   */
+  getClassName = () => {
+    const {from} = this.props;
+
+    if (from === 'soc' || from === 'pattern') {
+      return 'form-group normal';
+    } else if (from === 'threats') {
+      return 'form-group long';
+    }
+  }
+  /**
+   * Get classname for form group
+   * @method
+   * @returns CSS property object
+   */
+  getStyle = () => {
+    const {from} = this.props;
+
+    if (from === 'threats') {
+      return { width: '85%' };
+    } else if (from === 'pattern') {
+      return { width: '100%' };
+    }
+  }
+  /**
+   * Check required field
+   * @method
+   * @param {string} field - form name
+   * @returns boolean true / false
+   */
+  checkRequiredField = (field) => {
+    const {from, activeContent, requiredField} = this.props;
+    let required = false;
+
+    if (activeContent === 'viewIncident' || activeContent === 'viewPattern') {
+      return;
+    }
+
+    if (from === 'soc') {
+      required = true;
+    }
+
+    if (from === 'pattern' &amp;&amp; requiredField.indexOf(field) > -1) {
+      required = true;
+    }
+
+    return required;
+  }
+  /**
+   * Check error field
+   * @method
+   * @param {string} field - field name
+   * @param {string} value - field value
+   * @returns boolean true
+   */
+  checkErrorField = (field, value) => {
+    const {from, activeContent, requiredField} = this.props;
+
+    if (activeContent === 'viewIncident' || activeContent === 'viewPattern') {
+      return false;
+    }
+
+    if (from === 'soc' &amp;&amp; !value) {
+      return true;
+    }
+
+    if (from === 'pattern' &amp;&amp; requiredField.indexOf(field) > -1 &amp;&amp; !value) {
+      return true;
+    }
+  }
+  /**
+   * Check helper text
+   * @method
+   * @param {string} field - field name
+   * @param {string} value - field value
+   * @returns required text
+   */
+  checkHelperText = (field, value) => {
+    const {from, activeContent, requiredField} = this.props;
+
+    if (activeContent === 'viewIncident' || activeContent === 'viewPattern') {
+      return;
+    }
+
+    if (from === 'soc' &amp;&amp; !value) {
+      return it('txt-required');
+    }
+
+    if (from === 'pattern' &amp;&amp; requiredField.indexOf(field) > -1 &amp;&amp; !value) {
+      return it('txt-required');
+    }
+  }
+  /**
+   * Check disabled status
+   * @method
+   * @returns boolean true / false
+   */
+  checkDisabledStatus = (field) => {
+    const {from, activeContent} = this.props;
+    let disabled = null;
+
+    if (from === 'soc') {
+      if (activeContent === 'addIncident') {
+        disabled = false;
+      } else {
+        disabled = true;
+      }
+    }
+
+    if (from === 'pattern') {
+      if (activeContent === 'viewPattern') {
+        disabled = true;
+      } else {
+        disabled = false;
+      }
+    }
+
+    return disabled;
+  }
+  /**
+   * Display main section
+   * @method
+   * @returns HTML DOM
+   */
+  displayMain = () => {
+    const {locale} = this.context;
+    const {
+      from,
+      activeContent,
+      activeSteps,
+      incidentType,
+      incident,
+      severityList,
+      socFlowList,
+      enableEstablishDttm
+    } = this.props;
+    let required = false;
+    let error = false;
+    let helperText = '';
+    let disabledStatus = null;
+    let establishDttm = '';
+    let disabledEstablishDttm = '';
+    let dateLocale = locale;
+
+    if (from === 'soc' || from === 'pattern') {
+      establishDttm = incident.info.enableEstablishDttm;
+
+      if (from === 'soc') {
+        required = true;
+        disabledStatus = activeContent === 'viewIncident';
+        disabledEstablishDttm = (activeContent === 'viewIncident' || !incident.info.enableEstablishDttm);
+      } else if (from === 'pattern') {
+        disabledStatus = activeContent === 'viewPattern';
+        disabledEstablishDttm = (activeContent === 'viewPattern' || !incident.info.enableEstablishDttm);
+      }
+    } else if (from === 'threats') {
+      establishDttm = enableEstablishDttm;
+      disabledEstablishDttm = !enableEstablishDttm;
+    }
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      &lt;div className={this.getClassName()} style={this.getStyle()}>
+        &lt;header>
+          &lt;div className='text'>{t('edge-management.txt-basicInfo')}&lt;/div>
+          {activeContent &amp;&amp; (activeContent !== 'addIncident' &amp;&amp; activeContent !== 'addPattern') &amp;&amp;
+            &lt;span className='msg'>{f('incidentFields.updateDttm')}{helper.getFormattedDate(incident.info.updateDttm, 'local')}&lt;/span>
+          }
+        &lt;/header>
+
+        {from === 'soc' &amp;&amp;
+          &lt;div className='btn btn-group'>
+            &lt;Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')} disabled>{it('txt-prev-page')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}&lt;/Button>
+          &lt;/div>
+        }
+
+        {from === 'threats' &amp;&amp;
+          &lt;div className='btn btn-group'>
+            &lt;Button id='previousStep' variant='contained' color='primary' className='left-btn' onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}&lt;/Button>
+            &lt;Button id='nextStep' variant='contained' color='primary' onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}&lt;/Button>
+          &lt;/div>
+        }
+
+        &lt;div className='group full'>
+          &lt;label htmlFor='title'>{f('incidentFields.title')}&lt;/label>
+          &lt;TextField
+            id='title'
+            name='title'
+            variant='outlined'
+            fullWidth
+            size='small'
+            required={this.checkRequiredField(incident.info.title)}
+            error={this.checkErrorField('title', incident.info.title)}
+            helperText={this.checkHelperText('title', incident.info.title)}
+            value={incident.info.title}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        {from === 'pattern' &amp;&amp;
+          &lt;div className='group full'>
+            &lt;label htmlFor='title'>{f('incidentFields.rule')}&lt;/label>
+            &lt;TextField
+              id='eventDescription'
+              name='eventDescription'
+              variant='outlined'
+              fullWidth
+              size='small'
+              required={this.checkRequiredField(incident.info.eventDescription)}
+              error={this.checkErrorField('eventDescription', incident.info.eventDescription)}
+              helperText={this.checkHelperText('eventDescription', incident.info.eventDescription)}
+              value={incident.info.eventDescription}
+              onChange={this.props.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+        }
+        &lt;div className='group full'>
+          &lt;label htmlFor='incidentDescription'>{f('incidentFields.incidentDescription')}&lt;/label>
+          &lt;TextField
+            id='incidentDescription'
+            name='incidentDescription'
+            variant='outlined'
+            fullWidth
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            required={this.checkRequiredField(incident.info.incidentDescription)}
+            error={this.checkErrorField('incidentDescription', incident.info.incidentDescription)}
+            helperText={this.checkHelperText('incidentDescription', incident.info.incidentDescription)}
+            value={incident.info.incidentDescription}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;label htmlFor='category'>{f('incidentFields.category')}&lt;/label>
+          &lt;TextField
+            id='category'
+            name='category'
+            variant='outlined'
+            fullWidth
+            size='small'
+            select
+            required={this.checkRequiredField(incident.info.category)}
+            error={this.checkErrorField('category', incident.info.category)}
+            helperText={this.checkHelperText('category', incident.info.category)}
+            value={incident.info.category}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus}>
+            {
+              _.map(_.range(10, 20), el => {
+                return &lt;MenuItem value={el}>{it(`category.${el}`)}&lt;/MenuItem>
+              })
+            }
+          &lt;/TextField>
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;label htmlFor='reporter'>{f('incidentFields.reporter')}&lt;/label>
+          &lt;TextField
+            id='reporter'
+            name='reporter'
+            variant='outlined'
+            fullWidth
+            size='small'
+            required={this.checkRequiredField(incident.info.reporter)}
+            error={this.checkErrorField('reporter', incident.info.reporter)}
+            helperText={this.checkHelperText('reporter', incident.info.reporter)}
+            value={incident.info.reporter}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;label htmlFor='reporter'>{f('incidentFields.flowId')}&lt;/label>
+          &lt;TextField
+            id='flowTemplateId'
+            name='flowTemplateId'
+            variant='outlined'
+            fullWidth
+            size='small'
+            select
+            required
+            error={this.checkErrorField('flowTemplateId', incident.info.flowTemplateId)}
+            helperText={this.checkHelperText('flowTemplateId', incident.info.flowTemplateId)}
+            value={incident.info.flowTemplateId || ''}
+            onChange={this.props.handleDataChangeMui}
+            disabled={this.checkDisabledStatus()}>
+            {socFlowList}
+          &lt;/TextField>
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}&lt;/label>
+          &lt;TextField
+            id='impactAssessment'
+            name='impactAssessment'
+            variant='outlined'
+            fullWidth
+            size='small'
+            select
+            required
+            error={this.checkErrorField('impactAssessment', incident.info.impactAssessment)}
+            helperText={this.checkHelperText('impactAssessment', incident.info.impactAssessment)}
+            value={incident.info.impactAssessment || ''}
+            onChange={this.props.handleDataChangeMui}
+            disabled>
+            {
+              _.map(_.range(1, 5), el => {
+                return &lt;MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}&lt;/MenuItem>
+              })
+            }
+          &lt;/TextField>
+        &lt;/div>
+        &lt;div className='group severity-level' style={{width: '25vh', paddingTop: '27px'}}>
+          &lt;i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[incident.info.severity]}} />
+          &lt;TextField
+            id='severityLevel'
+            name='severity'
+            label={f('syslogPatternTableFields.severity')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            select
+            value={incident.info.severity || ''}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus}>
+            {severityList}
+          &lt;/TextField>
+        &lt;/div>
+        {from !== 'pattern' &amp;&amp;
+          &lt;div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
+            &lt;label htmlFor='expireDttm'>{f('incidentFields.finalDate')}&lt;/label>
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                id='expireDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                required={this.checkRequiredField(incident.info.expireDttm)}
+                error={this.checkErrorField(incident.info.expireDttm)}
+                helperText={this.checkHelperText(incident.info.expireDttm)}
+                value={incident.info.expireDttm}
+                onChange={this.props.handleDataChange.bind(this, 'expireDttm')}
+                disabled={disabledStatus} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+        }
+        {from !== 'pattern' &amp;&amp;
+          &lt;div className='group' style={{width: '25vh', paddingLeft: '5%'}}>
+            &lt;FormControlLabel
+              label={f('incidentFields.establishDate')}
+              control={
+                &lt;Checkbox
+                  className='checkbox-ui'
+                  checked={establishDttm}
+                  onChange={this.props.toggleEstablishDateCheckbox}
+                  color='primary' />
+              }
+              disabled={disabledStatus} />
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                id='establishDttm'
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                ampm={false}
+                value={incident.info.establishDttm}
+                onChange={this.props.handleDataChange.bind(this, 'establishDttm')}
+                disabled={disabledEstablishDttm} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+        }
+        &lt;div className='group full'>
+          &lt;label htmlFor='attackName'>{f('incidentFields.attackName')}&lt;/label>
+          &lt;TextField
+            id='attackName'
+            name='attackName'
+            variant='outlined'
+            fullWidth
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            required={this.checkRequiredField(incident.info.attackName)}
+            error={this.checkErrorField('attackName', incident.info.attackName)}
+            helperText={this.checkHelperText('attackName', incident.info.attackName)}
+            value={incident.info.attackName}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        &lt;div className='group full'>
+          &lt;label htmlFor='description'>{f('incidentFields.description')}&lt;/label>
+          &lt;TextField
+            id='description'
+            name='description'
+            variant='outlined'
+            fullWidth
+            size='small'
+            multiline
+            rows={3}
+            rowsMax={3}
+            required={this.checkRequiredField(incident.info.description)}
+            error={this.checkErrorField('description', incident.info.description)}
+            helperText={this.checkHelperText('description', incident.info.description)}
+            value={incident.info.description}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        &lt;div className='group full multi'>
+          &lt;label htmlFor='description'>{f('incidentFields.killChain')}&lt;/label>
+          &lt;MultiInput
+            id='incidentKillChain'
+            className='incident-group'
+            base={KillChain}
+            defaultItemValue={{
+              killChainName: '',
+              phaseName: ''
+            }}
+            value={incident.info.killChainList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.props.handleKillChainChange}
+            readOnly={disabledStatus} />
+        &lt;/div>
+        {incidentType === 'ttps' &amp;&amp;
+          &lt;div className='group full'>
+            &lt;label htmlFor='relatedList' style={{float: 'left', marginRight: '10px'}}>{f('incidentFields.relatedList')}&lt;/label>
+            &lt;Button variant='contained' color='primary' style={{marginTop: '-8px', marginBottom: '10px'}} onClick={this.props.toggleRelatedListModal} disabled={disabledStatus}>{t('txt-query')}&lt;/Button>
+            &lt;div className='flex-item'>{incident.info.showFontendRelatedList.map(this.showRelatedList)}&lt;/div>
+          &lt;/div>
+        }
+      &lt;/div>
+    )    
+  }
+  /**
+   * Display notice section
+   * @method
+   * @returns HTML DOM
+   */
+  displayNotice = () => {
+    const {from, activeContent, incidentAccidentList, incidentAccidentSubList, incident} = this.props;
+    let disabledStatus = null;
+
+    if (from === 'soc') {
+      disabledStatus = activeContent === 'viewIncident';
+    } else if (from === 'pattern') {
+      disabledStatus = activeContent === 'viewPattern';
+    }
+
+    return (
+      &lt;div className={this.getClassName()} style={this.getStyle()}>
+        &lt;header>
+          &lt;div className='text'>{it('txt-accidentTitle')}&lt;/div>
+        &lt;/header>
+
+        &lt;div className='group'>
+          &lt;label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}&lt;/label>
+          &lt;TextField
+            id='accidentCatogory'
+            name='accidentCatogory'
+            variant='outlined'
+            fullWidth
+            size='small'
+            select
+            value={incident.info.accidentCatogory}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus}>
+            {incidentAccidentList}
+          &lt;/TextField>
+        &lt;/div>
+        {incident.info.accidentCatogory === '5' &amp;&amp;
+          &lt;div className='group'>
+            &lt;label htmlFor='accidentAbnormal'>{it('txt-reason')}&lt;/label>
+            &lt;TextField
+              id='accidentAbnormal'
+              name='accidentAbnormal'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={incident.info.accidentAbnormalOther}
+              onChange={this.props.handleDataChangeMui}
+              disabled={disabledStatus} />
+          &lt;/div>
+        }
+        {incident.info.accidentCatogory !== '5' &amp;&amp;
+          &lt;div className='group'>
+            &lt;label htmlFor='accidentAbnormal'>{it('txt-reason')}&lt;/label>
+            &lt;TextField
+              id='accidentAbnormal'
+              name='accidentAbnormal'
+              select
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={incident.info.accidentAbnormal}
+              onChange={this.props.handleDataChangeMui}
+              disabled={disabledStatus}>
+              {incidentAccidentSubList[incident.info.accidentCatogory - 1]}
+            &lt;/TextField>
+          &lt;/div>
+        }
+        &lt;div className='group full'>
+          &lt;label htmlFor='accidentDescription'>{it('txt-accidentDescr')}&lt;/label>
+          &lt;TextareaAutosize
+            id='accidentDescription'
+            name='accidentDescription'
+            className={cx('textarea-autosize', {'disabled': disabledStatus})}
+            rows={3}
+            value={incident.info.accidentDescription}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        &lt;div className='group full'>
+          &lt;label htmlFor='accidentReason'>{it('txt-reasonDescr')}&lt;/label>
+          &lt;TextareaAutosize
+            id='accidentReason'
+            name='accidentReason'
+            className={cx('textarea-autosize', {'disabled': disabledStatus})}
+            rows={3}
+            value={incident.info.accidentReason}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+        &lt;div className='group full'>
+          &lt;label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}&lt;/label>
+          &lt;TextareaAutosize
+            id='accidentInvestigation'
+            name='accidentInvestigation'
+            className={cx('textarea-autosize', {'disabled': disabledStatus})}
+            rows={3}
+            value={incident.info.accidentInvestigation}
+            onChange={this.props.handleDataChangeMui}
+            disabled={disabledStatus} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Format file size to readable format
+   * @method
+   * @returns numbers to represent bytes
+   */
+  formatBytes = (bytes, decimals = 2) => {
+    const k = 1024;
+    const dm = decimals &lt; 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    if (bytes === 0 || bytes === '0') {
+      return '0 Bytes';
+    }
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', '_menu', 'action', 'tag'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Handle attachment download
+   * @method
+   * @param {objet} allValue - data from table
+   */
+  downloadAttachment = (allValue) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&amp;fileName=${allValue.fileName}`;
+
+    downloadLink(url);
+  }
+  /**
+   * Handle all attachment download
+   * @method
+   */
+  handleDownloadAll = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {incident} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download/all?id=${incident.info.id}`
+
+    downloadLink(url);
+  }
+  /**
+   * Handle attachment delete
+   * @method
+   * param {objet} allValue - data from table
+   */
+  deleteAttachment = (allValue) => {
+    const {baseUrl} = this.context;
+    const {incident} = this.props;
+
+    PopupDialog.prompt({
+      title: t('txt-delete'),
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('txt-delete-msg')}: {allValue.fileName}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+          ah.one({
+            url: `${baseUrl}/api/soc/attachment/_delete?id=${incident.info.id}&amp;fileName=${allValue.fileName}`,
+            type: 'DELETE'
+          })
+          .then(data => {
+            if (data.ret === 0) {
+              this.props.refreshIncidentAttach(incident.info.id);
+            }
+          })
+          .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+          })
+        }
+      }
+    });
+  }
+  /**
+   * Display file upload content
+   * @method
+   * @param {string} type - page type ('page' or 'modal')
+   * @returns HTML DOM
+   */  
+  commonUploadContent = (type) => {
+    const {from, activeContent, incident, filesName} = this.props;
+    let disabledStatus = false;
+
+    if (from === 'soc') {
+      disabledStatus = activeContent === 'viewIncident';
+    } else if (from === 'pattern') {
+      disabledStatus = activeContent === 'viewPattern';
+    }
+
+    return (
+      &lt;React.Fragment>
+        &lt;div className='group'>
+          &lt;div className='c-file-input clearable file-input' style={type === 'page' ? {width: '95%'} : null}>
+            &lt;input
+              id='multiMalware'
+              style={{width: 'calc(100% - 25px)'}}
+              type='file'
+              multiple
+              onChange={this.props.handleFileChange}
+              disabled={disabledStatus} />
+            &lt;button type='button' disabled={disabledStatus}>{t('txt-selectFile')}&lt;/button>
+            &lt;input
+              className='long-name'
+              type='text'
+              value={filesName}
+              readOnly />
+            {filesName.length > 0 &amp;&amp;
+              &lt;i class='c-link inline fg fg-close' onClick={this.props.handleFileChange.bind(this, 'clear')}>&lt;/i>
+            }
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='group'>
+          &lt;label htmlFor='fileMemo'>{it('txt-fileMemo')}&lt;/label>
+          &lt;TextareaAutosize
+            id='fileMemo'
+            name='fileMemo'
+            className={cx('textarea-autosize', {'disabled': disabledStatus})}
+            rows={2}
+            value={incident.info.fileMemo}
+            onChange={this.props.handleDataChangeMui} />
+        &lt;/div>
+      &lt;/React.Fragment>
+    )
+  }
+  /**
+   * Display file upload section
+   * @method
+   * @returns HTML DOM
+   */
+  displayAttached = () => {
+    const {from, activeContent, incident, attach, filesName} = this.props;
+    let dataFields = {};
+
+    if (from === 'soc') {
+      incident.fileFieldsArr.forEach(tempData => {
+        dataFields[tempData] = {
+          label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
+          sortable: this.checkSortable(tempData),
+          formatter: (value, allValue, i) => {
+            if (tempData === 'fileSize') {
+              return &lt;span>{this.formatBytes(value)}&lt;/span>
+            } else if (tempData === 'fileDttm') {
+              return &lt;span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}&lt;/span>
+            } else if (tempData === 'fileMemo') {
+              if (incident.info.attachmentDescription) {
+                const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName});
+                let formattedWording = '';
+
+                if (target) {
+                  if (target.fileMemo &amp;&amp; target.fileMemo.length > 32) {
+                    formattedWording = target.fileMemo.substr(0, 32) + '...';
+                  } else {
+                    formattedWording = target.fileMemo;
+                  }
+                }
+                return &lt;span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}&lt;/span>
+              }
+            } else if (tempData === 'action') {
+              let isShow = true;
+
+              if (incident.info.status === 3 || incident.info.status === 4) {
+                if (moment(allValue.fileDttm).valueOf() &lt; moment(incident.info.updateDttm).valueOf()) {
+                  isShow = false;
+                }
+              }
+
+              return (
+                &lt;div>
+                  &lt;i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
+                  {isShow &amp;&amp;
+                    &lt;i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+                  }
+                &lt;/div>
+              )
+            } else {
+              return &lt;span>{value}&lt;/span>
+            }
+          }
+        }
+      });
+
+      incident.fileFields = dataFields;
+
+      return (
+        &lt;div className='form-group normal'>
+          &lt;header>
+            &lt;div className='text'>{it('txt-attachedFile')}&lt;span style={{color: 'red', fontSize: '0.8em', marginLeft: '5px'}}>{it('txt-attachedFileHint')}&lt;/span>&lt;/div>
+          &lt;/header>
+          {activeContent === 'addIncident' &amp;&amp;
+            this.commonUploadContent('page')
+          }
+          {(activeContent === 'viewIncident') &amp;&amp;
+            &lt;div className='group'>
+              &lt;Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.props.toggleUploadAttachment}>{t('txt-upload')}&lt;/Button>
+              {incident.info.attachmentDescription &amp;&amp;
+                &lt;Button variant='contained' color='primary' className='upload' style={{marginRight: '10px'}} onClick={this.handleDownloadAll}>{t('txt-downloadAll')}&lt;/Button>
+              }
+            &lt;/div>
+          }
+          {_.size(incident.info.fileList) > 0 &amp;&amp;
+            &lt;div className='group full'>
+              &lt;DataTable
+                style={{width: '100%'}}
+                className='main-table full'
+                fields={incident.fileFields}
+                data={incident.info.fileList} />
+            &lt;/div>
+          }
+        &lt;/div>
+      )
+    } else if (from === 'threats' || from === 'pattern') {
+      let className = 'form-group ';
+
+      if (from === 'threats') {
+        className += 'long';
+      } else if (from === 'pattern') {
+        className += 'normal';
+      }
+
+      return (
+        &lt;div className={className} style={this.getStyle()}>
+          &lt;header>
+            &lt;div className='text'>{it('txt-attachedFile')}&lt;span style={{color: 'red', fontSize: '0.8em'}}>{it('txt-attachedFileHint')}&lt;/span>&lt;/div>
+          &lt;/header>
+          {this.commonUploadContent()}
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display connect unit section
+   * @method
+   * @returns HTML DOM
+   */
+  displayConnectUnit = () => {
+    const {from, activeContent, incident} = this.props;
+    let disabledStatus = null;
+
+    if (from === 'soc') {
+      disabledStatus = activeContent === 'viewIncident';
+    } else if (from === 'pattern') {
+      disabledStatus = activeContent === 'viewPattern';
+    } 
+
+    return (
+      &lt;div className={this.getClassName()} style={this.getStyle()}>
+        &lt;header>
+          &lt;div className='text'>{it('txt-notifyUnit')}&lt;/div>
+        &lt;/header>
+
+        &lt;div className='group full multi'>
+          &lt;MultiInput
+            id='incidentEvent'
+            className='incident-group'
+            base={NotifyContact}
+            defaultItemValue={{
+              title: '',
+              name: '',
+              phone: '',
+              email: ''
+            }}
+            value={incident.info.notifyList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.props.handleConnectContactChange}
+            readOnly={disabledStatus} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display flow section
+   * @method
+   * @returns HTML DOM
+   */
+  displayFlow = () => {
+    const {incident} = this.props;
+    let dataFields = {};
+
+    incident.flowFieldsArr.forEach(tempData => {
+      dataFields[tempData] = {
+        hide: tempData === 'id',
+        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+        sortable: this.checkSortable(tempData),
+        formatter: (value, allValue, i) => {
+          if (tempData === 'reviewDttm') {
+            return &lt;span>{moment(value).local().format('YYYY-MM-DD HH:mm:ss')}&lt;/span>
+          } else if (tempData === 'status') {
+            return &lt;span>{it(`action.${value}`)}&lt;/span>
+          } else {
+            return &lt;span style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{value}&lt;/span>
+          }
+        }
+      }
+    });
+    incident.flowFields = dataFields;
+
+    return (
+      &lt;div className='form-group normal'>
+        &lt;header>
+          &lt;div className='text'>{it('txt-flowTitle')}&lt;/div>
+        &lt;/header>
+
+        &lt;div className='group full'>
+          &lt;DataTable
+            style={{width: '100%'}}
+            className='main-table full'
+            fields={incident.flowFields}
+            data={incident.info.historyList} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display events section
+   * @method
+   * @returns HTML DOM
+   */
+  displayEvents = () => {
+    const {locale} = this.context;
+    const {from, incidentType, incidentFormType, activeContent, activeSteps, incident, deviceListOptions, showDeviceListOptions} = this.props;
+    const now = new Date();
+    const nowTime = moment(now).local().format('YYYY-MM-DD HH:mm:ss');
+    let propsData = {};
+    let disabledStatus = false;
+
+    if (from === 'soc') {
+      propsData = {
+        incidentFormType,
+        activeContent,
+        disabledStatus: activeContent === 'viewIncident',
+        locale,
+        deviceListOptions,
+        showDeviceListOptions
+      };
+    } else if (from === 'threats') {
+      propsData = {
+        incidentFormType,
+        activeContent,
+        disabledStatus,
+        locale,
+        deviceListOptions
+      };
+    } else if (from === 'pattern') {
+      propsData = {
+        incidentFormType,
+        activeContent,
+        disabledStatus: activeContent === 'viewPattern',
+        locale,
+        deviceListOptions
+      };
+    }
+
+    return (
+      &lt;div className={this.getClassName()} style={this.getStyle()}>
+        &lt;header>
+          &lt;div className='text'>{it('txt-incident-events')}&lt;/div>
+        &lt;/header>
+
+        {from === 'soc' &amp;&amp;
+          &lt;div className='btn btn-group'>
+            &lt;Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')} disabled={incidentFormType === 'monitor'}>{it('txt-next-page')}&lt;/Button>
+          &lt;/div>
+        }
+
+        {(from === 'threats' || from === 'pattern') &amp;&amp;
+          &lt;div className='btn btn-group'>
+            &lt;Button id='previousStep' variant='contained' color='primary' className='left-btn' onClick={this.props.toggleSteps.bind(this, 'previous')} disabled={activeSteps === 1}>{it('txt-prev-page')}&lt;/Button>
+            &lt;Button id='nextStep' variant='contained' color='primary' onClick={this.props.toggleSteps.bind(this, 'next')} disabled={activeSteps === 2}>{it('txt-next-page')}&lt;/Button>
+          &lt;/div>
+        }
+
+        &lt;div className='group full multi'>
+          &lt;MultiInput
+            id='incidentEvent'
+            className='incident-group'
+            base={Events}
+            defaultItemValue={{
+              description: '',
+              deviceId: '',
+              time: {
+                from: nowTime,
+                to: nowTime
+              },
+              frequency: 1
+            }}
+            value={incident.info.eventList}
+            props={propsData}
+            onChange={this.props.handleEventsChange}
+            readOnly={disabledStatus} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display TTP section
+   * @method
+   * @returns HTML DOM
+   */
+  displayTTP = () => {
+    const {from, incidentFormType, activeContent, incident} = this.props;
+    let disabledStatus = null;
+
+    if (from === 'soc') {
+      disabledStatus = activeContent === 'viewIncident';
+    } else if (from === 'pattern') {
+      disabledStatus = activeContent === 'viewPattern';
+    }
+
+    if (incidentFormType === 'analyze') {
+      return (
+        &lt;div className='form-group normal'>
+          &lt;header>
+            &lt;div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})&lt;/div>
+          &lt;/header>
+
+          &lt;div className='btn btn-group'>
+            &lt;Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' disabled>{it('txt-next-page')}&lt;/Button>
+          &lt;/div>
+
+          &lt;div className='group full multi'>
+            &lt;MultiInput
+              id='incidentTtp'
+              className='incident-group'
+              base={Ttps}
+              defaultItemValue={{
+                title: '',
+                infrastructureType: '',
+                obsFileList: [],
+                obsUriList: [],
+                obsSocketList: [],
+                etsList: []
+              }}
+              value={incident.info.ttpList}
+              props={{
+                incidentFormType,
+                disabledStatus
+              }}
+              onChange={this.props.handleTtpsChange}
+              readOnly={disabledStatus} />
+          &lt;/div>
+        &lt;/div>
+      )
+    } else if (incidentFormType === 'EDR') {
+      return (
+        &lt;div className='form-group normal'>
+          &lt;header>
+            &lt;div className='text'>{it('txt-ttp-obs-file')}&lt;/div>
+          &lt;/header>
+
+          &lt;div className='btn btn-group'>
+            &lt;Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'edr')}>{it('txt-next-page')}&lt;/Button>
+          &lt;/div>
+
+          &lt;div className='group full multi'>
+            &lt;MultiInput
+              id='incidentTtp'
+              className='incident-group'
+              base={Ttps}
+              defaultItemValue={{
+                title: '',
+                infrastructureType: '',
+                obsFileList: [],
+                obsUriList: [],
+                obsSocketList: [],
+                etsList: []
+              }}
+              value={incident.info.ttpList}
+              props={{
+                incidentFormType,
+                disabledStatus
+              }}
+              onChange={this.props.handleTtpsChange}
+              readOnly={disabledStatus} />
+          &lt;/div>
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display EDR section
+   * @method
+   * @returns HTML DOM
+   */
+  displayEDR = () => {
+    const {from, incidentFormType, activeContent, incident} = this.props;
+    let disabledStatus = null;
+
+    if (from === 'soc') {
+      disabledStatus = activeContent === 'viewIncident';
+    } else if (from === 'pattern') {
+      disabledStatus = activeContent === 'viewPattern';
+    }
+
+    return (
+      &lt;div className='form-group normal'>
+        &lt;header>
+          &lt;div className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})&lt;/div>
+        &lt;/header>
+
+        &lt;div className='btn btn-group'>
+          &lt;Button className='left-btn' variant='contained' color='primary' onClick={this.props.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-prev-page')}&lt;/Button>
+          &lt;Button variant='contained' color='primary' disabled>{it('txt-next-page')}&lt;/Button>
+        &lt;/div>
+
+        &lt;div className='group full multi'>
+          &lt;MultiInput
+            id='incidentTtpEdr'
+            className='incident-group edr'
+            base={TtpEdr}
+            defaultItemValue={{
+              title: '',
+              infrastructureType: '',
+              obsUriList: [],
+              obsSocketList: [],
+              etsList: []
+            }}
+            value={incident.info.edrList}
+            props={{
+              disabledStatus
+            }}
+            onChange={this.props.handleTtpEdrChange}
+            readOnly={disabledStatus} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  render() {
+    const {from, displayPage, activeContent, activeSteps} = this.props;
+
+    return (
+      &lt;React.Fragment>
+        {from === 'soc' &amp;&amp;
+          &lt;div>
+            {displayPage === 'main' &amp;&amp;
+              this.displayMain()
+            }
+
+            {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) &amp;&amp; displayPage === 'main' &amp;&amp;
+              this.displayNotice()
+            }
+
+            {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) &amp;&amp; displayPage === 'main' &amp;&amp;
+              this.displayAttached()
+            }
+
+            {_.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) &amp;&amp; displayPage === 'main' &amp;&amp;
+              this.displayConnectUnit()
+            }
+
+            {activeContent !== 'addIncident' &amp;&amp;  displayPage === 'main' &amp;&amp;
+              this.displayFlow()
+            }
+
+            {displayPage === 'events' &amp;&amp;
+              this.displayEvents()
+            }
+
+            {displayPage === 'ttps' &amp;&amp;
+              this.displayTTP()
+            }
+
+            {displayPage === 'edr' &amp;&amp;
+              this.displayEDR()
+            }
+          &lt;/div>
+        }
+
+        {(from === 'threats' || from === 'pattern') &amp;&amp; 
+          &lt;div>
+            {activeSteps === 1 &amp;&amp;
+              this.displayMain()
+            }
+
+            {activeSteps === 1 &amp;&amp;
+              this.displayNotice()
+            }
+
+            {activeSteps === 1 &amp;&amp; from === 'threats' &amp;&amp;
+              this.displayAttached()
+            }
+
+            {activeSteps === 1 &amp;&amp; from === 'threats' &amp;&amp;
+              this.displayConnectUnit()
+            }
+
+            {activeSteps === 2 &amp;&amp; from === 'threats' &amp;&amp;
+              this.displayEvents()
+            }
+          &lt;/div>
+        }
+      &lt;/React.Fragment>
+    )
+  }
+}
+
+IncidentForm.contextType = BaseDataContext;
+IncidentForm.propTypes = {
+  from: PropTypes.string.isRequired,
+  activeContent: PropTypes.string,
+  activeSteps: PropTypes.number,
+  displayPage: PropTypes.string,
+  incident: PropTypes.object.isRequired,
+  severityList: PropTypes.array.isRequired,
+  incidentType: PropTypes.string,
+  incidentFormType: PropTypes.string,
+  socFlowList: PropTypes.array.isRequired,
+  attach: PropTypes.array,
+  filesName: PropTypes.array.isRequired,
+  requiredField: PropTypes.array,
+  deviceListOptions: PropTypes.array.isRequired,
+  showDeviceListOptions: PropTypes.array,
+  incidentAccidentList: PropTypes.array.isRequired,
+  incidentAccidentSubList: PropTypes.array.isRequired,
+  enableEstablishDttm: PropTypes.string,
+  handleDataChange: PropTypes.func.isRequired,
+  handleDataChangeMui: PropTypes.func.isRequired,
+  handleFileChange: PropTypes.func.isRequired,
+  toggleUploadAttachment: PropTypes.func,
+  handleConnectContactChange: PropTypes.func.isRequired,
+  handleIncidentPageChange: PropTypes.func,
+  handleEventsChange: PropTypes.func.isRequired,
+  handleKillChainChange: PropTypes.func.isRequired,
+  handleTtpsChange: PropTypes.func,
+  toggleRelatedListModal: PropTypes.func,
+  refreshIncidentAttach: PropTypes.func,
+  toggleEstablishDateCheckbox: PropTypes.func.isRequired,
+  toggleSteps: PropTypes.func
+};
+
+export default IncidentForm;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

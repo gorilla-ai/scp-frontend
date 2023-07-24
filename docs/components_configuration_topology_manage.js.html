@@ -29,34 +29,33 @@
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import TextareaAutosize from '@material-ui/core/TextareaAutosize'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
+
 import DataTable from 'react-ui/build/src/components/table'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import SortableTree from "react-sortable-tree";
 
-const INIT = {
-  openManage: false,
-  openName: false,
-  tableArr: ['nameUUID', 'name', 'option'],
-  tab: {
-    department: true,
-    title: false
-  },
-  nameUUID: '',
-  name: '',
-  header: '',
-  data: [],
+const FORM_VALIDATION = {
+  name: {
+    valid: true
+  }
 };
-const DEPARTMENT = 1;
-const TITLE = 2;
 
 let t = null;
 let et = null;
@@ -64,141 +63,310 @@ let et = null;
 /**
  * Config Topology Department and Title management
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to manage department and title
  */
 class Manage extends Component {
   constructor(props) {
     super(props);
 
-    this.state = _.cloneDeep(INIT);
+    this.state = {
+      activeTab: 'department', //'department' or 'title'  or 'drag'
+      openManage: true,
+      openName: false,
+      openDrag: false,
+      name: '',
+      dialogType: '', //'add' or 'edit'
+      header: '',
+      owner: {
+        ip: '',
+        domainAccount: '',
+        unitCode: '',
+        unitCodeRegex: ''
+      },
+      ownerList: [],
+      selectedOwner: {},
+      departmentList: [],
+      titleNameList: [],
+      treeData:[],
+      parentTreetId: '',
+      treeId: '',
+      tableArr: ['nameUUID', 'name', 'option'],
+      nameUUID: '',
+      info: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
+    };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
+  componentDidMount() {
+    this.getDepartmentTree();
+  }
   /**
-   * Get and set department or title data
+   * Get and set department tree data
    * @method
-   * @param {string} tab - tab name ('department' or 'title')
    */
-  getNameList = (tab) => {
-    const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/name/_search`;
-    let nameType = '';
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
 
-    if (tab === 'department') {
-      nameType = DEPARTMENT;
-    } else if (tab === 'title') {
-      nameType = TITLE;
-    }
-
-    const requestData = {
-      nameType
-    };
-
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
         this.setState({
-          data
+          departmentList: data,
+          treeData:data
         });
       }
       return null;
-    });
-  }
-  /**
-   * Get department data and set open manage modal
-   * @method
-   */
-  openManage = () => {
-    this.getNameList('department');
-    this.setState({
-      openManage: true
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle tabs change
    * @method
+   * @param {object} event - event object
    * @param {string} tab - tab name ('department' or 'title')
    */
-  handleTabChange = (tab) => {
-    let tabs = {
-      department: false,
-      title: false
-    };
-    tabs[tab] = true;
+  handleTabChange = (event, tab) => {
+    const activeTab = tab;
 
-    this.getNameList(tab);
+    if (!tab) {
+      return;
+    }
+
+    if (tab === 'department') {
+      this.getDepartmentTree();
+    } else if (tab === 'title') {
+      this.getTitleNameList();
+    } else if (tab === 'drag') {
+      this.getDepartmentTree();
+    }
+
     this.setState({
-      tab: tabs
+      activeTab
     });
   }
   /**
-   * Handle add/edit name action
+   * Get and set owner data
    * @method
-   * @param {string} type - action type ('add' or 'edit')
-   * @param {string} nameUUID - name UUID
-   * @param {string} name - selected name value
+   * @param {object} tree - department tree data
+   * @param {object} event - click event
    */
-  openName = (type, nameUUID, name) => {
-    const {tab} = this.state;
+  getOwnerData = (tree, event) => {
+    const {baseUrl} = this.context;
+    const {owner, search} = this.state;
+    const requestData = {
+      sort: 'ownerID',
+      order: 'asc',
+      name: tree.name,
+      department: tree.id
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows.length > 0) {
+          const sortedOwnerList = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          let ownerList = [];
+
+          _.forEach(sortedOwnerList, val => {
+            ownerList.push({
+              value: val.ownerUUID,
+              text: val.ownerName
+            });
+          })
+
+          const selectedOwnerIndex = _.findIndex(ownerList, { 'value': tree.ownerId });
+
+          this.setState({
+            ownerList,
+            selectedOwner: ownerList[selectedOwnerIndex]
+          }, () => {
+            this.handleTreeAction('edit', tree, event);
+          });
+        } else {
+          this.handleTreeAction('edit', tree, event);
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle tree action
+   * @method
+   * @param {string} type - action type ('add, 'edit' or 'delete')
+   * @param {object} tree - department tree data
+   * @param {object} event - click event
+   * @returns HTML DOM
+   */
+  handleTreeAction = (type, tree, event) => {
     let header = '';
+    let name = '';
+    let owner = {
+      ip: '',
+      domainAccount: '',
+      unitCode: '',
+      unitCodeRegex: ''
+    };
+    let parentTreetId = '';
+    let treeId = '';
+
+    if (event) {
+      event.preventDefault();
+    }
 
     if (type === 'add') {
-      header = tab.department ? t('txt-addDepartment') : t('txt-addTitle');
-      name = '';
-      nameUUID = '';
+      header = t('txt-addDepartment');
+      parentTreetId = tree ? tree.id : 'root';
     } else if (type === 'edit') {
-      header = tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
+      header = t('txt-updateDepartment');
+      name = tree.name;
+      owner = {
+        ip: tree.ip,
+        domainAccount: tree.domainAccount,
+        unitCode: tree.unitCode,
+        unitCodeRegex: tree.unitCodeRegex
+      };
+      parentTreetId = tree.parentId || tree.rootId;
+      treeId = tree.id;
+    } else if (type === 'delete') {
+      this.openDeleteTreeName(tree);
+      return;
     }
 
     this.setState({
       openName: true,
+      dialogType: type,
       header,
       name,
-      nameUUID
+      owner,
+      parentTreetId,
+      treeId
     });
   }
   /**
-   * Open delete name modal dialog
+   * Display department tree content
    * @method
-   * @param {string} nameUUID - name UUID
-   * @param {string} name - selected name value
+   * @param {object} tree - department tree data
+   * @returns HTML DOM
    */
-  openDeleteName = (nameUUID, name) => {
-    PopupDialog.prompt({
-      title: this.state.tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: (
-        &lt;div className='content delete'>
-          &lt;span>{t('txt-delete-msg')}: {name}?&lt;/span>
+  getDepartmentTreeLabel = (tree) => {
+    return (
+      &lt;div className='tree-label'>
+        &lt;span>{tree.name}&lt;/span> 
+        &lt;div className='action-icons'>
+          &lt;i id={'manageAdd' + tree.name} className='c-link fg fg-add' title={t('txt-add')} onClick={this.handleTreeAction.bind(this, 'add', tree)} />
+          &lt;i id={'manageEdit' + tree.name} className='c-link fg fg-edit' title={t('txt-edit')} onClick={this.getOwnerData.bind(this, tree)} />
+          &lt;i id={'manageDelete' + tree.name} className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.handleTreeAction.bind(this, 'delete', tree)} />
         &lt;/div>
-      ),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteName(nameUUID)
+      &lt;/div>
+    );
+  }
+  /**
+   * Display department tree item
+   * @method
+   * @param {object} val - department tree data
+   * @param {number} i - index of the department tree data
+   * @returns TreeItem component
+   */
+  getDepartmentTreeItem = (val, i) => {
+    return (
+      &lt;TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={this.getDepartmentTreeLabel(val)}>
+        {val.children &amp;&amp; val.children.length > 0 &amp;&amp;
+          val.children.map(this.getDepartmentTreeItem)
         }
-      }
+      &lt;/TreeItem>
+    )
+  }
+  /**
+   * Open delete tree name modal dialog
+   * @method
+   * @param {object} tree - department tree data
+   */
+  openDeleteTreeName = (tree) => {
+    const {baseUrl, contextRoot} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/soc/unit?uuid=${tree.id}`,
+      type: 'GET',
+    }).then(data => {
+        if (data.id) {
+          PopupDialog.prompt({
+            title: t('txt-deleteDepartment'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: (
+              &lt;React.Fragment>
+                &lt;div className='content'>
+                  &lt;span>{t('txt-delete-msg-with-soc')}?&lt;/span>
+                &lt;/div>
+                &lt;div className='content delete'>
+                  &lt;span>{tree.name}&lt;/span>
+                &lt;/div>
+              &lt;/React.Fragment>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                this.deleteTreeName(tree);
+              }
+            }
+          });
+        } else {
+          PopupDialog.prompt({
+            title: t('txt-deleteDepartment'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: (
+              &lt;div className='content delete'>
+                &lt;span>{t('txt-delete-msg')}: {tree.name}?&lt;/span>
+              &lt;/div>
+            ),
+            act: (confirmed) => {
+              if (confirmed) {
+                this.deleteTreeName(tree)
+              }
+            }
+          });
+        }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Handle delete name confirm
+   * Handle delete tree name confirm
    * @method
-   * @param {string} nameUUID - name UUID
+   * @param {object} tree - department tree data
    */
-  deleteName = (nameUUID) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {tab} = this.state;
+  deleteTreeName = (tree) => {
+    const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/name?uuid=${nameUUID}`,
+      url: `${baseUrl}/api/department?id=${tree.id}`,
       type: 'DELETE'
     })
     .then(data => {
-      this.getNameList(tab.department ? 'department' : 'title');
+      this.getDepartmentTree();
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -209,57 +377,188 @@ class Manage extends Component {
    * @method
    * @returns HTML DOM
    */
-  displayDepartmentTitle = () => {
-    const {tableArr, tab, data} = this.state;
-    const label = tab.department ? t('ownerFields.department') : t('ownerFields.title');
-
+  displayDepartmentTitleContent = () => {
+    const {activeTab, departmentList, treeData, titleNameList, tableArr, nameUUID} = this.state;
     let dataFields = {};
-    tableArr.forEach(tempData => {
-      dataFields[tempData] = {
-        hide: tempData === 'nameUUID' ? true : false,
-        label: tempData === 'name' ? label : '',
-        sortable: false,
-        formatter: (value, allValue) => {
-          if (tempData === 'option') {
-            return (
-              &lt;div>
-                &lt;i className='c-link fg fg-edit' onClick={this.openName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
-                &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
-              &lt;/div>
-            )
-          } else {
-            return &lt;span>{value}&lt;/span>
+
+    if (activeTab === 'title') {
+      tableArr.forEach(tempData => {
+        dataFields[tempData] = {
+          hide: tempData === 'nameUUID' ? true : false,
+          label: tempData === 'name' ? t('ownerFields.title') : '',
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === 'option') {
+              return (
+                &lt;div>
+                  &lt;i id='departmentTitleEdit' className='c-link fg fg-edit' onClick={this.openTitleName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
+                  &lt;i id='departmentTitleDelete' className='c-link fg fg-trashcan' onClick={this.openDeleteTitleName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
+                &lt;/div>
+              )
+            } else {
+              return &lt;span>{value}&lt;/span>
+            }
           }
-        }
-      };
-    })
+        };
+      })
+    }
 
     return (
       &lt;div>
-        &lt;ButtonGroup
-          list={[
-            {value: 'department', text: t('ownerFields.department')},
-            {value: 'title', text: t('ownerFields.title')}
-          ]}
-          onChange={this.handleTabChange}
-          value={tab.department ? 'department' : 'title'} />
+        &lt;ToggleButtonGroup
+          id='inventoryManageBtn'
+          exclusive
+          value={activeTab}
+          onChange={this.handleTabChange}>
+          &lt;ToggleButton id='manageDepartment' value='department'>{t('ownerFields.department')}&lt;/ToggleButton>
+          &lt;ToggleButton id='manageTitle' value='title'>{t('ownerFields.title')}&lt;/ToggleButton>
+        &lt;/ToggleButtonGroup>
 
-        &lt;i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}>&lt;/i>
+        {activeTab === 'department' &amp;&amp;
+          &lt;div className='tree-section'>
+            &lt;i id='departmentTitleAddDepartment' className='c-link fg fg-add' onClick={this.handleTreeAction.bind(this, 'add')} title={t('txt-addDepartment')}>&lt;/i>
+            {departmentList &amp;&amp; departmentList.length > 0 &amp;&amp;
+              &lt;TreeView
+                defaultCollapseIcon={&lt;ExpandMoreIcon />}
+                defaultExpandIcon={&lt;ChevronRightIcon />}>
+                {departmentList.map(this.getDepartmentTreeItem)}
+              &lt;/TreeView>
+            }
+          &lt;/div>
+        }
 
-        &lt;DataTable
-          fields={dataFields}
-          data={data} />
+        {activeTab === 'title' &amp;&amp;
+          &lt;div className='title-section'>
+            &lt;i id='departmentTitleAddTree' className='c-link fg fg-add' onClick={this.openTitleName.bind(this, 'add')} title={t('txt-addTitle')}>&lt;/i>
+            &lt;div className='table-data'>
+              &lt;DataTable
+                fields={dataFields}
+                data={titleNameList} />
+            &lt;/div>
+          &lt;/div>
+        }
+        {activeTab === 'drag' &amp;&amp;
+          &lt;div className='title-section'>
+            &lt;SortableTree
+              treeData={treeData}
+              onChange={treeData => this.setState({treeData: treeData})} />
+          &lt;/div>
+        }
       &lt;/div>
     )
   }
   /**
-   * Display department/title manage content in modal dialog
+   * Get and set title data
+   * @method
+   */
+  getTitleNameList = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          titleNameList: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle add/edit title name action
+   * @method
+   * @param {string} type - action type ('add' or 'edit')
+   * @param {string} [nameUUID] - name UUID
+   * @param {string} [name] - selected name value
+   */
+  openTitleName = (type, nameUUID, name) => {
+    const {activeTab} = this.state;
+    let header = '';
+
+    if (type === 'add') {
+      header = t('txt-addTitle');
+      name = '';
+      nameUUID = '';
+    } else if (type === 'edit') {
+      header = t('txt-updateTitle');
+    }
+
+    this.setState({
+      openName: true,
+      dialogType: type,
+      header,
+      name,
+      nameUUID
+    });
+  }
+  /**
+   * Open delete title name modal dialog
+   * @method
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   */
+  openDeleteTitleName = (nameUUID, name) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteTitle'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('txt-delete-msg')}: {name}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteTitleName(nameUUID)
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete title name confirm
+   * @method
+   * @param {string} nameUUID - name UUID
+   */
+  deleteTitleName = (nameUUID) => {
+    const {baseUrl} = this.context;
+
+    if (!nameUUID) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/name?uuid=${nameUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      this.getTitleNameList();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display title manage content in modal dialog
    * @method
    * @returns ModalDialog component
    */
-  departmentTitleManageModal = () => {
+  titleManageModal = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.closeManage}
+      cancel: {text: t('txt-close'), handler: this.closeTitleManage}
     };
 
     return (
@@ -271,7 +570,7 @@ class Manage extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayDepartmentTitle()}
+        {this.displayDepartmentTitleContent()}
       &lt;/ModalDialog>
     )
   }
@@ -279,32 +578,121 @@ class Manage extends Component {
    * Handle close manage confirm
    * @method
    */
-  closeManage = () => {
-    this.setState(_.cloneDeep(INIT));
-    this.props.onDone();
+  closeTitleManage = () => {
+    this.props.handleCloseManage('fromManage');
   }
   /**
    * Handle name input value change
    * @method
-   * @param {string} key - input type
-   * @param {string} value - input value
+   * @param {string} event - event object
    */
-  handleDataChange = (key, value) => {
+  handleDataChange = (event) => {
     this.setState({
-      [key]: value
+      [event.target.name]: event.target.value
     });
   }
   /**
-   * Display name content
+   * Handle owner input value change
+   * @method
+   * @param {string} event - event object
+   */
+  handleOwnerDataChange = (event) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner[event.target.name] = event.target.value;
+
+    this.setState({
+      owner: tempOwner
+    });
+  }
+  /**
+   * Handle owner combo box change
+   * @method
+   * @param {object} event - select event
+   * @param {object} value - selected owner info
+   */
+  handleComboBoxChange = (event, value) => {
+    const {ownerList} = this.state;
+
+    if (value &amp;&amp; value.value) {
+      const selectedTitleIndex = _.findIndex(ownerList, { 'value': value.value });
+
+      this.setState({
+        selectedOwner: ownerList[selectedTitleIndex]
+      });
+    }
+  }
+  /**
+   * Display title name content
    * @method
    * @returns HTML DOM
    */
-  displayName = () => {
+  displayTitleName = () => {
+    const {activeTab, name, dialogType, owner, ownerList, selectedOwner, formValidation} = this.state;
+
     return (
-      &lt;Input
-        placeholder={t('txt-enterName')}
-        onChange={this.handleDataChange.bind(this, 'name')}
-        value={this.state.name} />
+      &lt;React.Fragment>
+        &lt;TextField
+          name='name'
+          style={{margin: '10px 0'}}
+          label={t('txt-plsEnterName')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          required
+          error={!formValidation.name.valid}
+          helperText={formValidation.name.valid ? '' : t('txt-required')}
+          value={name}
+          onChange={this.handleDataChange} />
+
+        {activeTab === 'department' &amp;&amp;
+          &lt;React.Fragment>
+            &lt;label>{t('vansOwner.ip')}&lt;/label>
+            &lt;TextareaAutosize
+              name='ip'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.ip') + '(' + t('txt-commaSeparated') + ')'}
+              rows={1}
+              value={owner.ip}
+              onChange={this.handleOwnerDataChange} />
+            &lt;label>{t('vansOwner.domainAccount')}&lt;/label>
+            &lt;TextareaAutosize
+              name='domainAccount'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.domainAccount') + '(' + t('txt-commaSeparated') + ')'}
+              rows={1}
+              value={owner.domainAccount}
+              onChange={this.handleOwnerDataChange} />
+            &lt;label>{t('vansOwner.unitCode')}&lt;/label>
+            &lt;TextareaAutosize
+              name='unitCode'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.unitCode') + '(' + t('txt-commaSeparated') + ')'}
+              rows={1}
+              value={owner.unitCode}
+              onChange={this.handleOwnerDataChange} />
+            &lt;label>{t('vansOwner.unitCodeRegex')}&lt;/label>
+            &lt;TextareaAutosize
+              name='unitCodeRegex'
+              className='textarea-autosize'
+              placeholder={t('vansOwner.unitCodeRegex')}
+              rows={1}
+              value={owner.unitCodeRegex}
+              onChange={this.handleOwnerDataChange} />
+          &lt;/React.Fragment>
+        }
+
+        {activeTab === 'department' &amp;&amp; dialogType === 'edit' &amp;&amp;
+          &lt;Autocomplete
+            className='combo-box'
+            options={ownerList}
+            value={selectedOwner}
+            getOptionLabel={(option) => option.text}
+            renderInput={(params) => (
+              &lt;TextField {...params} label={t('ownerFields.ownerName')} variant='outlined' size='small' />
+            )}
+            onChange={this.handleComboBoxChange} />
+        }
+      &lt;/React.Fragment>
     )
   }
   /**
@@ -312,11 +700,11 @@ class Manage extends Component {
    * @method
    * @returns ModalDialog component
    */
-  departmentTitleNameModal = () => {
-    const {header} = this.state;
+  titleNameModal = () => {
+    const {header, info} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName},
-      confirm: {text: t('txt-confirm'), handler: this.confirmName}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeTitleName},
+      confirm: {text: t('txt-confirm'), handler: this.handleConfirmName}
     };
 
     return (
@@ -327,57 +715,210 @@ class Manage extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={info}
         closeAction='cancel'>
-        {this.displayName()}
+        {this.displayTitleName()}
       &lt;/ModalDialog>
     )
+  }
+  dragModal = () => {
+    const {treeData} = this.state;
+    const actions = {
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.closeODialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='addUnitDialog'
+        className='modal-dialog'
+        title={t('txt-setOrganization')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        &lt;div style={{width: '890px', height: '630px'}}>
+          &lt;SortableTree
+            treeData={treeData}
+            onChange={treeData => this.setState({treeData: treeData})} />
+        &lt;/div>
+      &lt;/ModalDialog>
+    )
+  }
+  closeODialog = () => {
+    this.setState({
+      openDrag: false
+    });
+  }
+  handleUnitTreeConfirm = () =>{
+    const {treeData} = this.state;
+    const {baseUrl} = this.context;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      data: JSON.stringify(treeData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }).then(data => {
+      if(data.status.includes('success')){
+        helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
+      }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
+    })
   }
   /**
    * Handle name modal confirm
    * @method
    */
-  confirmName = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {tab, name, nameUUID} = this.state;
-    const url = `${baseUrl}/api/name`;
-    let requestData = {};  
+  handleConfirmName = () => {
+    const {activeTab, name, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (!name.trim()) {
-      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
+    if (name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 
-    if (nameUUID) {
-      requestData = {
-        nameUUID: nameUUID,
-        name: name,
-        nameType: tab.department ? DEPARTMENT : TITLE
-      };
-    } else {
-      requestData = {
-        name: name,
-        nameType: tab.department ? DEPARTMENT : TITLE
-      };
+    if (activeTab === 'department') {
+      this.handleConfirmDepartemnt();
+    } else if (activeTab === 'title') {
+      this.handleConfirmTitle();
+    }
+  }
+  /**
+   * Handle department modal confirm
+   * @method
+   */
+  handleConfirmDepartemnt = () => {
+    const {baseUrl} = this.context;
+    const {name, dialogType, owner, selectedOwner, parentTreetId, treeId} = this.state;
+    const url = `${baseUrl}/api/department`;
+    let requestType = 'POST';
+    let requestData = {
+      name,
+      ip: owner.ip,
+      domainAccount: owner.domainAccount,
+      unitCode: owner.unitCode,
+      unitCodeRegex: owner.unitCodeRegex
+    };
+
+    if (dialogType === 'edit') {
+      if (owner.ip || owner.domainAccount || owner.unitCode || owner.unitCodeRegex) {
+        if (!selectedOwner) {
+          this.setState({
+            info: t('txt-ownerIsRequired')
+          });
+          return;
+        }
+      }
     }
 
-    helper.getAjaxData('POST', url, requestData)
+    if (selectedOwner) {
+      requestData.ownerId = selectedOwner.value;
+    }
+
+    if (parentTreetId !== 'root' &amp;&amp; parentTreetId !== treeId) {
+      requestData.parentId = parentTreetId;
+    }
+
+    if (parentTreetId === treeId) {
+      requestData.id = treeId;
+    }
+
+    if (treeId) {
+      requestType = 'PATCH';
+      requestData.id = treeId;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.setState({
-          openName: false
+          openName: false,
+          name: '',
+          parentTreetId: '',
+          treeId: '',
+          info: ''
         });
-        this.getNameList(tab.department ? 'department' : 'title');
+
+        this.getDepartmentTree();
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle title modal confirm
+   * @method
+   */
+  handleConfirmTitle = () => {
+    const {baseUrl} = this.context;
+    const {name, nameUUID} = this.state;
+    const url = `${baseUrl}/api/name`;
+    let requestType = 'POST';
+    let requestData = {
+      name,
+      nameType: 2
+    };
+
+    if (nameUUID) {
+      requestType = 'PATCH';
+      requestData.nameUUID = nameUUID;
+    }
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          openName: false,
+          nameUUID: ''
+        });
+
+        this.getTitleNameList();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })    
   }
   /**
    * Close open name dialog
    * @method
    */
-  closeName = () => {
+  closeTitleName = () => {
     this.setState({
-      openName: false
+      openName: false,
+      info: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
   render() {
@@ -386,22 +927,24 @@ class Manage extends Component {
     return (
       &lt;div>
         {openManage &amp;&amp;
-          this.departmentTitleManageModal()
+          this.titleManageModal()
         }
 
         {openName &amp;&amp;
-          this.departmentTitleNameModal()
+          this.titleNameModal()
         }
       &lt;/div>
     )
   }
 }
 
+Manage.contextType = BaseDataContext;
+
 Manage.propTypes = {
   onDone: PropTypes.func.isRequired
 }
 
-export default withLocale(Manage);</code></pre>
+export default Manage;</code></pre>
         </article>
     </section>
 
@@ -411,13 +954,13 @@ export default withLocale(Manage);</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

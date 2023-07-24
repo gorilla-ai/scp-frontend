@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/vulnerabilities.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/vulnerabilities.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+import moment from 'moment'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import PopoverMaterial from '@material-ui/core/Popover'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
+
+import BarChart from 'react-chart/build/src/components/bar'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import PieChart from 'react-chart/build/src/components/pie'
+
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
+import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
+import GeneralDialog from './common/general-dialog'
+import helper from '../common/helper'
+import MuiTableContent from '../common/mui-table-content'
+import SearchFilter from './search-filter'
+import TableList from './common/table-list'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
+const CONDITION_MODE = {
+  '=': 'eq',
+  '>': 'gt',
+  '&lt;': 'lt'
+};
+const FILTER_LIST = [
+  {
+    name: 'departmentSelected',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'severity',
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
+  },
+  {
+    name: 'cvss',
+    displayType: 'text_field',
+    filterType: 'multi_input'
+  }
+];
+const CVE_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const CVE_FILTER = {
+  departmentSelected: [],
+  severity: [],
+  cvss: [{
+    condition: '=',
+    input: ''
+  }]
+};
+const CVE_FILTER_LIST = {
+  departmentSelected: [],
+  cvss: []
+};
+const EXPOSED_DEVICES_SEARCH = {
+  hostName: '',
+  ip: '',
+  system: '',
+  count: 0
+};
+const EXPOSED_DEVICES_DATA = {
+  dataFieldsArr: ['hostName', 'group', 'ip', 'system', 'relatedSoftware', 'daysOpen', 'fix'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+const RELATED_SOFTWARE_DATA = {
+  dataFieldsArr: ['product', 'version', 'system', 'exposedDevices'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+const NOT_AVAILABLE = 'N/A';
+let ALERT_LEVEL_COLORS = {};
+
+let t = null;
+let f = null;
+
+/**
+ * Host Vulnerabilities
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Host Vulnerabilities page
+ */
+class HostVulnerabilities extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
+      },
+      severityType: [],
+      departmentList: [],
+      departmentNameMapping: {},
+      limitedDepartment: [],
+      cveSearch: _.cloneDeep(CVE_SEARCH),
+      cveFilter: _.cloneDeep(CVE_FILTER),
+      cveFilterList: _.cloneDeep(CVE_FILTER_LIST),
+      productNameSearch: {
+        keyword: '',
+        count: 0
+      },
+      cveSeverityLevel: {
+        data: null,
+        count: 0
+      },
+      monthlySeverityTrend: null,
+      showCveInfo: false,
+      showFilterQuery: false,
+      activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices' or 'relatedSoftware'
+      cveData: {
+        dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'exposedDevices', 'fixedDevices'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: '',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 0,
+        pageSize: 20
+      },
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      relatedSoftwareData: _.cloneDeep(RELATED_SOFTWARE_DATA),
+      tableContextAnchor: null,
+      currentCveId: '',
+      currentCveData: {}
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId;
+
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
+      }
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getDepartmentTree();
+      });
+    }
+
+    this.setLocaleLabel();
+    this.getSeverityType();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Get and set locale label for charts
+   * @method
+   */
+  setLocaleLabel = () => {
+    const {locale} = this.context;
+
+    if (locale === 'en') {
+      ALERT_LEVEL_COLORS = {
+        Critical: '#000',
+        High: '#CC2943',
+        Medium: '#CC7B29',
+        Low: '#7ACC29'
+      };
+    } else if (locale === 'zh') {
+      ALERT_LEVEL_COLORS = {
+        嚴重: '#000',
+        高: '#CC2943',
+        中: '#CC7B29',
+        低: '#7ACC29'
+      };
+    }
+  }
+  /**
+   * Get and set severity type
+   * @method
+   */
+  getSeverityType = () => {
+    const severityType = _.map(SEVERITY_TYPE, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      severityType
+    });
+  }
+  /**
+   * Get department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentNameMapping = {};
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentNameMapping[obj.id] = obj.name;
+          });
+        })
+
+        this.setState({
+          departmentList: data,
+          departmentNameMapping
+        }, () => {
+          if (account.limitedRole &amp;&amp; account.departmentId) {
+            this.setSelectedDepartment();
+          } else {
+            this.getCveSeverityData();
+            this.getCveData();
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account, departmentNameMapping, cveFilter, cveFilterList} = this.state;
+    let tempCveFilter = {...cveFilter};
+    let tempCveFilterList = {...cveFilterList};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempCveFilter.departmentSelected = data;
+        tempCveFilterList.departmentSelected = _.map(data, val => {
+          return departmentNameMapping[val];
+        });
+
+        this.setState({
+          limitedDepartment: data,
+          cveFilter: tempCveFilter,
+          cveFilterList: tempCveFilterList
+        }, () => {
+          this.getCveSeverityData();
+          this.getCveData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set CVE chart data
+   * @method
+   */
+  getCveSeverityData = () => {
+    const {baseUrl} = this.context;
+    const {cveFilter} = this.state;
+    let requestData = {};
+
+    if (cveFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cveFilter.departmentSelected;
+    }
+
+    //Pie Chart
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/cveUpdateToDate/severityAgg`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          cveSeverityLevel: {
+            data: this.formatPieChartData(data.severityAgg),
+            count: helper.numberWithCommas(data.total)
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    //Bar Chart
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/cveUpdateToDate/year/severityAgg`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let monthlySeverityTrend = [];
+
+        _.keys(data.severityAgg)
+        .forEach(key => {
+          _.keys(data.severityAgg[key])
+          .forEach(key2 => {
+            if (data.severityAgg[key][key2] >= 0) {
+              monthlySeverityTrend.push({
+                day: helper.getFormattedDate(key2, 'local'),
+                count: data.severityAgg[key][key2],
+                indicator: t('txt-' + key)
+              })
+            }
+          })
+        });
+
+        this.setState({
+          monthlySeverityTrend
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Format the object data into array type
+   * @method
+   * @param {object} data - chart data
+   */
+  formatPieChartData = (data) => {
+    let cveSeverityLevel = [];
+
+    _.keys(data)
+    .forEach(key => {
+      if (data[key] > 0) {
+        cveSeverityLevel.push({
+          key: t('txt-' + key),
+          doc_count: data[key]
+        });
+      }
+    });
+
+    return cveSeverityLevel;
+  }
+  /**
+   * Show pie chart
+   * @method
+   * @param {array.&lt;object>} cveSeverityLevel - CVE severity data
+   * @returns HTML DOM
+   */
+  showPieChart = (cveSeverityLevel) => {
+    const centerText = t('txt-total') + ': ' + helper.numberWithCommas(this.state.cveSeverityLevel.count);
+
+    return (
+      &lt;div className='chart-group'>
+        {!cveSeverityLevel &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('host.vulnerabilities.txt-severityLevelQuery')}&lt;/header>
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          &lt;/div>
+        }
+        {cveSeverityLevel &amp;&amp; cveSeverityLevel.length === 0 &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('host.vulnerabilities.txt-severityLevelQuery')}&lt;/header>
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          &lt;/div>
+        }
+        {cveSeverityLevel &amp;&amp; cveSeverityLevel.length > 0 &amp;&amp;
+          &lt;PieChart
+            title={t('host.vulnerabilities.txt-severityLevelQuery')}
+            holeSize={45}
+            centerText={centerText}
+            data={cveSeverityLevel}
+            colors={{
+              key: ALERT_LEVEL_COLORS
+            }}
+            keyLabels={{
+              key: t('txt-severity'),
+              doc_count: t('txt-count')
+            }}
+            valueLabels={{
+              'Pie Chart': {
+                key: t('txt-severity'),
+                doc_count: t('txt-count')
+              }
+            }}
+            dataCfg={{
+              splitSlice: ['key'],
+              sliceSize: 'doc_count'
+            }} />
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Show bar chart
+   * @method
+   * @param {array.&lt;object>} monthlySeverityTrend - chart data
+   * @returns HTML DOM
+   */
+  showBarChart = (monthlySeverityTrend) => {
+    return (
+      &lt;div className='chart-group'>
+        {!monthlySeverityTrend &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('host.vulnerabilities.txt-monthlySeverityTrend')}&lt;/header>
+            &lt;span>&lt;i className='fg fg-loading-2'>&lt;/i>&lt;/span>
+          &lt;/div>
+        }
+        {monthlySeverityTrend &amp;&amp; monthlySeverityTrend.length === 0 &amp;&amp;
+          &lt;div className='empty-data'>
+            &lt;header>{t('host.vulnerabilities.txt-monthlySeverityTrend')}&lt;/header>
+            &lt;span>{t('txt-notFound')}&lt;/span>
+          &lt;/div>
+        }
+        {monthlySeverityTrend &amp;&amp; monthlySeverityTrend.length > 0 &amp;&amp;
+          &lt;BarChart
+            stacked
+            vertical
+            title={t('host.vulnerabilities.txt-monthlySeverityTrend')}
+            legend={{
+              enabled: true
+            }}
+            data={monthlySeverityTrend}
+            colors={ALERT_LEVEL_COLORS}
+            dataCfg={{
+              x: 'day',
+              y: 'count',
+              splitSeries: 'indicator'
+            }}
+            xAxis={{
+              type: 'datetime',
+              units: [
+                ['month', [1]]
+              ]
+            }}
+            plotOptions={{
+              series: {
+                maxPointWidth: 20
+              }
+            }}
+            tooltip={{
+              formatter: this.onTooltip
+            }} />
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.&lt;object>} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (eventInfo, data) => {
+    return (
+      &lt;section>
+        &lt;span>{t('txt-severity')}: {data[0].indicator}&lt;br />&lt;/span>
+        &lt;span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM')}&lt;br />&lt;/span>
+        &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}&lt;/span>
+      &lt;/section>
+    )
+  }
+  /**
+   * Get and set CVE data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getCveData = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {cveSearch, cveData} = this.state;
+    const sort = cveData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? cveData.currentPage : 0;
+    const requestData = {
+      ...this.getCveFilterRequestData()
+    };
+    let url = `${baseUrl}/api/hmd/cveUpdateToDate/_search?page=${page + 1}&amp;pageSize=${cveData.pageSize}`;
+
+    if (cveData.sort.field) {
+      url += `&amp;orders=${cveData.sort.field} ${sort}`;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempCveSearch = {...cveSearch};
+        let tempCveData = {...cveData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempCveSearch.count = 0;
+          tempCveData.dataContent = [];
+          tempCveData.totalCount = 0;
+
+          this.setState({
+            cveSearch: tempCveSearch,
+            cveData: tempCveData
+          });
+          return null;
+        }       
+
+        tempCveData.dataContent = data.rows;
+        tempCveData.totalCount = data.count;
+        tempCveData.currentPage = page;
+        tempCveData.dataFields = _.map(cveData.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : f('hostDashboardFields.' + val),
+            options: {
+              filter: true,
+              sort: this.checkSortable(val),
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempCveData.dataContent[dataIndex];
+                const value = tempCveData.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu active'>
+                      &lt;Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)} data-cy='hostOpenTableMenuBtn'>&lt;i className='fg fg-more'>&lt;/i>&lt;/Button>
+                    &lt;/div>
+                  )
+                } else if (val === 'severity' &amp;&amp; value) {
+                  const severityLevel = t('txt-' + value.toLowerCase());
+
+                  return &lt;span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}&lt;/span>
+                } else if (val === 'relatedSoftware') {
+                  return (
+                    &lt;div>
+                      &lt;span>{value[0]}&lt;/span>
+                      {value.length > 1 &amp;&amp;
+                        &lt;span>, {value[1]}&lt;/span>
+                      }
+                      {value.length > 2 &amp;&amp;
+                        &lt;span title={this.getSoftwareList(value)}>, {t('txt-more')}...&lt;/span>
+                      }
+                    &lt;/div>
+                  )
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+        tempCveSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          cveSearch: tempCveSearch,
+          cveData: tempCveData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu', 'relatedSoftware', 'exposedDevices', 'fixedDevices'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Get CVE filter request data
+   * @method
+   * @returns requestData object
+   */
+  getCveFilterRequestData = () => {
+    const {cveSearch, cveFilter, cveFilterList} = this.state;
+    let requestData = {};
+
+    if (cveSearch.keyword) {
+      requestData.cveId = cveSearch.keyword;
+    }
+
+    if (cveFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cveFilter.departmentSelected;
+    }
+
+    if (cveFilter.severity.length > 0) {
+      const severityArray = _.map(cveFilter.severity, val => {
+        return val.value.toUpperCase();
+      });
+
+      requestData.severityArray = severityArray;
+    }
+
+    if (cveFilterList.cvss.length > 0) {
+      requestData.cvssArray = _.map(cveFilterList.cvss, val => {
+        return {
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          cvss: val.substr(2)
+        }
+      });
+    }
+
+    return requestData;
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} id - active CVE ID
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (id, event) => {
+    this.setState({
+      tableContextAnchor: event.currentTarget,
+      currentCveId: id
+    });
+  }
+  /**
+   * Get individual CVE data
+   * @method
+   */
+  getActiveCveInfo = () => {
+    const {baseUrl} = this.context;
+    const {currentCveId} = this.state;
+    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCveId}`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          currentCveData: data.cveInfo
+        }, () => {
+          this.toggleShowCVE();
+        });
+
+        this.handleCloseMenu();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get related software list
+   * @method
+   * @param {array.&lt;string>} list - related software list
+   * @returns list of software
+   */
+  getSoftwareList = (list) => {
+    list.shift();
+    list.shift();
+    return list.join(', ');
+  }
+  /**
+   * Get exposed devices data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getExposedDevices = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {cveFilter, exposedDevicesSearch, exposedDevicesData, currentCveId} = this.state;
+    const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
+    let url = `${baseUrl}/api/hmd/cve/devices?page=${page + 1}&amp;pageSize=${exposedDevicesData.pageSize}`;
+    let requestData = {
+      cveId: currentCveId
+    };
+
+    if (exposedDevicesData.sort.field) {
+      url += `&amp;orders=${exposedDevicesData.sort.field} ${sort}`;
+    }
+
+    if (exposedDevicesSearch.hostName) {
+      requestData.hostName = exposedDevicesSearch.hostName;
+    }
+
+    if (exposedDevicesSearch.ip) {
+      requestData.ip = exposedDevicesSearch.ip;
+    }
+
+    if (exposedDevicesSearch.system) {
+      requestData.system = exposedDevicesSearch.system;
+    }
+
+    if (exposedDevicesSearch.fix &amp;&amp; exposedDevicesSearch.fix !== 'all') {
+      requestData.fix = (exposedDevicesSearch.fix === 'true');
+    }
+
+    if (cveFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cveFilter.departmentSelected;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempExposedDevicesSearch = {...exposedDevicesSearch};
+        let tempExposedDevicesData = {...exposedDevicesData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempExposedDevicesSearch.count = 0;
+          tempExposedDevicesData.dataContent = [];
+          tempExposedDevicesData.totalCount = 0;
+
+          this.setState({
+            exposedDevicesSearch: tempExposedDevicesSearch,
+            exposedDevicesData: tempExposedDevicesData
+          });
+          return null;
+        }       
+
+        tempExposedDevicesData.dataContent = data.rows;
+        tempExposedDevicesData.totalCount = data.count;
+        tempExposedDevicesData.currentPage = page;
+        tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.vulnerabilities.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempExposedDevicesData.dataContent[dataIndex];
+                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+
+                if (val === 'relatedSoftware') {
+                  return (
+                    &lt;div>
+                      &lt;span>{value[0]}&lt;/span>
+                      {value.length > 1 &amp;&amp;
+                        &lt;span>, {value[1]}&lt;/span>
+                      }
+                      {value.length > 2 &amp;&amp;
+                        &lt;span title={this.getSoftwareList(value)}>, {t('txt-more')}...&lt;/span>
+                      }
+                    &lt;/div>
+                  )
+                } else if (val === 'fix') {
+                  return value ? t('txt-fixed') : t('txt-notFixed');
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        tempExposedDevicesSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          exposedDevicesSearch: tempExposedDevicesSearch,
+          exposedDevicesData: tempExposedDevicesData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get related software data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getRelatedSoftware = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {productNameSearch, cveFilter, relatedSoftwareData, currentCveId} = this.state;
+    const sort = relatedSoftwareData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? relatedSoftwareData.currentPage : 0;
+    let url = `${baseUrl}/api/hmd/cve/relatedSoftware?page=${page + 1}&amp;pageSize=${relatedSoftwareData.pageSize}`;
+    let requestData = {
+      cveId: currentCveId
+    };
+
+    if (relatedSoftwareData.sort.field) {
+      url += `&amp;orders=${relatedSoftwareData.sort.field} ${sort}`;
+    }
+
+    if (productNameSearch.keyword) {
+      requestData.product = productNameSearch.keyword;
+    }
+
+    if (cveFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = cveFilter.departmentSelected;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempProductNameSearch = {...productNameSearch};
+        let tempExposedDevicesData = {...relatedSoftwareData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempProductNameSearch.count = 0;
+          tempExposedDevicesData.dataContent = [];
+          tempExposedDevicesData.totalCount = 0;
+
+          this.setState({
+            productNameSearch: tempProductNameSearch,
+            relatedSoftwareData: tempExposedDevicesData
+          });
+          return null;
+        }       
+
+        tempExposedDevicesData.dataContent = data.rows;
+        tempExposedDevicesData.totalCount = data.count;
+        tempExposedDevicesData.currentPage = page;
+        tempExposedDevicesData.dataFields = _.map(relatedSoftwareData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('hostDashboardFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempExposedDevicesData.dataContent[dataIndex];
+                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+
+                if (val === 'exposedDevices') {
+                  return value + ' / ' + allValue.exposedDevicesTotal;
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        tempProductNameSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          productNameSearch: tempProductNameSearch,
+          relatedSoftwareData: tempExposedDevicesData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      tableContextAnchor: null
+    });
+  }
+  /**
+   * Toggle show CVE info
+   * @method
+   */
+  toggleShowCVE = () => {
+    this.setState({
+      showCveInfo: !this.state.showCveInfo,
+      activeCveInfo: 'vulnerabilityDetails',
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+    });
+  }
+  /**
+   * Toggle show CVE button
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - CVE button type ('vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware')
+   */
+  toggleCveButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
+    this.setState({
+      activeCveInfo: type
+    }, () => {
+      const {activeCveInfo} = this.state;
+
+      if (activeCveInfo === 'exposedDevices') {
+        this.getExposedDevices();
+      } else if (activeCveInfo === 'relatedSoftware') {
+        this.getRelatedSoftware();
+      }
+    });
+  }
+  /**
+   * Handle exposed devices search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDevicesSearchChange = (event) => {
+    let tempExposedDevicesSearch = {...this.state.exposedDevicesSearch};
+    tempExposedDevicesSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      exposedDevicesSearch: tempExposedDevicesSearch
+    });
+  }
+  /**
+   * Handle product search
+   * @method
+   * @param {object} event - event object
+   */
+  handleProductChange = (event) => {
+    let tempProductNameSearch = {...this.state.productNameSearch};
+    tempProductNameSearch.keyword = event.target.value;
+
+    this.setState({
+      productNameSearch: tempProductNameSearch
+    });
+  }
+  /**
+   * Handle reset button for host name search
+   * @method
+   * @param {string} type - reset button type ('cveSearch', 'exposedDevices' or 'productNameSearch')
+   */
+  handleResetBtn = (type, event) => {
+    const {cveSearch, productNameSearch} = this.state;
+
+    if (type === 'cveSearch') {
+      let tempCveSearch = {...cveSearch};
+      tempCveSearch.keyword = '';
+
+      this.setState({
+        cveSearch: tempCveSearch
+      });
+    } else if (type === 'exposedDevices') {
+      this.setState({
+        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
+      });
+    } else if (type === 'productNameSearch') {
+      let tempProductNameSearch = {...productNameSearch};
+      tempProductNameSearch.keyword = '';
+
+      this.setState({
+        productNameSearch: tempProductNameSearch
+      });
+    }
+  }
+  /**
+   * Display CVE info content
+   * @method
+   * @returns HTML DOM
+   */
+  displayCveInfo = () => {
+    const {productNameSearch, activeCveInfo, exposedDevicesSearch, exposedDevicesData, relatedSoftwareData, currentCveData} = this.state;
+    const tableOptionsExposedDevices = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('exposedDevices', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
+      }
+    };
+    const tableOptionsRelatedSoftware = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('relatedSoftware', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('relatedSoftware', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('relatedSoftware', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        &lt;ToggleButtonGroup
+          id='activeCveInfoButtons'
+          value={activeCveInfo}
+          exclusive
+          onChange={this.toggleCveButtons}>
+          &lt;ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}&lt;/ToggleButton>
+          &lt;ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}&lt;/ToggleButton>
+          &lt;ToggleButton id='hostDialogRelatedSoftware' value='relatedSoftware' data-cy='hostInfoDialogSoftwareBtn'>{t('host.vulnerabilities.txt-relatedSoftware')}&lt;/ToggleButton>
+        &lt;/ToggleButtonGroup>
+
+        &lt;div className='main-content'>
+          {activeCveInfo === 'vulnerabilityDetails' &amp;&amp;
+            &lt;GeneralDialog
+              page='vulnerabilities'
+              type='general-info'
+              data={currentCveData} />
+          }
+
+          {activeCveInfo === 'exposedDevices' &amp;&amp;
+            &lt;GeneralDialog
+              page='vulnerabilities'
+              type='exposed-devices'
+              search={exposedDevicesSearch}
+              data={exposedDevicesData}
+              tableOptions={tableOptionsExposedDevices}
+              handleSearchChange={this.handleDevicesSearchChange}
+              handleSearchSubmit={this.getExposedDevices}
+              handleResetBtn={this.handleResetBtn} />
+          }
+
+          {activeCveInfo === 'relatedSoftware' &amp;&amp;
+            &lt;GeneralDialog
+              page='vulnerabilities'
+              type='general-list'
+              searchType='productNameSearch'
+              search={productNameSearch}
+              data={relatedSoftwareData}
+              tableOptions={tableOptionsRelatedSoftware}
+              handleSearchChange={this.handleProductChange}
+              handleSearchSubmit={this.getRelatedSoftware}
+              handleResetBtn={this.handleResetBtn} />
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show CVE info dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showCveDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='showCveDialog'
+        className='modal-dialog'
+        title={this.state.currentCveId}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'
+        data-cy='showCveDialog'>
+        {this.displayCveInfo()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} tableType - table type ('cve', 'exposedDevices' or 'relatedSoftware')
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (tableType, field, sort) => {
+    const {cveData, exposedDevicesData, relatedSoftwareData} = this.state;
+    let tempCveData = {...cveData};
+    let tempExposedDevicesData = {...exposedDevicesData};
+    let tempRelatedSoftwareData = {...relatedSoftwareData};
+    let tableField = field;
+
+    if (tableType === 'cve') {
+      tempCveData.sort.field = tableField;
+      tempCveData.sort.desc = sort;
+
+      this.setState({
+        cveData: tempCveData
+      }, () => {
+        this.getCveData();
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData.sort.field = tableField;
+      tempExposedDevicesData.sort.desc = sort;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices();
+      });
+    } else if (tableType === 'relatedSoftware') {
+      tempRelatedSoftwareData.sort.field = tableField;
+      tempRelatedSoftwareData.sort.desc = sort;
+
+      this.setState({
+        relatedSoftwareData: tempRelatedSoftwareData
+      }, () => {
+        this.getRelatedSoftware();
+      });
+    }
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} tableType - table type ('cve', 'exposedDevices' or 'relatedSoftware')
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (tableType, type, value) => {
+    const {cveData, exposedDevicesData, relatedSoftwareData} = this.state;
+    let tempCveData = {...cveData};
+    let tempExposedDevicesData = {...exposedDevicesData};
+    let tempRelatedSoftwareData = {...relatedSoftwareData};
+
+    if (tableType === 'cve') {
+      tempCveData[type] = value;
+
+      this.setState({
+        cveData: tempCveData
+      }, () => {
+        this.getCveData(type);
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData[type] = value;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices(type);
+      });
+    } else if (tableType === 'relatedSoftware') {
+      tempRelatedSoftwareData[type] = value;
+
+      this.setState({
+        relatedSoftwareData: tempRelatedSoftwareData
+      }, () => {
+        this.getRelatedSoftware(type);
+      });
+    }
+  }
+  /**
+   * Handle CVE search search
+   * @method
+   * @param {object} event - event object
+   */
+  handleCveChange = (event) => {
+    let tempCveSearch = {...this.state.cveSearch};
+    tempCveSearch.keyword = event.target.value;
+
+    this.setState({
+      cveSearch: tempCveSearch
+    });
+  }
+  /**
+   * Toggle show filter query
+   * @method
+   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
+   * @param {object} [filterData] - filter data
+   */
+  toggleFilterQuery = (type, filterData) => {
+    if (type !== 'open') {
+      this.setState({
+        cveFilter: filterData.filter,
+        cveFilterList: filterData.itemFilterList
+      }, () => {
+        if (type === 'confirm') {
+          this.getCveData();
+        }
+      });
+    }
+
+    this.setState({
+      showFilterQuery: !this.state.showFilterQuery
+    });
+  }
+  /**
+   * Export CVE list
+   * @method
+   */
+  exportCveList = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {cveData} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
+    let exportFields = {};
+    let fieldsList = _.cloneDeep(cveData.dataFieldsArr);
+    fieldsList.shift();
+
+    _.forEach(fieldsList, val => {
+      exportFields[val] = f('hostDashboardFields.' + val);
+    })
+
+    const requestData = {
+      ...this.getCveFilterRequestData(),
+      exportFields
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  render() {
+    const {
+      account,
+      severityType,
+      departmentList,
+      departmentNameMapping,
+      limitedDepartment,
+      cveSearch,
+      cveFilter,
+      cveFilterList,
+      cveSeverityLevel,
+      monthlySeverityTrend,
+      showCveInfo,
+      showFilterQuery,
+      cveData,
+      tableContextAnchor
+    } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('cve', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('cve', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('cve', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        {showCveInfo &amp;&amp;
+          this.showCveDialog()
+        }
+
+        {showFilterQuery &amp;&amp;
+          &lt;FilterQuery
+            page='vulnerabilities'
+            account={account}
+            departmentList={departmentList}
+            limitedDepartment={limitedDepartment}
+            departmentNameMapping={departmentNameMapping}
+            severityType={severityType}
+            filterList={FILTER_LIST}
+            originalFilter={CVE_FILTER}
+            filter={cveFilter}
+            originalItemFilterList={CVE_FILTER_LIST}
+            itemFilterList={cveFilterList}
+            toggleFilterQuery={this.toggleFilterQuery} />
+        }
+
+        &lt;TableList
+          page='vulnerabilities'
+          searchType='cveSearch'
+          search={cveSearch}
+          data={cveData}
+          options={tableOptions}
+          tableAnchor={tableContextAnchor}
+          cveSeverityLevel={cveSeverityLevel}
+          monthlySeverityTrend={monthlySeverityTrend}
+          showPieChart={this.showPieChart}
+          showBarChart={this.showBarChart}
+          getData={this.getCveData}
+          getActiveData={this.getActiveCveInfo}
+          exportList={this.exportCveList}
+          toggleFilterQuery={this.toggleFilterQuery}
+          handleSearch={this.handleCveChange}
+          handleReset={this.handleResetBtn}
+          handleCloseMenu={this.handleCloseMenu} />
+      &lt;/div>
+    )
+  }
+}
+
+HostVulnerabilities.contextType = BaseDataContext;
+
+HostVulnerabilities.propTypes = {
+};
+
+export default HostVulnerabilities;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/dashboard/overview.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/dashboard/overview.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
+
+import Gis from 'react-gis/build/src/components'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import WORLDMAP from '../../mock/world-map-low.json'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+const PAGE_RESET_INTERVAL = 300000; //5 minutes
+const PATH_SPEED = '50,5,10,5';
+const PATH_DURATION = 10; //10 seconds
+
+/**
+ * Overview
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Overview page
+ */
+class DashboardOverview extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      dateTime: {
+        from: '',
+        to: ''
+      },
+      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
+      updatedTime: helper.getFormattedDate(moment()),
+      alertMapData: [],
+      worldMapData: [],
+      countryData: [],
+      worldAttackData: null,
+      alertDisplayData: [],
+      threatsCountData: [],
+      countryTopList: [],
+      selectedAttackData: [],
+      mapInterval: 5, //5
+      mapLimit: 20, //20
+      mapCounter: 1,
+      countDown: '',
+      showAlertInfo: true
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getWorldMap();
+    this.loadAlertData();
+    this.setInterval();
+
+    this.pageRefresh = setInterval(this.resetData, PAGE_RESET_INTERVAL);
+  }
+  componentWillUnmount() {
+    this.clearInterval('pageRefresh');
+    this.clearInterval('mapInterval');
+    this.clearInterval('timer');
+  }
+  /**
+   * Reset data for page refresh
+   * @method
+   */
+  resetData = () => {
+    const {worldAttackData} = this.state;
+
+    if (worldAttackData &amp;&amp; worldAttackData.length > 0) {
+      this.setState({
+        worldAttackData: null,
+        alertDisplayData: [],
+        mapCounter: 1,
+        countDown: '',
+        showAlertInfo: true
+      }, () => {
+        this.loadAlertData();
+      });
+    }
+  }
+  /**
+   * Set time interval for each data to be displayed
+   * @method
+   */
+  setInterval = () => {
+    this.mapInterval = setInterval(this.setAttackData, this.state.mapInterval * 1000);
+  }
+  /**
+   * Clear time interval
+   * @method
+   * @param {string} type - 'mapInterval' or 'timer'
+   */
+  clearInterval = (type) => {
+    this[type] &amp;&amp; clearInterval(this[type]);
+    this[type] = null;
+  }
+  /**
+   * Get world map data
+   * @method
+   */
+  getWorldMap = () => {
+    const worldMapData = _.map(WORLDMAP.features, val => {
+      return {
+        id: val.properties.iso_a2,
+        type: 'geojson',
+        geojson: val.geometry,
+        weight: 0.6,
+        fillColor: '#424242',
+        color: '#303030',
+        fillOpacity: 1
+      };
+    });
+
+    let countryData = {};
+
+    _.forEach(WORLDMAP.features, val => {
+      countryData[val.properties.iso_a2] = val.properties.name;
+    });
+
+    this.setState({
+      worldMapData,
+      countryData
+    });
+  }
+  /**
+   * Get and set alert maps data
+   * @method
+   */
+  loadAlertData = () => {
+    const {baseUrl} = this.context;
+    const datetime = {
+      from: helper.getSubstractDate(24, 'hours'),
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      //from: '2020-08-11T01:00:00Z',
+      //to: '2020-08-13T01:10:00Z'
+    };
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    /* Get Country top ranks data */
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [
+        {
+          condition: 'must',
+          query: 'ExternalSrcCountryCode'
+        }
+      ]
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        let countryTopList = [];
+
+        if (data.aggregations) {
+          countryTopList = data.aggregations.ExternalSrcCountryCode.srcCountryCode.buckets;
+        }
+
+        this.setState({
+          countryTopList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    /* Get Alert data */
+    this.ah.one({
+      url: `${baseUrl}/api/alert/overview?startDttm=${dateTime.from}&amp;endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const tempArray = _.map(data.data.rows, val => {
+          val.id = val.srcCity + '-' + val.destCity + '-' + val._eventDttm_;
+          return val;
+        });
+        let alertMapData = [];
+
+        _.forEach(tempArray, val => {
+          if (val.srcLatitude &amp;&amp; val.srcLatitude &amp;&amp; val.destLatitude &amp;&amp; val.destLongitude) {
+            alertMapData.push(val);
+          }
+        })
+        
+        let threatsCountData = [];
+
+        _.forEach(SEVERITY_TYPE, val => {
+          _.forEach(data.aggregations, (val2, key) => {
+            if (key === val) {
+              threatsCountData.push({
+                name: key,
+                count: data.aggregations[key].doc_count
+              });
+            }
+          })
+        })
+
+        this.setState({
+          alertMapData,
+          threatsCountData
+        }, () => {
+          //this.setAttackData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    /* Set Datetime */
+    this.setState({
+      dateTime: {
+        from: dateTime.from,
+        to: dateTime.to
+      },
+      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
+      updatedTime: helper.getFormattedDate(moment())
+    });
+  }
+  /**
+   * Determine the data loop to show on map
+   * @method
+   */
+  setAttackData = () =>{
+    const {alertMapData, mapLimit, mapCounter} = this.state;
+    const dataSet = mapLimit * mapCounter; //Data set to be shown on map
+
+    if (dataSet - alertMapData.length >= mapLimit) { //No more data to show, restart the counter
+      this.setState({
+        mapCounter: 1
+      }, () => {
+        this.getAttackData();
+      });
+    } else {
+      this.getAttackData();
+    }
+  }
+  /**
+   * Get and set attack data for new map (based on interval)
+   * @method
+   */
+  getAttackData = () => {
+    const {alertMapData, mapLimit, mapInterval, mapCounter} = this.state;
+    const dataSet = mapLimit * mapCounter; //Data set to be shown on map
+    let worldAttackData = [];
+    let alertDisplayData = [];
+
+    if (alertMapData.length === 0) {
+      this.setState({
+        worldAttackData
+      });
+      return;
+    }
+
+    _.forEach(alertMapData, (val, i) => {
+      if (mapCounter === 1) { //Initial set of data
+        if (i >= mapLimit) { //Index is greater than the first set, exit the loop
+          return false;
+        }
+      } else {
+        if (i &lt; dataSet - mapLimit) { //Index is smaller than the initial data set, continue the loop
+          return;
+        }
+
+        if (i > dataSet) { //Index is greater than the data set, exit the loop
+          return false;
+        }
+      }
+
+      const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
+
+      worldAttackData.push({
+        type: 'polyline',
+        id: 'set-polyline_' + i,
+        color: ALERT_LEVEL_COLORS[val._severity_],
+        latlng: [
+          [val.srcLatitude, val.srcLongitude],
+          [val.destLatitude, val.destLongitude]
+        ],
+        directed: false
+      });
+
+      worldAttackData.push({
+        type: 'spot',
+        id: 'setSpotSmall' + i,
+        className: 'spot-small',
+        latlng: [
+          val.destLatitude,
+          val.destLongitude
+        ],
+        data: {
+          type: 'small',
+          color: ALERT_LEVEL_COLORS[val._severity_]
+        }
+      });
+
+      worldAttackData.push({
+        type: 'spot',
+        id: 'setSpotBig' + i,
+        className: 'spot-big',
+        latlng: [
+          val.destLatitude,
+          val.destLongitude
+        ],
+        data: {
+          type: 'big',
+          color: ALERT_LEVEL_COLORS[val._severity_]
+        },
+        tooltip: () => {
+          return `
+            &lt;div class='map-tooltip'>
+              &lt;div>&lt;span class='key'>${t('payloadsFields.destCountry')}:&lt;/span> &lt;span class='value'>${val.destCountry}&lt;/span>&lt;/div>
+              &lt;div>&lt;span class='key'>${t('payloadsFields.destCity')}:&lt;/span> &lt;span class='value'>${val.destCity}&lt;/span>&lt;/div>
+              &lt;div>&lt;span class='key'>${t('payloadsFields.destIp')}:&lt;/span> &lt;span class='value'>${val.destIp}&lt;/span>&lt;/div>
+              &lt;div>&lt;span class='key'>${t('payloadsFields.timestamp')}:&lt;/span> &lt;span class='value'>${timestamp}&lt;/span>&lt;/div>
+            &lt;/div>
+            `
+        }
+      });
+
+      alertDisplayData.push(val);
+    });
+
+    this.clearInterval('timer');
+
+    let setCounter = mapCounter;
+
+    this.setState({
+      worldAttackData,
+      alertDisplayData,
+      mapCounter: ++setCounter
+    }, () => {
+      this.setAnimationConfig();
+      this.startTimer();
+    });
+  }
+  /**
+   * Set attack path animation
+   * @method
+   */
+  setAnimationConfig = () => {
+    const polyLine = document.getElementsByClassName('gis-polyline');
+
+    _.forEach(polyLine, val => {
+      val.setAttribute('style', `stroke-dasharray: ${PATH_SPEED}; animation-duration: ${PATH_DURATION}s;`);
+    })
+  }
+  /**
+   * Start timer for countdown display
+   * @method
+   */
+  startTimer = () => {
+    this.setState({
+      countDown: this.state.mapInterval
+    }, () => {
+      this.timer = setInterval(this.displayCountDown, 1000); //Every 1 second
+    });
+  }
+  /**
+   * Set countdown
+   * @method
+   */
+  displayCountDown = () => {
+    this.setState({
+      countDown: this.state.countDown - 1
+    });
+  }
+  /**
+   * Set map config
+   * @method
+   * @param {string} type - 'mapLimit' or 'mapInterval'
+   * @param {string} val - map config data
+   */
+  handleMapConfigChange = (type, val) => {
+    this.setState({
+      worldAttackData: null,
+      alertDisplayData: [],
+      [type]: Number(val),
+      mapCounter: 1,
+      countDown: '',
+      showAlertInfo: true
+    }, () => {
+      this.clearInterval('mapInterval');
+      this.clearInterval('timer');
+      this.setInterval();
+    });
+  }
+  /**
+   * Display alert info in map
+   * @method
+   * @param {object} val - alert data
+   * @param {number} i - index of the alert info data
+   * @returns HTML DOM
+   */
+  displayAlertInfo = (val, i) => {
+    if (val.srcCountry &amp;&amp; val.destCountry) {
+      return (
+        &lt;li key={i}>
+          &lt;div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{helper.numberWithCommas(val.srcDestCityCnt)}&lt;/div>
+          &lt;div className='data'>
+            &lt;div className='info'>{val.Info}&lt;/div>
+            &lt;div className='datetime'>{moment(val._eventDttm_).local().format('HH:mm:ss')}&lt;/div>
+            &lt;div className='country'>{val.srcCountry} &lt;i className='fg fg-next' style={{color: ALERT_LEVEL_COLORS[val._severity_]}}>&lt;/i> {val.destCountry}&lt;/div>
+          &lt;/div>
+        &lt;/li>
+      )
+    }
+  }
+  /**
+   * Display threats count in map
+   * @method
+   * @param {object} val - threats data
+   * @param {number} i - index of the threats count data
+   * @returns HTML DOM
+   */
+  displayThreatsCount = (val, i) => {
+    return (
+      &lt;div key={i} className='item'>
+        &lt;i className='fg fg-checkbox-fill' style={{color: ALERT_LEVEL_COLORS[val.name]}}>&lt;/i>
+        &lt;div className='threats'>{val.name}&lt;span>{helper.numberWithCommas(val.count)}&lt;/span>&lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Toggle alert info on/off
+   * @method
+   */  
+  toggleShowAlertInfo = () => {
+    this.setState({
+      showAlertInfo: !this.state.showAlertInfo
+    });
+  }
+  /**
+   * Get attack data for specific country
+   * @method
+   * @param {string} countryCode - country code from user's selection
+   */
+  getCountryAttackData = (countryCode) => {
+    const {baseUrl} = this.context;
+    const {dateTime} = this.state;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0&amp;skipHistogram=true`;
+
+    if (!countryCode || countryCode.length > 2) { //If clicking on spots, don't show dialog
+      return;
+    }
+
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [
+        {
+          condition: 'must',
+          query: 'ExternalSrcCountry'
+        },
+        {
+          condition: 'must',
+          query: 'srcCountryCode: ' + countryCode
+        }
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        let selectedAttackData = [];
+
+        if (data.aggregations) {
+          _.forEach(SEVERITY_TYPE, val => {
+            _.forEach(data.aggregations, (val2, key) => {
+              if (key === val) {
+                selectedAttackData.push({
+                  name: key,
+                  count: data.aggregations[key].doc_count
+                });
+              }
+            })
+          })
+        }
+
+        this.setState({
+          selectedAttackData
+        }, () => {
+          this.showCountryAttackInfo(countryCode);
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display attack table
+   * @method
+   * @param {string} val - attack data
+   * @param {number} i - index of the attack data
+   * @returns HTML DOM
+   */
+  displayAttackCount = (val, i) => {
+    const {selectedAttackData} = this.state;
+    let totalCount = 0;
+    let percentage = 0;
+
+    _.forEach(selectedAttackData, val => {
+      totalCount += val.count;
+    })
+
+    if (totalCount > 0) {
+      percentage = (val.count / totalCount) * 100;
+    }
+
+    return (
+      &lt;tr key={i}>
+        &lt;td>
+          &lt;i className='fg fg-checkbox-fill' style={{color: ALERT_LEVEL_COLORS[val.name]}}>&lt;/i>{val.name}
+        &lt;/td>
+        &lt;td>{helper.numberWithCommas(val.count)}&lt;/td>
+        &lt;td>{percentage.toFixed(0)}%&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Get country attack content
+   * @method
+   * @param {string} countryCode - selected country code from user
+   * @returns HTML DOM
+   */
+  displayCountryAttackContent = (countryCode) => {
+    const {countryTopList, selectedAttackData} = this.state;
+    let rank = 0;
+
+    _.forEach(countryTopList, (val, i) => {
+      if (countryCode === val.key) {
+        rank = i + 1;
+        return false;
+      }
+    })
+
+    return (
+      &lt;div>
+        {rank > 0 &amp;&amp;
+          &lt;span className='country-rank'>{t('txt-threatsSrcCountryRank')}: {rank}&lt;/span>
+        }
+
+        &lt;table className='c-table main-table severity'>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>{t('txt-severity')}&lt;/th>
+              &lt;th>{t('txt-count')}&lt;/th>
+              &lt;th>%&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            {selectedAttackData.map(this.displayAttackCount)}
+          &lt;/tbody>
+        &lt;/table>
+      &lt;/div>
+    )
+  }
+  /**
+   * Open dialog to show country attack info
+   * @method
+   * @param {string} countryCode - selected country code from user
+   */
+  showCountryAttackInfo = (countryCode) => {
+    PopupDialog.alert({
+      title: this.state.countryData[countryCode],
+      id: 'modalWindowSmall',
+      confirmText: t('txt-close'),
+      display: this.displayCountryAttackContent(countryCode)
+    });
+  }
+  render() {
+    const {
+      past24hTime,
+      updatedTime,
+      worldMapData,
+      worldAttackData,
+      alertDisplayData,
+      threatsCountData,
+      mapInterval,
+      mapLimit,
+      countDown,
+      showAlertInfo
+    } = this.state;
+    const displayTime = past24hTime + ' - ' + updatedTime;
+
+    return (
+      &lt;div>
+        &lt;div className='sub-header overview'>
+          {helper.getDashboardMenu('overview')}
+
+          {/*&lt;div className='dropdown'>
+            &lt;label>Data count: &lt;/label>
+            &lt;DropDownList
+              id='mapLimitList'
+              required
+              list={[
+                {value: 10, text: 10},
+                {value: 20, text: 20},
+                {value: 30, text: 30}
+              ]}
+              value={mapLimit}
+              onChange={this.handleMapConfigChange.bind(this, 'mapLimit')} />
+          &lt;/div>
+          &lt;div className='dropdown'>
+            &lt;label>Interval: &lt;/label>
+            &lt;DropDownList
+              id='mapIntervalList'
+              required
+              list={[
+                {value: 1, text: '1s'},
+                {value: 5, text: '5s'},
+                {value: 10, text: '10s'}
+              ]}
+              value={mapInterval}
+              onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
+          &lt;/div>*/}
+          {/*{countDown &amp;&amp; countDown >= 0 &amp;&amp;
+            &lt;span className='count-down'>{countDown}s&lt;/span>
+          }*/}
+          &lt;span className='date-time-display'>{displayTime}&lt;/span>
+        &lt;/div>
+
+        &lt;div className='main-overview'>
+          {!worldAttackData &amp;&amp;
+            &lt;div className='loader-wrap'>
+              &lt;i className='fg fg-loading-2'>&lt;/i>
+            &lt;/div>
+          }
+
+          {alertDisplayData.length > 0 &amp;&amp;
+            &lt;i className={`toggle-info fg fg-arrow-${showAlertInfo ? 'top' : 'bottom'}`} onClick={this.toggleShowAlertInfo}>&lt;/i>
+          }
+
+          {showAlertInfo &amp;&amp; alertDisplayData.length > 0 &amp;&amp;
+            &lt;ul className='alert-info'>
+              {alertDisplayData.map(this.displayAlertInfo)}
+            &lt;/ul>
+          }
+
+          {alertDisplayData.length > 0 &amp;&amp;
+            &lt;div className='alert-count'>
+              {threatsCountData.map(this.displayThreatsCount)}
+            &lt;/div>
+          }
+
+          &lt;Gis
+            id='gisMapNew'
+            ref={(ref) => {
+              const gis = _.get(ref, '_component._component._component._component.gis');
+              this.gisMapData = gis ? gis._map : null;
+            }}
+            data={worldMapData}
+            layers={{
+              world: {
+                label: 'World Map',
+                interactive: false,
+                data: worldAttackData
+              }
+            }}
+            activeLayers={['world']}
+            baseLayers={{
+              standard: {
+                id: 'world',
+                layer: 'world'
+              }
+            }}
+            mapOptions={{
+              crs: L.CRS.Simple
+            }}
+            onClick={(id) => {
+              this.getCountryAttackData(id);
+            }}
+            symbolOptions={[
+              {
+                match: {
+                  type: 'spot'
+                },
+                props: {
+                  'background-color': ({data}) => {
+                    return data.color;
+                  },
+                  width: ({data}) => {
+                    return data.type === 'small' ? '12px' : '36px';
+                  },
+                  height: ({data}) => {
+                    return data.type === 'small' ? '12px' : '36px';
+                  },
+                  opacity: ({data}) => {
+                    return data.type === 'small' ? '1' : '.3';
+                  }
+                }
+              }
+            ]}
+            layouts={['standard']}
+            dragModes={['pan']} />
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+DashboardOverview.contextType = BaseDataContext;
+
+DashboardOverview.propTypes = {
+};
+
+export default DashboardOverview;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

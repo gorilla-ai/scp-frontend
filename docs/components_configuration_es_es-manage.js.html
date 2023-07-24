@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/configuration/es/es-manage.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/configuration/es/es-manage.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import cx from 'classnames'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
+import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
+import SearchOptions from '../../common/search-options'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const ES_SEARCH = {
+  status: 'all'
+};
+
+let t = null;
+let f = null;
+
+/**
+ * ES Management
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the ES Management page
+ */
+class EsManage extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      showFilter: false,
+      importIndexOpen: false,
+      datetime: {
+        from: helper.getSubstractDate(1, 'month'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      importList: [],
+      statusList: [],
+      esSearch: _.cloneDeep(ES_SEARCH),
+      selectedImportList: [],
+      es: {
+        dataFieldsArr: ['date', 'status', 'docCount', 'storeSize', 'priStoreSize', '_menu'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: 'date',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: {}
+      }
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.getEsData();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Show the export confirm modal dialog
+   * @method
+   * @param {object} allValue - ES data
+   */
+  openExportConfirmModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('txt-export'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('es-management.txt-exportMsg')}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleIndexExport(allValue);
+        }
+      }
+    });
+  }
+  /**
+   * Handle index export
+   * @method
+   * @param {object} allValue - ES data
+   */
+  handleIndexExport = (allValue) => {
+    const {baseUrl} = this.context;
+
+    if (!allValue.export) {
+      return;
+    }
+
+    helper.showPopupMsg(t('txt-requestSent'));
+
+    this.ah.one({
+      url: `${baseUrl}/api/elasticsearch/export?date=${allValue.date}`,
+      type: 'GET'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.getEsData();
+  }
+  /**
+   * Show the close index confirm modal dialog
+   * @method
+   * @param {string} date - selected date
+   * @param {object} event - event object
+   */
+  openIndexConfirmModal = (date, event) => {
+    const type = event.target.checked ? 'open' : 'close';
+
+    if (type === 'open') {
+      this.getEsData('status', date, 'open');
+    } else if (type === 'close') {
+      PopupDialog.prompt({
+        title: t('txt-close'),
+        id: 'modalWindowSmall',
+        confirmText: t('txt-ok'),
+        cancelText: t('txt-cancel'),
+        display: (
+          &lt;div className='content'>
+            &lt;div style={{marginBottom: '10px'}}>{t('es-management.txt-turnOffMsg')}?&lt;/div>
+            &lt;div>({t('es-management.txt-turnOffMsg-more')})&lt;/div>
+          &lt;/div>
+        ),
+        act: (confirmed) => {
+          if (confirmed) {
+            this.getEsData('status', date, 'close');
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Get and set ES table data
+   * @method
+   * @param {string} options - option for 'currentPage' or 'status'
+   * @param {string} date - selected date
+   * @param {string} type - 'open' or 'close'
+   */
+  getEsData = (options, date, type) => {
+    const {baseUrl} = this.context;
+    const {datetime, esSearch, es} = this.state;
+    const sort = es.sort.desc ? 'desc' : 'asc';
+    const page = options === 'currentPage' ? es.currentPage : 0;
+    const dateTime = {
+      from: moment(datetime.from).format('YYYY.MM.DD'),
+      to: moment(datetime.to).format('YYYY.MM.DD')
+    };
+    let url = `${baseUrl}/api/elasticsearch/list?page=${page + 1}&amp;pageSize=${es.pageSize}&amp;orders=${es.sort.field} ${sort}&amp;startDate=${dateTime.from}&amp;endDate=${dateTime.to}`;
+
+    if (esSearch.status !== 'all') {
+      url += `&amp;status=${esSearch.status}`;
+    }
+
+    let apiArr = [{
+      url,
+      type: 'GET'
+    }];
+
+    //Combine the two APIs to show the loading icon
+    if (options === 'status') {
+      apiArr.unshift({
+        url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
+        type: 'GET'
+      });
+    }
+
+    this.ah.series(apiArr)
+    .then(data => {
+      if (data) {
+        if (options === 'status') {
+          data = data[1];
+        } else {
+          data = data[0];
+        }
+
+        let tempEs = {...es};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempEs.dataContent = [];
+          tempEs.totalCount = 0;
+
+          this.setState({
+            es: tempEs
+          });
+          return null;
+        }
+
+        tempEs.dataContent = data.rows;
+        tempEs.totalCount = data.counts;
+        tempEs.currentPage = page;
+        const statusList = _.map(data.statusList, (val, i) => {
+          return &lt;MenuItem key={i} value={val.toLowerCase()}>{val}&lt;/MenuItem>
+        });
+        tempEs.dataFields = _.map(es.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`esFields.${val}`),
+            options: {
+              filter: val === 'date' ? true : false,
+              sort: val === 'date' ? true : false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempEs.dataContent[dataIndex];
+                const value = tempEs.dataContent[dataIndex][val];
+
+                if (val === '_menu' &amp;&amp; allValue.showButton) {
+                  return (
+                    &lt;div className='table-menu menu active'>
+                      &lt;FormControlLabel
+                        className='toggle-btn'
+                        control={
+                          &lt;Switch
+                            checked={allValue.isOpen}
+                            onChange={this.openIndexConfirmModal.bind(this, allValue.date)}
+                            color='primary' />
+                        }
+                        label={t('txt-switch')}
+                        disabled={!allValue.actionEnable} />
+                      &lt;i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.openExportConfirmModal.bind(this, allValue)}>&lt;/i>
+                    &lt;/div>
+                  )
+                } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
+                  return helper.numberWithCommas(value);
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          statusList,
+          es: tempEs
+        }, () => {
+          this.getImportList();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set index import list
+   * @method
+   */
+  getImportList = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/elasticsearch/importlist`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const importList = _.map(data.folderList, val => {
+          return {
+            value: val.replace(/\./g, '-')
+          };
+        });
+
+        this.setState({
+          importList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let tempEs = {...this.state.es};
+    tempEs.sort.field = field;
+    tempEs.sort.desc = sort;
+
+    this.setState({
+      es: tempEs
+    }, () => {
+      this.getEsData();
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempEs = {...this.state.es};
+    tempEs[type] = Number(value);
+
+    if (type === 'pageSize') {
+      tempEs.currentPage = 0;
+    }
+
+    this.setState({
+      es: tempEs
+    }, () => {
+      this.getEsData(type);
+    });
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleEsSearch = (event) => {
+    let tempEsSearch = {...this.state.esSearch};
+    tempEsSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      esSearch: tempEsSearch
+    });
+  }
+  /**
+   * Handle filter search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    let tempEs = {...this.state.es};
+    tempEs.dataFields = [];
+    tempEs.dataContent = [];
+    tempEs.totalCount = 0;
+    tempEs.currentPage = 1;
+    tempEs.oldPage = 1;
+    tempEs.pageSize = 20;
+    
+    this.setState({
+      es: tempEs
+    }, () => {
+      this.getEsData();
+    });
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {locale} = this.context;
+    const {showFilter, statusList, esSearch} = this.state;
+
+    return (
+      &lt;div className={cx('main-filter', {'active': showFilter})}>
+        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
+        &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
+        &lt;div className='filter-section config'>
+          &lt;div className='group'>
+            &lt;TextField
+              id='esSearchStatus'
+              name='status'
+              select
+              label={t('txt-status')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={esSearch.status}
+              onChange={this.handleEsSearch}>
+              &lt;MenuItem value={'all'}>{t('txt-all')}&lt;/MenuItem>
+              {statusList}
+            &lt;/TextField>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='button-group'>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      esSearch: _.cloneDeep(ES_SEARCH)
+    });
+  }
+  /**
+   * Toggle Import Index dialog on/off
+   * @method
+   */
+  toggleImportIndex = () => {
+    this.setState({
+      importIndexOpen: !this.state.importIndexOpen,
+      selectedImportList: []
+    });
+  }
+  /**
+   * Handle add/remove for the import index box
+   * @method
+   * @param {object} event - event object
+   * @param {array.&lt;object>} value - selected input value
+   */
+  handleComboBoxChange = (event, value) => {
+    this.setState({
+      selectedImportList: value
+    });    
+  }
+  /**
+   * Display import index content
+   * @method
+   * @returns HTML DOM
+   */
+  displayImportIndexContent = () => {
+    const {importList, selectedImportList} = this.state;
+
+    return (
+      &lt;div>
+        &lt;label>{t('txt-esImportMsg')}&lt;/label>
+        &lt;Autocomplete
+          className='combo-box checkboxes-tags groups'
+          multiple
+          value={selectedImportList}
+          options={importList}
+          getOptionLabel={(option) => option.value}
+          disableCloseOnSelect
+          noOptionsText={t('txt-notFound')}
+          openText={t('txt-on')}
+          closeText={t('txt-off')}
+          clearText={t('txt-clear')}
+          renderOption={(option, { selected }) => (
+            &lt;React.Fragment>
+              &lt;Checkbox
+                color='primary'
+                icon={&lt;CheckBoxOutlineBlankIcon />}
+                checkedIcon={&lt;CheckBoxIcon />}
+                checked={selected} />
+              {option.value}
+            &lt;/React.Fragment>
+          )}
+          renderInput={(params) => (
+            &lt;TextField {...params} variant='outlined' size='small' />
+          )}
+          getOptionSelected={(option, value) => (
+            option.value === value.value
+          )}
+          onChange={this.handleComboBoxChange} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Open import index modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  importIndexDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleImportIndex},
+      confirm: {text: t('txt-confirm'), handler: this.confirmImportIndex}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='importEsIndexDialog'
+        className='modal-dialog'
+        title={t('txt-importEsIndex')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayImportIndexContent()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle import index confirm
+   * @method
+   */
+  confirmImportIndex = () => {
+    const {baseUrl} = this.context;
+    const {selectedImportList} = this.state;
+    const url = `${baseUrl}/api/elasticsearch/import`;
+
+    if (selectedImportList.length === 0) {
+      return;
+    }
+
+    const requestData = {
+      esData: _.map(selectedImportList, val => {
+        return val.value.replace(/\-/g, '.');
+      })
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+    this.toggleImportIndex();
+    this.getEsData();    
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
+    this.setState({
+      datetime: tempDatetime
+    });
+  }
+  render() {
+    const {baseUrl, contextRoot} = this.context;
+    const {showFilter, importIndexOpen, datetime, es} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        {importIndexOpen &amp;&amp;
+          this.importIndexDialog()
+        }
+
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+          &lt;/div>
+
+          &lt;SearchOptions
+            datetime={datetime}
+            enableTime={false}
+            handleDateChange={this.handleDateChange}
+            handleSearchSubmit={this.getEsData} />
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
+
+          &lt;div className='parent-content'>
+            {this.renderFilter()}
+
+            &lt;div className='main-content'>
+              &lt;header className='main-header'>{t('txt-esManage')}&lt;/header>
+
+              &lt;div className='content-header-btns with-menu'>
+                &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}&lt;/Button>
+              &lt;/div>
+
+              &lt;MuiTableContent
+                data={es}
+                tableOptions={tableOptions} />
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+EsManage.contextType = BaseDataContext;
+
+EsManage.propTypes = {
+};
+
+export default EsManage;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

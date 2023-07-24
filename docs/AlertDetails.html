@@ -88,7 +88,7 @@
     <dt class="tag-author">Author:</dt>
     <dd class="tag-author">
         <ul>
-            <li><a href="mailto:ryanchen@telmediatech.com">Ryan Chen</a></li>
+            <li><a href="mailto:ryanchen@ns-guard.com">Ryan Chen</a></li>
         </ul>
     </dd>
     
@@ -102,7 +102,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line37">line 37</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line98">line 98</a>
     </li></ul></dd>
     
 
@@ -151,6 +151,166 @@
 
     
         <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addToWhiteList"><span class="type-signature"></span>addToWhiteList<span class="signature">(fileMD5, ipType)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Handle malware add to white list</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fileMD5</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>File MD5</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>ipType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2371">line 2371</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
             
@@ -282,7 +442,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line939">line 939</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1999">line 1999</a>
     </li></ul></dd>
     
 
@@ -311,14 +471,325 @@
 
         
 <div class="param-desc">
-    <ul>
-<li>valid data in string or false</li>
-</ul>
+    <p>valid data in string or boolean false</p>
 </div>
 
 
 
     
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="checkPcapAvailability"><span class="type-signature"></span>checkPcapAvailability<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Check PCAP download availability</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line981">line 981</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="checkYaraRule"><span class="type-signature"></span>checkYaraRule<span class="signature">(yaraRule)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Check yara rule before submit for trigger</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>yaraRule</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>yara rule data</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2209">line 2209</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="clearChartsData"><span class="type-signature"></span>clearChartsData<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Set charts data to initial values</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line614">line 614</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -382,7 +853,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1251">line 1251</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2480">line 2480</a>
     </li></ul></dd>
     
 
@@ -470,7 +941,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line547">line 547</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1205">line 1205</a>
     </li></ul></dd>
     
 
@@ -495,6 +966,16 @@
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
 
 
 
@@ -506,7 +987,154 @@
     
 
     
-    <h4 class="name" id="displayIPcontent"><span class="type-signature"></span>displayIPcontent<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="displayBarChart"><span class="type-signature"></span>displayBarChart<span class="signature">(dataType)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Display bar chart</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>dataType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1518">line 1518</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="displayIPcontent"><span class="type-signature"></span>displayIPcontent<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -550,7 +1178,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -607,7 +1235,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1068">line 1068</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2114">line 2114</a>
     </li></ul></dd>
     
 
@@ -661,7 +1289,7 @@
 
 
 <div class="description">
-    <p>Display JSON Data content</p>
+    <p>Display JSON content</p>
 </div>
 
 
@@ -705,7 +1333,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1176">line 1176</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1931">line 1931</a>
     </li></ul></dd>
     
 
@@ -735,6 +1363,153 @@
         
 <div class="param-desc">
     <p>HTML DOM</p>
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="displayNetworkBehaviorContent"><span class="type-signature"></span>displayNetworkBehaviorContent<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Display network behavior content</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ipType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2434">line 2434</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>NetworkBehavior component</p>
 </div>
 
 
@@ -803,7 +1578,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line905">line 905</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1874">line 1874</a>
     </li></ul></dd>
     
 
@@ -849,105 +1624,7 @@
     
 
     
-    <h4 class="name" id="displayPCAPcontent"><span class="type-signature"></span>displayPCAPcontent<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Display PCAP content</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line848">line 848</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>HTML DOM</p>
-</div>
-
-
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="displayRedirectMenu"><span class="type-signature"></span>displayRedirectMenu<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="displayRedirectMenu"><span class="type-signature"></span>displayRedirectMenu<span class="signature">(options)</span><span class="type-signature"></span></h4>
     
 
     
@@ -991,7 +1668,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>options</code></td>
             
 
             <td class="type">
@@ -1007,7 +1684,7 @@
 
             
 
-            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+            <td class="description last"><p>'srcIp', 'destIp' or 'rule'</p></td>
         </tr>
 
     
@@ -1048,7 +1725,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line726">line 726</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1458">line 1458</a>
     </li></ul></dd>
     
 
@@ -1146,7 +1823,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line749">line 749</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1622">line 1622</a>
     </li></ul></dd>
     
 
@@ -1192,7 +1869,7 @@
     
 
     
-    <h4 class="name" id="displaySafetyScanContent"><span class="type-signature"></span>displaySafetyScanContent<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="displaySafetyScanContent"><span class="type-signature"></span>displaySafetyScanContent<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1236,7 +1913,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -1293,7 +1970,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1150">line 1150</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2404">line 2404</a>
     </li></ul></dd>
     
 
@@ -1391,105 +2068,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1221">line 1221</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>false if origFileId and fileMD5 are not available</p>
-</div>
-
-
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getAlertRule"><span class="type-signature"></span>getAlertRule<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Get Alert rule data</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line349">line 349</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2446">line 2446</a>
     </li></ul></dd>
     
 
@@ -1577,7 +2156,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line456">line 456</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line870">line 870</a>
     </li></ul></dd>
     
 
@@ -1613,7 +2192,95 @@
     
 
     
-    <h4 class="name" id="getContent"><span class="type-signature"></span>getContent<span class="signature">(the)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getChartsData"><span class="type-signature"></span>getChartsData<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Get and set charts data for alert rule</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line637">line 637</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getContent"><span class="type-signature"></span>getContent<span class="signature">(type, alertData)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1657,7 +2324,7 @@
 
         <tr>
             
-                <td class="name"><code>the</code></td>
+                <td class="name"><code>type</code></td>
             
 
             <td class="type">
@@ -1673,7 +2340,30 @@
 
             
 
-            <td class="description last"><p>content type</p></td>
+            <td class="description last"><p>the content type</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>alertData</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Alert data type</p></td>
         </tr>
 
     
@@ -1714,7 +2404,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line468">line 468</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line881">line 881</a>
     </li></ul></dd>
     
 
@@ -1750,7 +2440,7 @@
     
 
     
-    <h4 class="name" id="getHMDinfo"><span class="type-signature"></span>getHMDinfo<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getDownloadFileContent"><span class="type-signature"></span>getDownloadFileContent<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -1758,7 +2448,291 @@
 
 
 <div class="description">
-    <p>Get IP device info for HMD section</p>
+    <p>Display Download File link and encode option</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line953">line 953</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getEncodeContent"><span class="type-signature"></span>getEncodeContent<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Display encode and encode option</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line970">line 970</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getHighlightedText"><span class="type-signature"></span>getHighlightedText<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Get hightlighted text from user</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1833">line 1833</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getHMDinfo"><span class="type-signature"></span>getHMDinfo<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Check IP device info for HMD</p>
 </div>
 
 
@@ -1794,7 +2768,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -1851,7 +2825,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line248">line 248</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line383">line 383</a>
     </li></ul></dd>
     
 
@@ -1887,7 +2861,7 @@
     
 
     
-    <h4 class="name" id="getIPcontent"><span class="type-signature"></span>getIPcontent<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getIPcontent"><span class="type-signature"></span>getIPcontent<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1931,7 +2905,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -1988,7 +2962,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line205">line 205</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line304">line 304</a>
     </li></ul></dd>
     
 
@@ -2024,7 +2998,7 @@
     
 
     
-    <h4 class="name" id="getIpPortData"><span class="type-signature"></span>getIpPortData<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getIpPortData"><span class="type-signature"></span>getIpPortData<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2068,7 +3042,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -2125,7 +3099,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line387">line 387</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line853">line 853</a>
     </li></ul></dd>
     
 
@@ -2171,7 +3145,7 @@
     
 
     
-    <h4 class="name" id="getListWidth"><span class="type-signature"></span>getListWidth<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+    <h4 class="name" id="getListWidth"><span class="type-signature"></span>getListWidth<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -2223,7 +3197,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line922">line 922</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1982">line 1982</a>
     </li></ul></dd>
     
 
@@ -2252,24 +3226,10 @@
 
         
 <div class="param-desc">
-    <ul>
-<li>list width</li>
-</ul>
+    <p>width text</p>
 </div>
 
 
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">string</span>
-
-
-    </dd>
-</dl>
 
     
 
@@ -2283,7 +3243,7 @@
     
 
     
-    <h4 class="name" id="getOwnerPic"><span class="type-signature"></span>getOwnerPic<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getOwnerPic"><span class="type-signature"></span>getOwnerPic<span class="signature">(ipType, ownerUUID)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2327,7 +3287,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -2344,6 +3304,29 @@
             
 
             <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>ownerUUID</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>ownerUUID</p></td>
         </tr>
 
     
@@ -2384,7 +3367,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line276">line 276</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line535">line 535</a>
     </li></ul></dd>
     
 
@@ -2420,7 +3403,7 @@
     
 
     
-    <h4 class="name" id="getOwnerSeat"><span class="type-signature"></span>getOwnerSeat<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getOwnerSeat"><span class="type-signature"></span>getOwnerSeat<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2464,7 +3447,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -2521,7 +3504,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line306">line 306</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line568">line 568</a>
     </li></ul></dd>
     
 
@@ -2557,183 +3540,7 @@
     
 
     
-    <h4 class="name" id="getPCAPcontent"><span class="type-signature"></span>getPCAPcontent<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Get and set PCAP data</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line424">line 424</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getPcapFile"><span class="type-signature"></span>getPcapFile<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Get Alert PCAP file</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1191">line 1191</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getPrivateInfo"><span class="type-signature"></span>getPrivateInfo<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getPrivateInfo"><span class="type-signature"></span>getPrivateInfo<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2777,7 +3584,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -2834,7 +3641,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1020">line 1020</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2079">line 2079</a>
     </li></ul></dd>
     
 
@@ -2880,7 +3687,7 @@
     
 
     
-    <h4 class="name" id="getPublicInfo"><span class="type-signature"></span>getPublicInfo<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getPublicInfo"><span class="type-signature"></span>getPublicInfo<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2924,7 +3731,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -2981,7 +3788,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1007">line 1007</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2066">line 2066</a>
     </li></ul></dd>
     
 
@@ -3027,7 +3834,7 @@
     
 
     
-    <h4 class="name" id="getPublicIPcontent"><span class="type-signature"></span>getPublicIPcontent<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getPublicIPcontent"><span class="type-signature"></span>getPublicIPcontent<span class="signature">(ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -3071,7 +3878,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -3128,7 +3935,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1053">line 1053</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2099">line 2099</a>
     </li></ul></dd>
     
 
@@ -3174,7 +3981,7 @@
     
 
     
-    <h4 class="name" id="getSeverity"><span class="type-signature"></span>getSeverity<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getQueryMoreContent"><span class="type-signature"></span>getQueryMoreContent<span class="signature">(options)</span><span class="type-signature"></span></h4>
     
 
     
@@ -3182,7 +3989,7 @@
 
 
 <div class="description">
-    <p>Get alert severity</p>
+    <p>Display Query More menu</p>
 </div>
 
 
@@ -3200,6 +4007,8 @@
     <thead>
     <tr>
         
+        <th>Name</th>
+        
 
         <th>Type</th>
 
@@ -3216,11 +4025,13 @@
 
         <tr>
             
+                <td class="name"><code>options</code></td>
+            
 
             <td class="type">
             
                 
-<span class="param-type">value</span>
+<span class="param-type">string</span>
 
 
             
@@ -3230,7 +4041,7 @@
 
             
 
-            <td class="description last"><p>'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'</p></td>
+            <td class="description last"><p>options for 'rule'</p></td>
         </tr>
 
     
@@ -3271,7 +4082,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line524">line 524</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1012">line 1012</a>
     </li></ul></dd>
     
 
@@ -3306,6 +4117,241 @@
 
 
     
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getRedirectIpContent"><span class="type-signature"></span>getRedirectIpContent<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Display redirect IP menu for source IP and destination IP</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1043">line 1043</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getRequestData"><span class="type-signature"></span>getRequestData<span class="signature">(ipDeviceUUID)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Get Event Tracing request data</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ipDeviceUUID</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>IP Device UUID</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line355">line 355</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3418,7 +4464,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line115">line 115</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line203">line 203</a>
     </li></ul></dd>
     
 
@@ -3454,7 +4500,7 @@
     
 
     
-    <h4 class="name" id="irSelectionDialog"><span class="type-signature"></span>irSelectionDialog<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="handleCloseMenu"><span class="type-signature"></span>handleCloseMenu<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -3462,7 +4508,7 @@
 
 
 <div class="description">
-    <p>Display IR selection modal dialog</p>
+    <p>Handle close menu</p>
 </div>
 
 
@@ -3506,7 +4552,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1278">line 1278</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1863">line 1863</a>
     </li></ul></dd>
     
 
@@ -3531,16 +4577,143 @@
 
 
 
-<h5>Returns:</h5>
+
+
+
+
 
         
-<div class="param-desc">
-    <p>IrSelections component</p>
+            
+
+    
+
+    
+    <h4 class="name" id="handleOpenMenu"><span class="type-signature"></span>handleOpenMenu<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Handle open menu</p>
 </div>
 
 
 
+
+
+
+
+
+
+    <h5>Parameters:</h5>
     
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>event object</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1851">line 1851</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3653,7 +4826,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line144">line 144</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line232">line 232</a>
     </li></ul></dd>
     
 
@@ -3689,7 +4862,7 @@
     
 
     
-    <h4 class="name" id="redirectLink"><span class="type-signature"></span>redirectLink<span class="signature">(type, value)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="loadEventTracing"><span class="type-signature"></span>loadEventTracing<span class="signature">(ipType, page<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -3697,7 +4870,187 @@
 
 
 <div class="description">
-    <p>Generate a redirect link and process the browser redirect</p>
+    <p>Load Event Tracing data</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ipType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>page</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>page number</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line465">line 465</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="onTooltip"><span class="type-signature"></span>onTooltip<span class="signature">(type, eventInfo, data)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Show tooltip info when mouseover the chart</p>
 </div>
 
 
@@ -3749,20 +5102,20 @@
 
             
 
-            <td class="description last"><p>'events' or 'virustotal'</p></td>
+            <td class="description last"><p>'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>value</code></td>
+                <td class="name"><code>eventInfo</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">object</span>
 
 
             
@@ -3772,7 +5125,30 @@
 
             
 
-            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+            <td class="description last"><p>MouseoverEvents</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array.&lt;object></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>chart data</p></td>
         </tr>
 
     
@@ -3813,7 +5189,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line694">line 694</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1488">line 1488</a>
     </li></ul></dd>
     
 
@@ -3838,6 +5214,16 @@
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
 
 
 
@@ -3849,7 +5235,7 @@
     
 
     
-    <h4 class="name" id="resetPCAPcontent"><span class="type-signature"></span>resetPCAPcontent<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="openEncodeDialog"><span class="type-signature"></span>openEncodeDialog<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -3857,7 +5243,7 @@
 
 
 <div class="description">
-    <p>Reset PCAP data</p>
+    <p>Toggle encode dialog on/off</p>
 </div>
 
 
@@ -3901,7 +5287,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line404">line 404</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1814">line 1814</a>
     </li></ul></dd>
     
 
@@ -3937,7 +5323,7 @@
     
 
     
-    <h4 class="name" id="setPCAPhex"><span class="type-signature"></span>setPCAPhex<span class="signature">(hex<span class="signature-attributes">opt</span>, index)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="pcapDownload"><span class="type-signature"></span>pcapDownload<span class="signature">(url)</span><span class="type-signature"></span></h4>
     
 
     
@@ -3945,7 +5331,281 @@
 
 
 <div class="description">
-    <p>Set PCAP hex value</p>
+    <p>Handle pcap download button</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>pcap download link</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1449">line 1449</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="redirectIp"><span class="type-signature"></span>redirectIp<span class="signature">(url)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Redirect URL</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>url to be redirected</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1035">line 1035</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="redirectLink"><span class="type-signature"></span>redirectLink<span class="signature">(type, value<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Generate a redirect link and process the browser redirect</p>
 </div>
 
 
@@ -3983,7 +5643,38 @@
 
         <tr>
             
-                <td class="name"><code>hex</code></td>
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>virustotal', 'threats' or 'syslog'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
             
 
             <td class="type">
@@ -4009,38 +5700,7 @@
 
             
 
-            <td class="description last"><p>original string value</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>index</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>active index of the Alert PCAP array</p></td>
+            <td class="description last"><p>IP address, 'srcIp' or 'destIp'</p></td>
         </tr>
 
     
@@ -4081,7 +5741,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line773">line 773</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1416">line 1416</a>
     </li></ul></dd>
     
 
@@ -4117,7 +5777,7 @@
     
 
     
-    <h4 class="name" id="setPCAPpage"><span class="type-signature"></span>setPCAPpage<span class="signature">(currentPage)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="redirectVidoeURL"><span class="type-signature"></span>redirectVidoeURL<span class="signature">(videoUrl)</span><span class="type-signature"></span></h4>
     
 
     
@@ -4125,7 +5785,7 @@
 
 
 <div class="description">
-    <p>Set PCAP page</p>
+    <p>Redirect to ivar link</p>
 </div>
 
 
@@ -4161,7 +5821,7 @@
 
         <tr>
             
-                <td class="name"><code>currentPage</code></td>
+                <td class="name"><code>videoUrl</code></td>
             
 
             <td class="type">
@@ -4177,7 +5837,7 @@
 
             
 
-            <td class="description last"><p>current page of the PCAP info</p></td>
+            <td class="description last"><p>redirect URL</p></td>
         </tr>
 
     
@@ -4218,7 +5878,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line792">line 792</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1087">line 1087</a>
     </li></ul></dd>
     
 
@@ -4254,7 +5914,588 @@
     
 
     
-    <h4 class="name" id="setTopologyInfo"><span class="type-signature"></span>setTopologyInfo<span class="signature">(alertInfo, type)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setActiveScanType"><span class="type-signature"></span>setActiveScanType<span class="signature">(activeScanType)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Set active tab based on scan type</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>activeScanType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>active scan type</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1117">line 1117</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setDefaultLeftNav"><span class="type-signature"></span>setDefaultLeftNav<span class="signature">(type)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Set default list for left nav</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>button navigation type ('previous' or 'next')</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1191">line 1191</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setEventTracingData"><span class="type-signature"></span>setEventTracingData<span class="signature">(data)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Set Event Tracing data</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>data from server response</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line491">line 491</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setSafetyScanList"><span class="type-signature"></span>setSafetyScanList<span class="signature">(val, i)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Set safety scan list</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>val</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>safety scan data</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>i</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>index of the safety scan array</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1177">line 1177</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>HTML DOM</p>
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setTopologyInfo"><span class="type-signature"></span>setTopologyInfo<span class="signature">(alertInfo, ipType)</span><span class="type-signature"></span></h4>
     
 
     
@@ -4321,7 +6562,7 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>ipType</code></td>
             
 
             <td class="type">
@@ -4378,7 +6619,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line188">line 188</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line277">line 277</a>
     </li></ul></dd>
     
 
@@ -4515,7 +6756,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line127">line 127</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line215">line 215</a>
     </li></ul></dd>
     
 
@@ -4551,7 +6792,7 @@
     
 
     
-    <h4 class="name" id="showPCAPcontent"><span class="type-signature"></span>showPCAPcontent<span class="signature">(val, i)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="showAlertContent"><span class="type-signature"></span>showAlertContent<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -4559,7 +6800,7 @@
 
 
 <div class="description">
-    <p>Display individual PCAP data</p>
+    <p>Display IVAR content</p>
 </div>
 
 
@@ -4568,78 +6809,6 @@
 
 
 
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>val</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>PCAP data</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>i</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>index</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -4675,7 +6844,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line840">line 840</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1095">line 1095</a>
     </li></ul></dd>
     
 
@@ -4721,7 +6890,7 @@
     
 
     
-    <h4 class="name" id="showPuclicInfo"><span class="type-signature"></span>showPuclicInfo<span class="signature">(item, i)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="showPublicInfo"><span class="type-signature"></span>showPublicInfo<span class="signature">(ipType, item, i)</span><span class="type-signature"></span></h4>
     
 
     
@@ -4761,6 +6930,29 @@
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ipType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
     
 
         <tr>
@@ -4845,7 +7037,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line958">line 958</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2019">line 2019</a>
     </li></ul></dd>
     
 
@@ -4891,7 +7083,7 @@
     
 
     
-    <h4 class="name" id="showRuleContent"><span class="type-signature"></span>showRuleContent<span class="signature">(val, i)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="toggleJsonOpen"><span class="type-signature"></span>toggleJsonOpen<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -4899,177 +7091,7 @@
 
 
 <div class="description">
-    <p>Display rule content</p>
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>val</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>val for the rule content</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>i</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>index</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line741">line 741</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>HTML DOM</p>
-</div>
-
-
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="toggleFilterEmpty"><span class="type-signature"></span>toggleFilterEmpty<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Toggle (check/uncheck) to show/hide the PCAP data</p>
+    <p>Toggle json open/close</p>
 </div>
 
 
@@ -5113,7 +7135,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line809">line 809</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1912">line 1912</a>
     </li></ul></dd>
     
 
@@ -5201,7 +7223,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line134">line 134</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line222">line 222</a>
     </li></ul></dd>
     
 
@@ -5237,7 +7259,7 @@
     
 
     
-    <h4 class="name" id="toggleSelectionIR"><span class="type-signature"></span>toggleSelectionIR<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="toggleSafetyScan"><span class="type-signature"></span>toggleSafetyScan<span class="signature">(type)</span><span class="type-signature"></span></h4>
     
 
     
@@ -5245,7 +7267,7 @@
 
 
 <div class="description">
-    <p>Toggle IR combo selection dialog</p>
+    <p>Toggle Safety scan content on/off</p>
 </div>
 
 
@@ -5254,6 +7276,55 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>scan content type ('src' or 'desc')</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -5289,7 +7360,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1138">line 1138</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1127">line 1127</a>
     </li></ul></dd>
     
 
@@ -5325,7 +7396,625 @@
     
 
     
-    <h4 class="name" id="triggerTask"><span class="type-signature"></span>triggerTask<span class="signature">(type, activeIP<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="toggleSelectionIR"><span class="type-signature"></span>toggleSelectionIR<span class="signature">(ipType<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Toggle IR combo selection dialog</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ipType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2193">line 2193</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="toggleThreatCount"><span class="type-signature"></span>toggleThreatCount<span class="signature">(event, type)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Handle Threats chart count change</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>event object</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>chart count ('last10', 'last20' or 'last50')</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1608">line 1608</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="toggleYaraRule"><span class="type-signature"></span>toggleYaraRule<span class="signature">(ipType<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Toggle yara rule dialog</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ipType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>'srcIp' or 'destIp'</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2177">line 2177</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="triggerFilesTask"><span class="type-signature"></span>triggerFilesTask<span class="signature">(filePath, taskId)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Handle trigger button for HMD Malware</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>filePath</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Malware file path</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>taskId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Task ID</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2337">line 2337</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="triggerTask"><span class="type-signature"></span>triggerTask<span class="signature">(type, ipTypeParam<span class="signature-attributes">opt</span>, yaraRule<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -5402,7 +8091,7 @@
 
         <tr>
             
-                <td class="name"><code>activeIP</code></td>
+                <td class="name"><code>ipTypeParam</code></td>
             
 
             <td class="type">
@@ -5429,6 +8118,39 @@
             
 
             <td class="description last"><p>IP type ('srcIp' or 'destIp')</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>yaraRule</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>yara rule data</p></td>
         </tr>
 
     
@@ -5469,7 +8191,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line1109">line 1109</a>
+        <a href="components_common_alert-details.js.html">components/common/alert-details.js</a>, <a href="components_common_alert-details.js.html#line2239">line 2239</a>
     </li></ul></dd>
     
 
@@ -5515,13 +8237,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

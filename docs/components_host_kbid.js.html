@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/kbid.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/kbid.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import PopoverMaterial from '@material-ui/core/Popover'
+import TextField from '@material-ui/core/TextField'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import TreeItem from '@material-ui/lab/TreeItem'
+import TreeView from '@material-ui/lab/TreeView'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
+import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
+import GeneralDialog from './common/general-dialog'
+import helper from '../common/helper'
+import MuiTableContent from '../common/mui-table-content'
+import ReportRecord from './common/report-record'
+import SearchFilter from './search-filter'
+import TableList from './common/table-list'
+import UploadFile from './common/upload-file'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const FILTER_LIST = [
+  {
+    name: 'departmentSelected',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'system',
+    displayType: 'text_field',
+    filterType: 'tree'
+  }
+];
+const KBID_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const KBID_FILTER = {
+  departmentSelected: [],
+  system: []
+};
+const KBID_FILTER_LIST = {
+  departmentSelected: [],
+  system: []
+};
+const EXPOSED_DEVICES_SEARCH = {
+  hostName: '',
+  ip: '',
+  system: '',
+  count: 0
+};
+const EXPOSED_DEVICES_DATA = {
+  dataFieldsArr: ['hostName', 'ip', 'system', 'departmentName'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+
+let t = null;
+let f = null;
+
+/**
+ * Host KBID
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Host KBID page
+ */
+class HostKbid extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
+      },
+      departmentList: [],
+      departmentNameMapping: {},
+      limitedDepartment: [],
+      originalSystemList: [],
+      systemList: [],
+      kbidSearch: _.cloneDeep(KBID_SEARCH),
+      kbidFilter: _.cloneDeep(KBID_FILTER),
+      kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
+      tableContextAnchor: null,
+      exportContextAnchor: null,
+      showFilterQuery: false,
+      reportOpen: false,
+      uploadKbidFileOpen: false,
+      uploadedKBID: false,
+      showKbidInfo: false,
+      activeKbidInfo: 'exposedDevices', //'exposedDevices'
+      kbidData: {
+        dataFieldsArr: ['_menu', 'kbid', 'exposedDevices'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: '',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 0,
+        pageSize: 20
+      },
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      currentKbid: ''
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId;
+
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
+      }
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getDepartmentTree();
+        this.getSystemList();
+      });
+    }
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Get department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentNameMapping = {};
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentNameMapping[obj.id] = obj.name;
+          });
+        })
+
+        this.setState({
+          departmentList: data,
+          departmentNameMapping
+        }, () => {
+          if (account.limitedRole &amp;&amp; account.departmentId) {
+            this.setSelectedDepartment();
+          } else {
+            this.getKbidData();
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account, departmentNameMapping, kbidFilter, kbidFilterList} = this.state;
+    let tempKbidFilter = {...kbidFilter};
+    let tempKbidFilterList = {...kbidFilterList};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempKbidFilter.departmentSelected = data;
+        tempKbidFilterList.departmentSelected = _.map(data, val => {
+          return departmentNameMapping[val];
+        });
+
+        this.setState({
+          limitedDepartment: data,
+          kbidFilter: tempKbidFilter,
+          kbidFilterList: tempKbidFilterList
+        }, () => {
+          this.getKbidData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get system list
+   * @method
+   */
+  getSystemList = () => {
+    const {baseUrl} = this.context;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.server.os`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.pc.os`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        let systemList = [];
+
+        if (data[0] &amp;&amp; data[0].value) {
+          systemList.push({
+            name: 'Server',
+            checked: false,
+            type: 'server',
+            children: _.map(data[0].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        if (data[1] &amp;&amp; data[1].value) {
+          systemList.push({
+            name: 'PC',
+            checked: false,
+            type: 'pc',
+            children: _.map(data[1].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        systemList.push({
+          name: t('host.txt-noSystemDetected'),
+          checked: false,
+          type: 'noSystem'
+        });
+
+        this.setState({
+          originalSystemList: _.cloneDeep(systemList),
+          systemList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set KBID data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getKbidData = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {kbidSearch, kbidData} = this.state;
+    const sort = kbidData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? kbidData.currentPage : 0;
+    const requestData = {
+      ...this.getKbidFilterRequestData()
+    };
+    let url = `${baseUrl}/api/hmd/kbid/_search?page=${page + 1}&amp;pageSize=${kbidData.pageSize}`;
+
+    if (kbidData.sort.field) {
+      url += `&amp;orders=${kbidData.sort.field} ${sort}`;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempKbidSearch = {...kbidSearch};
+        let tempKbidData = {...kbidData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempKbidSearch.count = 0;
+          tempKbidData.dataContent = [];
+          tempKbidData.totalCount = 0;
+
+          this.setState({
+            kbidSearch: tempKbidSearch,
+            kbidData: tempKbidData
+          });
+          return null;
+        }       
+
+        tempKbidData.dataContent = data.rows;
+        tempKbidData.totalCount = data.count;
+        tempKbidData.currentPage = page;
+        tempKbidData.dataFields = _.map(kbidData.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : f('hostKbidFields.' + val),
+            options: {
+              filter: true,
+              sort: this.checkSortable(val),
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempKbidData.dataContent[dataIndex];
+                const value = tempKbidData.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu active'>
+                      &lt;Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)} data-cy='hostOpenTableMenuBtn'>&lt;i className='fg fg-more'>&lt;/i>&lt;/Button>
+                    &lt;/div>
+                  )
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+        tempKbidSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          kbidSearch: tempKbidSearch,
+          kbidData: tempKbidData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Get KBID filter request data
+   * @method
+   * @returns requestData object
+   */
+  getKbidFilterRequestData = () => {
+    const {kbidSearch, kbidFilter, kbidFilterList} = this.state;
+    let requestData = {};
+
+    if (kbidSearch.keyword) {
+      requestData.kbid = kbidSearch.keyword;
+    }
+
+    if (kbidFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = kbidFilter.departmentSelected;
+    }
+
+    if (kbidFilterList.system.length > 0) {
+      const index = kbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+      let systemArray = _.cloneDeep(kbidFilterList.system);
+
+      if (index > -1) {
+        systemArray[index] = 'noExist';
+      }
+
+      requestData.systemArray = systemArray;
+    }
+
+    return requestData;
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} kbid - active KBID
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (kbid, event) => {
+    this.setState({
+      tableContextAnchor: event.currentTarget,
+      currentKbid: kbid
+    });
+  }
+  /**
+   * Get exposed devices data
+   * @method
+   * @param {string} [fromPage] - option for 'open' or 'currentPage'
+   */
+  getExposedDevices = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {exposedDevicesSearch, exposedDevicesData, currentKbid} = this.state;
+    const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
+    let url = `${baseUrl}/api/hmd/kbid/devices?page=${page + 1}&amp;pageSize=${exposedDevicesData.pageSize}`;
+    let requestData = {
+      kbid: currentKbid,
+      ...this.getKbidFilterRequestData()
+    };
+
+    if (exposedDevicesData.sort.field) {
+      url += `&amp;orders=${exposedDevicesData.sort.field} ${sort}`;
+    }
+
+    if (exposedDevicesSearch.hostName) {
+      requestData.hostName = exposedDevicesSearch.hostName;
+    }
+
+    if (exposedDevicesSearch.ip) {
+      requestData.ip = exposedDevicesSearch.ip;
+    }
+
+    if (exposedDevicesSearch.system) {
+      requestData.system = exposedDevicesSearch.system;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempExposedDevicesSearch = {...exposedDevicesSearch};
+        let tempExposedDevicesData = {...exposedDevicesData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempExposedDevicesSearch.count = 0;
+          tempExposedDevicesData.dataContent = [];
+          tempExposedDevicesData.totalCount = 0;
+
+          this.setState({
+            exposedDevicesSearch: tempExposedDevicesSearch,
+            exposedDevicesData: tempExposedDevicesData
+          });
+          return null;
+        }       
+
+        tempExposedDevicesData.dataContent = data.rows;
+        tempExposedDevicesData.totalCount = data.count;
+        tempExposedDevicesData.currentPage = page;
+        tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.vulnerabilities.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempExposedDevicesData.dataContent[dataIndex];
+                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+                return value;
+              }
+            }
+          };
+        });
+
+        tempExposedDevicesSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          exposedDevicesSearch: tempExposedDevicesSearch,
+          exposedDevicesData: tempExposedDevicesData
+        }, () => {
+          if (fromPage === 'open') {
+            this.toggleShowKBID();
+          }
+        });
+
+        this.handleCloseMenu();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      tableContextAnchor: null,
+      exportContextAnchor: null
+    });
+  }
+  /**
+   * Toggle show KBID info
+   * @method
+   */
+  toggleShowKBID = () => {
+    this.setState({
+      showKbidInfo: !this.state.showKbidInfo
+    }, () => {
+      if (!this.state.showKbidInfo) {
+        this.setState({
+          exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+          exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+        });
+      }
+    });
+  }
+  /**
+   * Toggle show KBID button
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - KBID button type ('exposedDevices')
+   */
+  toggleKbidButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
+    this.setState({
+      activeKbidInfo: type
+    });
+  }
+  /**
+   * Handle exposed devices search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDevicesSearchChange = (event) => {
+    let tempExposedDevicesSearch = {...this.state.exposedDevicesSearch};
+    tempExposedDevicesSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      exposedDevicesSearch: tempExposedDevicesSearch
+    });
+  }
+  /**
+   * Handle reset button for host name search
+   * @method
+   * @param {string} type - reset button type ('kbidSearch' or 'exposedDevices')
+   */
+  handleResetBtn = (type, event) => {
+    const {kbidSearch} = this.state;
+
+    if (type === 'kbidSearch') {
+      let tempKbidSearch = {...kbidSearch};
+      tempKbidSearch.keyword = '';
+
+      this.setState({
+        kbidSearch: tempKbidSearch
+      });
+    } else if (type === 'exposedDevices') {
+      this.setState({
+        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
+      });
+    }
+  }
+  /**
+   * Display KBID info content
+   * @method
+   * @returns HTML DOM
+   */
+  displayKbidInfo = () => {
+    const {activeKbidInfo, exposedDevicesSearch, exposedDevicesData} = this.state;
+    const tableOptionsExposedDevices = {
+      tableBodyHeight: '458px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('exposedDevices', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        &lt;ToggleButtonGroup
+          id='activeKbidInfoButtons'
+          value={activeKbidInfo}
+          exclusive
+          onChange={this.toggleKbidButtons}>
+          &lt;ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}&lt;/ToggleButton>
+        &lt;/ToggleButtonGroup>
+
+        &lt;div className='main-content'>
+          {activeKbidInfo === 'exposedDevices' &amp;&amp;
+            &lt;GeneralDialog
+              page='kbid'
+              type='exposed-devices'
+              search={exposedDevicesSearch}
+              data={exposedDevicesData}
+              tableOptions={tableOptionsExposedDevices}
+              handleSearchChange={this.handleDevicesSearchChange}
+              handleSearchSubmit={this.getExposedDevices}
+              handleResetBtn={this.handleResetBtn} />
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show KBID info dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showKbidDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.toggleShowKBID}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='showKbidDialog'
+        className='modal-dialog'
+        title={this.state.currentKbid}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayKbidInfo()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} tableType - table type ('kbid' or 'exposedDevices')
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (tableType, field, sort) => {
+    const {kbidData, exposedDevicesData} = this.state;
+    let tempKbidData = {...kbidData};
+    let tempExposedDevicesData = {...exposedDevicesData};
+    let tableField = field;
+
+    if (tableType === 'kbid') {
+      tempKbidData.sort.field = tableField;
+      tempKbidData.sort.desc = sort;
+
+      this.setState({
+        kbidData: tempKbidData
+      }, () => {
+        this.getKbidData();
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData.sort.field = tableField;
+      tempExposedDevicesData.sort.desc = sort;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices();
+      });
+    }
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} tableType - table type ('kbid' or 'exposedDevices')
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (tableType, type, value) => {
+    const {kbidData, exposedDevicesData} = this.state;
+    let tempKbidData = {...kbidData};
+    let tempExposedDevicesData = {...exposedDevicesData};
+
+    if (tableType === 'kbid') {
+      tempKbidData[type] = value;
+
+      this.setState({
+        kbidData: tempKbidData
+      }, () => {
+        this.getKbidData(type);
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData[type] = value;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices(type);
+      });
+    }
+  }
+  /**
+   * Handle KBID search search
+   * @method
+   * @param {object} event - event object
+   */
+  handleKbidChange = (event) => {
+    let tempKbidSearch = {...this.state.kbidSearch};
+    tempKbidSearch.keyword = event.target.value;
+
+    this.setState({
+      kbidSearch: tempKbidSearch
+    });
+  }
+  /**
+   * Toggle show filter query
+   * @method
+   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
+   * @param {object} [filterData] - filter data
+   */
+  toggleFilterQuery = (type, filterData) => {
+    if (type !== 'open') {
+      this.setState({
+        systemList: filterData.systemList,
+        kbidFilter: filterData.filter,
+        kbidFilterList: filterData.itemFilterList
+      }, () => {
+        if (type === 'confirm') {
+          this.getKbidData();
+        }
+      });
+    }
+
+    this.setState({
+      showFilterQuery: !this.state.showFilterQuery
+    });
+  }
+  /**
+   * Handle export open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleExportOpenMenu = (event) => {
+    this.setState({
+      exportContextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Export KBID list
+   * @method
+   * @param {string} type - export type ('kbid' or 'nccst')
+   */
+  exportKbidList = (type) => {
+    const {baseUrl, contextRoot} = this.context;
+    let url = '';
+    let fieldsList = [];
+    let exportFields = {};
+
+    if (type === 'kbid') {
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/_export`;
+      fieldsList = ['kbid', 'exposedDevices'];
+    } else if (type === 'nccst') {
+      url = `${baseUrl}${contextRoot}/api/hmd/kbid/devices/_export`;
+      fieldsList = ['departmentName', 'ip', 'system', 'kbid'];
+    }
+
+    _.forEach(fieldsList, val => {
+      exportFields[val] = t('host.txt-' + val);
+    })
+
+    const requestData = {
+      ...this.getKbidFilterRequestData(),
+      exportFields
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    this.handleCloseMenu();
+  }
+  /**
+   * Toggle report modal dialog on/off
+   * @method
+   */
+  toggleReport = () => {
+    this.setState({
+      reportOpen: !this.state.reportOpen,
+      uploadedKBID: false
+    });
+  }
+  /**
+   * Handle report list confirm
+   * @method
+   * @param {object} hmdVansConfigurations - HMD vans config data
+   */
+  confirmReportList = (hmdVansConfigurations) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/kbid/_report`;
+    const requestData = {
+      ...this.getKbidFilterRequestData(),
+      hmdKbidConfigurations: {
+        oid: hmdVansConfigurations.oid,
+        unit_name: hmdVansConfigurations.unitName,
+        api_key: hmdVansConfigurations.apiKey,
+        api_url: hmdVansConfigurations.apiUrl
+      }
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
+        this.toggleReport();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle KBID file upload dialog on/off
+   * @method
+   */
+  toggleKbidUploadFile = (data) => {
+    this.setState({
+      uploadKbidFileOpen: !this.state.uploadKbidFileOpen,
+      uploadedKBID: data === true
+    });
+  }
+  render() {
+    const {
+      account,
+      departmentList,
+      departmentNameMapping,
+      limitedDepartment,
+      originalSystemList,
+      systemList,
+      kbidSearch,
+      kbidFilter,
+      kbidFilterList,
+      tableContextAnchor,
+      exportContextAnchor,
+      showFilterQuery,
+      reportOpen,
+      uploadKbidFileOpen,
+      uploadedKBID,
+      showKbidInfo,
+      kbidData
+    } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('kbid', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('kbid', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('kbid', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        {showFilterQuery &amp;&amp;
+          &lt;FilterQuery
+            page='kbid'
+            account={account}
+            departmentList={departmentList}
+            limitedDepartment={limitedDepartment}
+            departmentNameMapping={departmentNameMapping}
+            originalSystemList={originalSystemList}
+            systemList={systemList}
+            filterList={FILTER_LIST}
+            originalFilter={KBID_FILTER}
+            filter={kbidFilter}
+            originalItemFilterList={KBID_FILTER_LIST}
+            itemFilterList={kbidFilterList}
+            toggleFilterQuery={this.toggleFilterQuery} />
+        }
+
+        {reportOpen &amp;&amp;
+          &lt;ReportRecord
+            page='kbid'
+            filter={kbidFilter}
+            uploadedFile={uploadedKBID}
+            toggleReport={this.toggleReport}
+            toggleUploadFile={this.toggleKbidUploadFile}
+            confirmReportList={this.confirmReportList} />
+        }
+
+        {uploadKbidFileOpen &amp;&amp;
+          &lt;UploadFile
+            page='kbid'
+            toggleUploadFile={this.toggleKbidUploadFile}
+            getFilterRequestData={this.getKbidFilterRequestData} />
+        }
+
+        {showKbidInfo &amp;&amp;
+          this.showKbidDialog()
+        }
+
+        &lt;TableList
+          page='kbid'
+          searchType='kbidSearch'
+          search={kbidSearch}
+          data={kbidData}
+          options={tableOptions}
+          tableAnchor={tableContextAnchor}
+          exportAnchor={exportContextAnchor}
+          getData={this.getKbidData}
+          getActiveData={this.getExposedDevices}
+          exportList={this.exportKbidList}
+          toggleReport={this.toggleReport}
+          toggleFilterQuery={this.toggleFilterQuery}
+          handleSearch={this.handleKbidChange}
+          handleReset={this.handleResetBtn}
+          handleExportMenu={this.handleExportOpenMenu}
+          handleCloseMenu={this.handleCloseMenu} />
+      &lt;/div>
+    )
+  }
+}
+
+HostKbid.contextType = BaseDataContext;
+
+HostKbid.propTypes = {
+};
+
+export default HostKbid;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -29,15 +29,19 @@
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
-import cx from 'classnames'
 
-import DataTable from 'react-ui/build/src/components/table'
+import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormLabel from '@material-ui/core/FormLabel'
+import Switch from '@material-ui/core/Switch'
 
-import {HocConfig as Config} from '../../common/configuration'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
+import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -48,7 +52,7 @@ let et = null;
 /**
  * Service Status
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Config service status page
  */
 class Status extends Component {
@@ -56,21 +60,31 @@ class Status extends Component {
     super(props);
 
     this.state = {
+      lastUpdateTime: '',
+      showNotifyStatus: false,
       serviceStatus: {
-        dataFieldsArr: ['status', 'serviceName'],
-        lastUpdateTime: '',
-        dataFields: {},
-        dataContent: []
-      }
+        dataFieldsArr: ['status', 'serviceName', 'notifyStatus'],
+        dataFields: [],
+        dataContent: null
+      },
+      notifyStatusList: []
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
     this.getServiceStatus();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
   }
   /**
    * Get and set service status data
@@ -78,7 +92,7 @@ class Status extends Component {
    * @param {string} option - option for 'refresh'
    */
   getServiceStatus = (option) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {serviceStatus} = this.state;
     let url = `${baseUrl}/api/monitor`;
 
@@ -91,59 +105,196 @@ class Status extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempServiceStatus = {...serviceStatus};
-      tempServiceStatus.lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
-      tempServiceStatus.dataContent = data.monitor;
+      if (data) {
+        const lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
+        let tempServiceStatus = {...serviceStatus};
 
-      let dataFields = {};
-      serviceStatus.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
-          label: f(`serviceStatusFields.${tempData}`),
-          sortable: true,
-          formatter: (value, allValue, i) => {
-            if (tempData === 'status') {
-              let styleStatus = '';
-              let title = '';
+        if (!data.monitor || data.monitor.length === 0) {
+          tempServiceStatus.dataContent = [];
 
-              if (value.toLowerCase() === 'active') {
-                styleStatus = '#22ac38';
-                title = t('txt-online');
-              } else if (value.toLowerCase() === 'unstable') {
-                styleStatus = '#e6e448';
-                title = t('txt-offline');
-              } else {
-                styleStatus = '#d0021b';
-                title = t('txt-unstable');
+          this.setState({
+            serviceStatus: tempServiceStatus
+          });
+          return null;
+        }
+
+        tempServiceStatus.dataContent = data.monitor;
+        tempServiceStatus.dataFields = _.map(serviceStatus.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('serviceStatusFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempServiceStatus.dataContent[dataIndex];
+                const value = tempServiceStatus.dataContent[dataIndex][val];
+
+                if (val === 'status') {
+                  let color = '';
+                  let title = '';
+
+                  if (value.toLowerCase() === 'active') {
+                    color = '#22ac38';
+                    title = t('txt-online');
+                  } else if (value.toLowerCase() === 'inactive') {
+                    color = '#d10d25';
+                    title = t('txt-offline');
+                  } else if (value.toLowerCase() === 'unstable') {
+                    color = '#e6e448';
+                    title = t('txt-unstable');
+                  } else if (value.toLowerCase() === 'unknown') {
+                    color = '#999';
+                    title = t('txt-unknown');
+                  }
+
+                  return &lt;div style={{color}}>&lt;i className='fg fg-recode' title={title} />&lt;/div>
+                } else if (val === 'serviceName') {
+                  let tooltip = '';
+
+                  if (allValue.responseCode) {
+                    tooltip += allValue.responseCode + ': ';
+                  } else {
+                    tooltip += 'N/A: ';
+                  }
+
+                  if (allValue.reponseMsg) {
+                    tooltip += allValue.reponseMsg;
+                  } else {
+                    tooltip += 'N/A';
+                  }
+
+                  return &lt;span>{value} &lt;i className='fg fg-info' title={tooltip}>&lt;/i>&lt;/span>
+                } else if (val === 'notifyStatus') {
+                  return &lt;span>{value ? t('txt-statusOn') : t('txt-statusOff')}&lt;/span>
+                }
               }
-
-              return &lt;div style={{color : styleStatus}}>&lt;i className='fg fg-recode' title={title} />&lt;/div>
             }
-            if (tempData === 'serviceName') {
-              let tooltip = '';
+          };
+        });
 
-              if (allValue.responseCode) {
-                tooltip += allValue.responseCode + ': ';
-              } else {
-                tooltip += 'N/A: ';
-              }
+        const notifyStatusList = _.map(data.monitor, val => {
+          return {
+            serviceName: val.serviceName,
+            status: val.notifyStatus
+          };
+        });
 
-              if (allValue.reponseMsg) {
-                tooltip += allValue.reponseMsg;
-              } else {
-                tooltip += 'N/A';
-              }
+        this.setState({
+          lastUpdateTime,
+          serviceStatus: tempServiceStatus,
+          notifyStatusList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle notify settings dialog
+   * @method
+   */
+  toggleNotifySettings = () => {
+    this.setState({
+      showNotifyStatus: !this.state.showNotifyStatus
+    });
+  }
+  /**
+   * Handle notify status change
+   * @method
+   * @param {number} i - index of the monitor data array
+   * @param {object} event - event object
+   */
+  handleNotifyStatusChange = (i, event) => {
+    let tempNotifyStatusList = _.cloneDeep(this.state.notifyStatusList);
+    tempNotifyStatusList[i].status = event.target.checked;
 
-              return &lt;span>{value} &lt;i className='fg fg-info' title={tooltip}>&lt;/i>&lt;/span>
-            }
+    this.setState({
+      notifyStatusList: tempNotifyStatusList
+    });
+  }
+  /**
+   * Display individual switch control
+   * @method
+   * @param {object} val - monitor data
+   * @param {number} i - index of the monitor data array
+   * @returns HTML DOM
+   */
+  displaySwitchControl = (val, i) => {
+    return (
+      &lt;div key={i} className='switch-group'>
+        &lt;FormLabel className='service-name'>{val.serviceName}&lt;/FormLabel>
+        &lt;FormControlLabel
+          className='switch-control'
+          control={
+            &lt;Switch
+              checked={val.status}
+              onChange={this.handleNotifyStatusChange.bind(this, i)}
+              color='primary' />
           }
-        };
-      })
+          label={t('txt-switch')} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display notify settings content
+   * @method
+   * @returns HTML DOM
+   */
+  displayNotifySettings = () => {
+    return (
+      &lt;div className='notify-settings'>
+        {this.state.notifyStatusList.map(this.displaySwitchControl)}
+      &lt;/div>
+    )
+  }
+  /**
+   * Show Notify settings dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  notifySettingsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleNotifySettings},
+      confirm: {text: t('txt-confirm'), handler: this.notifySettingsConfirm}
+    };
+    const titleText = t('notifications.txt-settings');
 
-      tempServiceStatus.dataFields = dataFields;
+    return (
+      &lt;ModalDialog
+        id='notifySettingsDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayNotifySettings()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Notify Settings confirm
+   * @method
+   */
+  notifySettingsConfirm = () => {
+    const {baseUrl} = this.context;
+    const {notifyStatusList} = this.state;
+    const url = `${baseUrl}/api/monitor/updateService`;
 
-      this.setState({
-        serviceStatus: tempServiceStatus
-      });
+    this.ah.one({
+      url,
+      data: JSON.stringify(notifyStatusList),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.toggleNotifySettings();
+        this.getServiceStatus('refresh');
+      }
       return null;
     })
     .catch(err => {
@@ -151,35 +302,44 @@ class Status extends Component {
     })
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {serviceStatus} = this.state;
+    const {baseUrl, contextRoot} = this.context;
+    const {lastUpdateTime, serviceStatus, showNotifyStatus} = this.state;
+    const tableOptions = {
+      pagination: false,
+      tableBodyHeight: '78vh'
+    };
 
     return (
       &lt;div>
+        {showNotifyStatus &amp;&amp;
+          this.notifySettingsDialog()
+        }
+
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            &lt;button onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}>&lt;i className='fg fg-update'>&lt;/i>&lt;/button>
-	          &lt;span className='last-update'>{serviceStatus.lastUpdateTime}&lt;/span>
+            &lt;Button variant='contained' color='primary' onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}>&lt;i className='fg fg-update'>&lt;/i>&lt;/Button>
+	          &lt;span className='last-update'>{lastUpdateTime}&lt;/span>
 	        &lt;/div>
         &lt;/div>
 
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           &lt;div className='parent-content'>
             &lt;div className='main-content'>
               &lt;header className='main-header'>{t('txt-serviceStatus')}&lt;/header>
+
+              &lt;div className='content-header-btns with-menu'>
+                &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleNotifySettings}>{t('notifications.txt-settings')}&lt;/Button>
+              &lt;/div>
+
               &lt;div className='table-content'>
                 &lt;div className='table no-pagination'>
-                  &lt;DataTable
-                    className='main-table align-center'
-                    fields={serviceStatus.dataFields}
-                    data={serviceStatus.dataContent} />
+                  &lt;MuiTableContent
+                    data={serviceStatus}
+                    tableOptions={tableOptions} />
                 &lt;/div>
               &lt;/div>
             &lt;/div>
@@ -190,16 +350,12 @@ class Status extends Component {
   }
 }
 
+Status.contextType = BaseDataContext;
+
 Status.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
-const HocStatus = withRouter(withLocale(Status));
-export { Status, HocStatus };</code></pre>
+export default withRouter(Status);</code></pre>
         </article>
     </section>
 
@@ -209,13 +365,13 @@ export { Status, HocStatus };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

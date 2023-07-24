@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/safety-details.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/safety-details.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import VansNotes from './vans-notes'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const NOT_AVAILABLE = 'N/A';
+
+let t = null;
+let f = null;
+
+/**
+ * Safety Details
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the safety scan information
+ */
+class SafetyDetails extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      contentType: '', //'basicInfo' or 'availableHost'
+      showVansNotes: false
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.toggleContent(this.props.showSafetyTab);
+    this.checkVansNotes();
+  }
+  /**
+   * Toggle content type
+   * @method
+   * @param {string} contentType - content type ('basicInfo' or 'availableHost')
+   */
+  toggleContent = (contentType) => {
+    this.setState({
+      contentType
+    });
+  }
+  /**
+   * Show / not show default Vans notes
+   * @method
+   */
+  checkVansNotes = () => {
+    const {currentSafetyData} = this.props;
+
+    if (currentSafetyData.annotationObj &amp;&amp; (currentSafetyData.annotationObj.status || currentSafetyData.annotationObj.annotation)) {
+      this.setState({
+        showVansNotes: true
+      });
+    }
+  }
+  /**
+   * Toggle Vans note content on/off
+   * @method
+   */
+  toggleVansNotes = () => {
+    this.setState({
+      showVansNotes: !this.state.showVansNotes
+    });
+  }
+  /**
+   * Display top table header
+   * @method
+   * @returns HTML DOM
+   */
+  getTopTableHeader = () => {
+    const {safetyScanType} = this.props;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        &lt;tr>
+          &lt;th>Hash Value (MD5)&lt;/th>
+          &lt;th>{t('host.txt-fileSize')}&lt;/th>
+          &lt;th>{t('host.txt-isPEfile')}&lt;/th>
+          &lt;th>{t('host.txt-isPEextension')}&lt;/th>
+          &lt;th>{t('host.txt-isSignature')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+      return (
+        &lt;tr>
+          &lt;th>CCE-ID&lt;/th>
+          &lt;th>{t('host.txt-originalFactory')}&lt;/th>
+          &lt;th>{t('host.txt-systemType')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getFileIntegrity') {
+      return (
+        &lt;tr>
+          &lt;th>MD5&lt;/th>
+          &lt;th>{t('host.txt-suspiciousFilePathExample')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        &lt;tr>
+          &lt;th>{t('host.txt-eventCode')}&lt;/th>
+          &lt;th>{t('host.txt-eventDescExample')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+      return (
+        &lt;tr>
+          &lt;th>MD5&lt;/th>
+          &lt;th>{t('host.txt-suspiciousFilePathExample')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getVansCpe') {
+      return (
+        &lt;tr>
+          &lt;th style={{width: '500px'}}>CPE ID&lt;/th>
+          &lt;th>{t('host.txt-type')}&lt;/th>
+          &lt;th>{t('host.txt-vendor')}&lt;/th>
+          &lt;th style={{width: '430px'}}>{t('host.txt-product')}&lt;/th>
+          &lt;th>{t('host.txt-version')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getVansCve') {
+      return (
+        &lt;tr>
+          &lt;th>CVE ID&lt;/th>
+          &lt;th>{t('txt-severity')}&lt;/th>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getKbid') {
+      return (
+        &lt;tr>
+          &lt;th>KBID&lt;/th>
+        &lt;/tr>
+      )
+    }
+  }
+  /**
+   * Format primary content length
+   * @method
+   * @param {string} content - Safety Scan content
+   * @param {number} length - length of content
+   * @returns formatted content
+   */
+  getFormattedLength = (content, length) => {
+    if (content.length > length) {
+      const newValue = content.substr(0, length) + '...';
+      content = &lt;span title={content}>{newValue}&lt;/span>;
+    } else {
+      content = &lt;span>{content}&lt;/span>;
+    }
+    return content;
+  }
+  /**
+   * Display top table body
+   * @method
+   * @returns HTML DOM
+   */
+  getTopTableBody = () => {
+    const {locale} = this.context;
+    const {currentSafetyData, safetyScanType, activeKbid} = this.props;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>
+            {currentSafetyData.rawJsonObject._FileInfo &amp;&amp;
+              &lt;span>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}&lt;/span>
+            }
+          &lt;/td>
+          &lt;td>
+            {'_IsPE' in currentSafetyData.rawJsonObject &amp;&amp;
+              &lt;span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}&lt;/span>
+            }
+          &lt;/td>
+          &lt;td>
+            {'_IsPEextension' in currentSafetyData.rawJsonObject &amp;&amp;
+              &lt;span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}&lt;/span>
+            }
+          &lt;/td>
+          &lt;td>
+            {'_IsVerifyTrust' in currentSafetyData.rawJsonObject &amp;&amp;
+              &lt;span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}&lt;/span>
+            }
+          &lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+      let policyContent = '';
+
+      if (locale === 'zh' &amp;&amp; currentSafetyData.rawJsonObject['_PolicyName_zh-tw']) {
+        policyContent = currentSafetyData.rawJsonObject['_PolicyName_zh-tw'];
+      } else if (locale === 'en' &amp;&amp; currentSafetyData.rawJsonObject['_PolicyName_en']) {
+        policyContent = currentSafetyData.rawJsonObject['_PolicyName_en'];
+      }
+
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{policyContent}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{currentSafetyData.rawJsonObject._Type}&lt;/span>&lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getFileIntegrity') {
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}&lt;/span>&lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{currentSafetyData.rawJsonObject.message ? this.getFormattedLength(currentSafetyData.rawJsonObject.message, 80) : NOT_AVAILABLE}&lt;/span>&lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>
+            {currentSafetyData.rawJsonObject._ProcessInfo &amp;&amp;
+              &lt;span>{currentSafetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._Filepath}&lt;/span>
+            }
+          &lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getVansCpe') {
+      const type = currentSafetyData.rawJsonObject.part;
+      let typeText = '';
+
+      if (type === 'a') {
+        typeText = t('host.txt-software');
+      } else if (type === 'h') {
+        typeText = t('host.txt-hardware');
+      } else if (type === 'o') {
+        typeText = t('host.txt-os');
+      }
+
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{typeText}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{currentSafetyData.rawJsonObject.vendor}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{currentSafetyData.rawJsonObject.product}&lt;/span>&lt;/td>
+          &lt;td>&lt;span>{currentSafetyData.rawJsonObject.version}&lt;/span>&lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getVansCve') {
+      const severity = currentSafetyData.rawJsonObject.severity ? currentSafetyData.rawJsonObject.severity.toLowerCase() : '';
+
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;td>
+            {severity &amp;&amp;
+              &lt;span className={severity}>{t('txt-' + severity)}&lt;/span>
+            }
+          &lt;/td>
+        &lt;/tr>
+      )
+    } else if (safetyScanType === 'getKbid') {
+      return (
+        &lt;tr>
+          &lt;td>&lt;span>{activeKbid}&lt;/span>&lt;/td>
+        &lt;/tr>
+      )
+    }
+  }
+  /**
+   * Display individual file
+   * @method
+   * @param {string} val - safety scan file data
+   * @param {number} i - index of the file array
+   * @returns HTML DOM
+   */
+  displayIndividualFile = (val, i) => {
+    return &lt;li key={i}>{val}&lt;/li>
+  }
+  /**
+   * Display file path for Yara Scan and Process Monitor
+   * @method
+   * @param {object} safetyData - safety scan data
+   * @returns HTML DOM
+   */
+  displayFilePath = (safetyData) => {
+    let filePathList = [];
+    let displayInfo = NOT_AVAILABLE;
+
+    if (safetyData.rawJsonObject._ProcessInfo) {
+      _.forEach(safetyData.rawJsonObject._ProcessInfo._ModulesInfo, val => {
+        if (val._FileInfo &amp;&amp; val._FileInfo._Filepath) {
+          filePathList.push(val._FileInfo._Filepath);
+        }
+      })
+    }
+
+    if (filePathList.length > 0) {
+      displayInfo = filePathList.map(this.displayIndividualFile);
+    }
+
+    return &lt;ul>{displayInfo}&lt;/ul>
+  }
+  /**
+   * Display individual connection for Yara Scan and Process Monitor
+   * @method
+   * @param {object} val - connection data
+   * @param {number} i - index of the connections array
+   * @returns HTML DOM
+   */
+  displayIndividualConnection = (val, i) => {
+    return (
+      &lt;ul key={i} className='item'>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.protocolType')}:&lt;/span> {val.protocol || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.srcIp')}:&lt;/span> {val.srcIp || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.srcPort')}:&lt;/span> {val.srcPort || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.destIp')}:&lt;/span> {val.destIP || NOT_AVAILABLE}&lt;/li>
+        &lt;li>&lt;span className='blue-color'>{t('attacksFields.destPort')}:&lt;/span> {val.destPort || NOT_AVAILABLE}&lt;/li>
+      &lt;/ul>
+    )
+  }
+  /**
+   * Display connections for Yara Scan and Process Monitor
+   * @method
+   * @param {object} safetyData - safety scan data
+   * @returns HTML DOM
+   */
+  displayConnections = (safetyData) => {
+    let connectionsList = [];
+    let displayInfo = NOT_AVAILABLE;
+
+    if (safetyData.rawJsonObject._ProcessInfo) {
+      _.forEach(safetyData.rawJsonObject._ProcessInfo._ConnectionList, val => {
+        connectionsList.push({
+          destIp: val._DstIP,
+          destPort: val._DstPort,
+          protocol: val._ProtocolType,
+          srcIp: val._SrcIP,
+          srcPort: val._SrcPort
+        });
+      })
+    }
+
+    if (connectionsList.length > 0) {
+      displayInfo = connectionsList.map(this.displayIndividualConnection);
+    }
+
+    return (
+      &lt;div className='flex-item'>
+        {displayInfo}
+      &lt;/div>
+    )
+  }
+  /**
+   * Display item for Executable Info
+   * @method
+   * @param {object} safetyData - safety scan data
+   * @param {string} val - executable list
+   * @param {number} i - index of the executable list array
+   * @returns HTML DOM
+   */
+  displayExecutableList = (safetyData, val, i) => {
+    let value = safetyData.rawJsonObject._ProcessInfo._ExecutableInfo[val];
+
+    if (val === '_AutorunLocation' || val === '_CommandLine') {
+      value = safetyData.rawJsonObject._ProcessInfo[val];
+    }
+
+    if (val === '_Filepath' || val === '_Filesize') {
+      value = safetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo[val];
+
+      if (val === '_Filesize') {
+        value = helper.numberWithCommas(helper.formatBytes(value));
+      }
+    }
+
+    if (val === '_MD5' || val === '_SHA1' || val === '_SHA256') {
+      value = safetyData.rawJsonObject._ProcessInfo._ExecutableInfo._FileInfo._HashValues[val];
+    }
+
+    if (val === '_IsPE') {
+      value = &lt;span style={{color : val ? '#22ac38' : '#d0021b'}}>{safetyData.rawJsonObject._ProcessInfo._ExecutableInfo[val].toString()}&lt;/span>;
+    }
+
+    if (val === '_Signatures') { //Signature is an array type
+      let signatureList = '';
+      value = '';
+
+      if (safetyData.rawJsonObject._ProcessInfo &amp;&amp; safetyData.rawJsonObject._ProcessInfo._ExecutableInfo[val].length > 0) {
+        _.forEach(safetyData.rawJsonObject._ProcessInfo._ExecutableInfo[val], val => {
+          signatureList = &lt;ul>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._CertificateType')}&lt;/span>: {val._CertificateType}&lt;/li>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._IssuerName')}&lt;/span>: {val._IssuerName}&lt;/li>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._SerialNumber')}&lt;/span>: {val._SerialNumber}&lt;/li>&lt;li>&lt;span className='blue-color'>{t('hmd-scan.signature._SubjectName')}&lt;/span>: {val._SubjectName}&lt;/li>&lt;/ul>;
+        })
+      }
+
+      if (signatureList) {
+        value = &lt;ul className='signature-list'>{signatureList}&lt;/ul>;
+      }
+    }
+
+    return &lt;li key={i}>&lt;span className='blue-color'>{t('hmd-scan.executable-list.txt-' + val)}&lt;/span>: {value || NOT_AVAILABLE}&lt;/li>
+  }
+  /**
+   * Display Executable Info for Process Monitor
+   * @method
+   * @param {object} safetyData - safety scan data
+   * @returns HTML DOM
+   */
+  displayExecutableInfo = (safetyData) => {
+    const executableList = ['_AutorunLocation', '_CommandLine', '_CompanyName', '_Filepath', '_Filesize', '_MD5', '_SHA1', '_SHA256', '_IsPE', '_OwnerSID', '_Signatures'];
+
+    if (safetyData.rawJsonObject._ProcessInfo &amp;&amp; safetyData.rawJsonObject._ProcessInfo._ExecutableInfo) {
+      return (
+        &lt;div>
+          &lt;ul>
+            {executableList.map(this.displayExecutableList.bind(this, safetyData))}
+          &lt;/ul>
+        &lt;/div>
+      )
+    }
+  }
+  /**
+   * Display basic info content
+   * @method
+   * @returns HTML DOM
+   */
+  getBasicInfoContent = () => {
+    const {locale} = this.context;
+    const {currentSafetyData, safetyScanType} = this.props;
+
+    if (safetyScanType === 'scanFile') {
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>Hash Value (MD5)&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-fileSize')}&lt;/span>&lt;/td>
+            &lt;td>
+              {currentSafetyData.rawJsonObject._FileInfo &amp;&amp;
+                &lt;span>{helper.numberWithCommas(helper.formatBytes(currentSafetyData.rawJsonObject._FileInfo._Filesize))}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-isPEfile')}&lt;/span>&lt;/td>
+            &lt;td>
+              {'_IsPE' in currentSafetyData.rawJsonObject &amp;&amp;
+                &lt;span style={{color: currentSafetyData.rawJsonObject._IsPE ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPE.toString())}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-isPEextension')}&lt;/span>&lt;/td>
+            &lt;td>
+              {'_IsPEextension' in currentSafetyData.rawJsonObject &amp;&amp;
+                &lt;span style={{color: currentSafetyData.rawJsonObject._IsPEextension ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsPEextension.toString())}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-isSignature')}&lt;/span>&lt;/td>
+            &lt;td>
+              {'_IsVerifyTrust' in currentSafetyData.rawJsonObject &amp;&amp;
+                &lt;span style={{color: currentSafetyData.rawJsonObject._IsVerifyTrust ? '#70c97e' : '#e15b6b'}}>{t('txt-' + currentSafetyData.rawJsonObject._IsVerifyTrust.toString())}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    } else if (safetyScanType === 'gcbDetection') {
+      let policyContent = '';
+
+      if (locale === 'zh' &amp;&amp; currentSafetyData.rawJsonObject['_PolicyName_zh-tw']) {
+        policyContent = currentSafetyData.rawJsonObject['_PolicyName_zh-tw'];
+      } else if (locale === 'en' &amp;&amp; currentSafetyData.rawJsonObject['_PolicyName_en']) {
+        policyContent = currentSafetyData.rawJsonObject['_PolicyName_en'];
+      }
+
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>CCE-ID&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-originalFactory')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{policyContent}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-systemType')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject._Type}&lt;/span>&lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    } else if (safetyScanType === 'getFileIntegrity') {
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>MD5&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-suspiciousFilePathExample')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject._FileIntegrityResultPath}&lt;/span>&lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    } else if (safetyScanType === 'getEventTraceResult') {
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-eventCode')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-eventDescExample')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.message || NOT_AVAILABLE}&lt;/span>&lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    } else if (safetyScanType === 'getProcessMonitorResult') {
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td style={{minWidth: '80px'}}>&lt;span className='blue-color'>DLLs&lt;/span>&lt;/td>
+            &lt;td>{this.displayFilePath(currentSafetyData)}&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('txt-networkBehavior')}&lt;/span>&lt;/td>
+            &lt;td>{this.displayConnections(currentSafetyData)}&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('txt-executableInfo')}&lt;/span>&lt;/td>
+            &lt;td>{this.displayExecutableInfo(currentSafetyData)}&lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    } else if (safetyScanType === 'getVansCpe') {
+      const type = currentSafetyData.rawJsonObject.part;
+      let typeText = '';
+
+      if (type === 'a') {
+        typeText = t('host.txt-software');
+      } else if (type === 'h') {
+        typeText = t('host.txt-hardware');
+      } else if (type === 'o') {
+        typeText = t('host.txt-os');
+      }
+
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>CPE ID&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.primaryKeyValue}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-type')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{typeText}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-vendor')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.vendor}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-product')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.product}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-version')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.version}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-update')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.update}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-edition')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.edition}&lt;/span>&lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('host.txt-language')}&lt;/span>&lt;/td>
+            &lt;td>&lt;span>{currentSafetyData.rawJsonObject.language}&lt;/span>&lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    } else if (safetyScanType === 'getVansCve') {
+      const severity = currentSafetyData.rawJsonObject.severity ? currentSafetyData.rawJsonObject.severity.toLowerCase() : '';
+      let color = '';
+
+      if (severity === 'high') {
+        color = '#CC2943';
+      } else if (severity === 'medium') {
+        color = '#CC7B29';
+      } else if (severity === 'low') {
+        color = '#29CC7A';
+      }
+
+      return (
+        &lt;tbody>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('txt-severity')}&lt;/span>&lt;/td>
+            &lt;td>
+              {severity &amp;&amp;
+                &lt;span style={{color}}>{t('txt-' + severity)}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('txt-description')}&lt;/span>&lt;/td>
+            &lt;td>
+              {currentSafetyData.rawJsonObject.description &amp;&amp; currentSafetyData.rawJsonObject.description.description_data.length > 0 &amp;&amp;
+                &lt;span>{currentSafetyData.rawJsonObject.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>CPE ID&lt;/span>&lt;/td>
+            &lt;td>
+              {currentSafetyData.rawJsonObject.cpeRecordDTOs &amp;&amp; currentSafetyData.rawJsonObject.cpeRecordDTOs.length > 0 &amp;&amp;
+                &lt;ul>{currentSafetyData.rawJsonObject.cpeRecordDTOs.map(this.displayVansContent.bind(this, 'cpeID'))}&lt;/ul>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('txt-reference')}&lt;/span>&lt;/td>
+            &lt;td>
+              {currentSafetyData.rawJsonObject.referenceData &amp;&amp; currentSafetyData.rawJsonObject.referenceData.reference_data.length > 0 &amp;&amp;
+                &lt;ul>{currentSafetyData.rawJsonObject.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}&lt;/ul>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('hmd-scan.txt-publishedDate')}&lt;/span>&lt;/td>
+            &lt;td>
+              {currentSafetyData.rawJsonObject.publishedDate &amp;&amp;
+                &lt;span>{helper.getFormattedDate(currentSafetyData.rawJsonObject.publishedDate, 'local')}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+          &lt;tr>
+            &lt;td>&lt;span className='blue-color'>{t('hmd-scan.txt-lastModifiedDate')}&lt;/span>&lt;/td>
+            &lt;td>
+              {currentSafetyData.rawJsonObject.lastModifiedDate &amp;&amp;
+                &lt;span>{helper.getFormattedDate(currentSafetyData.rawJsonObject.lastModifiedDate, 'local')}&lt;/span>
+              }
+            &lt;/td>
+          &lt;/tr>
+        &lt;/tbody>
+      )
+    }
+  }
+  /**
+   * Display Vans individual data
+   * @method
+   * @param {string} type - content type (desc', 'cpeID' or 'ref')
+   * @param {object} val - individual vans data
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansContent = (type, val, i) => {
+    if (type === 'desc' &amp;&amp; val.value) {
+      return &lt;div key={i} className='desc'>{val.value}&lt;/div>
+    }
+
+    if (type === 'cpeID' &amp;&amp; val.name) {
+      return &lt;li key={i}>{val.name}&lt;/li>
+    }
+
+    if (type === 'ref' &amp;&amp; val.url) {
+      return &lt;li key={i}>&lt;a href={val.url} target='_blank'>{val.url}&lt;/a>&lt;/li>
+    }
+  }
+  /**
+   * Display individual table row for Host
+   * @method
+   * @param {string} val - safety scan file data
+   * @param {number} i - index of the file array
+   * @returns HTML DOM
+   */
+  getHostTableBody = (val, i) => {
+    const {safetyScanType} = this.props;
+    let type = '';
+
+    switch (safetyScanType) {
+      case 'scanFile':
+        type = 'scanFileResult';
+        break;
+      case 'gcbDetection':
+        type = 'gcbResult';
+        break;
+      case 'getFileIntegrity':
+        type = 'fileIntegrityResult';
+        break;
+      case 'getEventTraceResult':
+        type = 'eventTracingResult';
+        break;
+      case 'getProcessMonitorResult':
+        type = 'procMonitorResult';
+        break;
+      case 'getVansCpe':
+        type = '_VansResult';
+        break;
+      case 'getVansCve':
+        type = '_VansResult';
+        break;
+    }
+
+    return (
+      &lt;tr key={i}>
+        &lt;td>{val.ip}&lt;/td>
+        &lt;td>{val.hostName}&lt;/td>
+        &lt;td>{val.system}&lt;/td>
+        &lt;td>{val.userName}&lt;/td>
+        &lt;td>{val.version}&lt;/td>
+        {safetyScanType === 'scanFile' &amp;&amp;
+          &lt;td>{val.hostIdObj._Filepath}&lt;/td>
+        }
+        {safetyScanType === 'gcbDetection' &amp;&amp;
+          &lt;td>{val.hostIdObj._GcbValue || NOT_AVAILABLE}&lt;/td> 
+        }
+        {safetyScanType === 'gcbDetection' &amp;&amp;
+          &lt;td>{val.hostIdObj._GpoValue || NOT_AVAILABLE}&lt;/td>
+        }
+        {safetyScanType === 'getFileIntegrity' &amp;&amp;
+          &lt;td>{(val.hostIdObj.Md5HashInfo &amp;&amp; val.hostIdObj.Md5HashInfo._BaselineMd5Hash) || NOT_AVAILABLE}&lt;/td>
+        }
+        {safetyScanType === 'getFileIntegrity' &amp;&amp;
+          &lt;td>{(val.hostIdObj.Md5HashInfo &amp;&amp; val.hostIdObj.Md5HashInfo._RealMd5Hash) || NOT_AVAILABLE}&lt;/td>
+        }
+        {safetyScanType === 'getFileIntegrity' &amp;&amp;
+          &lt;td>{val.hostIdObj._FileIntegrityResultPath || NOT_AVAILABLE}&lt;/td>
+        }
+        {safetyScanType === 'getEventTraceResult' &amp;&amp;
+          &lt;td>{val.hostIdObj.doc_count}&lt;/td>
+        }
+        {safetyScanType === 'getProcessMonitorResult' &amp;&amp;
+          &lt;td>{val.hostIdObj._Filepath}&lt;/td>
+        }
+        &lt;td>&lt;i className='fg fg-eye' onClick={this.props.getIPdeviceInfo.bind(this, val, 'toggle', type)} title={t('txt-view')}>&lt;/i>&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display individual table row for KBID
+   * @method
+   * @param {string} val - individual KBID data
+   * @param {number} i - index of the KBID array
+   * @returns HTML DOM
+   */
+  getKbidTableBody = (val, i) => {
+    return (
+      &lt;tr key={i}>
+        &lt;td>&lt;span>{val.ip}&lt;/span>&lt;/td>
+        &lt;td>&lt;span>{val.hostName}&lt;/span>&lt;/td>
+        &lt;td>&lt;span>{val.system}&lt;/span>&lt;/td>
+        &lt;td>&lt;span>{val.departmentName}&lt;/span>&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display individual table row for CVE info
+   * @method
+   * @param {number} currentSafetyData - current safety data
+   * @param {string} val - CVE data
+   * @param {number} i - index of the CVE data array
+   * @returns HTML DOM
+   */
+  getCveInfo = (currentSafetyData, val, i) => {
+    const severity = val.severity ? val.severity.toLowerCase() : '';
+
+    return (
+      &lt;tr>
+        &lt;td className='name'>
+          &lt;span>{val.id}&lt;/span>
+          {severity &amp;&amp;
+            &lt;span className={severity}>{t('txt-' + severity)}&lt;/span>
+          }
+        &lt;/td>
+        &lt;td>
+          {val.description &amp;&amp; val.description.description_data[0] &amp;&amp;
+            &lt;span>{this.getFormattedLength(val.description.description_data[0].value, 70)}&lt;/span>
+          }
+        &lt;/td>
+        &lt;td className='host'>
+          {currentSafetyData.hostIdArraySize &amp;&amp;
+            &lt;span>{t('host.txt-hostCount')}: {currentSafetyData.hostIdArraySize}&lt;/span> 
+          }
+        &lt;/td>
+        &lt;td className='info'>
+          &lt;span onClick={this.props.getHostInfo.bind(this, val, currentSafetyData, 'safetyPage')}>{t('host.txt-viewInfo')}&lt;/span>
+        &lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display Safety Scan content
+   * @method
+   * @returns HTML DOM
+   */
+  displaySafetyDetails = () => {
+    const {currentSafetyData, safetyScanType, vansHmdStatusList} = this.props;
+    const {contentType, showVansNotes} = this.state;
+    let basicInfoText = t('host.txt-basicInfo');
+
+    if (safetyScanType === 'getFileIntegrity' || safetyScanType === 'getProcessMonitorResult') {
+      basicInfoText = t('host.txt-basicInfoExample');
+    }
+
+    if (!_.isEmpty(currentSafetyData)) {
+      return (
+        &lt;div>
+          &lt;table className='c-table main-table align-center with-border'>
+            &lt;thead>
+              {this.getTopTableHeader()}
+            &lt;/thead>
+            &lt;tbody>
+              {this.getTopTableBody()}
+            &lt;/tbody>
+          &lt;/table>
+
+          &lt;div className='main-content'>
+            &lt;div className='nav'>
+              &lt;ul>
+                {safetyScanType !== 'getKbid' &amp;&amp;
+                  &lt;li className={cx('header', {'active': contentType === 'basicInfo'})} onClick={this.toggleContent.bind(this, 'basicInfo')}>&lt;span>{basicInfoText}&lt;/span>&lt;/li>
+                }
+                &lt;li className={cx('header', {'active': contentType === 'availableHost'})} onClick={this.toggleContent.bind(this, 'availableHost')}>&lt;span>{t('host.txt-availableHost')}&lt;/span>&lt;span className='host-count'>{currentSafetyData.hostIdArraySize || currentSafetyData.count}&lt;/span>&lt;/li>
+                &lt;li className='header' onClick={this.toggleVansNotes}>&lt;span>{t('host.txt-vansNotes')}&lt;/span> &lt;i className={`fg fg-arrow-${showVansNotes ? 'bottom' : 'top'}`}>&lt;/i>&lt;/li>
+              &lt;/ul>
+              {showVansNotes &amp;&amp;
+                &lt;VansNotes
+                  currentData={currentSafetyData}
+                  currentType={safetyScanType}
+                  vansHmdStatusList={vansHmdStatusList}
+                  getSafetyScanData={this.props.getSafetyScanData}
+                  getVansStatus={this.props.getVansStatus} />
+              }
+            &lt;/div>
+            &lt;div className='content'>
+              &lt;div className='safety-details'>
+                {contentType === 'basicInfo' &amp;&amp;
+                  &lt;div>
+                    &lt;div className='header trigger'>{basicInfoText}&lt;/div>
+                    &lt;div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}&lt;/div>
+                    &lt;table className='c-table main-table safety'>
+                      {this.getBasicInfoContent()}
+                    &lt;/table>
+
+                    {safetyScanType === 'getVansCve' &amp;&amp;
+                      &lt;table className='c-table main-table cve'>
+                        &lt;tbody>
+                          {currentSafetyData.rawJsonObject.rows &amp;&amp;
+                            currentSafetyData.rawJsonObject.rows.map(this.getCveInfo.bind(this, currentSafetyData))
+                          }
+                        &lt;/tbody>
+                      &lt;/table>
+                    }
+                  &lt;/div>
+                }
+                {contentType === 'availableHost' &amp;&amp;
+                  &lt;div>
+                    &lt;div className='header trigger'>{t('host.txt-availableHost')}&lt;/div>
+                    {safetyScanType !== 'getKbid' &amp;&amp;
+                      &lt;div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}&lt;/div>
+                    }
+                    &lt;table className='c-table main-table with-border'>
+                      &lt;thead>
+                        &lt;tr>
+                          &lt;th>{t('ipFields.ip')}&lt;/th>
+                          &lt;th>{t('ipFields.hostName')}&lt;/th>
+                          &lt;th>{t('ipFields.system')}&lt;/th>
+                          {safetyScanType !== 'getKbid' &amp;&amp;
+                            &lt;th>{t('ipFields.owner')}&lt;/th>
+                          }
+                          {safetyScanType !== 'getKbid' &amp;&amp;
+                            &lt;th>{t('ipFields.version')}&lt;/th>
+                          }
+                          {safetyScanType === 'scanFile' &amp;&amp;
+                            &lt;th>{t('host.txt-suspiciousFilePath')}&lt;/th>
+                          }
+                          {safetyScanType === 'gcbDetection' &amp;&amp;
+                            &lt;th>GCB Value&lt;/th>
+                          }
+                          {safetyScanType === 'gcbDetection' &amp;&amp;
+                            &lt;th>GPO Value&lt;/th>
+                          }
+                          {safetyScanType === 'getFileIntegrity' &amp;&amp;
+                            &lt;th>Baseline MD5&lt;/th>
+                          }
+                          {safetyScanType === 'getFileIntegrity' &amp;&amp;
+                            &lt;th>Real MD5&lt;/th>
+                          }
+                          {safetyScanType === 'getFileIntegrity' &amp;&amp;
+                            &lt;th>{t('txt-path')}&lt;/th>
+                          }
+                          {safetyScanType === 'getEventTraceResult' &amp;&amp;
+                            &lt;th>{t('host.txt-eventCount')}&lt;/th>
+                          }
+                          {safetyScanType === 'getProcessMonitorResult' &amp;&amp;
+                            &lt;th>{t('host.txt-suspiciousFilePath')}&lt;/th>
+                          }
+                          {safetyScanType === 'getKbid' &amp;&amp;
+                            &lt;th>{t('ipFields.departmentName')}&lt;/th>
+                          }
+                          {safetyScanType !== 'getKbid' &amp;&amp;
+                            &lt;th>&lt;/th>
+                          }
+                        &lt;/tr>
+                      &lt;/thead>
+                      &lt;tbody>
+                        {safetyScanType !== 'getKbid' &amp;&amp; currentSafetyData.disDevDtos &amp;&amp; currentSafetyData.disDevDtos.length > 0 &amp;&amp;
+                          currentSafetyData.disDevDtos.map(this.getHostTableBody)
+                        }
+                        {safetyScanType === 'getKbid' &amp;&amp; currentSafetyData.rows &amp;&amp;
+                          currentSafetyData.rows.map(this.getKbidTableBody)
+                        }
+                      &lt;/tbody>
+                    &lt;/table>
+                  &lt;/div>
+                }
+              &lt;/div>
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      )
+    }
+  }
+  render() {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.props.toggleSafetyDetails.bind(this, '', this.props.fromSafetyPage)}
+    };
+
+    return (
+      &lt;div>
+        &lt;ModalDialog
+          id='hostModalDialog'
+          className='modal-dialog'
+          title={t('host.txt-title-' + this.props.safetyScanType)}
+          draggable={true}
+          global={true}
+          actions={actions}
+          closeAction='confirm'>
+          {this.displaySafetyDetails()}
+        &lt;/ModalDialog>
+      &lt;/div>
+    )
+  }
+}
+
+SafetyDetails.contextType = BaseDataContext;
+
+SafetyDetails.propTypes = {
+  currentSafetyData: PropTypes.object.isRequired,
+  safetyScanType: PropTypes.string.isRequired,
+  showSafetyTab: PropTypes.string.isRequired,
+  fromSafetyPage: PropTypes.bool.isRequired,
+  vansHmdStatusList: PropTypes.array.isRequired,
+  activeKbid: PropTypes.string,
+  getHostInfo: PropTypes.func.isRequired,
+  toggleSafetyDetails: PropTypes.func.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  getSafetyScanData: PropTypes.func.isRequired,
+  getVansStatus: PropTypes.func.isRequired
+};
+
+export default SafetyDetails;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

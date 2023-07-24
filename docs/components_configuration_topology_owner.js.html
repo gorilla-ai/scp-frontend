@@ -29,24 +29,40 @@
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
 import FileInput from 'react-ui/build/src/components/file-input'
-import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import {HocConfig as Config} from '../../common/configuration'
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import Manage from './manage'
-import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
+import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const OWNER_SEARCH = {
+  name: '',
+  department: {},
+  title: {}
+};
+const FORM_VALIDATION = {
+  ownerName: {
+    valid: true
+  },
+  ownerID: {
+    valid: true
+  }
+};
 
 let t = null;
 let et = null;
@@ -54,7 +70,7 @@ let et = null;
 /**
  * Config Topology Owner
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the owner list
  */
 class NetworkOwner extends Component {
@@ -62,23 +78,21 @@ class NetworkOwner extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'tableList', //tableList, addOwner
+      activeContent: 'tableList', //'tableList' or 'addOwner'
       list: {
         department: [],
         title: []
       },
-      search: {
-        name: '',
-        department: 'all',
-        title: 'all',
-      },
+      ownerSearch: _.cloneDeep(OWNER_SEARCH),
+      openManage: false,
       addOwnerType: '',
       addOwnerTitle: '',
       showFilter: false,
+      currentOwnerData: {},
       owner: {
-        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
-        dataFields: {},
-        dataContent: [],
+        dataFieldsArr: ['ownerID', 'ownerName', 'departmentName', 'titleName', '_menu'],
+        dataFields: [],
+        dataContent: null,
         sort: {
           field: 'ownerID',
           desc: false
@@ -91,7 +105,8 @@ class NetworkOwner extends Component {
       },
       error: false,
       info: '',
-      previewOwnerPic: ''
+      previewOwnerPic: '',
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -99,7 +114,12 @@ class NetworkOwner extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-   this.getSearchData();
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+   this.getTitleData();
    this.getOwnerData();
   }
   componentWillReceiveProps(nextProps) {
@@ -107,121 +127,182 @@ class NetworkOwner extends Component {
       this.toggleContent('tableList');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
   /**
-   * Get and set department and title data
+   * Get and set title data
    * @method
    */
-  getSearchData = () => {
-    const {baseUrl} = this.props;
+  getTitleData = () => {
+    const {baseUrl} = this.context;
     const {list} = this.state;
-    const apiNameType = [1, 2]; //1: Department, 2: Title
-    let apiArr = [];
+    const url = `${baseUrl}/api/name/_search`;
+    const requestData = {
+      nameType: 2
+    };
 
-    _.forEach(apiNameType, val => {
-      const json = {nameType: val}
-
-      apiArr.push({
-        url: `${baseUrl}/api/name/_search`,
-        data: JSON.stringify(json),
-        type: 'POST',
-        contentType: 'application/json'
-      });
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
-
-    this.ah.all(apiArr)
     .then(data => {
-      let tempList = {...list};
-      let departmentList = [];
-      let titleList = [];
+      if (data) {
+        let tempList = {...list};
+        let titleList = [];
 
-      _.forEach(data[0], val => {
-        departmentList.push({
-          value: val.nameUUID,
-          text: val.name
+        _.forEach(data, val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+
+        tempList.title = _.cloneDeep(titleList);
+
+        this.setState({
+          list: tempList
+        }, () => {
+          this.getDepartmentData();
         });
-      })
-
-      _.forEach(data[1], val => {
-        titleList.push({
-          value: val.nameUUID,
-          text: val.name
-        });
-      })
-
-      tempList.department = _.cloneDeep(departmentList);
-      tempList.title = _.cloneDeep(titleList);
-      tempList.department.unshift({value: 'all', text: t('txt-all')});
-      tempList.title.unshift({value: 'all', text: t('txt-all')});
-
-      this.setState({
-        list: tempList
-      });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
+   * Get and set department data
+   * @method
+   */
+  getDepartmentData = () => {
+    const {baseUrl} = this.context;
+    const {list} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentList.push({
+              value: obj.id,
+              text: obj.name
+            });
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+
+        this.setState({
+          list: tempList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const sortableFields = ['ownerID', 'ownerName'];
+
+    if (_.includes(sortableFields, field)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
    * Get and set owner data
    * @method
-   * @param {string} fromSearch - option for 'search'
+   * @param {string} [fromPage] - option for 'currentPage'
    */
-  getOwnerData = (fromSearch) => {
-    const {baseUrl} = this.props;
-    const {owner, search} = this.state;
-    let dataObj = {
+  getOwnerData = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {owner, ownerSearch} = this.state;
+    const page = fromPage === 'currentPage' ? owner.currentPage : 0;
+    let requestData = {
       sort: owner.sort.field,
       order: owner.sort.desc ? 'desc' : 'asc',
-      page: fromSearch === 'search' ? 1 : owner.currentPage,
+      page: page + 1,
       pageSize: Number(owner.pageSize)
     };
 
-    if (fromSearch === 'search') {
-      dataObj.ownerName = '%' + search.name + '%';
+    if (ownerSearch.name) {
+      requestData.ownerName = '%' + ownerSearch.name + '%';
+    }
 
-      if (search.department != 'all') {
-        dataObj.department = search.department;
-      }
+    if (!_.isEmpty(ownerSearch.department)) {
+      requestData.department = ownerSearch.department.value;
+    }
 
-      if (search.title != 'all') {
-        dataObj.title = search.title;
-      }
+    if (!_.isEmpty(ownerSearch.title)) {
+      requestData.title = ownerSearch.title.value;
     }
 
     this.ah.one({
       url: `${baseUrl}/api/owner/_search`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
-      let tempOwner = {...owner};
-      tempOwner.dataContent = data.rows;
-      tempOwner.totalCount = data.counts;
-      tempOwner.currentPage = fromSearch === 'search' ? 1 : owner.currentPage;
+      if (data) {
+        let tempOwner = {...owner};
 
-      let dataFields = {};
-      owner.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`ownerFields.${tempData}`),
-          sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
-          formatter: (value, allValue) => {
-            if (tempData === '_menu') {
-              return (
-                &lt;div className={cx('table-menu', {'active': value})}>
-                  &lt;button onClick={this.handleRowContextMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/button>
-                &lt;/div>
-              )
-            } else {
-              return &lt;span>{value}&lt;/span>
+        if (!data.rows || data.rows.length === 0) {
+          tempOwner.dataContent = [];
+          tempOwner.totalCount = 0;
+
+          this.setState({
+            owner: tempOwner
+          });
+          return null;
+        }
+
+        tempOwner.dataContent = data.rows;
+        tempOwner.totalCount = data.counts;
+        tempOwner.currentPage = page;
+        tempOwner.dataFields = _.map(owner.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : t(`ownerFields.${val}`),
+            options: {
+              sort: this.checkSortable(val),
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempOwner.dataContent[dataIndex];
+                const value = tempOwner.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu menu active'>
+                      &lt;i id='topologyOwnerGetOwnerInfo' className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}>&lt;/i>
+                      &lt;i id='topologyOwnerDeleteOwner' className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                    &lt;/div>
+                  )
+                }
+                return value;
+              }
             }
-          }
-        };
-      })
+          };
+        });
 
-      tempOwner.dataFields = dataFields;
-
-      if (!fromSearch) {
         let ownerListArr = [];
 
         _.forEach(data.rows, val => {
@@ -232,47 +313,25 @@ class NetworkOwner extends Component {
         })
 
         tempOwner.ownerListArr = ownerListArr;
-      }
 
-      this.setState({
-        owner: tempOwner
-      });
+        this.setState({
+          owner: tempOwner
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Construct and display table context menu
-   * @method
-   * @param {object} allValue - owner data
-   * @param {object} evt - mouseClick events
-   */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: t('txt-edit'),
-        action: () => this.getOwnerInfo(allValue)
-      },
-      {
-        id: 'delete',
-        text: t('txt-delete'),
-        action: () => this.openDeleteOwnerModal(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
-    evt.stopPropagation();
-  }
-  /**
    * Handle table row mouse over
    * @method
    * @param {string} index - index of the owner data
    * @param {object} allValue - owner data
-   * @param {object} evt - mouseOver events
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (index, allValue, evt) => {
+  handleRowMouseOver = (index, allValue, event) => {
     let tempOwner = {...this.state.owner};
     tempOwner['dataContent'] = _.map(tempOwner['dataContent'], el => {
       return {
@@ -288,12 +347,13 @@ class NetworkOwner extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempOwner = {...this.state.owner};
-    tempOwner.sort.field = sort.field;
-    tempOwner.sort.desc = sort.desc;
+    tempOwner.sort.field = field;
+    tempOwner.sort.desc = sort;
 
     this.setState({
       owner: tempOwner
@@ -304,15 +364,14 @@ class NetworkOwner extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string} event - event object
    */
-  handleSearchChange = (type, value) => {
-    let tempSearch = {...this.state.search};
-    tempSearch[type] = value.trim();
+  handleSearchChange = (event) => {
+    let tempOwnerSearch = {...this.state.ownerSearch};
+    tempOwnerSearch[event.target.name] = event.target.value;
 
     this.setState({
-      search: tempSearch
+      ownerSearch: tempOwnerSearch
     });
   }
   /**
@@ -325,44 +384,140 @@ class NetworkOwner extends Component {
     let tempOwner = {...this.state.owner};
     tempOwner[type] = Number(value);
 
-    if (type === 'pageSize') {
-      tempOwner.currentPage = 1;
-    }
-
     this.setState({
       owner: tempOwner
     }, () => {
-      this.getOwnerData();
+      this.getOwnerData(type);
     });
   }
   /**
    * Get individual owner data
    * @method
-   * @param {object} allValue - owner data
+   * @param {object} allValue - Owner data
    */
   getOwnerInfo = (allValue) => {
-    const {baseUrl} = this.props;
-    let tempOwner = {...this.state.owner};
+    const {baseUrl} = this.context;
+    const {list, currentOwnerData, owner} = this.state;
+    const ownerUUID = allValue ? allValue.ownerUUID : currentOwnerData.ownerUUID;
+    let tempOwner = {...owner};
 
-    if (allValue.ownerID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          tempOwner.info = {...data};
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.rt) {
+        data = data.rt;
+        tempOwner.info = {...data};
+
+        if (allValue) {
+          this.setState({
+            currentOwnerData: allValue
+          });
+        }
+
+        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': data.department });
+        const selectedTitleIndex = _.findIndex(list.title, { 'value': data.title });
+        tempOwner.info.department = list.department[selectedDepartmentIndex];
+        tempOwner.info.title = list.title[selectedTitleIndex];
+
+        this.setState({
+          owner: tempOwner
+        }, () => {
+          this.toggleContent('addOwner', 'edit');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display department list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderDepartmentList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={t('ownerFields.department')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Display title list
+   * @method
+   * @param {object} params - parameters for Autocomplete
+   * @returns TextField component
+   */
+  renderTitleList = (params) => {
+    return (
+      &lt;TextField
+        {...params}
+        label={t('ownerFields.title')}
+        variant='outlined'
+        size='small' />
+    )
+  }
+  /**
+   * Handle department/title combo box change
+   * @method
+   * @param {string} from - form page ('department' or 'title')
+   * @param {string} type - combo type ('search' or 'owner')
+   * @param {object} event - select event
+   * @param {object} value - selected department info
+   */
+  handleComboBoxChange = (from, type, event, value) => {
+    const {list, ownerSearch, owner} = this.state;
+
+    if (value &amp;&amp; value.value) {
+      if (from === 'department') {
+        const selectedDepartmentIndex = _.findIndex(list.department, { 'value': value.value });
+
+        if (type === 'search') {
+          let tempOwnerSearch = {...ownerSearch};
+          tempOwnerSearch.department = list.department[selectedDepartmentIndex];
+
+          this.setState({
+            ownerSearch: tempOwnerSearch
+          });
+        }
+
+        if (type === 'owner') {
+          let tempOwner = {...owner};
+          tempOwner.info.department = list.department[selectedDepartmentIndex];
+
+          this.setState({
+            owner: tempOwner 
+          });
+        }
+      } else if (from === 'title') {
+        const selectedTitleIndex = _.findIndex(list.title, { 'value': value.value });
+
+        if (type === 'search') {
+          let tempOwnerSearch = {...ownerSearch};
+          tempOwnerSearch.title = list.title[selectedTitleIndex];
+
+          this.setState({
+            ownerSearch: tempOwnerSearch
+          });
+        }
+
+        if (type === 'owner') {
+          let tempOwner = {...owner};
+          tempOwner.info.title = list.title[selectedTitleIndex];
 
           this.setState({
             owner: tempOwner
-          }, () => {
-            this.toggleContent('addOwner', 'edit');
           });
         }
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+      }
     }
   }
   /**
@@ -379,24 +534,26 @@ class NetworkOwner extends Component {
     let addOwnerTitle = '';
 
     if (type === 'addOwner') {
-      tempList.department.shift(); //Remove 'all' option
-      tempList.title.shift(); //Remove 'all' option
-
       if (options === 'new') {
         addOwnerType = 'new';
         addOwnerTitle = t('txt-addNewOwner');
-        tempOwner.info = {
-          department: list.department[0].value,
-          title: list.title[0].value
-        };
+        tempOwner.info = {};
+
+        if (list.department[0] &amp;&amp; list.title[0]) {
+          tempOwner.info = {
+            department: {},
+            title: {}
+          };
+        }
       } else if (options === 'edit') {
         addOwnerType = 'edit';
         addOwnerTitle = t('txt-editOwner');
       }
       tempOwner.removePhoto = false;
     } else if (type === 'tableList') {
-      tempList.department.unshift({value: 'all', text: t('txt-all')});
-      tempList.title.unshift({value: 'all', text: t('txt-all')});
+      this.setState({
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
     }
 
     this.setState({
@@ -412,22 +569,29 @@ class NetworkOwner extends Component {
   /**
    * Handle add/edit owner data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
+    const type = event.target.name;
+    const value = event.target.value;    
     let tempOwner = {...this.state.owner};
     tempOwner.info[type] = value;
 
-    if (type === 'file') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewOwnerPic: file
-      });
-    }
+    this.setState({
+      owner: tempOwner
+    });  
+  }
+  /**
+   * Handle photo upload input value change
+   * @method
+   * @param {string | object} value - input data to be set
+   */
+  handlePhotoChange = (value) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner.info.file = value;
 
     this.setState({
+      previewOwnerPic: value ? URL.createObjectURL(value) : '',
       owner: tempOwner
     });
   }
@@ -448,20 +612,62 @@ class NetworkOwner extends Component {
    * @method
    */
   handleOwnerConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {addOwnerType, owner} = this.state;
+    const {baseUrl} = this.context;
+    const {addOwnerType, owner, formValidation} = this.state;
     let requestType = 'POST';
     let updatePic = owner.removePhoto;
     let formData = new FormData();
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (owner.info.ownerName) {
+      tempFormValidation.ownerName.valid = true;
+    } else {
+      tempFormValidation.ownerName.valid = false;
+      validate = false;
+    }
+
+    if (owner.info.ownerID) {
+      tempFormValidation.ownerID.valid = true;
+    } else {
+      tempFormValidation.ownerID.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation  
+    });
+
+    if (!validate) {
+      return;
+    }
+
     formData.append('ownerID', owner.info.ownerID);
     formData.append('ownerName', owner.info.ownerName);
-    formData.append('department', owner.info.department);
-    formData.append('title', owner.info.title);
+
+    if (owner.info.department &amp;&amp; owner.info.department.value) {
+      formData.append('department', owner.info.department.value);
+    } else {
+      formData.append('department', '');
+    }
+
+    if (owner.info.title &amp;&amp; owner.info.title.value) {
+      formData.append('title', owner.info.title.value);
+    } else {
+      formData.append('title', '');
+    }
+
+    if (owner.info.email) {
+      formData.append('email', owner.info.email);
+    } else {
+      formData.append('email', '');
+    }
 
     if (owner.info.file) {
       updatePic = true;
       formData.append('file', owner.info.file);
     }
+
     formData.append('updatePic', updatePic);
 
     if (addOwnerType === 'edit') {
@@ -477,9 +683,15 @@ class NetworkOwner extends Component {
       contentType: false
     })
     .then(data => {
-      this.getSearchData();
-      this.getOwnerData();
-      this.toggleContent('tableList');
+      this.setState({
+        currentOwnerData: {}
+      }, () => {
+        this.getTitleData();
+        this.getOwnerData();
+        this.toggleContent('tableList');
+      });
+
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -488,29 +700,24 @@ class NetworkOwner extends Component {
   /**
    * Display delete owner content
    * @method
-   * @param {object} allValue - owner data
+   * @param {object} allValue - Owner data
    * @returns HTML DOM
    */
   getDeleteOwnerContent = (allValue) => {
-    if (allValue.ownerID) {
-      let tempOwner = {...this.state.owner};
-      tempOwner.add = {...allValue};
-
-      this.setState({
-        owner: tempOwner
-      });
-    }
+    this.setState({
+      currentOwnerData: allValue
+    });
 
     return (
       &lt;div className='content delete'>
-        &lt;span>{t('txt-delete-msg')}: {allValue.ownerID}?&lt;/span>
+        &lt;span>{t('txt-delete-msg')}: {allValue.ownerName} (ID: {allValue.ownerID})?&lt;/span>
       &lt;/div>
     )
   }
   /**
    * Display delete owner modal dialog
    * @method
-   * @param {object} allValue - owner data
+   * @param {object} allValue - Owner data
    */
   openDeleteOwnerModal = (allValue) => {
     PopupDialog.prompt({
@@ -531,35 +738,40 @@ class NetworkOwner extends Component {
    * @method
    */
   deleteOwner = () => {
-    const {baseUrl} = this.props;
-    const {owner} = this.state;
+    const {baseUrl} = this.context;
+    const {currentOwnerData} = this.state;
+
+    if (!currentOwnerData.ownerUUID) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
-      url: `${baseUrl}/api/owner?uuid=${owner.add.ownerUUID}`,
+      url: `${baseUrl}/api/owner?uuid=${currentOwnerData.ownerUUID}`,
       type: 'DELETE'
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getOwnerData();
+        this.setState({
+          currentOwnerData: {}
+        }, () => {
+          this.getOwnerData();
+        });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
-   * Open department/title management modal dialog
-   * @method
-   */
-  openManage = () => {
-    this.name._component.openManage();
-  }
-  /**
    * Handle close on department/title management modal dialog
    * @method
    */
-  onDone = () => {
-    this.getSearchData();
+  handleCloseManage = () => {
+    this.toggleManageDialog();
+    this.getTitleData();
     this.getOwnerData();
   }
   /**
@@ -576,14 +788,8 @@ class NetworkOwner extends Component {
    * @method
    */
   clearFilter = () => {
-    const tempSearch = {
-      name: '',
-      department: 'all',
-      title: 'all'
-    };
-
     this.setState({
-      search: tempSearch
+      ownerSearch: _.cloneDeep(OWNER_SEARCH)
     });
   }
   /**
@@ -592,117 +798,139 @@ class NetworkOwner extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {list, search, showFilter} = this.state
+    const {list, ownerSearch, showFilter} = this.state;
 
     return (
       &lt;div className={cx('main-filter', {'active': showFilter})}>
-        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
+        &lt;i id='topologyOwnerCloseFilter' className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
         &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
         &lt;div className='filter-section config'>
           &lt;div className='group'>
-            &lt;label htmlFor='ownerName' className='first-label'>{t('ownerFields.ownerName')}&lt;/label>
-            &lt;Input id='ownerName' placeholder={t('txt-enterName')} onChange={this.handleSearchChange.bind(this, 'name')} value={search.name} />
+            &lt;TextField
+              id='topologyFilterOwnerName'
+              name='name'
+              label={t('ownerFields.ownerName')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={ownerSearch.name}
+              onChange={this.handleSearchChange} />
           &lt;/div>
           &lt;div className='group'>
-            &lt;label htmlFor='ownerDept'>{t('ownerFields.department')}&lt;/label>
-            &lt;DropDownList id='ownerDept' list={list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
+            &lt;Autocomplete
+              id='topologyFilterComboDepartment'
+              className='combo-box'
+              options={list.department}
+              value={ownerSearch.department}
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderDepartmentList}
+              onChange={this.handleComboBoxChange.bind(this, 'department', 'search')} />
           &lt;/div>
           &lt;div className='group'>
-            &lt;label htmlFor='ownerTitle'>{t('ownerFields.title')}&lt;/label>
-            &lt;DropDownList id='ownerTitle' list={list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
+            &lt;Autocomplete
+              id='topologyFilterComboTitle'
+              className='combo-box'
+              options={list.title}
+              value={ownerSearch.title}
+              getOptionLabel={(option) => option.text}
+              renderInput={this.renderTitleList}
+              onChange={this.handleComboBoxChange.bind(this, 'title', 'search')} />
           &lt;/div>
         &lt;/div>
         &lt;div className='button-group'>
-          &lt;button className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}&lt;/button>
-          &lt;button className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/button>
+          &lt;Button id='topologyFilterBtn' variant='contained' color='primary' className='filter' onClick={this.getOwnerData}>{t('txt-filter')}&lt;/Button>
+          &lt;Button id='topologyClearBtn' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
         &lt;/div>
       &lt;/div>
     )
   }
   /**
-   * Get Add button position
+   * Toggle manage dialog
    * @method
-   * @param {string} type - button type
-   * @returns width
    */
-  getBtnPos = (type) => {
-    const {locale} = this.props;
-
-    if (type === 'add') {
-      if (locale === 'zh') {
-        return '168px';
-      } else if (locale === 'en') {
-        return '268px';
-      }
-    }
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    });
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {
       activeContent,
       list,
+      openManage,
       addOwnerTitle,
       owner,
       showFilter,
-      previewOwnerPic
+      previewOwnerPic,
+      formValidation
     } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    }; 
 
     return (
       &lt;div>
-        &lt;Manage
-          ref={ref => { this.name=ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          onDone={this.onDone} />
+        {openManage &amp;&amp;
+          &lt;Manage
+            handleCloseManage={this.handleCloseManage} />
+        }
 
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;Button id='topologyTableFilterBtn' variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+            }
           &lt;/div>
         &lt;/div>
 
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           &lt;div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &amp;&amp;
               &lt;div className='main-content'>
                 &lt;header className='main-header'>{t('txt-ownerList')}&lt;/header>
-                &lt;button className='standard btn last' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}&lt;/button>
-                &lt;button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}&lt;/button>
 
-                &lt;TableContent
-                  dataTableData={owner.dataContent}
-                  dataTableFields={owner.dataFields}
-                  dataTableSort={owner.sort}
-                  paginationTotalCount={owner.totalCount}
-                  paginationPageSize={owner.pageSize}
-                  paginationCurrentPage={owner.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  handleRowMouseOver={this.handleRowMouseOver}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                &lt;div className='content-header-btns with-menu'>
+                  &lt;Button id='topologyTableAddOwner' variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}&lt;/Button>
+                  &lt;Button id='topologyTableEditDepartmentTitle' variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog}>{t('txt-manageDepartmentTitle')}&lt;/Button>
+                &lt;/div>
+
+                &lt;MuiTableContent
+                  data={owner}
+                  tableOptions={tableOptions} />
               &lt;/div>
             }
 
             {activeContent === 'addOwner' &amp;&amp;
               &lt;div className='main-content basic-form'>
                 &lt;header className='main-header'>{addOwnerTitle}&lt;/header>
-                &lt;button className='standard btn last' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}&lt;/button>
+
+                &lt;div className='content-header-btns'>
+                  &lt;Button id='topologyManageDepartmentTitle' variant='outlined' color='primary' className='standard btn' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}&lt;/Button>
+                &lt;/div>
+
                 &lt;div className='form-group steps-owner'>
                   &lt;header>{t('ipFields.owner')}&lt;/header>
                   &lt;div className='user-pic'>
                     &lt;div className='group'>
                       &lt;label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}&lt;/label>
                       &lt;FileInput
-                        id='ownerPhotoUpload'
+                        id='topologyOwnerPhotoUpload'
+                        className='file-input'
                         name='file'
                         btnText={t('txt-uploadPhoto')}
                         validate={{
@@ -714,21 +942,26 @@ class NetworkOwner extends Component {
                             }
                           }
                         }}
-                        onChange={this.handleDataChange.bind(this, 'file')} />
+                        onChange={this.handlePhotoChange} />
                     &lt;/div>
                     &lt;div className='group'>
                       {previewOwnerPic &amp;&amp;
                         &lt;img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                       }
-                      {owner.info.base64 &amp;&amp;
+                      {!previewOwnerPic &amp;&amp; owner.info.base64 &amp;&amp;
                         &lt;div>
                           &lt;img src={owner.info.base64} title={t('network-topology.txt-profileImage')} />
                           &lt;div className='removePhoto'>
-                            &lt;label htmlFor='removePhoto'>{t('network-topology.txt-removePhoto')}&lt;/label>
-                            &lt;Checkbox
-                              id='removePhoto'
-                              onChange={this.handleRemovePhoto}
-                              checked={owner.removePhoto} />
+                            &lt;FormControlLabel
+                              id='topologyRemovePhoto' 
+                              label={t('network-topology.txt-removePhoto')}
+                              control={
+                                &lt;Checkbox
+                                  className='checkbox-ui'
+                                  checked={owner.removePhoto}
+                                  onChange={this.handleRemovePhoto}
+                                  color='primary' />
+                              } />
                           &lt;/div>
                         &lt;/div>
                       }
@@ -739,51 +972,69 @@ class NetworkOwner extends Component {
                   &lt;/div>
                   &lt;div className='user-info'>
                     &lt;div className='group'>
-                      &lt;label htmlFor='ownerName'>{t('ownerFields.ownerName')}&lt;/label>
-                      &lt;Input
-                        id='ownerName'
-                        onChange={this.handleDataChange.bind(this, 'ownerName')}
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
-                        value={owner.info.ownerName} />
+                      &lt;TextField
+                        id='topologyOwnerName'
+                        name='ownerName'
+                        label={t('ownerFields.ownerName')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.ownerName.valid}
+                        helperText={formValidation.ownerName.valid ? '' : t('txt-required')}
+                        value={owner.info.ownerName}
+                        onChange={this.handleDataChange} />
                     &lt;/div>
                     &lt;div className='group'>
-                      &lt;label htmlFor='ownerID'>{t('ownerFields.ownerID')}&lt;/label>
-                      &lt;Input
-                        id='ownerID'
-                        onChange={this.handleDataChange.bind(this, 'ownerID')}
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
-                        value={owner.info.ownerID} />
+                      &lt;TextField
+                        id='topologyOwnerID'
+                        name='ownerID'
+                        label={t('ownerFields.ownerID')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.ownerID.valid}
+                        helperText={formValidation.ownerID.valid ? '' : t('txt-required')}
+                        value={owner.info.ownerID}
+                        onChange={this.handleDataChange} />
                     &lt;/div>
                     &lt;div className='group'>
-                      &lt;label htmlFor='ownerDepartment'>{t('ownerFields.department')}&lt;/label>
-                      &lt;DropDownList
-                        id='ownerDepartment'
-                        list={list.department}
-                        required={true}
-                        validate={{t: et}}
-                        onChange={this.handleDataChange.bind(this, 'department')}
-                        value={owner.info.department} />
+                      &lt;Autocomplete
+                        id='topologyOwnerDepartment'
+                        className='combo-box'
+                        options={list.department}
+                        value={owner.info.department}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderDepartmentList}
+                        onChange={this.handleComboBoxChange.bind(this, 'department', 'owner')} />
                     &lt;/div>
                     &lt;div className='group'>
-                      &lt;label htmlFor='ownerTitle'>{t('ownerFields.title')}&lt;/label>
-                      &lt;DropDownList
-                        id='ownerTitle'
-                        list={list.title}
-                        required={true}
-                        onChange={this.handleDataChange.bind(this, 'title')}
-                        value={owner.info.title} />
+                      &lt;Autocomplete
+                        id='topologyOwnerTitle'
+                        className='combo-box'
+                        options={list.title}
+                        value={owner.info.title}
+                        getOptionLabel={(option) => option.text}
+                        renderInput={this.renderTitleList}
+                        onChange={this.handleComboBoxChange.bind(this, 'title', 'owner')} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;TextField
+                        id='topologyOwnerEmail'
+                        name='email'
+                        label={t('ownerFields.email')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={owner.info.email}
+                        onChange={this.handleDataChange} />
                     &lt;/div>
                   &lt;/div>
                 &lt;/div>
                 &lt;footer>
-                  &lt;button className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}&lt;/button>
-                  &lt;button className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}&lt;/button>
+                  &lt;Button id='topologyOwnerCancel' variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}&lt;/Button>
+                  &lt;Button id='topologyOwnerSave' variant='contained' color='primary' className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}&lt;/Button>
                 &lt;/footer>
               &lt;/div>
             }
@@ -794,13 +1045,12 @@ class NetworkOwner extends Component {
   }
 }
 
+NetworkOwner.contextType = BaseDataContext;
+
 NetworkOwner.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
-const HocNetworkOwner = withRouter(withLocale(NetworkOwner));
-export { NetworkOwner, HocNetworkOwner };</code></pre>
+export default withRouter(NetworkOwner);</code></pre>
         </article>
     </section>
 
@@ -810,13 +1060,13 @@ export { NetworkOwner, HocNetworkOwner };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

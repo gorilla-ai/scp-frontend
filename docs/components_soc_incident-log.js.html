@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soc/incident-log.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soc/incident-log.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import _ from 'lodash'
+import cx from 'classnames'
+import moment from 'moment'
+
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+
+import Button from '@material-ui/core/Button'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from '../common/context'
+import constants from '../constant/constant-incidnet'
+import helper from '../common/helper'
+import MuiTableContent from '../common/mui-table-content'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
+import SocConfig from '../common/soc-configuration'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
+
+/**
+ * Settings - IncidentDevice
+ * @class
+ * @author Kenneth Chiao &lt;kennethchiao@telmediatech.com>
+ * @summary A react component to show the Config IncidentDevice page
+ */
+class IncidentLog extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+
+    this.state = {
+      activeContent: 'tableList', //tableList, viewDevice, editDevice
+      showFilter: false,
+      logSearch: {
+        keyword: '',
+        type: '',
+        status: '',
+        dttmType: 'createdDttm',
+        datetime: {
+          from: helper.getSubstractDate(1, 'month'),
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        }
+      },
+      accountType:constants.soc.LIMIT_ACCOUNT,
+      incidentLog: {
+        dataFieldsArr: ['id', 'type', 'status', 'createdDttm', 'updateDttm', 'sendDttm'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: 'type',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: {
+          id: '',
+          type: '',
+          status: ''
+        }
+      }
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.checkAccountType();
+    this.getData();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  checkAccountType = () => {
+    const {baseUrl, session} = this.context;
+    let requestData = {
+      account:session.accountId
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/unit/limit/_check`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+          this.setState({
+            accountType: constants.soc.LIMIT_ACCOUNT
+          });
+        } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
+          this.setState({
+            accountType: constants.soc.NONE_LIMIT_ACCOUNT
+          });
+        } else {
+          this.setState({
+            accountType: constants.soc.CHECK_ERROR
+          });
+        }
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  /**
+   * Get and set Incident Unit table data
+   * @method
+   * @param {string} fromSearch - option for the 'search'
+   */
+  getData = (options) => {
+    const {baseUrl, contextRoot, session} = this.context;
+    const {logSearch, incidentLog} = this.state;
+    const sort = incidentLog.sort.desc ? 'desc' : 'asc';
+    const page = options === 'currentPage' ? incidentLog.currentPage : 0;
+    const url = `${baseUrl}/api/soc/log/_searchV2?page=${page + 1}&amp;pageSize=${incidentLog.pageSize}&amp;orders=${incidentLog.sort.field} ${sort}`;
+
+    let requestData = {};
+
+    if (logSearch.keyword) {
+      requestData.keyword = logSearch.keyword;
+    }
+
+    if (logSearch.type) {
+      requestData.type = logSearch.type;
+    }
+
+    if (logSearch.status) {
+      requestData.status = logSearch.status;
+    }
+
+    if (logSearch.dttmType) {
+      requestData.dttmType = logSearch.dttmType;
+    }
+
+    requestData.account = session.accountId;
+
+    if (logSearch.datetime) {
+      requestData.startDttm =   moment(logSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      requestData.endDttm =   moment(logSearch.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempLog = {...incidentLog};
+        tempLog.dataContent = data.rows;
+        tempLog.totalCount = data.counts;
+        tempLog.currentPage = page;
+
+        tempLog.dataFields = _.map(incidentLog.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : val === 'updateDttm' ? f(`incidentFields.lastSendDttm`):f(`incidentFields.${val}`),
+            options: {
+              filter: true,
+              sort: this.checkSortable(val),
+              viewColumns: val !== '_menu',
+              customBodyRenderLite: (dataIndex, options) => {
+                const allValue = tempLog.dataContent[dataIndex];
+                let value = tempLog.dataContent[dataIndex][val];
+
+                if (options === 'getAllValue') {
+                  return allValue;
+                }
+
+                if (val === 'updateDttm') {
+                  return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+                } else if (val === 'createdDttm') {
+                  return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+                } else if (val === 'sendDttm') {
+                  return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+                } else if (val === 'type') {
+                  if (value === 'event') {
+                    return &lt;span>{it('txt-incident-event')}&lt;/span>
+                  } else if (value === 'related') {
+                    return &lt;span>{it('txt-incident-related')}&lt;/span>
+                  } else if (value === 'health') {
+                    return &lt;span>{it('txt-incident-health')}&lt;/span>
+                  } else if (value === 'EDR') {
+                    return &lt;span>EDR&lt;/span>
+                  }
+                } else if (val === 'status') {
+                  if (value === 'success') {
+                    return &lt;span style={{color: '#008B02'}}>{it('txt-send-success')}&lt;/span>
+                  } else if (value === 'fail') {
+                    return &lt;span style={{color: '#DB3E00'}}>{it('txt-send-fail')}&lt;/span>
+                  } else if (value === 'fail-connect') {
+                    return &lt;span style={{color: '#DB3E00'}}>{it('txt-send-connect-fail')}&lt;/span>
+                  }
+                } else {
+                  return &lt;span>{value}&lt;/span>
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          incidentLog: tempLog
+        });
+
+      }
+      return null;
+    })
+    .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let temp = {...this.state.incidentLog};
+    temp[type] = Number(value);
+
+    this.setState({
+      incidentLog: temp
+    }, () => {
+      this.getData(type);
+    });
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    let temp = {...this.state.incidentLog};
+    temp.sort.field = field;
+    temp.sort.desc = sort;
+
+    this.setState({
+      incidentLog: temp
+    }, () => {
+      this.getData();
+    });
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {locale} = this.context;
+    const {showFilter, logSearch} = this.state;
+
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      &lt;div className={cx('main-filter', {'active': showFilter})}>
+        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
+        &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
+        &lt;div className='filter-section config'>
+          &lt;div className='group'>
+            &lt;label htmlFor='keyword'>{f('incidentFields.id')}&lt;/label>
+            &lt;TextField
+              id='keyword'
+              name='keyword'
+              type='text'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              className='search-textarea'
+              value={logSearch.keyword}
+              onChange={this.handleLogInputSearchMui}/>
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='type'>{it('txt-send-type')}&lt;/label>
+            &lt;TextField
+              id='type'
+              name='type'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              select
+              value={logSearch.type}
+              onChange={this.handleLogInputSearchMui}>
+              {
+                _.map([
+                  {
+                    value: 'event',
+                    text: it('txt-incident-event')
+                  },
+                  {
+                    value: 'related',
+                    text: it('txt-incident-related')
+                  },
+                  {
+                    value: 'health',
+                    text: it('txt-incident-health')
+                  },
+                  {
+                    value: 'EDR',
+                    text: 'EDR'
+                  }
+                ], el => {
+                  return &lt;MenuItem value={el.value}>{el.text}&lt;/MenuItem>
+                })
+              }
+            &lt;/TextField>
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='status'>{it('txt-send-status')}&lt;/label>
+            &lt;TextField
+              id='status'
+              name='status'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              select
+              value={logSearch.status}
+              onChange={this.handleLogInputSearchMui}>
+              {
+                _.map([
+                  {
+                    value: 'success',
+                    text: it('txt-send-success')
+                  },
+                  {
+                    value: 'fail',
+                    text: it('txt-send-fail')
+                  },
+                  {
+                    value: 'fail-connect',
+                    text: it('txt-send-connect-fail')
+                  }
+                ], el => {
+                  return &lt;MenuItem value={el.value}>{el.text}&lt;/MenuItem>
+                })
+              }
+            &lt;/TextField>
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='searchDttmType'>{it('txt-searchDttmType')}&lt;/label>
+            &lt;TextField
+              id='searchDttmType'
+              name='dttmType'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              select
+              required={true}
+              value={logSearch.dttmType}
+              onChange={this.handleLogInputSearchMui}>
+              {
+                _.map([
+                  {
+                    value: 'sendDttm',
+                    text: f('incidentFields.sendDttm')
+                  },
+                  {
+                    value: 'updateDttm',
+                    text: f('incidentFields.updateDttm')
+                  },
+                  {
+                    value: 'createdDttm',
+                    text: f('incidentFields.createdDttm')
+                  }
+                ], el => {
+                  return &lt;MenuItem value={el.value}>{el.text}&lt;/MenuItem>
+                })
+              }
+            &lt;/TextField>
+          &lt;/div>
+          &lt;div className='group' style={{width: '500px'}}>
+            &lt;label htmlFor='searchDttm'>{f('incidentFields.createdDttm')}&lt;/label>
+            &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              &lt;KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                ampm={false}
+                value={logSearch.datetime.from}
+                onChange={this.handleSearchTime.bind(this, 'from')} />
+              &lt;div className='between'>~&lt;/div>
+              &lt;KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                format='YYYY-MM-DD HH:mm'
+                ampm={false}
+                value={logSearch.datetime.to}
+                onChange={this.handleSearchTime.bind(this, 'to')} />
+            &lt;/MuiPickersUtilsProvider>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='button-group'>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /* ---- Func Space ---- */
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleSearchTime = (type, value) => {
+    let tempSearch = {...this.state.logSearch};
+    tempSearch.datetime[type] = value;
+
+    this.setState({
+      logSearch: tempSearch
+    });
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {object} event - input value
+   */
+  handleLogInputSearch = (type, event) => {
+    let tempLogSearch = {...this.state.logSearch};
+    tempLogSearch[type] = event.target.value.trim();
+
+    this.setState({
+      logSearch: tempLogSearch
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {object} event - input value
+   */
+  handleLogInputSearchMui = (event) => {
+    let tempLogSearch = {...this.state.logSearch};
+    tempLogSearch[event.target.name] = event.target.value.trim();
+
+    this.setState({
+      logSearch: tempLogSearch
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleLogSearch = (type, value) => {
+    let tempLogSearch = {...this.state.logSearch};
+    tempLogSearch[type] = value;
+
+    this.setState({
+      logSearch: tempLogSearch
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleLogSearchMui = (event) => {
+    let tempLogSearch = {...this.state.logSearch};
+    tempLogSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      logSearch: tempLogSearch
+    });
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      logSearch: {
+        keyword: '',
+        type: '',
+        status: '',
+        dttmType: 'createdDttm',
+        datetime: {
+          from: helper.getSubstractDate(1, 'month'),
+          to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        }
+      }
+    });
+  }
+  render() {
+    const {session} = this.context;
+    const {activeContent, baseUrl, contextRoot, showFilter, incidentLog, accountType} = this.state;
+
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'/>&lt;/button>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
+          &lt;div className='parent-content'>
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{it('txt-incident-log-management')}&lt;/header>
+                &lt;MuiTableContentWithoutLoading
+                  data={incidentLog}
+                  tableOptions={tableOptions} />
+              &lt;/div>
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+IncidentLog.contextType = BaseDataContext;
+
+IncidentLog.propTypes = {
+  //nodeBaseUrl: PropTypes.string.isRequired
+};
+
+export default IncidentLog;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

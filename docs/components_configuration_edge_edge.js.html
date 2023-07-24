@@ -28,32 +28,68 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
+import _ from 'lodash'
 import cx from 'classnames'
 
-import DateRange from 'react-ui/build/src/components/date-range'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
-import Textarea from 'react-ui/build/src/components/textarea'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
+import { MuiPickersUtilsProvider, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
-import {HocConfig as Config} from '../../common/configuration'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import Checkbox from '@material-ui/core/Checkbox'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormLabel from '@material-ui/core/FormLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
+import Tab from '@material-ui/core/Tab'
+import Tabs from '@material-ui/core/Tabs'
+import TextField from '@material-ui/core/TextField'
+
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+import Gis from 'react-gis/build/src/components'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {BaseDataContext} from '../../common/context'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
+import ManageGroup from '../../common/manage-group'
+import MuiTableContent from '../../common/mui-table-content'
+import WORLDMAP from '../../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SERVICE_TYPE_LIST = {
-  'NETTRAP': ['lastDataUpdDT', 'attackCnt'],
-  'NETFLOW-IDS-SURICATA': ['agentMode', 'lastStatus', 'TCPDUMP', 'threatIntellLastUpdDT'],
-  'IPS-NETPROBE': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
-  'IDS-SURICATA': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
-  'DNS': ['lastDataUpdDT', 'threatIntellLastUpdDT']
+  'NETTRAP': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'attackCnt'],
+  'IPS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'NETFLOW-IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'lastStatus', 'agentMode', 'TCPDUMP'],
+  'IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
+  'NETTRAP-DN': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'attackCnt'],
+  'IDS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'IDS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'IPS-EDGEGUARD': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt']
+};
+const EDGE_SEARCH = {
+  keyword: '',
+  groups: [],
+  serviceType: 'all',
+  connectionStatus: 'all'
+};
+const FORM_VALIDATION = {
+  edgeName: {
+    valid: true
+  },
+  longitude: {
+    valid: true
+  },
+  latitude: {
+    valid: true
+  }
 };
 
 let t = null;
@@ -63,7 +99,7 @@ let et = null;
 /**
  * Edge
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the Config Edge page
  */
 class Edge extends Component {
@@ -71,28 +107,23 @@ class Edge extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeContent: 'tableList', //tableList, editEdge
+      activeTab: 'edge', //'edge' or 'geography'
+      activeContent: 'tableList', //'tableList', 'viewEdge' or 'editEdge'
       showFilter: false,
+      openManageGroupDialog: false,
+      allGroupList: [],
       currentEdgeData: '',
       serviceType: [],
-      connectionStatus: [
-        {value: 'all', text: t('txt-all')},
-        {value: 'Normal', text: 'Normal'},
-        {value: 'Error', text: 'Error'}
-      ],
-      edgeSearch: {
-        keyword: '',
-        serviceType: 'all',
-        connectionStatus: 'all'
-      },
+      edgeSearch: _.cloneDeep(EDGE_SEARCH),
+      originalEdgeData: {},
       edge: {
-        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu'],
-        dataFields: {},
-        dataContent: [],
+        dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', 'notifyStatus', '_menu'],
+        dataFields: [],
+        dataContent: null,
         sort: {
           field: 'agentName',
           desc: false
@@ -101,12 +132,25 @@ class Edge extends Component {
         currentPage: 1,
         pageSize: 20,
         info: {}
-      }
+      },
+      upgradeCheckbox: false,
+      syncEnable: true,
+      geoJson: {
+        mapDataArr: [],
+        edgeDataArr: []
+      },
+      formValidation: _.cloneDeep(FORM_VALIDATION)
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.getGroupList();
     this.getEdgeServiceType();
     this.getEdgeData();
   }
@@ -115,31 +159,48 @@ class Edge extends Component {
       this.toggleContent('tableList');
     }
   }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Get and set group list
+   * @method
+   */
+  getGroupList = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/edge/groups`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          allGroupList: data.rows
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   /**
    * Get Edge service type for filter dropdown
    * @method
    */
   getEdgeServiceType = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/edge/serviceType`;
+    const {baseUrl} = this.context;
 
     this.ah.one({
-      url: url,
+      url: `${baseUrl}/api/edge/serviceType`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        let serviceType = [{
-          value: 'all',
-          text: t('txt-all')
-        }];
-
-        _.forEach(data, val => {
-          serviceType.push({
-            value: val,
-            text: val
-          });
-        })
+        const serviceType = _.map(data, (val, i) => {
+          return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+        });
 
         this.setState({
           serviceType
@@ -164,42 +225,38 @@ class Edge extends Component {
 
     if (val === 'attackCnt') {
       if (allValue.honeyPotHostDTO) {
-        return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {allValue.honeyPotHostDTO[val]}&lt;/li>
+        return &lt;li key={val}>&lt;span className='header'>{descHeader}:&lt;/span> {allValue.honeyPotHostDTO[val]}&lt;/li>
       }
-    } else if (val === 'lastDataUpdDT') {
-      if (allValue.honeyPotHostDTO &amp;&amp; allValue.honeyPotHostDTO[val]) {
-        return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {helper.getFormattedDate(allValue.honeyPotHostDTO[val], 'local')}&lt;/li>
-      }
-    } else if (val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
-      return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {helper.getFormattedDate(allValue[val], 'local')}&lt;/li>
+    } else if (val === 'lastAlertDataUpdDT' || val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
+      return &lt;li key={val}>&lt;span className='header'>{descHeader}:&lt;/span> {helper.getFormattedDate(allValue[val], 'local')}&lt;/li>
     } else if (val === 'TCPDUMP') {
       if (allValue.agentMode === 'TCPDUMP') {
         return (
           &lt;section key={val}>
             {allValue.agentStartDT &amp;&amp;
-              &lt;li>&lt;span>{t('txt-start')}:&lt;/span> {helper.getFormattedDate(allValue.agentStartDT)}&lt;/li>
+              &lt;li>&lt;span className='header'>{t('txt-start')}:&lt;/span> {helper.getFormattedDate(allValue.agentStartDT)}&lt;/li>
             }
             {allValue.agentEndDT &amp;&amp;
-              &lt;li>&lt;span>{t('txt-stop')}:&lt;/span> {helper.getFormattedDate(allValue.agentEndDT)}&lt;/li>
+              &lt;li>&lt;span className='header'>{t('txt-stop')}:&lt;/span> {helper.getFormattedDate(allValue.agentEndDT)}&lt;/li>
             }
             {allValue.lastAnalyzedStatus &amp;&amp; allValue.lastAnalyzedStatus !== 'ANALYZED' &amp;&amp;
-              &lt;button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}&lt;/button>
+              &lt;Button variant='contained' color='primary' onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}&lt;/Button>
             }
             {allValue.lastAnalyzedStatus &amp;&amp;
-              &lt;li>&lt;span>lastAnalyzedStatus:&lt;/span> {allValue.lastAnalyzedStatus}&lt;/li>
+              &lt;li>&lt;span className='header'>lastAnalyzedStatus:&lt;/span> {allValue.lastAnalyzedStatus}&lt;/li>
             }
             {allValue.lastAnalyzedStatusUpdDT &amp;&amp;
-              &lt;li>&lt;span>lastAnalyzedStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}&lt;/li>
+              &lt;li>&lt;span className='header'>lastAnalyzedStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}&lt;/li>
             }
           &lt;/section>
         )
       }
     } else if (val === 'rx_pkts' || val === 'tx_pkts') {
       if (allValue.statistics &amp;&amp; allValue.statistics[val]) {
-        return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {allValue.statistics[val]}&lt;/li>
+        return &lt;li key={val}>&lt;span className='header'>{descHeader}:&lt;/span> {allValue.statistics[val]}&lt;/li>
       }
     } else {
-      return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {allValue[val]}&lt;/li>
+      return &lt;li key={val}>&lt;span className='header'>{descHeader}:&lt;/span> {allValue[val]}&lt;/li>
     }
   }
   /**
@@ -211,97 +268,277 @@ class Edge extends Component {
    */
   getServiceDesc = (allValue, desc) => {
     return (
-      &lt;ul>
+      &lt;ul key={allValue.agentId}>
         {desc.map(this.getIndividualDesc.bind(this, allValue))}
       &lt;/ul>
     )
   }
   /**
-   * Get and set Edge table data
+   * Get service name and status
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @param {object} val - service module data
+   * @param {number} i - index of the service module
+   * @returns HTML DOM
    */
-  getEdgeData = (fromSearch) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {edgeSearch, edge} = this.state;
-    const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&amp;pageSize=${edge.pageSize}`;
-    let data = {};
+  getServiceStatus = (val, i) => {
+    let color = ''; //Default no color
+
+    if (val.isNoted) { //Show red color
+      color = '#d10d25';
+    }
+
+    return (
+      &lt;ul key={i + val.serviceName}>
+        &lt;li>&lt;span className='header'>{val.serviceName}:&lt;/span> &lt;span style={{color}}>{val.status}&lt;/span>&lt;/li>
+      &lt;/ul>
+    )
+  }
+  /**
+   * Display list for group name
+   * @method
+   * @param {object} val - group data
+   * @param {number} i - index of group name array
+   * @returns HTML DOM
+   */
+  displayGroupName = (val, i) => {
+    return &lt;span key={i} className='item'>{val}&lt;/span>
+  }
+  /**
+   * Get Edge search request data
+   * @method
+   * @returns request object data
+   */
+  getEdgeSearchRequestData = () => {
+    const {edgeSearch} = this.state;
+    let requestData = {};
 
     if (edgeSearch.keyword) {
-      data.keyword = edgeSearch.keyword;
+      requestData.keyword = edgeSearch.keyword;
+    }
+
+    if (edgeSearch.groups.length > 0) {
+      requestData.groups = _.map(edgeSearch.groups, val => {
+        return val.value;
+      });
     }
 
     if (edgeSearch.serviceType &amp;&amp; edgeSearch.serviceType !== 'all') {
-      data.serviceType = edgeSearch.serviceType;
+      requestData.serviceType = edgeSearch.serviceType;
     }
 
     if (edgeSearch.connectionStatus &amp;&amp; edgeSearch.connectionStatus !== 'all') {
-      data.connectionStatus = edgeSearch.connectionStatus;
+      requestData.connectionStatus = edgeSearch.connectionStatus;
     }
 
-    helper.getAjaxData('POST', url, data)
+    return requestData;
+  }
+  /**
+   * Get and set Edge table data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getEdgeData = (fromPage) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {edge} = this.state;
+    const page = fromPage === 'currentPage' ? edge.currentPage : 0;
+    const url = `${baseUrl}/api/edge/_search?page=${page + 1}&amp;pageSize=${edge.pageSize}`;
+    const requestData = this.getEdgeSearchRequestData();
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         let tempEdge = {...edge};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempEdge.dataContent = [];
+          tempEdge.totalCount = 0;
+
+          this.setState({
+            edge: tempEdge
+          });
+          return null;
+        }
+
         tempEdge.dataContent = data.rows;
         tempEdge.totalCount = data.counts;
-        tempEdge.currentPage = fromSearch === 'search' ? 1 : edge.currentPage;
+        tempEdge.currentPage = page;
+        tempEdge.dataFields = _.map(edge.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`edgeFields.${val}`),
+            options: {
+              sort: false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempEdge.dataContent[dataIndex];
+                const value = tempEdge.dataContent[dataIndex][val];
 
-        let dataFields = {};
-        edge.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
-            sortable: this.checkSortable(tempData),
-            formatter: (value, allValue, i) => {
-              if (tempData === 'ipPort') {
-                let iconType = '';
+                if (val === 'agentName') {
+                  return (
+                    &lt;div>
+                      &lt;span>{value}&lt;/span>
+                      {allValue.upgradeDttm &amp;&amp;
+                        &lt;div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(allValue.upgradeDttm, 'local')}&lt;/div>
+                      }
+                    &lt;/div>
+                  )
+                } else if (val === 'ipPort') {
+                  let iconType = '';
 
-                if (!allValue.agentApiStatus) {
-                  return;
+                  if (!allValue.agentApiStatus) {
+                    return;
+                  }
+
+                  if (allValue.agentApiStatus === 'Normal') {
+                    iconType = 'icon_connected_on';
+                  } else if (allValue.agentApiStatus === 'Error') {
+                    iconType = 'icon_connected_off';
+                  }
+
+                  const icon = {
+                    src: contextRoot + `/images/${iconType}.png`,
+                    title: t('txt-' + allValue.agentApiStatus.toLowerCase())
+                  };
+
+                  return &lt;span>&lt;img src={icon.src} className='connections-status' title={icon.title} />{value}&lt;/span>
+                } else if (val === 'groupList') {
+                  if (allValue.groupList.length > 0) {
+                    return &lt;div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}&lt;/div>
+                  }
+                } else if (val === 'descriptionEdge') {
+                  const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
+                  let serviceArr = [];
+                  let moduleArr = [];
+
+                  if (serviceDescList) {
+                    serviceArr = this.getServiceDesc(allValue, serviceDescList);
+                  }
+
+                  if (allValue.modules) {
+                    moduleArr = allValue.modules.map(this.getServiceStatus);
+                    return &lt;div className='description-edge'>{_.concat(serviceArr, moduleArr)}&lt;/div>
+                  } else {
+                    return &lt;div className='description-edge'>serviceArr&lt;/div>
+                  }
+                } else if (val === 'notifyStatus') {
+                  return &lt;span>{value ? t('txt-statusOn') : t('txt-statusOff')}&lt;/span>
+                } else if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu menu active'>
+                      &lt;i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewEdge', allValue)} title={t('txt-view')}>&lt;/i>
+                      &lt;i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                    &lt;/div>
+                  )
+                } else {
+                  return value;
                 }
-
-                if (allValue.agentApiStatus === 'Normal') {
-                  iconType = 'icon_connected_on';
-                } else if (allValue.agentApiStatus === 'Error') {
-                  iconType = 'icon_connected_off';
-                }
-
-                const icon = {
-                  src: contextRoot + `/images/${iconType}.png`,
-                  title: t('txt-' + allValue.agentApiStatus.toLowerCase())
-                };
-
-                return &lt;span>&lt;img src={icon.src} title={icon.title} />{value}&lt;/span>
-              } else if (tempData === 'description') {
-                const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
-
-                if (serviceDescList) {
-                  return this.getServiceDesc(allValue, serviceDescList);
-                }
-              } else if (tempData === '_menu') {
-                return (
-                  &lt;div className='table-menu menu active'>
-                    &lt;i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue)} title={t('txt-edit')}>&lt;/i>
-                    &lt;i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
-                  &lt;/div>
-                )
-              } else {
-                return &lt;span>{value}&lt;/span>
               }
             }
           };
-        })
-
-        tempEdge.dataFields = dataFields;
+        });
 
         this.setState({
-          edge: tempEdge
+          edge: tempEdge,
+          syncEnable: data.syncEnable
+        }, () => {
+          this.getWorldMap();
         });
       }
+      return null;
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/edge/_export`;
+    const requestData = this.getEdgeSearchRequestData();
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+  }
+  /**
+   * Set map geoJson and attacks data
+   * @method
+   */
+  getWorldMap = () => {
+    const {edge} = this.state;
+    let geoJson = {
+      mapDataArr: [],
+      edgeDataArr: []
+    };
+
+    _.forEach(WORLDMAP.features, val => {
+      const countryObj = {
+        type: 'geojson',
+        id: val.properties.name,
+        weight: 0.6,
+        fillColor: 'white',
+        color: '#182f48',
+        fillOpacity: 1
+      };
+
+      countryObj.geojson = val.geometry;
+      geoJson.mapDataArr.push(countryObj);
     });
+
+    _.forEach(edge.dataContent, val => {
+      if (val.honeyPotHostDTO &amp;&amp; val.honeyPotHostDTO.longitude &amp;&amp; val.honeyPotHostDTO.latitude) {
+        geoJson.edgeDataArr.push({
+          type: 'spot',
+          id: val.agentId,
+          latlng: [
+            val.honeyPotHostDTO.latitude,
+            val.honeyPotHostDTO.longitude
+          ],
+          data: {
+            tag: 'blue'
+          },
+          tooltip: () => {
+            return `
+              &lt;div class='map-tooltip'>
+                &lt;div>&lt;span class='key'>${t('edge-management.txt-edgeName')}:&lt;/span> &lt;span class='value'>${val.agentName}&lt;/span>&lt;/div>
+                &lt;div>&lt;span class='key'>${t('edge-management.txt-serviceType')}:&lt;/span> &lt;span class='value'>${val.serviceType}&lt;/span>&lt;/div>
+              &lt;/div>
+              `
+          }
+        });
+      }
+    });
+
+    this.setState({
+      geoJson
+    });
+  }
+  /**
+   * Handle trigger sync button
+   * @method
+   */
+  triggerSyncBtn = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/edge/pushThreatIntell`,
+      type: 'GET'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+    this.getEdgeData();
   }
   /**
    * Handle Analyze button and reload the table
@@ -309,16 +546,21 @@ class Edge extends Component {
    * @param {object} allValue - Edge data
    */
   agentAnalysis = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
+    const {baseUrl} = this.context;
+
+    if (!allValue.projectId) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
-      url: url,
+      url: `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`,
       type: 'GET'
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getEdgeData('search');
+        this.getEdgeData();
       }
       return null;
     })
@@ -330,13 +572,13 @@ class Edge extends Component {
    * Check table sort
    * @method
    * @param {string} field - table field name
-   * @returns true for sortable or null
+   * @returns true for sortable field
    */
   checkSortable = (field) => {
     const unSortableFields = ['description', '_menu'];
 
     if (_.includes(unSortableFields, field)) {
-      return null;
+      return false;
     } else {
       return true;
     }
@@ -344,12 +586,13 @@ class Edge extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.sort.field = sort.field;
-    tempEdge.sort.desc = sort.desc;
+    tempEdge.sort.field = field;
+    tempEdge.sort.desc = sort;
 
     this.setState({
       edge: tempEdge
@@ -367,41 +610,74 @@ class Edge extends Component {
     let tempEdge = {...this.state.edge};
     tempEdge[type] = Number(value);
 
-    if (type === 'pageSize') {
-      tempEdge.currentPage = 1;
-    }
-
     this.setState({
       edge: tempEdge
     }, () => {
-      this.getEdgeData();
+      this.getEdgeData(type);
     });
   }
   /**
    * Handle filter input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleEdgeSearch = (type, value) => {
+  handleEdgeSearch = (event) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
-    tempEdgeSearch[type] = value;
+    tempEdgeSearch[event.target.name] = event.target.value;
 
     this.setState({
       edgeSearch: tempEdgeSearch
     });
   }
   /**
-   * Handle filter input data change
+   * Handle combo data change
    * @method
-   * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
+   * @param {object} event - event object
+   * @param {string} value - input value
+   */
+  handleComboSearch = (event, value) => {
+    let tempEdgeSearch = {...this.state.edgeSearch};
+    tempEdgeSearch.groups = value;
+
+    this.setState({
+      edgeSearch: tempEdgeSearch
+    });
+  }
+  /**
+   * Show filter if search keyword or selection is present
+   * @method
+   * @returns boolean true/false
+   */
+  checkFilterStatus = () => {
+    const {edgeSearch} = this.state;
+
+    if (edgeSearch.keyword || edgeSearch.serviceType !== 'all' || edgeSearch.connectionStatus !== 'all' ) {
+      return true;
+    }
+  }
+  /**
+   * Handle content tab change
+   * @method
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('edge' or 'geography')
+   */
+  handleSubTabChange = (event, newTab) => {
+    this.setState({
+      activeTab: newTab
+    });
+  }
+  /**
+   * Toggle different content
+   * @method
+   * @param {string} type - page type ('tableList', 'viewEdge', 'editEdge' and 'cancel')
    * @param {object} allValue - Edge data
    */
   toggleContent = (type, allValue) => {
-    let tempEdge = {...this.state.edge};
+    const {originalEdgeData, edge} = this.state;
+    let tempEdge = {...edge};
     let showPage = type;
 
-    if (type === 'editEdge') {
+    if (type === 'viewEdge') {
       tempEdge.info = {
         name: allValue.agentName ? allValue.agentName : '',
         id: allValue.agentId,
@@ -411,32 +687,62 @@ class Edge extends Component {
         licenseName: allValue.vpnName,
         serviceType: allValue.serviceType,
         serviceMode: allValue.agentMode,
-        edgeModeType: 'anyTime',
-        edgeModeDatetime: {
-          from: '',
-          to: ''
-        },
-        memo: allValue.memo,
+        longitude: '',
+        latitude: '',
+        chassisAddress: allValue.chassisAddress ? allValue.chassisAddress : '',
+        chassisLocation: allValue.chassisLocation ? allValue.chassisLocation : '',
+        contact: allValue.contact ? allValue.contact : '',
+        notifyStatus: allValue.notifyStatus,
+        isUpgradeEnable: allValue.isUpgradeDateTimeEnable,
+        upgradeDatetime: allValue.upgradeDttm,
+        edgeGroupList: allValue.groupList,
+        memo: allValue.memo ? allValue.memo : '',
+        isNetTrapUpgrade: allValue.isNetTrapUpgrade,
         agentApiStatus: allValue.agentApiStatus,
         lastUpdateTime: allValue.lastStatusUpdDT,
         lastStatus: allValue.lastStatus,
         isConfigurable: allValue.isConfigurable
       };
 
-      if (allValue.agentStartDT &amp;&amp;  allValue.agentEndDT) {
-        tempEdge.info.edgeModeType = 'customTime';
-        tempEdge.info.edgeModeDatetime.from = allValue.agentStartDT;
-        tempEdge.info.edgeModeDatetime.to = allValue.agentEndDT;
+      if (allValue.honeyPotHostDTO) {
+        if (allValue.honeyPotHostDTO.longitude >= -180 &amp;&amp; allValue.honeyPotHostDTO.longitude &lt;= 180) {
+          tempEdge.info.longitude = allValue.honeyPotHostDTO.longitude;
+        }
+
+        if (allValue.honeyPotHostDTO.latitude >= -90 &amp;&amp; allValue.honeyPotHostDTO.latitude &lt;= 90) {
+          tempEdge.info.latitude = allValue.honeyPotHostDTO.latitude;
+        }
       }
 
       this.setState({
-        showFilter: false
+        upgradeCheckbox: Boolean(allValue.upgradeDttm),
+        originalEdgeData: _.cloneDeep(tempEdge)
+      });
+    } else if (type === 'editEdge') {
+      tempEdge.info.edgeGroupList = _.map(edge.info.edgeGroupList, val => {
+        return {
+          value: val
+        };
+      });
+
+      this.setState({
+        edge: tempEdge
       });
     } else if (type === 'tableList') {
+      if (this.checkFilterStatus()) {
+        this.setState({
+          showFilter: true
+        });
+      }
+
       tempEdge.info = {};
     } else if (type === 'cancel') {
-      showPage = 'tableList';
-      tempEdge.info = {};
+      showPage = 'viewEdge';
+      tempEdge = _.cloneDeep(originalEdgeData);
+
+      this.setState({
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
     }
 
     this.setState({
@@ -451,12 +757,38 @@ class Edge extends Component {
   /**
    * Handle Edge edit input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.info[type] = value;
+    tempEdge.info[event.target.name] = event.target.value;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
+   * Handle date change
+   * @method
+   * @param {object} newDatetime - new datetime object
+   */
+  handleUpgradeDateChange = (newDatetime) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.upgradeDatetime = newDatetime;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
+   * Handle combo box change
+   * @method
+   * @param {object} event - event object
+   * @param {array.&lt;object>} value - selected input value
+   */
+  handleComboBoxChange = (event, value) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.edgeGroupList = value;
 
     this.setState({
       edge: tempEdge
@@ -468,21 +800,26 @@ class Edge extends Component {
    * @param {string} type - status action type ('start' or 'stop')
    */
   handleEdgeStatusChange = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {edge} = this.state;
-    const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&amp;projectId=${edge.info.projectId}`;
+
+    if (_.isEmpty(edge.info)) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&amp;projectId=${edge.info.projectId}`,
       type: 'GET'
     })
     .then(data => {
-      let tempEdge = {...this.state.edge};
-      tempEdge.info.lastStatus = data;
+      if (data) {
+        let tempEdge = {...this.state.edge};
+        tempEdge.info.lastStatus = data;
 
-      this.setState({
-        edge: tempEdge
-      });
+        this.setState({
+          edge: tempEdge
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -530,8 +867,14 @@ class Edge extends Component {
    * @method
    */
   deleteEdge = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {currentEdgeData} = this.state;
+
+    if (!currentEdgeData.agentId) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
       url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
@@ -541,100 +884,6 @@ class Edge extends Component {
       if (data.ret === 0) {
         this.getEdgeData();
       }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Handle Edge Edit confirm
-   * @method
-   */
-  handleEdgeSubmit = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {edge} = this.state;
-    let data = {
-      id: edge.info.id,
-      agentName: edge.info.name,
-      memo: edge.info.memo
-    };
-
-    if (edge.info.isConfigurable) {
-      if (edge.info.edgeIPlist) {
-        data.ipList = edge.info.edgeIPlist;
-      }
-
-      if (edge.info.serviceMode) {
-        data.agentMode = edge.info.serviceMode;
-      }
-
-      if (edge.info.edgeModeType === 'customTime') {
-        if (edge.info.edgeModeDatetime.from) {
-          if (edge.info.edgeModeDatetime.to) {
-            data.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-          } else { //End date is empty
-            helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
-            return;
-          }
-        } else {
-          helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
-          return;
-        }
-
-        if (edge.info.edgeModeDatetime.to) {
-          if (edge.info.edgeModeDatetime.from) {
-            data.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-          } else { //Start date is empty
-            helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
-            return;
-          }
-
-          if (Moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
-            helper.showPopupMsg(t('edge-management.txt-edgeEditPastEndDate'), t('txt-error'));
-            return;
-          }
-        } else {
-          helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
-          return;
-        }
-      }
-    }
-
-    ah.one({
-      url: `${baseUrl}/api/agent`,
-      data: JSON.stringify(data),
-      type: 'PATCH',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      switch(data.ret) {
-        case 0:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditSuccess'));
-          break;
-        case -1:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
-          break;
-        case -11:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
-          break;
-        case -21:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
-          break;
-        case -22:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
-          break;
-        case -31:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
-          break;
-        case -32:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
-        case -33:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
-          break;
-        default:
-          break;
-      }
-      this.toggleContent('tableList');
       return null;
     })
     .catch(err => {
@@ -642,13 +891,291 @@ class Edge extends Component {
     })
   }
   /**
+   * Handle Edge group confirm
+   * @method
+   */
+  handleGroupSubmit = () => {
+    const {baseUrl} = this.context;
+    const {edge} = this.state;
+    const url = `${baseUrl}/api/edge/groups/_edge?edgeId=${edge.info.id}`;
+    const requestData = {
+      groupName: edge.info.edgeGroupList
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle Edge edit confirm
+   * @method
+   */
+  handleEdgeSubmit = () => {
+    const {baseUrl} = this.context;
+    const {edge, upgradeCheckbox, formValidation} = this.state;
+    let requestData = {
+      id: edge.info.id,
+      agentName: edge.info.name,
+      chassisAddress: edge.info.chassisAddress,
+      chassisLocation: edge.info.chassisLocation,
+      contact: edge.info.contact,
+      notifyStatus: edge.info.notifyStatus,
+      memo: edge.info.memo
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (edge.info.name) {
+      tempFormValidation.edgeName.valid = true;
+    } else {
+      tempFormValidation.edgeName.valid = false;
+      validate = false;
+    }
+
+    if (edge.info.longitude) {
+      if (edge.info.longitude >= -180 &amp;&amp; edge.info.longitude &lt;= 180) {
+        requestData.longitude = edge.info.longitude;
+        tempFormValidation.longitude.valid = true;
+      } else {
+        tempFormValidation.longitude.valid = false;
+        validate = false;
+      }
+    }
+
+    if (edge.info.latitude) {
+      if (edge.info.latitude >= -90 &amp;&amp; edge.info.latitude &lt;= 90) {
+        requestData.latitude = edge.info.latitude;
+        tempFormValidation.latitude.valid = true;
+      } else {
+        tempFormValidation.latitude.valid = false;
+        validate = false;
+      }
+    }
+
+    if (upgradeCheckbox) {
+      requestData.upgradeDttm = moment(edge.info.upgradeDatetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    if (edge.info.isConfigurable) {
+      if (edge.info.edgeIPlist) {
+        requestData.ipList = edge.info.edgeIPlist;
+      }
+
+      if (edge.info.serviceMode) {
+        requestData.agentMode = edge.info.serviceMode;
+      }
+    }
+
+    const requestData2 = {
+      groupName: _.map(edge.info.edgeGroupList, val => {
+        return val.value;
+      })
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.series([
+      {
+        url: `${baseUrl}/api/agent`,
+        data: JSON.stringify(requestData),
+        type: 'PATCH',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/edge/groups/_edge?edgeId=${edge.info.id}`,
+        data: JSON.stringify(requestData2),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ])
+    .then(data => {
+      if (data) {
+        if (data[0] &amp;&amp; data[0].ret === 0) {
+          this.toggleContent('tableList');
+        } else {
+          switch (data[0].ret) {
+            case -1:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
+              break;
+            case -11:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
+              break;
+            case -21:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
+              break;
+            case -22:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
+              break;
+            case -31:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
+              break;
+            case -32:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
+            case -33:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
+              break;
+            default:
+              break;
+          }
+
+          this.setState({
+            originalEdgeData: _.cloneDeep(edge)
+          }, () => {
+            this.toggleContent('cancel');
+          })
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+      this.close();
+    })
+  }
+  /**
+   * Handle Edit Group button
+   * @method
+   */
+  toggleManageGroup = () => {
+    this.setState({
+      openManageGroupDialog: !this.state.openManageGroupDialog
+    });
+  }
+  /**
+   * Update group list
+   * @param {string} group - group to be removed
+   * @method
+   */
+  updateGroupList = (group) => {
+    let tempEdge = {...this.state.edge};
+    const index = tempEdge.info.edgeGroupList.indexOf(group);
+
+    if (index > -1) { //Update selected group
+      tempEdge.info.edgeGroupList.splice(index, 1);
+
+      this.setState({
+        originalEdgeData: _.cloneDeep(tempEdge),
+        edge: tempEdge
+      }, () => {
+        this.handleGroupSubmit();
+      });
+    }
+
+    this.getGroupList();
+  }
+  /**
+   * Handle NetTrap upgrade button
+   * @method
+   */
+  handleNetTrapUpgrade = () => {
+    const {baseUrl} = this.context;
+    const {edge} = this.state;
+
+    if (!edge.info.id) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/edge/nettrap/_upgrade?id=${edge.info.id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-upgradeScheduleAdded'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display individual group
+   * @method
+   * @returns HTML DOM
+   */
+  displayGroup = (val, i) => {
+    return &lt;span key={i}>{val}&lt;/span>
+  }
+  /**
+   * Toggle upgrade checkbox
+   * @method
+   */
+  toggleUpgradeCheckbox = () => {
+    this.setState({
+      upgradeCheckbox: !this.state.upgradeCheckbox
+    });
+  }
+  /**
+   * Handle button actions
+   * @param {string} type - action type ('reboot' or 'shutdown')
+   * @method
+   */
+  edgeButtonActions = (type) => {
+    const {baseUrl} = this.context;
+    const {edge} = this.state;
+    const url = `${baseUrl}/api/edge/system/${type}`;
+    const requestData = {
+      id: edge.info.id
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+  }
+  /**
+   * Toggle notifiy status switch
+   * @method
+   */
+  handleNotifyStatusChange = () => {
+    const {edge} = this.state;
+    let tempEdge = {...edge};
+    tempEdge.info.notifyStatus = !edge.info.notifyStatus;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
    * Display edit Edge content
    * @method
    * @returns HTML DOM
    */
   displayEditEdgeContent = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {activeContent, edge} = this.state;
+    const {contextRoot, locale} = this.context;
+    const {activeContent, allGroupList, edge, upgradeCheckbox, formValidation} = this.state;
+    const edgeIpText = t('edge-management.txt-ipList') + '(' + t('txt-commaSeparated') + ')';
+    const memoText = t('txt-memo') + '(' + t('txt-memoMaxLength') + ')';
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
@@ -677,150 +1204,327 @@ class Edge extends Component {
       }
     }
 
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);  
+
     return (
       &lt;div className='main-content basic-form'>
-        &lt;header className='main-header'>{t('edge-management.txt-editEdge')}&lt;/header>
-        &lt;div className='form-group normal'>
-          &lt;header>
-            &lt;div className='text'>{t('edge-management.txt-basicInfo')}&lt;/div>
-            {icon &amp;&amp;
-              &lt;img className='status' src={icon.src} title={icon.title} />
-            }
-            {edge.info.lastUpdateTime &amp;&amp;
-              &lt;span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}&lt;/span>
-            }
-          &lt;/header>
-          {edge.info.lastStatus &amp;&amp;
-            &lt;ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={btnStatusOn}
-              onChange={this.handleEdgeStatusChange.bind(this, action)}
-              disabled={!edge.info.isConfigurable} />
-          }
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}&lt;/label>
-            &lt;Input
-              id='edgeName'
-              onChange={this.handleDataChange.bind(this, 'name')}
-              value={edge.info.name} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}&lt;/label>
-            &lt;Input
-              id='edgeID'
-              onChange={this.handleDataChange.bind(this, 'id')}
-              value={edge.info.id}
-              readOnly={true} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeIP'>{t('edge-management.txt-ip')}&lt;/label>
-            &lt;Input
-              id='edgeIP'
-              onChange={this.handleDataChange.bind(this, 'ip')}
-              validate={{
-                pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
-                patternReadable:'xxx.xxx.xxx.xxx:xxx',
-                t:(code, {value, pattern}) => {
-                  if (code[0] === 'missing') {
-                    return t('txt-required');
-                  } else if (code[0] === 'no-match') {
-                    return t('edge-management.txt-ipValidationFail');
-                  }
-                }
-              }}
-              value={edge.info.ip}
-              readOnly={true} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')}&lt;/label>
-            &lt;Input
-              id='edgeIPlist'
-              onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
-              value={edge.info.edgeIPlist}
-              readOnly={!edge.info.isConfigurable} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}&lt;/label>
-            &lt;Input
-              id='edgeVPNip'
-              onChange={this.handleDataChange.bind(this, 'vpnIP')}
-              value={edge.info.vpnIP}
-              readOnly={true} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}&lt;/label>
-            &lt;Input
-              id='edgeLicenseName'
-              onChange={this.handleDataChange.bind(this, 'licenseName')}
-              value={edge.info.licenseName}
-              readOnly={true} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}&lt;/label>
-            &lt;Input
-              id='edgeServiceType'
-              onChange={this.handleDataChange.bind(this, 'serviceType')}
-              value={edge.info.serviceType}
-              readOnly={true} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}&lt;/label>
-            &lt;DropDownList
-              id='edgeServiceMode'
-              required={true}
-              list={[
-                {
-                  value: 'REALTIME',
-                  text: t('txt-realtime')
-                },
-                {
-                  value: 'TCPDUMP',
-                  text: t('txt-tcpdump')
-                }
-              ]}
-              onChange={this.handleDataChange.bind(this, 'serviceMode')}
-              value={edge.info.serviceMode}
-              readOnly={!edge.info.isConfigurable} />
-          &lt;/div>
-          &lt;div className='group'>
-            &lt;label>{t('edge-management.txt-activatTime')}&lt;/label>
-            &lt;RadioGroup
-              id='edgeModeType'
-              className='radio-group'
-              list={[
-                {value: 'anyTime', text: t('edge-management.txt-anyTime')},
-                {value: 'customTime', text: t('edge-management.txt-customTime')}
-              ]}
-              onChange={this.handleDataChange.bind(this, 'edgeModeType')}
-              value={edge.info.edgeModeType}
-              disabled={!edge.info.isConfigurable} />
+        &lt;header className='main-header'>Edge&lt;/header>
 
-            {edge.info.edgeModeType === 'customTime' &amp;&amp;
-              &lt;DateRange
-                id='edgeModeDatetime'
-                className='daterange'
-                onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
-                enableTime={true}
-                value={edge.info.edgeModeDatetime}
-                t={et} />
-            }
-          &lt;/div>
-          &lt;div className='group full'>
-            &lt;label htmlFor='edgeMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})&lt;/label>
-            &lt;Textarea
-              id='edgeMemo'
-              rows={4}
-              maxLength={250}
-              value={edge.info.memo}
-              onChange={this.handleDataChange.bind(this, 'memo')} />
+        &lt;div className='content-header-btns'>
+          {activeContent === 'viewEdge' &amp;&amp;
+            &lt;div>
+              &lt;Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}&lt;/Button>
+              &lt;Button variant='contained' color='primary' className='btn' onClick={this.edgeButtonActions.bind(this, 'reboot')}>{t('hmd-scan.txt-rebootHost')}&lt;/Button>
+              &lt;Button variant='contained' color='primary' className='btn' onClick={this.edgeButtonActions.bind(this, 'shutdown')}>{t('hmd-scan.txt-shutdownHost')}&lt;/Button>
+              &lt;Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}&lt;/Button>
+            &lt;/div>
+          }
+        &lt;/div>
+
+        &lt;div className='edge-settings' style={{height: activeContent === 'viewEdge' ? '78vh' : '70vh'}}>
+          &lt;div className='form-group normal'>
+            &lt;header>
+              &lt;div className='text'>{t('edge-management.txt-basicInfo')}&lt;/div>
+              {icon &amp;&amp;
+                &lt;img className='status' src={icon.src} title={icon.title} />
+              }
+              {edge.info.lastUpdateTime &amp;&amp;
+                &lt;span className='msg'>{t('edge-management.txt-lastUpdateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}&lt;/span>
+              }
+            &lt;/header>
+            &lt;div className='form-options'>
+              {edge.info.lastStatus &amp;&amp;
+                &lt;FormControlLabel
+                  className='switch-control'
+                  control={
+                    &lt;Switch
+                      checked={btnStatusOn}
+                      onChange={this.handleEdgeStatusChange.bind(this, action)}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+              }
+              &lt;Button variant='contained' color='primary' className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}&lt;/Button>
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeName'
+                name='name'
+                label={t('edge-management.txt-edgeName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                required
+                error={!formValidation.edgeName.valid}
+                helperText={formValidation.edgeName.valid ? '' : t('txt-required')}
+                value={edge.info.name}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeID'
+                name='id'
+                label={t('edge-management.txt-edgeID')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.id}
+                disabled />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeIP'
+                name='ip'
+                label={t('edge-management.txt-ip')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.ip}
+                onChange={this.handleDataChange}
+                disabled />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeIPlist'
+                name='edgeIPlist'
+                label={edgeIpText}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.edgeIPlist}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeVPNip'
+                name='vpnIP'
+                label={t('edge-management.txt-vpnIP')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.edgeIPlist}
+                disabled />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeLicenseName'
+                name='licenseName'
+                label={t('edge-management.txt-vpnLicenseName')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.licenseName}
+                disabled />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeServiceType'
+                name='serviceType'
+                label={t('edge-management.txt-serviceType')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.serviceType}
+                disabled />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeServiceMode'
+                name='serviceMode'
+                select
+                label={t('edge-management.txt-serviceMode')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.serviceMode}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable}>
+                &lt;MenuItem value={'REALTIME'}>{t('txt-realtime')}&lt;/MenuItem>
+                &lt;MenuItem value={'TCPDUMP'}>{t('txt-tcpdump')}&lt;/MenuItem>
+              &lt;/TextField>
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeLongitude'
+                name='longitude'
+                label={t('edge-management.txt-longitude')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                error={!formValidation.longitude.valid}
+                helperText={formValidation.longitude.valid ? '' : t('edge-management.txt-coordinateError')}
+                value={edge.info.longitude}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeLatitude'
+                name='latitude'
+                label={t('edge-management.txt-latitude')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                error={!formValidation.latitude.valid}
+                helperText={formValidation.latitude.valid ? '' : t('edge-management.txt-coordinateError')}
+                value={edge.info.latitude}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeChassisAddress'
+                name='chassisAddress'
+                label={t('edge-management.txt-chassisAddress')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.chassisAddress}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeChassisLocation'
+                name='chassisLocation'
+                label={t('edge-management.txt-chassisLocation')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.chassisLocation}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
+            &lt;div className='group'>
+              &lt;TextField
+                id='edgeContact'
+                name='contact'
+                label={t('edge-management.txt-contact')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.contact}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
+            &lt;div className='edge-time'>
+              &lt;div className='group'>
+                &lt;FormLabel>{t('edge-management.txt-notifyStatus')}&lt;/FormLabel>
+                &lt;FormControlLabel
+                  className='switch-control'
+                  control={
+                    &lt;Switch
+                      checked={edge.info.notifyStatus}
+                      onChange={this.handleNotifyStatusChange}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewEdge'} />
+              &lt;/div>
+              &lt;div className='group'>
+                &lt;FormLabel>{t('edge-management.txt-upgradeTime')}&lt;/FormLabel>
+                &lt;FormControlLabel
+                  label={t('txt-activate')}
+                  className='upgrade-checkbox'
+                  control={
+                    &lt;Checkbox
+                      className='checkbox-ui'
+                      checked={upgradeCheckbox}
+                      onChange={this.toggleUpgradeCheckbox}
+                      color='primary' />
+                  }
+                  disabled={activeContent === 'viewEdge' || !edge.info.isUpgradeEnable} />
+                {upgradeCheckbox &amp;&amp;
+                  &lt;MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    &lt;KeyboardDateTimePicker
+                      className='date-time-picker upgrade'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      invalidDateMessage={t('txt-invalidDateMessage')}
+                      maxDateMessage={t('txt-maxDateMessage')}
+                      minDateMessage={t('txt-minDateMessage')}
+                      ampm={false}
+                      disablePast={true}
+                      value={edge.info.upgradeDatetime}
+                      onChange={this.handleUpgradeDateChange}
+                      disabled={activeContent === 'viewEdge'} />
+                  &lt;/MuiPickersUtilsProvider>
+                }
+              &lt;/div>
+            &lt;/div>
+            &lt;div className='group full'>
+              &lt;label className='combobox-group'>{t('txt-group')}&lt;/label>
+              {activeContent === 'editEdge' &amp;&amp;
+                &lt;Button variant='contained' color='primary' className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}&lt;/Button>
+              }
+              {activeContent === 'viewEdge' &amp;&amp;
+                &lt;div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}&lt;/div>
+              }
+              {activeContent === 'editEdge' &amp;&amp;
+                &lt;Autocomplete
+                  className='combo-box checkboxes-tags groups'
+                  multiple
+                  value={edge.info.edgeGroupList}
+                  options={_.map(allGroupList, (val) => { return { value: val } })}
+                  getOptionLabel={(option) => option.value}
+                  disableCloseOnSelect
+                  noOptionsText={t('txt-notFound')}
+                  openText={t('txt-on')}
+                  closeText={t('txt-off')}
+                  clearText={t('txt-clear')}
+                  renderOption={(option, { selected }) => (
+                    &lt;React.Fragment>
+                      &lt;Checkbox
+                        color='primary'
+                        icon={&lt;CheckBoxOutlineBlankIcon />}
+                        checkedIcon={&lt;CheckBoxIcon />}
+                        checked={selected} />
+                      {option.value}
+                    &lt;/React.Fragment>
+                  )}
+                  renderInput={(params) => (
+                    &lt;TextField {...params} variant='outlined' size='small' />
+                  )}
+                  getOptionSelected={(option, value) => (
+                    option.value === value.value
+                  )}
+                  onChange={this.handleComboBoxChange} />
+              }
+            &lt;/div>
+            &lt;div className='group full'>
+              &lt;TextField
+                id='edgeMemo'
+                name='memo'
+                label={memoText}
+                multiline
+                rows={4}
+                maxLength={250}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.memo}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            &lt;/div>
           &lt;/div>
         &lt;/div>
-        &lt;footer>
-          &lt;button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/button>
-          &lt;button onClick={this.handleEdgeSubmit}>{t('txt-save')}&lt;/button>
-        &lt;/footer>
+
+        {activeContent === 'editEdge' &amp;&amp;
+          &lt;footer>
+            &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.handleEdgeSubmit}>{t('txt-save')}&lt;/Button>
+          &lt;/footer>
+        }
       &lt;/div>
     )
   }
@@ -830,7 +1534,7 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, serviceType, connectionStatus, edgeSearch} = this.state;
+    const {showFilter, allGroupList, serviceType, edgeSearch} = this.state;
 
     return (
       &lt;div className={cx('main-filter', {'active': showFilter})}>
@@ -838,35 +1542,81 @@ class Edge extends Component {
         &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
         &lt;div className='filter-section config'>
           &lt;div className='group'>
-            &lt;label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}&lt;/label>
-            &lt;Input
+            &lt;TextField
               id='edgeSearchKeyword'
-              className='search-textarea'
-              onChange={this.handleEdgeSearch.bind(this, 'keyword')}
-              value={edgeSearch.keyword} />
+              name='keyword'
+              label={f('edgeFields.keywords')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={edgeSearch.keyword}
+              onChange={this.handleEdgeSearch} />
           &lt;/div>
           &lt;div className='group'>
-            &lt;label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}&lt;/label>
-            &lt;DropDownList
+            &lt;TextField
               id='edgeSearchServiceType'
-              list={serviceType}
-              required={true}
-              onChange={this.handleEdgeSearch.bind(this, 'serviceType')}
-              value={edgeSearch.serviceType} />
+              name='serviceType'
+              select
+              label={f('edgeFields.serviceType')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={edgeSearch.serviceType}
+              onChange={this.handleEdgeSearch}>
+              &lt;MenuItem value={'all'}>{t('txt-all')}&lt;/MenuItem>
+              {serviceType}
+            &lt;/TextField>
           &lt;/div>
           &lt;div className='group'>
-            &lt;label htmlFor='edgeSearchConnectionStatus'>{f('edgeFields.connectionStatus')}&lt;/label>
-            &lt;DropDownList
+            &lt;TextField
               id='edgeSearchConnectionStatus'
-              list={connectionStatus}
-              required={true}
-              onChange={this.handleEdgeSearch.bind(this, 'connectionStatus')}
-              value={edgeSearch.connectionStatus} />
+              name='connectionStatus'
+              select
+              label={f('edgeFields.connectionStatus')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={edgeSearch.connectionStatus}
+              onChange={this.handleEdgeSearch}>
+              &lt;MenuItem value={'all'}>{t('txt-all')}&lt;/MenuItem>
+              &lt;MenuItem value={'Normal'}>{t('txt-normal')}&lt;/MenuItem>
+              &lt;MenuItem value={'Error'}>{t('txt-error')}&lt;/MenuItem>
+            &lt;/TextField>
+          &lt;/div>
+          &lt;div className='group' style={{width: '300px'}}>
+            &lt;Autocomplete
+              className='combo-box checkboxes-tags'
+              multiple
+              value={edgeSearch.groups}
+              options={_.map(allGroupList, (val) => { return { value: val } })}
+              getOptionLabel={(option) => option.value}
+              disableCloseOnSelect
+              noOptionsText={t('txt-notFound')}
+              openText={t('txt-on')}
+              closeText={t('txt-off')}
+              clearText={t('txt-clear')}
+              renderOption={(option, { selected }) => (
+                &lt;React.Fragment>
+                  &lt;Checkbox
+                    color='primary'
+                    icon={&lt;CheckBoxOutlineBlankIcon />}
+                    checkedIcon={&lt;CheckBoxIcon />}
+                    checked={selected} />
+                  {option.value}
+                &lt;/React.Fragment>
+              )}
+              renderInput={(params) => (
+                &lt;TextField {...params} label={f('edgeFields.groups')} variant='outlined' size='small' />
+              )}
+              getOptionSelected={(option, value) => (
+                option.value === value.value
+              )}
+              onChange={this.handleComboSearch} />
           &lt;/div>
         &lt;/div>
         &lt;div className='button-group'>
-          &lt;button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}&lt;/button>
-          &lt;button className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/button>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.getEdgeData}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
         &lt;/div>
       &lt;/div>
     )
@@ -886,72 +1636,124 @@ class Edge extends Component {
    */
   clearFilter = () => {
     this.setState({
-      edgeSearch: {
-        keyword: '',
-        serviceType: 'all',
-        connectionStatus: 'all'
-      }
+      edgeSearch: _.cloneDeep(EDGE_SEARCH)
     });
   }
-  /**
-   * Get Add button position
-   * @method
-   * @param {string} type - button type
-   * @returns width
-   */
-  getBtnPos = (type) => {
-    const {locale} = this.props;
-
-    if (type === 'add') {
-      if (locale === 'zh') {
-        return '120px';
-      } else if (locale === 'en') {
-        return '200px';
-      }
-    }
-  }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {activeContent, showFilter, edge} = this.state;
+    const {baseUrl, contextRoot, mapUrl} = this.context;
+    const {
+      activeTab,
+      activeContent,
+      showFilter,
+      allGroupList,
+      openManageGroupDialog,
+      edge,
+      syncEnable,
+      geoJson
+    } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       &lt;div>
+        {openManageGroupDialog &amp;&amp;
+          &lt;ManageGroup
+            allGroupList={allGroupList}
+            toggleManageGroup={this.toggleManageGroup}
+            updateGroupList={this.updateGroupList}
+            getGroupList={this.getGroupList} />
+        }
+
         &lt;div className='sub-header'>
           &lt;div className='secondary-btn-group right'>
-            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;div>
+                &lt;Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/Button>
+                &lt;Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}>&lt;i className='fg fg-file-csv'>&lt;/i>&lt;/Button>
+              &lt;/div>
+            }
           &lt;/div>
         &lt;/div>
 
         &lt;div className='data-content'>
           &lt;Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+            contextRoot={contextRoot} />
 
           &lt;div className='parent-content'>
-            { this.renderFilter() }
+            {activeContent === 'tableList' &amp;&amp;
+              this.renderFilter()
+            }
 
             {activeContent === 'tableList' &amp;&amp;
               &lt;div className='main-content'>
-                &lt;header className='main-header'>{t('txt-edge')}&lt;/header>
-                &lt;button className='standard btn last'>&lt;Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}&lt;/Link>&lt;/button>
-                {/*&lt;button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edge-management.txt-threatSettings')}&lt;/button>*/}
-                &lt;TableContent
-                  dataTableData={edge.dataContent}
-                  dataTableFields={edge.dataFields}
-                  dataTableSort={edge.sort}
-                  paginationTotalCount={edge.totalCount}
-                  paginationPageSize={edge.pageSize}
-                  paginationCurrentPage={edge.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                &lt;Tabs
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
+                  onChange={this.handleSubTabChange}>
+                  &lt;Tab label={t('txt-edge')} value='edge' />
+                  &lt;Tab label={t('edge-management.txt-geography')} value='geography' />
+                &lt;/Tabs>
+
+                &lt;div className={cx('content-header-btns', {'with-menu': activeTab === 'edge'})}>
+                  &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}&lt;/Button>
+                  &lt;Link to='/SCP/configuration/notifications'>&lt;Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}&lt;/Button>&lt;/Link>
+                &lt;/div>
+
+                {activeTab === 'edge' &amp;&amp;
+                  &lt;MuiTableContent
+                    data={edge}
+                    tableOptions={tableOptions} />
+                }
+
+                {activeTab === 'geography' &amp;&amp;
+                  &lt;Gis
+                    id='gisMap'
+                    data={geoJson.edgeDataArr}
+                    baseLayers={{
+                      standard: {
+                        label: 'worldMap',
+                        layer: mapUrl
+                      }
+                    }}
+                    mapOptions={{
+                      zoom: 8,
+                      center: [
+                        23.6978,
+                        120.9605
+                      ]
+                    }}
+                    symbolOptions={[
+                      {
+                        match: {
+                          type: 'spot'
+                        },
+                        props: {
+                          'background-color': ({data}) => {
+                            return data.tag;
+                          },
+                          'border-color': '#333',
+                          'border-width': '1px'
+                        }
+                      }
+                    ]}
+                    layouts={['standard']}
+                    dragModes={['pan']} />
+                }
               &lt;/div>
             }
 
-            {activeContent === 'editEdge' &amp;&amp;
+            {(activeContent === 'viewEdge' || activeContent === 'editEdge') &amp;&amp;
               this.displayEditEdgeContent()
             }
           &lt;/div>
@@ -961,12 +1763,12 @@ class Edge extends Component {
   }
 }
 
+Edge.contextType = BaseDataContext;
+
 Edge.propTypes = {
-  baseUrl: PropTypes.string.isRequired
 };
 
-const HocEdge = withRouter(withLocale(Edge));
-export { Edge, HocEdge };</code></pre>
+export default withRouter(Edge);</code></pre>
         </article>
     </section>
 
@@ -976,13 +1778,13 @@ export { Edge, HocEdge };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

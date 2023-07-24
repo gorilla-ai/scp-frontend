@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soc/incident-unit.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soc/incident-unit.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import SortableTree from 'react-sortable-tree'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import Button from '@material-ui/core/Button'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+
+import {BaseDataContext} from '../common/context'
+import constants from '../constant/constant-incidnet'
+import helper from '../common/helper'
+import Manage from '../configuration/topology/manage'
+import MuiTableContent from '../common/mui-table-content'
+import MuiTableContentWithoutLoading from '../common/mui-table-content-withoutloading'
+import SocConfig from '../common/soc-configuration'
+import TableContent from '../common/table-content'
+
+import 'react-sortable-tree/style.css'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
+
+/**
+ * Settings - IncidentDevice
+ * @class
+ * @author Kenneth Chiao &lt;kennethchiao@telmediatech.com>
+ * @summary A react component to show the Config IncidentDevice page
+ */
+class IncidentUnit extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
+
+    this.state = {
+      activeContent: 'tableList', //tableList, viewDevice, editDevice
+      showFilter: false,
+      openManage: false,
+      currentIncidentDeviceData: {},
+      originalIncidentDeviceData: {},
+      unitSearch: {
+        keyword: '',
+        industryType: ''
+      },
+      accountListOptions: [],
+      accountType: constants.soc.LIMIT_ACCOUNT,
+      incidentUnit: {
+        dataFieldsArr: ['isGovernment', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: 'level',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: {
+          id: '',
+          oid: '',
+          name: '',
+          level: 'A',
+          industryType: '0',
+          isUse: false,
+          isGovernment: false,
+          abbreviation: '',
+          relatedAccountList: []
+        }
+      },
+      isOrganizationDialogOpen: false,
+      treeData: [],
+      departmentList: [],
+      unitList: []
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'soc', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    this.checkAccountType();
+    this.getOptions();
+    this.getUnitList();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  getData = (options) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {unitSearch, incidentUnit: incidentUnit} = this.state;
+    const sort = incidentUnit.sort.desc ? 'desc' : 'asc';
+    const page = options === 'currentPage' ? incidentUnit.currentPage : 0;
+    const url = `${baseUrl}/api/soc/unit/_search?page=${page + 1}&amp;pageSize=${incidentUnit.pageSize}&amp;orders=${incidentUnit.sort.field} ${sort}`;
+    let requestData = {};
+
+    if (unitSearch.keyword) {
+      requestData.keyword = unitSearch.keyword;
+    }
+    if (unitSearch.industryType) {
+      requestData.industryType = unitSearch.industryType;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempEdge = {...incidentUnit};
+        tempEdge.dataContent = data.rows;
+        tempEdge.totalCount = data.counts;
+        tempEdge.currentPage = page;
+
+        tempEdge.dataFields = _.map(incidentUnit.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : f(`incidentFields.${val}`),
+            options: {
+              filter: true,
+              sort: this.checkSortable(val),
+              viewColumns: val !== '_menu',
+              customBodyRenderLite: (dataIndex, options) => {
+                const allValue = tempEdge.dataContent[dataIndex];
+                let value = tempEdge.dataContent[dataIndex][val];
+
+                if (options === 'getAllValue') {
+                  return allValue;
+                }
+
+                if (val === 'industryType') {
+                  return &lt;span>{this.mappingType(value)}&lt;/span>
+                } else if (val === 'updateDttm') {
+                  return &lt;span>{helper.getFormattedDate(value, 'local')}&lt;/span>
+                } else if (val === 'isGovernment') {
+                  if (value) {
+                    return &lt;span style={{color: '#f13a56'}}>{this.checkDefault(value)}&lt;/span>
+                  } else {
+                    return &lt;span>{this.checkDefault(value)}&lt;/span>
+                  }
+                } else if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu menu active'>
+                      &lt;i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'viewDevice', allValue)} title={t('txt-view')}/>
+                      &lt;i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}/>
+                    &lt;/div>
+                  )
+                } else {
+                  return &lt;span>{value}&lt;/span>
+                }
+              }
+            }
+          };
+        });
+
+        this.setState({
+          incidentUnit: tempEdge
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  checkDefault = (value) => {
+    let info = it('unit.txt-isNotDefault');
+
+    if (value) {
+      info = it('unit.txt-isDefault');
+    }
+    return info;
+  }
+  getUnitList = () => {
+    const {baseUrl, contextRoot, session} = this.context;
+    const url = `${baseUrl}/api/soc/unit/_search`;
+    const requestData = {
+      account:session.accountId
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let list = [];
+
+        _.forEach(data.rows, val => {
+          const tmp = {
+            value: val.id,
+            text: val.name
+          };
+
+          list.push(tmp)
+        });
+
+        this.setState({
+          unitList: list
+        }, () => {
+          this.checkUnitOrgFromDepartment();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  checkUnitOrgFromDepartment = () => {
+    const {baseUrl, session} = this.context;
+    const {unitList} = this.state;
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      let departmentList = [];
+
+      _.forEach(data, val => {
+        helper.floorPlanRecursive(val, obj => {
+          departmentList.push({
+            id:obj.id,
+            name: obj.name,
+            title:obj.name,
+            value:obj.id,
+            text: obj.name
+          });
+        });
+      })
+
+      let onlyInA = departmentList.filter(this.comparer(unitList));
+      let onlyInB = unitList.filter(this.comparer(departmentList));
+      let result = onlyInA.concat(onlyInB);
+
+      this.setState({
+        treeData: data,
+        departmentList: result
+      })
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  comparer = (otherArray) => {
+    return function(current) {
+      return otherArray.filter(function(other) {
+        return other.value === current.value &amp;&amp; other.display === current.display;
+      }).length === 0;
+    };
+  }
+  checkAccountType = () => {
+    const {baseUrl, session} = this.context;
+    const requestData = {
+      account: session.accountId
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/unit/limit/_check`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        const {incidentUnit} = this.state;
+        let tempUnitObj = incidentUnit;
+
+        if (data.rt.isLimitType === constants.soc.LIMIT_ACCOUNT) {
+          tempUnitObj.dataFieldsArr = ['isGovernment','oid', 'name', 'abbreviation', 'level', 'industryType'];
+
+          this.setState({
+            accountType: constants.soc.LIMIT_ACCOUNT,
+            incidentUnit: tempUnitObj
+          }, () => {
+            this.getData();
+          })
+        } else if (data.rt.isLimitType === constants.soc.NONE_LIMIT_ACCOUNT) {
+          this.setState({
+            accountType: constants.soc.NONE_LIMIT_ACCOUNT,
+          }, () => {
+            this.getData();
+          });
+        } else {
+          this.setState({
+            accountType: constants.soc.CHECK_ERROR
+          }, () => {
+            this.getData();
+          });
+        }
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  getOptions = () => {
+    const {baseUrl} = this.context;
+    const {userAccount} = this.state;
+    const sort = 'desc';
+    const url = `${baseUrl}/api/account/v2/_search?page=1&amp;pageSize=100000&amp;orders=account ${sort}`;
+    let requestData = {};
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        const list = _.map(data.rows, val => {
+          return {
+            value: val.accountid,
+            text: val.account + ' (' + val.name + ')'
+          };
+        });
+
+        this.setState({
+          accountListOptions: list
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  mappingType = (value) => {
+    let info = '';
+
+    switch (value) {
+      case 0:
+        info = '能源';
+        break;
+      case 1:
+        info = '水資源';
+        break;
+      case 2:
+        info = '通訊傳播';
+        break;
+      case 3:
+        info = '交通';
+        break;
+      case 4:
+        info = '金融';
+        break;
+      case 5:
+        info = '緊急救援及醫院';
+        break;
+      case 6:
+        info = '中央及地方政府';
+        break;
+      case 7:
+        info = '科學園區與工業區';
+        break;
+      case 8:
+        info = '臺北區域聯防中心';
+        break;
+      case 9:
+        info = '新北區域聯防中心';
+        break;
+      case 10:
+        info = '桃園區域聯防中心';
+        break;
+      case 11:
+        info = '臺中區域聯防中心';
+        break;
+      case 12:
+        info = '臺南區域聯防中心';
+        break;
+      case 13:
+        info = '高雄區域聯防中心';
+        break;
+    }
+    return info;
+  }
+  openODialog = () => {
+    this.setState({
+      isOrganizationDialogOpen: true
+    }, () => {
+      this.getUnitList();
+    });
+  }
+  closeODialog = () => {
+    this.setState({
+      isOrganizationDialogOpen: false
+    }, () => {
+      this.getUnitList();
+    });
+  }
+  toggleManageDialog = () => {
+    this.setState({
+      openManage: !this.state.openManage
+    }, () => {
+      this.getUnitList();
+
+      if (!this.state.openManage) {
+        this.checkAccountType();
+      }
+    });
+  }
+  handleUnitTreeConfirm = () => {
+    const {treeData} = this.state;
+    const {baseUrl} = this.context;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      data: JSON.stringify(treeData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }).then(data => {
+      if (data.status.includes('success')) {
+        helper.showPopupMsg('', t('txt-success'),t('txt-update')+t('txt-success'));
+      }
+    }).catch(err => {
+      helper.showPopupMsg('', t('txt-fail'),t('txt-update')+t('txt-fail'));
+    })
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    let tempDevice = {...this.state.incidentUnit};
+    tempDevice[type] = Number(value);
+
+    this.setState({
+      incidentUnit: tempDevice
+    }, () => {
+      this.getData(type);
+    });
+  };
+  /**
+   * Display edit incidentUnit content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditDeviceContent = () => {
+    const {activeContent, incidentUnit, accountType, departmentList} = this.state;
+
+    return (
+      &lt;div className='main-content basic-form'>
+        &lt;header className='main-header'>{it('txt-incident-unit')}&lt;/header>
+        &lt;div className='content-header-btns'>
+          {activeContent === 'viewDevice' &amp;&amp;
+            &lt;Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}&lt;/Button>
+          }
+          {activeContent !== 'addDevice' &amp;&amp; activeContent !== 'editDevice' &amp;&amp;
+            &lt;Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}&lt;/Button>
+          }
+        &lt;/div>
+
+        &lt;div className='form-group steps-owner'>
+          &lt;header>
+            &lt;div className='text'>{t('edge-management.txt-basicInfo')}&lt;/div>
+          &lt;/header>
+          {accountType === constants.soc.NONE_LIMIT_ACCOUNT &amp;&amp;
+            &lt;Button variant='outlined' color='primary' className='standard manage' onClick={this.toggleManageDialog} >{t('txt-manageDepartmentTitle')}&lt;/Button>
+          }
+          &lt;div className='group'>
+            &lt;label htmlFor='oid'>{it('unit.txt-oid')}&lt;/label>
+            &lt;TextField
+              id='oid'
+              name='oid'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required
+              error={!(incidentUnit.info.oid || '').trim()}
+              helperText={it('txt-required')}
+              onChange={this.handleDataChangeMui}
+              value={incidentUnit.info.oid}
+              disabled={activeContent === 'viewDevice'} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='name'>{it('unit.txt-name')}&lt;/label>
+            &lt;Autocomplete
+              id='name'
+              name='name'
+              required
+              error={!(incidentUnit.info.name || '').trim()}
+              helperText={it('txt-required')}
+              onChange={this.onNameChange}
+              value={incidentUnit.info.name}
+              disableClearable
+              disabled={activeContent === 'viewDevice' || activeContent === 'editDevice'}
+              options={departmentList.map((option) => option.text)}
+              renderInput={(params) => (
+                &lt;TextField
+                  {...params}
+                  required
+                  error={!(incidentUnit.info.name || '').trim()}
+                  helperText={it('txt-required')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  InputProps={{ ...params.InputProps, type: 'search' }} />
+              )} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='abbreviation'>{it('unit.txt-abbreviation')}&lt;/label>
+            &lt;TextField
+              id='abbreviation'
+              name='abbreviation'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required
+              error={!(incidentUnit.info.abbreviation || '').trim()}
+              helperText={it('txt-required')}
+              onChange={this.handleDataChangeMui}
+              value={incidentUnit.info.abbreviation}
+              disabled={activeContent === 'viewDevice'} />
+          &lt;/div>
+
+          &lt;div className='group'>
+            &lt;label htmlFor='level'>{it('unit.txt-level')}&lt;/label>
+            &lt;TextField
+              id='level'
+              name='level'
+              required
+              error={!(incidentUnit.info.level || '').trim()}
+              helperText={it('txt-required')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              select
+              onChange={this.handleDataChangeMui}
+              value={incidentUnit.info.level}
+              disabled={activeContent === 'viewDevice'}>
+              {
+                _.map([
+                  {
+                    value: 'A',
+                    text: 'A'
+                  },
+                  {
+                    value: 'B',
+                    text: 'B'
+                  },
+                  {
+                    value: 'C',
+                    text: 'C'
+                  },
+                  {
+                    value: 'D',
+                    text: 'D'
+                  },
+                  {
+                    value: 'E',
+                    text: 'E'
+                  }
+                ], el => {
+                  return &lt;MenuItem value={el.value}>{el.text}&lt;/MenuItem>
+                })
+              }
+            &lt;/TextField>
+          &lt;/div>
+
+          &lt;div className='group'>
+            &lt;label htmlFor='industryType'>{it('unit.txt-type')}&lt;/label>
+            &lt;TextField
+              id='industryType'
+              name='industryType'
+              required
+              helperText={it('txt-required')}
+              error={!(incidentUnit.info.industryType || '')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              select
+              onChange={this.handleDataChangeMui}
+              value={incidentUnit.info.industryType}
+              disabled={activeContent === 'viewDevice'}>
+              {_.map(_.range(0, 14), el => {
+                return &lt;MenuItem value={el.toString()}>{it(`industryType.${el}`)}&lt;/MenuItem>
+              })}
+            &lt;/TextField>
+          &lt;/div>
+          &lt;div className='group' style={{width: '25%'}}>
+            &lt;label htmlFor='isGovernment' className='checkbox'>{it('unit.txt-government')}&lt;/label>
+            &lt;FormControlLabel
+              className='switch-control'
+              control={
+                &lt;Switch
+                  checked={incidentUnit.info.isGovernment}
+                  onChange={(event) => this.handleChange('isGovernment', event.target.checked)}
+                  color='primary' />
+              }
+              disabled={activeContent === 'viewDevice'} />
+          &lt;/div>
+          &lt;div className='group full'>
+            &lt;label htmlFor='accountListOptions'>{f('incidentFields.relatedAccountList')}&lt;/label>
+            &lt;Autocomplete
+              multiple
+              id='tags-standard'
+              size='small'
+              options={incidentUnit.info.differenceWithOptions}
+              getOptionLabel={(option) => option.text}
+              value={incidentUnit.info.showFontendRelatedList}
+              onChange={this.onTagsChange}
+              disabled={activeContent === 'viewDevice'}
+              renderInput={(params) => (
+                &lt;TextField
+                  {...params}
+                  variant='outlined'
+                  size='small'
+                  fullWidth={true} />
+              )} />
+          &lt;/div>
+        &lt;/div>
+
+        {activeContent === 'editDevice' &amp;&amp;
+          &lt;footer>
+            &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.handleUnitSubmit}>{t('txt-save')}&lt;/Button>
+          &lt;/footer>
+        }
+        {activeContent === 'addDevice' &amp;&amp;
+          &lt;footer>
+            &lt;Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}&lt;/Button>
+            &lt;Button variant='contained' color='primary' onClick={this.handleUnitSubmit}>{t('txt-save')}&lt;/Button>
+          &lt;/footer>
+        }
+      &lt;/div>
+    )
+  }
+  onTagsChange = (event, values) => {
+    let temp = {...this.state.incidentUnit};
+    temp.info['showFontendRelatedList'] = values;
+
+    this.setState({
+      incidentUnit: temp
+    });
+  }
+  onNameChange = (event, values) => {
+    const {departmentList} = this.state;
+    let temp = {...this.state.incidentUnit};
+    temp.info['name'] = values;
+    
+    _.forEach(departmentList, value => {
+      if (values === value.name) {
+        temp.info.id = value.id;
+      }
+    })
+
+    this.setState({
+      incidentUnit: temp
+    });
+  }
+  /**
+   * Handle IncidentUnit Edit confirm
+   * @method
+   */
+  handleUnitSubmit = () => {
+    const {baseUrl} = this.context;
+    let tmpIncidentUnit = {...this.state.incidentUnit};
+
+    if (!this.checkAddData(tmpIncidentUnit)) {
+      return;
+    }
+
+    tmpIncidentUnit.info.industryType = tmpIncidentUnit.info.industryType.toString()
+
+    if (tmpIncidentUnit.info.showFontendRelatedList) {
+      tmpIncidentUnit.info.relatedAccountList = _.map(tmpIncidentUnit.info.showFontendRelatedList, el => {
+        return {
+          relatedAccountId: el.value
+        };
+      });
+    }
+
+    let apiType = 'POST';
+
+    if (tmpIncidentUnit.info.id) {
+      apiType = 'PATCH';
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/unit`,
+      data: JSON.stringify(tmpIncidentUnit.info),
+      type: apiType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      tmpIncidentUnit.info.id = data.rt.id;
+      tmpIncidentUnit.info.isUse = data.rt.isUse;
+
+      this.setState({
+        originalIncidentDeviceData: _.cloneDeep(tmpIncidentUnit)
+      }, () => {
+        this.toggleContent('cancel');
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), it('unit.txt-exists'));
+    })
+  }
+  checkAddData = (incidentUnit) => {
+      let flag = new RegExp("[.`~!@#$^&amp;*()=|{}':;',\\[\\]&lt;>+《》/?~！@#￥……&amp;*（）—|{}【】‘；：”“'。，、？]");
+
+      if (!incidentUnit.info.oid || !incidentUnit.info.name|| !incidentUnit.info.abbreviation) {
+        helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
+        return false;
+      }
+
+      if (flag.test(incidentUnit.info.abbreviation)) {
+        helper.showPopupMsg('', t('txt-error'), it('txt-validAbbreviationType'));
+        return false;
+      }
+
+      if (!incidentUnit.info.level) {
+        helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
+        return false;
+      }
+
+      if (incidentUnit.info.industryType.toString() === '') {
+        helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
+        return false;
+      }
+
+      return true;
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {showFilter, unitSearch} = this.state;
+
+    return (
+      &lt;div className={cx('main-filter', {'active': showFilter})}>
+        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')} />
+        &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
+        &lt;div className='filter-section config'>
+          &lt;div className='group'>
+            &lt;TextField
+              id='keyword'
+              name='keyword'
+              label={f('incidentFields.keywords')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              className='search-textarea'
+              value={unitSearch.keyword}
+              onChange={this.handleUnitInputSearchMui} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;TextField
+              id='industryType'
+              name='industryType'
+              select
+              label={f('incidentFields.industryType')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              value={unitSearch.industryType}
+              onChange={this.handleUnitInputSearchMui}>
+              {_.map(_.range(0, 14), el => {
+                return &lt;MenuItem value={el.toString()}>{it(`industryType.${el}`)}&lt;/MenuItem>
+              })}
+            &lt;/TextField>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='button-group'>
+          &lt;Button variant='contained' color='primary' className='filter' onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}&lt;/Button>
+          &lt;Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/Button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /* ---- Func Space ---- */
+  /**
+   * Show Delete IncidentDevice dialog
+   * @method
+   * @param {object} allValue - IncidentDevice data
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('txt-delete'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteIncidentDeviceContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteUnit();
+        }
+      }
+    });
+  }
+  /**
+   * Display delete IncidentDevice content
+   * @method
+   * @param {object} allValue - IncidentDevice data
+   * @returns HTML DOM
+   */
+  getDeleteIncidentDeviceContent = (allValue) => {
+    this.setState({
+      currentIncidentDeviceData: allValue
+    });
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}:{allValue.name} ?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Handle delete IncidentDevice confirm
+   * @method
+   */
+  deleteUnit = () => {
+    const {baseUrl} = this.context;
+    const {currentIncidentDeviceData} = this.state;
+
+    if (!currentIncidentDeviceData.id) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/soc/unit?id=${currentIncidentDeviceData.id}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.rt === 'ERR_CHILD_DEPT_EXIST') {
+        helper.showPopupMsg('', t('txt-error'), it('unit.txt-existChildren'));
+      } else if (data.ret === -1004) {
+        helper.showPopupMsg('', t('txt-error'), it('unit.txt-existChildren'));
+      } else {
+        helper.showPopupMsg('', t('txt-success'), t('txt-delete') + t('txt-success'));
+        this.getData();
+        this.getUnitList();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   */
+  handleTableSort = (field, sort) => {
+    let tempDevice = {...this.state.incidentUnit};
+    tempDevice.sort.field = field;
+    tempDevice.sort.desc = sort;
+
+    this.setState({
+      incidentUnit: tempDevice
+    }, () => {
+      this.getData();
+    });
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', '_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
+   * @param {object} allValue - Edge data
+   */
+  toggleContent = (type, allValue) => {
+    const {originalIncidentDeviceData, incidentUnit, accountListOptions} = this.state;
+    let tempIncidentDevice = {...incidentUnit};
+    let showPage = type;
+
+    if (type === 'viewDevice') {
+      tempIncidentDevice.info = {
+        id: allValue.id,
+        oid: allValue.oid,
+        name: allValue.name,
+        level: allValue.level,
+        isUse: allValue.isUse,
+        isGovernment:allValue.isGovernment,
+        industryType: allValue.industryType,
+        abbreviation: allValue.abbreviation,
+        relatedAccountList: allValue.relatedAccountList
+      };
+
+      if (tempIncidentDevice.info.relatedAccountList) {
+        tempIncidentDevice.info.accountList = _.map(tempIncidentDevice.info.relatedAccountList, el => {
+          const obj = {
+            value: el.relatedAccountId,
+            text: el.relatedAccountId
+          };
+          return obj
+        });
+      }
+
+
+      let result = _.map(tempIncidentDevice.info.accountList, function(obj) {
+        return _.assign(obj, _.find(accountListOptions, {value: obj.value}));
+      });
+
+      tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function(p, o) {
+        return p.value === o.value;
+      })
+      tempIncidentDevice.info.showFontendRelatedList = result;
+
+      this.setState({
+        showFilter: false,
+        originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
+      });
+    } else if (type === 'addDevice') {
+        tempIncidentDevice.info = {
+          id: '',
+          oid: '',
+          name: '',
+          level: 'A',
+          isUse: true,
+          isGovernment: false,
+          industryType: '0',
+          abbreviation: '',
+          relatedAccountList: []
+        };
+
+        if (tempIncidentDevice.info.relatedAccountList) {
+          tempIncidentDevice.info.accountList = _.map(tempIncidentDevice.info.relatedAccountList, el => {
+            const obj = {
+              value: el.relatedAccountId,
+              text: el.relatedAccountId
+            };
+            return obj;
+          })
+        }
+
+        let result = _.map(tempIncidentDevice.info.accountList, function(obj) {
+          return _.assign(obj, _.find(accountListOptions, {value: obj.value}));
+        });
+
+        tempIncidentDevice.info.differenceWithOptions = _.differenceWith(accountListOptions, tempIncidentDevice.info.accountList, function(p, o) {
+          return p.value === o.value
+        })
+        tempIncidentDevice.info.showFontendRelatedList = result;
+
+        this.setState({
+          showFilter: false,
+          originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
+        });
+    } else if (type === 'tableList') {
+      tempIncidentDevice.info = _.cloneDeep(incidentUnit.info);
+    } else if (type === 'cancel-add') {
+      showPage = 'tableList';
+      tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+    } else if (type === 'cancel') {
+      showPage = 'viewDevice';
+      tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+    }
+
+    this.setState({
+      activeContent: showPage,
+      incidentUnit: tempIncidentDevice
+    }, () => {
+      if (type === 'tableList') {
+        this.getData();
+        this.getUnitList();
+      }
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {object} event - input value
+   */
+  handleUnitInputSearch = (type, event) => {
+    let tempUnitSearch = {...this.state.unitSearch};
+    tempUnitSearch[type] = event.target.value.trim();
+
+    this.setState({
+      unitSearch: tempUnitSearch
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {object} event - input value
+   */
+  handleUnitInputSearchMui = (event) => {
+    let tempUnitSearch = {...this.state.unitSearch};
+    tempUnitSearch[event.target.name] = event.target.value.trim();
+
+    this.setState({
+      unitSearch: tempUnitSearch
+    });
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      unitSearch: {
+        keyword: '',
+        industryType: ''
+      }
+    });
+  }
+  /**
+   * Handle Incident Device edit input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleDataChange = (type, value) => {
+    let tempDevice = {...this.state.incidentUnit};
+    tempDevice.info[type] = value;
+
+    this.setState({
+      incidentUnit: tempDevice
+    });
+  }
+  handleDataChangeMuiCheck = (event) => {
+    let tempDevice = {...this.state.incidentUnit};
+    tempDevice.info[event.target.name] = event.target.checked;
+
+    this.setState({
+      incidentUnit: tempDevice
+    });
+  }
+  handleChange(field, value) {
+    let tempDevice = {...this.state.incidentUnit};
+    tempDevice.info[field] = value;
+
+    this.setState({
+      incidentUnit: tempDevice
+    });
+  }
+  /**
+   * Handle Incident Device edit input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleDataChangeMui = (event) => {
+    let tempDevice = {...this.state.incidentUnit};
+    tempDevice.info[event.target.name] = event.target.value;
+
+    this.setState({
+      incidentUnit: tempDevice
+    });
+  }
+  render() {
+    const {session} = this.context;
+    const {
+      activeContent,
+      baseUrl,
+      contextRoot,
+      showFilter,
+      openManage,
+      incidentUnit: incidentUnit,
+      accountType,
+      isOrganizationDialogOpen,
+      treeData,
+    } = this.state;
+    let insertCheck = true;
+
+    if (_.includes(session.roles, constants.soc.Default_Admin) &amp;&amp; session.roles.length === 1) {
+      insertCheck = false;
+    }
+
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
+    const actions = {
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.closeODialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleUnitTreeConfirm}
+    };
+
+    return (
+      &lt;div>
+        {openManage &amp;&amp;
+          &lt;Manage
+            handleCloseManage={this.toggleManageDialog} />
+        }
+
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'/>&lt;/button>
+          &lt;/div>
+        &lt;/div>
+
+        {isOrganizationDialogOpen &amp;&amp;
+          &lt;ModalDialog
+            id='addUnitDialog'
+            className='modal-dialog'
+            title={t('txt-setOrganization')}
+            draggable={true}
+            global={true}
+            actions={actions}
+            closeAction='cancel'>
+            &lt;div style={{width: '890px', height: '630px'}}>
+              &lt;SortableTree
+                treeData={treeData}
+                onChange={treeData => this.setState({treeData: treeData})} />
+            &lt;/div>
+          &lt;/ModalDialog>
+        }
+
+        &lt;div className='data-content'>
+          &lt;SocConfig baseUrl={baseUrl} contextRoot={contextRoot} session={session} accountType={accountType} />
+
+          &lt;div className='parent-content'>
+            {this.renderFilter()}
+
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{it('txt-incident-unit')}&lt;/header>
+
+                {insertCheck &amp;&amp;
+                  &lt;div className='content-header-btns with-menu'>
+                    &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}&lt;/Button>
+                  &lt;/div>
+                }
+                &lt;MuiTableContentWithoutLoading
+                  data={incidentUnit}
+                  tableOptions={tableOptions} />
+              &lt;/div>
+            }
+
+            {(activeContent === 'viewDevice' || activeContent === 'editDevice' || activeContent === 'addDevice') &amp;&amp;
+              this.displayEditDeviceContent()
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+IncidentUnit.contextType = BaseDataContext;
+
+IncidentUnit.propTypes = {
+  //nodeBaseUrl: PropTypes.string.isRequired
+};
+
+export default IncidentUnit;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

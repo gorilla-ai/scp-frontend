@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/soar/soar-form.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/soar/soar-form.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import { ReactMultiEmail } from 'react-multi-email'
+
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
+import MultiInput from 'react-ui/build/src/components/multi-input'
+
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+import MultiOperator from './multi-operator'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const COUNT_LIST = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+let t = null;
+let et = null;
+
+/**
+ * SoarForm
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the SOAR individual form
+ */
+class SoarForm extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      nodeGroupList: [],
+      nodeCustomName: '',
+      nodeCustomGroup: '',
+      linkPriorityList: [],
+      linkPriority: '',
+      linkOperatorList: [],
+      linkOperatorListReduce: [],
+      nodeAdapterOperatorList: [],
+      nodeOperatorList: [],
+      nodeActionOperatorList: [],
+      soarLinkOperator: '',
+      soarLoopOperator: '',
+      soarNodeAdapterOperator: '',
+      soarNodeOperator: '',
+      soarNodeActionArgs: []
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setOperatorList();
+  }
+  /**
+   * Set node and link operator list
+   * @method
+   */
+  setOperatorList = () => {
+    const {soarColumns} = this.props;
+    let linkOp = _.cloneDeep(soarColumns.linkOp);
+    let index = '';
+    index = linkOp.indexOf('and');
+    linkOp.splice(index, 1);
+    index = linkOp.indexOf('or');
+    linkOp.splice(index, 1);
+
+    let nodeGroupList = [];
+    nodeGroupList.push(&lt;MenuItem value='' style={{height: '30px'}}>&lt;/MenuItem>);
+
+     _.map(COUNT_LIST, (val, i) => {
+      nodeGroupList.push(&lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>);
+    });
+
+    let linkPriorityList = [];
+    linkPriorityList.push(&lt;MenuItem value='' style={{height: '30px'}}>&lt;/MenuItem>);
+
+     _.map(COUNT_LIST, (val, i) => {
+      linkPriorityList.push(&lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>);
+    });
+
+    const linkOperatorList = _.map(soarColumns.linkOp, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+    const linkOperatorListReduce = _.map(linkOp, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+    const nodeAdapterOperatorList = _.map(soarColumns.adapter, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+    const nodeOperatorList = _.map(soarColumns.nodeOp, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{val}&lt;/MenuItem>
+    });
+    const nodeActionOperatorList = _.map(soarColumns.action, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{t('soar.txt-' + val)}&lt;/MenuItem>
+    });
+
+    this.setState({
+      nodeGroupList,
+      linkPriorityList,
+      linkOperatorList,
+      linkOperatorListReduce,
+      nodeAdapterOperatorList,
+      nodeOperatorList,
+      nodeActionOperatorList
+    }, () => {
+      this.setInitializeState();
+    });
+  }
+  /**
+   * Set intialize soar data
+   * @method
+   */
+  setInitializeState = () => {
+    const {from, soarColumns} = this.props;
+
+    Object.keys(soarColumns.spec).forEach(key => {
+      this.setState({
+        [key]: soarColumns.spec[key]
+      }, () => {
+        if (from === 'soarCondition') {
+          this.setSoarCondition();
+        } else if (from === 'soarFlow') {
+          this.setFlowData();
+        }
+      });
+    });
+  }
+  /**
+   * Set soar condition data
+   * @method
+   */
+  setSoarCondition = () => {
+    const {soarCondition} = this.props;
+
+    if (!soarCondition.op) {
+      return;
+    }
+
+    let argsData = soarCondition.args;
+
+    if ((soarCondition.op === 'and' || soarCondition.op === 'or') &amp;&amp; soarCondition.args) {
+      argsData = soarCondition.args.operators;
+    }
+
+    this.setState({
+      soarLinkOperator: soarCondition.op,
+      [soarCondition.op]: argsData
+    });
+  }
+  /**
+   * Set soar flow data
+   * @method
+   */
+  setFlowData = () => {
+    const {activeElementType, soarParam, activeElement} = this.props;
+    let argsData = activeElement.args;
+
+    if (activeElementType === 'link') {
+      if (activeElement.op === 'and' || activeElement.op === 'or') {
+        argsData = activeElement.args ? activeElement.args.operators : [];
+      }
+
+      this.setState({
+        nodeCustomName: activeElement.label,
+        linkPriority: activeElement.priority,
+        soarLinkOperator: activeElement.op,
+        [activeElement.op]: argsData
+      });
+    } else if (activeElementType === 'node') {
+      if (activeElement.componentType === 'adapter') {
+        this.setState({
+          nodeCustomName: activeElement.data.label,
+          soarNodeAdapterOperator: !soarParam ? 'socket' : activeElement.adapter_type,
+          [activeElement.adapter_type]: activeElement.args
+        });
+      } else if (activeElement.componentType === 'node') {
+        if (activeElement.op === 'loop') { //Special case for loop item
+          this.setState({
+            soarLoopOperator: activeElement.args.loopItem.op,
+            [activeElement.args.loopItem.op]: activeElement.args.loopItem.args
+          });
+        }
+
+        this.setState({
+          nodeCustomName: activeElement.data.label,
+          nodeCustomGroup: activeElement.group,
+          soarNodeOperator: activeElement.op,
+          [activeElement.op]: activeElement.args
+        });
+      } else if (activeElement.componentType === 'action') {
+        argsData = activeElement.args ? activeElement.args.actions : [];
+
+        this.setState({
+          nodeCustomName: activeElement.data.label,
+          soarNodeActionArgs: argsData
+        });
+      }
+    }
+  }
+  /**
+   * Handle node name/group data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleNodeDataChange = (event) => {
+    const {activeElement} = this.props;
+
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+
+    this.props.setSoarFlowData(event.target.name, event.target.value, activeElement);
+  }
+  /**
+   * Handle operator data change
+   * @method
+   * @param {string} type - data input type ('soarLinkOperator', 'soarNodeOperator', soarNodeAdapterOperator')
+   * @param {object} event - event object
+   */
+  handleOperatorDataChange = (type, event) => {
+    const {from, activeElement} = this.props;
+
+    this.setState({
+      [type]: event.target.value
+    });
+
+    if (from === 'soarCondition') {
+      this.props.setSoarConditionData(event.target.value, this.state[event.target.value]);
+    } else if (from === 'soarFlow') {
+      this.props.setSoarFlowData(event.target.value, this.state[event.target.value], activeElement);
+    }
+  }
+  /**
+   * Handle form data change
+   * @method
+   * @param {string} type - data input type
+   * @param {object} event - event object
+   */
+  handleDataChange = (type, event) => {
+    const {from, activeElement} = this.props;
+    let tempData = {...this.state[type]};
+    tempData[event.target.name] = event.target.value;
+
+    this.setState({
+      [type]: tempData
+    });
+
+    if (from === 'soarCondition') {
+      this.props.setSoarConditionData(type, tempData);
+    } else if (from === 'soarFlow') {
+      this.props.setSoarFlowData(type, tempData, activeElement);
+    }
+  }
+  /**
+   * Display individual form
+   * @method
+   * @param {string} operator - soar operator
+   * @param {string} key - key of the form data
+   * @param {number} i - index of the form data
+   * @returns HTML DOM
+   */
+  displayForm = (operator, key, i) => {
+    const {from, soarColumns, activeElementType, activeElement} = this.props;
+    const value = soarColumns.spec[operator][key];
+    const operatorValue = this.state[operator];
+    const textValue = (operatorValue ? operatorValue[key] : '') || '';
+    let label = t('soar.txt-' + key);
+
+    if (key === 'gap') { //Spcieal case for scp gap
+      label = 'Gap (' + t('txt-minutes') + ')';
+    }
+
+    if (typeof value === 'string' &amp;&amp; operatorValue) {
+      return (
+        &lt;div key={i} className='group'>
+          &lt;TextField
+            name={key}
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!textValue}
+            helperText={textValue ? '' : t('txt-required')}
+            value={textValue}
+            onChange={this.handleDataChange.bind(this, operator)} />
+        &lt;/div>
+      )
+    } else if (typeof value === 'boolean' &amp;&amp; operatorValue) {
+      return (
+        &lt;div key={i} className='group'>
+          &lt;TextField
+            name={key}
+            select
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={operatorValue[key]}
+            onChange={this.handleDataChange.bind(this, operator)}>
+            &lt;MenuItem value={true}>True&lt;/MenuItem>
+            &lt;MenuItem value={false}>False&lt;/MenuItem>
+          &lt;/TextField>
+        &lt;/div>
+      )
+    } else if (typeof value === 'number' &amp;&amp; operatorValue) {
+      return (
+        &lt;div key={i} className='group'>
+          &lt;TextField
+            name={key}
+            type='number'
+            label={label}
+            variant='outlined'
+            fullWidth
+            size='small'
+            InputProps={{inputProps: { min: 0 }}}
+            required
+            error={!textValue}
+            helperText={textValue ? '' : t('txt-required')}
+            value={textValue}
+            onChange={this.handleDataChange.bind(this, operator)} />
+        &lt;/div>
+      )
+    } else if (typeof value === 'object' &amp;&amp; operatorValue) {
+      if (operator === 'loop') { //Special case for node loop item
+        return (
+          &lt;div className='link-form'>
+            {this.displayDropDownSelection('soarLoopOperator', 'linkOperatorListReduce')}
+          &lt;/div>
+        )
+      } else if (operator === 'and' || operator === 'or') { //Special case for link and/or operator
+        const data = {
+          from,
+          soarColumns,
+          activeElementType,
+          activeElement
+        };
+        const value = this.state[operator].operators ? this.state[operator].operators : this.state[operator];
+
+        return (
+          &lt;MultiInput
+            key={i}
+            base={MultiOperator}
+            defaultItemValue={{
+                op: '',
+                args: {}
+              }
+            }
+            value={value}
+            props={data}
+            onChange={this.setMultiOperatorData.bind(this, operator)} />
+        )
+      }
+    }
+  }
+  /**
+   * Set multi operator data
+   * @method
+   * @param {string} type - operator type ('and', 'or' or 'soarNodeActionArgs')
+   * @param {array} operatorData - operator data to be set
+   */
+  setMultiOperatorData = (type, operatorData) => {
+    const {from, activeElement} = this.props;
+
+    this.setState({
+      [type]: operatorData
+    });
+
+    if (from === 'soarCondition') {
+      this.props.setSoarConditionData(type, operatorData);
+    } else if (from === 'soarFlow') {
+      this.props.setSoarFlowData(type, operatorData, activeElement);
+    }
+  }
+  /**
+   * Show corresponding form group
+   * @method
+   * @param {string} operator - soar operator
+   * @returns HTML DOM
+   */
+  showFormGroup = (operator) => {
+    if (this.state[operator]) {
+      return Object.keys(this.props.soarColumns.spec[this.state[operator]]).map(this.displayForm.bind(this, this.state[operator]));
+    }
+  }
+  /**
+   * Display dropdown selection
+   * @method
+   * @param {string} operator - soar operator
+   * @param {string} operatorList - soar operator list
+   * @returns HTML DOM
+   */
+  displayDropDownSelection = (operator, operatorList) => {
+    const {from, soarParam, soarIndividualData} = this.props;
+    let formDisabled = operator === 'soarNodeAdapterOperator' ? true : false; //always disabled for adapter operator
+
+    if (from === 'soarCondition') { //For SOAR condition in left nav
+      if (soarParam) {
+        formDisabled = true;
+      }
+
+      if (!_.isEmpty(soarIndividualData) &amp;&amp; soarIndividualData.flow[0].adapter_type === 'scp') {
+        formDisabled = true;
+      }
+    }
+
+    return (
+      &lt;React.Fragment>
+        &lt;div className='group'>
+          &lt;TextField
+            id={operator}
+            name='op'
+            select
+            label='Operator'
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={this.state[operator]}
+            onChange={this.handleOperatorDataChange.bind(this, operator)}
+            disabled={formDisabled}>
+            {this.state[operatorList]}
+          &lt;/TextField>
+        &lt;/div>
+        {this.showFormGroup(operator)}
+      &lt;/React.Fragment>
+    )
+  }
+  /**
+   * Display name/group form
+   * @method
+   * @returns HTML DOM
+   */
+  displayNameGroupForm = () => {
+    const {activeElement} = this.props;
+    const {linkPriorityList, linkPriority, nodeGroupList, nodeCustomName, nodeCustomGroup} = this.state;
+
+    return (
+      &lt;React.Fragment>
+        &lt;div className='group'>
+          &lt;TextField
+            id='nodeCustomName'
+            name='nodeCustomName'
+            label={t('txt-name')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={nodeCustomName}
+            onChange={this.handleNodeDataChange}
+            disabled={activeElement.componentType === 'adapter'} />
+        &lt;/div>
+        {activeElement.componentType === 'link' &amp;&amp;
+          &lt;div className='group'>
+            &lt;TextField
+              id='linkPriority'
+              name='linkPriority'
+              select
+              label={t('txt-priority')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={linkPriority}
+              onChange={this.handleNodeDataChange}>
+              {linkPriorityList}
+            &lt;/TextField>
+          &lt;/div>
+        }
+        {activeElement.componentType === 'node' &amp;&amp;
+          &lt;div className='group'>
+            &lt;TextField
+              id='nodeCustomGroup'
+              name='nodeCustomGroup'
+              select
+              label={t('txt-group')}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={nodeCustomGroup}
+              onChange={this.handleNodeDataChange}>
+              {nodeGroupList}
+            &lt;/TextField>
+          &lt;/div>
+        }
+      &lt;/React.Fragment>
+    )
+  }
+  render() {
+    const {from, soarColumns, activeElementType, activeElement} = this.props;
+    const {soarNodeActionArgs} = this.state;
+
+    if (activeElementType === 'link') {
+      return (
+        &lt;div className='soar-form'>
+          {from === 'soarFlow' &amp;&amp;
+            this.displayNameGroupForm()
+          }
+          {this.displayDropDownSelection('soarLinkOperator', 'linkOperatorList')}
+        &lt;/div>
+      )
+    } else if (activeElementType === 'node') {
+      if (activeElement.componentType === 'adapter') {
+        return (
+          &lt;div className='soar-form'>
+            {this.displayNameGroupForm()}
+            {this.displayDropDownSelection('soarNodeAdapterOperator', 'nodeAdapterOperatorList')}
+          &lt;/div>
+        )
+      } else if (activeElement.componentType === 'node') {
+        return (
+          &lt;div className='soar-form'>
+            {this.displayNameGroupForm()}
+            {this.displayDropDownSelection('soarNodeOperator', 'nodeOperatorList')}
+          &lt;/div>
+        )
+      } else if (activeElement.componentType === 'action') {
+        const data = {
+          from,
+          soarColumns,
+          activeElementType,
+          activeElement
+        };
+
+        return (
+          &lt;div className='soar-form'>
+            {this.displayNameGroupForm()}
+            &lt;MultiInput
+              base={MultiOperator}
+              defaultItemValue={{
+                op: '',
+                args: {},
+              }}
+              value={soarNodeActionArgs}
+              props={data}
+              onChange={this.setMultiOperatorData.bind(this, 'soarNodeActionArgs')} />
+          &lt;/div>
+        )
+      }
+    }
+  }
+}
+
+SoarForm.contextType = BaseDataContext;
+
+SoarForm.propTypes = {
+  from: PropTypes.string.isRequired,
+  soarColumns: PropTypes.object.isRequired,
+  activeElementType: PropTypes.string.isRequired,
+  soarCondition: PropTypes.object,
+  soarFlow: PropTypes.array,
+  soarParam: PropTypes.object.isRequired,
+  soarIndividualData: PropTypes.object,
+  activeElement: PropTypes.object,
+  setSoarConditionData: PropTypes.func,
+  setSoarFlowData: PropTypes.func
+};
+
+export default SoarForm;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

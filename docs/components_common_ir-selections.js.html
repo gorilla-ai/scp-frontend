@@ -29,38 +29,29 @@
             <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import withLocale from '../../hoc/locale-provider'
+import {BaseDataContext} from './context'
+import helper from './helper'
 
-const IR_MAPPINGS = {
-  1: 'dumpMemory',
-  2: 'getSystemInfo',
-  3: 'getFileInfo',
-  4: 'getProcessInfo',
-  5: 'getAutoruns',
-  6: 'getTaskScheduler',
-  7: 'getBrowserData',
-  8: 'getOutlookData',
-  9:  'getRegistryBackup',
-  10: 'getEventLogFile',
-  11: 'getRecycleFile',
-  12: 'getRecentFile',
-  13: 'getPictureFile',
-  14: 'getVideoFile',
-  15: 'getMicrosoftFile',
-  16: 'getKeyWordFile'
-};
-const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const FULL_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getBrowserData', 'getOutlookData', 'getRegistryBackup', 'getEventLogFile', 'getRecycleFile', 'getRecentFile', 'getPictureFile', 'getVideoFile', 'getMicrosoftFile', 'getKeyWordFile'];
+const QUICK_IR_LIST = ['getSystemInfoFile', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile'];
+const STANDARD_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile', 'getRecentFile'];
+const LINUX_IR_LIST = ['getSystemInfoFile', 'getFileInfo', 'getProcessInfo'];
 
 let t = null;
 
 /**
  * IR combo selections
  * @class
- * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
  * @summary A react component to show the IR combo selection list
  */
 class IrSelections extends Component {
@@ -68,46 +59,130 @@ class IrSelections extends Component {
     super(props);
 
     this.state = {
-      irComboSelected: 'quick', //quick, standard, full
-      irItemSelected: DEFAULT_IR_SELECTED
+      irComboSelected: 'quick', //'quick', 'standard' or 'full'
+      irItemList: [],
+      irSelectedList: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  componentDidMount() {
+    this.setIrList();
+    this.setSelectedList('quick');
+  }
   /**
-   * Handle IR combo dropdown change
+   * Set IR list for display
    * @method
-   * @param {string} type - IR combo type ('quick', 'standard' or 'full')
+   * @param {object} event - event object
    */
-  handleIrComboChange = (value) => {
-    let irItemSelected = [];
+  setIrList = () => {
+    const irItemList = _.map(FULL_IR_LIST, (val, i) => {
+      const item = i + 1;
 
-    if (value === 'quick') {
-      irItemSelected = DEFAULT_IR_SELECTED;
-    } else if (value === 'standard') {
-      irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
-    } else if (value === 'full') {
-      irItemSelected = _.range(1, 17);
-    }
+      return {
+        value: val,
+        text: item + ' - ' + t('hmd-scan.ir-list.txt-list' + item)
+      };
+    });
 
     this.setState({
-      irComboSelected: value,
-      irItemSelected
+      irItemList
     });
   }
   /**
-   * Handle IR combo multi checkbox change
+   * Set IR selected list
    * @method
-   * @param {array} selected - selected checkbox array
+   * @param {object} type - IR type ('quick', 'standard' or 'full')
    */
-  handleIrSelectionChange = (selected) => {
-    const irItemSelected = selected.sort((a, b) => {
-      return a - b;
-    });
+  setSelectedList = (type) => {
+    const {currentDeviceData} = this.props;
+    let irSelectedList = [];
+
+    if (type === 'quick') {
+      if (currentDeviceData.osType &amp;&amp; currentDeviceData.osType === 'linux') {
+        irSelectedList = _.cloneDeep(LINUX_IR_LIST);
+      } else {
+        irSelectedList = _.cloneDeep(QUICK_IR_LIST);
+      }
+    } else if (type === 'standard') {
+      irSelectedList = _.cloneDeep(STANDARD_IR_LIST);
+    } else if (type === 'full') {
+      irSelectedList = _.cloneDeep(FULL_IR_LIST);
+    }
 
     this.setState({
-      irItemSelected
+      irSelectedList
     });
+  }
+  /**
+   * Handle IR combo dropdown change
+   * @method
+   * @param {object} event - event object
+   */
+  handleIrComboChange = (event) => {
+    this.setSelectedList(event.target.value);
+
+    this.setState({
+      irComboSelected: event.target.value
+    });
+  }
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.irSelectedList, val);
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (event) => {
+    let irSelectedList = _.cloneDeep(this.state.irSelectedList);
+
+    if (event.target.checked) {
+      irSelectedList.push(event.target.name);
+    } else {
+      const index = irSelectedList.indexOf(event.target.name);
+      irSelectedList.splice(index, 1);
+    }
+
+    this.setState({
+      irSelectedList
+    });
+  }
+  /**
+   * Display checkbox for IR selections
+   * @method
+   * @param {object} val - individual IR type
+   * @param {number} i - index of the IR type
+   * @returns FormControlLabel component
+   */
+  showCheckboxList = (val, i) => {
+    const {currentDeviceData} = this.props;
+    let disabled = false;
+
+    if (currentDeviceData.osType &amp;&amp; currentDeviceData.osType === 'linux') {
+      disabled = !_.includes(LINUX_IR_LIST, val.value);
+    }
+
+    return (
+      &lt;FormControlLabel
+        key={i}
+        label={val.text}
+        control={
+          &lt;Checkbox
+            className='checkbox-ui'
+            name={val.value}
+            checked={this.checkSelectedItem(val.value)}
+            onChange={this.toggleCheckbox}
+            color='primary' />
+        }
+        disabled={disabled} />
+    )
   }
   /**
    * Display IR selection content
@@ -115,60 +190,77 @@ class IrSelections extends Component {
    * @returns HTML DOM
    */
   displayIRselection = () => {
-    const {irComboSelected, irItemSelected} = this.state;
-    const dropDownList = _.map(['quick', 'standard', 'full'], val => {
-      return {
-        value: val,
-        text: t('network-inventory.ir-type.txt-' + val)
-      };
-    });
-    const checkBoxList = _.map(_.range(1, 17), val => {
-      return {
-        value: val,
-        text: val + ' - ' + t('network-inventory.ir-list.txt-list' + val)
-      };
+    const {currentDeviceData} = this.props;
+    const {irComboSelected, irItemList} = this.state;
+    let list = ['quick', 'standard', 'full'];
+
+    if (currentDeviceData.osType &amp;&amp; currentDeviceData.osType === 'linux') {
+      list = ['quick'];
+    }
+
+    const dropDownList = _.map(list, (val, i) => {
+      return &lt;MenuItem key={i} value={val}>{t('hmd-scan.ir-type.txt-' + val)}&lt;/MenuItem>
     });
 
     return (
       &lt;div>
-        &lt;DropDownList
-          id='irComboList'
-          list={dropDownList}
-          required={true}
-          onChange={this.handleIrComboChange}
-          value={irComboSelected} />
-        &lt;CheckboxGroup
-          list={checkBoxList}
-          onChange={this.handleIrSelectionChange}
-          value={irItemSelected} />
+        &lt;TextField
+          className='ir-comboList'
+          select
+          variant='outlined'
+          fullWidth
+          size='small'
+          value={irComboSelected}
+          onChange={this.handleIrComboChange}>
+          {dropDownList}
+        &lt;/TextField>
+        &lt;div className='ir-selections'>
+          {irItemList.map(this.showCheckboxList)}
+        &lt;/div>
       &lt;/div>
     )
   }
   /**
-   * Handle IR selection confirm
+   * Check SFTP connection before calling trigger method
    * @method
    */
-  confirmIRselection = () => {
-    const {irItemSelected} = this.state;
-    const selectedIrArr = _.map(irItemSelected, val => {
-      return IR_MAPPINGS[val];
-    });
+  checkSftpConnection = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/isSftpConnected`;
 
-    this.props.triggerTask(selectedIrArr);
-    this.props.toggleSelectionIR();
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rt) {
+          this.props.triggerTask(this.state.irSelectedList);
+        } else {
+          helper.showPopupMsg('', t('txt-error'), t('hmd-scan.txt-checkHmdSettings'));
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   render() {
-    const titleText = t('network-inventory.txt-itemSelection');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleSelectionIR},
-      confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
+      confirm: {text: t('txt-confirm'), handler: this.checkSftpConnection}
     };
 
     return (
       &lt;ModalDialog
         id='irSelectionDialog'
         className='modal-dialog'
-        title={titleText}
+        title={t('hmd-scan.txt-itemSelection')}
         draggable={true}
         global={true}
         actions={actions}
@@ -179,13 +271,15 @@ class IrSelections extends Component {
   }
 }
 
+IrSelections.contextType = BaseDataContext;
+
 IrSelections.propTypes = {
-  triggerTask: PropTypes.func.isRequired,
-  toggleSelectionIR: PropTypes.func.isRequired
+  currentDeviceData: PropTypes.object.isRequired,
+  toggleSelectionIR: PropTypes.func.isRequired,
+  triggerTask: PropTypes.func.isRequired
 };
 
-const HocIrSelections = withLocale(IrSelections);
-export { IrSelections, HocIrSelections };</code></pre>
+export default IrSelections;</code></pre>
         </article>
     </section>
 
@@ -195,13 +289,13 @@ export { IrSelections, HocIrSelections };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

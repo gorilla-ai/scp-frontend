@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/dashboard/statisticsUIF.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/dashboard/statisticsUIF.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router'
+import PropTypes from 'prop-types'
+import moment from 'moment'
+import _ from 'lodash'
+
+import * as htmlToImage from 'html-to-image'
+import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image'
+
+import Button from '@material-ui/core/Button'
+import Dialog from '@material-ui/core/Dialog'
+import DialogActions from '@material-ui/core/DialogActions'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import DialogTitle from '@material-ui/core/DialogTitle'
+import BlurLinearIcon from '@material-ui/icons/BlurLinear'
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Grid from '@material-ui/core/Grid'
+import MenuItem from '@material-ui/core/MenuItem'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+import Typography from '@material-ui/core/Typography'
+
+import {downloadLink} from 'react-ui/build/src/utils/download'
+import Progress from 'react-ui/build/src/components/progress'
+
+import SearchOptions from '../common/search-options'
+import {BaseDataContext} from '../common/context'
+import helper from '../common/helper'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {HOC} from 'widget-builder'
+
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {Emergency: '#CC2943', Alert: '#CC7B29', Critical: '#29B0CC', Warning: '#29CC7A', Notice: '#7ACC29'};
+const COLORS = ['#069BDA', '#57C3D9', '#57D998', '#6CD957', '#C3D957', '#D99857', '#D9576C', '#D957C3', '#9857D9', '#576CD9', '#5798D9', '#57D9C3', '#57D96C', '#98D957', '#D9C357', '#D96C57', '#D95798', '#C357D9', '#6C57D9'];
+
+const INIT = {
+  uifCfg: {},
+  appendConfig: {},
+  datetime: {},
+  searchInput: {
+    searchType: 'manual',
+    searchInterval: '1h',
+    refreshTime: '60000' //1 min.
+  },
+  openLayout: false,
+  openEdit: false,
+  oneFlag: false,
+  allChartsID: [],
+  toggleAll: true,
+  layoutConfig: {
+    display: {},
+    position: []
+  },
+  displayContent: {},
+  intervalArray: ['10m', '1h'],
+  intervalValue: '10m'
+};
+
+let t = null;
+let et = null;
+let intervalId = null;
+
+/**
+ * Dashboard Statistics UI Framework
+ * @class
+ * @author Ken Lee &lt;kenlee@ns-guard.com>
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the main Dashboard page
+ */
+class StatisticsUIF extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = _.cloneDeep(INIT);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, sessionRights} = this.context;
+
+    helper.inactivityTime(baseUrl, locale);
+
+    const datetime = {
+      from: helper.getSubstractDate(1, 'days', moment().local()),
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+    };
+
+    this.setState({
+      datetime
+    }, () => {
+      this.loadLayoutCfg();
+    });
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  loadLayoutCfg = () => {
+    const {baseUrl, session} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/dashboard/layout/_get?accountId=${session.accountId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      this.setState({
+        layoutConfig: data
+      }, () => {
+        this.loadUIF();
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  loadUIF = () => {
+    const {baseUrl, session} = this.context;
+    const {datetime, intervalValue, oneFlag, layoutConfig} = this.state;
+    const url = `${baseUrl}/api/uif?id=SCP-Overview`;
+    let appendConfig = {};
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      let dataJson = JSON.parse(data);
+      let uifCfg = JSON.parse(dataJson.data);
+
+      _.forEach(uifCfg.config.widgets, (widgetValue, widgetName) => {
+        const oldUrl = widgetValue.widgetConfig.config.dataSource.query.url;
+        const pattern = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('/api'), oldUrl.indexOf('?')) : oldUrl.substring(oldUrl.indexOf('/api'));
+        const params = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('?') + 1) : '';
+        let newUrl = `${baseUrl}${pattern}`;
+
+        if (params) {
+          _.forEach(params.split('&amp;'), param => {
+            _.includes(newUrl, '?') ? newUrl += '&amp;' : newUrl += '?';
+
+            if (_.includes(param, 'startDttm')) {
+              const startDttm = moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+              newUrl += `startDttm=${startDttm}`;
+            } else if (_.includes(param, 'endDttm')) {
+              const endDttm = moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+              newUrl += `endDttm=${endDttm}`;
+            } else if (_.includes(param, 'accountId')) {
+              newUrl += `accountId=${session.accountId}`;
+            } else if (_.includes(param, 'timeZone')) {
+              newUrl += `timeZone=8`;
+            } else if (_.includes(param, 'histogramInterval')) {
+              newUrl += `histogramInterval=${intervalValue}`;
+            } else {
+              newUrl += param;
+            }
+          })
+        }
+
+        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.query.url`], newUrl);
+        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.errorMessage`], t('txt-error'));
+        _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.placeholder`], t('txt-notFound'));
+
+        // set tooltip
+        if (widgetName === 'AlertStatistics-bar') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'AlertStatistics-bar'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
+            labels: {
+              formatter() {
+                return moment(this.value, 'x').local().format('MM/DD HH:mm');
+              }
+            }
+          });
+        }
+
+        if (widgetName === 'CustomAlertStatistics') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'CustomAlertStatistics'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
+            labels: {
+              formatter() {
+                return moment(this.value, 'x').local().format('MM/DD HH:mm');
+              }
+            }
+          });
+        }
+
+        if (widgetName === 'MaskedIPAlertStatistics-bar') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.formatter`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'));
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.tooltip.enabled`], true);
+        }
+
+        if (widgetName === 'honeypotLoginPassword-table') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.fields.password.formatter`], this.formatter.bind(this));
+        }
+      })
+
+      // set display
+      let displayContent = {};
+
+      _.forEach(uifCfg.config.widgets, (content, key) => {
+        let type = _.get(content.widgetConfig, 'type');
+        type = type.substring(type.indexOf('/') + 1);
+        displayContent[key] = content.boxTitle + ' (' + t('txt-chartType' + type) + ')';
+      })
+      
+      _.set(uifCfg, 'config.onLayoutChange', this.positionChange);
+
+      // overwrite uifcfg
+      _.forEach(appendConfig, (v, k) => {
+        _.set(uifCfg, k, v);
+      })
+
+      // set position
+      _.forEach(layoutConfig.position, el => {
+        _.set(uifCfg, `config.widgets.${el.id}.layout`, el);
+      })
+
+      this.setState({
+        uifCfg,
+        appendConfig,
+        displayContent
+      }, () => {
+        if (oneFlag) {
+          this.hoc.forceRefresh();
+        }
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  handleChange = (field, value) => {
+    this.setState({
+      [field]: value
+    });
+  }
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    let period = moment(tempDatetime.to).diff(moment(tempDatetime.from));
+    let intervalArray = [];
+
+    if (type === 'customTime' || type === 'refresh') {
+      tempDatetime.from = newDatetime.from;
+      tempDatetime.to = newDatetime.to;
+    } else {
+      tempDatetime[type] = newDatetime;
+    }
+
+    if (period &lt;= 8640000) {
+      intervalArray = ['10m', '1h'];
+    } else if (8640000 &lt; period &amp;&amp; period &lt;= 604800000) {
+      intervalArray = ['1h', '12h', '1d'];
+    } else if (604800000 &lt; period &amp;&amp; period &lt;= 2419200000) {
+      intervalArray = ['12h', '1d'];
+    } else {
+      intervalArray = ['1d'];
+    }
+
+    this.setState({
+      datetime: tempDatetime,
+      intervalArray,
+      intervalValue: intervalArray[0]
+    }, () => {
+      if (type === 'refresh') {
+        this.loadUIF();
+      }
+    });
+  }
+  /**
+   * Set search options data
+   * @method
+   * @param {string | object} event - event object
+   * @param {string} [type] - for 'searchType' input
+   */
+  setSearchData = (event, inputType) => {
+    let tempSearchInput = {...this.state.searchInput};
+
+    if (event.target) {
+      tempSearchInput[event.target.name] = event.target.value;
+    } else {
+      tempSearchInput[inputType] = event[inputType];
+      tempSearchInput.searchInterval = '1h'; //set default value
+      tempSearchInput.refreshTime = '60000'; //set default value for 1 min.
+    }
+
+    this.setState({
+      searchInput: tempSearchInput
+    });
+  }
+  formatter = (value) => {
+    return &lt;div dangerouslySetInnerHTML={{__html: value}} />
+  }
+  onTooltip = (type, eventInfo, data) => {
+    if (type === 'AlertStatistics-bar') {
+      return (
+        &lt;section>
+          &lt;span>{t('txt-severity')}: {data[0].severity}&lt;br />&lt;/span>
+          &lt;span>{t('txt-time')}: {moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}&lt;/span>
+        &lt;/section>
+      )
+    } else if (type === 'CustomAlertStatistics') {
+      return (
+        &lt;section>
+          &lt;span>{t('dashboard.txt-patternName')}: {data[0].patternName}&lt;br />&lt;/span>
+          &lt;span>{t('txt-time')}: {moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}&lt;/span>
+        &lt;/section>
+      )
+    } else if (type === 'CustomAccountQueryAlertStatistics') {
+      return (
+        &lt;section>
+          &lt;span>{t('dashboard.txt-patternName')}: {data[0].QueryFilterName}&lt;br />&lt;/span>
+          &lt;span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {data[0].doc_count}&lt;/span>
+        &lt;/section>
+      )
+    } else if (type === 'MaskedIPAlertStatistics-bar') {
+      return (
+        &lt;section>
+          &lt;span>{t('txt-subnet')}: {data[0].subnet}&lt;br />&lt;/span>
+          &lt;span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}&lt;/span>
+        &lt;/section>
+      )
+    }
+  }
+  exportPDF = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {uifCfg} = this.state;
+    let cfg = {
+      data: []
+    };
+
+    Progress.startSpin();
+
+    cfg.data = _.map(uifCfg.config.widgets, (v, k) => {
+      return {
+        display_setting: {
+          x: v.layout.x * 2,
+          y: v.layout.y * 2,
+          width: v.layout.w * 2,
+          height: v.layout.h * 2
+        },
+        content_setting: {
+          type: 'image',
+          value: `${k}.jpg`
+        }
+      };
+    });
+
+    const that = this;
+
+    _.forEach(uifCfg.config.widgets, (value, chart) => {
+      htmlToImage.toPng(document.getElementById(chart))
+      .then(function(dataUrl) {
+        const imgArray = dataUrl.split(',');
+        const mime = imgArray[0].match(/:(.*?);/)[1];
+        const bstr = atob(imgArray[1]);
+        let n = bstr.length;
+        let u8arr = new Uint8Array(n);
+
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        const img = new File([u8arr], `${chart}.jpg`, {type: mime});
+
+        let formData = new FormData();
+        formData.append('file', img);
+        formData.append('config_string', JSON.stringify(cfg));
+        formData.append('size', _.size(cfg.data));
+
+        that.ah.one({
+          url: `${baseUrl}/api/pdf/_relay2`,
+          data: formData,
+          type: 'POST',
+          dataType: 'JSON',
+          processData: false,
+          contentType: false
+        })
+        .then(data => {
+          if (data.rt) {
+            downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`);
+            Progress.done();
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    })
+  }
+  positionChange = (event) => {
+    const {allChartsID, layoutConfig, oneFlag} = this.state;
+    let chartsIDs = [];
+    layoutConfig.position = event;
+
+    if (allChartsID.length === 0 &amp;&amp; event.length > 0) {
+      chartsIDs = _.map(event, val => {
+        return val.id
+      });
+
+      this.setState({
+        allChartsID: chartsIDs
+      });
+    }
+
+    if (oneFlag) {
+      this.setState({
+        openEdit: true,
+        layoutConfig
+      });
+    } else {
+      this.setState({
+        oneFlag: true,
+        layoutConfig
+      });
+    }
+  }
+  openLayoutDialog = () => {
+    this.setState({
+      openLayout: true
+    });
+  }
+  cancelLayout = () => {
+    this.setState({
+      openLayout: false
+    });
+  }
+  saveLayout = () => {
+    const {baseUrl, session} = this.context;
+    const {layoutConfig} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/dashboard/layout/_set?accountId=${session.accountId}`,
+      data: JSON.stringify(layoutConfig),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.setState({
+        openLayout: false,
+        openEdit: false,
+        oneFlag: false
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  getSwitchStatus = (val) => {
+    if (this.state.layoutConfig.display[val] === false) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  handleSwitchChange = (name, event) => {
+    const {allChartsID, layoutConfig} = this.state;
+    const checked = event.target.checked;
+    let tempLayoutConfig = {...layoutConfig};
+    tempLayoutConfig = _.set(layoutConfig, `display.${name}`, checked);
+    let toggleAll = true;
+    
+    let chart = document.getElementById(name);
+    chart.parentNode.style.visibility = checked ? 'visible' : 'hidden';
+
+    _.forEach(allChartsID, val => {
+      let chart = document.getElementById(val);
+
+      if (chart.parentNode.style.visibility === 'hidden') {
+        toggleAll = false;
+        return false;
+      }
+    })
+
+    this.setState({
+      openEdit: true,
+      toggleAll,
+      layoutConfig: tempLayoutConfig
+    });
+  }
+  setChartSwitch = (val, i) => {
+    const {displayContent} = this.state;
+
+    return (
+      &lt;Grid item xs={4}>
+        &lt;FormControlLabel
+          className='switch-control'
+          control={
+          &lt;Switch
+            name={val}
+            checked={this.getSwitchStatus(val)}
+            onChange={this.handleSwitchChange.bind(this, val)}
+            color='primary' />
+          }
+          label={displayContent[val]} />
+      &lt;/Grid>
+    )
+  }
+  handleToggleAllChange = () => {
+    this.setState({
+      toggleAll: !this.state.toggleAll
+    }, () => {
+      const {allChartsID, toggleAll, layoutConfig} = this.state;
+      const visible = toggleAll ? 'visible' : 'hidden';
+      let tempLayoutConfig = {...layoutConfig};
+
+      _.forEach(allChartsID, val => {
+        let chart = document.getElementById(val);
+        chart.parentNode.style.visibility = visible;
+        tempLayoutConfig.display[val] = toggleAll;
+      })
+
+      this.setState({
+        openEdit: true,
+        layoutConfig: tempLayoutConfig
+      });
+    });
+  }
+  render() {
+    const {
+      uifCfg,
+      appendConfig,
+      datetime,
+      searchInput,
+      openLayout,
+      openEdit,
+      allChartsID,
+      toggleAll,
+      layoutConfig,
+      displayContent,
+      intervalArray,
+      intervalValue
+    } = this.state;
+
+    _.forEach(layoutConfig.display, (isDisplay, key) => {
+      if (!isDisplay) {
+        const chart = document.getElementById(key);
+
+        if (chart) {
+          let charts = chart.parentNode;
+          charts.style.visibility = 'hidden';
+        }
+      }
+    })
+
+    return (
+      &lt;div>
+        &lt;div className='sub-header'>
+          &lt;Grid container justify='space-between'>
+            &lt;Grid item xs={3}>
+              {helper.getDashboardMenu('statisticsUIF')}
+            &lt;/Grid>
+            &lt;Grid item xs={9}>
+              &lt;Grid container justify='flex-end'>
+                &lt;Grid item className='secondary-btn-group'>
+                  &lt;Button variant='outlined' color='primary' title={t('txt-export')} onClick={this.exportPDF} >&lt;CloudDownloadIcon />&lt;/Button>
+                  &lt;Button variant='outlined' color='primary' title={t('txt-layout-setting')} onClick={this.openLayoutDialog}>&lt;BlurLinearIcon />&lt;/Button>
+                &lt;/Grid>
+                &lt;Grid item>
+                  &lt;div className='search-options'>
+                    &lt;TextField
+                      className='search-type'
+                      select
+                      variant='outlined'
+                      size='small'
+                      value={intervalValue}
+                      onChange={(event) => this.handleChange('intervalValue', event.target.value)} >
+                      {
+                        _.map(intervalArray, el => {
+                          return &lt;MenuItem key={el} value={el}>{t(`time-interval.txt-chart-interval`)}{t(`time-interval.txt-${el}`)}&lt;/MenuItem>
+                        })
+                      }
+                    &lt;/TextField>
+                  &lt;/div>
+                &lt;/Grid>
+                &lt;Grid item>
+                  &lt;SearchOptions
+                    datetime={datetime}
+                    searchInput={searchInput}
+                    enableTime={true}
+                    showInterval={true}
+                    setSearchData={this.setSearchData}
+                    handleDateChange={this.handleDateChange}
+                    handleSearchSubmit={this.loadUIF} />
+                &lt;/Grid>
+              &lt;/Grid>
+            &lt;/Grid>
+          &lt;/Grid>
+        &lt;/div>
+
+        {openEdit &amp;&amp;
+          &lt;Grid container style={{backgroundColor: 'white', padding: '5px'}} justify='center' alignItems='center'>
+            &lt;Typography color='error' display='inline'>{t('txt-layout-change')}&lt;/Typography>&amp;nbsp;&amp;nbsp;&amp;nbsp;
+            &lt;Button variant='outlined' color='primary' onClick={this.handleChange.bind(this, 'openEdit', false)}>{t('txt-cancel')}&lt;/Button>&amp;nbsp;&amp;nbsp;&amp;nbsp;
+            &lt;Button variant='outlined' color='primary' onClick={this.saveLayout.bind(this)} >{t('txt-save')}&lt;/Button>
+          &lt;/Grid>
+        }
+
+        {!_.isEmpty(appendConfig) &amp;&amp;
+          &lt;div className='uif-dashboard'>
+             &lt;HOC ref={ref => { this.hoc=ref }} {...uifCfg} />
+          &lt;/div>
+        }
+
+        &lt;Dialog
+          className='dashboard-layout-settings'
+          maxWidth='lg'
+          open={openLayout}
+          onClose={this.cancelLayout}>
+          &lt;DialogTitle>{t('txt-layout-setting')}&lt;/DialogTitle>
+          &lt;DialogContent>
+            &lt;Grid container>
+              {allChartsID.length > 0 &amp;&amp;
+                &lt;FormControlLabel
+                  className='switch-control toggle-all'
+                  control={
+                  &lt;Switch
+                    checked={toggleAll}
+                    onChange={this.handleToggleAllChange}
+                    color='primary' />
+                  }
+                  label={t('txt-toggleAll')} />
+              }
+              {Object.keys(displayContent).map(this.setChartSwitch)}
+            &lt;/Grid>
+          &lt;/DialogContent>
+          &lt;DialogActions>
+            &lt;Button variant='outlined' color='primary' className='standard btn' onClick={this.cancelLayout}>{t('txt-close')}&lt;/Button>
+          &lt;/DialogActions>
+        &lt;/Dialog>
+      &lt;/div>
+    )
+  }
+}
+
+StatisticsUIF.contextType = BaseDataContext;
+
+StatisticsUIF.propTypes = {
+}
+
+export default withRouter(StatisticsUIF);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Jul 19 2023 14:08:57 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
