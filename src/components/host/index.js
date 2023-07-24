@@ -3975,7 +3975,7 @@ class HostController extends Component {
   /**
    * Display common info for safety scan table
    * @method
-   * @param {object || string} safetyData - active safety scan data
+   * @param {object | string} safetyData - active safety scan data
    * @returns HTML DOM
    */
   getCommonContent = (safetyData) => {

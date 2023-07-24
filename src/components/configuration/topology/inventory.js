@@ -1835,7 +1835,7 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
-   * @param {string || array.<string>} [options] - option for 'fromInventory' or Process Monitor settings
+   * @param {string | array.<string>} [options] - option for 'fromInventory' or Process Monitor settings
    * @param {object} [yaraRule] - yara rule data
    */
   triggerTask = (type, options, yaraRule) => {

@@ -141,6 +141,8 @@ class HostVulnerabilities extends Component {
       cveSearch: _.cloneDeep(CVE_SEARCH),
       cveFilter: _.cloneDeep(CVE_FILTER),
       cveFilterList: _.cloneDeep(CVE_FILTER_LIST),
+      exportContextAnchor: null,
+      tableContextAnchor: null,
       productNameSearch: {
         keyword: '',
         count: 0
@@ -168,7 +170,6 @@ class HostVulnerabilities extends Component {
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       relatedSoftwareData: _.cloneDeep(RELATED_SOFTWARE_DATA),
-      tableContextAnchor: null,
       currentCveId: '',
       currentCveData: {}
     };
@@ -356,9 +357,11 @@ class HostVulnerabilities extends Component {
 
     //Bar Chart
     this.ah.one({
-      url: `${baseUrl}/api/hmd/cveUpdateToDate/year/severityAgg`,
-      type: 'GET'
-    }, {showProgress: false})
+      url: `${baseUrl}/api/hmd/cveDevices/month/statistics`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         let monthlySeverityTrend = [];
@@ -496,7 +499,7 @@ class HostVulnerabilities extends Component {
             xAxis={{
               type: 'datetime',
               units: [
-                ['month', [1]]
+                ['day', [1]]
               ]
             }}
             plotOptions={{
@@ -522,7 +525,7 @@ class HostVulnerabilities extends Component {
     return (
       <section>
         <span>{t('txt-severity')}: {data[0].indicator}<br /></span>
-        <span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM')}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
         <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
@@ -935,6 +938,7 @@ class HostVulnerabilities extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
+      exportContextAnchor: null,
       tableContextAnchor: null
     });
   }
@@ -1249,27 +1253,46 @@ class HostVulnerabilities extends Component {
     });
   }
   /**
+   * Handle export open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleExportOpenMenu = (event) => {
+    this.setState({
+      exportContextAnchor: event.currentTarget
+    });
+  }
+  /**
    * Export CVE list
    * @method
+   * @param {string} type - export type ('cve' or 'nccst')
    */
-  exportCveList = () => {
+  exportCveList = (type) => {
     const {baseUrl, contextRoot} = this.context;
     const {cveData} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
-    let exportFields = {};
-    let fieldsList = _.cloneDeep(cveData.dataFieldsArr);
-    fieldsList.shift();
-
-    _.forEach(fieldsList, val => {
-      exportFields[val] = f('hostDashboardFields.' + val);
-    })
-
-    const requestData = {
-      ...this.getCveFilterRequestData(),
-      exportFields
+    let url = '';
+    let requestData = {
+      ...this.getCveFilterRequestData()
     };
 
+    if (type === 'cve') {
+      let exportFields = {};
+      let fieldsList = _.cloneDeep(cveData.dataFieldsArr);
+      fieldsList.shift();
+
+      _.forEach(fieldsList, val => {
+        exportFields[val] = f('hostDashboardFields.' + val);
+      })
+
+      requestData.exportFields = exportFields;
+
+      url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
+    } else if (type === 'nccst') {
+      url = `${baseUrl}${contextRoot}/api/hmd/cveDevices/month/statistics/_export`;
+    }
+
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    this.handleCloseMenu();
   }
   render() {
     const {
@@ -1286,6 +1309,7 @@ class HostVulnerabilities extends Component {
       showCveInfo,
       showFilterQuery,
       cveData,
+      exportContextAnchor,
       tableContextAnchor
     } = this.state;
     const tableOptions = {
@@ -1328,6 +1352,7 @@ class HostVulnerabilities extends Component {
           search={cveSearch}
           data={cveData}
           options={tableOptions}
+          exportAnchor={exportContextAnchor}
           tableAnchor={tableContextAnchor}
           cveSeverityLevel={cveSeverityLevel}
           monthlySeverityTrend={monthlySeverityTrend}
@@ -1339,6 +1364,7 @@ class HostVulnerabilities extends Component {
           toggleFilterQuery={this.toggleFilterQuery}
           handleSearch={this.handleCveChange}
           handleReset={this.handleResetBtn}
+          handleExportMenu={this.handleExportOpenMenu}
           handleCloseMenu={this.handleCloseMenu} />
       </div>
     )

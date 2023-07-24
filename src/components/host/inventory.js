@@ -155,8 +155,8 @@ class HostInventory extends Component {
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
-      tableContextAnchor: null,
       exportContextAnchor: null,
+      tableContextAnchor: null,
       cveNameSearch: {
         keyword: '',
         count: 0
@@ -829,8 +829,8 @@ class HostInventory extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      tableContextAnchor: null,
-      exportContextAnchor: null
+      exportContextAnchor: null,
+      tableContextAnchor: null
     });
   }
   /**
@@ -1338,8 +1338,8 @@ class HostInventory extends Component {
       cpeFilter,
       cpeFilterList,
       showCpeInfo,
-      tableContextAnchor,
       exportContextAnchor,
+      tableContextAnchor,
       showFilterQuery,
       reportOpen,
       uploadCpeFileOpen,
@@ -1413,8 +1413,8 @@ class HostInventory extends Component {
           search={cpeSearch}
           data={cpeData}
           options={tableOptions}
-          tableAnchor={tableContextAnchor}
           exportAnchor={exportContextAnchor}
+          tableAnchor={tableContextAnchor}
           getData={this.getCpeData}
           getActiveData={this.getActiveCpeInfo}
           exportList={this.exportCpeList}

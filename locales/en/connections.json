@@ -402,7 +402,7 @@
     "txt-kbid": "KBID",
     "vulnerabilities": {
       "txt-severityLevelQuery": "Vulnerability Exposure Level",
-      "txt-monthlySeverityTrend": "Monthly Vulnerability Level Trend",
+      "txt-monthlySeverityTrend": "Daily Vulnerability Level Trend in Current Month",
       "txt-vulnerabilityList": "Vulnerability List",
       "txt-vulnerabilityDetails": "Vulnerability Details",
       "txt-vulnerabilityCount": "Vulnerability Count",
@@ -410,6 +410,8 @@
       "txt-exposedDevicesCount": "Exposed Devices Count",
       "txt-relatedSoftware": "Related Software",
       "txt-relatedSoftwareCount": "Related Software Count",
+      "txt-cveList": "CVE List",
+      "txt-cveStatistics": "Vulnerability Statistics",
       "txt-group": "Group",
       "txt-hostName": "Host Name",
       "txt-daysOpen": "Days Open",

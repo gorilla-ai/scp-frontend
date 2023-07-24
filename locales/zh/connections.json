@@ -402,7 +402,7 @@
     "txt-kbid": "KBID",
     "vulnerabilities": {
       "txt-severityLevelQuery": "弱點暴露等級",
-      "txt-monthlySeverityTrend": "每月漏洞等級趨勢",
+      "txt-monthlySeverityTrend": "當月每日漏洞等級趨勢",
       "txt-vulnerabilityList": "弱點漏洞清單",
       "txt-vulnerabilityDetails": "漏洞詳細資訊",
       "txt-vulnerabilityCount": "弱點漏洞數量",
@@ -410,6 +410,8 @@
       "txt-exposedDevicesCount": "暴露的裝置數量",
       "txt-relatedSoftware": "相關軟體",
       "txt-relatedSoftwareCount": "相關軟體數量",
+      "txt-cveList": "CVE清單",
+      "txt-cveStatistics": "弱點統計",
       "txt-group": "群組",
       "txt-hostName": "主機名稱",
       "txt-daysOpen": "已存在天數",

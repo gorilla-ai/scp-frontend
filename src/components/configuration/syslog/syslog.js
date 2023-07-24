@@ -1983,7 +1983,7 @@ class Syslog extends Component {
   /**
    * Toggle pattern edit name dialog on/off
    * @method
-   * @param {string>} [type] - edit type ('new')
+   * @param {string} [type] - edit type ('new')
    */
   toggleEditPatternName = (type) => {
     const {openEditPatternName} = this.state;

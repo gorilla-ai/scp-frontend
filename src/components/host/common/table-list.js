@@ -80,6 +80,16 @@ class TableList extends Component {
             <div className='main-content'>
               <header className='main-header'>{headerTitle}</header>
               <div className='content-header-btns with-menu'>
+                {page === 'vulnerabilities' &&
+                  <Menu
+                    anchorEl={exportAnchor}
+                    keepMounted
+                    open={Boolean(exportAnchor)}
+                    onClose={this.props.handleCloseMenu}>
+                    <MenuItem onClick={this.props.exportList.bind(this, 'cve')}>{t('host.vulnerabilities.txt-cveList')}</MenuItem>
+                    {/*<MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.vulnerabilities.txt-cveStatistics')}</MenuItem>*/}
+                  </Menu>
+                }
                 {page === 'inventory' &&
                   <Menu
                     anchorEl={exportAnchor}
@@ -103,7 +113,7 @@ class TableList extends Component {
                 <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
                 {page === 'vulnerabilities' &&
                   <React.Fragment>
-                    <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+                    <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
                   </React.Fragment>
                 }
                 {page === 'inventory' &&
