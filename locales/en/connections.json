@@ -412,6 +412,7 @@
       "txt-relatedSoftwareCount": "Related Software Count",
       "txt-cveList": "CVE List",
       "txt-cveStatistics": "Vulnerability Statistics",
+      "txt-cveStatisticsExport": "Export Vulnerability Statistics Report",
       "txt-group": "Group",
       "txt-hostName": "Host Name",
       "txt-daysOpen": "Days Open",

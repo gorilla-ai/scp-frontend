@@ -793,6 +793,14 @@
     "system": "System",
     "version": "Version"
   },
+  "hostVulnerabilityFields": {
+    "date": "Date",
+    "cveNum": "CVE Count",
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
   "hostKbidFields": {
     "kbid": "KBID",
     "exposedDevices": "Exposed Devices",

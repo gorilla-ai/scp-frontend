@@ -793,6 +793,14 @@
     "system": "系統",
     "version": "版本"
   },
+  "hostVulnerabilityFields": {
+    "date": "日期",
+    "cveNum": "弱點數量",
+    "critical": "嚴重",
+    "high": "高",
+    "medium": "中",
+    "low": "低"
+  },
   "hostKbidFields": {
     "kbid": "KBID",
     "exposedDevices": "裝置數量",

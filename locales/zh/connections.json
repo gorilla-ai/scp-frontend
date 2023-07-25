@@ -412,6 +412,7 @@
       "txt-relatedSoftwareCount": "相關軟體數量",
       "txt-cveList": "CVE清單",
       "txt-cveStatistics": "弱點統計",
+      "txt-cveStatisticsExport": "匯出弱點統計報表",
       "txt-group": "群組",
       "txt-hostName": "主機名稱",
       "txt-daysOpen": "已存在天數",

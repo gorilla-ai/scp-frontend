@@ -2,11 +2,18 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import moment from 'moment'
+
+import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+import 'moment/locale/zh-tw'
 
 import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
@@ -27,11 +34,130 @@ class TableList extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      datePickerOpen: false,
+      datetime: {}
+    };
   }
   componentDidMount() {
   }
+  /**
+   * Toggle date picker dialog
+   * @method
+   * @param {string} type - action type ('confirm' or 'cancel')
+   */
+  toggleDatePickerDialog = (type) => {
+    const {datePickerOpen, datetime} = this.state;
+
+    if (datePickerOpen && type === 'confirm') {
+      if (moment(datetime.from).isAfter(datetime.to)) {
+        helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+        return;
+      }
+
+      this.props.exportList('nccst', datetime);
+    }
+
+    this.setState({
+      datePickerOpen: !datePickerOpen,
+      datetime: {
+        from: helper.getFormattedDate(helper.getSubstractDate(1, 'day')),
+        to: helper.getFormattedDate(helper.getSubstractDate(1, 'day'))
+      }
+    });
+
+    this.props.handleCloseMenu();
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
+   */
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
+    this.setState({
+      datetime: tempDatetime
+    });
+  }
+  /**
+   * Display date picker
+   * @method
+   * @returns HTML DOM
+   */
+  displayDatePicker = () => {
+    const {locale} = this.context;
+    const {datetime} = this.state;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    return (
+      <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+        <KeyboardDatePicker
+          id='hostDatePickerFrom'
+          className='date-picker'
+          inputVariant='outlined'
+          variant='inline'
+          format='YYYY-MM-DD'
+          minDate={helper.getSubstractDate(6, 'month')}
+          maxDate={helper.getSubstractDate(1, 'day')}
+          invalidDateMessage={t('txt-invalidDateMessage')}
+          maxDateMessage={t('txt-maxDateMessage')}
+          minDateMessage={t('txt-minDateMessage')}
+          value={datetime.from}
+          onChange={this.handleDateChange.bind(this, 'from')} />
+        <div className='between'>~</div>
+        <KeyboardDatePicker
+          id='hostDatePickerTo'
+          className='date-picker'
+          inputVariant='outlined'
+          variant='inline'
+          format='YYYY-MM-DD'
+          minDate={helper.getSubstractDate(6, 'month')}
+          maxDate={helper.getSubstractDate(1, 'day')}
+          invalidDateMessage={t('txt-invalidDateMessage')}
+          maxDateMessage={t('txt-maxDateMessage')}
+          minDateMessage={t('txt-minDateMessage')}
+          value={datetime.to}
+          onChange={this.handleDateChange.bind(this, 'to')} />
+      </MuiPickersUtilsProvider>
+    )
+  }
+  /**
+   * Show date picker dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showDatePickerDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleDatePickerDialog.bind(this, 'cancel')},
+      confirm: {text: t('txt-confirm'), handler: this.toggleDatePickerDialog.bind(this, 'confirm')}
+    };
+
+    return (
+      <ModalDialog
+        id='showDatePickerDialog'
+        className='modal-dialog'
+        title={t('host.vulnerabilities.txt-cveStatisticsExport')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayDatePicker()}
+      </ModalDialog>
+    )
+  }
   render() {
     const {page, searchType, search, data, options, tableAnchor, exportAnchor, cveSeverityLevel, monthlySeverityTrend} = this.props;
+    const {datePickerOpen} = this.state;
     let headerTitle = '';
     let searchLabel = '';
 
@@ -48,6 +174,10 @@ class TableList extends Component {
 
     return (
       <div>
+        {datePickerOpen &&
+          this.showDatePickerDialog()
+        }
+
         <Menu
           anchorEl={tableAnchor}
           keepMounted
@@ -87,7 +217,7 @@ class TableList extends Component {
                     open={Boolean(exportAnchor)}
                     onClose={this.props.handleCloseMenu}>
                     <MenuItem onClick={this.props.exportList.bind(this, 'cve')}>{t('host.vulnerabilities.txt-cveList')}</MenuItem>
-                    {/*<MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.vulnerabilities.txt-cveStatistics')}</MenuItem>*/}
+                    <MenuItem onClick={this.toggleDatePickerDialog}>{t('host.vulnerabilities.txt-cveStatistics')}</MenuItem>
                   </Menu>
                 }
                 {page === 'inventory' &&

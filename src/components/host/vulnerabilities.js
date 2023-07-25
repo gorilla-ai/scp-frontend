@@ -1266,17 +1266,18 @@ class HostVulnerabilities extends Component {
    * Export CVE list
    * @method
    * @param {string} type - export type ('cve' or 'nccst')
+   * @param {object} [datetime] - datetime object
    */
-  exportCveList = (type) => {
+  exportCveList = (type, datetime) => {
     const {baseUrl, contextRoot} = this.context;
     const {cveData} = this.state;
     let url = '';
+    let exportFields = {};
     let requestData = {
       ...this.getCveFilterRequestData()
     };
 
     if (type === 'cve') {
-      let exportFields = {};
       let fieldsList = _.cloneDeep(cveData.dataFieldsArr);
       fieldsList.shift();
 
@@ -1288,6 +1289,15 @@ class HostVulnerabilities extends Component {
 
       url = `${baseUrl}${contextRoot}/api/hmd/cveUpdateToDate/_export`;
     } else if (type === 'nccst') {
+      const fieldsList = ['date', 'cveNum', 'critical', 'high', 'medium', 'low'];
+
+      _.forEach(fieldsList, val => {
+        exportFields[val] = f('hostVulnerabilityFields.' + val);
+      })
+
+      requestData.exportFields = exportFields;
+      requestData.dateArray = [moment(datetime.from).format('YYYY-MM-DD'), moment(datetime.to).format('YYYY-MM-DD')];
+
       url = `${baseUrl}${contextRoot}/api/hmd/cveDevices/month/statistics/_export`;
     }
 
