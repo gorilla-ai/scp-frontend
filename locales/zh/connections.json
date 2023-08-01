@@ -164,6 +164,8 @@
   "txt-offline": "離線",
   "txt-connected": "已連線",
   "txt-disconnected": "已離線",
+  "txt-notConnected": "未連線",
+  "txt-notSetup": "未安裝",
   "txt-unstable": "不穩定",
   "txt-unknown": "未知",
   "txt-severity": "嚴重等級",
@@ -400,6 +402,7 @@
     "txt-vulnerabilities": "Vulnerabilities",
     "txt-inventory": "Inventory",
     "txt-kbid": "KBID",
+    "txt-endpoints": "Endpoints",
     "vulnerabilities": {
       "txt-severityLevelQuery": "弱點暴露等級",
       "txt-monthlySeverityTrend": "當月每日漏洞等級趨勢",
@@ -457,6 +460,9 @@
       "txt-kbidList": "KBID清單",
       "txt-vulnerabilityList": "弱點主機清單"
     },
+    "endpoints": {
+      "txt-threatsLevel": "威脅指數"
+    },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",
     "txt-hostItem": "主機項目",
@@ -475,6 +481,7 @@
     "txt-report-kbid": "回報KBID",
     "txt-kbid": "KBID",
     "txt-kbidName": "KBID名稱",
+    "txt-ipOrHostName": "IP或主機",
     "txt-exposedDevices": "資產數量",
     "txt-departmentName": "部門",
     "txt-ip": "IP",

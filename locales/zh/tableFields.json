@@ -806,5 +806,13 @@
     "exposedDevices": "裝置數量",
     "departmentSelected": "部門",
     "system": "系統"
+  },
+  "hostEndpointsFields": {
+    "departmentSelected": "部門",
+    "system": "系統",
+    "connectionStatus": "狀態",
+    "version": "版本",
+    "threatsLevel": "威脅等級",
+    "severity": "嚴重程度"
   }
 }

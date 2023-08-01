@@ -24,6 +24,7 @@ import {BaseDataContext} from '../common/context'
 import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
+import HostMenu from './common/host-menu'
 import MuiTableContent from '../common/mui-table-content'
 import ReportRecord from './common/report-record'
 import SearchFilter from './search-filter'
@@ -947,23 +948,33 @@ class HostKbid extends Component {
           this.showKbidDialog()
         }
 
-        <TableList
-          page='kbid'
-          searchType='kbidSearch'
-          search={kbidSearch}
-          data={kbidData}
-          options={tableOptions}
-          tableAnchor={tableContextAnchor}
-          exportAnchor={exportContextAnchor}
-          getData={this.getKbidData}
-          getActiveData={this.getExposedDevices}
-          exportList={this.exportKbidList}
-          toggleReport={this.toggleReport}
-          toggleFilterQuery={this.toggleFilterQuery}
-          handleSearch={this.handleKbidChange}
-          handleReset={this.handleResetBtn}
-          handleExportMenu={this.handleExportOpenMenu}
-          handleCloseMenu={this.handleCloseMenu} />
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <HostMenu />
+          </div>
+        </div>
+
+        <div className='data-content'>
+          <div className='parent-content'>
+            <TableList
+              page='kbid'
+              searchType='kbidSearch'
+              search={kbidSearch}
+              data={kbidData}
+              options={tableOptions}
+              tableAnchor={tableContextAnchor}
+              exportAnchor={exportContextAnchor}
+              getData={this.getKbidData}
+              getActiveData={this.getExposedDevices}
+              exportList={this.exportKbidList}
+              toggleReport={this.toggleReport}
+              toggleFilterQuery={this.toggleFilterQuery}
+              handleSearch={this.handleKbidChange}
+              handleReset={this.handleResetBtn}
+              handleExportMenu={this.handleExportOpenMenu}
+              handleCloseMenu={this.handleCloseMenu} />
+          </div>
+        </div>
       </div>
     )
   }

@@ -156,7 +156,17 @@ class TableList extends Component {
     )
   }
   render() {
-    const {page, searchType, search, data, options, tableAnchor, exportAnchor, cveSeverityLevel, monthlySeverityTrend} = this.props;
+    const {
+      page,
+      searchType,
+      search,
+      data,
+      options,
+      tableAnchor,
+      exportAnchor,
+      cveSeverityLevel,
+      monthlySeverityTrend
+    } = this.props;
     const {datePickerOpen} = this.state;
     let headerTitle = '';
     let searchLabel = '';
@@ -170,6 +180,8 @@ class TableList extends Component {
     } else if (page === 'kbid') {
       headerTitle = t('host.txt-kbid');
       searchLabel = t('host.txt-kbidName');
+    } else if (page === 'endpoints') {
+      searchLabel = t('host.txt-ipOrHostName');
     }
 
     return (
@@ -186,105 +198,82 @@ class TableList extends Component {
           <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
         </Menu>
 
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <Button id='hostVulnerabilities' variant='outlined' color='primary' data-cy='hostVulnerabilitiesBtn'><Link to='/SCP/host/vulnerabilities'>{t('host.txt-vulnerabilities')}</Link></Button>
-            <Button id='hostInventory' variant='outlined' color='primary' data-cy='hostInventoryBtn'><Link to='/SCP/host/inventory'>{t('host.txt-inventory')}</Link></Button>
-            <Button id='hostKbid' variant='outlined' color='primary' data-cy='hostKbidBtn'><Link to='/SCP/host/kbid'>{t('host.txt-kbid')}</Link></Button>
-
-            <Button id='hostIndex' variant='outlined' color='primary' data-cy='hostListBtn'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-          </div>
-        </div>
-
-        <div className='data-content'>
-          <div className='parent-content'>
+        <div className='main-content'>
+          <header className='main-header'>{headerTitle}</header>
+          <div className='content-header-btns with-menu'>
             {page === 'vulnerabilities' &&
-              <div className='main-statistics host'>
-                <div className='statistics-content'>
-                  {this.props.showPieChart(cveSeverityLevel.data)}
-                  {this.props.showBarChart(monthlySeverityTrend)}
-                </div>
-              </div>
+              <Menu
+                anchorEl={exportAnchor}
+                keepMounted
+                open={Boolean(exportAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <MenuItem onClick={this.props.exportList.bind(this, 'cve')}>{t('host.vulnerabilities.txt-cveList')}</MenuItem>
+                <MenuItem onClick={this.toggleDatePickerDialog}>{t('host.vulnerabilities.txt-cveStatistics')}</MenuItem>
+              </Menu>
             }
-
-            <div className='main-content'>
-              <header className='main-header'>{headerTitle}</header>
-              <div className='content-header-btns with-menu'>
-                {page === 'vulnerabilities' &&
-                  <Menu
-                    anchorEl={exportAnchor}
-                    keepMounted
-                    open={Boolean(exportAnchor)}
-                    onClose={this.props.handleCloseMenu}>
-                    <MenuItem onClick={this.props.exportList.bind(this, 'cve')}>{t('host.vulnerabilities.txt-cveList')}</MenuItem>
-                    <MenuItem onClick={this.toggleDatePickerDialog}>{t('host.vulnerabilities.txt-cveStatistics')}</MenuItem>
-                  </Menu>
-                }
-                {page === 'inventory' &&
-                  <Menu
-                    anchorEl={exportAnchor}
-                    keepMounted
-                    open={Boolean(exportAnchor)}
-                    onClose={this.props.handleCloseMenu}>
-                    <MenuItem onClick={this.props.exportList.bind(this, 'cpe')}>{t('host.inventory.txt-inventoryList')}</MenuItem>
-                    <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>NCCST</MenuItem>
-                  </Menu>
-                }
-                {page === 'kbid' &&
-                  <Menu
-                    anchorEl={exportAnchor}
-                    keepMounted
-                    open={Boolean(exportAnchor)}
-                    onClose={this.props.handleCloseMenu}>
-                    <MenuItem onClick={this.props.exportList.bind(this, 'kbid')}>{t('host.kbid.txt-kbidList')}</MenuItem>
-                    <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-vulnerabilityList')}</MenuItem>
-                  </Menu>
-                }
-                <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
-                {page === 'vulnerabilities' &&
-                  <React.Fragment>
-                    <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
-                  </React.Fragment>
-                }
-                {page === 'inventory' &&
-                  <React.Fragment>
-                    <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
-                    <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-vans')}</Button>
-                  </React.Fragment>
-                }
-                {page === 'kbid' &&
-                  <React.Fragment>
-                    <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
-                    <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-kbid')}</Button>
-                  </React.Fragment>
-                }
-              </div>
-
-              <div className='actions-bar'>
-                <div className='search-field'>
-                  <div className='group'>
-                    <TextField
-                      name='search'
-                      className='search-text'
-                      label={searchLabel}
-                      variant='outlined'
-                      size='small'
-                      value={search.keyword}
-                      onChange={this.props.handleSearch}
-                      data-cy='hostSearchTextField' />
-                  </div>
-                  <Button id='hostSearchData' variant='contained' color='primary' className='search-btn' onClick={this.props.getData} data-cy='hostSearchSubmitBtn'>{t('txt-search')}</Button>
-                  <Button id='hostClearData' variant='outlined' color='primary' className='standard btn clear' onClick={this.props.handleReset.bind(this, searchType)} data-cy='hostSearchClearBtn'>{t('txt-clear')}</Button>
-                </div>
-
-                <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(search.count)}</div>
-              </div>
-
-              <MuiTableContent
-                data={data}
-                tableOptions={options} />
-            </div>
+            {page === 'inventory' &&
+              <Menu
+                anchorEl={exportAnchor}
+                keepMounted
+                open={Boolean(exportAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <MenuItem onClick={this.props.exportList.bind(this, 'cpe')}>{t('host.inventory.txt-inventoryList')}</MenuItem>
+                <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>NCCST</MenuItem>
+              </Menu>
+            }
+            {page === 'kbid' &&
+              <Menu
+                anchorEl={exportAnchor}
+                keepMounted
+                open={Boolean(exportAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <MenuItem onClick={this.props.exportList.bind(this, 'kbid')}>{t('host.kbid.txt-kbidList')}</MenuItem>
+                <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-vulnerabilityList')}</MenuItem>
+              </Menu>
+            }
+            <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
+            {page === 'vulnerabilities' &&
+              <React.Fragment>
+                <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+              </React.Fragment>
+            }
+            {page === 'inventory' &&
+              <React.Fragment>
+                <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+                <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-vans')}</Button>
+              </React.Fragment>
+            }
+            {page === 'kbid' &&
+              <React.Fragment>
+                <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+                <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-kbid')}</Button>
+              </React.Fragment>
+            }
           </div>
+
+          <div className='actions-bar'>
+            <div className='search-field'>
+              <div className='group'>
+                <TextField
+                  name='search'
+                  className='search-text'
+                  label={searchLabel}
+                  variant='outlined'
+                  size='small'
+                  value={search.keyword}
+                  onChange={this.props.handleSearch}
+                  data-cy='hostSearchTextField' />
+              </div>
+              <Button id='hostSearchData' variant='contained' color='primary' className='search-btn' onClick={this.props.getData} data-cy='hostSearchSubmitBtn'>{t('txt-search')}</Button>
+              <Button id='hostClearData' variant='outlined' color='primary' className='standard btn clear' onClick={this.props.handleReset.bind(this, searchType)} data-cy='hostSearchClearBtn'>{t('txt-clear')}</Button>
+            </div>
+
+            <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(search.count)}</div>
+          </div>
+
+          <MuiTableContent
+            data={data}
+            tableOptions={options} />
         </div>
       </div>
     )
@@ -301,8 +290,6 @@ TableList.propTypes = {
   options: PropTypes.object.isRequired,
   tableAnchor: PropTypes.string.isRequired,
   exportAnchor: PropTypes.string,
-  cveSeverityLevel: PropTypes.object,
-  monthlySeverityTrend: PropTypes.array,
   getData: PropTypes.func.isRequired,
   getActiveData: PropTypes.func.isRequired,
   exportList: PropTypes.func.isRequired,
@@ -310,8 +297,6 @@ TableList.propTypes = {
   handleSearch: PropTypes.func.isRequired,
   handleReset: PropTypes.func.isRequired,
   handleCloseMenu: PropTypes.func.isRequired,
-  showPieChart: PropTypes.func,
-  showBarChart: PropTypes.func,
   toggleReport: PropTypes.func
 };
 

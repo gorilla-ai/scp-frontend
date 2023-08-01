@@ -493,7 +493,7 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   showFilterDisplay = (val, i) => {
-    const {page, severityType, vendorType} = this.props;
+    const {page, severityType, vendorType, connectionStatus} = this.props;
     const {filter, itemFilterList} = this.state;
     const filterName = val.name;
     const displayType = val.displayType;
@@ -509,6 +509,14 @@ class FilterQuery extends Component {
       selectOptions = vendorType;
     } else if (page === 'kbid') {
       label = f('hostKbidFields.' + filterName);
+    } else if (page === 'endpoints') {
+      label = f('hostEndpointsFields.' + filterName);
+
+      if (filterName === 'connectionStatus') {
+        selectOptions = connectionStatus;
+      } else if (filterName === 'severity') {
+        selectOptions = severityType;
+      }
     }
 
     if (displayType === 'text_field') {
@@ -676,6 +684,7 @@ FilterQuery.propTypes = {
   systemList: PropTypes.array,
   severityType: PropTypes.array,
   vendorType: PropTypes.array,
+  connectionStatus: PropTypes.array,
   filterList: PropTypes.array.isRequired,
   originalFilter: PropTypes.object.isRequired,
   filter: PropTypes.object.isRequired,

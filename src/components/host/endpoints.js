@@ -23,6 +23,8 @@ import UploadFile from './common/upload-file'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
+const CONNECTION_STATUS = ['connected', 'notConnected', 'notSetup'];
 const CONDITION_MODE = {
   '=': 'eq',
   '>': 'gt',
@@ -40,7 +42,7 @@ const FILTER_LIST = [
     filterType: 'tree'
   },
   {
-    name: 'vendor',
+    name: 'connectionStatus',
     displayType: 'auto_complete',
     filterType: 'auto_complete'
   },
@@ -50,42 +52,41 @@ const FILTER_LIST = [
     filterType: 'multi_input'
   },
   {
-    name: 'vulnerabilityNum',
+    name: 'threatsLevel',
     displayType: 'text_field',
     filterType: 'multi_input'
   },
   {
-    name: 'cpe23uri',
-    displayType: 'text_field',
-    filterType: 'upload'
+    name: 'severity',
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
   }
 ];
-const CPE_SEARCH = {
+const ENDPOINTS_SEARCH = {
   keyword: '',
   count: 0
 };
-const CPE_FILTER = {
+const ENDPOINTS_FILTER = {
   departmentSelected: [],
   system: [],
-  vendor: [],
+  connectionStatus: [],
   version: [{
     condition: '=',
     input: ''
   }],
-  vulnerabilityNum: [{
+  threatsLevel: [{
     condition: '=',
     input: ''
   }],
-  cpe23uri: [{
-    input: ''
-  }]
+  severity: []
 };
-const CPE_FILTER_LIST = {
+const ENDPOINTS_FILTER_LIST = {
   departmentSelected: [],
   system: [],
+  connectionStatus: [],
   version: [],
-  vulnerabilityNum: [],
-  cpe23uri: []
+  threatsLevel: [],
+  severity: []
 };
 const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
@@ -123,12 +124,12 @@ let t = null;
 let f = null;
 
 /**
- * Host Inventory
+ * Host End Points
  * @class
  * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the Host Inventory page
+ * @summary A react component to show the Host End Points page
  */
-class HostInventory extends Component {
+class HostEndPoints extends Component {
   constructor(props) {
     super(props);
 
@@ -149,12 +150,12 @@ class HostInventory extends Component {
       limitedDepartment: [],
       originalSystemList: [],
       systemList: [],
-      vendorType: [],
-      cpe23uriOperator: '',
+      severityType: [],
+      connectionStatus: [],
       importDialogOpen: false,
-      cpeSearch: _.cloneDeep(CPE_SEARCH),
-      cpeFilter: _.cloneDeep(CPE_FILTER),
-      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
+      endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
+      endpointsFilter: _.cloneDeep(ENDPOINTS_FILTER),
+      endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
       exportContextAnchor: null,
       tableContextAnchor: null,
       cveNameSearch: {
@@ -167,7 +168,7 @@ class HostInventory extends Component {
       uploadCpeFileOpen: false,
       uploadedCPE: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
-      cpeData: {
+      endpointsData: {
         dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'riskValue', 'vulnerabilityNum', 'exposedDevices'],
         dataFields: [],
         dataContent: null,
@@ -209,36 +210,13 @@ class HostInventory extends Component {
       }, () => {
         this.getDepartmentTree();
         this.getSystemList();
+        this.getSeverityType();
+        this.getConnectionStatus();
       });
     }
-
-    this.setLocaleLabel();
   }
   componentWillUnmount() {
     helper.clearTimer();
-  }
-  /**
-   * Get and set locale label for charts
-   * @method
-   */
-  setLocaleLabel = () => {
-    const {locale} = this.context;
-
-    if (locale === 'en') {
-      ALERT_LEVEL_COLORS = {
-        Critical: '#000',
-        High: '#CC2943',
-        Medium: '#CC7B29',
-        Low: '#7ACC29'
-      };
-    } else if (locale === 'zh') {
-      ALERT_LEVEL_COLORS = {
-        嚴重: '#000',
-        高: '#CC2943',
-        中: '#CC7B29',
-        低: '#7ACC29'
-      };
-    }
   }
   /**
    * Get department tree data
@@ -269,7 +247,6 @@ class HostInventory extends Component {
           if (account.limitedRole && account.departmentId) {
             this.setSelectedDepartment();
           } else {
-            this.getSystemVendorList();
             this.getCpeData();
           }
         });
@@ -286,9 +263,9 @@ class HostInventory extends Component {
    */
   setSelectedDepartment = () => {
     const {baseUrl} = this.context;
-    const {account, departmentNameMapping, cpeFilter, cpeFilterList} = this.state;
-    let tempCpeFilter = {...cpeFilter};
-    let temCpeFilterList = {...cpeFilterList};
+    const {account, departmentNameMapping, endpointsFilter, endpointsFilterList} = this.state;
+    let tempEndpointsFilter = {...endpointsFilter};
+    let tempEndpointsFilterList = {...endpointsFilterList};
 
     this.ah.one({
       url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
@@ -296,15 +273,15 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        tempCpeFilter.departmentSelected = data;
-        temCpeFilterList.departmentSelected = _.map(data, val => {
+        tempEndpointsFilter.departmentSelected = data;
+        tempEndpointsFilterList.departmentSelected = _.map(data, val => {
           return departmentNameMapping[val];
         });
 
         this.setState({
           limitedDepartment: data,
-          cpeFilter: tempCpeFilter,
-          cpeFilterList: temCpeFilterList
+          endpointsFilter: tempEndpointsFilter,
+          endpointsFilterList: tempEndpointsFilterList
         }, () => {
           this.getSystemVendorList();
           this.getCpeData();
@@ -384,42 +361,36 @@ class HostInventory extends Component {
     })
   }
   /**
-   * Get and set system and vendor list
+   * Get and set severity type
    * @method
    */
-  getSystemVendorList = () => {
-    const {baseUrl} = this.context;
-    const {cpeFilter} = this.state;
-    let requestData = {};
+  getSeverityType = () => {
+    const severityType = _.map(SEVERITY_TYPE, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
 
-    if (cpeFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = cpeFilter.departmentSelected;
-    }
+    this.setState({
+      severityType
+    });
+  }
+  /**
+   * Get and set connection status
+   * @method
+   */
+  getConnectionStatus = () => {
+    const connectionStatus = _.map(CONNECTION_STATUS, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
 
-    this.ah.one({
-      url: `${baseUrl}/api/hmd/cpeUpdateToDate/group/filter`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        const vendorType = _.map(data.vendorGroup, val => {
-          return {
-            value: val,
-            text: val
-          };
-        });
-
-        this.setState({
-          vendorType
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    this.setState({
+      connectionStatus
+    });
   }
   /**
    * Get and set CPE data
@@ -428,16 +399,16 @@ class HostInventory extends Component {
    */
   getCpeData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {cpeSearch, cpeData} = this.state;
-    const sort = cpeData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? cpeData.currentPage : 0;
+    const {endpointsSearch, endpointsData} = this.state;
+    const sort = endpointsData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? endpointsData.currentPage : 0;
     const requestData = {
-      ...this.getCpeFilterRequestData()
+      ...this.getEndpointsFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
+    let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&pageSize=${endpointsData.pageSize}`;
 
-    if (cpeData.sort.field) {
-      url += `&orders=${cpeData.sort.field} ${sort}`;
+    if (endpointsData.sort.field) {
+      url += `&orders=${endpointsData.sort.field} ${sort}`;
     }
 
     this.ah.one({
@@ -448,25 +419,25 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        let tempCpeSearch = {...cpeSearch};
-        let tempCpeData = {...cpeData};
+        let tempEndpointsSearch = {...endpointsSearch};
+        let tempEndpointsData = {...endpointsData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempCpeSearch.count = 0;
-          tempCpeData.dataContent = [];
-          tempCpeData.totalCount = 0;
+          tempEndpointsSearch.count = 0;
+          tempEndpointsData.dataContent = [];
+          tempEndpointsData.totalCount = 0;
 
           this.setState({
-            cpeSearch: tempCpeSearch,
-            cpeData: tempCpeData
+            endpointsSearch: tempEndpointsSearch,
+            endpointsData: tempEndpointsData
           });
           return null;
         }       
 
-        tempCpeData.dataContent = data.rows;
-        tempCpeData.totalCount = data.count;
-        tempCpeData.currentPage = page;
-        tempCpeData.dataFields = _.map(cpeData.dataFieldsArr, val => {
+        tempEndpointsData.dataContent = data.rows;
+        tempEndpointsData.totalCount = data.count;
+        tempEndpointsData.currentPage = page;
+        tempEndpointsData.dataFields = _.map(endpointsData.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
             label: val === '_menu' ? '' : f('hostCpeFields.' + val),
@@ -475,8 +446,8 @@ class HostInventory extends Component {
               sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempCpeData.dataContent[dataIndex];
-                const value = tempCpeData.dataContent[dataIndex][val];
+                const allValue = tempEndpointsData.dataContent[dataIndex];
+                const value = tempEndpointsData.dataContent[dataIndex][val];
 
                 if (val === '_menu') {
                   return (
@@ -505,11 +476,11 @@ class HostInventory extends Component {
             }
           };
         });
-        tempCpeSearch.count = helper.numberWithCommas(data.count);
+        tempEndpointsSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          cpeSearch: tempCpeSearch,
-          cpeData: tempCpeData
+          endpointsSearch: tempEndpointsSearch,
+          endpointsData: tempEndpointsData
         });
       }
       return null;
@@ -534,25 +505,25 @@ class HostInventory extends Component {
     }
   }
   /**
-   * Get CPE filter request data
+   * Get Endpoints filter request data
    * @method
    * @returns requestData object
    */
-  getCpeFilterRequestData = () => {
-    const {cpe23uriOperator, cpeSearch, cpeFilter, cpeFilterList} = this.state;
+  getEndpointsFilterRequestData = () => {
+    const {endpointsSearch, endpointsFilter, endpointsFilterList} = this.state;
     let requestData = {};
 
-    if (cpeSearch.keyword) {
-      requestData.product = cpeSearch.keyword;
+    if (endpointsSearch.keyword) {
+      requestData.product = endpointsSearch.keyword;
     }
 
-    if (cpeFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = cpeFilter.departmentSelected;
+    if (endpointsFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = endpointsFilter.departmentSelected;
     }
 
-    if (cpeFilterList.system.length > 0) {
-      const index = cpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-      let systemArray = _.cloneDeep(cpeFilterList.system);
+    if (endpointsFilterList.system.length > 0) {
+      const index = endpointsFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+      let systemArray = _.cloneDeep(endpointsFilterList.system);
 
       if (index > -1) {
         systemArray[index] = 'noExist';
@@ -561,35 +532,13 @@ class HostInventory extends Component {
       requestData.systemArray = systemArray;
     }
 
-    if (cpeFilter.vendor.length > 0) {
-      const vendorArray = _.map(cpeFilter.vendor, val => {
-        return val.value;
-      });
-
-      requestData.vendorArray = vendorArray;
-    }
-
-    if (cpeFilterList.version.length > 0) {
-      requestData.versionArray = _.map(cpeFilterList.version, val => {
+    if (endpointsFilterList.version.length > 0) {
+      requestData.versionArray = _.map(endpointsFilterList.version, val => {
         return {
           mode: CONDITION_MODE[val.substr(0, 1)],
           version: val.substr(2)
         }
       });
-    }
-
-    if (cpeFilterList.vulnerabilityNum.length > 0) {
-      requestData.vulnerabilityNumArray = _.map(cpeFilterList.vulnerabilityNum, val => {
-        return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          vulnerabilityNum: Number(val.substr(2))
-        }
-      });
-    }
-
-    if (cpeFilterList.cpe23uri && cpeFilterList.cpe23uri.length > 0) {
-      requestData.cpe23uriArray = cpeFilterList.cpe23uri;
-      requestData.cpe23uriOperator = cpe23uriOperator;
     }
 
     return requestData;
@@ -655,7 +604,7 @@ class HostInventory extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {cpeFilter, exposedDevicesSearch, exposedDevicesData, currentCpeKey} = this.state;
+    const {endpointsFilter, exposedDevicesSearch, exposedDevicesData, currentCpeKey} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
@@ -679,8 +628,8 @@ class HostInventory extends Component {
       requestData.system = exposedDevicesSearch.system;
     }
 
-    if (cpeFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = cpeFilter.departmentSelected;
+    if (endpointsFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = endpointsFilter.departmentSelected;
     }
 
     this.ah.one({
@@ -897,17 +846,17 @@ class HostInventory extends Component {
   /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('cpeSearch', 'exposedDevices' or 'cveNameSearch')
+   * @param {string} type - reset button type ('endpointsSearch', 'exposedDevices' or 'cveNameSearch')
    */
   handleResetBtn = (type, event) => {
-    const {cpeSearch, cveNameSearch} = this.state;
+    const {endpointsSearch, cveNameSearch} = this.state;
 
-    if (type === 'cpeSearch') {
-      let tempCpeSearch = {...cpeSearch};
-      tempCpeSearch.keyword = '';
+    if (type === 'endpointsSearch') {
+      let tempEndpointsSearch = {...endpointsSearch};
+      tempEndpointsSearch.keyword = '';
 
       this.setState({
-        cpeSearch: tempCpeSearch
+        endpointsSearch: tempEndpointsSearch
       });
     } else if (type === 'exposedDevices') {
       this.setState({
@@ -1029,23 +978,23 @@ class HostInventory extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('cpe', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('endpoints', 'exposedDevices' or 'discoveredVulnerability')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {cpeData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
-    let tempCpeData = {...cpeData};
+    const {endpointsData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    let tempEndpointsData = {...endpointsData};
     let tempExposedDevicesData = {...exposedDevicesData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tableField = field;
 
-    if (tableType === 'cpe') {
-      tempCpeData.sort.field = tableField;
-      tempCpeData.sort.desc = sort;
+    if (tableType === 'endpoints') {
+      tempEndpointsData.sort.field = tableField;
+      tempEndpointsData.sort.desc = sort;
 
       this.setState({
-        cpeData: tempCpeData
+        endpointsData: tempEndpointsData
       }, () => {
         this.getCpeData();
       });
@@ -1072,21 +1021,21 @@ class HostInventory extends Component {
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('cpe', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('endpoints', 'exposedDevices' or 'discoveredVulnerability')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {cpeData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
-    let tempCpeData = {...cpeData};
+    const {endpointsData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    let tempEndpointsData = {...endpointsData};
     let tempExposedDevicesData = {...exposedDevicesData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
-    if (tableType === 'cpe') {
-      tempCpeData[type] = value;
+    if (tableType === 'endpoints') {
+      tempEndpointsData[type] = value;
 
       this.setState({
-        cpeData: tempCpeData
+        endpointsData: tempEndpointsData
       }, () => {
         this.getCpeData(type);
       });
@@ -1114,11 +1063,11 @@ class HostInventory extends Component {
    * @param {object} event - event object
    */
   handleCpeChange = (event) => {
-    let tempCpeSearch = {...this.state.cpeSearch};
-    tempCpeSearch.keyword = event.target.value;
+    let tempEndpointsSearch = {...this.state.endpointsSearch};
+    tempEndpointsSearch.keyword = event.target.value;
 
     this.setState({
-      cpeSearch: tempCpeSearch
+      endpointsSearch: tempEndpointsSearch
     });
   }
   /**
@@ -1131,9 +1080,8 @@ class HostInventory extends Component {
     if (type !== 'open') {
       this.setState({
         systemList: filterData.systemList,
-        cpe23uriOperator: filterData.cpe23uriOperator,
-        cpeFilter: filterData.filter,
-        cpeFilterList: filterData.itemFilterList
+        endpointsFilter: filterData.filter,
+        endpointsFilterList: filterData.itemFilterList
       }, () => {
         if (type === 'confirm') {
           this.getCpeData();
@@ -1161,11 +1109,11 @@ class HostInventory extends Component {
    * @param {array.<string>} data - filter data
    */
   setFilterSearch = (type, data) => {
-    const {cpeFilter, cpeFilterList} = this.state;
-    let tempCpeFilter = {...cpeFilter};
-    let tempCpeFilterList = {...cpeFilterList};
+    const {endpointsFilter, endpointsFilterList} = this.state;
+    let tempEndpointsFilter = {...endpointsFilter};
+    let tempEndpointsFilterList = {...endpointsFilterList};
     let dataList = [];
-    tempCpeFilter[type] = data;
+    tempEndpointsFilter[type] = data;
 
     _.forEach(data, val => {
       let value = val.input;
@@ -1175,11 +1123,11 @@ class HostInventory extends Component {
       }
     })
 
-    tempCpeFilterList[type] = dataList;
+    tempEndpointsFilterList[type] = dataList;
 
     this.setState({
-      cpeFilter: tempCpeFilter,
-      cpeFilterList: tempCpeFilterList
+      endpointsFilter: tempEndpointsFilter,
+      endpointsFilterList: tempEndpointsFilterList
     });
   }
   /**
@@ -1232,22 +1180,22 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Export CPE list
+   * Export Endpoints list
    * @method
-   * @param {string} type - export type ('cpe' or 'nccst')
+   * @param {string} type - export type ('endpoints' or 'nccst')
    */
-  exportCpeList = (type) => {
+  exportEndpointsList = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const {cpeData} = this.state;
-    const sort = cpeData.sort.desc ? 'desc' : 'asc';
+    const {endpointsData} = this.state;
+    const sort = endpointsData.sort.desc ? 'desc' : 'asc';
     let url = '';
     let requestData = {
-      ...this.getCpeFilterRequestData()
+      ...this.getEndpointsFilterRequestData()
     };
 
-    if (type === 'cpe') {
+    if (type === 'endpoints') {
       let exportFields = {};
-      let fieldsList = _.cloneDeep(cpeData.dataFieldsArr);
+      let fieldsList = _.cloneDeep(endpointsData.dataFieldsArr);
       fieldsList.shift();
 
       _.forEach(fieldsList, val => {
@@ -1256,8 +1204,8 @@ class HostInventory extends Component {
 
       url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
 
-      if (cpeData.sort.field) {
-        url += `?orders=${cpeData.sort.field} ${sort}`;
+      if (endpointsData.sort.field) {
+        url += `?orders=${endpointsData.sort.field} ${sort}`;
       }
 
       requestData.exportFields = exportFields;
@@ -1287,7 +1235,7 @@ class HostInventory extends Component {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/hmd/cpeUpdateToDate/_report`;
     const requestData = {
-      ...this.getCpeFilterRequestData(),
+      ...this.getEndpointsFilterRequestData(),
       hmdVansConfigurations: {
         oid: hmdVansConfigurations.oid,
         unit_name: hmdVansConfigurations.unitName,
@@ -1332,11 +1280,12 @@ class HostInventory extends Component {
       limitedDepartment,
       originalSystemList,
       systemList,
-      vendorType,
+      severityType,
+      connectionStatus,
       importDialogOpen,
-      cpeSearch,
-      cpeFilter,
-      cpeFilterList,
+      endpointsSearch,
+      endpointsFilter,
+      endpointsFilterList,
       showCpeInfo,
       exportContextAnchor,
       tableContextAnchor,
@@ -1344,17 +1293,17 @@ class HostInventory extends Component {
       reportOpen,
       uploadCpeFileOpen,
       uploadedCPE,
-      cpeData
+      endpointsData
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
-        this.handlePaginationChange('cpe', 'currentPage', currentPage);
+        this.handlePaginationChange('endpoints', 'currentPage', currentPage);
       },
       onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('cpe', 'pageSize', numberOfRows);
+        this.handlePaginationChange('endpoints', 'pageSize', numberOfRows);
       },
       onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort('cpe', changedColumn, direction === 'desc');
+        this.handleTableSort('endpoints', changedColumn, direction === 'desc');
       }
     };
 
@@ -1366,45 +1315,22 @@ class HostInventory extends Component {
 
         {showFilterQuery &&
           <FilterQuery
-            page='inventory'
+            page='endpoints'
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
             departmentNameMapping={departmentNameMapping}
             originalSystemList={originalSystemList}
             systemList={systemList}
-            vendorType={vendorType}
+            severityType={severityType}
+            connectionStatus={connectionStatus}
             filterList={FILTER_LIST}
-            originalFilter={CPE_FILTER}
-            filter={cpeFilter}
-            originalItemFilterList={CPE_FILTER_LIST}
-            itemFilterList={cpeFilterList}
+            originalFilter={ENDPOINTS_FILTER}
+            filter={endpointsFilter}
+            originalItemFilterList={ENDPOINTS_FILTER_LIST}
+            itemFilterList={endpointsFilterList}
             toggleCsvImport={this.toggleCsvImport}
             toggleFilterQuery={this.toggleFilterQuery} />
-        }
-
-        {reportOpen &&
-          <ReportRecord
-            page='inventory'
-            filter={cpeFilter}
-            uploadedFile={uploadedCPE}
-            toggleReport={this.toggleReport}
-            toggleUploadFile={this.toggleCpeUploadFile}
-            confirmReportList={this.confirmReportList} />
-        }
-
-        {uploadCpeFileOpen &&
-          <UploadFile
-            page='inventory'
-            toggleUploadFile={this.toggleCpeUploadFile}
-            getFilterRequestData={this.getCpeFilterRequestData} />
-        }
-
-        {importDialogOpen &&
-          <ImportFile
-            importFilterType='safetyScanInfo'
-            toggleCsvImport={this.toggleCsvImport}
-            confirmCsvImport={this.confirmCsvImport} />
         }
 
         <div className='sub-header'>
@@ -1415,17 +1341,40 @@ class HostInventory extends Component {
 
         <div className='data-content'>
           <div className='parent-content'>
+            <div className='main-statistics main-content host'>
+              <header className='main-header'>{t('host.txt-endpoints')}</header>
+              <div class='sub-header'>Host running Gorilla HMD</div>
+              <div className='statistics-content agent'>
+                <div className='box'>
+                  <header>Total Agent:</header>
+                  <div>250</div>
+                </div>
+                <div className='box'>
+                  <header>Online:</header>
+                  <div>225</div>
+                </div>
+                <div className='box'>
+                  <header>Offline:</header>
+                  <div>220</div>
+                </div>                
+                <div className='box'>
+                  <header>Inactivate Agent:</header>
+                  <div>25</div>
+                </div>
+              </div>
+            </div>
+
             <TableList
-              page='inventory'
-              searchType='cpeSearch'
-              search={cpeSearch}
-              data={cpeData}
+              page='endpoints'
+              searchType='endpointsSearch'
+              search={endpointsSearch}
+              data={endpointsData}
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
               getData={this.getCpeData}
               getActiveData={this.getActiveCpeInfo}
-              exportList={this.exportCpeList}
+              exportList={this.exportEndpointsList}
               toggleReport={this.toggleReport}
               toggleFilterQuery={this.toggleFilterQuery}
               handleSearch={this.handleCpeChange}
@@ -1439,9 +1388,9 @@ class HostInventory extends Component {
   }
 }
 
-HostInventory.contextType = BaseDataContext;
+HostEndPoints.contextType = BaseDataContext;
 
-HostInventory.propTypes = {
+HostEndPoints.propTypes = {
 };
 
-export default HostInventory;
+export default HostEndPoints;

@@ -164,6 +164,8 @@
   "txt-offline": "Offline",
   "txt-connected": "Connected",
   "txt-disconnected": "Disconnected",
+  "txt-notConnected": "Not Connected",
+  "txt-notSetup": "Not Installed",
   "txt-unstable": "Unstable",
   "txt-unknown": "Unknown",
   "txt-severity": "Severity",
@@ -400,6 +402,7 @@
     "txt-vulnerabilities": "Vulnerabilities",
     "txt-inventory": "Inventory",
     "txt-kbid": "KBID",
+    "txt-endpoints": "Endpoints",
     "vulnerabilities": {
       "txt-severityLevelQuery": "Vulnerability Exposure Level",
       "txt-monthlySeverityTrend": "Daily Vulnerability Level Trend in Current Month",
@@ -457,6 +460,9 @@
       "txt-kbidList": "KBID List",
       "txt-vulnerabilityList": "Vulnerability List"
     },
+    "endpoints": {
+      "txt-threatsLevel": "Threats Level"
+    },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",
     "txt-hostItem": "Host Item",
@@ -475,6 +481,7 @@
     "txt-report-kbid": "Report KBID",
     "txt-kbid": "KBID",
     "txt-kbidName": "KBID Name",
+    "txt-ipOrHostName": "IP or Host Name",
     "txt-exposedDevices": "Exposed Devices",
     "txt-departmentName": "Department",
     "txt-ip": "IP",

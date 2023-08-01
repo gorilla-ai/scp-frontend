@@ -806,5 +806,13 @@
     "exposedDevices": "Exposed Devices",
     "departmentSelected": "Department",
     "system": "System"
+  },
+  "hostEndpointsFields": {
+    "departmentSelected": "Department",
+    "system": "System",
+    "connectionStatus": "Status",
+    "version": "Version",
+    "threatsLevel": "Threats Level",
+    "severity": "Severity"
   }
 }

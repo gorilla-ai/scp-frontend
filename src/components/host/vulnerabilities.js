@@ -31,6 +31,7 @@ import {BaseDataContext} from '../common/context'
 import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
+import HostMenu from './common/host-menu'
 import MuiTableContent from '../common/mui-table-content'
 import SearchFilter from './search-filter'
 import TableList from './common/table-list'
@@ -1356,26 +1357,39 @@ class HostVulnerabilities extends Component {
             toggleFilterQuery={this.toggleFilterQuery} />
         }
 
-        <TableList
-          page='vulnerabilities'
-          searchType='cveSearch'
-          search={cveSearch}
-          data={cveData}
-          options={tableOptions}
-          exportAnchor={exportContextAnchor}
-          tableAnchor={tableContextAnchor}
-          cveSeverityLevel={cveSeverityLevel}
-          monthlySeverityTrend={monthlySeverityTrend}
-          showPieChart={this.showPieChart}
-          showBarChart={this.showBarChart}
-          getData={this.getCveData}
-          getActiveData={this.getActiveCveInfo}
-          exportList={this.exportCveList}
-          toggleFilterQuery={this.toggleFilterQuery}
-          handleSearch={this.handleCveChange}
-          handleReset={this.handleResetBtn}
-          handleExportMenu={this.handleExportOpenMenu}
-          handleCloseMenu={this.handleCloseMenu} />
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <HostMenu />
+          </div>
+        </div>
+
+        <div className='data-content'>
+          <div className='parent-content'>
+            <div className='main-statistics host'>
+              <div className='statistics-content'>
+                {this.showPieChart(cveSeverityLevel.data)}
+                {this.showBarChart(monthlySeverityTrend)}
+              </div>
+            </div>
+
+            <TableList
+              page='vulnerabilities'
+              searchType='cveSearch'
+              search={cveSearch}
+              data={cveData}
+              options={tableOptions}
+              exportAnchor={exportContextAnchor}
+              tableAnchor={tableContextAnchor}
+              getData={this.getCveData}
+              getActiveData={this.getActiveCveInfo}
+              exportList={this.exportCveList}
+              toggleFilterQuery={this.toggleFilterQuery}
+              handleSearch={this.handleCveChange}
+              handleReset={this.handleResetBtn}
+              handleExportMenu={this.handleExportOpenMenu}
+              handleCloseMenu={this.handleCloseMenu} />
+          </div>
+        </div>
       </div>
     )
   }

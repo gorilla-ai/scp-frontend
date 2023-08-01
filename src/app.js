@@ -23,9 +23,10 @@ import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
 import Host from './components/host/index'
 import HostCpe from './components/host/cpe'
-import HostVulnerabilities from './components/host/vulnerabilities'
+import HostEndPoints from './components/host/endpoints'
 import HostInventory from './components/host/inventory'
 import HostKbid from './components/host/kbid'
+import HostVulnerabilities from './components/host/vulnerabilities'
 import Incident from './components/soc/incident'
 import IncidentDeviceStep from './components/soc/incident-device-with-step'
 import IncidentFlow from './components/soc/incident-flow'
@@ -136,6 +137,12 @@ const HostVulnerabilitiesComp = () => (
 const HostInventoryComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <HostInventory />
+  </BaseDataContext.Provider>
+);
+
+const HostEndPointsComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <HostEndPoints />
   </BaseDataContext.Provider>
 );
 
@@ -346,9 +353,10 @@ const Main = () => (
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/host' component={HostComp} />
       <Route exact path='/SCP/host/cpe' component={HostCpeComp} />
-      <Route exact path='/SCP/host/vulnerabilities' component={HostVulnerabilitiesComp} />
       <Route exact path='/SCP/host/inventory' component={HostInventoryComp} />
+      <Route exact path='/SCP/host/endpoints' component={HostEndPointsComp} />
       <Route exact path='/SCP/host/kbid' component={HostKbidComp} />
+      <Route exact path='/SCP/host/vulnerabilities' component={HostVulnerabilitiesComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
