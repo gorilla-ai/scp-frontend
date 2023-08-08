@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/host/endpoints.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/host/endpoints.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import Button from '@material-ui/core/Button'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
+import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
+import GeneralDialog from './common/general-dialog'
+import helper from '../common/helper'
+import HostMenu from './common/host-menu'
+import ImportFile from './import-file'
+import ReportRecord from './common/report-record'
+import TableList from './common/table-list'
+import UploadFile from './common/upload-file'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
+const CONNECTION_STATUS = ['connected', 'notConnected', 'notSetup'];
+const CONDITION_MODE = {
+  '=': 'eq',
+  '>': 'gt',
+  '&lt;': 'lt'
+};
+const FILTER_LIST = [
+  {
+    name: 'departmentSelected',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'system',
+    displayType: 'text_field',
+    filterType: 'tree'
+  },
+  {
+    name: 'connectionStatus',
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
+  },
+  {
+    name: 'version',
+    displayType: 'text_field',
+    filterType: 'multi_input'
+  },
+  {
+    name: 'threatsLevel',
+    displayType: 'text_field',
+    filterType: 'multi_input'
+  },
+  {
+    name: 'severity',
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
+  }
+];
+const ENDPOINTS_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const ENDPOINTS_FILTER = {
+  departmentSelected: [],
+  system: [],
+  connectionStatus: [],
+  version: [{
+    condition: '=',
+    input: ''
+  }],
+  threatsLevel: [{
+    condition: '=',
+    input: ''
+  }],
+  severity: []
+};
+const ENDPOINTS_FILTER_LIST = {
+  departmentSelected: [],
+  system: [],
+  connectionStatus: [],
+  version: [],
+  threatsLevel: [],
+  severity: []
+};
+const EXPOSED_DEVICES_SEARCH = {
+  hostName: '',
+  ip: '',
+  system: '',
+  count: 0
+};
+const EXPOSED_DEVICES_DATA = {
+  dataFieldsArr: ['hostName', 'ip', 'system', 'daysOpen'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+const DISCOVERED_VULNERABILITY_DATA = {
+  dataFieldsArr: ['cveId', 'severity', 'cvss'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+let ALERT_LEVEL_COLORS = {};
+
+let t = null;
+let f = null;
+
+/**
+ * Host End Points
+ * @class
+ * @author Ryan Chen &lt;ryanchen@ns-guard.com>
+ * @summary A react component to show the Host End Points page
+ */
+class HostEndPoints extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      account: {
+        id: '',
+        login: false,
+        fields: [],
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
+      },
+      departmentList: [],
+      departmentNameMapping: {},
+      limitedDepartment: [],
+      originalSystemList: [],
+      systemList: [],
+      severityType: [],
+      connectionStatus: [],
+      importDialogOpen: false,
+      endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
+      endpointsFilter: _.cloneDeep(ENDPOINTS_FILTER),
+      endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
+      exportContextAnchor: null,
+      tableContextAnchor: null,
+      cveNameSearch: {
+        keyword: '',
+        count: 0
+      },
+      showCpeInfo: false,
+      showFilterQuery: false,
+      reportOpen: false,
+      uploadCpeFileOpen: false,
+      uploadedCPE: false,
+      activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
+      endpointsData: {
+        dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'riskValue', 'vulnerabilityNum', 'exposedDevices'],
+        dataFields: [],
+        dataContent: null,
+        sort: {
+          field: '',
+          desc: true
+        },
+        totalCount: 0,
+        currentPage: 0,
+        pageSize: 20
+      },
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
+      currentCpeKey: '',
+      currentCpeData: {}
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    const {baseUrl, locale, session, sessionRights} = this.context;
+    let tempAccount = {...this.state.account};
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+    helper.inactivityTime(baseUrl, locale);
+
+    if (session.accountId) {
+      tempAccount.id = session.accountId;
+      tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId;
+
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
+      }
+
+      this.setState({
+        account: tempAccount
+      }, () => {
+        this.getDepartmentTree();
+        this.getSystemList();
+        this.getSeverityType();
+        this.getConnectionStatus();
+      });
+    }
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  /**
+   * Get department tree data
+   * @method
+   */
+  getDepartmentTree = () => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentNameMapping = {};
+
+        _.forEach(data, val => {
+          helper.floorPlanRecursive(val, obj => {
+            departmentNameMapping[obj.id] = obj.name;
+          });
+        })
+
+        this.setState({
+          departmentList: data,
+          departmentNameMapping
+        }, () => {
+          if (account.limitedRole &amp;&amp; account.departmentId) {
+            this.setSelectedDepartment();
+          } else {
+            this.getCpeData();
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account, departmentNameMapping, endpointsFilter, endpointsFilterList} = this.state;
+    let tempEndpointsFilter = {...endpointsFilter};
+    let tempEndpointsFilterList = {...endpointsFilterList};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempEndpointsFilter.departmentSelected = data;
+        tempEndpointsFilterList.departmentSelected = _.map(data, val => {
+          return departmentNameMapping[val];
+        });
+
+        this.setState({
+          limitedDepartment: data,
+          endpointsFilter: tempEndpointsFilter,
+          endpointsFilterList: tempEndpointsFilterList
+        }, () => {
+          this.getSystemVendorList();
+          this.getCpeData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get system list
+   * @method
+   */
+  getSystemList = () => {
+    const {baseUrl} = this.context;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.server.os`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/common/config?configId=hmd.pc.os`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        let systemList = [];
+
+        if (data[0] &amp;&amp; data[0].value) {
+          systemList.push({
+            name: 'Server',
+            checked: false,
+            type: 'server',
+            children: _.map(data[0].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        if (data[1] &amp;&amp; data[1].value) {
+          systemList.push({
+            name: 'PC',
+            checked: false,
+            type: 'pc',
+            children: _.map(data[1].value, val => {
+              return {
+                name: val,
+                checked: false
+              }
+            })
+          });
+        }
+
+        systemList.push({
+          name: t('host.txt-noSystemDetected'),
+          checked: false,
+          type: 'noSystem'
+        });
+
+        this.setState({
+          originalSystemList: _.cloneDeep(systemList),
+          systemList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set severity type
+   * @method
+   */
+  getSeverityType = () => {
+    const severityType = _.map(SEVERITY_TYPE, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      severityType
+    });
+  }
+  /**
+   * Get and set connection status
+   * @method
+   */
+  getConnectionStatus = () => {
+    const connectionStatus = _.map(CONNECTION_STATUS, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      connectionStatus
+    });
+  }
+  /**
+   * Get and set CPE data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getCpeData = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {endpointsSearch, endpointsData} = this.state;
+    const sort = endpointsData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? endpointsData.currentPage : 0;
+    const requestData = {
+      ...this.getEndpointsFilterRequestData()
+    };
+    let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&amp;pageSize=${endpointsData.pageSize}`;
+
+    if (endpointsData.sort.field) {
+      url += `&amp;orders=${endpointsData.sort.field} ${sort}`;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempEndpointsSearch = {...endpointsSearch};
+        let tempEndpointsData = {...endpointsData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempEndpointsSearch.count = 0;
+          tempEndpointsData.dataContent = [];
+          tempEndpointsData.totalCount = 0;
+
+          this.setState({
+            endpointsSearch: tempEndpointsSearch,
+            endpointsData: tempEndpointsData
+          });
+          return null;
+        }       
+
+        tempEndpointsData.dataContent = data.rows;
+        tempEndpointsData.totalCount = data.count;
+        tempEndpointsData.currentPage = page;
+        tempEndpointsData.dataFields = _.map(endpointsData.dataFieldsArr, val => {
+          return {
+            name: val === '_menu' ? '' : val,
+            label: val === '_menu' ? '' : f('hostCpeFields.' + val),
+            options: {
+              filter: true,
+              sort: this.checkSortable(val),
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempEndpointsData.dataContent[dataIndex];
+                const value = tempEndpointsData.dataContent[dataIndex][val];
+
+                if (val === '_menu') {
+                  return (
+                    &lt;div className='table-menu active'>
+                      &lt;Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)} data-cy='hostOpenTableMenuBtn'>&lt;i className='fg fg-more'>&lt;/i>&lt;/Button>
+                    &lt;/div>
+                  )
+                } else if (val === 'system') {
+                  return (
+                    &lt;div>
+                      &lt;span>{value[0]}&lt;/span>
+                      {value.length > 1 &amp;&amp;
+                        &lt;span>, {value[1]}&lt;/span>
+                      }
+                      {value.length > 2 &amp;&amp;
+                        &lt;span title={this.getFullList(value)}>, {t('txt-more')}...&lt;/span>
+                      }
+                    &lt;/div>
+                  )
+                } else if (val === 'vulnerabilityNum') {
+                  return helper.numberWithCommas(value);
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+        tempEndpointsSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          endpointsSearch: tempEndpointsSearch,
+          endpointsData: tempEndpointsData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu', 'system', 'exposedDevices'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Get Endpoints filter request data
+   * @method
+   * @returns requestData object
+   */
+  getEndpointsFilterRequestData = () => {
+    const {endpointsSearch, endpointsFilter, endpointsFilterList} = this.state;
+    let requestData = {};
+
+    if (endpointsSearch.keyword) {
+      requestData.product = endpointsSearch.keyword;
+    }
+
+    if (endpointsFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = endpointsFilter.departmentSelected;
+    }
+
+    if (endpointsFilterList.system.length > 0) {
+      const index = endpointsFilterList.system.indexOf(t('host.txt-noSystemDetected'));
+      let systemArray = _.cloneDeep(endpointsFilterList.system);
+
+      if (index > -1) {
+        systemArray[index] = 'noExist';
+      }
+
+      requestData.systemArray = systemArray;
+    }
+
+    if (endpointsFilterList.version.length > 0) {
+      requestData.versionArray = _.map(endpointsFilterList.version, val => {
+        return {
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          version: val.substr(2)
+        }
+      });
+    }
+
+    return requestData;
+  }
+  /**
+   * Handle open menu
+   * @method
+   * @param {object} key - active CPE key
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (key, event) => {
+    this.setState({
+      tableContextAnchor: event.currentTarget,
+      currentCpeKey: key
+    });
+  }
+  /**
+   * Get individual CPE data
+   * @method
+   */
+  getActiveCpeInfo = () => {
+    const {baseUrl} = this.context;
+    const {currentCpeKey} = this.state;
+    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/cpeInfo?cpeKey=${currentCpeKey}`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          currentCpeData: data.cpeInfo
+        }, () => {
+          this.toggleShowCPE();
+        });
+
+        this.handleCloseMenu();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get full list in CPE table
+   * @method
+   * @param {array.&lt;string>} list - data list
+   * @returns full list
+   */
+  getFullList = (list) => {
+    list.shift();
+    list.shift();
+    return list.join(', ');
+  }
+  /**
+   * Get exposed devices data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getExposedDevices = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {endpointsFilter, exposedDevicesSearch, exposedDevicesData, currentCpeKey} = this.state;
+    const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
+    let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&amp;pageSize=${exposedDevicesData.pageSize}`;
+    let requestData = {
+      cpeKey: currentCpeKey
+    };
+
+    if (exposedDevicesData.sort.field) {
+      url += `&amp;orders=${exposedDevicesData.sort.field} ${sort}`;
+    }
+
+    if (exposedDevicesSearch.hostName) {
+      requestData.hostName = exposedDevicesSearch.hostName;
+    }
+
+    if (exposedDevicesSearch.ip) {
+      requestData.ip = exposedDevicesSearch.ip;
+    }
+
+    if (exposedDevicesSearch.system) {
+      requestData.system = exposedDevicesSearch.system;
+    }
+
+    if (endpointsFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = endpointsFilter.departmentSelected;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempExposedDevicesSearch = {...exposedDevicesSearch};
+        let tempExposedDevicesData = {...exposedDevicesData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempExposedDevicesSearch.count = 0;
+          tempExposedDevicesData.dataContent = [];
+          tempExposedDevicesData.totalCount = 0;
+
+          this.setState({
+            exposedDevicesSearch: tempExposedDevicesSearch,
+            exposedDevicesData: tempExposedDevicesData
+          });
+          return null;
+        }       
+
+        tempExposedDevicesData.dataContent = data.rows;
+        tempExposedDevicesData.totalCount = data.count;
+        tempExposedDevicesData.currentPage = page;
+        tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.vulnerabilities.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempExposedDevicesData.dataContent[dataIndex];
+                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+                return value;
+              }
+            }
+          };
+        });
+
+        tempExposedDevicesSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          exposedDevicesSearch: tempExposedDevicesSearch,
+          exposedDevicesData: tempExposedDevicesData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get discovered vulnerability data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getDiscoveredVulnerability = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {cveNameSearch, discoveredVulnerabilityData, currentCpeKey} = this.state;
+    const sort = discoveredVulnerabilityData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? discoveredVulnerabilityData.currentPage : 0;
+    const requestData = {
+      cpeKey: currentCpeKey
+    };
+    let url = `${baseUrl}/api/hmd/cpe/cves?page=${page + 1}&amp;pageSize=${discoveredVulnerabilityData.pageSize}`;
+
+    if (discoveredVulnerabilityData.sort.field) {
+      url += `&amp;orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
+    }
+
+    if (cveNameSearch.keyword) {
+      requestData.cveId = cveNameSearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempCveNameSearch = {...cveNameSearch};
+        let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempCveNameSearch.count = 0;
+          tempDiscoveredVulnerabilityData.dataContent = [];
+          tempDiscoveredVulnerabilityData.totalCount = 0;
+
+          this.setState({
+            cveNameSearch: tempCveNameSearch,
+            discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+          });
+          return null;
+        }       
+
+        tempDiscoveredVulnerabilityData.dataContent = data.rows;
+        tempDiscoveredVulnerabilityData.totalCount = data.count;
+        tempDiscoveredVulnerabilityData.currentPage = page;
+        tempDiscoveredVulnerabilityData.dataFields = _.map(discoveredVulnerabilityData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('hostDashboardFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempDiscoveredVulnerabilityData.dataContent[dataIndex];
+                const value = tempDiscoveredVulnerabilityData.dataContent[dataIndex][val];
+
+                if (val === 'severity' &amp;&amp; value) {
+                  const severityLevel = t('txt-' + value.toLowerCase());
+
+                  return &lt;span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}&lt;/span>
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
+
+        tempCveNameSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          cveNameSearch: tempCveNameSearch,
+          discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      exportContextAnchor: null,
+      tableContextAnchor: null
+    });
+  }
+  /**
+   * Toggle show CPE info
+   * @method
+   */
+  toggleShowCPE = () => {
+    this.setState({
+      showCpeInfo: !this.state.showCpeInfo,
+      activeCpeInfo: 'vulnerabilityDetails',
+      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+    });
+  }
+  /**
+   * Toggle show CPE button
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - CPE button type ('vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability')
+   */
+  toggleCpeButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
+    this.setState({
+      activeCpeInfo: type
+    }, () => {
+      const {activeCpeInfo} = this.state;
+
+      if (activeCpeInfo === 'exposedDevices') {
+        this.getExposedDevices();
+      } else if (activeCpeInfo === 'discoveredVulnerability') {
+        this.getDiscoveredVulnerability();
+      }
+    });
+  }
+  /**
+   * Handle exposed devices search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDevicesSearchChange = (event) => {
+    let tempExposedDevicesSearch = {...this.state.exposedDevicesSearch};
+    tempExposedDevicesSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      exposedDevicesSearch: tempExposedDevicesSearch
+    });
+  }
+  /**
+   * Handle CVE name search
+   * @method
+   * @param {object} event - event object
+   */
+  handleCveNameChange = (event) => {
+    let tempCveNameSearch = {...this.state.cveNameSearch};
+    tempCveNameSearch.keyword = event.target.value;
+
+    this.setState({
+      cveNameSearch: tempCveNameSearch
+    });
+  }
+  /**
+   * Handle reset button
+   * @method
+   * @param {string} type - reset button type ('endpointsSearch', 'exposedDevices' or 'cveNameSearch')
+   */
+  handleResetBtn = (type, event) => {
+    const {endpointsSearch, cveNameSearch} = this.state;
+
+    if (type === 'endpointsSearch') {
+      let tempEndpointsSearch = {...endpointsSearch};
+      tempEndpointsSearch.keyword = '';
+
+      this.setState({
+        endpointsSearch: tempEndpointsSearch
+      });
+    } else if (type === 'exposedDevices') {
+      this.setState({
+        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
+      });
+    } else if (type === 'cveNameSearch') {
+      let tempCveNameSearch = {...cveNameSearch};
+      tempCveNameSearch.keyword = '';
+
+      this.setState({
+        cveNameSearch: tempCveNameSearch
+      });
+    }
+  }
+  /**
+   * Display CPE info content
+   * @method
+   * @returns HTML DOM
+   */
+  displayCpeInfo = () => {
+    const {cveNameSearch, activeCpeInfo, exposedDevicesSearch, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
+    const tableOptionsExposedDevices = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('exposedDevices', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
+      }
+    };
+    const tableOptionsDiscoveredVulnerability = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('discoveredVulnerability', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('discoveredVulnerability', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('discoveredVulnerability', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        &lt;ToggleButtonGroup
+          id='activeCpeInfoButtons'
+          value={activeCpeInfo}
+          exclusive
+          onChange={this.toggleCpeButtons}>
+          &lt;ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}&lt;/ToggleButton>
+          &lt;ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}&lt;/ToggleButton>
+          &lt;ToggleButton id='hostDialogDiscoveredVulnerability' value='discoveredVulnerability' data-cy='hostInfoDialogVulnerabilityBtn'>{t('host.inventory.txt-discoveredVulnerability')}&lt;/ToggleButton>
+        &lt;/ToggleButtonGroup>
+
+        &lt;div className='main-content'>
+          {activeCpeInfo === 'vulnerabilityDetails' &amp;&amp;
+            &lt;GeneralDialog
+              page='inventory'
+              type='general-info'
+              data={currentCpeData} />
+          }
+
+          {activeCpeInfo === 'exposedDevices' &amp;&amp;
+            &lt;GeneralDialog
+              page='inventory'
+              type='exposed-devices'
+              search={exposedDevicesSearch}
+              data={exposedDevicesData}
+              tableOptions={tableOptionsExposedDevices}
+              handleSearchChange={this.handleDevicesSearchChange}
+              handleSearchSubmit={this.getExposedDevices}
+              handleResetBtn={this.handleResetBtn} />
+          }
+
+          {activeCpeInfo === 'discoveredVulnerability' &amp;&amp;
+            &lt;GeneralDialog
+              page='inventory'
+              type='general-list'
+              searchType='cveNameSearch'
+              search={cveNameSearch}
+              data={discoveredVulnerabilityData}
+              tableOptions={tableOptionsDiscoveredVulnerability}
+              handleSearchChange={this.handleCveNameChange}
+              handleSearchSubmit={this.getDiscoveredVulnerability}
+              handleResetBtn={this.handleResetBtn} />
+          }
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show CPE info dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showCpeDialog = () => {
+    const {currentCpeData} = this.state;
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='showCpeDialog'
+        className='modal-dialog'
+        title={currentCpeData.product}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayCpeInfo()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} tableType - table type ('endpoints', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (tableType, field, sort) => {
+    const {endpointsData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    let tempEndpointsData = {...endpointsData};
+    let tempExposedDevicesData = {...exposedDevicesData};
+    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+    let tableField = field;
+
+    if (tableType === 'endpoints') {
+      tempEndpointsData.sort.field = tableField;
+      tempEndpointsData.sort.desc = sort;
+
+      this.setState({
+        endpointsData: tempEndpointsData
+      }, () => {
+        this.getCpeData();
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData.sort.field = tableField;
+      tempExposedDevicesData.sort.desc = sort;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices();
+      });
+    } else if (tableType === 'discoveredVulnerability') {
+      tempDiscoveredVulnerabilityData.sort.field = tableField;
+      tempDiscoveredVulnerabilityData.sort.desc = sort;
+
+      this.setState({
+        discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+      }, () => {
+        this.getDiscoveredVulnerability();
+      });
+    }
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} tableType - table type ('endpoints', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (tableType, type, value) => {
+    const {endpointsData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    let tempEndpointsData = {...endpointsData};
+    let tempExposedDevicesData = {...exposedDevicesData};
+    let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+
+    if (tableType === 'endpoints') {
+      tempEndpointsData[type] = value;
+
+      this.setState({
+        endpointsData: tempEndpointsData
+      }, () => {
+        this.getCpeData(type);
+      });
+    } else if (tableType === 'exposedDevices') {
+      tempExposedDevicesData[type] = value;
+
+      this.setState({
+        exposedDevicesData: tempExposedDevicesData
+      }, () => {
+        this.getExposedDevices(type);
+      });
+    } else if (tableType === 'discoveredVulnerability') {
+      tempDiscoveredVulnerabilityData[type] = value;
+
+      this.setState({
+        discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
+      }, () => {
+        this.getDiscoveredVulnerability(type);
+      });
+    }
+  }
+  /**
+   * Handle CPE search search
+   * @method
+   * @param {object} event - event object
+   */
+  handleCpeChange = (event) => {
+    let tempEndpointsSearch = {...this.state.endpointsSearch};
+    tempEndpointsSearch.keyword = event.target.value;
+
+    this.setState({
+      endpointsSearch: tempEndpointsSearch
+    });
+  }
+  /**
+   * Toggle show filter query
+   * @method
+   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
+   * @param {object} [filterData] - filter data
+   */
+  toggleFilterQuery = (type, filterData) => {
+    if (type !== 'open') {
+      this.setState({
+        systemList: filterData.systemList,
+        endpointsFilter: filterData.filter,
+        endpointsFilterList: filterData.itemFilterList
+      }, () => {
+        if (type === 'confirm') {
+          this.getCpeData();
+        }
+      });
+    }
+
+    this.setState({
+      showFilterQuery: !this.state.showFilterQuery
+    });
+  }
+  /**
+   * Toggle CSV import dialog on/off
+   * @method
+   */
+  toggleCsvImport = () => {
+    this.setState({
+      importDialogOpen : !this.state.importDialogOpen
+    });
+  }
+  /**
+   * Set filter data
+   * @method
+   * @param {string} type - filter type
+   * @param {array.&lt;string>} data - filter data
+   */
+  setFilterSearch = (type, data) => {
+    const {endpointsFilter, endpointsFilterList} = this.state;
+    let tempEndpointsFilter = {...endpointsFilter};
+    let tempEndpointsFilterList = {...endpointsFilterList};
+    let dataList = [];
+    tempEndpointsFilter[type] = data;
+
+    _.forEach(data, val => {
+      let value = val.input;
+
+      if (value) {
+        dataList.push(value);
+      }
+    })
+
+    tempEndpointsFilterList[type] = dataList;
+
+    this.setState({
+      endpointsFilter: tempEndpointsFilter,
+      endpointsFilterList: tempEndpointsFilterList
+    });
+  }
+  /**
+   * Handle CSV import confirm
+   * @method
+   * @param {array.&lt;array>} csvData - upload CSV data
+   * @param {string} [scanScore] - safety scan score
+   */
+  confirmCsvImport = (csvData, scanScore) => {
+    const {baseUrl} = this.context;
+
+    if (!csvData) {
+      this.toggleCsvImport();
+      return;
+    }
+
+    let formData = new FormData();
+    formData.append('file', csvData);
+    formData.append('score', scanScore);
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/uploadNistCpe`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        const formattedData = _.map(data, val => ({ input: val }));
+
+        this.setFilterSearch('cpe23uri', formattedData);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.toggleCsvImport();
+  }
+  /**
+   * Handle export open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleExportOpenMenu = (event) => {
+    this.setState({
+      exportContextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Export Endpoints list
+   * @method
+   * @param {string} type - export type ('endpoints' or 'nccst')
+   */
+  exportEndpointsList = (type) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {endpointsData} = this.state;
+    const sort = endpointsData.sort.desc ? 'desc' : 'asc';
+    let url = '';
+    let requestData = {
+      ...this.getEndpointsFilterRequestData()
+    };
+
+    if (type === 'endpoints') {
+      let exportFields = {};
+      let fieldsList = _.cloneDeep(endpointsData.dataFieldsArr);
+      fieldsList.shift();
+
+      _.forEach(fieldsList, val => {
+        exportFields[val] = f('hostCpeFields.' + val);
+      })
+
+      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
+
+      if (endpointsData.sort.field) {
+        url += `?orders=${endpointsData.sort.field} ${sort}`;
+      }
+
+      requestData.exportFields = exportFields;
+    } else if (type === 'nccst') {
+      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    this.handleCloseMenu();
+  }
+  /**
+   * Toggle report modal dialog on/off
+   * @method
+   */
+  toggleReport = () => {
+    this.setState({
+      reportOpen: !this.state.reportOpen,
+      uploadedCPE: false
+    });
+  }
+  /**
+   * Handle report list confirm
+   * @method
+   * @param {object} hmdVansConfigurations - HMD vans config data
+   */
+  confirmReportList = (hmdVansConfigurations) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/_report`;
+    const requestData = {
+      ...this.getEndpointsFilterRequestData(),
+      hmdVansConfigurations: {
+        oid: hmdVansConfigurations.oid,
+        unit_name: hmdVansConfigurations.unitName,
+        api_key: hmdVansConfigurations.apiKey,
+        api_url: hmdVansConfigurations.apiUrl
+      }
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
+        this.toggleReport();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle CPE file upload dialog on/off
+   * @method
+   * @param {boolean} data - true
+   */
+  toggleCpeUploadFile = (data) => {
+    this.setState({
+      uploadCpeFileOpen: !this.state.uploadCpeFileOpen,
+      uploadedCPE: data === true
+    });
+  }
+  render() {
+    const {
+      account,
+      departmentList,
+      departmentNameMapping,
+      limitedDepartment,
+      originalSystemList,
+      systemList,
+      severityType,
+      connectionStatus,
+      importDialogOpen,
+      endpointsSearch,
+      endpointsFilter,
+      endpointsFilterList,
+      showCpeInfo,
+      exportContextAnchor,
+      tableContextAnchor,
+      showFilterQuery,
+      reportOpen,
+      uploadCpeFileOpen,
+      uploadedCPE,
+      endpointsData
+    } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('endpoints', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('endpoints', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('endpoints', changedColumn, direction === 'desc');
+      }
+    };
+
+    return (
+      &lt;div>
+        {showCpeInfo &amp;&amp;
+          this.showCpeDialog()
+        }
+
+        {showFilterQuery &amp;&amp;
+          &lt;FilterQuery
+            page='endpoints'
+            account={account}
+            departmentList={departmentList}
+            limitedDepartment={limitedDepartment}
+            departmentNameMapping={departmentNameMapping}
+            originalSystemList={originalSystemList}
+            systemList={systemList}
+            severityType={severityType}
+            connectionStatus={connectionStatus}
+            filterList={FILTER_LIST}
+            originalFilter={ENDPOINTS_FILTER}
+            filter={endpointsFilter}
+            originalItemFilterList={ENDPOINTS_FILTER_LIST}
+            itemFilterList={endpointsFilterList}
+            toggleCsvImport={this.toggleCsvImport}
+            toggleFilterQuery={this.toggleFilterQuery} />
+        }
+
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;HostMenu />
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;div className='parent-content'>
+            &lt;div className='main-statistics main-content host'>
+              &lt;header className='main-header'>{t('host.txt-endpoints')}&lt;/header>
+              &lt;div class='sub-header'>Host running Gorilla HMD&lt;/div>
+              &lt;div className='statistics-content agent'>
+                &lt;div className='box'>
+                  &lt;header>Total Agent:&lt;/header>
+                  &lt;div>250&lt;/div>
+                &lt;/div>
+                &lt;div className='box'>
+                  &lt;header>Online:&lt;/header>
+                  &lt;div>225&lt;/div>
+                &lt;/div>
+                &lt;div className='box'>
+                  &lt;header>Offline:&lt;/header>
+                  &lt;div>220&lt;/div>
+                &lt;/div>                
+                &lt;div className='box'>
+                  &lt;header>Inactivate Agent:&lt;/header>
+                  &lt;div>25&lt;/div>
+                &lt;/div>
+              &lt;/div>
+            &lt;/div>
+
+            &lt;TableList
+              page='endpoints'
+              searchType='endpointsSearch'
+              search={endpointsSearch}
+              data={endpointsData}
+              options={tableOptions}
+              exportAnchor={exportContextAnchor}
+              tableAnchor={tableContextAnchor}
+              getData={this.getCpeData}
+              getActiveData={this.getActiveCpeInfo}
+              exportList={this.exportEndpointsList}
+              toggleReport={this.toggleReport}
+              toggleFilterQuery={this.toggleFilterQuery}
+              handleSearch={this.handleCpeChange}
+              handleReset={this.handleResetBtn}
+              handleExportMenu={this.handleExportOpenMenu}
+              handleCloseMenu={this.handleCloseMenu} />
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+HostEndPoints.contextType = BaseDataContext;
+
+HostEndPoints.propTypes = {
+};
+
+export default HostEndPoints;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="AdConfig.html">AdConfig</a></li><li><a href="AddThreats.html">AddThreats</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ArrowTree.html">ArrowTree</a></li><li><a href="AuditLog.html">AuditLog</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="Certification.html">Certification</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="Cpe.html">Cpe</a></li><li><a href="CpeHeader.html">CpeHeader</a></li><li><a href="CpeList.html">CpeList</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardOverview.html">DashboardOverview</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Dns.html">Dns</a></li><li><a href="Edge.html">Edge</a></li><li><a href="Email.html">Email</a></li><li><a href="EncodeDecode.html">EncodeDecode</a></li><li><a href="EsManage.html">EsManage</a></li><li><a href="EventProcess.html">EventProcess</a></li><li><a href="ExportCharts.html">ExportCharts</a></li><li><a href="ExportCsv.html">ExportCsv</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FilterQuery.html">FilterQuery</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Ftp.html">Ftp</a></li><li><a href="GeneralDialog.html">GeneralDialog</a></li><li><a href="Header.html">Header</a></li><li><a href="HmdMoreInfo.html">HmdMoreInfo</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="HMDsettings.html">HMDsettings</a></li><li><a href="HostAnalysis.html">HostAnalysis</a></li><li><a href="HostController.html">HostController</a></li><li><a href="HostEndPoints.html">HostEndPoints</a></li><li><a href="HostFilter.html">HostFilter</a></li><li><a href="HostInventory.html">HostInventory</a></li><li><a href="HostKbid.html">HostKbid</a></li><li><a href="HostMenu.html">HostMenu</a></li><li><a href="HostVulnerabilities.html">HostVulnerabilities</a></li><li><a href="Html.html">Html</a></li><li><a href="Http.html">Http</a></li><li><a href="ImportFile.html">ImportFile</a></li><li><a href="Incident.html">Incident</a></li><li><a href="IncidentDeviceStep.html">IncidentDeviceStep</a></li><li><a href="IncidentFlow.html">IncidentFlow</a></li><li><a href="IncidentForm.html">IncidentForm</a></li><li><a href="IncidentIsac.html">IncidentIsac</a></li><li><a href="IncidentLog.html">IncidentLog</a></li><li><a href="IncidentManagement.html">IncidentManagement</a></li><li><a href="IncidentReport.html">IncidentReport</a></li><li><a href="IncidentRuleTemplate.html">IncidentRuleTemplate</a></li><li><a href="IncidentSoc.html">IncidentSoc</a></li><li><a href="IncidentUnit.html">IncidentUnit</a></li><li><a href="InputPath.html">InputPath</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="KillChain.html">KillChain</a></li><li><a href="Log.html">Log</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="ManageGroup.html">ManageGroup</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="MuiTableContent.html">MuiTableContent</a></li><li><a href="MuiTableContentWithoutLoading.html">MuiTableContentWithoutLoading</a></li><li><a href="MultiOperator.html">MultiOperator</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkBehavior.html">NetworkBehavior</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="NetworkTopology.html">NetworkTopology</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="Pattern.html">Pattern</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="ProductInfo.html">ProductInfo</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="RelatedList.html">RelatedList</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ReportRecord.html">ReportRecord</a></li><li><a href="RequestHeaders.html">RequestHeaders</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyDetails.html">SafetyDetails</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SelecTableContent.html">SelecTableContent</a></li><li><a href="Severity.html">Severity</a></li><li><a href="SoarController.html">SoarController</a></li><li><a href="SoarFlow.html">SoarFlow</a></li><li><a href="SoarForm.html">SoarForm</a></li><li><a href="SoarSettings.html">SoarSettings</a></li><li><a href="SoarSingleSettings.html">SoarSingleSettings</a></li><li><a href="SocConfig.html">SocConfig</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Statistics.html">Statistics</a></li><li><a href="StatisticsUIF.html">StatisticsUIF</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="syslogConfig.html">syslogConfig</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="TableList.html">TableList</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Threats.html">Threats</a></li><li><a href="ThreatsController.html">ThreatsController</a></li><li><a href="Tree.html">Tree</a></li><li><a href="UploadFile.html">UploadFile</a></li><li><a href="VansCharts.html">VansCharts</a></li><li><a href="VansDevice.html">VansDevice</a></li><li><a href="VansNotes.html">VansNotes</a></li><li><a href="VansPatch.html">VansPatch</a></li><li><a href="VansPatchDetails.html">VansPatchDetails</a></li><li><a href="VansPatchGroup.html">VansPatchGroup</a></li><li><a href="VansPicChart.html">VansPicChart</a></li><li><a href="VansRow.html">VansRow</a></li><li><a href="YaraRule.html">YaraRule</a></li></ul><h3>Global</h3><ul><li><a href="global.html#param%257Bobjet%257DallValue-datafromtable">param {objet} allValue - data from table</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Aug 08 2023 10:19:17 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
