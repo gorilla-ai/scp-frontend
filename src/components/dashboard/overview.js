@@ -52,8 +52,8 @@ class DashboardOverview extends Component {
       threatsCountData: [],
       countryTopList: [],
       selectedAttackData: [],
-      mapInterval: 5, //5
-      mapLimit: 20, //20
+      mapInterval: 5,
+      mapLimit: 20,
       mapCounter: 1,
       countDown: '',
       showAlertInfo: true
@@ -147,8 +147,6 @@ class DashboardOverview extends Component {
     const datetime = {
       from: helper.getSubstractDate(24, 'hours'),
       to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      //from: '2020-08-11T01:00:00Z',
-      //to: '2020-08-13T01:10:00Z'
     };
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -225,8 +223,6 @@ class DashboardOverview extends Component {
         this.setState({
           alertMapData,
           threatsCountData
-        }, () => {
-          //this.setAttackData();
         });
       }
       return null;
@@ -622,35 +618,6 @@ class DashboardOverview extends Component {
         <div className='sub-header overview'>
           {helper.getDashboardMenu('overview')}
 
-          {/*<div className='dropdown'>
-            <label>Data count: </label>
-            <DropDownList
-              id='mapLimitList'
-              required
-              list={[
-                {value: 10, text: 10},
-                {value: 20, text: 20},
-                {value: 30, text: 30}
-              ]}
-              value={mapLimit}
-              onChange={this.handleMapConfigChange.bind(this, 'mapLimit')} />
-          </div>
-          <div className='dropdown'>
-            <label>Interval: </label>
-            <DropDownList
-              id='mapIntervalList'
-              required
-              list={[
-                {value: 1, text: '1s'},
-                {value: 5, text: '5s'},
-                {value: 10, text: '10s'}
-              ]}
-              value={mapInterval}
-              onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
-          </div>*/}
-          {/*{countDown && countDown >= 0 &&
-            <span className='count-down'>{countDown}s</span>
-          }*/}
           <span className='date-time-display'>{displayTime}</span>
         </div>
 
