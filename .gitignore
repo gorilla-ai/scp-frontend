@@ -1,6 +1,5 @@
 build/
 node_modules/
-server.js
 .eslintrc
 *.log
 src/components/dashboard/world-map.js
