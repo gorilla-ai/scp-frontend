@@ -21,7 +21,7 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
-import SearchFilter from '../search-filter'
+import SearchFilter from './search-filter'
 
 let t = null;
 let f = null;
@@ -44,6 +44,7 @@ class FilterQuery extends Component {
       cpe23uriOperator: 'equal', //'equal' or 'like'
       filterName: '',
       filterType: '',
+      searchType: '',
       originalSystemList: [],
       systemList: [],
       filter: {},
@@ -82,13 +83,15 @@ class FilterQuery extends Component {
    * @method
    * @param {string} filterName - active filter name
    * @param {string} filterType - active filter type
+   * @param {string} searchType - active search type
    * @param {object} event - event object
    */
-  handleFilterClick = (filterName, filterType, event) => {
+  handleFilterClick = (filterName, filterType, searchType, event) => {
     this.setState({
       popOverAnchor: event.currentTarget,
       filterName,
-      filterType
+      filterType,
+      searchType
     });
   }
   /**
@@ -389,7 +392,7 @@ class FilterQuery extends Component {
    */
   showFilterPopover = () => {
     const {page, departmentList} = this.props;
-    const {cpe23uriOperator, filterName, filterType, systemList, filter} = this.state;
+    const {cpe23uriOperator, filterName, filterType, searchType, systemList, filter} = this.state;
 
     if (filterType === 'tree') {
       if (filterName === 'departmentSelected') {
@@ -436,7 +439,7 @@ class FilterQuery extends Component {
       const data = {
         pageType: page,
         activeFilter: filterName,
-        searchType: 'input'
+        searchType
       };
 
       return (
@@ -465,15 +468,18 @@ class FilterQuery extends Component {
         </React.Fragment>
       )
     } else if (filterType === 'multi_input') {
-      const defaultItemValue = {
-        condition: '=',
-        input: ''
-      };
       const data = {
         pageType: page,
         activeFilter: filterName,
-        searchType: 'condition_input'
+        searchType
       };
+      let defaultItemValue = {
+        input: ''
+      };
+
+      if (searchType === 'condition_input') {
+        defaultItemValue.condition = '=';
+      }
 
       return (
         <MultiInput
@@ -498,6 +504,7 @@ class FilterQuery extends Component {
     const filterName = val.name;
     const displayType = val.displayType;
     const filterType = val.filterType;
+    const searchType = val.searchType;
     let label = '';
     let selectOptions = '';
 
@@ -514,7 +521,7 @@ class FilterQuery extends Component {
 
       if (filterName === 'connectionStatus') {
         selectOptions = connectionStatus;
-      } else if (filterName === 'severity') {
+      } else if (filterName === 'risk') {
         selectOptions = severityType;
       }
     }
@@ -531,7 +538,7 @@ class FilterQuery extends Component {
             fullWidth
             size='small'
             value={value}
-            onClick={this.handleFilterClick.bind(this, filterName, filterType)}
+            onClick={this.handleFilterClick.bind(this, filterName, filterType, searchType)}
             InputProps={{
               readOnly: true
             }} />

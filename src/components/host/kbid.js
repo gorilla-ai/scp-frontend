@@ -27,7 +27,6 @@ import helper from '../common/helper'
 import HostMenu from './common/host-menu'
 import MuiTableContent from '../common/mui-table-content'
 import ReportRecord from './common/report-record'
-import SearchFilter from './search-filter'
 import TableList from './common/table-list'
 import UploadFile from './common/upload-file'
 
@@ -364,7 +363,7 @@ class HostKbid extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
+                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.kbid)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else {
@@ -435,7 +434,7 @@ class HostKbid extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {object} kbid - active KBID
+   * @param {string} kbid - active KBID
    * @param {object} event - event object
    */
   handleOpenMenu = (kbid, event) => {
@@ -665,7 +664,7 @@ class HostKbid extends Component {
    */
   showKbidDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowKBID}
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowKBID}
     };
 
     return (

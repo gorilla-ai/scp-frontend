@@ -2162,7 +2162,7 @@ class SyslogController extends Component {
   /**
    * Set filter data
    * @method
-   * @param {array} filterData - filter data to be set
+   * @param {array.<string>} filterData - filter data to be set
    */
   setFilterData = (filterData) => {
     this.setState({
@@ -2172,7 +2172,7 @@ class SyslogController extends Component {
   /**
    * Set mark data
    * @method
-   * @param {array} markData - mark data to be set
+   * @param {array.<string>} markData - mark data to be set
    */
   setMarkData = (markData) => {
     this.setState({

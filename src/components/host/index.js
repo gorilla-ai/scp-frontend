@@ -2000,7 +2000,7 @@ class HostController extends Component {
    */
   showHostDeviceList = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.closeHostDeviceList}
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.closeHostDeviceList}
     };
 
     return (

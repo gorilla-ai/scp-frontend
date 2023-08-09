@@ -195,6 +195,9 @@ class TableList extends Component {
           keepMounted
           open={Boolean(tableAnchor)}
           onClose={this.props.handleCloseMenu}>
+          {page === 'endpoints' &&
+            <MenuItem onClick={this.props.toggleShowMemo}>{t('txt-memo')}</MenuItem>
+          }
           <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
         </Menu>
 
@@ -292,6 +295,7 @@ TableList.propTypes = {
   exportAnchor: PropTypes.string,
   getData: PropTypes.func.isRequired,
   getActiveData: PropTypes.func.isRequired,
+  toggleShowMemo: PropTypes.func,
   exportList: PropTypes.func.isRequired,
   toggleFilterQuery: PropTypes.func.isRequired,
   handleSearch: PropTypes.func.isRequired,

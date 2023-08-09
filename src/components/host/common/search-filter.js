@@ -89,7 +89,7 @@ class SearchFilter extends Component {
           </TextField>
           <TextField
             name='input'
-            clssName='condition-input'
+            className='condition-input'
             style={{float: 'left', width: '65%'}}
             label={label}
             variant='outlined'

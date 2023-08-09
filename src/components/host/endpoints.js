@@ -8,6 +8,8 @@ import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
+import Popover from 'react-ui/build/src/components/popover'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -17,6 +19,7 @@ import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import HostMenu from './common/host-menu'
 import ImportFile from './import-file'
+import MemoInput from './common/memo-input'
 import ReportRecord from './common/report-record'
 import TableList from './common/table-list'
 import UploadFile from './common/upload-file'
@@ -24,7 +27,7 @@ import UploadFile from './common/upload-file'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
-const CONNECTION_STATUS = ['connected', 'notConnected', 'notSetup'];
+const CONNECTION_STATUS = ['online', 'offline', 'inActivate'];
 const CONDITION_MODE = {
   '=': 'eq',
   '>': 'gt',
@@ -49,17 +52,25 @@ const FILTER_LIST = [
   {
     name: 'version',
     displayType: 'text_field',
-    filterType: 'multi_input'
+    filterType: 'multi_input',
+    searchType: 'condition_input'
   },
   {
-    name: 'threatsLevel',
+    name: 'riskValue',
     displayType: 'text_field',
-    filterType: 'multi_input'
+    filterType: 'multi_input',
+    searchType: 'condition_input'
   },
   {
-    name: 'severity',
+    name: 'risk',
     displayType: 'auto_complete',
     filterType: 'auto_complete'
+  },
+  {
+    name: 'memos',
+    displayType: 'text_field',
+    filterType: 'multi_input',
+    searchType: 'input'
   }
 ];
 const ENDPOINTS_SEARCH = {
@@ -74,19 +85,23 @@ const ENDPOINTS_FILTER = {
     condition: '=',
     input: ''
   }],
-  threatsLevel: [{
+  riskValue: [{
     condition: '=',
     input: ''
   }],
-  severity: []
+  risk: [],
+  memos: [{
+    input: ''
+  }]
 };
 const ENDPOINTS_FILTER_LIST = {
   departmentSelected: [],
   system: [],
   connectionStatus: [],
   version: [],
-  threatsLevel: [],
-  severity: []
+  riskValue: [],
+  risk: [],
+  memos: []
 };
 const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
@@ -162,6 +177,7 @@ class HostEndPoints extends Component {
         keyword: '',
         count: 0
       },
+      showMemoInfo: false,
       showCpeInfo: false,
       showFilterQuery: false,
       reportOpen: false,
@@ -169,7 +185,7 @@ class HostEndPoints extends Component {
       uploadedCPE: false,
       activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
       endpointsData: {
-        dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'riskValue', 'vulnerabilityNum', 'exposedDevices'],
+        dataFieldsArr: ['_menu', 'hostName', 'ip', 'system', 'department', 'status', 'version', 'riskValue', 'risk', 'hbDttm', 'memos'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -180,10 +196,13 @@ class HostEndPoints extends Component {
         currentPage: 0,
         pageSize: 20
       },
+      memoData: [{
+        input: ''
+      }],
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
-      currentCpeKey: '',
+      currentHostId: '',
       currentCpeData: {}
     };
 
@@ -247,7 +266,7 @@ class HostEndPoints extends Component {
           if (account.limitedRole && account.departmentId) {
             this.setSelectedDepartment();
           } else {
-            this.getCpeData();
+            this.getEndpointsData();
           }
         });
       }
@@ -284,7 +303,7 @@ class HostEndPoints extends Component {
           endpointsFilterList: tempEndpointsFilterList
         }, () => {
           this.getSystemVendorList();
-          this.getCpeData();
+          this.getEndpointsData();
         });
       }
       return null;
@@ -366,9 +385,21 @@ class HostEndPoints extends Component {
    */
   getSeverityType = () => {
     const severityType = _.map(SEVERITY_TYPE, val => {
+      let text = t('txt-' + val);
+
+      if (val === 'critical') {
+        text += ' (9.0 - 10)'; 
+      } else if (val === 'high') {
+        text += ' (7.0 - 8.9)'; 
+      } else if (val === 'medium') {
+        text += ' (4.0 - 6.9)'; 
+      } else if (val === 'low') {
+        text += ' (0.1 - 3.9)'; 
+      }
+
       return {
         value: val,
-        text: t('txt-' + val)
+        text
       };
     });
 
@@ -393,11 +424,37 @@ class HostEndPoints extends Component {
     });
   }
   /**
-   * Get and set CPE data
+   * Display individual memo
+   * @method
+   * @param {string} val - memo
+   * @param {number} i - index of the memos
+   * @returns HTML DOM
+   */
+  getMemo = (val, i) => {
+    return <div key={i}>{val}</div>
+  }
+  /**
+   * Handle popover open
+   * @method
+   * @param {array.<string>} memos - memos to be displayed
+   * @param {object} event - event object
+   */
+  openPopover = (memos, event) => {
+    Popover.openId('memosDisplay', event, memos.map(this.getMemo));
+  }
+  /**
+   * Handle popover close
+   * @method
+   */
+  closePopover = () => {
+    Popover.closeId('memosDisplay');
+  }
+  /**
+   * Get and set endpoints data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getCpeData = (fromPage) => {
+  getEndpointsData = (fromPage) => {
     const {baseUrl} = this.context;
     const {endpointsSearch, endpointsData} = this.state;
     const sort = endpointsData.sort.desc ? 'desc' : 'asc';
@@ -405,7 +462,7 @@ class HostEndPoints extends Component {
     const requestData = {
       ...this.getEndpointsFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/cpeUpdateToDate/_search?page=${page + 1}&pageSize=${endpointsData.pageSize}`;
+    let url = `${baseUrl}/api/hmd/endPoint/_search?page=${page + 1}&pageSize=${endpointsData.pageSize}`;
 
     if (endpointsData.sort.field) {
       url += `&orders=${endpointsData.sort.field} ${sort}`;
@@ -440,7 +497,7 @@ class HostEndPoints extends Component {
         tempEndpointsData.dataFields = _.map(endpointsData.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
-            label: val === '_menu' ? '' : f('hostCpeFields.' + val),
+            label: val === '_menu' ? '' : f('hostEndpointsFields.' + val),
             options: {
               filter: true,
               sort: this.checkSortable(val),
@@ -452,23 +509,22 @@ class HostEndPoints extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
+                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
-                } else if (val === 'system') {
-                  return (
-                    <div>
-                      <span>{value[0]}</span>
-                      {value.length > 1 &&
-                        <span>, {value[1]}</span>
-                      }
-                      {value.length > 2 &&
-                        <span title={this.getFullList(value)}>, {t('txt-more')}...</span>
-                      }
-                    </div>
-                  )
-                } else if (val === 'vulnerabilityNum') {
-                  return helper.numberWithCommas(value);
+                } else if (val === 'status' && value) {
+                  return <span>{t('txt-' + value)}</span>
+                } else if (val === 'hbDttm' && value) {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                } else if (val === 'memos' && value.length > 0) {
+                  const content = value.join(', ');
+
+                  if (content.length > 30) {
+                    const reducedContent = content.substr(0, 30) + '...';
+                    return <span onMouseOver={this.openPopover.bind(this, value)} onMouseOut={this.closePopover}>{reducedContent}</span>
+                  } else {
+                    return <span>{content}</span>
+                  }
                 } else {
                   return value;
                 }
@@ -496,7 +552,7 @@ class HostEndPoints extends Component {
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const unSortableFields = ['_menu', 'system', 'exposedDevices'];
+    const unSortableFields = ['_menu', 'risk', 'memos'];
 
     if (_.includes(unSortableFields, field)) {
       return false;
@@ -505,7 +561,7 @@ class HostEndPoints extends Component {
     }
   }
   /**
-   * Get Endpoints filter request data
+   * Get endpoints filter request data
    * @method
    * @returns requestData object
    */
@@ -514,7 +570,7 @@ class HostEndPoints extends Component {
     let requestData = {};
 
     if (endpointsSearch.keyword) {
-      requestData.product = endpointsSearch.keyword;
+      requestData.hostNameOrIp = endpointsSearch.keyword;
     }
 
     if (endpointsFilter.departmentSelected.length > 0) {
@@ -532,6 +588,12 @@ class HostEndPoints extends Component {
       requestData.systemArray = systemArray;
     }
 
+    if (endpointsFilter.connectionStatus.length > 0) {
+      requestData.statusArray = _.map(endpointsFilter.connectionStatus, val => {
+        return val.value;
+      });
+    }
+
     if (endpointsFilterList.version.length > 0) {
       requestData.versionArray = _.map(endpointsFilterList.version, val => {
         return {
@@ -541,18 +603,46 @@ class HostEndPoints extends Component {
       });
     }
 
+    if (endpointsFilterList.riskValue.length > 0) {
+      requestData.riskValueArray = _.map(endpointsFilterList.riskValue, val => {
+        return {
+          mode: CONDITION_MODE[val.substr(0, 1)],
+          riskValue: val.substr(2)
+        }
+      });
+    }
+
+    if (endpointsFilter.risk.length > 0) {
+      const riskArray = _.map(endpointsFilter.risk, val => {
+        return val.value.toUpperCase();
+      });
+
+      requestData.riskArray = riskArray;
+    }
+
+    if (endpointsFilterList.memos.length > 0) {
+      requestData.memos = endpointsFilterList.memos;
+    }
+
     return requestData;
   }
   /**
    * Handle open menu
    * @method
-   * @param {object} key - active CPE key
+   * @param {object} allValue - selected host data
    * @param {object} event - event object
    */
-  handleOpenMenu = (key, event) => {
+  handleOpenMenu = (allValue, event) => {
+    const memoData = _.map(allValue.memos, val => {
+      return {
+        input: val
+      };
+    });
+
     this.setState({
       tableContextAnchor: event.currentTarget,
-      currentCpeKey: key
+      memoData,
+      currentHostId: allValue.hostId
     });
   }
   /**
@@ -585,17 +675,6 @@ class HostEndPoints extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Get full list in CPE table
-   * @method
-   * @param {array.<string>} list - data list
-   * @returns full list
-   */
-  getFullList = (list) => {
-    list.shift();
-    list.shift();
-    return list.join(', ');
   }
   /**
    * Get exposed devices data
@@ -783,6 +862,48 @@ class HostEndPoints extends Component {
     });
   }
   /**
+   * Get individual CVE data
+   * @method
+   */
+  getActiveCveInfo = () => {
+    const {baseUrl} = this.context;
+    const {currentCveId} = this.state;
+    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCveId}`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          currentCveData: data.cveInfo
+        }, () => {
+          this.toggleShowCVE();
+        });
+
+        this.handleCloseMenu();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle show memo
+   * @method
+   */
+  toggleShowMemo = () => {
+    this.setState({
+      showMemoInfo: !this.state.showMemoInfo
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
    * Toggle show CPE info
    * @method
    */
@@ -872,6 +993,92 @@ class HostEndPoints extends Component {
     }
   }
   /**
+   * Set memo data
+   * @method
+   * @param {array.<string>} memoData - memo data to be set
+   */
+  setMemoInput = (memoData) => {
+    this.setState({
+      memoData
+    });
+  }
+  /**
+   * Display memo content
+   * @method
+   * @returns HTML DOM
+   */
+  displayMemoInfo = () => {
+    const defaultItemValue = {
+      input: ''
+    };
+
+    return (
+      <MultiInput
+        base={MemoInput}
+        defaultItemValue={defaultItemValue}
+        value={this.state.memoData}
+        onChange={this.setMemoInput} />
+    )
+  }
+  /**
+   * Show memo dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  showMemoDialog = () => {
+    const {currentHostId} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleShowMemo},
+      confirm: {text: t('txt-confirm'), handler: this.handleMemoConfirm}
+    };
+
+    return (
+      <ModalDialog
+        id='showMemoDialog'
+        className='modal-dialog'
+        title={t('txt-memo')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayMemoInfo()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle memo confirm
+   * @method
+   */
+  handleMemoConfirm = () => {
+    const {baseUrl} = this.context;
+    const {memoData, currentHostId} = this.state;
+    const url = `${baseUrl}/api/hmd/endPoint/memos`;
+    const requestData = {
+      hostId: currentHostId,
+      memos: _.map(memoData, val => {
+        return val.input;
+      })
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.getEndpointsData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.toggleShowMemo();
+  }
+  /**
    * Display CPE info content
    * @method
    * @returns HTML DOM
@@ -959,7 +1166,7 @@ class HostEndPoints extends Component {
   showCpeDialog = () => {
     const {currentCpeData} = this.state;
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowCPE}
     };
 
     return (
@@ -996,7 +1203,7 @@ class HostEndPoints extends Component {
       this.setState({
         endpointsData: tempEndpointsData
       }, () => {
-        this.getCpeData();
+        this.getEndpointsData();
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData.sort.field = tableField;
@@ -1037,7 +1244,7 @@ class HostEndPoints extends Component {
       this.setState({
         endpointsData: tempEndpointsData
       }, () => {
-        this.getCpeData(type);
+        this.getEndpointsData(type);
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData[type] = value;
@@ -1084,7 +1291,7 @@ class HostEndPoints extends Component {
         endpointsFilterList: filterData.itemFilterList
       }, () => {
         if (type === 'confirm') {
-          this.getCpeData();
+          this.getEndpointsData();
         }
       });
     }
@@ -1286,6 +1493,7 @@ class HostEndPoints extends Component {
       endpointsSearch,
       endpointsFilter,
       endpointsFilterList,
+      showMemoInfo,
       showCpeInfo,
       exportContextAnchor,
       tableContextAnchor,
@@ -1309,6 +1517,10 @@ class HostEndPoints extends Component {
 
     return (
       <div>
+        {showMemoInfo &&
+          this.showMemoDialog()
+        }
+
         {showCpeInfo &&
           this.showCpeDialog()
         }
@@ -1343,7 +1555,7 @@ class HostEndPoints extends Component {
           <div className='parent-content'>
             <div className='main-statistics main-content host'>
               <header className='main-header'>{t('host.txt-endpoints')}</header>
-              <div class='sub-header'>Host running Gorilla HMD</div>
+              <div className='sub-header'>Host running Gorilla HMD</div>
               <div className='statistics-content agent'>
                 <div className='box'>
                   <header>Total Agent:</header>
@@ -1372,8 +1584,9 @@ class HostEndPoints extends Component {
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
-              getData={this.getCpeData}
-              getActiveData={this.getActiveCpeInfo}
+              getData={this.getEndpointsData}
+              getActiveData={this.getActiveCveInfo}
+              toggleShowMemo={this.toggleShowMemo}
               exportList={this.exportEndpointsList}
               toggleReport={this.toggleReport}
               toggleFilterQuery={this.toggleFilterQuery}

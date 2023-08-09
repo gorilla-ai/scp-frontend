@@ -813,6 +813,15 @@
     "connectionStatus": "Status",
     "version": "Version",
     "threatsLevel": "Threats Level",
-    "severity": "Severity"
+    "severity": "Severity",
+    "hostName": "Host Name",
+    "ip": "IP",
+    "department": "Department",
+    "status": "Status",
+    "version": "Version",
+    "riskValue": "Risk Value",
+    "risk": "Risk",
+    "hbDttm": "Last Connected Datetime",
+    "memos": "Memo"
   }
 }

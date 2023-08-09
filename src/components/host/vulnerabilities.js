@@ -33,7 +33,6 @@ import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import HostMenu from './common/host-menu'
 import MuiTableContent from '../common/mui-table-content'
-import SearchFilter from './search-filter'
 import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -58,7 +57,8 @@ const FILTER_LIST = [
   {
     name: 'cvss',
     displayType: 'text_field',
-    filterType: 'multi_input'
+    filterType: 'multi_input',
+    searchType: 'condition_input'
   }
 ];
 const CVE_SEARCH = {
@@ -591,7 +591,7 @@ class HostVulnerabilities extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
+                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cveId)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'severity' && value) {
@@ -684,7 +684,7 @@ class HostVulnerabilities extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {object} id - active CVE ID
+   * @param {string} id - active CVE ID
    * @param {object} event - event object
    */
   handleOpenMenu = (id, event) => {
@@ -1119,7 +1119,7 @@ class HostVulnerabilities extends Component {
    */
   showCveDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowCVE}
     };
 
     return (

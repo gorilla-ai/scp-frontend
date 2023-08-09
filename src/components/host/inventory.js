@@ -47,17 +47,20 @@ const FILTER_LIST = [
   {
     name: 'version',
     displayType: 'text_field',
-    filterType: 'multi_input'
+    filterType: 'multi_input',
+    searchType: 'condition_input'
   },
   {
     name: 'vulnerabilityNum',
     displayType: 'text_field',
-    filterType: 'multi_input'
+    filterType: 'multi_input',
+    searchType: 'condition_input'
   },
   {
     name: 'cpe23uri',
     displayType: 'text_field',
-    filterType: 'upload'
+    filterType: 'upload',
+    searchType: 'input'
   }
 ];
 const CPE_SEARCH = {
@@ -481,7 +484,7 @@ class HostInventory extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button class='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
+                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.cpeKey)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'system') {
@@ -597,7 +600,7 @@ class HostInventory extends Component {
   /**
    * Handle open menu
    * @method
-   * @param {object} key - active CPE key
+   * @param {string} key - active CPE key
    * @param {object} event - event object
    */
   handleOpenMenu = (key, event) => {
@@ -1010,7 +1013,7 @@ class HostInventory extends Component {
   showCpeDialog = () => {
     const {currentCpeData} = this.state;
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowCPE}
     };
 
     return (

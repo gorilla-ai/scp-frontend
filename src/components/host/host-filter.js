@@ -113,7 +113,7 @@ class HostFilter extends Component {
           </TextField>
           <TextField
             name='input'
-            clssName='condition-input'
+            className='condition-input'
             style={{float: 'left', width: '65%'}}
             label={t('ipFields.' + activeFilter)}
             variant='outlined'

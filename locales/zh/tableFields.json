@@ -813,6 +813,15 @@
     "connectionStatus": "狀態",
     "version": "版本",
     "threatsLevel": "威脅等級",
-    "severity": "嚴重程度"
+    "severity": "嚴重程度",
+    "hostName": "主機",
+    "ip": "IP",
+    "department": "部門",
+    "status": "狀態",
+    "version": "版本",
+    "riskValue": "威脅指數",
+    "risk": "威脅等級",
+    "hbDttm": "最後上線時間",
+    "memos": "備註"
   }
 }
