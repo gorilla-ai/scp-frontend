@@ -1363,41 +1363,32 @@ class HostEndPoints extends Component {
     });
   }
   /**
-   * Export Endpoints list
+   * Export endpoints list
    * @method
-   * @param {string} type - export type ('endpoints' or 'nccst')
    */
-  exportEndpointsList = (type) => {
+  exportEndpointsList = () => {
     const {baseUrl, contextRoot} = this.context;
     const {endpointsData} = this.state;
     const sort = endpointsData.sort.desc ? 'desc' : 'asc';
-    let url = '';
+    let url = `${baseUrl}${contextRoot}/api/hmd/endPoint/_export`;
     let requestData = {
       ...this.getEndpointsFilterRequestData()
     };
+    let exportFields = {};
+    let fieldsList = _.cloneDeep(endpointsData.dataFieldsArr);
+    fieldsList.shift();
 
-    if (type === 'endpoints') {
-      let exportFields = {};
-      let fieldsList = _.cloneDeep(endpointsData.dataFieldsArr);
-      fieldsList.shift();
+    _.forEach(fieldsList, val => {
+      exportFields[val] = f('hostEndpointsFields.' + val);
+    })
 
-      _.forEach(fieldsList, val => {
-        exportFields[val] = f('hostCpeFields.' + val);
-      })
-
-      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/_export`;
-
-      if (endpointsData.sort.field) {
-        url += `?orders=${endpointsData.sort.field} ${sort}`;
-      }
-
-      requestData.exportFields = exportFields;
-    } else if (type === 'nccst') {
-      url = `${baseUrl}${contextRoot}/api/hmd/cpeUpdateToDate/nccst/_export`;
+    if (endpointsData.sort.field) {
+      url += `?orders=${endpointsData.sort.field} ${sort}`;
     }
 
+    requestData.exportFields = exportFields;
+
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
-    this.handleCloseMenu();
   }
   /**
    * Toggle report modal dialog on/off

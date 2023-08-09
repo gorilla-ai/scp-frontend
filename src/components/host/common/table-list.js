@@ -250,10 +250,14 @@ class TableList extends Component {
             }
             {page === 'kbid' &&
               <React.Fragment>
-                <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+                <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
                 <Button id='hostToggleReport' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleReport} data-cy='hostReportBtn'>{t('host.txt-report-kbid')}</Button>
               </React.Fragment>
             }
+            {page === 'endpoints' &&
+              <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+            }
+            
           </div>
 
           <div className='actions-bar'>
