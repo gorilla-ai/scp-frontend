@@ -862,35 +862,11 @@ class HostEndPoints extends Component {
     });
   }
   /**
-   * Get individual CVE data
+   * Get individual endpoint data
    * @method
    */
-  getActiveCveInfo = () => {
-    const {baseUrl} = this.context;
-    const {currentCveId} = this.state;
-    const url = `${baseUrl}/api/hmd/cveUpdateToDate/cveInfo?cveId=${currentCveId}`;
+  getActiveEndpointInfo = () => {
 
-    this.ah.one({
-      url,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          currentCveData: data.cveInfo
-        }, () => {
-          this.toggleShowCVE();
-        });
-
-        this.handleCloseMenu();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Toggle show memo
@@ -1585,7 +1561,7 @@ class HostEndPoints extends Component {
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
               getData={this.getEndpointsData}
-              getActiveData={this.getActiveCveInfo}
+              getActiveData={this.getActiveEndpointInfo}
               toggleShowMemo={this.toggleShowMemo}
               exportList={this.exportEndpointsList}
               toggleReport={this.toggleReport}
