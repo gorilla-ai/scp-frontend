@@ -462,7 +462,7 @@ class HostEndPoints extends Component {
     const requestData = {
       ...this.getEndpointsFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/endPoint/_search?page=${page + 1}&pageSize=${endpointsData.pageSize}`;
+    let url = `${baseUrl}/api/endPoint/_search?page=${page + 1}&pageSize=${endpointsData.pageSize}`;
 
     if (endpointsData.sort.field) {
       url += `&orders=${endpointsData.sort.field} ${sort}`;
@@ -1028,7 +1028,7 @@ class HostEndPoints extends Component {
   handleMemoConfirm = () => {
     const {baseUrl} = this.context;
     const {memoData, currentHostId} = this.state;
-    const url = `${baseUrl}/api/hmd/endPoint/memos`;
+    const url = `${baseUrl}/api/endPoint/memos`;
     const requestData = {
       hostId: currentHostId,
       memos: _.map(memoData, val => {
@@ -1370,7 +1370,7 @@ class HostEndPoints extends Component {
     const {baseUrl, contextRoot} = this.context;
     const {endpointsData} = this.state;
     const sort = endpointsData.sort.desc ? 'desc' : 'asc';
-    let url = `${baseUrl}${contextRoot}/api/hmd/endPoint/_export`;
+    let url = `${baseUrl}${contextRoot}/api/endPoint/_export`;
     let requestData = {
       ...this.getEndpointsFilterRequestData()
     };

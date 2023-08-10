@@ -39,7 +39,7 @@ class SafetyDetails extends Component {
   componentDidMount() {
     this.toggleContent(this.props.showSafetyTab);
     this.checkVansNotes();
-  }
+  } 
   /**
    * Toggle content type
    * @method
