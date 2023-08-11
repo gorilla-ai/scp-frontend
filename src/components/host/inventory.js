@@ -1013,7 +1013,7 @@ class HostInventory extends Component {
   showCpeDialog = () => {
     const {currentCpeData} = this.state;
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowCPE}
+      cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
     };
 
     return (

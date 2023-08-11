@@ -461,7 +461,16 @@
       "txt-vulnerabilityList": "弱點主機清單"
     },
     "endpoints": {
-      "txt-threatsLevel": "威脅指數"
+      "txt-threatsLevel": "威脅指數",
+      "txt-overview": "主機分析資訊",
+      "txt-safetyScanInfo": "安全掃描資訊",
+      "txt-softwareInventory": "軟體清單",
+      "txt-discoveredVulnerability": "軟體漏洞清單",
+      "txt-kbid": "KBID",
+      "txt-taskName": "安全掃描類型",
+      "txt-taskStatus": "執行狀態",
+      "txt-taskCreateDttm": "建立時間",
+      "txt-taskResponseDttm": "回應時間"      
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",

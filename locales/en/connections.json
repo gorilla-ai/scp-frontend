@@ -461,7 +461,16 @@
       "txt-vulnerabilityList": "Vulnerability List"
     },
     "endpoints": {
-      "txt-threatsLevel": "Threats Level"
+      "txt-threatsLevel": "Threats Level",
+      "txt-overview": "Overview",
+      "txt-safetyScanInfo": "Safety Scan",
+      "txt-softwareInventory": "Software Inventory",
+      "txt-discoveredVulnerability": "Discovered Vulnerability",
+      "txt-kbid": "KBID",
+      "txt-taskName": "Task Name",
+      "txt-taskStatus": "Task Status",
+      "txt-taskCreateDttm": "Create Datetime",
+      "txt-taskResponseDttm": "Resposne Datetime"
     },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",

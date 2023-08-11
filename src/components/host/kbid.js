@@ -664,7 +664,7 @@ class HostKbid extends Component {
    */
   showKbidDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowKBID}
+      cancel: {text: t('txt-close'), handler: this.toggleShowKBID}
     };
 
     return (

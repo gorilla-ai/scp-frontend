@@ -180,7 +180,164 @@ class GeneralDialog extends Component {
           </tbody>
         </table>
       )
+    } else if (page === 'endpoints') {
+      return (
+        <div className='overview'>
+          <div className='overview-btn-group'>
+            <Button variant='outlined' color='primary' className='btn' onClick={this.props.toggleViewMore}>{t('hmd-scan.txt-viewMore')}</Button>
+            <Button variant='outlined' color='primary' className='btn' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'])}>{t('txt-reTrigger')}</Button>
+          </div>
+
+          <div className='table-data'>
+            <div>
+              <header>Network Info</header>
+              <table className='c-table main-table'>
+                <tbody>
+                  <tr>
+                    <td><span className='blue-color'>IP address</span></td>
+                    <td><span>{data.ip || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>MAC address</span></td>
+                    <td><span>{data.mac || NOT_AVAILABLE}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <header>Device Info</header>
+              <table className='c-table main-table'>
+                <tbody>
+                  <tr>
+                    <td><span className='blue-color'>System</span></td>
+                    <td><span>{data.system || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Host Name</span></td>
+                    <td><span>{data.hostName || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>CPU</span></td>
+                    <td><span>{data.cpu || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Memory</span></td>
+                    <td><span>{data.ram || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Disk Usage</span></td>
+                    <td><span>{data.disks || NOT_AVAILABLE}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <header>Owner Info</header>
+              <table className='c-table main-table'>
+                <tbody>
+                  <tr>
+                    <td><span className='blue-color'>Owner Name</span></td>
+                    <td><span>{data.ownername || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Owner ID</span></td>
+                    <td><span>{data.ownerid || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Department</span></td>
+                    <td><span>{data.department || NOT_AVAILABLE}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <header>Security Assessments</header>
+              <table className='c-table main-table'>
+                <tbody>
+                  <tr>
+                    <td><span className='blue-color'>Risk</span></td>
+                    <td><span>{data.riskLevel || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Installed Software</span></td>
+                    <td><span>{data.ownerid || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Discovered Vulnerabilities</span></td>
+                    <td><span>{data.vulnerabilityNum || NOT_AVAILABLE}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <header>Agent Info</header>
+              <table className='c-table main-table'>
+                <tbody>
+                  <tr>
+                    <td><span className='blue-color'>Status</span></td>
+                    <td><span>{data.status || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>HB Time</span></td>
+                    <td><span>{data.hbDttm || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>Version</span></td>
+                    <td><span>{data.version || NOT_AVAILABLE}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <header>NetProxy Info</header>
+              <table className='c-table main-table'>
+                <tbody>
+                  <tr>
+                    <td><span className='blue-color'>NetProxy IP</span></td>
+                    <td><span>{data.netproxyIp || NOT_AVAILABLE}</span></td>
+                  </tr>
+                  <tr>
+                    <td><span className='blue-color'>NetProxy Name</span></td>
+                    <td><span>{data.netproxyName || NOT_AVAILABLE}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )
     }
+  }
+  /**
+   * Display safety scan info
+   * @method
+   * @returns HTML DOM
+   */
+  showSafetyScanInfo = () => {
+    const {page, search, data, tableOptions} = this.props;
+
+    return (
+      <React.Fragment>
+        <div className='search-field'>
+          <div className='group'>
+            <TextField
+              name='taskName'
+              className='search-text'
+              label={t('host.endpoints.txt-taskName')}
+              variant='outlined'
+              size='small'
+              value={search.taskName}
+              onChange={this.props.handleSearchChange}
+              data-cy='hostInfoDialogDeviceHostTextField' />
+          </div>
+          <Button id='hostSafetyScanSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
+          <Button id='hostSafetyScanClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'safetyScanInfo')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
+        </div>
+        <div className='search-count'>{t('host.vulnerabilities.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(search.count)}</div>
+
+        <MuiTableContent
+          tableHeight='auto'
+          data={data}
+          tableOptions={tableOptions} />
+      </React.Fragment>
+    )
   }
   /**
    * Display exposed devices
@@ -313,6 +470,10 @@ class GeneralDialog extends Component {
           this.showGeneralInfo()
         }
 
+        {type === 'safety-scan-info' &&
+          this.showSafetyScanInfo()
+        }
+
         {type === 'exposed-devices' &&
           this.showExposedDevices()
         }
@@ -336,7 +497,9 @@ GeneralDialog.propTypes = {
   tableOptions: PropTypes.object,
   handleSearchChange: PropTypes.func,
   handleSearchSubmit: PropTypes.func,
-  handleResetBtn: PropTypes.func
+  handleResetBtn: PropTypes.func,
+  toggleViewMore: PropTypes.func,
+  triggerTask: PropTypes.func
 };
 
 export default GeneralDialog;

@@ -2975,12 +2975,14 @@ html[data-theme='dark'] {
 }
 #showCveDialog-content,
 #showCpeDialog-content,
-#showKbidDialog-content {
+#showKbidDialog-content,
+#showEndpointDialog-content {
   width: 1500px;
   height: 700px;
   #activeCveInfoButtons,
   #activeCpeInfoButtons,
-  #activeKbidInfoButtons {
+  #activeKbidInfoButtons,
+  #activeEndpointInfoButtons {
     margin: 10px 0;
   }
   .main-content {
@@ -3010,6 +3012,28 @@ html[data-theme='dark'] {
   }
   .search-count {
     margin-bottom: 15px;
+  }
+}
+#showEndpointDialog-content {
+  .overview {
+    margin-top: 25px;
+    .overview-btn-group {
+      button {
+        margin-right: 10px;
+        &:hover:not([disabled]) {
+          background: none;
+        }
+      }
+    }
+    .table-data {
+      display: flex;
+      justify-content: space-around;
+      margin: 10px 0;
+      header {
+        padding-top: 20px;
+        padding-bottom: 5px;
+      }
+    }
   }
 }
 #configEditHost-content {

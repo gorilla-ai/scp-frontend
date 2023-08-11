@@ -1119,7 +1119,7 @@ class HostVulnerabilities extends Component {
    */
   showCveDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowCVE}
+      cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
     };
 
     return (

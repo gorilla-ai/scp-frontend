@@ -17,6 +17,7 @@ import {BaseDataContext} from '../common/context'
 import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
+import HMDmoreInfo from '../common/hmd-more-info'
 import HostMenu from './common/host-menu'
 import ImportFile from './import-file'
 import MemoInput from './common/memo-input'
@@ -103,14 +104,11 @@ const ENDPOINTS_FILTER_LIST = {
   risk: [],
   memos: []
 };
-const EXPOSED_DEVICES_SEARCH = {
-  hostName: '',
-  ip: '',
-  system: '',
-  count: 0
+const SAFETY_SCAN_INFO_SEARCH = {
+  taskName: ''
 };
-const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['hostName', 'ip', 'system', 'daysOpen'],
+const SAFETY_SCAN_INFO_DATA = {
+  dataFieldsArr: ['taskName', 'taskStatus', 'taskCreateDttm', 'taskResponseDttm'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -168,6 +166,7 @@ class HostEndPoints extends Component {
       severityType: [],
       connectionStatus: [],
       importDialogOpen: false,
+      modalViewMoreOpen: false,
       endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
       endpointsFilter: _.cloneDeep(ENDPOINTS_FILTER),
       endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
@@ -178,12 +177,9 @@ class HostEndPoints extends Component {
         count: 0
       },
       showMemoInfo: false,
-      showCpeInfo: false,
+      showEndpointInfo: false,
       showFilterQuery: false,
-      reportOpen: false,
-      uploadCpeFileOpen: false,
-      uploadedCPE: false,
-      activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
+      activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', or 'kbid'
       endpointsData: {
         dataFieldsArr: ['_menu', 'hostName', 'ip', 'system', 'department', 'status', 'version', 'riskValue', 'risk', 'hbDttm', 'memos'],
         dataFields: [],
@@ -199,11 +195,12 @@ class HostEndPoints extends Component {
       memoData: [{
         input: ''
       }],
-      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
-      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH),
+      safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
       currentHostId: '',
-      currentCpeData: {}
+      currentRiskLevel: '',
+      currentEndpointData: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -642,30 +639,31 @@ class HostEndPoints extends Component {
     this.setState({
       tableContextAnchor: event.currentTarget,
       memoData,
-      currentHostId: allValue.hostId
+      currentHostId: allValue.hostId,
+      currentRiskLevel: allValue.risk
     });
   }
   /**
-   * Get individual CPE data
+   * Get individual endpoint data
    * @method
    */
-  getActiveCpeInfo = () => {
+  getActiveEndpointInfo = () => {
     const {baseUrl} = this.context;
-    const {currentCpeKey} = this.state;
-    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/cpeInfo?cpeKey=${currentCpeKey}`;
+    const {currentHostId, currentRiskLevel} = this.state;
 
     this.ah.one({
-      url,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
+      url: `${baseUrl}/api/endPoint/overview?hostId=${currentHostId}`,
+      type: 'GET'
     })
     .then(data => {
       if (data) {
+        let currentEndpointData = data;
+        currentEndpointData.riskLevel = currentRiskLevel;
+
         this.setState({
-          currentCpeData: data.cpeInfo
+          currentEndpointData
         }, () => {
-          this.toggleShowCPE();
+          this.toggleShowEndpoint();
         });
 
         this.handleCloseMenu();
@@ -677,39 +675,19 @@ class HostEndPoints extends Component {
     })
   }
   /**
-   * Get exposed devices data
+   * Get safety scan info data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getExposedDevices = (fromPage) => {
+  getSafetyScanInfo = (fromPage) => {
     const {baseUrl} = this.context;
-    const {endpointsFilter, exposedDevicesSearch, exposedDevicesData, currentCpeKey} = this.state;
-    const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
-    let url = `${baseUrl}/api/hmd/cpe/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+    const {safetyScanInfoSearch, safetyScanInfoData, currentHostId} = this.state;
+    const sort = safetyScanInfoData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? safetyScanInfoData.currentPage : 0;
+    const url = `${baseUrl}/api/endPoint/safetyScanInfo/record`;
     let requestData = {
-      cpeKey: currentCpeKey
+      hostId: currentHostId
     };
-
-    if (exposedDevicesData.sort.field) {
-      url += `&orders=${exposedDevicesData.sort.field} ${sort}`;
-    }
-
-    if (exposedDevicesSearch.hostName) {
-      requestData.hostName = exposedDevicesSearch.hostName;
-    }
-
-    if (exposedDevicesSearch.ip) {
-      requestData.ip = exposedDevicesSearch.ip;
-    }
-
-    if (exposedDevicesSearch.system) {
-      requestData.system = exposedDevicesSearch.system;
-    }
-
-    if (endpointsFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = endpointsFilter.departmentSelected;
-    }
 
     this.ah.one({
       url,
@@ -719,45 +697,50 @@ class HostEndPoints extends Component {
     })
     .then(data => {
       if (data) {
-        let tempExposedDevicesSearch = {...exposedDevicesSearch};
-        let tempExposedDevicesData = {...exposedDevicesData};
+        let tempSafetyScanInfoSearch = {...safetyScanInfoSearch};
+        let tempSafetyScanInfoData = {...safetyScanInfoData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempExposedDevicesSearch.count = 0;
-          tempExposedDevicesData.dataContent = [];
-          tempExposedDevicesData.totalCount = 0;
+          tempSafetyScanInfoSearch.count = 0;
+          tempSafetyScanInfoData.dataContent = [];
+          tempSafetyScanInfoData.totalCount = 0;
 
           this.setState({
-            exposedDevicesSearch: tempExposedDevicesSearch,
-            exposedDevicesData: tempExposedDevicesData
+            safetyScanInfoSearch: tempSafetyScanInfoSearch,
+            safetyScanInfoData: tempSafetyScanInfoData
           });
           return null;
         }       
 
-        tempExposedDevicesData.dataContent = data.rows;
-        tempExposedDevicesData.totalCount = data.count;
-        tempExposedDevicesData.currentPage = page;
-        tempExposedDevicesData.dataFields = _.map(exposedDevicesData.dataFieldsArr, val => {
+        tempSafetyScanInfoData.dataContent = data.rows;
+        tempSafetyScanInfoData.totalCount = data.count;
+        tempSafetyScanInfoData.currentPage = page;
+        tempSafetyScanInfoData.dataFields = _.map(safetyScanInfoData.dataFieldsArr, val => {
           return {
             name: val,
-            label: t('host.vulnerabilities.txt-' + val),
+            label: t('host.endpoints.txt-' + val),
             options: {
               filter: true,
               sort: true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempExposedDevicesData.dataContent[dataIndex];
-                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+                const allValue = tempSafetyScanInfoData.dataContent[dataIndex];
+                const value = tempSafetyScanInfoData.dataContent[dataIndex][val];
+
+                if (val === 'taskCreateDttm' || val === 'taskResponseDttm') {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                }
+
                 return value;
               }
             }
           };
         });
 
-        tempExposedDevicesSearch.count = helper.numberWithCommas(data.count);
+        tempSafetyScanInfoSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          exposedDevicesSearch: tempExposedDevicesSearch,
-          exposedDevicesData: tempExposedDevicesData
+          safetyScanInfoSearch: tempSafetyScanInfoSearch,
+          safetyScanInfoData: tempSafetyScanInfoData
         });
       }
       return null;
@@ -862,13 +845,6 @@ class HostEndPoints extends Component {
     });
   }
   /**
-   * Get individual endpoint data
-   * @method
-   */
-  getActiveEndpointInfo = () => {
-
-  }
-  /**
    * Toggle show memo
    * @method
    */
@@ -880,51 +856,51 @@ class HostEndPoints extends Component {
     this.handleCloseMenu();
   }
   /**
-   * Toggle show CPE info
+   * Toggle show endpoint info
    * @method
    */
-  toggleShowCPE = () => {
+  toggleShowEndpoint = () => {
     this.setState({
-      showCpeInfo: !this.state.showCpeInfo,
-      activeCpeInfo: 'vulnerabilityDetails',
-      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
-      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+      showEndpointInfo: !this.state.showEndpointInfo,
+      activeEndpointInfo: 'overview',
+      safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH),
+      safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA)
     });
   }
   /**
-   * Toggle show CPE button
+   * Toggle show endpoints button
    * @method
    * @param {object} event - event object
-   * @param {string} type - CPE button type ('vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability')
+   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid')
    */
-  toggleCpeButtons = (event, type) => {
+  toggleEndpointButtons = (event, type) => {
     if (!type) {
       return;
     }
     
     this.setState({
-      activeCpeInfo: type
+      activeEndpointInfo: type
     }, () => {
-      const {activeCpeInfo} = this.state;
+      const {activeEndpointInfo} = this.state;
 
-      if (activeCpeInfo === 'exposedDevices') {
-        this.getExposedDevices();
-      } else if (activeCpeInfo === 'discoveredVulnerability') {
+      if (activeEndpointInfo === 'safetyScanInfo') {
+        this.getSafetyScanInfo();
+      } else if (activeEndpointInfo === 'discoveredVulnerability') {
         this.getDiscoveredVulnerability();
       }
     });
   }
   /**
-   * Handle exposed devices search change
+   * Handle safety scan info search change
    * @method
    * @param {object} event - event object
    */
-  handleDevicesSearchChange = (event) => {
-    let tempExposedDevicesSearch = {...this.state.exposedDevicesSearch};
-    tempExposedDevicesSearch[event.target.name] = event.target.value;
+  handleSafetyScanInfoSearchChange = (event) => {
+    let tempSafetyScanInfoSearch = {...this.state.safetyScanInfoSearch};
+    tempSafetyScanInfoSearch[event.target.name] = event.target.value;
 
     this.setState({
-      exposedDevicesSearch: tempExposedDevicesSearch
+      safetyScanInfoSearch: tempSafetyScanInfoSearch
     });
   }
   /**
@@ -943,7 +919,7 @@ class HostEndPoints extends Component {
   /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('endpointsSearch', 'exposedDevices' or 'cveNameSearch')
+   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo' or 'cveNameSearch')
    */
   handleResetBtn = (type, event) => {
     const {endpointsSearch, cveNameSearch} = this.state;
@@ -955,9 +931,9 @@ class HostEndPoints extends Component {
       this.setState({
         endpointsSearch: tempEndpointsSearch
       });
-    } else if (type === 'exposedDevices') {
+    } else if (type === 'safetyScanInfo') {
       this.setState({
-        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
+        safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH)
       });
     } else if (type === 'cveNameSearch') {
       let tempCveNameSearch = {...cveNameSearch};
@@ -1055,12 +1031,51 @@ class HostEndPoints extends Component {
     this.toggleShowMemo();
   }
   /**
-   * Display CPE info content
+   * Toggle view more dialog
+   * @method
+   */
+  toggleViewMore = () => {
+    this.setState({
+      modalViewMoreOpen: !this.state.modalViewMoreOpen
+    });
+  }
+   /**
+   * Handle trigger button for HMD
+   * @method
+   * @param {array.<string>} type - HMD scan type
+   */
+  triggerTask = (type) => {
+    const {baseUrl} = this.context;
+    const {currentEndpointData} = this.state;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    const requestData = {
+      hostId: currentEndpointData.hostId,
+      cmds: type
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display endpoint info content
    * @method
    * @returns HTML DOM
    */
-  displayCpeInfo = () => {
-    const {cveNameSearch, activeCpeInfo, exposedDevicesSearch, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
+  displayEndpointInfo = () => {
+    const {cveNameSearch, activeEndpointInfo, safetyScanInfoSearch, safetyScanInfoData, discoveredVulnerabilityData, currentEndpointData} = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -1089,38 +1104,42 @@ class HostEndPoints extends Component {
     return (
       <div>
         <ToggleButtonGroup
-          id='activeCpeInfoButtons'
-          value={activeCpeInfo}
+          id='activeEndpointInfoButtons'
+          value={activeEndpointInfo}
           exclusive
-          onChange={this.toggleCpeButtons}>
-          <ToggleButton id='hostDialogVulnerabilityDetails' value='vulnerabilityDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.vulnerabilities.txt-vulnerabilityDetails')}</ToggleButton>
-          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.vulnerabilities.txt-exposedDevices')}</ToggleButton>
-          <ToggleButton id='hostDialogDiscoveredVulnerability' value='discoveredVulnerability' data-cy='hostInfoDialogVulnerabilityBtn'>{t('host.inventory.txt-discoveredVulnerability')}</ToggleButton>
+          onChange={this.toggleEndpointButtons}>
+          <ToggleButton id='hostDialogOverview' value='overview' data-cy='hostInfoDialogOverviewBtn'>{t('host.endpoints.txt-overview')}</ToggleButton>
+          <ToggleButton id='hostDialogSafetyScanInfo' value='safetyScanInfo' data-cy='hostInfoDialogSafetyScanBtn'>{t('host.endpoints.txt-safetyScanInfo')}</ToggleButton>
+          <ToggleButton id='hostDialogInventory' value='softwareInventory' data-cy='hostInfoDialogInventoryBtn'>{t('host.endpoints.txt-softwareInventory')}</ToggleButton>
+          <ToggleButton id='hostDialogdiscoveredVulnerability' value='discoveredVulnerability' data-cy='hostInfoDialogVulnerabilityBtn'>{t('host.endpoints.txt-discoveredVulnerability')}</ToggleButton>
+          <ToggleButton id='hostDialogKbid' value='kbid' data-cy='hostInfoDialogKbidBtn'>{t('host.endpoints.txt-kbid')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
-          {activeCpeInfo === 'vulnerabilityDetails' &&
+          {activeEndpointInfo === 'overview' &&
             <GeneralDialog
-              page='inventory'
+              page='endpoints'
               type='general-info'
-              data={currentCpeData} />
+              data={currentEndpointData}
+              toggleViewMore={this.toggleViewMore}
+              triggerTask={this.triggerTask} />
           }
 
-          {activeCpeInfo === 'exposedDevices' &&
+          {activeEndpointInfo === 'safetyScanInfo' &&
             <GeneralDialog
-              page='inventory'
-              type='exposed-devices'
-              search={exposedDevicesSearch}
-              data={exposedDevicesData}
+              page='endpoints'
+              type='safety-scan-info'
+              search={safetyScanInfoSearch}
+              data={safetyScanInfoData}
               tableOptions={tableOptionsExposedDevices}
-              handleSearchChange={this.handleDevicesSearchChange}
-              handleSearchSubmit={this.getExposedDevices}
+              handleSearchChange={this.handleSafetyScanInfoSearchChange}
+              handleSearchSubmit={this.getSafetyScanInfo}
               handleResetBtn={this.handleResetBtn} />
           }
 
-          {activeCpeInfo === 'discoveredVulnerability' &&
+          {activeEndpointInfo === 'discoveredVulnerability' &&
             <GeneralDialog
-              page='inventory'
+              page='endpoints'
               type='general-list'
               searchType='cveNameSearch'
               search={cveNameSearch}
@@ -1135,26 +1154,26 @@ class HostEndPoints extends Component {
     )
   }
   /**
-   * Show CPE info dialog
+   * Show endpoint info dialog
    * @method
    * @returns ModalDialog component
    */
-  showCpeDialog = () => {
-    const {currentCpeData} = this.state;
+  showEndpointDialog = () => {
+    const {currentEndpointData} = this.state;
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleShowCPE}
+      cancel: {text: t('txt-close'), handler: this.toggleShowEndpoint}
     };
 
     return (
       <ModalDialog
-        id='showCpeDialog'
+        id='showEndpointDialog'
         className='modal-dialog'
-        title={currentCpeData.product}
+        title='Endpoint Info'
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayCpeInfo()}
+        {this.displayEndpointInfo()}
       </ModalDialog>
     )
   }
@@ -1166,9 +1185,9 @@ class HostEndPoints extends Component {
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {endpointsData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    const {endpointsData, safetyScanInfoData, discoveredVulnerabilityData} = this.state;
     let tempEndpointsData = {...endpointsData};
-    let tempExposedDevicesData = {...exposedDevicesData};
+    let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tableField = field;
 
@@ -1182,13 +1201,13 @@ class HostEndPoints extends Component {
         this.getEndpointsData();
       });
     } else if (tableType === 'exposedDevices') {
-      tempExposedDevicesData.sort.field = tableField;
-      tempExposedDevicesData.sort.desc = sort;
+      tempSafetyScanInfoData.sort.field = tableField;
+      tempSafetyScanInfoData.sort.desc = sort;
 
       this.setState({
-        exposedDevicesData: tempExposedDevicesData
+        safetyScanInfoData: tempSafetyScanInfoData
       }, () => {
-        this.getExposedDevices();
+        this.getSafetyScanInfo();
       });
     } else if (tableType === 'discoveredVulnerability') {
       tempDiscoveredVulnerabilityData.sort.field = tableField;
@@ -1209,9 +1228,9 @@ class HostEndPoints extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {endpointsData, exposedDevicesData, discoveredVulnerabilityData} = this.state;
+    const {endpointsData, safetyScanInfoData, discoveredVulnerabilityData} = this.state;
     let tempEndpointsData = {...endpointsData};
-    let tempExposedDevicesData = {...exposedDevicesData};
+    let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
     if (tableType === 'endpoints') {
@@ -1223,12 +1242,12 @@ class HostEndPoints extends Component {
         this.getEndpointsData(type);
       });
     } else if (tableType === 'exposedDevices') {
-      tempExposedDevicesData[type] = value;
+      tempSafetyScanInfoData[type] = value;
 
       this.setState({
-        exposedDevicesData: tempExposedDevicesData
+        safetyScanInfoData: tempSafetyScanInfoData
       }, () => {
-        this.getExposedDevices(type);
+        this.getSafetyScanInfo(type);
       });
     } else if (tableType === 'discoveredVulnerability') {
       tempDiscoveredVulnerabilityData[type] = value;
@@ -1390,62 +1409,6 @@ class HostEndPoints extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
-  /**
-   * Toggle report modal dialog on/off
-   * @method
-   */
-  toggleReport = () => {
-    this.setState({
-      reportOpen: !this.state.reportOpen,
-      uploadedCPE: false
-    });
-  }
-  /**
-   * Handle report list confirm
-   * @method
-   * @param {object} hmdVansConfigurations - HMD vans config data
-   */
-  confirmReportList = (hmdVansConfigurations) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/cpeUpdateToDate/_report`;
-    const requestData = {
-      ...this.getEndpointsFilterRequestData(),
-      hmdVansConfigurations: {
-        oid: hmdVansConfigurations.oid,
-        unit_name: hmdVansConfigurations.unitName,
-        api_key: hmdVansConfigurations.apiKey,
-        api_url: hmdVansConfigurations.apiUrl
-      }
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t(`host.txt-nccstCode-${data.Code}`));
-        this.toggleReport();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Toggle CPE file upload dialog on/off
-   * @method
-   * @param {boolean} data - true
-   */
-  toggleCpeUploadFile = (data) => {
-    this.setState({
-      uploadCpeFileOpen: !this.state.uploadCpeFileOpen,
-      uploadedCPE: data === true
-    });
-  }
   render() {
     const {
       account,
@@ -1457,18 +1420,17 @@ class HostEndPoints extends Component {
       severityType,
       connectionStatus,
       importDialogOpen,
+      modalViewMoreOpen,
       endpointsSearch,
       endpointsFilter,
       endpointsFilterList,
       showMemoInfo,
-      showCpeInfo,
+      showEndpointInfo,
       exportContextAnchor,
       tableContextAnchor,
       showFilterQuery,
-      reportOpen,
-      uploadCpeFileOpen,
-      uploadedCPE,
-      endpointsData
+      endpointsData,
+      currentEndpointData
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -1488,8 +1450,14 @@ class HostEndPoints extends Component {
           this.showMemoDialog()
         }
 
-        {showCpeInfo &&
-          this.showCpeDialog()
+        {showEndpointInfo &&
+          this.showEndpointDialog()
+        }
+
+        {modalViewMoreOpen &&
+          <HMDmoreInfo
+            hostData={currentEndpointData}
+            toggleViewMore={this.toggleViewMore} />
         }
 
         {showFilterQuery &&
@@ -1555,7 +1523,6 @@ class HostEndPoints extends Component {
               getActiveData={this.getActiveEndpointInfo}
               toggleShowMemo={this.toggleShowMemo}
               exportList={this.exportEndpointsList}
-              toggleReport={this.toggleReport}
               toggleFilterQuery={this.toggleFilterQuery}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}

@@ -198,9 +198,7 @@ class TableList extends Component {
           {page === 'endpoints' &&
             <MenuItem onClick={this.props.toggleShowMemo}>{t('txt-memo')}</MenuItem>
           }
-          {page !== 'endpoints' &&
-            <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
-          }
+          <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
         </Menu>
 
         <div className='main-content'>

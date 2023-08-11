@@ -724,16 +724,16 @@ class HostAnalysis extends Component {
           {this.displayHostAnalysisData()}
         </ModalDialog>
 
-        {modalViewMoreOpen &&
-          <HMDmoreInfo
-            hostData={hostData}
-            toggleViewMore={this.toggleViewMore} />
-        }
-
         {modalYaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}
             checkYaraRule={this.checkYaraRule} />
+        }
+
+        {modalViewMoreOpen &&
+          <HMDmoreInfo
+            hostData={hostData}
+            toggleViewMore={this.toggleViewMore} />
         }
 
         {modalIRopen &&
