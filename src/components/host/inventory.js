@@ -169,7 +169,7 @@ class HostInventory extends Component {
       reportOpen: false,
       uploadCpeFileOpen: false,
       uploadedCPE: false,
-      activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability'
+      activeCpeInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices' or 'discoveredVulnerability'
       cpeData: {
         dataFieldsArr: ['_menu', 'product', 'vendor', 'version', 'system', 'riskValue', 'vulnerabilityNum', 'exposedDevices'],
         dataFields: [],
@@ -852,7 +852,7 @@ class HostInventory extends Component {
    * Toggle show CPE button
    * @method
    * @param {object} event - event object
-   * @param {string} type - CPE button type ('vulnerabilityDetails', 'exposedDevices', or 'discoveredVulnerability')
+   * @param {string} type - CPE button type ('vulnerabilityDetails', 'exposedDevices' or 'discoveredVulnerability')
    */
   toggleCpeButtons = (event, type) => {
     if (!type) {

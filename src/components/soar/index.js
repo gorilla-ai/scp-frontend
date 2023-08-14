@@ -50,7 +50,7 @@ class SoarController extends Component {
 
     this.state = {
       activeTab: 'rule',
-      activeContent: 'table', //'table', 'settings', or 'flow'
+      activeContent: 'table', //'table', 'settings' or 'flow'
       showFilter: false,
       flowActionType: '', //'add' or 'edit'
       ipExist: true,

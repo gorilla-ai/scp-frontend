@@ -195,10 +195,10 @@ class TableList extends Component {
           keepMounted
           open={Boolean(tableAnchor)}
           onClose={this.props.handleCloseMenu}>
+          <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
           {page === 'endpoints' &&
             <MenuItem onClick={this.props.toggleShowMemo}>{t('txt-memo')}</MenuItem>
           }
-          <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
         </Menu>
 
         <div className='main-content'>

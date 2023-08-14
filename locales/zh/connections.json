@@ -204,6 +204,7 @@
   "txt-minutes": "分鐘",
   "txt-load": "載入",
   "txt-advanced": "進階",
+  "txt-version": "版本",
   "txt-fileName": "檔案名稱",
   "txt-fixed": "已修補",
   "txt-notFixed": "未修補",
@@ -463,7 +464,7 @@
     "endpoints": {
       "txt-threatsLevel": "威脅指數",
       "txt-overview": "主機分析資訊",
-      "txt-safetyScanInfo": "安全掃描資訊",
+      "txt-safetyScanInfo": "安全掃描紀錄",
       "txt-softwareInventory": "軟體清單",
       "txt-discoveredVulnerability": "軟體漏洞清單",
       "txt-kbid": "KBID",

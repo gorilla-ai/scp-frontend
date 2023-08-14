@@ -3015,23 +3015,34 @@ html[data-theme='dark'] {
   }
 }
 #showEndpointDialog-content {
+  button:hover:not([disabled]) {
+    background: none;
+  }
   .overview {
-    margin-top: 25px;
+    margin-top: 20px;
     .overview-btn-group {
       button {
         margin-right: 10px;
-        &:hover:not([disabled]) {
-          background: none;
-        }
       }
     }
     .table-data {
       display: flex;
-      justify-content: space-around;
-      margin: 10px 0;
-      header {
-        padding-top: 20px;
-        padding-bottom: 5px;
+      justify-content: space-between;
+      .column {
+        width: 48%;
+      }
+      .group {
+        position: relative;
+        header {
+          padding-top: 25px;
+          padding-bottom: 10px;
+        }
+        button {
+          position: absolute;
+          top: 25px;
+          right: 0;
+          padding: 0 10px;
+        }
       }
     }
   }

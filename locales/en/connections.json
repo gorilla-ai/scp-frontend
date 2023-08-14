@@ -204,6 +204,7 @@
   "txt-minutes": "Minutes",
   "txt-load": "Load",
   "txt-advanced": "Advanced",
+  "txt-version": "Version",
   "txt-fileName": "File Name",
   "txt-fixed": "Fixed",
   "txt-notFixed": "Not Fixed",
@@ -463,7 +464,7 @@
     "endpoints": {
       "txt-threatsLevel": "Threats Level",
       "txt-overview": "Overview",
-      "txt-safetyScanInfo": "Safety Scan",
+      "txt-safetyScanInfo": "Safety Scan Record",
       "txt-softwareInventory": "Software Inventory",
       "txt-discoveredVulnerability": "Discovered Vulnerability",
       "txt-kbid": "KBID",

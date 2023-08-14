@@ -179,7 +179,7 @@ class HostEndPoints extends Component {
       showMemoInfo: false,
       showEndpointInfo: false,
       showFilterQuery: false,
-      activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', or 'kbid'
+      activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid'
       endpointsData: {
         dataFieldsArr: ['_menu', 'hostName', 'ip', 'system', 'department', 'status', 'version', 'riskValue', 'risk', 'hbDttm', 'memos'],
         dataFields: [],
@@ -689,6 +689,10 @@ class HostEndPoints extends Component {
       hostId: currentHostId
     };
 
+    if (safetyScanInfoSearch.taskName) {
+      requestData.taskName = safetyScanInfoSearch.taskName;
+    }
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -1069,6 +1073,31 @@ class HostEndPoints extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+   /**
+   * Handle update button
+   * @method
+   */
+  handleUpdateButton = () => {
+    const {baseUrl} = this.context;
+    const {currentHostId} = this.state;
+    const url = `${baseUrl}/api/endPoint/upgrade?hostId=${currentHostId}`;
+
+    this.ah.one({
+      url,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   /**
    * Display endpoint info content
    * @method
@@ -1122,7 +1151,8 @@ class HostEndPoints extends Component {
               type='general-info'
               data={currentEndpointData}
               toggleViewMore={this.toggleViewMore}
-              triggerTask={this.triggerTask} />
+              triggerTask={this.triggerTask}
+              handleUpdateButton={this.handleUpdateButton} />
           }
 
           {activeEndpointInfo === 'safetyScanInfo' &&

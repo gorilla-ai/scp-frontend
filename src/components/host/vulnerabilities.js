@@ -959,7 +959,7 @@ class HostVulnerabilities extends Component {
    * Toggle show CVE button
    * @method
    * @param {object} event - event object
-   * @param {string} type - CVE button type ('vulnerabilityDetails', 'exposedDevices', or 'relatedSoftware')
+   * @param {string} type - CVE button type ('vulnerabilityDetails', 'exposedDevices' or 'relatedSoftware')
    */
   toggleCveButtons = (event, type) => {
     if (!type) {
