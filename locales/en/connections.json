@@ -113,6 +113,7 @@
   "txt-analysis": "Analysis",
   "txt-report": "Report",
   "txt-count": "Count",
+  "txt-searchCount": "Count",
   "txt-password": "Password",
   "txt-start": "Start",
   "txt-stop": "Stop",
@@ -455,7 +456,10 @@
       "txt-update": "Update",
       "txt-vendor": "Vendor",
       "txt-version": "Version",
-      "txt-productName": "Product Name"
+      "txt-productName": "Product Name",
+      "txt-riskValue": "CVE Risk Value",
+      "txt-vulnerabilityNum": "Vulnerability Count",
+      "txt-detectedDttm": "Detected Time"
     },
     "kbid": {
       "txt-kbidList": "KBID List",

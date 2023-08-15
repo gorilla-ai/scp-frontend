@@ -113,6 +113,7 @@
   "txt-analysis": "分析",
   "txt-report": "報告",
   "txt-count": "次數",
+  "txt-searchCount": "數量",
   "txt-password": "密碼",
   "txt-start": "開始",
   "txt-stop": "停止",
@@ -455,7 +456,10 @@
       "txt-update": "更新",
       "txt-vendor": "廠商",
       "txt-version": "版號",
-      "txt-productName": "產品名稱"
+      "txt-productName": "產品名稱",
+      "txt-riskValue": "CVE風險指數",
+      "txt-vulnerabilityNum": "弱點數量",
+      "txt-detectedDttm": "偵測時間"
     },
     "kbid": {
       "txt-kbidList": "KBID清單",

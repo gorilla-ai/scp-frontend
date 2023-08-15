@@ -34,6 +34,12 @@ const CONDITION_MODE = {
   '>': 'gt',
   '<': 'lt'
 };
+const SEVERITY_COLORS = {
+  critical: '#000',
+  high: '#CC2943',
+  medium: '#CC7B29',
+  low: '#7ACC29'
+};
 const FILTER_LIST = [
   {
     name: 'departmentSelected',
@@ -105,7 +111,8 @@ const ENDPOINTS_FILTER_LIST = {
   memos: []
 };
 const SAFETY_SCAN_INFO_SEARCH = {
-  taskName: ''
+  keyword: '',
+  count: 0
 };
 const SAFETY_SCAN_INFO_DATA = {
   dataFieldsArr: ['taskName', 'taskStatus', 'taskCreateDttm', 'taskResponseDttm'],
@@ -119,8 +126,28 @@ const SAFETY_SCAN_INFO_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const SOFTWARE_INVENTORY_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const SOFTWARE_INVENTORY_INFO_DATA = {
+  dataFieldsArr: ['product', 'vendor', 'version', 'cpe23uri', 'riskValue', 'vulnerabilityNum', 'detectedDttm'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
+const DISCOVERED_VULNERABILITY_SEARCH = {
+  keyword: '',
+  count: 0
+};
 const DISCOVERED_VULNERABILITY_DATA = {
-  dataFieldsArr: ['cveId', 'severity', 'cvss'],
+  dataFieldsArr: ['cveId', 'severity', 'cvss', 'relatedSoftware', 'fix'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -172,10 +199,6 @@ class HostEndPoints extends Component {
       endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
       exportContextAnchor: null,
       tableContextAnchor: null,
-      cveNameSearch: {
-        keyword: '',
-        count: 0
-      },
       showMemoInfo: false,
       showEndpointInfo: false,
       showFilterQuery: false,
@@ -197,10 +220,14 @@ class HostEndPoints extends Component {
       }],
       safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH),
       safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA),
+      softwareInventorySearch: _.cloneDeep(SOFTWARE_INVENTORY_SEARCH),
+      softwareInventoryData: _.cloneDeep(SOFTWARE_INVENTORY_INFO_DATA),
+      discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
       currentHostId: '',
       currentRiskLevel: '',
-      currentEndpointData: {}
+      currentEndpointData: {},
+      severityStatistics: null
     };
 
     this.ah = getInstance('chewbacca');
@@ -230,9 +257,34 @@ class HostEndPoints extends Component {
         this.getConnectionStatus();
       });
     }
+
+    this.setLocaleLabel();
   }
   componentWillUnmount() {
     helper.clearTimer();
+  }
+  /**
+   * Get and set locale label for charts
+   * @method
+   */
+  setLocaleLabel = () => {
+    const {locale} = this.context;
+
+    if (locale === 'en') {
+      ALERT_LEVEL_COLORS = {
+        Critical: '#000',
+        High: '#CC2943',
+        Medium: '#CC7B29',
+        Low: '#7ACC29'
+      };
+    } else if (locale === 'zh') {
+      ALERT_LEVEL_COLORS = {
+        嚴重: '#000',
+        高: '#CC2943',
+        中: '#CC7B29',
+        低: '#7ACC29'
+      };
+    }
   }
   /**
    * Get department tree data
@@ -675,6 +727,32 @@ class HostEndPoints extends Component {
     })
   }
   /**
+   * Toggle show endpoints button
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid')
+   */
+  toggleEndpointButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
+    this.setState({
+      activeEndpointInfo: type
+    }, () => {
+      const {activeEndpointInfo} = this.state;
+
+      if (activeEndpointInfo === 'safetyScanInfo') {
+        this.getSafetyScanInfo();
+      } else if (activeEndpointInfo === 'softwareInventory') {
+        this.getSoftwareInventory();
+      } else if (activeEndpointInfo === 'discoveredVulnerability') {
+        this.getSeverityStatistics();
+        this.getDiscoveredVulnerability();
+      }
+    });
+  }
+  /**
    * Get safety scan info data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
@@ -684,13 +762,17 @@ class HostEndPoints extends Component {
     const {safetyScanInfoSearch, safetyScanInfoData, currentHostId} = this.state;
     const sort = safetyScanInfoData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? safetyScanInfoData.currentPage : 0;
-    const url = `${baseUrl}/api/endPoint/safetyScanInfo/record`;
+    let url = `${baseUrl}/api/endPoint/safetyScanInfo/record?page=${page + 1}&pageSize=${safetyScanInfoData.pageSize}`;
     let requestData = {
       hostId: currentHostId
     };
 
-    if (safetyScanInfoSearch.taskName) {
-      requestData.taskName = safetyScanInfoSearch.taskName;
+    if (safetyScanInfoData.sort.field) {
+      url += `&orders=${safetyScanInfoData.sort.field} ${sort}`;
+    }
+
+    if (safetyScanInfoSearch.keyword) {
+      requestData.taskName = safetyScanInfoSearch.keyword;
     }
 
     this.ah.one({
@@ -725,12 +807,12 @@ class HostEndPoints extends Component {
             label: t('host.endpoints.txt-' + val),
             options: {
               filter: true,
-              sort: true,
+              sort: false,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempSafetyScanInfoData.dataContent[dataIndex];
                 const value = tempSafetyScanInfoData.dataContent[dataIndex][val];
 
-                if (val === 'taskCreateDttm' || val === 'taskResponseDttm') {
+                if (value && (val === 'taskCreateDttm' || val === 'taskResponseDttm')) {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 }
 
@@ -754,26 +836,26 @@ class HostEndPoints extends Component {
     })
   }
   /**
-   * Get discovered vulnerability data
+   * Get software inventory data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getDiscoveredVulnerability = (fromPage) => {
+  getSoftwareInventory = (fromPage) => {
     const {baseUrl} = this.context;
-    const {cveNameSearch, discoveredVulnerabilityData, currentCpeKey} = this.state;
-    const sort = discoveredVulnerabilityData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? discoveredVulnerabilityData.currentPage : 0;
-    const requestData = {
-      cpeKey: currentCpeKey
+    const {softwareInventorySearch, softwareInventoryData, currentHostId} = this.state;
+    const sort = softwareInventoryData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? softwareInventoryData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/inventory?page=${page + 1}&pageSize=${softwareInventoryData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
     };
-    let url = `${baseUrl}/api/hmd/cpe/cves?page=${page + 1}&pageSize=${discoveredVulnerabilityData.pageSize}`;
 
-    if (discoveredVulnerabilityData.sort.field) {
-      url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
+    if (softwareInventoryData.sort.field) {
+      url += `&orders=${softwareInventoryData.sort.field} ${sort}`;
     }
 
-    if (cveNameSearch.keyword) {
-      requestData.cveId = cveNameSearch.keyword;
+    if (softwareInventorySearch.keyword) {
+      requestData.cpeInfo = softwareInventorySearch.keyword;
     }
 
     this.ah.one({
@@ -784,16 +866,140 @@ class HostEndPoints extends Component {
     })
     .then(data => {
       if (data) {
-        let tempCveNameSearch = {...cveNameSearch};
+        let tempSoftwareInventorySearch = {...softwareInventorySearch};
+        let tempSoftwareInventoryData = {...softwareInventoryData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempSoftwareInventorySearch.count = 0;
+          tempSoftwareInventoryData.dataContent = [];
+          tempSoftwareInventoryData.totalCount = 0;
+
+          this.setState({
+            softwareInventorySearch: tempSoftwareInventorySearch,
+            softwareInventoryData: tempSoftwareInventoryData
+          });
+          return null;
+        }       
+
+        tempSoftwareInventoryData.dataContent = data.rows;
+        tempSoftwareInventoryData.totalCount = data.count;
+        tempSoftwareInventoryData.currentPage = page;
+        tempSoftwareInventoryData.dataFields = _.map(softwareInventoryData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.inventory.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempSoftwareInventoryData.dataContent[dataIndex];
+                const value = tempSoftwareInventoryData.dataContent[dataIndex][val];
+
+                if (value && val === 'detectedDttm') {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                }
+
+                return value;
+              }
+            }
+          };
+        });
+
+        tempSoftwareInventorySearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          softwareInventorySearch: tempSoftwareInventorySearch,
+          softwareInventoryData: tempSoftwareInventoryData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get severity statistics
+   * @method
+   */
+  getSeverityStatistics = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/endPoint/vulnerability/severityAgg?hostId=${this.state.currentHostId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const severityStatistics = _.map(SEVERITY_TYPE, val => {
+          return {
+            severity: val,
+            value: data.severityAgg[val]
+          };
+        });
+
+        this.setState({
+          severityStatistics
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get related software list
+   * @method
+   * @param {array.<string>} list - related software list
+   * @returns list of software
+   */
+  getSoftwareList = (list) => {
+    list.shift();
+    list.shift();
+    return list.join(', ');
+  }
+  /**
+   * Get discovered vulnerability data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getDiscoveredVulnerability = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {discoveredVulnerabilitySearch, discoveredVulnerabilityData, currentHostId} = this.state;
+    const sort = discoveredVulnerabilityData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? discoveredVulnerabilityData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/vulnerability?page=${page + 1}&pageSize=${discoveredVulnerabilityData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
+    };
+
+    if (discoveredVulnerabilityData.sort.field) {
+      url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
+    }
+
+    if (discoveredVulnerabilitySearch.keyword) {
+      requestData.cveId = discoveredVulnerabilitySearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempDiscoveredVulnerabilitySearch = {...discoveredVulnerabilitySearch};
         let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempCveNameSearch.count = 0;
+          tempDiscoveredVulnerabilitySearch.count = 0;
           tempDiscoveredVulnerabilityData.dataContent = [];
           tempDiscoveredVulnerabilityData.totalCount = 0;
 
           this.setState({
-            cveNameSearch: tempCveNameSearch,
+            discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch,
             discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
           });
           return null;
@@ -817,6 +1023,20 @@ class HostEndPoints extends Component {
                   const severityLevel = t('txt-' + value.toLowerCase());
 
                   return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[severityLevel]}}>{severityLevel}</span>
+                } else if (val === 'relatedSoftware') {
+                  return (
+                    <div>
+                      <span>{value[0]}</span>
+                      {value.length > 1 &&
+                        <span>, {value[1]}</span>
+                      }
+                      {value.length > 2 &&
+                        <span title={this.getSoftwareList(value)}>, {t('txt-more')}...</span>
+                      }
+                    </div>
+                  )
+                } else if (val === 'fix') {
+                  return value ? t('txt-fixed') : t('txt-notFixed');
                 } else {
                   return value;
                 }
@@ -825,10 +1045,10 @@ class HostEndPoints extends Component {
           };
         });
 
-        tempCveNameSearch.count = helper.numberWithCommas(data.count);
+        tempDiscoveredVulnerabilitySearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          cveNameSearch: tempCveNameSearch,
+          discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch,
           discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
         });
       }
@@ -866,32 +1086,7 @@ class HostEndPoints extends Component {
   toggleShowEndpoint = () => {
     this.setState({
       showEndpointInfo: !this.state.showEndpointInfo,
-      activeEndpointInfo: 'overview',
-      safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH),
-      safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA)
-    });
-  }
-  /**
-   * Toggle show endpoints button
-   * @method
-   * @param {object} event - event object
-   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid')
-   */
-  toggleEndpointButtons = (event, type) => {
-    if (!type) {
-      return;
-    }
-    
-    this.setState({
-      activeEndpointInfo: type
-    }, () => {
-      const {activeEndpointInfo} = this.state;
-
-      if (activeEndpointInfo === 'safetyScanInfo') {
-        this.getSafetyScanInfo();
-      } else if (activeEndpointInfo === 'discoveredVulnerability') {
-        this.getDiscoveredVulnerability();
-      }
+      activeEndpointInfo: 'overview'
     });
   }
   /**
@@ -901,32 +1096,45 @@ class HostEndPoints extends Component {
    */
   handleSafetyScanInfoSearchChange = (event) => {
     let tempSafetyScanInfoSearch = {...this.state.safetyScanInfoSearch};
-    tempSafetyScanInfoSearch[event.target.name] = event.target.value;
+    tempSafetyScanInfoSearch.keyword = event.target.value;
 
     this.setState({
       safetyScanInfoSearch: tempSafetyScanInfoSearch
     });
   }
   /**
-   * Handle CVE name search
+   * Handle software inventory search change
    * @method
    * @param {object} event - event object
    */
-  handleCveNameChange = (event) => {
-    let tempCveNameSearch = {...this.state.cveNameSearch};
-    tempCveNameSearch.keyword = event.target.value;
+  handleSoftwareInventorySearchChange = (event) => {
+    let tempSoftwareInventorySearch = {...this.state.softwareInventorySearch};
+    tempSoftwareInventorySearch.keyword = event.target.value;
 
     this.setState({
-      cveNameSearch: tempCveNameSearch
+      softwareInventorySearch: tempSoftwareInventorySearch
+    });
+  }
+  /**
+   * Handle discovered vulnerability search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDiscoveredVulnerabilitySearchChange = (event) => {
+    let tempDiscoveredVulnerabilitySearch = {...this.state.discoveredVulnerabilitySearch};
+    tempDiscoveredVulnerabilitySearch.keyword = event.target.value;
+
+    this.setState({
+      discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
     });
   }
   /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo' or 'cveNameSearch')
+   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory' or 'discoveredVulnerability')
    */
-  handleResetBtn = (type, event) => {
-    const {endpointsSearch, cveNameSearch} = this.state;
+  handleResetBtn = (type) => {
+    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, discoveredVulnerabilitySearch} = this.state;
 
     if (type === 'endpointsSearch') {
       let tempEndpointsSearch = {...endpointsSearch};
@@ -936,15 +1144,25 @@ class HostEndPoints extends Component {
         endpointsSearch: tempEndpointsSearch
       });
     } else if (type === 'safetyScanInfo') {
-      this.setState({
-        safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH)
-      });
-    } else if (type === 'cveNameSearch') {
-      let tempCveNameSearch = {...cveNameSearch};
-      tempCveNameSearch.keyword = '';
+      let tempSafetyScanInfoSearch = {...safetyScanInfoSearch};
+      tempSafetyScanInfoSearch.keyword = '';
 
       this.setState({
-        cveNameSearch: tempCveNameSearch
+        safetyScanInfoSearch: tempSafetyScanInfoSearch
+      });
+    } else if (type === 'softwareInventory') {
+      let tempSoftwareInventorySearch = {...softwareInventorySearch};
+      tempSoftwareInventorySearch.keyword = '';
+
+      this.setState({
+        softwareInventorySearch: tempSoftwareInventorySearch
+      });
+    } else if (type === 'discoveredVulnerability') {
+      let tempDiscoveredVulnerabilitySearch = {...discoveredVulnerabilitySearch};
+      tempDiscoveredVulnerabilitySearch.keyword = '';
+
+      this.setState({
+        discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
       });
     }
   }
@@ -1104,17 +1322,39 @@ class HostEndPoints extends Component {
    * @returns HTML DOM
    */
   displayEndpointInfo = () => {
-    const {cveNameSearch, activeEndpointInfo, safetyScanInfoSearch, safetyScanInfoData, discoveredVulnerabilityData, currentEndpointData} = this.state;
-    const tableOptionsExposedDevices = {
+    const {
+      activeEndpointInfo,
+      safetyScanInfoSearch,
+      safetyScanInfoData,
+      softwareInventorySearch,
+      softwareInventoryData,
+      discoveredVulnerabilitySearch,
+      discoveredVulnerabilityData,
+      currentEndpointData,
+      severityStatistics
+    } = this.state;
+    const tableOptionsSafetyScanInfo = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
-        this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
+        this.handlePaginationChange('safetyScanInfo', 'currentPage', currentPage);
       },
       onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('exposedDevices', 'pageSize', numberOfRows);
+        this.handlePaginationChange('safetyScanInfo', 'pageSize', numberOfRows);
       },
       onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort('exposedDevices', changedColumn, direction === 'desc');
+        this.handleTableSort('safetyScanInfo', changedColumn, direction === 'desc');
+      }
+    };
+    const tableOptionsSoftwareInventory = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('softwareInventory', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('softwareInventory', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('softwareInventory', changedColumn, direction === 'desc');
       }
     };
     const tableOptionsDiscoveredVulnerability = {
@@ -1158,12 +1398,26 @@ class HostEndPoints extends Component {
           {activeEndpointInfo === 'safetyScanInfo' &&
             <GeneralDialog
               page='endpoints'
-              type='safety-scan-info'
+              type='general-list'
+              searchType={activeEndpointInfo}
               search={safetyScanInfoSearch}
               data={safetyScanInfoData}
-              tableOptions={tableOptionsExposedDevices}
+              tableOptions={tableOptionsSafetyScanInfo}
               handleSearchChange={this.handleSafetyScanInfoSearchChange}
               handleSearchSubmit={this.getSafetyScanInfo}
+              handleResetBtn={this.handleResetBtn} />
+          }
+
+          {activeEndpointInfo === 'softwareInventory' &&
+            <GeneralDialog
+              page='endpoints'
+              type='general-list'
+              searchType={activeEndpointInfo}
+              search={softwareInventorySearch}
+              data={softwareInventoryData}
+              tableOptions={tableOptionsSoftwareInventory}
+              handleSearchChange={this.handleSoftwareInventorySearchChange }
+              handleSearchSubmit={this.getSoftwareInventory}
               handleResetBtn={this.handleResetBtn} />
           }
 
@@ -1171,11 +1425,13 @@ class HostEndPoints extends Component {
             <GeneralDialog
               page='endpoints'
               type='general-list'
-              searchType='cveNameSearch'
-              search={cveNameSearch}
+              searchType={activeEndpointInfo}
+              search={discoveredVulnerabilitySearch}
               data={discoveredVulnerabilityData}
               tableOptions={tableOptionsDiscoveredVulnerability}
-              handleSearchChange={this.handleCveNameChange}
+              severityStatistics={severityStatistics}
+              severityColors={SEVERITY_COLORS}
+              handleSearchChange={this.handleDiscoveredVulnerabilitySearchChange}
               handleSearchSubmit={this.getDiscoveredVulnerability}
               handleResetBtn={this.handleResetBtn} />
           }
@@ -1210,14 +1466,15 @@ class HostEndPoints extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('endpoints', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory' or 'discoveredVulnerability')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {endpointsData, safetyScanInfoData, discoveredVulnerabilityData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
+    let tempSoftwareInventoryData = {...softwareInventoryData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tableField = field;
 
@@ -1230,7 +1487,7 @@ class HostEndPoints extends Component {
       }, () => {
         this.getEndpointsData();
       });
-    } else if (tableType === 'exposedDevices') {
+    } else if (tableType === 'safetyScanInfo') {
       tempSafetyScanInfoData.sort.field = tableField;
       tempSafetyScanInfoData.sort.desc = sort;
 
@@ -1238,6 +1495,15 @@ class HostEndPoints extends Component {
         safetyScanInfoData: tempSafetyScanInfoData
       }, () => {
         this.getSafetyScanInfo();
+      });
+    } else if (tableType === 'softwareInventory') {
+      tempSoftwareInventoryData.sort.field = tableField;
+      tempSoftwareInventoryData.sort.desc = sort;
+
+      this.setState({
+        softwareInventoryData: tempSoftwareInventoryData
+      }, () => {
+        this.getSoftwareInventory();
       });
     } else if (tableType === 'discoveredVulnerability') {
       tempDiscoveredVulnerabilityData.sort.field = tableField;
@@ -1253,14 +1519,15 @@ class HostEndPoints extends Component {
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('endpoints', 'exposedDevices' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory' or 'discoveredVulnerability')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {endpointsData, safetyScanInfoData, discoveredVulnerabilityData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
+    let tempSoftwareInventoryData = {...softwareInventoryData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
     if (tableType === 'endpoints') {
@@ -1271,13 +1538,21 @@ class HostEndPoints extends Component {
       }, () => {
         this.getEndpointsData(type);
       });
-    } else if (tableType === 'exposedDevices') {
+    } else if (tableType === 'safetyScanInfo') {
       tempSafetyScanInfoData[type] = value;
 
       this.setState({
         safetyScanInfoData: tempSafetyScanInfoData
       }, () => {
         this.getSafetyScanInfo(type);
+      });
+    } else if (tableType === 'softwareInventory') {
+      tempSoftwareInventoryData[type] = value;
+
+      this.setState({
+        softwareInventoryData: tempSoftwareInventoryData
+      }, () => {
+        this.getSoftwareInventory(type);
       });
     } else if (tableType === 'discoveredVulnerability') {
       tempDiscoveredVulnerabilityData[type] = value;
@@ -1533,7 +1808,7 @@ class HostEndPoints extends Component {
                 <div className='box'>
                   <header>Offline:</header>
                   <div>220</div>
-                </div>                
+                </div>
                 <div className='box'>
                   <header>Inactivate Agent:</header>
                   <div>25</div>

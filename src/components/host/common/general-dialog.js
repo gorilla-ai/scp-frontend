@@ -329,39 +329,6 @@ class GeneralDialog extends Component {
     }
   }
   /**
-   * Display safety scan info
-   * @method
-   * @returns HTML DOM
-   */
-  showSafetyScanInfo = () => {
-    const {page, search, data, tableOptions} = this.props;
-
-    return (
-      <React.Fragment>
-        <div className='search-field'>
-          <div className='group'>
-            <TextField
-              name='taskName'
-              className='search-text'
-              label={t('host.endpoints.txt-taskName')}
-              variant='outlined'
-              size='small'
-              value={search.taskName}
-              onChange={this.props.handleSearchChange}
-              data-cy='hostInfoDialogDeviceHostTextField' />
-          </div>
-          <Button id='hostSafetyScanSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
-          <Button id='hostSafetyScanClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'safetyScanInfo')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
-        </div>
-
-        <MuiTableContent
-          tableHeight='auto'
-          data={data}
-          tableOptions={tableOptions} />
-      </React.Fragment>
-    )
-  }
-  /**
    * Display exposed devices
    * @method
    * @returns HTML DOM
@@ -437,28 +404,66 @@ class GeneralDialog extends Component {
     )
   }
   /**
+   * Get individual severity box
+   * @method
+   * @param {object} val - severity data
+   * @param {number} i - index of the severity data
+   * @returns HTML DOM
+   */
+  getSeverityBox = (val, i) => {
+    const {severityColors} = this.props;
+    const backgroundColor = severityColors[val.severity];
+
+    return (
+      <div key={val} className='box' style={{backgroundColor}}>
+        <header>{t('txt-' + val.severity)}</header>
+        <div className='number'>{val.value}</div>
+      </div>
+    )
+  }
+  /**
    * Display general list
    * @method
    * @returns HTML DOM
    */
   showGeneralList = () => {
-    const {page, searchType, search, data, tableOptions} = this.props;
+    const {page, searchType, search, data, tableOptions, severityStatistics} = this.props;
     let searchFieldText = '';
     let searchCountHeader = '';
 
     if (page === 'vulnerabilities') {
-      searchFieldText = t('host.inventory.txt-productName');
-      searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
+      if (searchType === 'relatedSoftware') {
+        searchFieldText = t('host.inventory.txt-productName');
+        searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
+      }
     } else if (page === 'inventory') {
-      searchFieldText = t('host.vulnerabilities.txt-cveName');
-      searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
-    } else if (page === 'kbid') {
-      searchFieldText = t('host.vulnerabilities.txt-cveName');
-      searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
+      if (searchType === 'discoveredVulnerability') {
+        searchFieldText = t('host.vulnerabilities.txt-cveName');
+        searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
+      }
+    } else if (page === 'endpoints') {
+      if (searchType === 'safetyScanInfo') {
+        searchFieldText = t('host.endpoints.txt-taskName');
+        searchCountHeader = t('txt-searchCount');
+      } else if (searchType === 'softwareInventory') {
+        searchFieldText = t('host.inventory.txt-cpe23uri');
+        searchCountHeader = t('txt-searchCount');
+      } else if (searchType === 'discoveredVulnerability') {
+        searchFieldText = t('host.vulnerabilities.txt-cveName');
+        searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
+      }
     }
 
     return (
       <React.Fragment>
+        {page === 'endpoints' && searchType === 'discoveredVulnerability' &&
+          <div className='statistics-content'>
+            {severityStatistics && severityStatistics.length > 0 &&
+              severityStatistics.map(this.getSeverityBox)
+            }
+          </div>
+        }
+
         <div className='search-field'>
           <div className='group'>
             <TextField
@@ -469,7 +474,7 @@ class GeneralDialog extends Component {
               size='small'
               value={search.keyword}
               onChange={this.props.handleSearchChange}
-              data-cy='hostInfoDialogSoftwareCveTextField' />
+              data-cy='hostInfoDialogSearchField' />
           </div>
           <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogSoftwareSubmitBtn'>{t('txt-search')}</Button>
           <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-clear')}</Button>
@@ -490,10 +495,6 @@ class GeneralDialog extends Component {
       <div>
         {type === 'general-info' &&
           this.showGeneralInfo()
-        }
-
-        {type === 'safety-scan-info' &&
-          this.showSafetyScanInfo()
         }
 
         {type === 'exposed-devices' &&
@@ -517,6 +518,7 @@ GeneralDialog.propTypes = {
   search: PropTypes.object,
   searchType: PropTypes.string,
   tableOptions: PropTypes.object,
+  severityStatistics: PropTypes.array,
   handleSearchChange: PropTypes.func,
   handleSearchSubmit: PropTypes.func,
   handleResetBtn: PropTypes.func,

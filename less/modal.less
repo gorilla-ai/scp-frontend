@@ -3015,11 +3015,11 @@ html[data-theme='dark'] {
   }
 }
 #showEndpointDialog-content {
-  button:hover:not([disabled]) {
-    background: none;
-  }
   .overview {
     margin-top: 20px;
+    button:hover:not([disabled]) {
+      background: none;
+    }
     .overview-btn-group {
       button {
         margin-right: 10px;
@@ -3028,6 +3028,10 @@ html[data-theme='dark'] {
     .table-data {
       display: flex;
       justify-content: space-between;
+      table {
+        border-collapse: separate;
+        border: 1px solid var(--primaryBorder);
+      }
       .column {
         width: 48%;
       }
@@ -3043,6 +3047,31 @@ html[data-theme='dark'] {
           right: 0;
           padding: 0 10px;
         }
+      }
+    }
+  }
+  .statistics-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    background-color: var(--primaryContentBackground);
+    .box {
+      padding: 10px 10px 15px 10px;
+      text-align: center;
+      min-width: 150px;
+      border-radius: 5px;
+      color: #fff;
+      background-color: var(--tabMenuHover);
+      border: 1px solid var(--primaryBorder);
+      header {
+        font-size: 1.5em;
+        color: #fff;
+        padding-bottom: 10px;
+      }
+      .number {
+        font-size: 24px;
       }
     }
   }

@@ -95,6 +95,10 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const RELATED_SOFTWARE_SEARCH = {
+  keyword: '',
+  count: 0
+};
 const RELATED_SOFTWARE_DATA = {
   dataFieldsArr: ['product', 'version', 'system', 'exposedDevices'],
   dataFields: [],
@@ -144,10 +148,6 @@ class HostVulnerabilities extends Component {
       cveFilterList: _.cloneDeep(CVE_FILTER_LIST),
       exportContextAnchor: null,
       tableContextAnchor: null,
-      productNameSearch: {
-        keyword: '',
-        count: 0
-      },
       cveSeverityLevel: {
         data: null,
         count: 0
@@ -170,6 +170,7 @@ class HostVulnerabilities extends Component {
       },
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      relatedSoftwareSearch: _.cloneDeep(RELATED_SOFTWARE_SEARCH),
       relatedSoftwareData: _.cloneDeep(RELATED_SOFTWARE_DATA),
       currentCveId: '',
       currentCveData: {}
@@ -853,7 +854,7 @@ class HostVulnerabilities extends Component {
    */
   getRelatedSoftware = (fromPage) => {
     const {baseUrl} = this.context;
-    const {productNameSearch, cveFilter, relatedSoftwareData, currentCveId} = this.state;
+    const {cveFilter, relatedSoftwareSearch, relatedSoftwareData, currentCveId} = this.state;
     const sort = relatedSoftwareData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? relatedSoftwareData.currentPage : 0;
     let url = `${baseUrl}/api/hmd/cve/relatedSoftware?page=${page + 1}&pageSize=${relatedSoftwareData.pageSize}`;
@@ -865,8 +866,8 @@ class HostVulnerabilities extends Component {
       url += `&orders=${relatedSoftwareData.sort.field} ${sort}`;
     }
 
-    if (productNameSearch.keyword) {
-      requestData.product = productNameSearch.keyword;
+    if (relatedSoftwareSearch.keyword) {
+      requestData.product = relatedSoftwareSearch.keyword;
     }
 
     if (cveFilter.departmentSelected.length > 0) {
@@ -881,25 +882,25 @@ class HostVulnerabilities extends Component {
     })
     .then(data => {
       if (data) {
-        let tempProductNameSearch = {...productNameSearch};
-        let tempExposedDevicesData = {...relatedSoftwareData};
+        let tempRelatedSoftwareSearch = {...relatedSoftwareSearch};
+        let tempRelatedSoftwareData = {...relatedSoftwareData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempProductNameSearch.count = 0;
-          tempExposedDevicesData.dataContent = [];
-          tempExposedDevicesData.totalCount = 0;
+          tempRelatedSoftwareSearch.count = 0;
+          tempRelatedSoftwareData.dataContent = [];
+          tempRelatedSoftwareData.totalCount = 0;
 
           this.setState({
-            productNameSearch: tempProductNameSearch,
-            relatedSoftwareData: tempExposedDevicesData
+            relatedSoftwareSearch: tempRelatedSoftwareSearch,
+            relatedSoftwareData: tempRelatedSoftwareData
           });
           return null;
         }       
 
-        tempExposedDevicesData.dataContent = data.rows;
-        tempExposedDevicesData.totalCount = data.count;
-        tempExposedDevicesData.currentPage = page;
-        tempExposedDevicesData.dataFields = _.map(relatedSoftwareData.dataFieldsArr, val => {
+        tempRelatedSoftwareData.dataContent = data.rows;
+        tempRelatedSoftwareData.totalCount = data.count;
+        tempRelatedSoftwareData.currentPage = page;
+        tempRelatedSoftwareData.dataFields = _.map(relatedSoftwareData.dataFieldsArr, val => {
           return {
             name: val,
             label: f('hostDashboardFields.' + val),
@@ -907,8 +908,8 @@ class HostVulnerabilities extends Component {
               filter: true,
               sort: true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempExposedDevicesData.dataContent[dataIndex];
-                const value = tempExposedDevicesData.dataContent[dataIndex][val];
+                const allValue = tempRelatedSoftwareData.dataContent[dataIndex];
+                const value = tempRelatedSoftwareData.dataContent[dataIndex][val];
 
                 if (val === 'exposedDevices') {
                   return value + ' / ' + allValue.exposedDevicesTotal;
@@ -920,11 +921,11 @@ class HostVulnerabilities extends Component {
           };
         });
 
-        tempProductNameSearch.count = helper.numberWithCommas(data.count);
+        tempRelatedSoftwareSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          productNameSearch: tempProductNameSearch,
-          relatedSoftwareData: tempExposedDevicesData
+          relatedSoftwareSearch: tempRelatedSoftwareSearch,
+          relatedSoftwareData: tempRelatedSoftwareData
         });
       }
       return null;
@@ -950,9 +951,7 @@ class HostVulnerabilities extends Component {
   toggleShowCVE = () => {
     this.setState({
       showCveInfo: !this.state.showCveInfo,
-      activeCveInfo: 'vulnerabilityDetails',
-      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
-      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+      activeCveInfo: 'vulnerabilityDetails'
     });
   }
   /**
@@ -992,25 +991,25 @@ class HostVulnerabilities extends Component {
     });
   }
   /**
-   * Handle product search
+   * Handle related software search
    * @method
    * @param {object} event - event object
    */
-  handleProductChange = (event) => {
-    let tempProductNameSearch = {...this.state.productNameSearch};
-    tempProductNameSearch.keyword = event.target.value;
+  handleRelatedSoftwareSearchChange = (event) => {
+    let tempRelatedSoftwareSearch = {...this.state.relatedSoftwareSearch};
+    tempRelatedSoftwareSearch.keyword = event.target.value;
 
     this.setState({
-      productNameSearch: tempProductNameSearch
+      relatedSoftwareSearch: tempRelatedSoftwareSearch
     });
   }
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('cveSearch', 'exposedDevices' or 'productNameSearch')
+   * @param {string} type - reset button type ('cveSearch', 'exposedDevices' or 'relatedSoftware')
    */
-  handleResetBtn = (type, event) => {
-    const {cveSearch, productNameSearch} = this.state;
+  handleResetBtn = (type) => {
+    const {cveSearch, exposedDevicesSearch, relatedSoftwareSearch} = this.state;
 
     if (type === 'cveSearch') {
       let tempCveSearch = {...cveSearch};
@@ -1020,15 +1019,20 @@ class HostVulnerabilities extends Component {
         cveSearch: tempCveSearch
       });
     } else if (type === 'exposedDevices') {
-      this.setState({
-        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
-      });
-    } else if (type === 'productNameSearch') {
-      let tempProductNameSearch = {...productNameSearch};
-      tempProductNameSearch.keyword = '';
+      let tempExposedDevicesSearch = {...exposedDevicesSearch};
+      tempExposedDevicesSearch.hostName = '';
+      tempExposedDevicesSearch.ip = '';
+      tempExposedDevicesSearch.system = '';
 
       this.setState({
-        productNameSearch: tempProductNameSearch
+        exposedDevicesSearch: tempExposedDevicesSearch
+      });
+    } else if (type === 'relatedSoftware') {
+      let tempRelatedSoftwareSearch = {...relatedSoftwareSearch};
+      tempRelatedSoftwareSearch.keyword = '';
+
+      this.setState({
+        relatedSoftwareSearch: tempRelatedSoftwareSearch
       });
     }
   }
@@ -1038,7 +1042,7 @@ class HostVulnerabilities extends Component {
    * @returns HTML DOM
    */
   displayCveInfo = () => {
-    const {productNameSearch, activeCveInfo, exposedDevicesSearch, exposedDevicesData, relatedSoftwareData, currentCveData} = this.state;
+    const {activeCveInfo, exposedDevicesSearch, exposedDevicesData, relatedSoftwareSearch, relatedSoftwareData, currentCveData} = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -1100,11 +1104,11 @@ class HostVulnerabilities extends Component {
             <GeneralDialog
               page='vulnerabilities'
               type='general-list'
-              searchType='productNameSearch'
-              search={productNameSearch}
+              searchType={activeCveInfo}
+              search={relatedSoftwareSearch}
               data={relatedSoftwareData}
               tableOptions={tableOptionsRelatedSoftware}
-              handleSearchChange={this.handleProductChange}
+              handleSearchChange={this.handleRelatedSoftwareSearchChange}
               handleSearchSubmit={this.getRelatedSoftware}
               handleResetBtn={this.handleResetBtn} />
           }

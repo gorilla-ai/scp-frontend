@@ -595,8 +595,8 @@ class HostKbid extends Component {
    * @method
    * @param {string} type - reset button type ('kbidSearch' or 'exposedDevices')
    */
-  handleResetBtn = (type, event) => {
-    const {kbidSearch} = this.state;
+  handleResetBtn = (type) => {
+    const {kbidSearch, exposedDevicesSearch} = this.state;
 
     if (type === 'kbidSearch') {
       let tempKbidSearch = {...kbidSearch};
@@ -606,8 +606,13 @@ class HostKbid extends Component {
         kbidSearch: tempKbidSearch
       });
     } else if (type === 'exposedDevices') {
+      let tempExposedDevicesSearch = {...exposedDevicesSearch};
+      tempExposedDevicesSearch.hostName = '';
+      tempExposedDevicesSearch.ip = '';
+      tempExposedDevicesSearch.system = '';
+
       this.setState({
-        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
+        exposedDevicesSearch: tempExposedDevicesSearch
       });
     }
   }

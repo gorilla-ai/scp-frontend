@@ -108,6 +108,10 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const DISCOVERED_VULNERABILITY_SEARCH = {
+  keyword: '',
+  count: 0
+};
 const DISCOVERED_VULNERABILITY_DATA = {
   dataFieldsArr: ['cveId', 'severity', 'cvss'],
   dataFields: [],
@@ -160,10 +164,6 @@ class HostInventory extends Component {
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
       exportContextAnchor: null,
       tableContextAnchor: null,
-      cveNameSearch: {
-        keyword: '',
-        count: 0
-      },
       showCpeInfo: false,
       showFilterQuery: false,
       reportOpen: false,
@@ -184,6 +184,7 @@ class HostInventory extends Component {
       },
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+      discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
       currentCpeKey: '',
       currentCpeData: {}
@@ -748,7 +749,7 @@ class HostInventory extends Component {
    */
   getDiscoveredVulnerability = (fromPage) => {
     const {baseUrl} = this.context;
-    const {cveNameSearch, discoveredVulnerabilityData, currentCpeKey} = this.state;
+    const {discoveredVulnerabilitySearch, discoveredVulnerabilityData, currentCpeKey} = this.state;
     const sort = discoveredVulnerabilityData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? discoveredVulnerabilityData.currentPage : 0;
     const requestData = {
@@ -760,8 +761,8 @@ class HostInventory extends Component {
       url += `&orders=${discoveredVulnerabilityData.sort.field} ${sort}`;
     }
 
-    if (cveNameSearch.keyword) {
-      requestData.cveId = cveNameSearch.keyword;
+    if (discoveredVulnerabilitySearch.keyword) {
+      requestData.cveId = discoveredVulnerabilitySearch.keyword;
     }
 
     this.ah.one({
@@ -772,7 +773,7 @@ class HostInventory extends Component {
     })
     .then(data => {
       if (data) {
-        let tempCveNameSearch = {...cveNameSearch};
+        let tempCveNameSearch = {...discoveredVulnerabilitySearch};
         let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
 
         if (!data.rows || data.rows.length === 0) {
@@ -781,7 +782,7 @@ class HostInventory extends Component {
           tempDiscoveredVulnerabilityData.totalCount = 0;
 
           this.setState({
-            cveNameSearch: tempCveNameSearch,
+            discoveredVulnerabilitySearch: tempCveNameSearch,
             discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
           });
           return null;
@@ -816,7 +817,7 @@ class HostInventory extends Component {
         tempCveNameSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          cveNameSearch: tempCveNameSearch,
+          discoveredVulnerabilitySearch: tempCveNameSearch,
           discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
         });
       }
@@ -843,9 +844,7 @@ class HostInventory extends Component {
   toggleShowCPE = () => {
     this.setState({
       showCpeInfo: !this.state.showCpeInfo,
-      activeCpeInfo: 'vulnerabilityDetails',
-      exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
-      exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
+      activeCpeInfo: 'vulnerabilityDetails'
     });
   }
   /**
@@ -885,25 +884,25 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Handle CVE name search
+   * Handle discovered vulnerability search change
    * @method
    * @param {object} event - event object
    */
-  handleCveNameChange = (event) => {
-    let tempCveNameSearch = {...this.state.cveNameSearch};
-    tempCveNameSearch.keyword = event.target.value;
+  handleDiscoveredVulnerabilitySearchChange = (event) => {
+    let tempDiscoveredVulnerabilitySearch = {...this.state.discoveredVulnerabilitySearch};
+    tempDiscoveredVulnerabilitySearch.keyword = event.target.value;
 
     this.setState({
-      cveNameSearch: tempCveNameSearch
+      discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
     });
   }
   /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('cpeSearch', 'exposedDevices' or 'cveNameSearch')
+   * @param {string} type - reset button type ('cpeSearch', 'exposedDevices' or 'discoveredVulnerability')
    */
-  handleResetBtn = (type, event) => {
-    const {cpeSearch, cveNameSearch} = this.state;
+  handleResetBtn = (type) => {
+    const {cpeSearch, exposedDevicesSearch, discoveredVulnerabilitySearch} = this.state;
 
     if (type === 'cpeSearch') {
       let tempCpeSearch = {...cpeSearch};
@@ -913,15 +912,20 @@ class HostInventory extends Component {
         cpeSearch: tempCpeSearch
       });
     } else if (type === 'exposedDevices') {
-      this.setState({
-        exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH)
-      });
-    } else if (type === 'cveNameSearch') {
-      let tempCveNameSearch = {...cveNameSearch};
-      tempCveNameSearch.keyword = '';
+      let tempExposedDevicesSearch = {...exposedDevicesSearch};
+      tempExposedDevicesSearch.hostName = '';
+      tempExposedDevicesSearch.ip = '';
+      tempExposedDevicesSearch.system = '';
 
       this.setState({
-        cveNameSearch: tempCveNameSearch
+        exposedDevicesSearch: tempExposedDevicesSearch
+      });
+    } else if (type === 'discoveredVulnerability') {
+      let tempDiscoveredVulnerabilitySearch = {...discoveredVulnerabilitySearch};
+      tempDiscoveredVulnerabilitySearch.keyword = '';
+
+      this.setState({
+        discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
       });
     }
   }
@@ -931,7 +935,14 @@ class HostInventory extends Component {
    * @returns HTML DOM
    */
   displayCpeInfo = () => {
-    const {cveNameSearch, activeCpeInfo, exposedDevicesSearch, exposedDevicesData, discoveredVulnerabilityData, currentCpeData} = this.state;
+    const {
+      activeCpeInfo,
+      exposedDevicesSearch,
+      exposedDevicesData,
+      discoveredVulnerabilitySearch,
+      discoveredVulnerabilityData,
+      currentCpeData
+    } = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: '550px',
       onChangePage: (currentPage) => {
@@ -993,11 +1004,11 @@ class HostInventory extends Component {
             <GeneralDialog
               page='inventory'
               type='general-list'
-              searchType='cveNameSearch'
-              search={cveNameSearch}
+              searchType={activeCpeInfo}
+              search={discoveredVulnerabilitySearch}
               data={discoveredVulnerabilityData}
               tableOptions={tableOptionsDiscoveredVulnerability}
-              handleSearchChange={this.handleCveNameChange}
+              handleSearchChange={this.handleDiscoveredVulnerabilitySearchChange}
               handleSearchSubmit={this.getDiscoveredVulnerability}
               handleResetBtn={this.handleResetBtn} />
           }

@@ -791,7 +791,8 @@
     "cpeKey": "CPE Key",
     "product": "Product",
     "system": "System",
-    "version": "Version"
+    "version": "Version",
+    "fix": "Fixed"
   },
   "hostVulnerabilityFields": {
     "date": "Date",
@@ -818,7 +819,6 @@
     "ip": "IP",
     "department": "Department",
     "status": "Status",
-    "version": "Version",
     "riskValue": "Risk Value",
     "risk": "Risk",
     "hbDttm": "Last Connected Datetime",

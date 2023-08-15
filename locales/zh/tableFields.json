@@ -791,7 +791,8 @@
     "cpeKey": "CPE Key",
     "product": "產品",
     "system": "系統",
-    "version": "版本"
+    "version": "版本",
+    "fix": "修補狀況"
   },
   "hostVulnerabilityFields": {
     "date": "日期",
@@ -818,7 +819,6 @@
     "ip": "IP",
     "department": "部門",
     "status": "狀態",
-    "version": "版本",
     "riskValue": "威脅指數",
     "risk": "威脅等級",
     "hbDttm": "最後上線時間",
