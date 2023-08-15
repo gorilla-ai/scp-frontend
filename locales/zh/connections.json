@@ -98,6 +98,8 @@
   "txt-device": "裝置",
   "txt-port": "Port",
   "txt-ipAddress": "IP位址",
+  "txt-macAddress": "MAC位址",
+  "txt-hostName": "主機名稱",
   "txt-payloads": "攻擊資訊",
   "txt-dept": "部門",
   "txt-title": "職稱",
@@ -466,6 +468,17 @@
       "txt-vulnerabilityList": "弱點主機清單"
     },
     "endpoints": {
+      "txt-networkInfo": "網路資訊",
+      "txt-deviceInfo": "設備資訊",
+      "txt-securityAssessments": "安全評估",
+      "txt-riskLevel": "威脅等級",
+      "txt-installedSoftware": "已安裝軟體數",
+      "txt-discoveredVulnerabilityCount": "發現漏洞數",
+      "txt-hmdInfo": "HMD資訊",
+      "txt-hbTime": "HB時間",
+      "txt-netProxyInfo": "NetProxy資訊",
+      "txt-netProxyIP": "NetProxy IP",
+      "txt-netProxyName": "NetProxy名稱",
       "txt-threatsLevel": "威脅指數",
       "txt-overview": "主機分析資訊",
       "txt-safetyScanInfo": "安全掃描紀錄",
@@ -475,7 +488,7 @@
       "txt-taskName": "安全掃描類型",
       "txt-taskStatus": "執行狀態",
       "txt-taskCreateDttm": "建立時間",
-      "txt-taskResponseDttm": "回應時間"      
+      "txt-taskResponseDttm": "回應時間"
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",
@@ -1356,7 +1369,7 @@
     "count": "數量"
   },
   "ownerFields": {
-    "ownerID": "ID",
+    "ownerID": "所屬人員 ID",
     "ownerName": "所屬人員",
     "department": "部門",
     "title": "職稱",

@@ -198,15 +198,15 @@ class GeneralDialog extends Component {
           <div className='table-data'>
             <div className='column'>
               <div className='group'>
-                <header>Network Info</header>
+                <header>{t('host.endpoints.txt-networkInfo')}</header>
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>IP address</span></td>
+                      <td><span className='blue-color'>{t('txt-ipAddress')}</span></td>
                       <td><span>{data.ip || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>MAC address</span></td>
+                      <td><span className='blue-color'>{t('txt-macAddress')}</span></td>
                       <td><span>{data.mac || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -214,27 +214,27 @@ class GeneralDialog extends Component {
               </div>
 
               <div className='group'>
-                <header>Device Info</header>
+                <header>{t('host.endpoints.txt-deviceInfo')}</header>
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>System</span></td>
+                      <td><span className='blue-color'>{t('host.txt-system')}</span></td>
                       <td><span>{data.system || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Host Name</span></td>
+                      <td><span className='blue-color'>{t('txt-hostName')}</span></td>
                       <td><span>{data.hostName || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>CPU</span></td>
+                      <td><span className='blue-color'>{t('txt-cpu')}</span></td>
                       <td><span>{data.cpu || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Memory</span></td>
+                      <td><span className='blue-color'>{t('txt-ram')}</span></td>
                       <td><span>{data.ram || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Disk Usage</span></td>
+                      <td><span className='blue-color'>{t('txt-disks')}</span></td>
                       <td><span>{data.disks || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -242,19 +242,19 @@ class GeneralDialog extends Component {
               </div>
 
               <div className='group'>
-                <header>Owner Info</header>
+                <header>{t('alert.txt-ownerInfo')}</header>
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>Owner Name</span></td>
+                      <td><span className='blue-color'>{t('ownerFields.ownerName')}</span></td>
                       <td><span>{data.ownername || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Owner ID</span></td>
+                      <td><span className='blue-color'>{t('ownerFields.ownerID')}</span></td>
                       <td><span>{data.ownerid || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Department</span></td>
+                      <td><span className='blue-color'>{t('ownerFields.departmentName')}</span></td>
                       <td><span>{data.department || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -264,19 +264,19 @@ class GeneralDialog extends Component {
 
             <div className='column'>
               <div className='group'>
-                <header>Security Assessments</header>
+                <header>{t('host.endpoints.txt-securityAssessments')}</header>
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>Risk</span></td>
+                      <td><span className='blue-color'>{t('host.endpoints.txt-riskLevel')}</span></td>
                       <td><span>{data.riskLevel || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Installed Software</span></td>
+                      <td><span className='blue-color'>{t('host.endpoints.txt-installedSoftware')}</span></td>
                       <td><span>{data.installedSize || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>Discovered Vulnerabilities</span></td>
+                      <td><span className='blue-color'>{t('host.endpoints.txt-discoveredVulnerabilityCount')}</span></td>
                       <td><span>{data.vulnerabilityNum || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -285,21 +285,21 @@ class GeneralDialog extends Component {
 
 
               <div className='group'>
-                <header>Agent Info</header>
+                <header>{t('host.endpoints.txt-hmdInfo')}</header>
                 <Button id='hostSafetyScanSearch' variant='outlined' color='primary' onClick={this.props.handleUpdateButton} disabled={btnDisabled}>{btnText}</Button>
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>Status</span></td>
+                      <td><span className='blue-color'>{t('txt-status')}</span></td>
                       <td><span>{data.status || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>HB Time</span></td>
+                      <td><span className='blue-color'>{t('host.endpoints.txt-hbTime')}</span></td>
                       <td><span>{data.hbDttm || NOT_AVAILABLE}</span></td>
                     </tr>
                     {data.hasNewVersion &&
                       <tr>
-                        <td><span className='blue-color'>Version</span></td>
+                        <td><span className='blue-color'>{t('txt-version')}</span></td>
                         <td><span>{data.version || NOT_AVAILABLE}</span></td>
                       </tr>
                     }
@@ -308,15 +308,15 @@ class GeneralDialog extends Component {
               </div>
 
               <div className='group'>
-                <header>NetProxy Info</header>
+                <header>{t('host.endpoints.txt-netProxyInfo')}</header>
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>NetProxy IP</span></td>
+                      <td><span className='blue-color'>{t('host.endpoints.txt-netProxyIP')}</span></td>
                       <td><span>{data.netproxyIp || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>NetProxy Name</span></td>
+                      <td><span className='blue-color'>{t('host.endpoints.txt-netProxyName')}</span></td>
                       <td><span>{data.netproxyName || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>

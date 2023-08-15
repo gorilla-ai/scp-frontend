@@ -742,6 +742,10 @@ class HostEndPoints extends Component {
     }, () => {
       const {activeEndpointInfo} = this.state;
 
+      // if (activeEndpointInfo === 'overview') {
+      //   this.getActiveEndpointInfo();
+      // }
+
       if (activeEndpointInfo === 'safetyScanInfo') {
         this.getSafetyScanInfo();
       } else if (activeEndpointInfo === 'softwareInventory') {

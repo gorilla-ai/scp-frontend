@@ -98,6 +98,8 @@
   "txt-device": "Device",
   "txt-port": "Port",
   "txt-ipAddress": "IP Address",
+  "txt-macAddress": "MAC Address",
+  "txt-hostName": "Host Name",
   "txt-payloads": "Payloads",
   "txt-dept": "Department",
   "txt-title": "Title",
@@ -466,6 +468,17 @@
       "txt-vulnerabilityList": "Vulnerability List"
     },
     "endpoints": {
+      "txt-networkInfo": "Network Info",
+      "txt-deviceInfo": "Device Info",
+      "txt-securityAssessments": "Security Assessments",
+      "txt-riskLevel": "Risk Level",
+      "txt-installedSoftware": "Installed Software",
+      "txt-discoveredVulnerabilityCount": "Discovered Vulnerability Count",
+      "txt-hmdInfo": "HMD Info",
+      "txt-hbTime": "HB Time",
+      "txt-netProxyInfo": "NetProxy Info",
+      "txt-netProxyIP": "NetProxy IP",
+      "txt-netProxyName": "NetProxy Name",
       "txt-threatsLevel": "Threats Level",
       "txt-overview": "Overview",
       "txt-safetyScanInfo": "Safety Scan Record",
@@ -1357,7 +1370,7 @@
     "count": "Count"
   },
   "ownerFields": {
-    "ownerID": "ID",
+    "ownerID": "Owner ID",
     "ownerName": "Name",
     "department": "Department",
     "title": "Title",
