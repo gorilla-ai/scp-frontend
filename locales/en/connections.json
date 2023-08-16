@@ -468,7 +468,7 @@
       "txt-kbidList": "KBID List",
       "txt-vulnerabilityList": "Vulnerability List",
       "txt-kbid": "KBID",
-      "txt-detectedDttm": "偵測時間"
+      "txt-detectedDttm": "Detected Time"
     },
     "endpoints": {
       "txt-networkInfo": "Network Info",
