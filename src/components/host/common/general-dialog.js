@@ -269,7 +269,7 @@ class GeneralDialog extends Component {
                   <tbody>
                     <tr>
                       <td><span className='blue-color'>{t('host.endpoints.txt-riskLevel')}</span></td>
-                      <td><span>{data.riskLevel || NOT_AVAILABLE}</span></td>
+                      <td><span>{data.riskLevel ? t('txt-' + data.riskLevel.toLowerCase()) : NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
                       <td><span className='blue-color'>{t('host.endpoints.txt-installedSoftware')}</span></td>
