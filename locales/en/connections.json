@@ -407,6 +407,7 @@
     "txt-inventory": "Inventory",
     "txt-kbid": "KBID",
     "txt-endpoints": "Endpoints",
+    "txt-endpointInfo": "Endpoint Info",
     "vulnerabilities": {
       "txt-severityLevelQuery": "Vulnerability Exposure Level",
       "txt-monthlySeverityTrend": "Daily Vulnerability Level Trend in Current Month",
@@ -465,7 +466,9 @@
     },
     "kbid": {
       "txt-kbidList": "KBID List",
-      "txt-vulnerabilityList": "Vulnerability List"
+      "txt-vulnerabilityList": "Vulnerability List",
+      "txt-kbid": "KBID",
+      "txt-detectedDttm": "偵測時間"
     },
     "endpoints": {
       "txt-networkInfo": "Network Info",

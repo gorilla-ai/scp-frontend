@@ -158,6 +158,22 @@ const DISCOVERED_VULNERABILITY_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const KBID_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const KBID_DATA = {
+  dataFieldsArr: ['kbid', 'detectedDttm'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
 let ALERT_LEVEL_COLORS = {};
 
 let t = null;
@@ -224,6 +240,8 @@ class HostEndPoints extends Component {
       softwareInventoryData: _.cloneDeep(SOFTWARE_INVENTORY_INFO_DATA),
       discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
+      kbidSearch: _.cloneDeep(KBID_SEARCH),
+      kbidData: _.cloneDeep(KBID_DATA),
       currentHostId: '',
       currentRiskLevel: '',
       currentEndpointData: {},
@@ -754,6 +772,8 @@ class HostEndPoints extends Component {
       } else if (activeEndpointInfo === 'discoveredVulnerability') {
         this.getSeverityStatistics();
         this.getDiscoveredVulnerability();
+      } else if (activeEndpointInfo === 'kbid') {
+        this.getKBID();
       }
     });
   }
@@ -817,7 +837,7 @@ class HostEndPoints extends Component {
                 const allValue = tempSafetyScanInfoData.dataContent[dataIndex];
                 const value = tempSafetyScanInfoData.dataContent[dataIndex][val];
 
-                if (value && (val === 'taskCreateDttm' || val === 'taskResponseDttm')) {
+                if ((val === 'taskCreateDttm' || val === 'taskResponseDttm') && value) {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 }
 
@@ -900,7 +920,7 @@ class HostEndPoints extends Component {
                 const allValue = tempSoftwareInventoryData.dataContent[dataIndex];
                 const value = tempSoftwareInventoryData.dataContent[dataIndex][val];
 
-                if (value && val === 'detectedDttm') {
+                if (val === 'detectedDttm' && value) {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 }
 
@@ -929,9 +949,10 @@ class HostEndPoints extends Component {
    */
   getSeverityStatistics = () => {
     const {baseUrl} = this.context;
+    const {currentHostId} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/endPoint/vulnerability/severityAgg?hostId=${this.state.currentHostId}`,
+      url: `${baseUrl}/api/endPoint/vulnerability/severityAgg?hostId=${currentHostId}`,
       type: 'GET'
     })
     .then(data => {
@@ -1064,6 +1085,89 @@ class HostEndPoints extends Component {
     })
   }
   /**
+   * Get KBID data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getKBID = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {kbidSearch, kbidData, currentHostId} = this.state;
+    const sort = kbidData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? kbidData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/kbid?page=${page + 1}&pageSize=${kbidData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
+    };
+
+    if (kbidData.sort.field) {
+      url += `&orders=${kbidData.sort.field} ${sort}`;
+    }
+
+    if (kbidSearch.keyword) {
+      requestData.kbid = kbidSearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempKbidSearch = {...kbidSearch};
+        let tempKbidData = {...kbidData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempKbidSearch.count = 0;
+          tempKbidData.dataContent = [];
+          tempKbidData.totalCount = 0;
+
+          this.setState({
+            kbidSearch: tempKbidSearch,
+            kbidData: tempKbidData
+          });
+          return null;
+        }       
+
+        tempKbidData.dataContent = data.rows;
+        tempKbidData.totalCount = data.count;
+        tempKbidData.currentPage = page;
+        tempKbidData.dataFields = _.map(kbidData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.kbid.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempKbidData.dataContent[dataIndex];
+                const value = tempKbidData.dataContent[dataIndex][val];
+
+                if (val === 'detectedDttm' && value) {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                }
+
+                return value;
+              }
+            }
+          };
+        });
+
+        tempKbidSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          kbidSearch: tempKbidSearch,
+          kbidData: tempKbidData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle close menu
    * @method
    */
@@ -1134,12 +1238,25 @@ class HostEndPoints extends Component {
     });
   }
   /**
+   * Handle KBID search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleKbidSearchChange = () => {
+    let tempKbidSearch = {...this.state.kbidSearch};
+    tempKbidSearch.keyword = event.target.value;
+
+    this.setState({
+      kbidSearch: tempKbidSearch
+    });
+  }
+  /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory' or 'discoveredVulnerability')
+   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid')
    */
   handleResetBtn = (type) => {
-    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, discoveredVulnerabilitySearch} = this.state;
+    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, discoveredVulnerabilitySearch, kbidSearch} = this.state;
 
     if (type === 'endpointsSearch') {
       let tempEndpointsSearch = {...endpointsSearch};
@@ -1168,6 +1285,13 @@ class HostEndPoints extends Component {
 
       this.setState({
         discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
+      });
+    } else if (type === 'kbid') {
+      let tempKbidSearch = {...kbidSearch};
+      tempKbidSearch.keyword = '';
+
+      this.setState({
+        kbidSearch: tempKbidSearch
       });
     }
   }
@@ -1335,6 +1459,8 @@ class HostEndPoints extends Component {
       softwareInventoryData,
       discoveredVulnerabilitySearch,
       discoveredVulnerabilityData,
+      kbidSearch,
+      kbidData,
       currentEndpointData,
       severityStatistics
     } = this.state;
@@ -1372,6 +1498,18 @@ class HostEndPoints extends Component {
       },
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort('discoveredVulnerability', changedColumn, direction === 'desc');
+      }
+    };
+    const tableOptionsKBID = {
+      tableBodyHeight: '550px',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('kbid', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('kbid', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('kbid', changedColumn, direction === 'desc');
       }
     };
 
@@ -1440,6 +1578,19 @@ class HostEndPoints extends Component {
               handleSearchSubmit={this.getDiscoveredVulnerability}
               handleResetBtn={this.handleResetBtn} />
           }
+
+          {activeEndpointInfo === 'kbid' &&
+            <GeneralDialog
+              page='endpoints'
+              type='general-list'
+              searchType={activeEndpointInfo}
+              search={kbidSearch}
+              data={kbidData}
+              tableOptions={tableOptionsKBID}
+              handleSearchChange={this.handleKbidSearchChange}
+              handleSearchSubmit={this.getKBID}
+              handleResetBtn={this.handleResetBtn} />
+          }
         </div>
       </div>
     )
@@ -1454,12 +1605,17 @@ class HostEndPoints extends Component {
     const actions = {
       cancel: {text: t('txt-close'), handler: this.toggleShowEndpoint}
     };
+    let title = t('host.txt-endpointInfo');
+
+    if (currentEndpointData.hostName) {
+      title +=  ' > ' + currentEndpointData.hostName;
+    }
 
     return (
       <ModalDialog
         id='showEndpointDialog'
         className='modal-dialog'
-        title='Endpoint Info'
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
@@ -1471,16 +1627,17 @@ class HostEndPoints extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData, kbidData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+    let tempKbidData = {...kbidData};
     let tableField = field;
 
     if (tableType === 'endpoints') {
@@ -1519,12 +1676,21 @@ class HostEndPoints extends Component {
       }, () => {
         this.getDiscoveredVulnerability();
       });
+    } else if (tableType === 'kbid') {
+      tempKbidData.sort.field = tableField;
+      tempKbidData.sort.desc = sort;
+
+      this.setState({
+        kbidData: tempKbidData
+      }, () => {
+        this.getKBID();
+      });
     }
   }
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory' or 'discoveredVulnerability')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
@@ -1534,6 +1700,7 @@ class HostEndPoints extends Component {
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
+    let tempKbidData = {...kbidData};
 
     if (tableType === 'endpoints') {
       tempEndpointsData[type] = value;
@@ -1566,6 +1733,14 @@ class HostEndPoints extends Component {
         discoveredVulnerabilityData: tempDiscoveredVulnerabilityData
       }, () => {
         this.getDiscoveredVulnerability(type);
+      });
+    } else if (tableType === 'kbid') {
+      tempKbidData[type] = value;
+
+      this.setState({
+        kbidData: tempKbidData
+      }, () => {
+        this.getKBID(type);
       });
     }
   }

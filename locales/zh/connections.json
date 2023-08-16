@@ -407,6 +407,7 @@
     "txt-inventory": "Inventory",
     "txt-kbid": "KBID",
     "txt-endpoints": "Endpoints",
+    "txt-endpointInfo": "Endpoint資訊",
     "vulnerabilities": {
       "txt-severityLevelQuery": "弱點暴露等級",
       "txt-monthlySeverityTrend": "當月每日漏洞等級趨勢",
@@ -465,7 +466,9 @@
     },
     "kbid": {
       "txt-kbidList": "KBID清單",
-      "txt-vulnerabilityList": "弱點主機清單"
+      "txt-vulnerabilityList": "弱點主機清單",
+      "txt-kbid": "KBID",
+      "txt-detectedDttm": "偵測時間"
     },
     "endpoints": {
       "txt-networkInfo": "網路資訊",

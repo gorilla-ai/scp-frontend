@@ -451,6 +451,9 @@ class GeneralDialog extends Component {
       } else if (searchType === 'discoveredVulnerability') {
         searchFieldText = t('host.vulnerabilities.txt-cveName');
         searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
+      } else if (searchType === 'kbid') {
+        searchFieldText = t('host.txt-kbidName');
+        searchCountHeader = t('txt-searchCount');
       }
     }
 
