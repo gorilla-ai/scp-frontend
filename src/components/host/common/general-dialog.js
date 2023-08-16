@@ -291,11 +291,11 @@ class GeneralDialog extends Component {
                   <tbody>
                     <tr>
                       <td><span className='blue-color'>{t('txt-status')}</span></td>
-                      <td><span>{data.status || NOT_AVAILABLE}</span></td>
+                      <td><span>{data.status ? t('txt-' + data.status) : NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
                       <td><span className='blue-color'>{t('host.endpoints.txt-hbTime')}</span></td>
-                      <td><span>{data.hbDttm || NOT_AVAILABLE}</span></td>
+                      <td><span>{data.hbDttm ? helper.getFormattedDate(data.hbDttm, 'local') : NOT_AVAILABLE}</span></td>
                     </tr>
                     {data.hasNewVersion &&
                       <tr>

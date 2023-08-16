@@ -698,8 +698,9 @@ class HostEndPoints extends Component {
   /**
    * Get individual endpoint data
    * @method
+   * @param {string} [type] - options for type ('open')
    */
-  getActiveEndpointInfo = () => {
+  getActiveEndpointInfo = (type) => {
     const {baseUrl} = this.context;
     const {currentHostId, currentRiskLevel} = this.state;
 
@@ -715,7 +716,9 @@ class HostEndPoints extends Component {
         this.setState({
           currentEndpointData
         }, () => {
-          this.toggleShowEndpoint();
+          if (type === 'open') {
+            this.toggleShowEndpoint();
+          }
         });
 
         this.handleCloseMenu();
@@ -742,11 +745,9 @@ class HostEndPoints extends Component {
     }, () => {
       const {activeEndpointInfo} = this.state;
 
-      // if (activeEndpointInfo === 'overview') {
-      //   this.getActiveEndpointInfo();
-      // }
-
-      if (activeEndpointInfo === 'safetyScanInfo') {
+      if (activeEndpointInfo === 'overview') {
+        this.getActiveEndpointInfo();
+      } else if (activeEndpointInfo === 'safetyScanInfo') {
         this.getSafetyScanInfo();
       } else if (activeEndpointInfo === 'softwareInventory') {
         this.getSoftwareInventory();
