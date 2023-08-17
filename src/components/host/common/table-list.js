@@ -262,7 +262,7 @@ class TableList extends Component {
             <div className='search-field'>
               <div className='group'>
                 <TextField
-                  name='search'
+                  name='keyword'
                   className='search-text'
                   label={searchLabel}
                   variant='outlined'

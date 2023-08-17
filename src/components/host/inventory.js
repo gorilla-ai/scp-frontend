@@ -890,7 +890,7 @@ class HostInventory extends Component {
    */
   handleDiscoveredVulnerabilitySearchChange = (event) => {
     let tempDiscoveredVulnerabilitySearch = {...this.state.discoveredVulnerabilitySearch};
-    tempDiscoveredVulnerabilitySearch.keyword = event.target.value;
+    tempDiscoveredVulnerabilitySearch[event.target.name] = event.target.value;
 
     this.setState({
       discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
@@ -1129,7 +1129,7 @@ class HostInventory extends Component {
    */
   handleCpeChange = (event) => {
     let tempCpeSearch = {...this.state.cpeSearch};
-    tempCpeSearch.keyword = event.target.value;
+    tempCpeSearch[event.target.name] = event.target.value;
 
     this.setState({
       cpeSearch: tempCpeSearch

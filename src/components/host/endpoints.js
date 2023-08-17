@@ -7,8 +7,10 @@ import Button from '@material-ui/core/Button'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
+import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
+import PieChart from 'react-chart/build/src/components/pie'
 import Popover from 'react-ui/build/src/components/popover'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
@@ -144,6 +146,7 @@ const SOFTWARE_INVENTORY_INFO_DATA = {
 };
 const DISCOVERED_VULNERABILITY_SEARCH = {
   keyword: '',
+  fix: '',
   count: 0
 };
 const DISCOVERED_VULNERABILITY_DATA = {
@@ -219,6 +222,8 @@ class HostEndPoints extends Component {
       showEndpointInfo: false,
       showFilterQuery: false,
       activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability' or 'kbid'
+      departmentStatistics: [],
+      departmentStatisticsAdmin: [],
       endpointsData: {
         dataFieldsArr: ['_menu', 'hostName', 'ip', 'system', 'department', 'status', 'version', 'riskValue', 'risk', 'hbDttm', 'memos'],
         dataFields: [],
@@ -269,6 +274,10 @@ class HostEndPoints extends Component {
       this.setState({
         account: tempAccount
       }, () => {
+        if (sessionRights.Module_Config) {
+          this.getDepartmentStatisticsAdminData();
+        }
+
         this.getDepartmentTree();
         this.getSystemList();
         this.getSeverityType();
@@ -293,14 +302,20 @@ class HostEndPoints extends Component {
         Critical: '#000',
         High: '#CC2943',
         Medium: '#CC7B29',
-        Low: '#7ACC29'
+        Low: '#7ACC29',
+        online: '#32CD32',
+        offline: '#FF0000',
+        inActivate: '#A9A9A9'
       };
     } else if (locale === 'zh') {
       ALERT_LEVEL_COLORS = {
         嚴重: '#000',
         高: '#CC2943',
         中: '#CC7B29',
-        低: '#7ACC29'
+        低: '#7ACC29',
+        連線: '#32CD32',
+        離線: '#CC2943',
+        未安裝: '#A9A9A9'
       };
     }
   }
@@ -335,42 +350,6 @@ class HostEndPoints extends Component {
           } else {
             this.getEndpointsData();
           }
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Set default selected department
-   * @method
-   */
-  setSelectedDepartment = () => {
-    const {baseUrl} = this.context;
-    const {account, departmentNameMapping, endpointsFilter, endpointsFilterList} = this.state;
-    let tempEndpointsFilter = {...endpointsFilter};
-    let tempEndpointsFilterList = {...endpointsFilterList};
-
-    this.ah.one({
-      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        tempEndpointsFilter.departmentSelected = data;
-        tempEndpointsFilterList.departmentSelected = _.map(data, val => {
-          return departmentNameMapping[val];
-        });
-
-        this.setState({
-          limitedDepartment: data,
-          endpointsFilter: tempEndpointsFilter,
-          endpointsFilterList: tempEndpointsFilterList
-        }, () => {
-          this.getSystemVendorList();
-          this.getEndpointsData();
         });
       }
       return null;
@@ -445,6 +424,179 @@ class HostEndPoints extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Set default selected department
+   * @method
+   */
+  setSelectedDepartment = () => {
+    const {baseUrl} = this.context;
+    const {account, departmentNameMapping, endpointsFilter, endpointsFilterList} = this.state;
+    let tempEndpointsFilter = {...endpointsFilter};
+    let tempEndpointsFilterList = {...endpointsFilterList};
+
+    this.ah.one({
+      url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempEndpointsFilter.departmentSelected = data;
+        tempEndpointsFilterList.departmentSelected = _.map(data, val => {
+          return departmentNameMapping[val];
+        });
+
+        this.setState({
+          limitedDepartment: data,
+          endpointsFilter: tempEndpointsFilter,
+          endpointsFilterList: tempEndpointsFilterList
+        }, () => {
+          this.getDepartmentStatisticsData();
+          this.getEndpointsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department statistics chart data for admin
+   * @method
+   */
+  getDepartmentStatisticsAdminData = () => {
+    const {baseUrl} = this.context;
+
+    //Bar Chart
+    this.ah.one({
+      url: `${baseUrl}/api/endPoint/statistics`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let departmentStatisticsAdmin = [];
+        let status = [];
+        let severity = [];
+
+        _.keys(data.statusAgg)
+        .forEach(key => {
+          _.keys(data.statusAgg[key])
+          .forEach(key2 => {
+            if (data.statusAgg[key][key2] >= 0) {
+              status.push({
+                status: t('txt-' + key),
+                count: data.statusAgg[key][key2],
+                department: key2
+              })
+            }
+          })
+        });
+
+        _.keys(data.severityAgg)
+        .forEach(key => {
+          _.keys(data.severityAgg[key])
+          .forEach(key2 => {
+            if (data.severityAgg[key][key2] >= 0) {
+              severity.push({
+                severity: t('txt-' + key),
+                count: data.severityAgg[key][key2],
+                department: key2
+              })
+            }
+          })
+        });
+
+        departmentStatisticsAdmin.push({
+          id: 1,
+          title: t('host.endpoints.txt-hmdStatus'),
+          type: 'status',
+          data: status
+        });
+
+        departmentStatisticsAdmin.push({
+          id: 2,
+          title: t('host.endpoints.txt-hostSeverityLevel'),
+          type: 'severity',
+          data: severity
+        });
+
+        this.setState({
+          departmentStatisticsAdmin
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set department statistics chart data
+   * @method
+   */
+  getDepartmentStatisticsData = () => {
+    const {baseUrl} = this.context;
+    const {endpointsFilter} = this.state;
+    const requestData = {
+      departmentArray: endpointsFilter.departmentSelected
+    };
+
+    //Pie Chart
+    this.ah.one({
+      url: `${baseUrl}/api/endPoint/department/statistics`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        const departmentStatistics = [
+          {
+            id: 1,
+            title: t('host.endpoints.txt-hmdStatus'),
+            label: t('txt-status'),
+            data: this.formatPieChartData(data.statusAgg),
+            count: helper.numberWithCommas(data.statusTotal)
+          },
+          {
+            id: 2,
+            title: t('host.endpoints.txt-hostSeverityLevel'),
+            label: t('txt-severity'),
+            data: this.formatPieChartData(data.severityAgg),
+            count: helper.numberWithCommas(data.severityTotal)
+          }
+        ];
+
+        this.setState({
+          departmentStatistics
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Format the object data into array type
+   * @method
+   * @param {object} data - chart data
+   */
+  formatPieChartData = (data) => {
+    let chartData = [];
+
+    _.keys(data)
+    .forEach(key => {
+      if (data[key] > 0) {
+        chartData.push({
+          key: t('txt-' + key),
+          doc_count: data[key]
+        });
+      }
+    });
+
+    return chartData;
   }
   /**
    * Get and set severity type
@@ -1008,6 +1160,10 @@ class HostEndPoints extends Component {
       requestData.cveId = discoveredVulnerabilitySearch.keyword;
     }
 
+    if (discoveredVulnerabilitySearch.fix && discoveredVulnerabilitySearch.fix !== 'all') {
+      requestData.fix = (discoveredVulnerabilitySearch.fix === 'true');
+    }
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -1205,7 +1361,7 @@ class HostEndPoints extends Component {
    */
   handleSafetyScanInfoSearchChange = (event) => {
     let tempSafetyScanInfoSearch = {...this.state.safetyScanInfoSearch};
-    tempSafetyScanInfoSearch.keyword = event.target.value;
+    tempSafetyScanInfoSearch[event.target.name] = event.target.value;
 
     this.setState({
       safetyScanInfoSearch: tempSafetyScanInfoSearch
@@ -1218,7 +1374,7 @@ class HostEndPoints extends Component {
    */
   handleSoftwareInventorySearchChange = (event) => {
     let tempSoftwareInventorySearch = {...this.state.softwareInventorySearch};
-    tempSoftwareInventorySearch.keyword = event.target.value;
+    tempSoftwareInventorySearch[event.target.name] = event.target.value;
 
     this.setState({
       softwareInventorySearch: tempSoftwareInventorySearch
@@ -1231,7 +1387,7 @@ class HostEndPoints extends Component {
    */
   handleDiscoveredVulnerabilitySearchChange = (event) => {
     let tempDiscoveredVulnerabilitySearch = {...this.state.discoveredVulnerabilitySearch};
-    tempDiscoveredVulnerabilitySearch.keyword = event.target.value;
+    tempDiscoveredVulnerabilitySearch[event.target.name] = event.target.value;
 
     this.setState({
       discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
@@ -1244,7 +1400,7 @@ class HostEndPoints extends Component {
    */
   handleKbidSearchChange = () => {
     let tempKbidSearch = {...this.state.kbidSearch};
-    tempKbidSearch.keyword = event.target.value;
+    tempKbidSearch[event.target.name] = event.target.value;
 
     this.setState({
       kbidSearch: tempKbidSearch
@@ -1282,6 +1438,7 @@ class HostEndPoints extends Component {
     } else if (type === 'discoveredVulnerability') {
       let tempDiscoveredVulnerabilitySearch = {...discoveredVulnerabilitySearch};
       tempDiscoveredVulnerabilitySearch.keyword = '';
+      tempDiscoveredVulnerabilitySearch.fix = '';
 
       this.setState({
         discoveredVulnerabilitySearch: tempDiscoveredVulnerabilitySearch
@@ -1695,7 +1852,7 @@ class HostEndPoints extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData, kbidData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
@@ -1751,7 +1908,7 @@ class HostEndPoints extends Component {
    */
   handleCpeChange = (event) => {
     let tempEndpointsSearch = {...this.state.endpointsSearch};
-    tempEndpointsSearch.keyword = event.target.value;
+    tempEndpointsSearch[event.target.name] = event.target.value;
 
     this.setState({
       endpointsSearch: tempEndpointsSearch
@@ -1894,6 +2051,124 @@ class HostEndPoints extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
+  /**
+   * Show bar chart
+   * @method
+   * @param {object} val - chart data
+   * @param {number} i - index of the chart data
+   * @returns HTML DOM
+   */
+  showBarChart = (val, i) => {
+    return (
+      <div key={val.id} className='chart-group'>
+        {!val.data &&
+          <div className='empty-data'>
+            <header>{val.title}</header>
+            <span><i className='fg fg-loading-2'></i></span>
+          </div>
+        }
+        {val.data && val.data.length === 0 &&
+          <div className='empty-data'>
+            <header>{val.title}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {val.data && val.data.length > 0 &&
+          <BarChart
+            stacked
+            vertical
+            title={val.title}
+            legend={{
+              enabled: true
+            }}
+            data={val.data}
+            colors={ALERT_LEVEL_COLORS}
+            dataCfg={{
+              x: 'department',
+              y: 'count',
+              splitSeries: val.type
+            }}
+            xAxis={{
+              type: 'category'
+            }}
+            plotOptions={{
+              series: {
+                maxPointWidth: 20
+              }
+            }}
+            tooltip={{
+              formatter: this.onTooltip.bind(this, val.type)
+            }} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {string} type - chart type ('status' or 'severity')
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.<object>} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (type, eventInfo, data) => {
+    return (
+      <section>
+        <span>{t('txt-department')}: {data[0].department}<br /></span>
+        <span>{t('txt-' + type)}: {data[0][type]}<br /></span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
+      </section>
+    )
+  }
+  /**
+   * Show pie chart
+   * @method
+   * @param {object} val - chart data
+   * @param {number} i - index of the chart data
+   * @returns HTML DOM
+   */
+  showPieChart = (val, i) => {
+    return (
+      <div key={val.id} className='chart-group'>
+        {!val.data &&
+          <div className='empty-data'>
+            <header>{val.title}</header>
+            <span><i className='fg fg-loading-2'></i></span>
+          </div>
+        }
+        {val.data && val.data.length === 0 &&
+          <div className='empty-data'>
+            <header>{val.title}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {val.data && val.data.length > 0 &&
+          <PieChart
+            title={val.title}
+            holeSize={45}
+            centerText={t('txt-total') + ': ' + helper.numberWithCommas(val.count)}
+            data={val.data}
+            colors={{
+              key: ALERT_LEVEL_COLORS
+            }}
+            keyLabels={{
+              key: val.label,
+              doc_count: t('txt-count')
+            }}
+            valueLabels={{
+              'Pie Chart': {
+                key: val.label,
+                doc_count: t('txt-count')
+              }
+            }}
+            dataCfg={{
+              splitSlice: ['key'],
+              sliceSize: 'doc_count'
+            }} />
+        }
+      </div>
+    )
+  }
   render() {
     const {
       account,
@@ -1909,6 +2184,8 @@ class HostEndPoints extends Component {
       endpointsSearch,
       endpointsFilter,
       endpointsFilterList,
+      departmentStatisticsAdmin,
+      departmentStatistics,
       showMemoInfo,
       showEndpointInfo,
       exportContextAnchor,
@@ -1973,26 +2250,10 @@ class HostEndPoints extends Component {
 
         <div className='data-content'>
           <div className='parent-content'>
-            <div className='main-statistics main-content host'>
-              <header className='main-header'>{t('host.txt-endpoints')}</header>
-              <div className='sub-header'>Host running Gorilla HMD</div>
-              <div className='statistics-content agent'>
-                <div className='box'>
-                  <header>Total Agent:</header>
-                  <div>250</div>
-                </div>
-                <div className='box'>
-                  <header>Online:</header>
-                  <div>225</div>
-                </div>
-                <div className='box'>
-                  <header>Offline:</header>
-                  <div>220</div>
-                </div>
-                <div className='box'>
-                  <header>Inactivate Agent:</header>
-                  <div>25</div>
-                </div>
+            <div className='main-statistics host'>
+              <div className='statistics-content'>
+                {departmentStatisticsAdmin.map(this.showBarChart)}
+                {departmentStatistics.map(this.showPieChart)}
               </div>
             </div>
 

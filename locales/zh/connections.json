@@ -148,6 +148,7 @@
   "txt-saved": "已儲存",
   "txt-tempSave": "暫存",
   "txt-manage": "管理",
+  "txt-department": "部門",
   "txt-path": "路徑",
   "txt-cpu": "中央處理器",
   "txt-ram": "記憶體",
@@ -471,6 +472,8 @@
       "txt-detectedDttm": "偵測時間"
     },
     "endpoints": {
+      "txt-hmdStatus": "HMD狀態",
+      "txt-hostSeverityLevel": "主機安全等級",
       "txt-networkInfo": "網路資訊",
       "txt-deviceInfo": "設備資訊",
       "txt-securityAssessments": "安全評估",

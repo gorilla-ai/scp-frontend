@@ -148,6 +148,7 @@
   "txt-saved": "Saved",
   "txt-tempSave": "Temporary Save",
   "txt-manage": "Manage",
+  "txt-department": "Department",
   "txt-path": "Path",
   "txt-cpu": "CPU",
   "txt-ram": "Ram",
@@ -471,6 +472,8 @@
       "txt-detectedDttm": "Detected Time"
     },
     "endpoints": {
+      "txt-hmdStatus": "HMD Status",
+      "txt-hostSeverityLevel": "Host Severity Level",
       "txt-networkInfo": "Network Info",
       "txt-deviceInfo": "Device Info",
       "txt-securityAssessments": "Security Assessments",

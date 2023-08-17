@@ -755,7 +755,7 @@ class HostKbid extends Component {
    */
   handleKbidChange = (event) => {
     let tempKbidSearch = {...this.state.kbidSearch};
-    tempKbidSearch.keyword = event.target.value;
+    tempKbidSearch[event.target.name] = event.target.value;
 
     this.setState({
       kbidSearch: tempKbidSearch

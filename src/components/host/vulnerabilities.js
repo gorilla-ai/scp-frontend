@@ -81,6 +81,7 @@ const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
   ip: '',
   system: '',
+  fix: '',
   count: 0
 };
 const EXPOSED_DEVICES_DATA = {
@@ -415,32 +416,32 @@ class HostVulnerabilities extends Component {
   /**
    * Show pie chart
    * @method
-   * @param {array.<object>} cveSeverityLevel - CVE severity data
+   * @param {object} cveSeverityLevel - CVE severity data
    * @returns HTML DOM
    */
   showPieChart = (cveSeverityLevel) => {
-    const centerText = t('txt-total') + ': ' + helper.numberWithCommas(this.state.cveSeverityLevel.count);
+    const data = cveSeverityLevel.data;
 
     return (
       <div className='chart-group'>
-        {!cveSeverityLevel &&
+        {!data &&
           <div className='empty-data'>
             <header>{t('host.vulnerabilities.txt-severityLevelQuery')}</header>
             <span><i className='fg fg-loading-2'></i></span>
           </div>
         }
-        {cveSeverityLevel && cveSeverityLevel.length === 0 &&
+        {data && data.length === 0 &&
           <div className='empty-data'>
             <header>{t('host.vulnerabilities.txt-severityLevelQuery')}</header>
             <span>{t('txt-notFound')}</span>
           </div>
         }
-        {cveSeverityLevel && cveSeverityLevel.length > 0 &&
+        {data && data.length > 0 &&
           <PieChart
             title={t('host.vulnerabilities.txt-severityLevelQuery')}
             holeSize={45}
-            centerText={centerText}
-            data={cveSeverityLevel}
+            centerText={t('txt-total') + ': ' + helper.numberWithCommas(cveSeverityLevel.count)}
+            data={data}
             colors={{
               key: ALERT_LEVEL_COLORS
             }}
@@ -997,7 +998,7 @@ class HostVulnerabilities extends Component {
    */
   handleRelatedSoftwareSearchChange = (event) => {
     let tempRelatedSoftwareSearch = {...this.state.relatedSoftwareSearch};
-    tempRelatedSoftwareSearch.keyword = event.target.value;
+    tempRelatedSoftwareSearch[event.target.name] = event.target.value;
 
     this.setState({
       relatedSoftwareSearch: tempRelatedSoftwareSearch
@@ -1229,7 +1230,7 @@ class HostVulnerabilities extends Component {
    */
   handleCveChange = (event) => {
     let tempCveSearch = {...this.state.cveSearch};
-    tempCveSearch.keyword = event.target.value;
+    tempCveSearch[event.target.name] = event.target.value;
 
     this.setState({
       cveSearch: tempCveSearch
@@ -1371,7 +1372,7 @@ class HostVulnerabilities extends Component {
           <div className='parent-content'>
             <div className='main-statistics host'>
               <div className='statistics-content'>
-                {this.showPieChart(cveSeverityLevel.data)}
+                {this.showPieChart(cveSeverityLevel)}
                 {this.showBarChart(monthlySeverityTrend)}
               </div>
             </div>

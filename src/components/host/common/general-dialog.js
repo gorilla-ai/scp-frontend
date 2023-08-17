@@ -470,7 +470,7 @@ class GeneralDialog extends Component {
         <div className='search-field'>
           <div className='group'>
             <TextField
-              name='search'
+              name='keyword'
               className='search-text'
               label={searchFieldText}
               variant='outlined'
@@ -479,6 +479,25 @@ class GeneralDialog extends Component {
               onChange={this.props.handleSearchChange}
               data-cy='hostInfoDialogSearchField' />
           </div>
+          {searchType === 'discoveredVulnerability' &&
+            <div className='group'>
+              <TextField
+                name='fix'
+                style={{width: '115px'}}
+                select
+                label={t('host.vulnerabilities.txt-fix')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={search.fix}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogDeviceFixTextField'>
+                <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                <MenuItem value='true'>{t('txt-fixed')}</MenuItem>
+                <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
+              </TextField>
+            </div>
+          }
           <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogSoftwareSubmitBtn'>{t('txt-search')}</Button>
           <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-clear')}</Button>
         </div>
