@@ -297,12 +297,10 @@ class GeneralDialog extends Component {
                       <td><span className='blue-color'>{t('host.endpoints.txt-hbTime')}</span></td>
                       <td><span>{data.hbDttm ? helper.getFormattedDate(data.hbDttm, 'local') : NOT_AVAILABLE}</span></td>
                     </tr>
-                    {data.hasNewVersion &&
-                      <tr>
-                        <td><span className='blue-color'>{t('txt-version')}</span></td>
-                        <td><span>{data.version || NOT_AVAILABLE}</span></td>
-                      </tr>
-                    }
+                    <tr>
+                      <td><span className='blue-color'>{t('txt-version')}</span></td>
+                      <td><span>{data.version || NOT_AVAILABLE}</span></td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
