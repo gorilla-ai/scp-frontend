@@ -845,6 +845,15 @@ class HostInventory extends Component {
     this.setState({
       showCpeInfo: !this.state.showCpeInfo,
       activeCpeInfo: 'vulnerabilityDetails'
+    }, () => {
+      if (!this.state.showCpeInfo) {
+        this.setState({
+          exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+          exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+          discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
+          discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA)
+        });
+      }
     });
   }
   /**

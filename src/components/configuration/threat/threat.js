@@ -215,13 +215,14 @@ class ThreatIntelligence extends Component {
    * Format the object data into array type
    * @method
    * @param {object} data - chart data
+   * @returns formatted chart data
    */
   formatPieChartData = (data) => {
     let indicatorsData = [];
 
     _.keys(data)
     .forEach(key => {
-      if (data[key] > 0) {
+      if (data[key] >= 0) {
         indicatorsData.push({
           key,
           doc_count: data[key]

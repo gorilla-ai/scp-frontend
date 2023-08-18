@@ -397,13 +397,14 @@ class HostVulnerabilities extends Component {
    * Format the object data into array type
    * @method
    * @param {object} data - chart data
+   * @returns formatted chart data
    */
   formatPieChartData = (data) => {
     let cveSeverityLevel = [];
 
     _.keys(data)
     .forEach(key => {
-      if (data[key] > 0) {
+      if (data[key] >= 0) {
         cveSeverityLevel.push({
           key: t('txt-' + key),
           doc_count: data[key]
@@ -953,6 +954,15 @@ class HostVulnerabilities extends Component {
     this.setState({
       showCveInfo: !this.state.showCveInfo,
       activeCveInfo: 'vulnerabilityDetails'
+    }, () => {
+      if (!this.state.showCveInfo) {
+        this.setState({
+          exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
+          exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
+          relatedSoftwareSearch: _.cloneDeep(RELATED_SOFTWARE_SEARCH),
+          relatedSoftwareData: _.cloneDeep(RELATED_SOFTWARE_DATA)
+        });
+      }
     });
   }
   /**

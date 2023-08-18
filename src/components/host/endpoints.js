@@ -475,51 +475,20 @@ class HostEndPoints extends Component {
     })
     .then(data => {
       if (data) {
-        let departmentStatisticsAdmin = [];
-        let status = [];
-        let severity = [];
-
-        _.keys(data.statusAgg)
-        .forEach(key => {
-          _.keys(data.statusAgg[key])
-          .forEach(key2 => {
-            if (data.statusAgg[key][key2] >= 0) {
-              status.push({
-                status: t('txt-' + key),
-                count: data.statusAgg[key][key2],
-                department: key2
-              })
-            }
-          })
-        });
-
-        _.keys(data.severityAgg)
-        .forEach(key => {
-          _.keys(data.severityAgg[key])
-          .forEach(key2 => {
-            if (data.severityAgg[key][key2] >= 0) {
-              severity.push({
-                severity: t('txt-' + key),
-                count: data.severityAgg[key][key2],
-                department: key2
-              })
-            }
-          })
-        });
-
-        departmentStatisticsAdmin.push({
-          id: 1,
-          title: t('host.endpoints.txt-hmdStatus'),
-          type: 'status',
-          data: status
-        });
-
-        departmentStatisticsAdmin.push({
-          id: 2,
-          title: t('host.endpoints.txt-hostSeverityLevel'),
-          type: 'severity',
-          data: severity
-        });
+        const departmentStatisticsAdmin = [
+          {
+            id: 1,
+            title: t('host.endpoints.txt-hmdStatus'),
+            type: 'status',
+            data: this.formatBarChartData('status', data.statusAgg)
+          },
+          {
+            id: 2,
+            title: t('host.endpoints.txt-hostSeverityLevel'),
+            type: 'severity',
+            data: this.formatBarChartData('severity', data.severityAgg)
+          }
+        ];
 
         this.setState({
           departmentStatisticsAdmin
@@ -530,6 +499,32 @@ class HostEndPoints extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Format the bar chart data
+   * @method
+   * @param {string} type - chart type ('status' or 'severity')
+   * @param {object} data - chart data
+   * @returns formatted chart data
+   */
+  formatBarChartData = (type, data) => {
+    let formattedData = [];
+
+    _.keys(data)
+    .forEach(key => {
+      _.keys(data[key])
+      .forEach(key2 => {
+        if (data[key][key2] >= 0) {
+          formattedData.push({
+            [type]: t('txt-' + key),
+            count: data[key][key2],
+            department: key2
+          })
+        }
+      })
+    });
+
+    return formattedData;
   }
   /**
    * Get and set department statistics chart data
@@ -582,13 +577,14 @@ class HostEndPoints extends Component {
    * Format the object data into array type
    * @method
    * @param {object} data - chart data
+   * @returns formatted chart data
    */
   formatPieChartData = (data) => {
     let chartData = [];
 
     _.keys(data)
     .forEach(key => {
-      if (data[key] > 0) {
+      if (data[key] >= 0) {
         chartData.push({
           key: t('txt-' + key),
           doc_count: data[key]
@@ -1352,6 +1348,19 @@ class HostEndPoints extends Component {
     this.setState({
       showEndpointInfo: !this.state.showEndpointInfo,
       activeEndpointInfo: 'overview'
+    }, () => {
+      if (!this.state.showEndpointInfo) {
+        this.setState({
+          safetyScanInfoSearch: _.cloneDeep(SAFETY_SCAN_INFO_SEARCH),
+          safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA),
+          softwareInventorySearch: _.cloneDeep(SOFTWARE_INVENTORY_SEARCH),
+          softwareInventoryData: _.cloneDeep(SOFTWARE_INVENTORY_INFO_DATA),
+          discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
+          discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
+          kbidSearch: _.cloneDeep(KBID_SEARCH),
+          kbidData: _.cloneDeep(KBID_DATA)
+        });
+      }
     });
   }
   /**
