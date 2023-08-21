@@ -202,11 +202,11 @@ class GeneralDialog extends Component {
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-ipAddress')}</span></td>
+                      <td className='header'><span>{t('txt-ipAddress')}</span></td>
                       <td><span>{data.ip || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-macAddress')}</span></td>
+                      <td className='header'><span>{t('txt-macAddress')}</span></td>
                       <td><span>{data.mac || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -218,23 +218,23 @@ class GeneralDialog extends Component {
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>{t('host.txt-system')}</span></td>
+                      <td className='header'><span>{t('host.txt-system')}</span></td>
                       <td><span>{data.system || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-hostName')}</span></td>
+                      <td className='header'><span>{t('txt-hostName')}</span></td>
                       <td><span>{data.hostName || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-cpu')}</span></td>
+                      <td className='header'><span>{t('txt-cpu')}</span></td>
                       <td><span>{data.cpu || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-ram')}</span></td>
+                      <td className='header'><span>{t('txt-ram')}</span></td>
                       <td><span>{data.ram || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-disks')}</span></td>
+                      <td className='header'><span>{t('txt-disks')}</span></td>
                       <td><span>{data.disks || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -246,15 +246,15 @@ class GeneralDialog extends Component {
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>{t('ownerFields.ownerName')}</span></td>
+                      <td className='header'><span>{t('ownerFields.ownerName')}</span></td>
                       <td><span>{data.ownername || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('ownerFields.ownerID')}</span></td>
+                      <td className='header'><span>{t('ownerFields.ownerID')}</span></td>
                       <td><span>{data.ownerid || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('ownerFields.departmentName')}</span></td>
+                      <td className='header'><span>{t('ownerFields.departmentName')}</span></td>
                       <td><span>{data.department || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -268,15 +268,15 @@ class GeneralDialog extends Component {
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>{t('host.endpoints.txt-riskLevel')}</span></td>
+                      <td className='header'><span>{t('host.endpoints.txt-riskLevel')}</span></td>
                       <td><span>{data.riskLevel ? t('txt-' + data.riskLevel.toLowerCase()) : NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('host.endpoints.txt-installedSoftware')}</span></td>
+                      <td className='header'><span>{t('host.endpoints.txt-installedSoftware')}</span></td>
                       <td><span>{data.installedSize || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('host.endpoints.txt-discoveredVulnerabilityCount')}</span></td>
+                      <td className='header'><span>{t('host.endpoints.txt-discoveredVulnerabilityCount')}</span></td>
                       <td><span>{data.vulnerabilityNum || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -290,15 +290,15 @@ class GeneralDialog extends Component {
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-status')}</span></td>
+                      <td className='header'><span>{t('txt-status')}</span></td>
                       <td><span>{data.status ? t('txt-' + data.status) : NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('host.endpoints.txt-hbTime')}</span></td>
+                      <td className='header'><span>{t('host.endpoints.txt-hbTime')}</span></td>
                       <td><span>{data.hbDttm ? helper.getFormattedDate(data.hbDttm, 'local') : NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('txt-version')}</span></td>
+                      <td className='header'><span>{t('txt-version')}</span></td>
                       <td><span>{data.version || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
@@ -310,11 +310,11 @@ class GeneralDialog extends Component {
                 <table className='c-table main-table'>
                   <tbody>
                     <tr>
-                      <td><span className='blue-color'>{t('host.endpoints.txt-netProxyIP')}</span></td>
+                      <td className='header'><span>{t('host.endpoints.txt-netProxyIP')}</span></td>
                       <td><span>{data.netproxyIp || NOT_AVAILABLE}</span></td>
                     </tr>
                     <tr>
-                      <td><span className='blue-color'>{t('host.endpoints.txt-netProxyName')}</span></td>
+                      <td className='header'><span>{t('host.endpoints.txt-netProxyName')}</span></td>
                       <td><span>{data.netproxyName || NOT_AVAILABLE}</span></td>
                     </tr>
                   </tbody>
