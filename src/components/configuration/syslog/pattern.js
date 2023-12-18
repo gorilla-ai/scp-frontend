@@ -1,25 +1,26 @@
-import React, { Component } from 'react'
-import { withRouter } from 'react-router'
-import PropTypes from 'prop-types'
-import cx from 'classnames'
+import React, { Component } from 'react';
+import { withRouter } from 'react-router';
+import PropTypes from 'prop-types';
+import cx from 'classnames';
 
-import Button from '@material-ui/core/Button'
-import Checkbox from '@material-ui/core/Checkbox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import MenuItem from '@material-ui/core/MenuItem'
-import Switch from '@material-ui/core/Switch'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
-import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Switch from '@material-ui/core/Switch';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import TextField from '@material-ui/core/TextField';
+import PopupDialog from 'react-ui/build/src/components/popup-dialog';
+import { BaseDataContext } from '../../common/context';
+import Config from '../../common/configuration';
+import helper from '../../common/helper';
+import IncidentForm from '../../soc/common/incident-form';
+import MuiTableContent from '../../common/mui-table-content';
 
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-
-import {BaseDataContext} from '../../common/context'
-import Config from '../../common/configuration'
-import helper from '../../common/helper'
-import IncidentForm from '../../soc/common/incident-form'
-import MuiTableContent from '../../common/mui-table-content'
-
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {
+  default as ah,
+  getInstance,
+} from 'react-ui/build/src/utils/ajax-helper';
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
@@ -27,29 +28,37 @@ const ALERT_LEVEL_COLORS = {
   Alert: '#CC7B29',
   Critical: '#29B0CC',
   Warning: '#29CC7A',
-  Notice: '#7ACC29'
+  Notice: '#7ACC29',
 };
-const REQUIRED_FIELD = ['title', 'eventDescription', 'category', 'flowTemplateId', 'impactAssessment', 'severity'];
+const REQUIRED_FIELD = [
+  'title',
+  'eventDescription',
+  'category',
+  'flowTemplateId',
+  'impactAssessment',
+  'severity',
+];
 const PERIOD_MIN = [10, 15, 30, 60];
 const PATTERN_SEARCH = {
   name: '',
-  queryScript: ''
+  queryScript: '',
+  isDetection: '',
 };
 const INCIDENT_INFO = {
   severity: 'Emergency',
   impactAssessment: 4,
-  socType: 1
+  socType: 1,
 };
 const FORM_VALIDATION = {
   name: {
-    valid: true
+    valid: true,
   },
   queryScript: {
-    valid: true
+    valid: true,
   },
   threshold: {
-    valid: true
-  }
+    valid: true,
+  },
 };
 
 let t = null;
@@ -72,7 +81,7 @@ class Pattern extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     it = global.chewbaccaI18n.getFixedT(null, 'incident');
-    at = global.chewbaccaI18n.getFixedT(null, 'account');    
+    at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
       activeContent: 'tableList', //'tableList', 'viewPattern', 'addPattern' or 'editPattern'
@@ -91,12 +100,21 @@ class Pattern extends Component {
       attach: null,
       filesName: [],
       pattern: {
-        dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
+        dataFieldsArr: [
+          'patternName',
+          'severity',
+          'queryScript',
+          'periodMin',
+          'threshold',
+          'isDetection',
+          'lastUpdateDttm',
+          '_menu',
+        ],
         dataFields: [],
         dataContent: null,
         sort: {
           field: 'patternName',
-          desc: false
+          desc: false,
         },
         totalCount: 0,
         currentPage: 1,
@@ -108,53 +126,78 @@ class Pattern extends Component {
           severity: 'Emergency',
           periodMin: 10,
           threshold: 1,
+          isDetection: true,
           queryScript: '',
         },
-        withIncident: false
+        withIncident: false,
       },
       incident: {
-        dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'severity', 'createDttm', 'updateDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
-        fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
-        flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
+        dataFieldsArr: [
+          '_menu',
+          'id',
+          'tag',
+          'status',
+          'severity',
+          'createDttm',
+          'updateDttm',
+          'title',
+          'reporter',
+          'srcIPListString',
+          'dstIPListString',
+        ],
+        fileFieldsArr: [
+          'fileName',
+          'fileSize',
+          'fileDttm',
+          'fileMemo',
+          'action',
+        ],
+        flowFieldsArr: [
+          'id',
+          'status',
+          'reviewDttm',
+          'reviewerName',
+          'suggestion',
+        ],
         dataFields: [],
         dataContent: [],
         sort: {
           field: 'createDttm',
-          desc: true
+          desc: true,
         },
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
-        info: _.cloneDeep(INCIDENT_INFO)
+        info: _.cloneDeep(INCIDENT_INFO),
       },
       currentIncident: {},
       originalIncident: {},
       enableIncidentTemplate: null,
       originalEnableIncidentTemplate: null,
-      incidentAccidentList: _.map(_.range(1, 6), el => {
-        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+      incidentAccidentList: _.map(_.range(1, 6), (el) => {
+        return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>;
       }),
       incidentAccidentSubList: [
-        _.map(_.range(11, 17), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        _.map(_.range(11, 17), (el) => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>;
         }),
-        _.map(_.range(21, 26), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        _.map(_.range(21, 26), (el) => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>;
         }),
-        _.map(_.range(31, 33), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
+        _.map(_.range(31, 33), (el) => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>;
         }),
-        _.map(_.range(41, 45), el => {
-          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
-        })
+        _.map(_.range(41, 45), (el) => {
+          return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>;
+        }),
       ],
-      formValidation: _.cloneDeep(FORM_VALIDATION)
+      formValidation: _.cloneDeep(FORM_VALIDATION),
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {baseUrl, locale, sessionRights} = this.context;
+    const { baseUrl, locale, sessionRights } = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
     helper.inactivityTime(baseUrl, locale);
@@ -169,12 +212,26 @@ class Pattern extends Component {
    * @method
    */
   setDefaultSearchOptions = () => {
-    const {baseUrl, session} = this.context;
+    const { baseUrl, session } = this.context;
     const severityList = _.map(SEVERITY_TYPE, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+      return (
+        <MenuItem
+          key={i}
+          value={val}
+        >
+          {val}
+        </MenuItem>
+      );
     });
     const periodMinList = _.map(PERIOD_MIN, (val, i) => {
-      return <MenuItem key={i} value={val}>{val}</MenuItem>
+      return (
+        <MenuItem
+          key={i}
+          value={val}
+        >
+          {val}
+        </MenuItem>
+      );
     });
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -184,89 +241,99 @@ class Pattern extends Component {
       data: JSON.stringify({}),
       type: 'POST',
       contentType: 'application/json',
-      dataType: 'json'
-    }).then(data => {
-      if (data) {
-        let flowSourceList = [];
-        const list = _.map(data.rt.rows, val => {
-          flowSourceList.push(val);
-          return <MenuItem key={val.id} value={val.id}>{`${val.name}`}</MenuItem>
-        });
-
-        this.setState({
-          socFlowSourceList: flowSourceList,
-          socFlowList: list
-        });
-      }
-    }).catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    });
-
-    ah.one({
-      url: `${baseUrl}/api/soc/device/_search`,
-      data: JSON.stringify({use:'1'}),
-      type: 'POST',
-      contentType: 'application/json',
-      dataType: 'json'
+      dataType: 'json',
     })
-    .then(data => {
-      if (data) {
-        const list = _.map(data.rt.rows, val => {
-          return {
-            value: val.id,
-            text: val.deviceName
-          };
-        });
+      .then((data) => {
+        if (data) {
+          let flowSourceList = [];
+          const list = _.map(data.rt.rows, (val) => {
+            flowSourceList.push(val);
+            return (
+              <MenuItem
+                key={val.id}
+                value={val.id}
+              >{`${val.name}`}</MenuItem>
+            );
+          });
 
-        this.setState({
-          deviceListOptions: list
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+          this.setState({
+            socFlowSourceList: flowSourceList,
+            socFlowList: list,
+          });
+        }
+      })
+      .catch((err) => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
 
     ah.one({
       url: `${baseUrl}/api/soc/device/_search`,
-      data: JSON.stringify({use: '2'}),
+      data: JSON.stringify({ use: '1' }),
       type: 'POST',
       contentType: 'application/json',
-      dataType: 'json'
+      dataType: 'json',
     })
-    .then(data => {
-      if (data) {
-        const list = _.map(data.rt.rows, val => {
-          return {
-            value: val.id,
-            text: val.deviceName
-          };
-        });
+      .then((data) => {
+        if (data) {
+          const list = _.map(data.rt.rows, (val) => {
+            return {
+              value: val.id,
+              text: val.deviceName,
+            };
+          });
 
-        this.setState({
-          showDeviceListOptions: list
-        });
+          this.setState({
+            deviceListOptions: list,
+          });
+        }
+      })
+      .catch((err) => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
+
+    ah.one({
+      url: `${baseUrl}/api/soc/device/_search`,
+      data: JSON.stringify({ use: '2' }),
+      type: 'POST',
+      contentType: 'application/json',
+      dataType: 'json',
+    })
+      .then((data) => {
+        if (data) {
+          const list = _.map(data.rt.rows, (val) => {
+            return {
+              value: val.id,
+              text: val.deviceName,
+            };
+          });
+
+          this.setState({
+            showDeviceListOptions: list,
+          });
+        }
+      })
+      .catch((err) => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
+
+    this.setState(
+      {
+        severityList,
+        periodMinList,
+      },
+      () => {
+        this.getPatternScript();
       }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-
-    this.setState({
-      severityList,
-      periodMinList
-    }, () => {
-      this.getPatternScript();
-    });
-  }
+    );
+  };
   /**
    * Get and set pattern script data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
   getPatternScript = (fromPage) => {
-    const {baseUrl, session} = this.context;
-    const {patternSearch, severitySelected, pattern} = this.state;
+    const { baseUrl, session } = this.context;
+    const { patternSearch, severitySelected, pattern } = this.state;
     const page = fromPage === 'currentPage' ? pattern.currentPage : 0;
     let query = '';
 
@@ -278,70 +345,102 @@ class Pattern extends Component {
       query += `&queryScript=${patternSearch.queryScript}`;
     }
 
+    if (
+      patternSearch.isDetection === true ||
+      patternSearch.isDetection === false
+    ) {
+      query += `&isDetection=${patternSearch.isDetection}`;
+    }
+
     if (severitySelected.length > 0) {
       query += `&severity=${severitySelected.join()}`;
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/alert/pattern?accountId=${session.accountId}${query}&page=${page + 1}&pageSize=${pattern.pageSize}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let tempPattern = {...pattern};
+    this.ah
+      .one({
+        url: `${baseUrl}/api/alert/pattern?accountId=${
+          session.accountId
+        }${query}&page=${page + 1}&pageSize=${pattern.pageSize}`,
+        type: 'GET',
+      })
+      .then((data) => {
+        if (data) {
+          let tempPattern = { ...pattern };
 
-        if (!data.rows || data.rows.length === 0) {
-          tempPattern.dataContent = [];
-          tempPattern.totalCount = 0;
+          if (!data.rows || data.rows.length === 0) {
+            tempPattern.dataContent = [];
+            tempPattern.totalCount = 0;
+
+            this.setState({
+              pattern: tempPattern,
+            });
+            return null;
+          }
+
+          tempPattern.dataContent = data.rows;
+          tempPattern.totalCount = data.counts;
+          tempPattern.currentPage = page;
+          tempPattern.dataFields = _.map(pattern.dataFieldsArr, (val) => {
+            return {
+              name: val,
+              label:
+                val === '_menu' ? ' ' : f(`syslogPatternTableFields.${val}`),
+              options: {
+                sort: false,
+                viewColumns: val === '_menu' ? false : true,
+                customBodyRenderLite: (dataIndex) => {
+                  const allValue = tempPattern.dataContent[dataIndex];
+                  const value = tempPattern.dataContent[dataIndex][val];
+
+                  if (val === 'severity') {
+                    return (
+                      <span
+                        className='severity-level'
+                        style={{ backgroundColor: ALERT_LEVEL_COLORS[value] }}
+                      >
+                        {value}
+                      </span>
+                    );
+                  } else if (val === 'isDetection') {
+                    return value ? t('txt-true') : t('txt-false');
+                  } else if (val === 'lastUpdateDttm') {
+                    return helper.getFormattedDate(value, 'local');
+                  } else if (val === '_menu') {
+                    return (
+                      <div className='table-menu menu active'>
+                        <i
+                          className='fg fg-eye'
+                          onClick={this.toggleContent.bind(
+                            this,
+                            'viewPattern',
+                            allValue
+                          )}
+                          title={t('txt-view')}
+                        ></i>
+                        <i
+                          className='fg fg-trashcan'
+                          onClick={this.openDeleteMenu.bind(this, allValue)}
+                          title={t('txt-delete')}
+                        ></i>
+                      </div>
+                    );
+                  }
+                  return value;
+                },
+              },
+            };
+          });
 
           this.setState({
-            pattern: tempPattern
+            pattern: tempPattern,
           });
-          return null;
         }
-
-        tempPattern.dataContent = data.rows;
-        tempPattern.totalCount = data.counts;
-        tempPattern.currentPage = page;
-        tempPattern.dataFields = _.map(pattern.dataFieldsArr, val => {
-          return {
-            name: val,
-            label: val === '_menu' ? ' ' : f(`syslogPatternTableFields.${val}`),
-            options: {
-              sort: false,
-              viewColumns: val === '_menu' ? false : true,
-              customBodyRenderLite: (dataIndex) => {
-                const allValue = tempPattern.dataContent[dataIndex];
-                const value = tempPattern.dataContent[dataIndex][val];
-
-                if (val === 'severity') {
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-                } else if (val === 'lastUpdateDttm') {
-                  return helper.getFormattedDate(value, 'local');
-                } else if (val === '_menu') {
-                  return (
-                    <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', allValue)} title={t('txt-view')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
-                    </div>
-                  )
-                }
-                return value;
-              }
-            }
-          };
-        });
-
-        this.setState({
-          pattern: tempPattern
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
+        return null;
+      })
+      .catch((err) => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
+  };
   /**
    * Toggle different content
    * @method
@@ -349,9 +448,15 @@ class Pattern extends Component {
    * @param {object} allValue - Severity data
    */
   toggleContent = (type, allValue) => {
-    const {originalPatternData, pattern, incident, originalIncident, originalEnableIncidentTemplate} = this.state;
-    let tempPattern = {...pattern};
-    let tempIncident = {...incident};
+    const {
+      originalPatternData,
+      pattern,
+      incident,
+      originalIncident,
+      originalEnableIncidentTemplate,
+    } = this.state;
+    let tempPattern = { ...pattern };
+    let tempIncident = { ...incident };
     let showPage = type;
 
     if (type === 'tableList') {
@@ -362,7 +467,8 @@ class Pattern extends Component {
         severity: 'Emergency',
         periodMin: 10,
         threshold: 1,
-        queryScript: ''
+        isDetection: true,
+        queryScript: '',
       };
     } else if (type === 'viewPattern') {
       tempPattern.info = {
@@ -372,17 +478,19 @@ class Pattern extends Component {
         severity: allValue.severity,
         periodMin: allValue.periodMin,
         threshold: allValue.threshold,
-        queryScript: allValue.queryScript
+        isDetection: allValue.isDetection,
+        queryScript: allValue.queryScript,
       };
       tempPattern.withIncident = false;
 
       if (allValue.incidentRuleTemplateDTO) {
         tempPattern.withIncident = true;
         tempIncident.info = {
-          ...allValue.incidentRuleTemplateDTO
+          ...allValue.incidentRuleTemplateDTO,
         };
 
-        tempIncident.info.impactAssessment = allValue.incidentRuleTemplateDTO.impact;
+        tempIncident.info.impactAssessment =
+          allValue.incidentRuleTemplateDTO.impact;
         delete tempIncident.info.accountDTO;
         delete tempIncident.info.accountQueryDTO;
         delete tempIncident.info.alertPatternDTO;
@@ -401,7 +509,7 @@ class Pattern extends Component {
         originalIncident: _.cloneDeep(tempIncident),
         enableIncidentTemplate: allValue.socTemplateEnable,
         originalEnableIncidentTemplate: allValue.socTemplateEnable,
-        formValidation: _.cloneDeep(FORM_VALIDATION)
+        formValidation: _.cloneDeep(FORM_VALIDATION),
       });
     } else if (type === 'addPattern') {
       tempIncident.info = _.cloneDeep(INCIDENT_INFO);
@@ -412,7 +520,7 @@ class Pattern extends Component {
         incident: tempIncident,
         originalIncident: _.cloneDeep(tempIncident),
         enableIncidentTemplate: false,
-        formValidation: _.cloneDeep(FORM_VALIDATION)
+        formValidation: _.cloneDeep(FORM_VALIDATION),
       });
     } else if (type === 'cancel') {
       showPage = 'viewPattern';
@@ -420,41 +528,60 @@ class Pattern extends Component {
 
       this.setState({
         incident: _.cloneDeep(originalIncident),
-        enableIncidentTemplate: originalEnableIncidentTemplate
+        enableIncidentTemplate: originalEnableIncidentTemplate,
       });
     }
 
-    this.setState({
-      activeContent: showPage,
-      pattern: tempPattern
-    }, () => {
-      if (type === 'tableList') {
-        this.getPatternScript();
+    this.setState(
+      {
+        activeContent: showPage,
+        pattern: tempPattern,
+      },
+      () => {
+        if (type === 'tableList') {
+          this.getPatternScript();
+        }
       }
-    });
-  }
+    );
+  };
   /**
    * Handle Pattern edit input data change
    * @method
    * @param {object} event - event object
    */
   handlePatternChange = (event) => {
-    let tempPattern = {...this.state.pattern};
+    let tempPattern = { ...this.state.pattern };
     tempPattern.info[event.target.name] = event.target.value;
 
     this.setState({
-      pattern: tempPattern
+      pattern: tempPattern,
     });
-  }
+  };
+
   /**
    * Toggle incident status switch
    * @method
    */
   handleIncidentStatusChange = () => {
     this.setState({
-      enableIncidentTemplate: !this.state.enableIncidentTemplate
+      enableIncidentTemplate: !this.state.enableIncidentTemplate,
     });
-  }
+  };
+  /**
+   * Toggle incident status switch
+   * @method
+   */
+  handlePatternStatusChange = () => {
+    this.setState((prevState) => {
+      const { pattern } = prevState;
+      const updatedPattern = { ...pattern };
+      updatedPattern.info.isDetection = !pattern.info.isDetection;
+      return {
+        pattern: updatedPattern,
+      };
+    });
+  };
+
   /**
    * Handle Incident data change
    * @method
@@ -462,79 +589,115 @@ class Pattern extends Component {
    * @param {string} value - input value
    */
   handleDataChange = (type, value) => {
-    let temp = {...this.state.incident};
+    let temp = { ...this.state.incident };
     temp.info[type] = value;
 
     if (type === 'impactAssessment') {
-      temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+      temp.info.expireDttm = helper.getAdditionDate(
+        24 * (9 - 2 * value),
+        'hours'
+      );
     }
 
     this.setState({
-      incident: temp
+      incident: temp,
     });
-  }
+  };
   handleDataChangeMui = (event) => {
-    const {incident, socFlowSourceList} = this.state;
+    const { incident, socFlowSourceList } = this.state;
     const name = event.target.name;
     const value = event.target.value;
-    let tempIncident = {...incident};
+    let tempIncident = { ...incident };
     tempIncident.info[name] = value;
 
     if (name === 'severity') {
       if (value === 'Emergency') {
         tempIncident.info['impactAssessment'] = 4;
-        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+        tempIncident.info.expireDttm = helper.getAdditionDate(
+          24 * (9 - 2 * tempIncident.info['impactAssessment']),
+          'hours'
+        );
       } else if (value === 'Alert') {
         tempIncident.info['impactAssessment'] = 3;
-        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+        tempIncident.info.expireDttm = helper.getAdditionDate(
+          24 * (9 - 2 * tempIncident.info['impactAssessment']),
+          'hours'
+        );
       } else if (value === 'Notice') {
         tempIncident.info['impactAssessment'] = 1;
-        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+        tempIncident.info.expireDttm = helper.getAdditionDate(
+          24 * (9 - 2 * tempIncident.info['impactAssessment']),
+          'hours'
+        );
       } else if (value === 'Warning') {
         tempIncident.info['impactAssessment'] = 2;
-        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+        tempIncident.info.expireDttm = helper.getAdditionDate(
+          24 * (9 - 2 * tempIncident.info['impactAssessment']),
+          'hours'
+        );
       } else if (value === 'Critical') {
         tempIncident.info['impactAssessment'] = 3;
-        tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+        tempIncident.info.expireDttm = helper.getAdditionDate(
+          24 * (9 - 2 * tempIncident.info['impactAssessment']),
+          'hours'
+        );
       }
     }
 
     if (name === 'flowTemplateId') {
-      _.forEach(socFlowSourceList , flowVal => {
+      _.forEach(socFlowSourceList, (flowVal) => {
         if (flowVal.id === value) {
           if (flowVal.severity === 'Emergency') {
             tempIncident.info['severity'] = 'Emergency';
             tempIncident.info['impactAssessment'] = 4;
-            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+            tempIncident.info.expireDttm = helper.getAdditionDate(
+              24 * (9 - 2 * tempIncident.info['impactAssessment']),
+              'hours'
+            );
           } else if (flowVal.severity === 'Alert') {
             tempIncident.info['severity'] = 'Alert';
             tempIncident.info['impactAssessment'] = 3;
-            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+            tempIncident.info.expireDttm = helper.getAdditionDate(
+              24 * (9 - 2 * tempIncident.info['impactAssessment']),
+              'hours'
+            );
           } else if (flowVal.severity === 'Notice') {
             tempIncident.info['severity'] = 'Notice';
             tempIncident.info['impactAssessment'] = 1;
-            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+            tempIncident.info.expireDttm = helper.getAdditionDate(
+              24 * (9 - 2 * tempIncident.info['impactAssessment']),
+              'hours'
+            );
           } else if (flowVal.severity === 'Warning') {
             tempIncident.info['severity'] = 'Warning';
             tempIncident.info['impactAssessment'] = 2;
-            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+            tempIncident.info.expireDttm = helper.getAdditionDate(
+              24 * (9 - 2 * tempIncident.info['impactAssessment']),
+              'hours'
+            );
           } else if (flowVal.severity === 'Critical') {
             tempIncident.info['severity'] = 'Critical';
             tempIncident.info['impactAssessment'] = 3;
-            tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * tempIncident.info['impactAssessment']), 'hours');
+            tempIncident.info.expireDttm = helper.getAdditionDate(
+              24 * (9 - 2 * tempIncident.info['impactAssessment']),
+              'hours'
+            );
           }
         }
-      })
+      });
     }
 
     if (name === 'impactAssessment') {
-      tempIncident.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours');
+      tempIncident.info.expireDttm = helper.getAdditionDate(
+        24 * (9 - 2 * value),
+        'hours'
+      );
     }
 
     this.setState({
-      incident: tempIncident
+      incident: tempIncident,
     });
-  }
+  };
   /**
    * Handle file upload change
    * @method
@@ -547,16 +710,18 @@ class Pattern extends Component {
     if (options === 'clear') {
       this.setState({
         attach: null,
-        filesName: ''
+        filesName: '',
       });
       return;
     }
 
     if (_.size(input.files) > 0) {
-      const flag = new RegExp("[\`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+      const flag = new RegExp(
+        "[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]"
+      );
       let validate = true;
 
-      _.forEach(input.files, val => {
+      _.forEach(input.files, (val) => {
         if (flag.test(val.name)) {
           validate = false;
           helper.showPopupMsg(it('txt-attachedFileNameError'), t('txt-error'));
@@ -568,40 +733,40 @@ class Pattern extends Component {
         } else {
           filesName.push(val.name);
         }
-      })
+      });
 
       if (!validate) return;
 
       this.setState({
         attach: input.files,
-        filesName: filesName.join(', ')
+        filesName: filesName.join(', '),
       });
     }
-  }
+  };
   handleConnectContactChange = (val) => {
-    let temp = {...this.state.incident};
+    let temp = { ...this.state.incident };
     temp.info.notifyList = val;
 
     this.setState({
-      incident: temp
+      incident: temp,
     });
-  }
+  };
   handleEventsChange = (val) => {
-    let temp = {...this.state.incident};
+    let temp = { ...this.state.incident };
     temp.info.eventList = val;
 
     this.setState({
-      incident: temp
+      incident: temp,
     });
-  }
+  };
   toggleEstablishDateCheckbox = (event) => {
-    let tempIncident = {...this.state.incident};
+    let tempIncident = { ...this.state.incident };
     tempIncident.info.enableEstablishDttm = event.target.checked;
 
     this.setState({
-      incident: tempIncident
+      incident: tempIncident,
     });
-  }
+  };
   /**
    * Display add/edit Pattern content
    * @method
@@ -623,7 +788,7 @@ class Pattern extends Component {
       enableIncidentTemplate,
       incidentAccidentList,
       incidentAccidentSubList,
-      formValidation
+      formValidation,
     } = this.state;
     let pageType = '';
 
@@ -634,25 +799,50 @@ class Pattern extends Component {
     }
 
     return (
-      <div id='addPatternForm' className='main-content basic-form'>
+      <div
+        id='addPatternForm'
+        className='main-content basic-form'
+      >
         <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
         <div className='content-header-btns'>
-          {activeContent === 'viewPattern' &&
+          {activeContent === 'viewPattern' && (
             <div>
-              <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-backToList')}</Button>
-              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editPattern')}>{t('txt-edit')}</Button>
+              <Button
+                variant='outlined'
+                color='primary'
+                className='standard btn list'
+                onClick={this.toggleContent.bind(this, 'tableList')}
+              >
+                {t('txt-backToList')}
+              </Button>
+              <Button
+                variant='outlined'
+                color='primary'
+                className='standard btn edit'
+                onClick={this.toggleContent.bind(this, 'editPattern')}
+              >
+                {t('txt-edit')}
+              </Button>
             </div>
-          }
+          )}
         </div>
 
-        <div style={{height: '70vh', overflowY: 'auto'}}>
+        <div style={{ height: '70vh', overflowY: 'auto' }}>
           <div className='form-group normal'>
             <header>
-              <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
-              {pattern.info.lastUpdateDttm &&
-                <span className='msg'>{t('system-defined-pattern.txt-lastUpdateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
-              }
+              <div className='text'>
+                {t('system-defined-pattern.txt-patternInfo')}
+              </div>
+              {pattern.info.lastUpdateDttm && (
+                <span className='msg'>
+                  {t('system-defined-pattern.txt-lastUpdateTime')}{' '}
+                  {helper.getFormattedDate(
+                    pattern.info.lastUpdateDttm,
+                    'local'
+                  )}
+                </span>
+              )}
             </header>
             <div className='group'>
               <TextField
@@ -667,10 +857,23 @@ class Pattern extends Component {
                 helperText={formValidation.name.valid ? '' : t('txt-required')}
                 value={pattern.info.name}
                 onChange={this.handlePatternChange}
-                disabled={activeContent === 'viewPattern'} />
+                disabled={activeContent === 'viewPattern'}
+              />
             </div>
-            <div className='group severity-level'>
-              <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}></i>
+            <div
+              className='group severity-level'
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <i
+                className='fg fg-recode'
+                style={{
+                  color: ALERT_LEVEL_COLORS[pattern.info.severity],
+                }}
+              ></i>
               <TextField
                 id='severityLevel'
                 name='severity'
@@ -680,10 +883,26 @@ class Pattern extends Component {
                 size='small'
                 value={pattern.info.severity}
                 onChange={this.handlePatternChange}
-                disabled={activeContent === 'viewPattern'}>
+                disabled={activeContent === 'viewPattern'}
+              >
                 {severityList}
               </TextField>
+              <FormControlLabel
+                style={{ marginTop: '7px', marginLeft: '5px' }}
+                id='patternSwitch'
+                className='switch-control'
+                control={
+                  <Switch
+                    checked={pattern.info.isDetection}
+                    onChange={this.handlePatternStatusChange}
+                    color='primary'
+                  />
+                }
+                label={t('events.connections.txt-isEnabled')}
+                disabled={activeContent === 'viewPattern'}
+              />
             </div>
+
             <div className='group full'>
               <TextField
                 id='queryScript'
@@ -697,14 +916,19 @@ class Pattern extends Component {
                 size='small'
                 required
                 error={!formValidation.queryScript.valid}
-                helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
+                helperText={
+                  formValidation.queryScript.valid ? '' : t('txt-required')
+                }
                 value={pattern.info.queryScript}
                 onChange={this.handlePatternChange}
-                disabled={activeContent === 'viewPattern'} />
+                disabled={activeContent === 'viewPattern'}
+              />
             </div>
             <div className='group full'>
               <div className='period'>
-                <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+                <span className='support-text'>
+                  {t('events.connections.txt-patternQuery1')}{' '}
+                </span>
                 <TextField
                   className='number'
                   name='periodMin'
@@ -714,10 +938,14 @@ class Pattern extends Component {
                   required
                   value={pattern.info.periodMin}
                   onChange={this.handlePatternChange}
-                  disabled={activeContent === 'viewPattern'}>
+                  disabled={activeContent === 'viewPattern'}
+                >
                   {periodMinList}
                 </TextField>
-                <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
+                <span className='support-text'>
+                  {' '}
+                  {t('events.connections.txt-patternQuery2')}{' '}
+                </span>
                 <TextField
                   id='threshold'
                   className='number'
@@ -725,14 +953,22 @@ class Pattern extends Component {
                   type='number'
                   variant='outlined'
                   size='small'
-                  InputProps={{inputProps: { min: 1, max: 1000 }}}
+                  InputProps={{ inputProps: { min: 1, max: 1000 } }}
                   required
                   error={!formValidation.threshold.valid}
-                  helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
+                  helperText={
+                    formValidation.threshold.valid
+                      ? ''
+                      : t('events.connections.txt-threasholdCount')
+                  }
                   value={pattern.info.threshold}
                   onChange={this.handlePatternChange}
-                  disabled={activeContent === 'viewPattern'} />
-                <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
+                  disabled={activeContent === 'viewPattern'}
+                />
+                <span className='support-text'>
+                  {' '}
+                  {t('events.connections.txt-patternQuery3')}
+                </span>
               </div>
             </div>
             <FormControlLabel
@@ -742,12 +978,17 @@ class Pattern extends Component {
                 <Switch
                   checked={enableIncidentTemplate}
                   onChange={this.handleIncidentStatusChange}
-                  color='primary' />
+                  color='primary'
+                />
               }
               label={t('events.connections.txt-enableIncidentTemplate')}
-              disabled={activeContent === 'viewPattern'} />
-            {enableIncidentTemplate &&
-              <div id='incidentSettingsForm' className='auto-settings'>
+              disabled={activeContent === 'viewPattern'}
+            />
+            {enableIncidentTemplate && (
+              <div
+                id='incidentSettingsForm'
+                className='auto-settings'
+              >
                 <IncidentForm
                   from='pattern'
                   activeContent={activeContent}
@@ -767,21 +1008,36 @@ class Pattern extends Component {
                   handleFileChange={this.handleFileChange}
                   handleConnectContactChange={this.handleConnectContactChange}
                   handleEventsChange={this.handleEventsChange}
-                  toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox} />
+                  toggleEstablishDateCheckbox={this.toggleEstablishDateCheckbox}
+                />
               </div>
-            }
+            )}
           </div>
         </div>
 
-        {(activeContent === 'addPattern' || activeContent === 'editPattern') &&
+        {(activeContent === 'addPattern' ||
+          activeContent === 'editPattern') && (
           <footer>
-            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</Button>
-            <Button variant='contained' color='primary' onClick={this.handlePatternSubmit}>{t('txt-save')}</Button>
+            <Button
+              variant='outlined'
+              color='primary'
+              className='standard'
+              onClick={this.toggleContent.bind(this, pageType)}
+            >
+              {t('txt-cancel')}
+            </Button>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={this.handlePatternSubmit}
+            >
+              {t('txt-save')}
+            </Button>
           </footer>
-        }
+        )}
       </div>
-    )
-  }
+    );
+  };
   /**
    * Display delete Pattern content
    * @method
@@ -790,15 +1046,17 @@ class Pattern extends Component {
    */
   getDeletePatternContent = (allValue) => {
     this.setState({
-      currentPatternData: allValue
+      currentPatternData: allValue,
     });
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.patternName}?</span>
+        <span>
+          {t('txt-delete-msg')}: {allValue.patternName}?
+        </span>
       </div>
-    )
-  }
+    );
+  };
   /**
    * Show Delete Pattern dialog
    * @method
@@ -815,16 +1073,16 @@ class Pattern extends Component {
         if (confirmed) {
           this.deleteSeverity();
         }
-      }
+      },
     });
-  }
+  };
   /**
    * Handle delete Pattern confirm
    * @method
    */
   deleteSeverity = () => {
-    const {baseUrl} = this.context;
-    const {currentPatternData} = this.state;
+    const { baseUrl } = this.context;
+    const { currentPatternData } = this.state;
 
     if (!currentPatternData.patternId) {
       return;
@@ -834,26 +1092,33 @@ class Pattern extends Component {
 
     ah.one({
       url: `${baseUrl}/api/alert/pattern?patternId=${currentPatternData.patternId}`,
-      type: 'DELETE'
+      type: 'DELETE',
     })
-    .then(data => {
-      if (data.ret === 0) {
-        this.getPatternScript();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
+      .then((data) => {
+        if (data.ret === 0) {
+          this.getPatternScript();
+        }
+        return null;
+      })
+      .catch((err) => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
+  };
   /**
    * Handle Pattern add/edit confirm
    * @method
    */
   handlePatternSubmit = () => {
-    const {baseUrl, session} = this.context;
-    const {activeContent, pattern, incident, originalIncident, enableIncidentTemplate, formValidation} = this.state;
-    let tempFormValidation = {...formValidation};
+    const { baseUrl, session } = this.context;
+    const {
+      activeContent,
+      pattern,
+      incident,
+      originalIncident,
+      enableIncidentTemplate,
+      formValidation,
+    } = this.state;
+    let tempFormValidation = { ...formValidation };
     let validate = true;
     let requestType = '';
 
@@ -883,7 +1148,7 @@ class Pattern extends Component {
     }
 
     this.setState({
-      formValidation: tempFormValidation
+      formValidation: tempFormValidation,
     });
 
     if (!validate) {
@@ -897,7 +1162,8 @@ class Pattern extends Component {
       queryScript: pattern.info.queryScript,
       periodMin: Number(pattern.info.periodMin),
       threshold: Number(pattern.info.threshold),
-      socTemplateEnable: enableIncidentTemplate
+      isDetection: pattern.info.isDetection,
+      socTemplateEnable: enableIncidentTemplate,
     };
 
     if (enableIncidentTemplate) {
@@ -905,20 +1171,21 @@ class Pattern extends Component {
         ...incident.info,
         impact: incident.info.impactAssessment,
         limitQuery: 10,
-        creator: session.accountId
+        creator: session.accountId,
       };
 
-      _.forEach(REQUIRED_FIELD, val => { //Check required field for Incident
+      _.forEach(REQUIRED_FIELD, (val) => {
+        //Check required field for Incident
         if (!incident.info[val]) {
           PopupDialog.alert({
             title: t('txt-tips'),
             display: t('txt-checkRequiredFieldType'),
-            confirmText: t('txt-close')
+            confirmText: t('txt-close'),
           });
           validate = false;
           return false;
         }
-      })
+      });
 
       if (!validate) {
         return;
@@ -926,7 +1193,7 @@ class Pattern extends Component {
     } else {
       if (activeContent === 'editPattern' && pattern.withIncident) {
         requestData.incidentRuleTemplateDTO = {
-          ...originalIncident.info
+          ...originalIncident.info,
         };
       }
     }
@@ -938,56 +1205,61 @@ class Pattern extends Component {
       requestType = 'PATCH';
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/v2/alert/pattern`,
-      data: JSON.stringify(requestData),
-      type: requestType,
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      this.setState({
-        originalPatternData: _.cloneDeep(pattern),
-        originalIncident: _.cloneDeep(incident),
-        originalEnableIncidentTemplate: _.cloneDeep(enableIncidentTemplate)
-      }, () => {
-        let showPage = '';
-
-        if (activeContent === 'addPattern') {
-          showPage = 'tableList';
-        } else if (activeContent === 'editPattern') {
-          showPage = 'cancel';
-        }
-
-        this.toggleContent(showPage);
+    this.ah
+      .one({
+        url: `${baseUrl}/api/v2/alert/pattern`,
+        data: JSON.stringify(requestData),
+        type: requestType,
+        contentType: 'text/plain',
       })
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
+      .then((data) => {
+        this.setState(
+          {
+            originalPatternData: _.cloneDeep(pattern),
+            originalIncident: _.cloneDeep(incident),
+            originalEnableIncidentTemplate: _.cloneDeep(enableIncidentTemplate),
+          },
+          () => {
+            let showPage = '';
+
+            if (activeContent === 'addPattern') {
+              showPage = 'tableList';
+            } else if (activeContent === 'editPattern') {
+              showPage = 'cancel';
+            }
+
+            this.toggleContent(showPage);
+          }
+        );
+        return null;
+      })
+      .catch((err) => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      });
+  };
   /**
    * Toggle filter content on/off
    * @method
    */
   toggleFilter = () => {
     this.setState({
-      showFilter: !this.state.showFilter
+      showFilter: !this.state.showFilter,
     });
-  }
+  };
   /**
    * Handle filter input data change
    * @method
    * @param {object} event - event object
    */
   handlePatternSearch = (event) => {
-    let tempPatternSearch = {...this.state.patternSearch};
+    let tempPatternSearch = { ...this.state.patternSearch };
     tempPatternSearch[event.target.name] = event.target.value;
 
     this.setState({
-      patternSearch: tempPatternSearch
+      patternSearch: tempPatternSearch,
     });
-  }
+  };
+
   /**
    * Check if item is already in the selected list
    * @method
@@ -996,7 +1268,7 @@ class Pattern extends Component {
    */
   checkSelectedItem = (val) => {
     return _.includes(this.state.severitySelected, val);
-  }
+  };
   /**
    * Handle checkbox check/uncheck
    * @method
@@ -1013,9 +1285,9 @@ class Pattern extends Component {
     }
 
     this.setState({
-      severitySelected
+      severitySelected,
     });
-  }
+  };
   /**
    * Display Severity checkbox group
    * @method
@@ -1025,7 +1297,10 @@ class Pattern extends Component {
    */
   displaySeverityCheckbox = (val, i) => {
     return (
-      <div key={val + i} className='option'>
+      <div
+        key={val + i}
+        className='option'
+      >
         <FormControlLabel
           label={val}
           control={
@@ -1035,24 +1310,33 @@ class Pattern extends Component {
               name={val}
               checked={this.checkSelectedItem(val)}
               onChange={this.toggleCheckbox}
-              color='primary' />
-          } />
+              color='primary'
+            />
+          }
+        />
       </div>
-    )
-  }
+    );
+  };
   /**
    * Display filter content
    * @method
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, patternSearch} = this.state;
+    const { showFilter, patternSearch } = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+      <div className={cx('main-filter', { active: showFilter })}>
+        <i
+          className='fg fg-close'
+          onClick={this.toggleFilter}
+          title={t('txt-close')}
+        ></i>
         <div className='header-text'>{t('txt-filter')}</div>
-        <div className='filter-section config'>
+        <div
+          className='filter-section config'
+          style={{ display: 'flex', flexDirection: 'row' }}
+        >
           <div className='group'>
             <TextField
               id='patternSearchName'
@@ -1062,32 +1346,71 @@ class Pattern extends Component {
               fullWidth
               size='small'
               value={patternSearch.name}
-              onChange={this.handlePatternSearch} />
+              onChange={this.handlePatternSearch}
+            />
           </div>
           <div className='group'>
             <TextareaAutosize
               id='patternSearchQueryScript'
               className='textarea-autosize'
+              variant='outlined'
               name='queryScript'
               placeholder={f('syslogPatternTableFields.queryScript')}
               value={patternSearch.queryScript}
-              onChange={this.handlePatternSearch} />
+              onChange={this.handlePatternSearch}
+            />
           </div>
-          <div className='severity'>
-            <div className='group group-checkbox narrow'>
-              <div className='group-options'>
-                {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}
-              </div>
+          <div
+            className='group group-checkbox narrow'
+            style={{ margin: '5px 0px 0px 0px', height: '40px' }}
+          >
+            <div className='group-options'>
+              {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}
             </div>
+          </div>
+
+          <div
+            className='group'
+            style={{ margin: '0px 0px -2px 5px', width: '120px' }}
+          >
+            <TextField
+              id='patternSearchIsDetection'
+              name='isDetection'
+              select
+              label={f('syslogPatternTableFields.enabledStatus')}
+              size='small'
+              fullWidth
+              variant='outlined'
+              value={patternSearch.isDetection}
+              onChange={this.handlePatternSearch}
+            >
+              <MenuItem value='all'>{t('txt-all')}</MenuItem>
+              <MenuItem value={true}>{t('txt-true')}</MenuItem>
+              <MenuItem value={false}>{t('txt-false')}</MenuItem>
+            </TextField>
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getPatternScript}>{t('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
+          <Button
+            variant='contained'
+            color='primary'
+            className='filter'
+            onClick={this.getPatternScript}
+          >
+            {t('txt-filter')}
+          </Button>
+          <Button
+            variant='outlined'
+            color='primary'
+            className='clear'
+            onClick={this.clearFilter}
+          >
+            {t('txt-clear')}
+          </Button>
         </div>
       </div>
-    )
-  }
+    );
+  };
   /**
    * Handle table sort
    * @method
@@ -1095,16 +1418,19 @@ class Pattern extends Component {
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (field, sort) => {
-    let tempPattern = {...this.state.pattern};
+    let tempPattern = { ...this.state.pattern };
     tempPattern.sort.field = field;
     tempPattern.sort.desc = sort;
 
-    this.setState({
-      pattern: tempPattern
-    }, () => {
-      this.getPatternScript();
-    });
-  }
+    this.setState(
+      {
+        pattern: tempPattern,
+      },
+      () => {
+        this.getPatternScript();
+      }
+    );
+  };
   /**
    * Handle table pagination change
    * @method
@@ -1112,15 +1438,18 @@ class Pattern extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    let tempPattern = {...this.state.pattern};
+    let tempPattern = { ...this.state.pattern };
     tempPattern[type] = Number(value);
 
-    this.setState({
-      pattern: tempPattern
-    }, () => {
-      this.getPatternScript(type);
-    });
-  }
+    this.setState(
+      {
+        pattern: tempPattern,
+      },
+      () => {
+        this.getPatternScript(type);
+      }
+    );
+  };
   /**
    * Clear filter input value
    * @method
@@ -1128,12 +1457,12 @@ class Pattern extends Component {
   clearFilter = () => {
     this.setState({
       patternSearch: _.cloneDeep(PATTERN_SEARCH),
-      severitySelected: []
+      severitySelected: [],
     });
-  }
+  };
   render() {
-    const {baseUrl, contextRoot} = this.context;
-    const {activeContent, showFilter, pattern} = this.state;
+    const { baseUrl, contextRoot } = this.context;
+    const { activeContent, showFilter, pattern } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -1143,54 +1472,74 @@ class Pattern extends Component {
       },
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort(changedColumn, direction === 'desc');
-      }
+      },
     };
 
     return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {activeContent === 'tableList' &&
-              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            }
+            {activeContent === 'tableList' && (
+              <Button
+                variant='outlined'
+                color='primary'
+                className={cx('last', { active: showFilter })}
+                onClick={this.toggleFilter}
+                title={t('txt-filter')}
+              >
+                <i className='fg fg-filter'></i>
+              </Button>
+            )}
           </div>
         </div>
 
         <div className='data-content'>
           <Config
             baseUrl={baseUrl}
-            contextRoot={contextRoot} />
+            contextRoot={contextRoot}
+          />
 
           <div className='parent-content'>
             {this.renderFilter()}
 
-            {activeContent === 'tableList' &&
+            {activeContent === 'tableList' && (
               <div className='main-content'>
-                <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
+                <header className='main-header'>
+                  {t('txt-systemDefinedPattern')}
+                </header>
 
                 <div className='content-header-btns with-menu'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')} data-cy='add-pattern'>{t('system-defined-pattern.txt-addPatternScript')}</Button>
+                  <Button
+                    variant='outlined'
+                    color='primary'
+                    className='standard btn'
+                    onClick={this.toggleContent.bind(this, 'addPattern')}
+                    data-cy='add-pattern'
+                  >
+                    {t('system-defined-pattern.txt-addPatternScript')}
+                  </Button>
                 </div>
 
                 <MuiTableContent
                   data={pattern}
-                  tableOptions={tableOptions} />
+                  tableOptions={tableOptions}
+                />
               </div>
-            }
+            )}
 
-            {(activeContent === 'viewPattern' || activeContent === 'addPattern' || activeContent === 'editPattern') &&
-              this.displayEditPatternContent()
-            }
+            {(activeContent === 'viewPattern' ||
+              activeContent === 'addPattern' ||
+              activeContent === 'editPattern') &&
+              this.displayEditPatternContent()}
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
 
 Pattern.contextType = BaseDataContext;
 
-Pattern.propTypes = {
-};
+Pattern.propTypes = {};
 
 export default Pattern;
