@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
+import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 
 let t = null;
@@ -19,9 +20,33 @@ class KillChain extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
+    this.state = {
+      attackChains: [],
+      phases: [],
+    };
   }
   componentDidMount() {
   }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.killChains !== this.props.killChains) {
+      const {killChains, value: {killChainName, phaseName}} = this.props;
+      if (killChains && Array.isArray(killChains.attackChain)) {
+        if (Array.isArray(killChains.attackChain)) {
+          this.setState({
+            attackChains: [ '', ...(killChains.attackChain || [])],
+          });
+        }
+        if (killChainName) {
+          this.setState({
+            phases: [ '', ...(killChains[killChainName] || [])],
+          });
+        }
+      }
+    }
+  }
+
   /**
    * Handle input data change
    * @method
@@ -33,8 +58,37 @@ class KillChain extends Component {
       [event.target.name]: event.target.value
     });
   }
+  /**
+   * Handle kill-chain name change
+   * @method
+   * @param {object} event - event object
+   */
+  handleKillChainNameChange = (event) => {
+    const {killChains} = this.props;
+    this.props.onChange({
+      ...this.props.value,
+      [event.target.name]: event.target.value
+    });
+    
+    this.setState({
+      phases: [ '', ...(killChains[event.target.value] || [])],
+    });
+  }
+  /**
+   * Handle phase name change
+   * @method
+   * @param {object} event - event object
+   */
+  handlePhaseNameChange = (event) => {
+    this.props.onChange({
+      ...this.props.value,
+      [event.target.name]: event.target.value
+    });
+  }
+
   render() {
-    const {disabledStatus, locale, value: {killChainName, phaseName}} = this.props;
+    const {killChains, disabledStatus, locale, value: {killChainName, phaseName}} = this.props;
+    const {attackChains, phases} = this.state;
 
     return (
       <div className='event-content'>
@@ -48,9 +102,16 @@ class KillChain extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              onChange={this.handleDataChange}
+              select={!disabledStatus}
+              SelectProps={{
+                displayEmpty: true,
+                native: true,
+              }}
+              onChange={this.handleKillChainNameChange}
               value={killChainName}
-              disabled={disabledStatus} />
+              disabled={disabledStatus}>
+              { attackChains.map((v) => <option value={v}>{v}</option>) }
+            </TextField>
           </div>
           <div className='group'>
             <label htmlFor='phaseName'>{f('incidentFields.phaseName')}</label>
@@ -61,9 +122,15 @@ class KillChain extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              onChange={this.handleDataChange}
+              select={!disabledStatus}
+              SelectProps={{
+                displayEmpty: true,
+                native: true,
+              }}
+              onChange={this.handlePhaseNameChange}
               value={phaseName}
               disabled={disabledStatus}>
+              { phases.map((v) => <option value={v}>{v}</option>) }
             </TextField>
           </div>
         </div>
@@ -72,8 +139,5 @@ class KillChain extends Component {
   }
 }
 
-KillChain.propTypes = {
-  value: PropTypes.object.isRequired
-};
 
 export default KillChain;

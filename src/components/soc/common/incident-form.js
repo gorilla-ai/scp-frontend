@@ -63,9 +63,27 @@ class IncidentForm extends Component {
     at = global.chewbaccaI18n.getFixedT(null, 'account');
 
     this.state = {
+      killChains: {},
     };
   }
   componentDidMount() {
+    const {baseUrl} = this.context;
+
+    ah.one({
+      url: `${baseUrl}/api/soc/attackChain`,
+      type: 'GET',
+    })
+    .then(data => {
+      if (data && data.rt)
+      {
+        this.setState({
+          killChains: data.rt,
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   showRelatedList = (val, i) => {
     return <span key={i} className='item'>{val}</span>
@@ -210,6 +228,7 @@ class IncidentForm extends Component {
       socFlowList,
       enableEstablishDttm
     } = this.props;
+    const {killChains} = this.state;
     let required = false;
     let error = false;
     let helperText = '';
@@ -502,6 +521,7 @@ class IncidentForm extends Component {
             }}
             value={incident.info.killChainList}
             props={{
+              killChains,
               disabledStatus
             }}
             onChange={this.props.handleKillChainChange}
