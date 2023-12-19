@@ -20,31 +20,8 @@ class KillChain extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
-
-    this.state = {
-      attackChains: [],
-      phases: [],
-    };
   }
   componentDidMount() {
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.killChains !== this.props.killChains) {
-      const {killChains, value: {killChainName, phaseName}} = this.props;
-      if (killChains && Array.isArray(killChains.attackChain)) {
-        if (Array.isArray(killChains.attackChain)) {
-          this.setState({
-            attackChains: [ '', ...(killChains.attackChain || [])],
-          });
-        }
-        if (killChainName) {
-          this.setState({
-            phases: [ '', ...(killChains[killChainName] || [])],
-          });
-        }
-      }
-    }
   }
 
   /**
@@ -58,37 +35,9 @@ class KillChain extends Component {
       [event.target.name]: event.target.value
     });
   }
-  /**
-   * Handle kill-chain name change
-   * @method
-   * @param {object} event - event object
-   */
-  handleKillChainNameChange = (event) => {
-    const {killChains} = this.props;
-    this.props.onChange({
-      ...this.props.value,
-      [event.target.name]: event.target.value
-    });
-    
-    this.setState({
-      phases: [ '', ...(killChains[event.target.value] || [])],
-    });
-  }
-  /**
-   * Handle phase name change
-   * @method
-   * @param {object} event - event object
-   */
-  handlePhaseNameChange = (event) => {
-    this.props.onChange({
-      ...this.props.value,
-      [event.target.name]: event.target.value
-    });
-  }
 
   render() {
-    const {killChains, disabledStatus, locale, value: {killChainName, phaseName}} = this.props;
-    const {attackChains, phases} = this.state;
+    const {killChains, disabledStatus, value: {killChainName, phaseName}} = this.props;
 
     return (
       <div className='event-content'>
@@ -107,10 +56,10 @@ class KillChain extends Component {
                 displayEmpty: true,
                 native: true,
               }}
-              onChange={this.handleKillChainNameChange}
+              onChange={this.handleDataChange}
               value={killChainName}
               disabled={disabledStatus}>
-              { attackChains.map((v) => <option value={v}>{v}</option>) }
+              { [ '', ...(killChains.attackChain || [])].map((v) => <option value={v}>{v}</option>) }
             </TextField>
           </div>
           <div className='group'>
@@ -127,10 +76,10 @@ class KillChain extends Component {
                 displayEmpty: true,
                 native: true,
               }}
-              onChange={this.handlePhaseNameChange}
+              onChange={this.handleDataChange}
               value={phaseName}
               disabled={disabledStatus}>
-              { phases.map((v) => <option value={v}>{v}</option>) }
+              { [ '', ...(killChains[killChainName] || [])].map((v) => <option value={v}>{v}</option>) }
             </TextField>
           </div>
         </div>
