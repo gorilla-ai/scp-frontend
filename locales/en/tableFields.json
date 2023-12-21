@@ -670,7 +670,9 @@
     "threshold": "Threshold",
     "lastUpdateDttm": "Last Updated Date Time",
     "queryScript": "Query Script",
-    "severity": "Severity"
+    "severity": "Severity",
+    "isDetection": "Enabled",
+    "enabledStatus": "Enabled"
   },
   "threatsTableFields": {
     "threatText": "Threat Info",
