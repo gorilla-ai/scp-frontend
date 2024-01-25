@@ -885,6 +885,18 @@
     "txt-error-9102": "No execute due to som error"
   },
 
+  "configuration": {
+    "threat": {
+      "txt-threatFromDttm": "Threat Datetime(From)",
+      "txt-threatToDttm": "Threat Datetime(To)",
+      "txt-threatType": "Threat Type",
+      "txt-keyword": "Keyword",
+      "txt-pleaseEnterThreatFromDttm": "Please Enter Threat Datetime(From)",
+      "txt-pleaseEnterThreatToDttm": "Please Enter Threat Datetime(To)",
+      "txt-threatToDttmLTEThreatFromDttm": "Threat Datetime(To) cannot be be less than or equal to Threat Datetime(From)"
+    }
+  },
+
   "notifications": {
     "txt-sendEmails": "Send Emails",
     "txt-testEmails": "Test Emails",

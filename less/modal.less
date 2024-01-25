@@ -2265,9 +2265,18 @@ html[data-theme='dark'] {
 #searchThreatsDialog-dialog {
   .filter-wrapper {
     .filter-section {
-      width: 600px;
+      width: 1000px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      .search-type {
+        float: left;
+        width: 150px;
+        margin-right: 10px;
+      }
       .search-keyword {
-        width: 67%;
+        width: 33%;
+        margin-right: 10px;
       }
     }
   }

@@ -885,6 +885,18 @@
     "txt-error-9102": "因其他錯誤發生導致未執行"
   },
 
+  "configuration": {
+    "threat": {
+      "txt-threatFromDttm": "情資時間(起)",
+      "txt-threatToDttm": "情資時間(訖)",
+      "txt-threatType": "情資類型",
+      "txt-keyword": "關鍵字",
+      "txt-pleaseEnterThreatFromDttm": "請輸入情資時間(起)",
+      "txt-pleaseEnterThreatToDttm": "請輸入情資時間(訖)",
+      "txt-threatToDttmLTEThreatFromDttm": "情資時間(訖)不可小於等於情資時間(起)"
+    }
+  },
+
   "notifications": {
     "txt-sendEmails": "寄信",
     "txt-testEmails": "寄信測試",

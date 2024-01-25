@@ -28,7 +28,11 @@ import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import MomentUtils from '@date-io/moment'
+
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import { center } from 'underscore.string'
 
 let t = null;
 let f = null;
@@ -47,6 +51,10 @@ class ThreatIntelligence extends Component {
 
     this.state = {
       threatsSearch: {
+        datetime: {
+          from: null,
+          to: null
+        },
         keyword: '',
         type: 'IP'
       },
@@ -69,7 +77,7 @@ class ThreatIntelligence extends Component {
       addThreats: [],
       threatsFile: {},
       threats: {
-        dataFieldsArr: ['threatText', 'threatType', 'dataSourceType', 'createDttm', '_menu'],
+        dataFieldsArr: ['threatText', 'threatType', 'dataSourceType', 'updateDttm', 'createDttm', '_menu'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -873,10 +881,28 @@ class ThreatIntelligence extends Component {
   toggleSearchThreats = () => {
     this.setState({
       threatsSearch: {
+        datetime: {
+          from: null,
+          to: null
+        },
         keyword: '',
         type: 'IP'
       },
       searchThreatsOpen: !this.state.searchThreatsOpen
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleSearchTime = (type, value) => {
+    let tempThreatsSearch = {...this.state.threatsSearch};
+    tempThreatsSearch.datetime[type] = value;
+
+    this.setState({
+      threatsSearch: tempThreatsSearch
     });
   }
   /**
@@ -898,6 +924,8 @@ class ThreatIntelligence extends Component {
    * @returns HTML DOM
    */
   displaySearchThreatsContent = () => {
+    const {locale} = this.context;
+    let dateLocale = locale;
     const {threatsSearch, threats} = this.state;
     const tableOptions = {
       tableBodyHeight: '57vh',
@@ -912,16 +940,59 @@ class ThreatIntelligence extends Component {
       }
     };
 
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
     return (
       <div className='filter'>
         <div className='filter-wrapper'>
           <div className='filter-section'>
+            <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+              <KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                label={t('configuration.threat.txt-threatFromDttm')}
+                InputProps={{
+                  style: {
+                      height: 40,
+                  }
+                }}
+                format='YYYY-MM-DD HH:mm'
+                ampm={false}
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={threatsSearch.datetime.from && threatsSearch.datetime.from.local()}
+                onChange={this.handleSearchTime.bind(this, 'from')} />
+              <div className='between'>~</div>
+              <KeyboardDateTimePicker
+                className='date-time-picker'
+                inputVariant='outlined'
+                variant='inline'
+                label={t('configuration.threat.txt-threatToDttm')}
+                InputProps={{
+                  style: {
+                      height: 40,
+                  }
+                }}
+                format='YYYY-MM-DD HH:mm'
+                ampm={false}
+                invalidDateMessage={t('txt-invalidDateMessage')}
+                maxDateMessage={t('txt-maxDateMessage')}
+                minDateMessage={t('txt-minDateMessage')}
+                value={threatsSearch.datetime.to && threatsSearch.datetime.to.local()}
+                onChange={this.handleSearchTime.bind(this, 'to')} />
+            </MuiPickersUtilsProvider>
             <TextField
               id='threatsSearchType'
               className='search-type'
               name='type'
               select
-              label={t('edge-management.txt-serviceMode')}
+              label={t('configuration.threat.txt-threatType')}
               variant='outlined'
               fullWidth
               size='small'
@@ -943,6 +1014,7 @@ class ThreatIntelligence extends Component {
               variant='outlined'
               fullWidth
               size='small'
+              placeholder={t('configuration.threat.txt-keyword')}
               value={threatsSearch.keyword}
               onChange={this.handleThreatsChange} />
           </div>
@@ -1027,6 +1099,21 @@ class ThreatIntelligence extends Component {
     const {threatsSearch, threats} = this.state;
     const page = fromPage === 'currentPage' ? threats.currentPage : 0;
 
+    if (!threatsSearch.datetime.from && threatsSearch.datetime.to) {
+      helper.showPopupMsg(t('configuration.threat.txt-pleaseEnterThreatFromDttm'), t('txt-error'));
+      return;
+    }
+
+    if (threatsSearch.datetime.from && !threatsSearch.datetime.to) {
+      helper.showPopupMsg(t('configuration.threat.txt-pleaseEnterThreatToDttm'), t('txt-error'));
+      return;
+    }
+
+    if (threatsSearch.datetime.to && threatsSearch.datetime.to <= threatsSearch.datetime.from) {
+      helper.showPopupMsg(t('configuration.threat.txt-threatToDttmLTEThreatFromDttm'), t('txt-error'));
+      return;
+    }
+
     if (!threatsSearch.keyword) {
       helper.showPopupMsg(t('txt-plsEnterKeyword'), t('txt-error'));
       return;
@@ -1041,9 +1128,12 @@ class ThreatIntelligence extends Component {
       }
     }
 
+    const url = `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page + 1}&pageSize=${threats.pageSize}`;
     let apiArr = [
       {
-        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page + 1}&pageSize=${threats.pageSize}`,
+        url: threatsSearch.datetime.from 
+          ? `${url}&startDttm=${threatsSearch.datetime.from.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'}&endDttm=${threatsSearch.datetime.to.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'}` 
+          : url,
         type: 'GET'
       }
     ];
@@ -1109,6 +1199,8 @@ class ThreatIntelligence extends Component {
 
                 if (val === 'threatText' && allValue.score === -999) {
                   return <span style={{textDecoration: 'line-through'}}>{value}</span>
+                } else if (val === 'updateDttm') {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
                 } else if (val === 'createDttm') {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 } else if (val === '_menu') {
