@@ -678,6 +678,7 @@
     "threatText": "Threat Info",
     "threatType": "threat Type",
     "dataSourceType": "Threat Severity Type",
+    "updateDttm": "Update Datetime",
     "createDttm": "Create Datetime"
   },
   "soarFields": {

@@ -678,7 +678,8 @@
     "threatText": "情資內容",
     "threatType": "情資類型",
     "dataSourceType": "情資嚴重等級",
-    "createDttm": "建立時間 "
+    "updateDttm": "更新時間",
+    "createDttm": "建立時間"
   },
   "soarFields": {
     "flowName": "SOAR名稱",
