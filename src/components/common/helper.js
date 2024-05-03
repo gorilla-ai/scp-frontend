@@ -190,62 +190,44 @@ const helper = {
     switch (index) {
       case 0:
         return 'red';
-        break;
       case 1:
         return 'yellow';
-        break;
       case 2:
         return 'green';
-        break;
       case 3:
         return 'darkGreen';
-        break;
       case 4:
         return 'blue';
-        break;
       case 5:
         return 'orange';
-        break;
       case 6:
         return 'darkBlue';
-        break;
       case 7:
         return 'purple';
-        break;
       case 8:
         return 'soil';
-        break;
       case 9:
         return 'brown';
-        break;
     }
   },
   showColor(color) {
     switch (color) {
       case '#B80000':
         return 'red';
-        break;
       case '#DB3E00':
         return 'orange';
-        break;
       case '#FCCB00':
         return 'yellow';
-        break;
       case '#008B02':
         return 'green';
-        break;
       case '#006B76':
         return 'darkGreen';
-        break;
       case '#1273DE':
         return 'blue';
-        break;
       case '#004DCF':
         return 'darkBlue';
-        break;
       case '#5300EB':
         return 'purple';
-        break;
       default:
         return 'yellow';
     }
@@ -319,9 +301,9 @@ const helper = {
         <button id='dashboardStatisticsBtn' className={cx('thumb', {'selected': page === 'statisticsUIF'})}>
           <Link to='/SCP/dashboard/statisticsUIF'>{t('dashboard.txt-statisticsInfo')}</Link>
         </button>
-        <button id='dashboardMapsBtn' className={cx('thumb', {'selected': page === 'maps'})}>
+        {/* <button id='dashboardMapsBtn' className={cx('thumb', {'selected': page === 'maps'})}>
           <Link to='/SCP/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
-        </button>
+        </button> */}
       </div>
     )
   },

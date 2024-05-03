@@ -471,9 +471,9 @@ class HostAnalysis extends Component {
                 <span className={cx('name', {'active': activeTab === 'safetyScanRecord'})}>{t('host.txt-safetyScanRecord')}</span>
               </li>
 
-              <li className='header' onClick={this.setActiveTab.bind(this, 'networkBehavior')}>
+              {/* <li className='header' onClick={this.setActiveTab.bind(this, 'networkBehavior')}>
                 <span className={cx('name', {'active': activeTab === 'networkBehavior'})}>{t('txt-networkBehavior')}</span>
-              </li>
+              </li> */}
 
               <li className='header' onClick={this.toggleVansNotes}>
                 <span className={cx('name', {'active': showVansNotes})}>{t('host.txt-vansNotes')}</span>

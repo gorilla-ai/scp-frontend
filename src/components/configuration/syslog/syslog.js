@@ -304,7 +304,7 @@ class Syslog extends Component {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-edit' onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteConfigModal.bind(this, allValue)} title={t('txt-delete')}></i>
+                    {/* <i className='fg fg-trashcan' onClick={this.openDeleteConfigModal.bind(this, allValue)} title={t('txt-delete')}></i> */}
                     <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}></i>
                     <i className='fg fg-list' onClick={this.redirectSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
                     <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
