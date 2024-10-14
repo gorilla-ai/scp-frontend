@@ -21,12 +21,19 @@ class MuiTableContentWithoutLoading extends Component {
     super(props);
 
     this.state = {
-      tableData: {}
+      tableData: {},
+      reload: null
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
+    const resizeObserver = new ResizeObserver((entries) => {
+      this.setState({reload: new Date().getTime()})
+    });
+    if (this.container)
+      resizeObserver.observe(this.container);
+
     this.loadTableContent();
   }
   componentDidUpdate(prevProps) {
@@ -85,7 +92,7 @@ class MuiTableContentWithoutLoading extends Component {
     };
 
     return (
-      <div className='mui-table-content'>
+      <div ref={ref => {this.container = ref}} className='mui-table-content'>
           <MUIDataTable
             className='mui-data-table'
             columns={tableData.dataFields}

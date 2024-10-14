@@ -19,11 +19,17 @@ let t = null;
 class MuiTableContent extends Component {
   constructor(props) {
     super(props);
-
+    this.state = {
+      reload: null
+    }
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
-
+    const resizeObserver = new ResizeObserver((entries) => {
+      this.setState({reload: new Date().getTime()})
+    });
+    if (this.container)
+      resizeObserver.observe(this.container);
   }
   /**
    * Get set table height to auto
@@ -90,10 +96,10 @@ class MuiTableContent extends Component {
       },
       ...tableOptions
     };
-    const loadingIcon = showLoading === false ? false : true;
+    const loadingIcon = showLoading === true ? true : false;
 
     return (
-      <div className='mui-table-content' style={this.getTableHeight()}>
+      <div ref={ref => {this.container = ref}} className='mui-table-content' style={this.getTableHeight()}>
         {loadingIcon && !data.dataContent &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
