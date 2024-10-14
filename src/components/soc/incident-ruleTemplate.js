@@ -233,10 +233,10 @@ class IncidentRuleTemplate extends Component {
                   return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
                 } else if (val === 'accountQueryDTO.module') {
                   let accountDTO = tempData.dataContent[dataIndex]['accountQueryDTO'];
-                  return <span>{accountDTO.module}</span>
+                  return <span>{accountDTO ? accountDTO.module : ''}</span>
                 } else if (val === 'accountQueryDTO.name') {
                   let accountDTO = tempData.dataContent[dataIndex]['accountQueryDTO'];
-                  return <span>{accountDTO.name}</span>
+                  return <span>{accountDTO ? accountDTO.name : ''}</span>
                 } else if (val === 'status') {
                   return value ? <CheckCircleOutlineIcon style={{fill: '#29CC7A'}}/> : <HighlightOffIcon style={{fill: '#CC2943'}}/>
                 } else if (val === '_menu') {
