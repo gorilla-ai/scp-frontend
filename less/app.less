@@ -581,6 +581,11 @@ button.standard:hover:not([disabled]) {
     background-color: var(--buttonSelectedHover);
   }
 }
+.MuiPickerDTToolbar-toolbar {
+  .MuiPickersToolbarText-toolbarTxt {
+    white-space: nowrap;
+  }
+}
 .MuiPickersModal-dialogRoot {
   button:hover:not([disabled]) {
     color: #fff;
@@ -620,6 +625,7 @@ button.standard:hover:not([disabled]) {
     padding: 2px;
     text-align: center;
     border-radius: 10px;
+    font-size: 0.9em;
   }
   .description-edge {
     white-space: pre-wrap;
@@ -1110,6 +1116,8 @@ button.standard:hover:not([disabled]) {
   }
   .table-menu { //table menu [...] button
     visibility: hidden;
+    display: flex;
+    align-items: center;
     &.active {
       visibility: visible;
       button,
@@ -1143,6 +1151,23 @@ button.standard:hover:not([disabled]) {
   }
   .table-cell {
     position: relative;
+    .ellipsis-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      margin-top: -10px;
+    }
+    .ellipsis-item {
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .flag-icon,
     .fg-network {
       float: left;
@@ -1648,10 +1673,11 @@ button.standard:hover:not([disabled]) {
         }
         button {
           display: none;
-          font-size: .4em;
+          font-size: .7em;
           color: var(--buttonTextColor);
-          padding: .1em .5em;
+          padding: 0;
           background-color: var(--buttonBackground);
+          line-height: unset;
           &.active {
             display: inline-block;
           }
@@ -1795,11 +1821,12 @@ button.standard:hover:not([disabled]) {
       .c-hierarchy {
         .button {
           display: none;
-          font-size: .4em;
+          font-size: .7em;
           color: var(--buttonTextColor);
-          padding: .1em .5em;
+          padding: 0;
           border-radius: 5px;
           background-color: var(--buttonBackground);
+          line-height: unset;
           &.active {
             display: inline-block;
           }
