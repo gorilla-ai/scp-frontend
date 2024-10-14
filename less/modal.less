@@ -114,6 +114,8 @@ html[data-theme='dark'] {
   background-color: var(--primaryContentBackground);
   z-index: 10000;
   user-select: none;
+  display: flex;
+  align-items: center;
   .fg-filter,
   .fg-edit {
     float: left;
@@ -123,9 +125,9 @@ html[data-theme='dark'] {
       cursor: not-allowed;
     }
   }
-  .MuiFormControlLabel-root {
+  label.MuiFormControlLabel-root {
     float: left;
-    margin: 0 5px;
+    margin: 10px 5px 5px 5px;
     .data-field {
       padding: 0;
     }
@@ -142,6 +144,8 @@ html[data-theme='dark'] {
       font-weight: bold;
       width: 19%;
       display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     &.value {
       float: left;
@@ -337,10 +341,10 @@ html[data-theme='dark'] {
     }
     .count {
       float: left;
-      font-size: 5px;
+      font-size: 10px;
       color: #fff;
-      padding: 5px;
-      margin-top: 12px;
+      padding: 10px;
+      margin-top: 10px;
       border-radius: 50%;
       background-color: #d0021b;
     }
