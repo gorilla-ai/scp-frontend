@@ -20,10 +20,18 @@ class TableCell extends Component {
     super(props);
 
     this.state = {
-      showIcon: false
+      showIcon: false,
+      expandContent: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const {onResize} = this.props
+    const {expandContent} = this.state
+
+    if (onResize && prevState.expandContent != expandContent)
+      onResize()
   }
   /**
    * Toggle the filter icon on/off
@@ -103,36 +111,49 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldContent = (type, tooltip, picPath, country) => {
-    const {activeTab, fieldName, fieldValue, displayValue, alertLevelColors} = this.props;
-    const {showIcon} = this.state;
+    const {activeTab, fieldName, fieldValue, alertLevelColors, allValue} = this.props;
+    const {showIcon, expandContent} = this.state;
 
-    if (fieldValue) {
-      if (type === 'internet' || type === 'intranet') {
-        return (
-          <div className={this.getBackgroundColor(fieldValue)}>
-            {type === 'internet' && picPath && country &&
-              <img src={picPath} className='flag-icon' title={country} />
-            }
-            {type === 'intranet' &&
-              <i className='fg fg-network' title={tooltip}></i>
-            }
-            <span className='ip'>{fieldValue}</span>
+    if (type === 'internet' || type === 'intranet') {
+      return (
+        <div className={this.getBackgroundColor(fieldValue)}>
+          {type === 'internet' && picPath && country &&
+            <img src={picPath} className='flag-icon' title={country} />
+          }
+          {type === 'intranet' &&
+            <i className='fg fg-network' title={tooltip}></i>
+          }
+          <span className='ip'>{fieldValue}</span>
+          <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
+        </div>
+      )
+    } else {
+      if (activeTab === 'alert' && fieldName === '_severity_') {
+        return ( //Special case for Severity in Alerts
+          <div>
+            <span className='severity-level' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>
             <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
           </div>
         )
-      } else {
-        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Filter icon not show
-          return <span className={this.getBackgroundColor(fieldValue)} title={this.getTitleContent(fieldName, fieldValue)}>{displayValue || fieldValue}</span>
-        } else if (activeTab === 'alert' && fieldName === '_severity_') {
-          return ( //Special case for Severity in Alerts
-            <div>
-              <span className='severity-level' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>
-              <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
-            </div>
-          )
-        } else { //Everythig else
-          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i></span>
+      } else { //Everythig else
+        if ((fieldName === '_Raw' || fieldName === 'message' || fieldName === 'msg') && !expandContent) {
+            return <div className='ellipsis-container'>
+                <div className='ellipsis-item'>
+                  <span className={this.getBackgroundColor(fieldValue)}>
+                    {_.get(allValue, fieldName)}
+                    {!_.includes(FILTER_EXCLUDE_FIELDS, fieldName) &&
+                      <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, _.get(allValue, fieldName))}></i>
+                    }
+                  </span>
+                </div>
+              </div>
         }
+        return <span className={this.getBackgroundColor(fieldValue)}>
+            {_.get(allValue, fieldName)}
+            {!_.includes(FILTER_EXCLUDE_FIELDS, fieldName) &&
+            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, _.get(allValue, fieldName))}></i>
+            }
+          </span>
       }
     }
   }
@@ -220,12 +241,16 @@ class TableCell extends Component {
       return this.getFieldContent();
     }
   }
+  handleCellClick() {
+    this.setState({expandContent: !this.state.expandContent})
+  }
   render() {
     return (
       <div
         className='table-cell'
         onMouseOver={this.showFilterIcon.bind(this, true)}
         onMouseOut={this.showFilterIcon.bind(this, false)}
+        onClick={this.handleCellClick.bind(this)}
         onDoubleClick={this.props.handleRowDoubleClick}>
         {this.getFieldValue()}
       </div>
@@ -240,6 +265,7 @@ TableCell.propTypes = {
   fieldName: PropTypes.string,
   allValue: PropTypes.object.isRequired,
   alertLevelColors: PropTypes.object,
+  onResize: PropTypes.func,
   handleOpenQueryMenu: PropTypes.func,
   handleRowDoubleClick: PropTypes.func
 };
