@@ -796,13 +796,6 @@ class SyslogController extends Component {
                   if (val === '@timestamp') {
                     value = helper.getFormattedDate(value, 'local');
                   }
-                  if (val === '_Raw' || val === 'message' || val === 'msg') {
-                    displayValue = value;
-
-                    if (value && value.length > 50) {
-                      displayValue = value.substr(0, 50) + '...';
-                    }
-                  }
                   if (typeof value === 'boolean') {
                     value = value.toString();
                   }
@@ -810,10 +803,10 @@ class SyslogController extends Component {
                     <TableCell
                       activeTab={activeTab}
                       fieldValue={value}
-                      displayValue={displayValue}
                       fieldName={val}
                       allValue={allValue}
                       markData={markData}
+                      onResize={this.handleTableCellResize}
                       handleOpenQueryMenu={this.handleOpenQueryMenu}
                       handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}
                       handleRowMouseOver={this.handleRowMouseOver.bind(this, allValue.id)} />
@@ -859,6 +852,23 @@ class SyslogController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  handleTableCellResize = (options) => {
+    const {syslogData} = this.state;
+
+    let tempSyslogData = {...syslogData};
+
+    tempSyslogData.reload = new Date().getTime();
+
+    this.setState({
+      syslogData: tempSyslogData
+    }, () => {
+      if (options === 'table') {
+        this.showTableData('', type);
+      } else if (options === 'json') {
+        this.showJsonData('', type);
+      }
+    });
   }
   /**
    * Load subtab content ('table' or 'link analysis')
@@ -1344,28 +1354,8 @@ class SyslogController extends Component {
     }
 
     const currentTableIndex = newData.tableRowIndex;
-    let filteredAllValue = {};
-    allValue = newData.allValue;
-
-    _.forEach(allValue, (value, key) => {
-      if (typeof value === 'object') {
-        if (key === 'dns') {
-          if (value['opcode-term']) {
-            filteredAllValue['dns.opcode-term'] = helper.arrayDataJoin(value['opcode-term'], '', ', ');
-          }
-          if (value['status-term']) {
-            filteredAllValue['dns.status-term'] = helper.arrayDataJoin(value['status-term'], '', ', ');
-          }
-        }
-        if (key === 'tcpflags') {
-          filteredAllValue['tcpflags.fin'] = value.fin;
-          filteredAllValue['tcpflags.rst'] = value.rst;
-        }
-      } else {
-        filteredAllValue[key] = value;
-      }
-    })
-
+    allValue = newData.allValue
+    let filteredAllValue = this.flattenCollection(newData.allValue)
     const hiddenFields = ['id', '_tableMenu_', 'root_id', 'sessionId', 'projectName', 'timestamp', 'dns', 'tcpflags', 'alert', 'http', 'tag'];
     let dataList = _.omit(filteredAllValue, hiddenFields);
     let dataToShow = {};
@@ -1403,6 +1393,11 @@ class SyslogController extends Component {
     });
 
     this.handleCloseMenu();
+  }
+  flattenCollection = (obj, path = []) => {
+    return !_.isObject(obj)
+        ? { [path.join('.')]: obj }
+        : _.reduce(obj, (cum, next, key) => _.merge(cum, this.flattenCollection(next, [...path, key])), {})
   }
   /**
    * Set default and custom locale name
