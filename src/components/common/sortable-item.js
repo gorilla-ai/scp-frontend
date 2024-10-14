@@ -109,7 +109,7 @@ class SortableItem extends Component {
         {activeTab === 'logs' &&
           <i className='fg fg-edit' title={t('syslogFields.txt-customFieldName')} onClick={this.props.toggleLocaleEdit.bind(this, key, localeField)}></i>
         }
-        <span className='key'>{localeField}</span>
+        <span className='key' title={localeField}>{localeField}</span>
         <span className='value'>
           {this.getValueData(value)}
         </span>
