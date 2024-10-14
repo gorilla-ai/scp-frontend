@@ -28,7 +28,7 @@ class Syslog extends Component {
   }
   render() {
     const {contextRoot, language} = this.context;
-    const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
+    const {mainContentData, tabChartData, markData, tableMouseOver, onResize} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
       return <Tab id={'syslog' + helper.capitalizeFirstLetter(key) + 'Tab'} label={val} value={key} />
@@ -37,6 +37,7 @@ class Syslog extends Component {
     return (
       <div className='data-content'>
         <Tree
+          onToggle={onResize}
           {...mainContentData} />
 
         <div className='parent-content'>
