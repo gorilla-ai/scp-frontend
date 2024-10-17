@@ -285,7 +285,8 @@ class HostAnalysis extends Component {
           addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.props.getIPdeviceInfo}
           loadEventTracing={this.props.loadEventTracing}
-          getHostInfo={this.props.getHostInfo} />
+          getHostInfo={this.props.getHostInfo}
+          setActiveScanType={this.setActiveScanType} />
       )
     }
   }
