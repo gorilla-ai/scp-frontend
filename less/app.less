@@ -1161,6 +1161,7 @@ button.standard:hover:not([disabled]) {
       display: block;
       width: 100%;
       margin-top: -10px;
+      cursor: pointer;
     }
     .ellipsis-item {
       box-sizing: border-box;
@@ -1181,7 +1182,12 @@ button.standard:hover:not([disabled]) {
         cursor: pointer;
       }
     }
-    span {
+    pre {
+      margin: 0;
+      font-family: inherit;
+      white-space: pre-wrap;
+    }
+    pre, span {
       &.red {
         color: #fff;
         padding-left: 10px;
