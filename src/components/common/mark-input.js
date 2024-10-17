@@ -71,7 +71,7 @@ class MarkInput extends Component {
 }
 
 MarkInput.propTypes = {
-  page: PropTypes.string.isRequired,
+  page: PropTypes.string,
   logFields: PropTypes.array.isRequired,
   markData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired,

@@ -78,7 +78,7 @@ class FilterInput extends Component {
 }
 
 FilterInput.propTypes = {
-  page: PropTypes.string.isRequired,
+  page: PropTypes.string,
   filterData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired,
   setFilterData: PropTypes.func
