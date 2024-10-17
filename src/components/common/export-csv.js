@@ -138,7 +138,7 @@ class ExportCsv extends Component {
   	const {title, popOverAnchor, anchorPosition, taskServiceList} = this.props;
     const listTitle = title || t('txt-exportScheduledList');
     let anchorInfo = {};
-    let open = '';
+    let open = false;
 
     if (anchorPosition) {
       anchorInfo = {
