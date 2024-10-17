@@ -111,8 +111,11 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldContent = (type, tooltip, picPath, country) => {
-    const {activeTab, fieldName, fieldValue, alertLevelColors, allValue} = this.props;
+    const {activeTab, fieldName, fieldValue, alertLevelColors} = this.props;
     const {showIcon, expandContent} = this.state;
+
+    if (!fieldValue)
+      return null
 
     if (type === 'internet' || type === 'intranet') {
       return (
@@ -139,21 +142,21 @@ class TableCell extends Component {
         if ((fieldName === '_Raw' || fieldName === 'message' || fieldName === 'msg') && !expandContent) {
             return <div className='ellipsis-container'>
                 <div className='ellipsis-item'>
-                  <span className={this.getBackgroundColor(fieldValue)}>
-                    {_.get(allValue, fieldName)}
+                  <span className={this.getBackgroundColor(fieldValue)} title={fieldValue}>
+                    {fieldValue}
                     {!_.includes(FILTER_EXCLUDE_FIELDS, fieldName) &&
-                      <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, _.get(allValue, fieldName))}></i>
+                      <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
                     }
                   </span>
                 </div>
               </div>
         }
-        return <span className={this.getBackgroundColor(fieldValue)}>
-            {_.get(allValue, fieldName)}
+        return <pre className={this.getBackgroundColor(fieldValue)} title={fieldValue}>
+            {fieldValue}
             {!_.includes(FILTER_EXCLUDE_FIELDS, fieldName) &&
-            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, _.get(allValue, fieldName))}></i>
+            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
             }
-          </span>
+          </pre>
       }
     }
   }
