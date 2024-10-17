@@ -910,13 +910,17 @@ class HMDscanInfo extends Component {
    * @param {string} path - File path to be added
    */
   addToSettings = (type, path) => {
+    const {setActiveScanType} = this.props;
     const {settingsPath} = this.state;
     let tempSettingsPath = {...settingsPath};
+    let pathType = 'includePath';
+    if (type === 'fileIntegrity')
+      pathType = 'excludePath';
 
-    if (settingsPath[type].includePath.length === 1 && settingsPath[type].includePath[0].path === '') { //Take care the empty path
-      tempSettingsPath[type].includePath[0].path = path;
+    if (settingsPath[type][pathType].length === 1 && settingsPath[type][pathType][0].path === '') { //Take care the empty path
+      tempSettingsPath[type][pathType][0].path = path;
     } else {
-      tempSettingsPath[type].includePath.push({path});
+      tempSettingsPath[type][pathType].push({path});
     }
 
     this.setState({
@@ -926,6 +930,7 @@ class HMDscanInfo extends Component {
     }, () => {
       const settings = document.getElementById('settingsWrapper');
       settings.scrollIntoView(false);
+      setActiveScanType('settings')
     });
   }
   /**
@@ -1632,6 +1637,9 @@ class HMDscanInfo extends Component {
           <div className='path-header'>
             {filePath &&
               <span>{t('txt-path')}: {filePath}</span>
+            }
+            {(location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
+              <i className='c-link fg fg-add' title={t('hmd-scan.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'fileIntegrity', filePath)}></i>
             }
           </div>
         </div>
@@ -2704,7 +2712,7 @@ HMDscanInfo.propTypes = {
   getHMDinfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
   assessmentDatetime: PropTypes.object,
-  hostCreateTime: PropTypes.object,
+  hostCreateTime: PropTypes.string,
   getHostInfo: PropTypes.func
 };
 
