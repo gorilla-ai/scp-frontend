@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles'
+import { createTheme, MuiThemeProvider } from '@material-ui/core/styles'
 
 import MUIDataTable from 'mui-datatables'
 
@@ -38,6 +38,11 @@ class MuiTableContentWithoutLoading extends Component {
   }
   componentDidUpdate(prevProps) {
     this.loadTableContent(prevProps);
+  }
+  componentWillUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
   }
   loadTableContent = (prevProps) => {
     const {data} = this.props;

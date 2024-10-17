@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles'
+import { createTheme, MuiThemeProvider } from '@material-ui/core/styles'
 
 import MUIDataTable from 'mui-datatables'
 
@@ -25,11 +25,16 @@ class MuiTableContent extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
-    const resizeObserver = new ResizeObserver((entries) => {
-      this.setState({reload: new Date().getTime()})
+    this.resizeObserver = new ResizeObserver((entries) => {
+      this.setState({reload: new Date().getTime()});
     });
     if (this.container)
-      resizeObserver.observe(this.container);
+      this.resizeObserver.observe(this.container);
+  }
+  componentWillUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
   }
   /**
    * Get set table height to auto
