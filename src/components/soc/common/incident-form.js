@@ -323,8 +323,8 @@ class IncidentForm extends Component {
             fullWidth
             size='small'
             multiline
-            rows={3}
-            rowsMax={3}
+            minRows={3}
+            maxRows={3}
             required={this.checkRequiredField(incident.info.incidentDescription)}
             error={this.checkErrorField('incidentDescription', incident.info.incidentDescription)}
             helperText={this.checkHelperText('incidentDescription', incident.info.incidentDescription)}
@@ -482,8 +482,8 @@ class IncidentForm extends Component {
             fullWidth
             size='small'
             multiline
-            rows={3}
-            rowsMax={3}
+            minRows={3}
+            maxRows={3}
             required={this.checkRequiredField(incident.info.attackName)}
             error={this.checkErrorField('attackName', incident.info.attackName)}
             helperText={this.checkHelperText('attackName', incident.info.attackName)}
@@ -500,8 +500,8 @@ class IncidentForm extends Component {
             fullWidth
             size='small'
             multiline
-            rows={3}
-            rowsMax={3}
+            minRows={3}
+            maxRows={3}
             required={this.checkRequiredField(incident.info.description)}
             error={this.checkErrorField('description', incident.info.description)}
             helperText={this.checkHelperText('description', incident.info.description)}
@@ -610,7 +610,7 @@ class IncidentForm extends Component {
             id='accidentDescription'
             name='accidentDescription'
             className={cx('textarea-autosize', {'disabled': disabledStatus})}
-            rows={3}
+            minRows={3}
             value={incident.info.accidentDescription}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -621,7 +621,7 @@ class IncidentForm extends Component {
             id='accidentReason'
             name='accidentReason'
             className={cx('textarea-autosize', {'disabled': disabledStatus})}
-            rows={3}
+            minRows={3}
             value={incident.info.accidentReason}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -632,7 +632,7 @@ class IncidentForm extends Component {
             id='accidentInvestigation'
             name='accidentInvestigation'
             className={cx('textarea-autosize', {'disabled': disabledStatus})}
-            rows={3}
+            minRows={3}
             value={incident.info.accidentInvestigation}
             onChange={this.props.handleDataChangeMui}
             disabled={disabledStatus} />
@@ -777,7 +777,7 @@ class IncidentForm extends Component {
             id='fileMemo'
             name='fileMemo'
             className={cx('textarea-autosize', {'disabled': disabledStatus})}
-            rows={2}
+            minRows={2}
             value={incident.info.fileMemo}
             onChange={this.props.handleDataChangeMui} />
         </div>

@@ -744,7 +744,7 @@ class Incident extends Component {
             className='textarea-autosize'
             onChange={this.handleDataChangeMui}
             value={incident.info.fileMemo}
-            rows={2} />
+            minRows={2} />
         </div>
       </React.Fragment>
     )

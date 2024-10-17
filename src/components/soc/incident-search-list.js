@@ -640,8 +640,8 @@ class IncidentSearch extends Component {
             fullWidth={true}
             size='small'
             multiline
-            rows={3}
-            rowsMax={3}
+            minRows={3}
+            maxRows={3}
             helperText={it('txt-required')}
             name='description'
             error={!(incident.info.description || '')}
@@ -737,7 +737,7 @@ class IncidentSearch extends Component {
           </div>
           <div>
             <label>{it('txt-fileMemo')}</label>
-            <TextareaAutosize id='comment' className='textarea-autosize' rows={3}/>
+            <TextareaAutosize id='comment' className='textarea-autosize' minRows={3}/>
           </div>
         </div>
       ),
@@ -832,7 +832,7 @@ class IncidentSearch extends Component {
               className='textarea-autosize'
               onChange={this.handleDataChangeMui}
               value={incident.info.fileMemo}
-              rows={2} />
+              minRows={2} />
           </div>
         }
         {activeContent !== 'addIncident' &&
@@ -963,7 +963,7 @@ class IncidentSearch extends Component {
             className='textarea-autosize'
             onChange={this.handleDataChangeMui}
             value={incident.info.accidentDescription}
-            rows={3}
+            minRows={3}
             disabled={activeContent === 'viewIncident'} />
         </div>
         <div className='group full'>
@@ -974,7 +974,7 @@ class IncidentSearch extends Component {
             className='textarea-autosize'
             onChange={this.handleDataChangeMui}
             value={incident.info.accidentReason}
-            rows={3}
+            minRows={3}
             disabled={activeContent === 'viewIncident'} />
         </div>
         <div className='group full'>
@@ -985,7 +985,7 @@ class IncidentSearch extends Component {
             className='textarea-autosize'
             onChange={this.handleDataChangeMui}
             value={incident.info.accidentInvestigation}
-            rows={3}
+            minRows={3}
             disabled={activeContent === 'viewIncident'} />
         </div>
       </div>

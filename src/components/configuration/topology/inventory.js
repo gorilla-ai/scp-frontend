@@ -3329,7 +3329,7 @@ class NetworkInventory extends Component {
                   name='disks'
                   label={t('txt-disks')}
                   multiline
-                  rows={3}
+                  minRows={3}
                   variant='outlined'
                   fullWidth
                   size='small'
@@ -3343,7 +3343,7 @@ class NetworkInventory extends Component {
                   name='shareFolders'
                   label={t('txt-shareFolders')}
                   multiline
-                  rows={3}
+                  minRows={3}
                   variant='outlined'
                   fullWidth
                   size='small'
@@ -3357,7 +3357,7 @@ class NetworkInventory extends Component {
                   name='remarks'
                   label={t('txt-remarks')}
                   multiline
-                  rows={3}
+                  minRows={3}
                   variant='outlined'
                   fullWidth
                   size='small'

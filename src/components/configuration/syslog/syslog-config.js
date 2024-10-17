@@ -129,7 +129,7 @@ class syslogConfig extends Component {
                 <TextField
                   id='syslogPattern'
                   multiline
-                  rows={6}
+                  minRows={6}
                   variant='outlined'
                   fullWidth
                   size='small'
@@ -151,7 +151,7 @@ class syslogConfig extends Component {
                       id='syslogInput'
                       className='syslog-input'
                       multiline
-                      rows={20}
+                      minRows={20}
                       variant='outlined'
                       fullWidth
                       size='small'

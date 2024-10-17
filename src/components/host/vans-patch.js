@@ -247,7 +247,7 @@ class VansPatch extends Component {
             name='memo'
             className='textarea-autosize'
             placeholder={t('txt-tag')}
-            rows={3}
+            minRows={3}
             value={patch.memo}
             onChange={this.handleDataChange} />
         </div>

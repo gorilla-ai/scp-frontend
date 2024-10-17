@@ -138,7 +138,7 @@ class SoarSingleSettings extends Component {
       <div key={i}>
         <TextareaAutosize
           className='textarea-autosize disabled'
-          rows={10}
+          minRows={10}
           value={val.log}
           disabled={true} />
       </div>

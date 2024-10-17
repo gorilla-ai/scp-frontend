@@ -869,7 +869,7 @@ class IncidentDeviceStep extends Component {
                   id='note'
                   name='note'
                   className='textarea-autosize'
-                  rows={4}
+                  minRows={4}
                   maxLength={250}
                   value={incidentDevice.info.note}
                   onChange={this.handleDataChangeMui}
@@ -1203,7 +1203,7 @@ class IncidentDeviceStep extends Component {
                     id='note'
                     name='note'
                     className='textarea-autosize'
-                    rows={4}
+                    minRows={4}
                     maxLength={250}
                     value={incidentDevice.info.note}
                     onChange={this.handleDataChangeMui}
@@ -1541,7 +1541,7 @@ class IncidentDeviceStep extends Component {
                     id='note'
                     name='note'
                     className='textarea-autosize'
-                    rows={4}
+                    minRows={4}
                     maxLength={250}
                     value={incidentDevice.info.note}
                     onChange={this.handleDataChangeMui}

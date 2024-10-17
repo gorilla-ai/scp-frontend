@@ -357,7 +357,7 @@ class IncidentComment extends Component {
             name='command'
             className='textarea-autosize'
             value={comment.command}
-            rows={8}
+            minRows={8}
             required
             variant='outlined'
             fullWidth={true}

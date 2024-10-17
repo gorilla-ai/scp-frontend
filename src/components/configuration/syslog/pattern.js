@@ -909,7 +909,7 @@ class Pattern extends Component {
                 name='queryScript'
                 label={f('syslogPatternTableFields.queryScript')}
                 multiline
-                rows={4}
+                minRows={4}
                 maxLength={250}
                 variant='outlined'
                 fullWidth

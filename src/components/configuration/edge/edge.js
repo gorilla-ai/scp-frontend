@@ -1479,7 +1479,7 @@ class Edge extends Component {
                 name='memo'
                 label={memoText}
                 multiline
-                rows={4}
+                minRows={4}
                 maxLength={250}
                 variant='outlined'
                 fullWidth

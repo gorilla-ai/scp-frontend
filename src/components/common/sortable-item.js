@@ -44,7 +44,7 @@ class SortableItem extends Component {
         <TextField
           className='value-input'
           multiline
-          rows={8}
+          minRows={8}
           cols={50}
           fullWidth
           size='small'

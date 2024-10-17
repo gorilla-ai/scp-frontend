@@ -1011,8 +1011,8 @@ class Notifications extends Component {
                       label={t('notifications.lineBot.txt-channelAccessToken')}
                       variant='outlined'
                       fullWidth
-                      rows={4}
-                      rowsMax={5}
+                      minRows={4}
+                      maxRows={5}
                       multiline
                       size='small'
                       value={lineBotSettings.channelAccessToken}

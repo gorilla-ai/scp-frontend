@@ -262,7 +262,7 @@ class MultiOperator extends Component {
             <TextareaAutosize
               name={key}
               className='textarea-autosize'
-              rows={3}
+              minRows={3}
               value={textValue}
               onChange={this.handleDataChange.bind(this, operator)} />
           </div>

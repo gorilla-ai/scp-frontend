@@ -123,7 +123,7 @@ class EncodeDecode extends Component {
           className='text-area'
           label={t('txt-text')}
           multiline
-          rows={6}
+          minRows={6}
           variant='outlined'
           fullWidth
           size='small'
@@ -157,7 +157,7 @@ class EncodeDecode extends Component {
           className='text-area'
           label={t('txt-result')}
           multiline
-          rows={6}
+          minRows={6}
           variant='outlined'
           fullWidth
           size='small'

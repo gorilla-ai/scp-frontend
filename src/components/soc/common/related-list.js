@@ -309,9 +309,9 @@ class RelatedList extends Component {
             variant='outlined'
             fullWidth={true}
             size='small'
-            rows={1}
+            minRows={1}
             multiline
-            rowsMax={3}
+            maxRows={3}
             value={search.keyword}
             onChange={this.handleSearchKeyword}/>
         </div>

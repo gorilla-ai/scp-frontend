@@ -1107,7 +1107,7 @@ class IncidentManagement extends Component {
             className='textarea-autosize'
             onChange={this.handleDataChangeMui}
             value={incident.info.fileMemo}
-            rows={2} />
+            minRows={2} />
         </div>
       </React.Fragment>
     )
@@ -2497,9 +2497,9 @@ class IncidentManagement extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
-              rows={1}
+              minRows={1}
               multiline
-              rowsMax={3}
+              maxRows={3}
               value={search.keyword}
               onChange={this.handleSearchMui} />
           </div>

@@ -2346,7 +2346,7 @@ class Netflow extends Component {
           className='tag-memo'
           label={memoText}
           multiline
-          rows={4}
+          minRows={4}
           maxLength={250}
           variant='outlined'
           fullWidth

@@ -623,7 +623,7 @@ class Manage extends Component {
               name='ip'
               className='textarea-autosize'
               placeholder={t('vansOwner.ip') + '(' + t('txt-commaSeparated') + ')'}
-              rows={1}
+              minRows={1}
               value={owner.ip}
               onChange={this.handleOwnerDataChange} />
             <label>{t('vansOwner.domainAccount')}</label>
@@ -631,7 +631,7 @@ class Manage extends Component {
               name='domainAccount'
               className='textarea-autosize'
               placeholder={t('vansOwner.domainAccount') + '(' + t('txt-commaSeparated') + ')'}
-              rows={1}
+              minRows={1}
               value={owner.domainAccount}
               onChange={this.handleOwnerDataChange} />
             <label>{t('vansOwner.unitCode')}</label>
@@ -639,7 +639,7 @@ class Manage extends Component {
               name='unitCode'
               className='textarea-autosize'
               placeholder={t('vansOwner.unitCode') + '(' + t('txt-commaSeparated') + ')'}
-              rows={1}
+              minRows={1}
               value={owner.unitCode}
               onChange={this.handleOwnerDataChange} />
             <label>{t('vansOwner.unitCodeRegex')}</label>
@@ -647,7 +647,7 @@ class Manage extends Component {
               name='unitCodeRegex'
               className='textarea-autosize'
               placeholder={t('vansOwner.unitCodeRegex')}
-              rows={1}
+              minRows={1}
               value={owner.unitCodeRegex}
               onChange={this.handleOwnerDataChange} />
           </React.Fragment>

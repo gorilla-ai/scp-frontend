@@ -121,7 +121,7 @@ class YaraRule extends Component {
             name='rule'
             label={t('hmd-scan.txt-yaraRules')}
             multiline
-            rows={10}
+            minRows={10}
             variant='outlined'
             fullWidth
             size='small'

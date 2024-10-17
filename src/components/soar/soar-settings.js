@@ -889,7 +889,7 @@ class SoarSettings extends Component {
                         className='text-area'
                         label={t('soar.txt-content')}
                         multiline
-                        rows={3}
+                        minRows={3}
                         variant='outlined'
                         fullWidth
                         size='small'
@@ -902,7 +902,7 @@ class SoarSettings extends Component {
                         <TextareaAutosize
                           name='content'
                           className='textarea-autosize'
-                          rows={3}
+                          minRows={3}
                           value={soarAction.email.content}
                           onChange={this.handleDataChange.bind(this, 'soarAction', 'email')} />
                       </React.Fragment>
@@ -1033,7 +1033,7 @@ class SoarSettings extends Component {
                         className='text-area'
                         label='Request Body'
                         multiline
-                        rows={3}
+                        minRows={3}
                         variant='outlined'
                         fullWidth
                         size='small'
@@ -1047,7 +1047,7 @@ class SoarSettings extends Component {
                       <TextareaAutosize
                         className='textarea-autosize'
                         name='requestBody'
-                        rows={3}
+                        minRows={3}
                         value={soarAction.restful_api.requestBody}
                         onChange={this.handleDataChange.bind(this, 'soarAction', 'restful_api')}
                         disabled={activeContent === 'viewMode'} />
