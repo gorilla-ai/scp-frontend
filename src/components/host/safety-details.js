@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
+import Button from '@material-ui/core/Button'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -769,6 +770,59 @@ class SafetyDetails extends Component {
       </tr>
     )
   }
+    /**
+   * Open confirm white list dialog
+   * @method
+   * @param {string} fileMD5 - File MD5
+   */
+  confirmAddWhitelist = (fileMD5) => {
+    PopupDialog.prompt({
+      title: t('hmd-scan.txt-addWhiteList'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content'>
+          <span>{t('hmd-scan.txt-confirmWhiteList')}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.addToWhiteList(fileMD5);
+        }
+      }
+    });
+  }
+  /**
+   * Handle malware add to white list
+   * @method
+   * @param {string} fileMD5 - File MD5
+   */
+  addToWhiteList = (fileMD5) => {
+    const {baseUrl} = this.context;
+    const requestData = [{
+      fileMD5,
+      hasHandled: true
+    }];
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/malwareList`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   /**
    * Display individual table row for CVE info
    * @method
@@ -851,9 +905,10 @@ class SafetyDetails extends Component {
             <div className='content'>
               <div className='safety-details'>
                 {contentType === 'basicInfo' &&
-                  <div>
+                  <section>
                     <div className='header trigger'>{basicInfoText}</div>
                     <div className='trigger-text'>{t('hmd-scan.txt-lastUpdate')}: {helper.getFormattedDate(currentSafetyData.createDttm, 'local')}</div>
+                    <Button variant='contained' color='primary' className='btn trigger' onClick={this.confirmAddWhitelist.bind(this, currentSafetyData.primaryKeyValue)}>{t('hmd-scan.txt-addWhiteList')}</Button>
                     <table className='c-table main-table safety'>
                       {this.getBasicInfoContent()}
                     </table>
@@ -867,7 +922,7 @@ class SafetyDetails extends Component {
                         </tbody>
                       </table>
                     }
-                  </div>
+                  </section>
                 }
                 {contentType === 'availableHost' &&
                   <div>
