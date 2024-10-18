@@ -3420,6 +3420,7 @@ class HostController extends Component {
     this.ah.all([
       {
         url: `${baseUrl}/api/v3/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
+        url: `/chewbacca/api/ipdevice`,
         type: 'GET'
       },
       {
@@ -6304,7 +6305,7 @@ class HostController extends Component {
                       className='combo-box'
                       options={vansHmdStatusList}
                       value={hmdSearch.status}
-                      getOptionLabel={(option) => option.text}
+                      getOptionLabel={(option) => option.text ? option.text : ''}
                       renderInput={this.renderStatusList}
                       onChange={this.handleComboBoxChange} />
                     <TextareaAutosize
