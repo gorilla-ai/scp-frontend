@@ -1539,6 +1539,9 @@ html[data-theme='dark'] {
       width: 90%;
       padding: 10px 0;
       margin: 0 auto;
+      section {
+        position: relative;
+      }
       .header.trigger {
         float: left;
         margin-right: 20px;
@@ -1550,6 +1553,11 @@ html[data-theme='dark'] {
         float: left;
         font-size: 14px;
         margin-top: 5px;
+      }
+      .btn.trigger {
+        position: absolute;
+        top: 0 !important;
+        right: 0;
       }
       .main-table {
         &.safety {

@@ -170,6 +170,8 @@ class HMDsettings extends Component {
           path: ''
         }]
       },
+      malwareWhiteCount: -1,
+      malwareWhiteListFile: '',
       originalGcbVersion: '',
       gcbVersion: '',
       originalPmInterval: '',
@@ -238,7 +240,10 @@ class HMDsettings extends Component {
         type: 'GET'
       });
     })
-
+    apiArr.push({
+      url: `${baseUrl}/api/hmd/malware/white/count`,
+      type: 'GET'
+    });
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
@@ -423,6 +428,12 @@ class HMDsettings extends Component {
           this.setState({
             originalCpeData: _.cloneDeep(cpeData),
             cpeData
+          });
+        }
+
+        if (data[18] && data[18].malwareWhiteCount) {
+          this.setState({
+            malwareWhiteCount: data[18].malwareWhiteCount
           });
         }
 
@@ -795,9 +806,9 @@ class HMDsettings extends Component {
    * @method
    * @param {object} value - input data to be set
    */
-  handleFileChange = (value) => {
+  handleFileChange = (fileType, value) => {
     this.setState({
-      hmdFile: value
+      [fileType]: value
     });
   }
   /**
@@ -817,24 +828,41 @@ class HMDsettings extends Component {
    * Handle HMD file import
    * @method
    */
-  handleFileImport = () => {
+  handleFileImport = (fileType) => {
     const {baseUrl} = this.context;
-    const {hmdFile} = this.state;
-    let formData = new FormData();
-    formData.append('file', hmdFile);
+    const {[fileType]:file} = this.state;
 
-    if (!hmdFile) return;
+    let url = fileType === 'hmdFile' ? `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import` : fileType === 'malwareWhiteListFile' ? `${baseUrl}/api/hmd/malware/whiteList/upload` : null;
+    if (!url) return;
+
+    let formData = new FormData();
+    formData.append('file', file);
+
+    if (!file) return;
 
     ah.one({
-      url: `${baseUrl}/api/hmd/dbsync/ipdeviceAndtask/_import`,
+      url,
       data: formData,
       type: 'POST',
       processData: false,
       contentType: false
     })
     .then(data => {
-      if (data.ret === 0) {
-        helper.showPopupMsg(t('txt-uploadSuccess'));
+      if (data) {
+        if (data.ret === 0) {
+          let msg = t('txt-uploadSuccess');
+
+          if (data.rt && data.rt.totalCount) {
+            msg = t('txt-uploadWhitelistSuccess', data.rt);
+
+            if (data.rt.totalCount) {
+              this.setState({
+                malwareWhiteCount: data.rt.totalCount
+              });
+            }
+          }
+          helper.showPopupMsg(msg);
+        }
       }
       return null;
     })
@@ -1253,6 +1281,7 @@ class HMDsettings extends Component {
       datetimeExport,
       serverOs,
       pcOs,
+      malwareWhiteCount,
       gcbVersion,
       pmInterval,
       ftpIp,
@@ -1390,6 +1419,26 @@ class HMDsettings extends Component {
               {MALWARE_DETECTION.map(this.showMalwarePathLinux)}
             </div>
 
+            <div className='form-group normal long'>
+              <header>{t('hmd-scan.txt-scanFileWhitelist')}</header>
+              <div className='header-btn-group'>
+              </div>
+              {malwareWhiteCount !== -1 &&
+              <div className='sub-section'>
+                <span>{t('txt-size')}: {malwareWhiteCount}</span>
+              </div>
+              }
+              <div className='sub-section'>
+                <div className='import-header'>{t('txt-import')}</div>
+                <FileUpload
+                  id='importMalwareWhiteList'
+                  fileType='csv'
+                  btnText={t('txt-selectFile')}
+                  handleFileChange={(val) => this.handleFileChange('malwareWhiteListFile', val)} />
+                <Button variant='contained' color='primary' className='import-btn' onClick={(val) => this.handleFileImport('malwareWhiteListFile')}>{t('txt-import')}</Button>
+              </div>
+            </div>
+            
             <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.gcb})}>
               <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
               <div className='header-btn-group'>
@@ -1690,8 +1739,8 @@ class HMDsettings extends Component {
                   id='importHmd'
                   fileType='zip'
                   btnText={t('txt-selectFile')}
-                  handleFileChange={this.handleFileChange} />
-                <Button variant='contained' color='primary' className='import-btn' onClick={this.handleFileImport}>{t('txt-import')}</Button>
+                  handleFileChange={(val) => this.handleFileChange('hmdFile', val)} />
+                <Button variant='contained' color='primary' className='import-btn' onClick={(val) => this.handleFileImport('hmdFile')}>{t('txt-import')}</Button>
               </div>
             </div>
           </div>

@@ -1158,6 +1158,7 @@
     "txt-terminate": "Terminate",
     "txt-serverSystem": "Server",
     "txt-pcSystem": "PC",
+    "txt-scanFileWhitelist": "Malware Whitelist",
     "scan-list": {
       "txt-dashboard": "Dashboard",
       "txt-yara": "Yara Scan",
