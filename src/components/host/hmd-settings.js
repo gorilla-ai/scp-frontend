@@ -861,7 +861,7 @@ class HMDsettings extends Component {
               });
             }
           }
-          helper.showPopupMsg(msg);
+          helper.showPopupMsg(msg, msg === t('txt-uploadSuccess') ? null : t('txt-uploadSuccess'));
         }
       }
       return null;
@@ -1425,7 +1425,7 @@ class HMDsettings extends Component {
               </div>
               {malwareWhiteCount !== -1 &&
               <div className='sub-section'>
-                <span>{t('txt-size')}: {malwareWhiteCount}</span>
+                <span>{t('hmd-scan.txt-whitelistSize')}: {malwareWhiteCount}</span>
               </div>
               }
               <div className='sub-section'>
