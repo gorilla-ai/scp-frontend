@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, useLayoutEffect, useRef, useState } from 'react'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import moment from 'moment'
@@ -88,6 +88,18 @@ const NOT_AVAILABLE = 'N/A';
 
 let t = null;
 let f = null;
+
+const DisplayLogListRow = (props) => {
+  const {timestamp, message} = props;
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  return (
+    <div className='log-list-row'>
+      <div className='log-list-timestamp'>{moment(timestamp, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')}</div>
+      <div className={cx('log-list-message', {'expanded': isExpanded})} onClick={() => {setIsExpanded(!isExpanded)}}>{message}</div>
+    </div>
+  )
+}
 
 /**
  * Alert Details
@@ -1804,6 +1816,29 @@ class AlertDetails extends Component {
             this.displayBarChart('eventStat')
           }
         </div>
+        
+        {alertData.refs &&
+        <div className='section'>
+          <header>{t('alert.txt-event')}</header>
+          {alertData.refs.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {alertData.refs.length > 0 &&
+          <div className='log-list'>
+          {_.map(alertData.refs, (ref, i) => {
+              if (!ref._source || !ref._source['@timestamp'] || !ref._source['message'])
+                return null
+
+              return <DisplayLogListRow
+                key={i}
+                timestamp={moment(ref._source['@timestamp'])}
+                message={ref._source['message']}
+                />
+          })}
+          </div>
+          }
+        </div>
+        }
       </div>
     )
   }

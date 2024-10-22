@@ -272,6 +272,9 @@ html[data-theme='dark'] {
       li {
         margin-bottom: 20px;
       }
+      .msg, .err-msg {
+        white-space: pre-line;
+      }
     }
     button {
       margin-top: 10px;
@@ -1285,6 +1288,34 @@ html[data-theme='dark'] {
               color: var(--primaryContentHeader);
             }
             background: none !important;
+          }
+          .log-list {
+            display: flex;
+            flex-direction: column;
+            width: 970px;
+            .log-list-row {
+              display: flex;
+              .log-list-timestamp {
+                white-space: nowrap;
+                padding: 5px;
+              }
+              .log-list-message {
+                box-sizing: border-box;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding: 5px;
+                cursor: pointer;
+                &.expanded {
+                  -webkit-line-clamp: unset;
+                  line-clamp: unset;
+                  white-space: pre-line;
+                }
+              }
+            }
           }
         }
         .fg-info {
