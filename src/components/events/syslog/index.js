@@ -779,7 +779,7 @@ class SyslogController extends Component {
                 viewColumns: val === '_tableMenu_' ? false : true,
                 customBodyRenderLite: (dataIndex, options) => {
                   const allValue = tempSyslogData.dataContent[dataIndex];
-                  let value = tempSyslogData.dataContent[dataIndex][val];
+                  let value = _.get(tempSyslogData.dataContent[dataIndex], val);
                   let displayValue = '';
 
                   if (options === 'getAllValue') {
