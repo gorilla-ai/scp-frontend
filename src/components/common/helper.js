@@ -651,7 +651,7 @@ const helper = {
       id: 'modalWindowSmall',
       title,
       confirmText: t('txt-ok'),
-      display: <div className={cx('content', {'small-margin align-left': options})}><span>{msg}</span><div>{showErrorMsg}</div></div>,
+      display: <div className={cx('content', {'small-margin align-left': options})}><span className='msg'>{msg}</span><div className='err-msg'>{showErrorMsg}</div></div>,
       act:(confirmed) => {
       }
     });
